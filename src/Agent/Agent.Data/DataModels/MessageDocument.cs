@@ -4,6 +4,7 @@
 
 using System.Text.Json.Serialization;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 
 namespace Agent.Data.DataModels;
 

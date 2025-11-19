@@ -4,8 +4,8 @@
 
 using System.Text.Json;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
+using Agent.Framework;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
 

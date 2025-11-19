@@ -4,17 +4,13 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 using Agent.Core;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Logging;
-using Agent.Plugins.Interface;
 using Agent.Runtime.Helpers;
-using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ToolStatic = Agent.Core.ToolStatic;
@@ -23,17 +19,13 @@ namespace Agent.Runtime.Communication;
 
 public class OutboundCommunicationService : IAgentOutboundCommunicationService
 {
-    private readonly IThreadOrchestrationManager _mappingManager;
     private readonly ILogger<OutboundCommunicationService> _logger;
     private readonly CustomerLogger _customerLogger;
-    private readonly IPostToTeamsPlugin _postToTeamsService;
     private readonly SinkService _sinkService;
     private readonly IStreamingService _streamingService;
-    private readonly IAgentTasksRepository _agentTaskRepository;
-    private readonly IThreadRepository _threadRepository;
     private readonly AgentTaskToolResultHelper _agentTaskHelper;
     private readonly IStreamingMessageRepository _streamingMessageRepository;
-    private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+    private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
@@ -41,7 +33,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     };
 
     // TODO: make this default for all serializer options
-    private readonly JsonSerializerOptions _azCliKubectlSerializerOptions = new JsonSerializerOptions
+    private readonly JsonSerializerOptions _azCliKubectlSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
@@ -49,10 +41,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     };
 
     public OutboundCommunicationService(
-        IThreadOrchestrationManager mappingManager,
         ILogger<OutboundCommunicationService> logger,
         CustomerLogger customerLogger,
-        IPostToTeamsPlugin postToTeamsService,
         SinkService sinkService,
         IStreamingService streamingService,
         IAgentTasksRepository agentTaskRepository,
@@ -60,29 +50,19 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         AgentTaskToolResultHelper agentTaskHelper,
         IStreamingMessageRepository streamingMessageRepository)
     {
-        _mappingManager = mappingManager;
         _logger = logger;
         _customerLogger = customerLogger;
-        _postToTeamsService = postToTeamsService;
         _sinkService = sinkService;
         _streamingService = streamingService;
-        _agentTaskRepository = agentTaskRepository;
-        _threadRepository = threadRepository;
         _agentTaskHelper = agentTaskHelper;
         _streamingMessageRepository = streamingMessageRepository;
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     // main method to update thread with agent message
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null)
     {
-        if (!string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
-        }
-        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
-            orchestrationInstanceId, threadId, message.Text);
-
+        _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}", threadId, message.Text);
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
         _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
         {
@@ -94,51 +74,17 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
         });
 
-        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
+        var resolvedMessageId = messageId ?? Guid.NewGuid();
+        var recordedDateTime = DateTime.UtcNow;
 
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime);
     }
 
-    // overload method that takes AgentTaskInfo directly
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Guid? messageId = null, StreamMessageType? type = null)
-    {
-        if (!string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
-        }
-        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
-            orchestrationInstanceId, threadId, message.Text);
-
-        _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
-        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-        {
-            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
-            { "Message", message.Text ?? string.Empty }
-        });
-        _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
-        {
-            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
-        });
-
-        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
-
-        await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
-        await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo);
-    }
-
     // overload method that takes both AgentTaskInfo and TodoInfo
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null)
     {
-        if (!string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
-        }
-        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
-            orchestrationInstanceId, threadId, message.Text);
-
+        _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}", threadId, message.Text);
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
         _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
         {
@@ -150,22 +96,17 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
         });
 
-        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
+        var resolvedMessageId = messageId ?? Guid.NewGuid();
+        var recordedDateTime = DateTime.UtcNow;
 
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo, todoInfo: todoInfo);
     }
 
     // overload method that takes both AgentTaskInfo and Approval
-    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null)
     {
-        if (!string.IsNullOrEmpty(orchestrationInstanceId))
-        {
-            await _mappingManager.AddMappingAsync(threadId?.ToString() ?? Guid.Empty.ToString(), orchestrationInstanceId);
-        }
-        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}, with approval: {HasApproval}",
-            orchestrationInstanceId, threadId, message.Text, approval != null);
+        _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}, with approval: {HasApproval}", threadId, message.Text, approval != null);
 
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
         _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
@@ -175,26 +116,26 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             { "HasApproval", (approval != null).ToString() }
         });
 
-        Guid resolvedMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
+        var resolvedMessageId = messageId ?? Guid.NewGuid();
+        var recordedDateTime = DateTime.UtcNow;
 
         await AppendAgentStreamMessage(threadId ?? Guid.Empty, message.Text ?? string.Empty, type, resolvedMessageId, recordedDateTime);
         await _sinkService.SinkAgentMessageAsync(threadId ?? Guid.Empty, message.Text ?? string.Empty, isImageContent: false, agentResponseMessageId: resolvedMessageId, recordedDateTime: recordedDateTime, agentTaskInfo: agentTaskInfo, approval: approval);
     }
 
     // over load method that also takes agent context
-    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, bool isComplete = true)
+    public async Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, bool isComplete = true)
     {
         _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         _customerLogger.LogMessage($"[ChatThreadId {context.ThreadId}] Agent responding: {message.Text}");
 
-        Guid agentMessageId = messageId ?? Guid.NewGuid();
-        DateTime recordedDateTime = DateTime.UtcNow;
+        var agentMessageId = messageId ?? Guid.NewGuid();
+        var recordedDateTime = DateTime.UtcNow;
 
         // Stream the message
-        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, null, agentMessageId, recordedDateTime);
+        await AppendAgentStreamMessage(context.ThreadId, message.Text ?? string.Empty, type, agentMessageId, recordedDateTime);
 
         // Handle in-memory storage based on isComplete flag
         if (!isComplete)
@@ -232,7 +173,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             });
 
             // Persist to DB when complete
-            await _sinkService.SinkAgentMessageAsync(context.ThreadId, finalText, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, isComplete: true);
+            await _sinkService.SinkAgentMessageAsync(context.ThreadId, finalText, agentResponseMessageId: agentMessageId, recordedDateTime: recordedDateTime, messageType: type, isComplete: true);
         }
     }
 
@@ -254,11 +195,11 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
 
-        Guid messageId = Guid.NewGuid();
+        var messageId = Guid.NewGuid();
         try
         {
-            Approval modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
-            string jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
+            var modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
+            var jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
             // Use the streaming service abstraction to send the message
             await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval, messageId);
         }
@@ -278,10 +219,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
 
-        Guid resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
         try
         {
-            string jsonString = JsonSerializer.Serialize(memorySearchResult, _serializerOptions);
+            var jsonString = JsonSerializer.Serialize(memorySearchResult, _serializerOptions);
             // Stream to frontend using StreamMessageType.MemorySearch
             await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.MemorySearch, resolvedMessageId);
         }
@@ -291,7 +232,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
 
         // Persist to database - use a descriptive text message
-        string messageText = $"Memory Search: Found {memorySearchResult.TotalResults} relevant results";
+        var messageText = $"Memory Search: Found {memorySearchResult.TotalResults} relevant results";
         return await _sinkService.SinkAgentMessageAsync(threadId, messageText, false, null, resolvedMessageId, null, null, memorySearchResult, null);
     }
 
@@ -304,7 +245,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            string jsonString = JsonSerializer.Serialize(thread, _serializerOptions);
+            var jsonString = JsonSerializer.Serialize(thread, _serializerOptions);
             await _streamingService.StreamThreadUpdateAsync(threadId, jsonString, StreamMessageType.ThreadEvent);
         }
         catch (Exception ex)
@@ -324,7 +265,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             if (type != null)
             {
-                string jsonString = JsonSerializer.Serialize(message, _serializerOptions);
+                var jsonString = JsonSerializer.Serialize(message, _serializerOptions);
                 await AppendAgentStreamMessage(threadId, jsonString, type, messageId: message.Id);
             }
             await AppendAgentStreamMessage(threadId, message.Text ?? string.Empty, null, messageId: message.Id);
@@ -344,7 +285,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            var jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
             if (messageId != default)
             {
                 await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.AzCli, messageId);
@@ -369,7 +310,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            var jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
             if (messageId != default)
             {
                 await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Kubectl, messageId);
@@ -394,7 +335,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            string jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
+            var jsonString = JsonSerializer.Serialize(execution, _azCliKubectlSerializerOptions);
             if (messageId != default)
             {
                 await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Psql, messageId);
@@ -419,8 +360,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            Approval modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
-            string jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
+            var modifiedApproval = approval with { OboTokenScope = string.IsNullOrEmpty(approval.OboTokenScope) ? Constants.DefaultOboTokenScope : approval.OboTokenScope };
+            var jsonString = JsonSerializer.Serialize(modifiedApproval, _serializerOptions);
             if (messageId != default)
             {
                 await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Approval, messageId);
@@ -445,7 +386,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
         try
         {
-            Guid resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+            var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
 
             await _sinkService.SinkAgentMessageAsync(threadId, message, agentResponseMessageId: resolvedMessageId, messageType: StreamMessageType.IntermediateUpdate);
             await AppendAgentStreamMessage(threadId, message, StreamMessageType.IntermediateUpdate, resolvedMessageId);
@@ -460,7 +401,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         try
         {
-            string jsonString = JsonSerializer.Serialize(metrics, _serializerOptions);
+            var jsonString = JsonSerializer.Serialize(metrics, _serializerOptions);
             if (messageId != default)
             {
                 await _streamingService.StreamIncidentUpdateAsync(threadId, jsonString, messageId, messageType: StreamMessageType.IncidentStatus);
@@ -474,9 +415,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             _logger.LogInternalError(ex, "Failed to stream Approval update for thread {ThreadId}", threadId);
         }
-
     }
-
 
     public async Task AppendAgentStreamMessage(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
@@ -502,10 +441,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             {
                 if (type == null)
                 {
-                    Guid resolvedMessageIdForLog = messageId ?? Guid.Empty;
-                    string action = AgentActionEvents.CreateAgentMessage;
-                    string parameter = resolvedMessageIdForLog.ToString();
-                    string status = AgentActionStatus.Success;
+                    var resolvedMessageIdForLog = messageId ?? Guid.Empty;
+                    var action = AgentActionEvents.CreateAgentMessage;
+                    var parameter = resolvedMessageIdForLog.ToString();
+                    var status = AgentActionStatus.Success;
                     long durationMs = 0;
                     _logger.LogAgentAction(action, parameter, status, durationMs, threadId.ToString());
                 }
@@ -599,54 +538,6 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
-    {
-        _logger.LogInternalInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);
-
-        var mapping = await _mappingManager.GetMappingsByThreadIdAsync(threadId);
-        if (mapping.Any())
-        {
-            // todo - once meta agent context is separate from thread history, consider appending a message to the meta agent context so it knows that control has transferred back
-
-            // Remove the mapping as the orchestration is completed
-            await _mappingManager.RemoveMappingAsync(threadId, orchestrationInstanceId);
-        }
-    }
-
-    public async Task PostActivity(string threadId, Activity activity, string messageId = "")
-    {
-        await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
-    }
-
-    public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
-    {
-        var message = $"{subAgentIdentifier} completed with status: {status}";
-
-        if (!string.IsNullOrEmpty(summary))
-        {
-            message += $" summary: {summary}";
-        }
-
-        return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
-    }
-
-    public async Task NotifyActionAsync(Guid threadId, Core.Models.Api.v1.Action action)
-    {
-        if (threadId == Guid.Empty)
-        {
-            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
-        }
-        try
-        {
-            string jsonString = JsonSerializer.Serialize(action, _serializerOptions);
-            await _streamingService.StreamActionUpdateAsync(threadId, jsonString, StreamMessageType.Action);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed to stream action update for thread {ThreadId}", threadId);
-        }
-    }
-
     public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
@@ -665,7 +556,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            Guid agentMessageId = messageId ?? Guid.NewGuid();
+            var agentMessageId = messageId ?? Guid.NewGuid();
 
             // Send stop reason for tool calls in response
             var stopMessageToolCalls = new ChatResponseUpdate
@@ -683,7 +574,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
-            string userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(aiTool.Name);
+            var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(aiTool.Name);
             var functionCallContent = new FunctionCallContent(callId ?? threadId.ToString(), "operation");
             functionCallContent.AdditionalProperties = new AdditionalPropertiesDictionary
             {
@@ -744,7 +635,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            Guid agentMessageId = messageId ?? Guid.NewGuid();
+            var agentMessageId = messageId ?? Guid.NewGuid();
 
             // Send stop reason for tool calls in response
             var stopMessageToolCalls = new ChatResponseUpdate
@@ -761,7 +652,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             };
             await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
 
-            List<AIContent> toolCalls = new List<AIContent>();
+            var toolCalls = new List<AIContent>();
             foreach (var toolCall in manualToolCalls)
             {
                 var functionCall = toolCall.FunctionCall;
@@ -778,7 +669,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 toolCalls.Add(safeFunctionCall);
             }
 
-            ChatResponseUpdate toolCallUpdate = new ChatResponseUpdate(ChatRole.Tool, toolCalls);
+            var toolCallUpdate = new ChatResponseUpdate(ChatRole.Tool, toolCalls);
             toolCallUpdate.AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "threadId", threadId.ToString() },
@@ -820,7 +711,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            Guid agentMessageId = messageId ?? Guid.NewGuid();
+            var agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             var message = new ChatResponseUpdate
@@ -877,7 +768,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            List<AIContent> safeFunctionResults = new List<AIContent>();
+            var safeFunctionResults = new List<AIContent>();
 
             foreach (var manualToolCallResult in manualToolCallResults)
             {
@@ -891,7 +782,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 };
                 safeFunctionResults.Add(safeFunctionResult);
             }
-            Guid agentMessageId = messageId ?? Guid.NewGuid();
+            var agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
             var message = new ChatResponseUpdate
@@ -946,10 +837,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             // Emit structured agent action telemetry for user messages
             try
             {
-                Guid resolvedMessageIdForLog = messageId != Guid.Empty ? messageId : Guid.Empty;
-                string action = AgentActionEvents.CreateUserMessage;
-                string parameter = resolvedMessageIdForLog.ToString();
-                string status = AgentActionStatus.Success;
+                var resolvedMessageIdForLog = messageId != Guid.Empty ? messageId : Guid.Empty;
+                var action = AgentActionEvents.CreateUserMessage;
+                var parameter = resolvedMessageIdForLog.ToString();
+                var status = AgentActionStatus.Success;
                 long durationMs = 0;
                 _logger.LogAgentAction(action, parameter, status, durationMs, threadId.ToString());
             }
@@ -1007,7 +898,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
             // Check for cancellation before streaming
             cancellationToken.ThrowIfCancellationRequested();
-            Guid agentMessageId = messageId ?? Guid.NewGuid();
+            var agentMessageId = messageId ?? Guid.NewGuid();
 
             // Use the streaming service abstraction to send the ChatFinishReason.Stop command back to the user
             var stopMessage = new ChatResponseUpdate
@@ -1164,5 +1055,4 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             _logger.LogInternalError(ex, "Failed to handle agent task Memory result for task {AgentTaskId}", agentTaskId.Value);
         }
     }
-
 }

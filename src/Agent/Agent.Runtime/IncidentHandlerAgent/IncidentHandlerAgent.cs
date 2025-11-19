@@ -18,7 +18,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
-
 namespace Agent.Runtime.IncidentHandlerAgent;
 
 public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
@@ -85,9 +84,9 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         using var _ = await _lock.AcquireWriterAsync();
 
-        Guid threadGuid = agentContext.ThreadId;
+        var threadGuid = agentContext.ThreadId;
         var mode = GetModeForSystemPrompt(agentContext);
-        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
+        var systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
 
         _logger.LogInternalInformation(
@@ -125,10 +124,9 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         // exceptions should be handled by caller due to yield return
         var streamResponses = _chatClient.GetStreamingResponseAsync(chatHistory, options);
 
-        StringBuilder agentResponse = new StringBuilder();
-        bool hasRecordedResposne = false;
-        bool isProcessingToolCalls = false;
-        var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
+        var agentResponse = new StringBuilder();
+        var hasRecordedResposne = false;
+        var isProcessingToolCalls = false;
 
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentStream: Starting to process streaming responses for ThreadId: {ThreadId}",
@@ -147,7 +145,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 // Send initial "processing tools" notification
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     threadGuid,
-                    orchestrationInstanceId,
                     new ChatMessage(ChatRole.Assistant, "🔄 Processing tools and gathering information...")
                 );
             }
@@ -164,7 +161,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
                         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                             threadGuid,
-                            orchestrationInstanceId,
                             new ChatMessage(ChatRole.Assistant, $"🔧 {toolDescription}")
                         );
 
@@ -177,7 +173,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
             if (response.FinishReason == ChatFinishReason.Stop && !hasRecordedResposne)
             {
-                ChatResponse chatResponse = new ChatResponse(
+                var chatResponse = new ChatResponse(
                     new ChatMessage(ChatRole.Assistant, agentResponse.ToString())
                 );
                 await chatResponse.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
@@ -192,7 +188,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         var incidentStatusMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
         await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(threadGuid, incidentStatusMetrics);
-
 
         _logger.LogInternalInformation(
             "[IncidentHandlerAgent] ProcessIncidentStream: Completed streaming responses for AgentContextId: {AgentContextId}, ThreadId: {ThreadId}, ResponseCount: {ResponseCount}",
@@ -217,7 +212,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         using var _ = await _lock.AcquireWriterAsync();
 
-        Guid threadGuid = agentContext.ThreadId;
+        var threadGuid = agentContext.ThreadId;
 
         var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
@@ -240,17 +235,13 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
             var responseMessageId = Guid.Empty;
 
-
             if (response != null)
             {
-                var orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : string.Empty;
-
                 foreach (var message in response.Messages)
                 {
                     responseMessageId = Guid.NewGuid();
                     await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                        threadGuid,
-                       orchestrationInstanceId,
                        message,
                        responseMessageId);
                 }
@@ -292,7 +283,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
             agentContext.Id, threadGuid, agentContext.AgentMode);
 
         var mode = GetModeForSystemPrompt(agentContext);
-        string systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
+        var systemPrompt = _agentsFactory.GetIncidentHandlerAgentSystemPrompt(mode);
         var _aiTools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext);
 
         // Updated to pass the agent mode to tool factory
@@ -368,7 +359,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
         var streamingResponse = _chatClient.GetStreamingResponseAsync(chatHistory, options);
 
-        var orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId);
         var responseMessages = new List<ChatMessage>();
         var currentMessageBuilder = new StringBuilder();
         var currentFunctionCalls = new List<FunctionCallContent>();
@@ -376,7 +366,7 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
         // Track spans per function call id
         var functionCallSpans = new Dictionary<string, TelemetrySpan>();
 
-        bool isProcessingToolCalls = false;
+        var isProcessingToolCalls = false;
 
         await foreach (var update in streamingResponse)
         {
@@ -389,7 +379,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                 // Send initial "processing tools" notification
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     threadGuid,
-                    orchestrationInstanceId,
                     new ChatMessage(ChatRole.Assistant, "🔄 Processing tools and gathering information...")
                 );
             }
@@ -447,7 +436,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
 
                         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                             threadGuid,
-                            orchestrationInstanceId,
                             new ChatMessage(ChatRole.Assistant, $"🔧 {toolDescription}")
                         );
 
@@ -483,8 +471,6 @@ public sealed class IncidentHandlerAgent : IIncidentHandlerAgent
                             }
                         }
                     }
-
-
                 }
             }
         }

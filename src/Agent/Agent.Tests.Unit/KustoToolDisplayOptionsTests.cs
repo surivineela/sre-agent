@@ -9,7 +9,7 @@ using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Kusto.Tools;
+using Agent.Plugins.Tools;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Services;
 using Xunit;

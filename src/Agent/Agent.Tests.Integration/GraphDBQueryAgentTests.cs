@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Runtime;
 using Agent.Runtime.SubAgents;

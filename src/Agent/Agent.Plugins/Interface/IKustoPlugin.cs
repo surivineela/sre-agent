@@ -4,7 +4,6 @@
 
 using Agent.Data.Tools;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins.Interface

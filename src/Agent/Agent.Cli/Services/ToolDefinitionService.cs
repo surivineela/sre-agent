@@ -5,7 +5,7 @@
 using System.Reflection;
 using System.Text;
 using Agent.Framework;
-using Agent.Plugins.Kusto.Tools;
+using Agent.Plugins.Tools;
 using YamlDotNet.Serialization;
 
 namespace Agent.Cli.Services;

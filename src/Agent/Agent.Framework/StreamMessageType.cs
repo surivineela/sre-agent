@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace Agent.Core.Models.Api.v1;
+namespace Agent.Framework;
 
 /// <summary>
 /// Defines the types of messages that can be streamed to client
@@ -99,4 +99,9 @@ public enum StreamMessageType
     /// Intermediate chat updates (tool preambles) sent during agent processing
     /// </summary>
     IntermediateUpdate,
+
+    /// <summary>
+    /// Model Reasoning Summary (only returned for Responses API on reasoning models)
+    /// </summary>
+    Reasoning,
 }

@@ -17,42 +17,22 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null);
 
     /// <summary>
     /// Updates a thread with a message from an agent with agent context
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, bool isComplete = true);
-
-    /// <summary>
-    /// Updates a thread with a message from an agent and contains agent task info
-    /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Guid? messageId = null, StreamMessageType? type = null);
+    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message, Guid? messageId = null, StreamMessageType? type = null, bool isComplete = true);
 
     /// <summary>
     /// Updates a thread with a message from an agent and contains todo info
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, AgentTaskInfo? agentTaskInfo, TodoInfo? todoInfo, Guid? messageId = null, StreamMessageType? type = null);
 
     /// <summary>
     /// Updates a thread with a message with agent task info and approval info
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null);
-
-    /// <summary>
-    /// Notifies about agent task completion
-    /// </summary>
-    Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null);
-
-    /// <summary>
-    /// Notifies about agent task completion
-    /// </summary>
-    Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null);
-
-    /// <summary>
-    /// Notifies about an action
-    /// </summary>
-    Task NotifyActionAsync(Guid threadId, Models.Api.v1.Action action);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, ChatMessage message, AgentTaskInfo? agentTaskInfo, Approval? approval, Guid? messageId = null, StreamMessageType? type = null);
 
     /// <summary>
     /// Notifies a generic agent message to stream, does not save context to thread
@@ -91,10 +71,10 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task NotifyPsqlUpdate(Guid threadId, PsqlExecution execution, Guid messageId = default);
 
-    Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
-
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message, Guid messageId = default);
+
     Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval);
+
     Task<Guid> AppendAgentMemorySearchMessage(Guid threadId, MemorySearchResult memorySearchResult, Guid messageId = default);
 
     /// <summary>
@@ -113,8 +93,11 @@ public interface IAgentOutboundCommunicationService
     Task AppendTodoPlanUpdate(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
     Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default);
+
     Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default);
+
     Task AppendAgentToolCallResult(Guid threadId, FunctionResultContent result, Guid? messageId = null, CancellationToken cancellationToken = default);
+
     Task AppendAgentManualToolCallResult(Guid threadId, List<ManualToolCallResult>? manualToolCallResults, Guid? messageId = null, CancellationToken cancellationToken = default);
 
     /// <summary>

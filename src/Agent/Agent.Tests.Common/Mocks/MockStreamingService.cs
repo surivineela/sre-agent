@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

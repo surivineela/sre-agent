@@ -2,24 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
 using Agent.Data.DataModels.IncidentModel;
 using Agent.Framework;
-using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
 using OpenTelemetry.Trace;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
-namespace Agent.Runtime.Services.AzMonitorAlertInvestigation;
+namespace Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 
 /// <summary>
 /// Orchestrates the entire investigation process
@@ -95,9 +91,9 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
         // Create an initial investigation progress message
         var progressMessageId = await InitProgressMessageAsync(alertThread.Id);
 
-        bool continueInvestigation = true;
+        var continueInvestigation = true;
 
-        int maxIterations = 5; // right now this controls how many investigation steps are executed
+        var maxIterations = 5; // right now this controls how many investigation steps are executed
 
         try
         {
@@ -153,7 +149,6 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
                     reflexionSpan.SetAttribute("reflexion.continue_investigation", reflexionResult.ContinueInvestigation);
                     reflexionSpan.SetAttribute("reflexion.feedback_suggestions", string.Join("; ", reflexionResult.FeedbackSuggestions ?? new List<string>()));
                     reflexionSpan.SetAttribute("reflexion.recommended_next_steps", string.Join("; ", reflexionResult.RecommendedNextSteps ?? new List<string>()));
-
 
                     // Only allow reflexion to stop investigation if all reasoning steps have been executed at least once
                     if (context.CompletedSteps.Count >= totalReasoningSteps)
@@ -237,7 +232,10 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             {
                 var step = _reasoningSteps.FirstOrDefault(s =>
                     s.StepName.Equals(recommendedStep, StringComparison.OrdinalIgnoreCase));
-                if (step != null) return step;
+                if (step != null)
+                {
+                    return step;
+                }
             }
         }
 
@@ -265,13 +263,12 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             hypothesesSpan.SetAttribute("hypotheses.count", hypotheses.Count);
             hypothesesSpan.SetAttribute("hypotheses.descriptions", string.Join("; ", hypotheses.Select(h => $"{h.Description} (confidence: {h.Confidence:F2})")));
 
-
             if (hypotheses.Any())
             {
                 context.CurrentHypotheses = hypotheses;
             }
 
-            string summarizePrompt = BuildFinalSummaryPrompt(context);
+            var summarizePrompt = BuildFinalSummaryPrompt(context);
 
             var options = new ChatOptions
             {
@@ -283,10 +280,10 @@ public class InvestigationOrchestrator : IInvestigationOrchestrator
             };
 
             var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
-                new List<ChatMessage> { new ChatMessage(ChatRole.System, summarizePrompt) },
+                new List<ChatMessage> { new(ChatRole.System, summarizePrompt) },
                 options);
 
-            string recommendedAction = DetermineRecommendedAction(context);
+            var recommendedAction = DetermineRecommendedAction(context);
 
             span.SetAttribute("summary.content", response.Text);
             span.SetStatus(OpenTelemetry.Trace.Status.Ok);
@@ -374,7 +371,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     {
         var messageId = Guid.NewGuid();
 
-        Message initMessage = new Message(
+        var initMessage = new Message(
         Id: messageId,
         TimeStamp: DateTime.UtcNow,
         Author: new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
@@ -402,10 +399,13 @@ Remember: Quality findings with specific values are better than quantity. Exclud
         {
             var existingMessage = await _repository.GetMessageAsync(threadId, messageId);
 
-            if (existingMessage == null) return;
+            if (existingMessage == null)
+            {
+                return;
+            }
 
             //// Update message text
-            string updatedText = ChatMessageService.AppendInvestigationSummary(
+            var updatedText = ChatMessageService.AppendInvestigationSummary(
                 existingMessage.Text, title, summary, status: status, isFinal: isFinal);
 
             Message updatedMessage = existingMessage with { Text = updatedText };
@@ -421,7 +421,9 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     private async Task StoreReflexionFeedbackAsync(InvestigationContext context)
     {
         if (context.LastReflexion == null || !context.LastReflexion.FeedbackSuggestions.Any())
+        {
             return;
+        }
 
         try
         {

@@ -186,9 +186,7 @@ public static class TestHelpers
     public static HostApplicationBuilder RegisterDefaultServices(this HostApplicationBuilder builder)
     {
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
         builder.Services.AddSingleton<IThreadRepository, InMemoryThreadRepository>();
-        builder.Services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
         builder.Services.AddSingleton<ThreadService>();
         builder.Services.AddSingleton<SinkService>();
         builder.Services.AddSingleton<IStreamingMessageRepository, StreamingMessageRepository>();

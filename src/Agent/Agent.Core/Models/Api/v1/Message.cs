@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework;
+
 namespace Agent.Core.Models.Api.v1;
 
 public record AgentTaskInfo(

@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.Exceptions;
@@ -26,7 +25,6 @@ using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.AgentTasks.Handlers;
-using Agent.Runtime.Communication;
 using Agent.Runtime.ConversationModifiers;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
@@ -434,7 +432,6 @@ public class ReasoningLoop : IDisposable
                             {
                                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                                     _context.ThreadId,
-                                    string.Empty,
                                     new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
                                 return;
                             }
@@ -451,7 +448,7 @@ public class ReasoningLoop : IDisposable
                                 }
                             }
 
-                            bool shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
+                            var shouldStop = await HandleUnprocessedToolCallsAsync(agentChatHistory, cancellationToken);
                             if (shouldStop)
                             {
                                 return;
@@ -672,7 +669,6 @@ public class ReasoningLoop : IDisposable
                 LastIterationResult = iterationResult;
             }
         }
-
     }
 
     private async ValueTask<bool> HasPendingApprovalsOrCliExecutionsAsync()
@@ -882,7 +878,7 @@ public class ReasoningLoop : IDisposable
                         else
                         {
                             var checkApprovalResult = await CheckApprovalAsync(toolCall);
-                            bool shouldStop = checkApprovalResult.ApprovalStatus == ToolApprovalStatus.Pending;
+                            var shouldStop = checkApprovalResult.ApprovalStatus == ToolApprovalStatus.Pending;
 
                             if (checkApprovalResult.ApprovalStatus == ToolApprovalStatus.NotRequired || checkApprovalResult.ApprovalStatus == ToolApprovalStatus.AutoApproved)
                             {
@@ -982,7 +978,6 @@ public class ReasoningLoop : IDisposable
                             }
                         }
                     }
-
                 }
 
                 if (toolResults.Count > 0)
@@ -1359,11 +1354,8 @@ public class ReasoningLoop : IDisposable
 
         hooks.AgentStart += (context, agent) =>
         {
-            if (_currentAgentSpan is not null)
-            {
-                _currentAgentSpan.End();
-                _currentAgentSpan = null;
-            }
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
 
             _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
             _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
@@ -1446,7 +1438,7 @@ public class ReasoningLoop : IDisposable
                 {
                     _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var toolCallMessageId = Guid.NewGuid();
-                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, tool, toolCallMessageId, callId);
                     // Store the message ID for OnToolEnd to use
                     Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                 }
@@ -1735,7 +1727,7 @@ public class ReasoningLoop : IDisposable
         var requireApproval = requiresApprovalByName || (aiTool.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>() != null);
 
         // Determine if the tool is marked as a write action
-        bool isWriteAction = false;
+        var isWriteAction = false;
         try
         {
             var writeAttr = aiTool.UnderlyingMethod?.GetCustomAttribute<WriteActionAttribute>();
@@ -1801,7 +1793,7 @@ public class ReasoningLoop : IDisposable
     private static (string ActionResult, string? Failure) DetermineToolExecutionStatus(string toolName, object? result)
     {
         // Convert result to string for analysis
-        string output = result?.ToString() ?? string.Empty;
+        var output = result?.ToString() ?? string.Empty;
 
         // Check for basic "Error: Function" pattern
         if (output.StartsWith("Error: Function", StringComparison.OrdinalIgnoreCase))
@@ -1894,7 +1886,6 @@ public class ReasoningLoop : IDisposable
             _logger.LogInternalError("[{threadId}] AgentChatHistory is null", _context.ThreadId);
             throw new InvalidOperationException("AgentChatHistory is null");
         }
-
 
         // if lastContent is a tool call, we need to invoke the tool first
         if (lastContent != null && lastContent is FunctionCallContent functionCall)
@@ -2558,7 +2549,7 @@ public class ReasoningLoop : IDisposable
 
     private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, CancellationToken cancellationToken = default)
     {
-        for (int attempt = 0; attempt < MaxRetryAttempts; attempt++)
+        for (var attempt = 0; attempt < MaxRetryAttempts; attempt++)
         {
             try
             {
@@ -2833,11 +2824,15 @@ public class ReasoningLoop : IDisposable
         {
             // Extract todos argument
             if (!todoArguments.Any(kvp => kvp.Key == "todos"))
+            {
                 return;
+            }
 
             var todosObj = todoArguments.First(kvp => kvp.Key == "todos").Value;
             if (todosObj == null)
+            {
                 return;
+            }
 
             string serializedTodos;
             if (todosObj is JsonElement element)
@@ -2851,7 +2846,9 @@ public class ReasoningLoop : IDisposable
 
             var frameworkTodos = JsonSerializer.Deserialize<List<FrameworkTodoItem>>(serializedTodos, AIJsonUtilities.DefaultOptions);
             if (frameworkTodos == null || frameworkTodos.Count == 0)
+            {
                 return;
+            }
 
             var todoItems = frameworkTodos.Select((item, index) => new TodoItem
             {
@@ -2921,14 +2918,12 @@ public class ReasoningLoop : IDisposable
 
                 // Create the card in chat (stored in DB)
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                    threadId,
-                    string.Empty,
+                    threadId: threadId,
                     message: message,
                     agentTaskInfo: null,
                     todoInfo: todoInfo,
                     messageId: todoPlan.TriggerMessageId,
-                    type: StreamMessageType.TodoPlan
-                );
+                    type: StreamMessageType.TodoPlan);
 
                 _logger.LogInternalInformation("Successfully created TodoInfo message card for TodoPlan {TodoPlanId}", todoPlan.Id);
             }
@@ -2999,7 +2994,6 @@ public class ReasoningLoop : IDisposable
         }
         throw new ArgumentException($"Unsupported CliToolType: {toolType}");
     }
-
 
     private SkillList GetActiveSkills(Agent<AgentContext> agent)
     {
@@ -3084,16 +3078,20 @@ public class ReasoningLoop : IDisposable
     private static TodoPlanUpdateType DetermineUpdateType(TodoPlan oldPlan, TodoPlan newPlan)
     {
         if (newPlan.Status == TodoPlanStatus.Completed && oldPlan.Status != TodoPlanStatus.Completed)
+        {
             return TodoPlanUpdateType.Completed;
+        }
 
         // Check if any item status changed
         var oldItems = oldPlan.Items.ToList();
         var newItems = newPlan.Items.ToList();
 
-        for (int i = 0; i < Math.Min(oldItems.Count, newItems.Count); i++)
+        for (var i = 0; i < Math.Min(oldItems.Count, newItems.Count); i++)
         {
             if (oldItems[i].Status != newItems[i].Status)
+            {
                 return TodoPlanUpdateType.ItemStatusChanged;
+            }
         }
 
         return TodoPlanUpdateType.Updated;
@@ -3102,7 +3100,9 @@ public class ReasoningLoop : IDisposable
     private static string GeneratePlanTitle(List<TodoItem> todoItems)
     {
         if (todoItems.Count == 0)
+        {
             return "Todo Plan";
+        }
 
         var firstItem = todoItems.First().Content;
 
@@ -3123,13 +3123,19 @@ public class ReasoningLoop : IDisposable
     private static TodoPlanStatus DeterminePlanStatus(List<TodoItem> todoItems)
     {
         if (todoItems.Count == 0)
+        {
             return TodoPlanStatus.Planning;
+        }
 
         if (todoItems.All(item => item.Status == TodoItemStatus.Completed))
+        {
             return TodoPlanStatus.Completed;
+        }
 
         if (todoItems.Any(item => item.Status == TodoItemStatus.InProgress))
+        {
             return TodoPlanStatus.InProgress;
+        }
 
         return TodoPlanStatus.Planning;
     }

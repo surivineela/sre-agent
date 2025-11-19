@@ -295,7 +295,7 @@ public class GeneralAgentEvals
         // Call the LLM with the same setup as RunSingleTurnAsync
         ChatResponse response;
 
-        var textStreamer = new TextStreamContentHandler(displayModelOutput: default);
+        var reasoningStreamer = new ReasoningStreamContentHandler(displayModelOutput: default);
 
         try
         {
@@ -303,12 +303,22 @@ public class GeneralAgentEvals
             {
                 var jsonStreamer = new JsonStreamContentHandler(agent.OutputType, displayModelOutput: default);
                 TestContext.WriteLine("Agent has structured output - calling with structured output support");
-                (response, _) = await chatClient.GetResponseAsync(modelInput, agent.OutputType, chatOptions, jsonStreamer, textStreamer);
+                (response, _) = await chatClient.GetResponseAsync(
+                    messages: modelInput,
+                    outputType: agent.OutputType,
+                    options: chatOptions,
+                    outputJsonStreamHandler: jsonStreamer,
+                    reasoningStreamHandler: reasoningStreamer);
             }
             else
             {
+                var textStreamer = new TextStreamContentHandler(displayModelOutput: default);
                 TestContext.WriteLine("Agent using regular chat completion");
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions, textStreamer);
+                response = await chatClient.GetResponseAsync(
+                    messages: modelInput,
+                    options: chatOptions,
+                    outputTextStreamHandler: textStreamer,
+                    reasoningStreamHandler: reasoningStreamer);
             }
 
             // Check and handle handoff state without tool call - similar to ReasoningLoop

@@ -12,21 +12,10 @@ namespace Agent.Framework;
 /// </summary>
 public class JsonStreamContentHandler : IStreamContentHandler
 {
-    private readonly Type _outputType;
     private readonly IDisplayModelOutput? _displayModelOutput;
     private readonly string? _streamableContentPropertyName;
     private readonly StreamExtractor? _streamExtractor;
     private bool _hasStreamedContent;
-
-    /// <summary>
-    /// Gets the output type associated with this handler.
-    /// </summary>
-    public Type OutputType => _outputType;
-
-    /// <summary>
-    /// Gets the name of the property marked with StreamableContentAttribute, if any.
-    /// </summary>
-    public string? StreamableContentPropertyName => _streamableContentPropertyName;
 
     /// <summary>
     /// Initializes a new instance of the JsonStreamContentHandler class.
@@ -35,7 +24,6 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// <param name="displayModelOutput">Optional display model output handler invoked for each chunk of the property value.</param>
     public JsonStreamContentHandler(Type outputType, IDisplayModelOutput? displayModelOutput)
     {
-        _outputType = outputType;
         _displayModelOutput = displayModelOutput;
 
         // Perform StreamableContentAttribute validation
@@ -47,7 +35,7 @@ public class JsonStreamContentHandler : IStreamContentHandler
         }
 
         // Initialize the stream extractor
-        _streamExtractor = new StreamExtractor(_streamableContentPropertyName!, OnStreamContentAsync);
+        _streamExtractor = new StreamExtractor(_streamableContentPropertyName, OnStreamContentAsync);
     }
 
     /// <summary>
@@ -85,6 +73,11 @@ public class JsonStreamContentHandler : IStreamContentHandler
     /// <param name="content">The content to append.</param>
     public async Task AppendAsync(string content)
     {
+        if (string.IsNullOrEmpty(content))
+        {
+            return;
+        }
+
         _hasStreamedContent = true;
         if (_streamExtractor != null)
         {

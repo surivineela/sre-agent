@@ -1,4 +1,7 @@
-using Agent.Core.Configuration;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
@@ -259,13 +262,9 @@ $@"## Facts
     private readonly ISearchPlugin _searchPlugin;
     private readonly IRemediationPlugin _remediationPlugin;
 
-    private readonly InstanceManagementSettings _instanceManagementSettings;
-    private readonly IGraphService _graphService;
-
     public ThirdPartyAgentsFactory(
         IMcpConnectable mcpToolsRepository,
         IServiceProvider serviceProvider,
-
         IChartPlugin chartPlugin,
         //IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
         IAppServicePlugin appServicePlugin,
@@ -279,7 +278,6 @@ $@"## Facts
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         IDiagnosticsPlugin diagnosticsPlugin,
         IMetricsPlugin metricsPlugin,
-        InstanceManagementSettings instanceManagementSettings,
         IPagerDutyIncidentPlugin incidentPlugin,
         IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
         IArmPlugin armPlugin,
@@ -313,13 +311,11 @@ $@"## Facts
 
         _incidentPlugin = incidentPlugin;
 
-        _instanceManagementSettings = instanceManagementSettings;
         _armPlugin = armPlugin;
         _searchPlugin = searchPlugin;
 
         _remediationPlugin = remediationPlugin;
         _sourceCodeAnalysisPlugin = sourceCodeAnalysisPlugin;
-        _graphService = graphService;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -354,7 +350,6 @@ $@"## Facts
         var azureDevOpsWorkItemPluginDefinition = new AzureDevOpsWorkItemPluginDefinition(_azureDevOpsWorkItemPlugin);
         var repositoryPluginDefinition = new RepositoryPluginDefintion();
         var sourceCodeErrorAnalysisPluginDefinition = new SourceCodeAnalysisAgentPluginDefinition(_sourceCodeAnalysisPlugin);
-
 
         var searchPluginDefinition = new SearchPluginDefinition(_searchPlugin);
 
@@ -456,7 +451,7 @@ $@"## Facts
     public string GetIncidentHandlerAgentSystemPrompt(string? agentMode)
     {
         //Default to review
-        string prompt = $@"You are **SRE Agent** that handles service incidents and executes mitigation actions when needed in a fully automated manner.
+        var prompt = $@"You are **SRE Agent** that handles service incidents and executes mitigation actions when needed in a fully automated manner.
 
      You could also receive triggers from an automated incident source. In this scenario, consider that SRE Agent found the incident proactively, fetch and analyze the incident details and execute relevant mitigation instructions.
 
@@ -485,7 +480,7 @@ $@"## Facts
     **Remember when mitigating an incident:** Generate a step-by-step summary of the incident and your findings, any actions taken and use it as the description to mitigate the incident.
     **Always write well formatted reports and use proper lists, section headings, and horizontal line separators between sections.**
 ";
-        string modePrompt = AgentModePrompts.GetPrompt(agentMode);
+        var modePrompt = AgentModePrompts.GetPrompt(agentMode);
         if (!string.IsNullOrEmpty(modePrompt))
         {
             prompt = $"{prompt}\n{modePrompt}";
@@ -502,7 +497,7 @@ $@"## Facts
 
 public static class AgentModePrompts
 {
-    private static readonly Dictionary<string, string> agentModePromptDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, string> agentModePromptDict = new(StringComparer.OrdinalIgnoreCase)
     {
         {
             AgentModes.ReadOnly,

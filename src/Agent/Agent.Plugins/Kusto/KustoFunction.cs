@@ -1,4 +1,9 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Plugins.Kusto;
+
 public class KustoFunctionInfo
 {
     public string? Name { get; set; }

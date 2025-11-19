@@ -218,8 +218,8 @@ public static class Runner
     ) where TContext : class
     {
         hooks ??= new RunHooks<TContext>();
-        bool shouldRunAgentStartHooks = _shouldRunAgentStartHooks;
-        Agent<TContext> currentAgent = startingAgent;
+        var shouldRunAgentStartHooks = _shouldRunAgentStartHooks;
+        var currentAgent = startingAgent;
         List<ChatMessage> originalInput = [.. input];
         List<ChatMessage> generatedMessages = newGeneratedItems is not null
             ? [.. newGeneratedItems]
@@ -601,7 +601,7 @@ public static class Runner
 
         tools = ValidateTools(tools, logger);
 
-        bool allowMultipleToolCalls = allowParallelToolCalls && agent.AllowParallelToolCalls;
+        var allowMultipleToolCalls = allowParallelToolCalls && agent.AllowParallelToolCalls;
 
         var chatOptions = new ChatOptions
         {
@@ -648,6 +648,11 @@ public static class Runner
 
         ChatResponse? response = null;
         object? structuredOutput = null;
+
+        var reasoningStreamHandler = displayModelOutput is not null
+            ? new ReasoningStreamContentHandler(displayModelOutput)
+            : default;
+
         var textStreamHandler = displayModelOutput is not null
             ? new TextStreamContentHandler(displayModelOutput)
             : default;
@@ -665,22 +670,32 @@ public static class Runner
                         : default;
 
                     (response, structuredOutput) = await chatClient.GetResponseAsync(
-                        modelInput,
-                        agent.OutputType,
-                        chatOptions,
-                        jsonStreamHandler,
-                        textStreamHandler,
-                        cancellationToken);
+                        messages: modelInput,
+                        outputType: agent.OutputType,
+                        options: chatOptions,
+                        outputJsonStreamHandler: jsonStreamHandler,
+                        reasoningStreamHandler: reasoningStreamHandler,
+                        cancellationToken: cancellationToken);
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to deserialize the response"))
                 {
                     logger.LogWarning(ex, "Failed to deserialize structured output for agent {AgentName}. Falling back to non-structured response.", agent.Name);
-                    response = await chatClient.GetResponseAsync(modelInput, chatOptions, cancellationToken);
+                    response = await chatClient.GetResponseAsync(
+                        messages: modelInput,
+                        options: chatOptions,
+                        outputTextStreamHandler: textStreamHandler,
+                        reasoningStreamHandler: reasoningStreamHandler,
+                        cancellationToken: cancellationToken);
                 }
             }
             else
             {
-                response = await chatClient.GetResponseAsync(modelInput, chatOptions, textStreamHandler, cancellationToken);
+                response = await chatClient.GetResponseAsync(
+                    messages: modelInput,
+                    options: chatOptions,
+                    outputTextStreamHandler: textStreamHandler,
+                    reasoningStreamHandler: reasoningStreamHandler,
+                    cancellationToken: cancellationToken);
             }
         }
         finally
@@ -737,9 +752,9 @@ public static class Runner
     {
         List<ChatMessage> newStepItems = [];
         List<ManualToolCall> manualToolCalls = [];
-        bool anyToolsCalled = modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any());
+        var anyToolsCalled = modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any());
         List<FunctionResultContent> functionResults = [];
-        bool handoffOccurred = false;
+        var handoffOccurred = false;
         Agent<TContext>? handoffNewAgent = null;
         SkillList newActivatedSkills = [];
 
@@ -786,7 +801,7 @@ public static class Runner
 
             foreach (var functionCall in functionCalls)
             {
-                AIFunction? tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
+                var tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
                 // check for cached function call result
                 if (tool is not null && toolResultCache is not null && toolResultCache.TryGetValue(functionCall, out var cachedResult))
@@ -1219,7 +1234,7 @@ public static class Runner
             // Verify alternating pattern and same agent
             string? targetAgent = null;
 
-            for (int i = 0; i < recentPattern.Count; i++)
+            for (var i = 0; i < recentPattern.Count; i++)
             {
                 if (i % 2 == 0) // Should be transfer_to_
                 {
@@ -1261,7 +1276,7 @@ public static class Runner
         const string OverrideHeader = "[RCA_HANDOFF_OVERRIDE]";
 
         // Look for User messages with the override header
-        for (int i = 0; i < modelInput.Count; i++)
+        for (var i = 0; i < modelInput.Count; i++)
         {
             var message = modelInput[i];
 
@@ -1299,7 +1314,7 @@ public static class Runner
     {
         var lines = messageText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var userQueryLines = new List<string>();
-        bool foundUserSection = false;
+        var foundUserSection = false;
 
         foreach (var line in lines)
         {

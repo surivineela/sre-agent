@@ -48,7 +48,8 @@ public static partial class ChatClientExtensions
         this IChatClient client,
         IEnumerable<ChatMessage> messages,
         ChatOptions options,
-        TextStreamContentHandler? textStreamHandler = null,
+        TextStreamContentHandler? outputTextStreamHandler,
+        ReasoningStreamContentHandler? reasoningStreamHandler,
         CancellationToken cancellationToken = default
     )
     {
@@ -56,8 +57,8 @@ public static partial class ChatClientExtensions
             client: client,
             messages: messages,
             options: options,
-            outputTextStreamHandler: textStreamHandler, // output text is a string directly, so we don't need to use jsonhandler
-            reasoningSummaryStreamHandler: textStreamHandler,
+            outputTextStreamHandler: outputTextStreamHandler,
+            reasoningSummaryStreamHandler: reasoningStreamHandler,
             cancellationToken: cancellationToken);
     }
 
@@ -69,8 +70,8 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         Type outputType,
         ChatOptions? options = null,
-        JsonStreamContentHandler? jsonStreamHandler = null,
-        TextStreamContentHandler? textStreamHandler = null,
+        JsonStreamContentHandler? outputJsonStreamHandler = null,
+        ReasoningStreamContentHandler? reasoningStreamHandler = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -119,7 +120,13 @@ public static partial class ChatClientExtensions
 
         for (var i = 0; i <= retryCount; i++)
         {
-            var chatResponse = await GetResponseWithRateLimitRetriesAsync(client, messages, options, jsonStreamHandler, textStreamHandler, cancellationToken);
+            var chatResponse = await GetResponseWithRateLimitRetriesAsync(
+                client: client,
+                messages: messages,
+                options: options,
+                outputTextStreamHandler: outputJsonStreamHandler,
+                reasoningSummaryStreamHandler: reasoningStreamHandler,
+                cancellationToken: cancellationToken);
 
             var firstTextContent = chatResponse.Messages.FirstOrDefault()?.Contents.OfType<TextContent>().FirstOrDefault();
 
@@ -177,7 +184,7 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         ChatOptions? options,
         IStreamContentHandler? outputTextStreamHandler,
-        TextStreamContentHandler? reasoningSummaryStreamHandler,
+        ReasoningStreamContentHandler? reasoningSummaryStreamHandler,
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;

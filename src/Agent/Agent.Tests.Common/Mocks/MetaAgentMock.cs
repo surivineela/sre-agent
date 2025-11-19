@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
@@ -8,7 +12,6 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -36,7 +39,6 @@ public static class MetaAgentMock
         ICpuAnalysisPlugin? cpuPlugin = null,
         IMetricsPlugin? metricsPlugin = null,
         IPagerDutyIncidentPlugin? incidentPlugin = null,
-        InstanceManagementSettings? instanceManagementSettings = null,
         IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null,
         IDiagnosticsPlugin? diagnosticsPlugin = null,
         IArmPlugin? armPlugin = null,
@@ -65,7 +67,6 @@ public static class MetaAgentMock
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             diagnosticsPlugin ?? Mock.Of<IDiagnosticsPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
-            instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),
             incidentPlugin ?? Mock.Of<IPagerDutyIncidentPlugin>(),
             azureMonitorMetricsPlugin ?? Mock.Of<IAzureMonitorMetricsPlugin>(),
             armPlugin ?? Mock.Of<IArmPlugin>(),// Added argument

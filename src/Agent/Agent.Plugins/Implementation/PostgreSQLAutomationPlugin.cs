@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Logging;

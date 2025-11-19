@@ -10,11 +10,6 @@ namespace Agent.Framework;
 public interface IStreamContentHandler
 {
     /// <summary>
-    /// Number of characters to accumulate in the content cache before displaying
-    /// </summary>
-    const int ContentCacheThreshold = 50;
-
-    /// <summary>
     /// Appends streaming content as it arrives
     /// </summary>
     /// <param name="content">The content to append</param>

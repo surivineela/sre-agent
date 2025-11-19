@@ -36,10 +36,10 @@ using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.Link.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
+using Agent.Plugins.Tools;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.AgentTasks;
@@ -92,7 +92,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        WebApplication app = CreateWebApplicationBuilder(new WebApplicationOptions { Args = args }).Build();
+        var app = CreateWebApplicationBuilder(new WebApplicationOptions { Args = args }).Build();
 
         var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
 
@@ -576,7 +576,6 @@ public class Program
             .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
             .AddSingleton<ITimePlugin, TimePlugin>()
             .AddSingleton<IMcpConnectable, McpToolsRepository>()
-            .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
             .AddSingleton<SinkService>()
             .AddSingleton<IStreamingMessageRepository, StreamingMessageRepository>()
             .AddSingleton<ThreadService>()
@@ -1586,7 +1585,7 @@ public class Program
         try
         {
             // Default predicate: filter by EventId
-            Func<LogRecord, bool> predicate = customPredicate ?? (record => record.EventId.Id == eventId);
+            var predicate = customPredicate ?? (record => record.EventId.Id == eventId);
 
             // Derive EventHub name from ADX table name (lowercase)
             string eventHubName = adxTableName.ToLowerInvariant();

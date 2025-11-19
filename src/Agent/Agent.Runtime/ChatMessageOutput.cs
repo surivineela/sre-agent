@@ -36,22 +36,24 @@ public class ChatMessageOutput : IDisplayModelOutput
     /// </summary>
     /// <param name="content">The content to display</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    public async Task OnDisplay(string content)
+    public async Task OnDisplay(string content, StreamMessageType? streamMessageType = null)
     {
         await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             _context,
             new ChatMessage(ChatRole.Assistant, content),
             _messageId,
+            streamMessageType,
             isComplete: false);
     }
 
-    public async Task OnComplete(string content = "")
+    public async Task OnComplete(string content = "", StreamMessageType? streamMessageType = null)
     {
         // Mark as complete and save to DB through outbound service
         await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             _context,
             new ChatMessage(ChatRole.Assistant, content),
             _messageId,
+            streamMessageType,
             isComplete: true);
 
         // when message completes, reset messageGuid for next messages

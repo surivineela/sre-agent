@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.Caching;
@@ -17,7 +21,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Agent.Plugins;
+namespace Agent.Plugins.Implementation;
 
 public class GenevaActionWorkflowResponse
 {
@@ -39,11 +43,11 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
     private readonly bool _icmWorkflowReadOnly;
     private const string _genevaActionSecretName = "GenevaActionConfigs";
 
-    private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
-    private OneBranchApprovalService _oneBranchApprovalService;
-    private IKeyVaultService _keyVaultService;
-    private IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    private TokenCredentialHttpClientHandler _tokenCredentialHttpClientHandler;
+    private readonly Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
+    private readonly OneBranchApprovalService _oneBranchApprovalService;
+    private readonly IKeyVaultService _keyVaultService;
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+    private readonly TokenCredentialHttpClientHandler _tokenCredentialHttpClientHandler;
 
     // Static MemoryCache for approval requests shared across all instances
     private static readonly MemoryCache _approvalRequestsCache = MemoryCache.Default;
@@ -101,7 +105,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
                 return allGenevaActions;
             }
 
-            string json = await _keyVaultService.ReadSecretAsync(_genevaActionSecretName);
+            var json = await _keyVaultService.ReadSecretAsync(_genevaActionSecretName);
             if (string.IsNullOrWhiteSpace(json))
             {
                 _logger.LogInternalWarning($"[GenevaActionsPlugin] Geneva Actions Config not found in Key Vault with name {_genevaActionSecretName}. Returning empty list.");
@@ -207,7 +211,7 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
     private async Task<string> GetApprovalStatus(string documentId)
     {
-        Agent.Core.Models.OneBranchApprovalStatus? approvalStatus = null;
+        OneBranchApprovalStatus? approvalStatus = null;
         var logMessage = $"[get_approval_status] Invoked with documentId {documentId}. Checking approval status.";
         string? message = null;
         _logger.LogInternalInformation(logMessage);
@@ -231,10 +235,9 @@ No approval request found for document ID: {documentId}. Please ensure the docum
 ";
         }
 
-
         if (approvalRequestDetails.ApprovalStatus == OnebranchApprovalStatus.NotStarted)
         {
-            int delayAmountInSeconds = 30;
+            var delayAmountInSeconds = 30;
             var approvalStatusTask = _oneBranchApprovalService.PollForApprovalAsync(documentId);
 
             while (!approvalStatusTask.IsCompleted || !approvalStatusTask.IsFaulted)
@@ -251,10 +254,9 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                 delayAmountInSeconds *= 2; // Exponential backoff
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     ThreadId!.Value,
-                    string.Empty,
                     new ChatMessage(ChatRole.Assistant, $"Still waiting for approval, please approve the action. Will check again in {delayAmountInSeconds} seconds."));
             }
-            string? status = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
+            var status = approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Action;
             if (status != "Approve")
             {
                 message = $"Geneva Action execution was rejected by {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Principal}. Status: {status}. Comments: {approvalStatus?.Data?.ApprovalDocumentCompleteDetails?.Comments}";
@@ -289,7 +291,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
 
         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             ThreadId!.Value,
-            string.Empty,
             new ChatMessage(ChatRole.Assistant, message!));
         return message;
     }
@@ -320,7 +321,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         {
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 ThreadId!.Value,
-                string.Empty,
                 new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response.Content}"));
             return $"Geneva Action '{actionName}' executed successfully. Response: {response.Content}.";
         }
@@ -337,7 +337,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         _logger.LogInternalInformation(logMessage);
         await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
             ThreadId!.Value,
-            string.Empty,
             new ChatMessage(ChatRole.Assistant, $@"Invoking geneva action **{actionName}** with parameters:
     {string.Join(Environment.NewLine, inputParameters.Select(kvp => $"    {kvp.Key}: {kvp.Value}"))}")
         );
@@ -369,7 +368,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Geneva action requires approval. Check for existing approval.";
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 ThreadId!.Value,
-                string.Empty,
                 new ChatMessage(ChatRole.Assistant, "This geneva action requires approval"));
             _logger.LogInternalInformation(logMessage);
             var approvalRequestDetails = GetApprovalRequestDetails(ThreadId!.Value, actionName, inputParameters);
@@ -393,7 +391,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
 
                     await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                         ThreadId!.Value,
-                        string.Empty,
                         new ChatMessage(ChatRole.Assistant, "Sending request to Approval Service API to create approval document."));
                     // Create the approval document
                     var approvalResponse = await _oneBranchApprovalService.CreateApprovalDocumentAsync(approvalRequest, actionName, inputParameters);
@@ -412,7 +409,6 @@ No approval request found for document ID: {documentId}. Please ensure the docum
                     _logger.LogInternalInformation(logMessage);
                     await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                         ThreadId!.Value,
-                        string.Empty,
                         new ChatMessage(ChatRole.Assistant, $@"Approval document created, please approve. (**Requires SAW**)
                     Approval Request URI: {approvalResponse.ApprovalDocumentUri}"));
 
@@ -447,7 +443,6 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
                 _logger.LogInternalInformation(logMessage);
                 await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                     ThreadId!.Value,
-                    string.Empty,
                     new ChatMessage(ChatRole.Assistant, $"Approval already exists for actionName: {actionName}. Proceeding with execution."));
             }
             else
@@ -457,7 +452,6 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
                 return logMessage;
             }
         }
-
 
         var subscriptionId = inputParameters.ContainsKey("subscriptionId") ? inputParameters["subscriptionId"] : (inputParameters.ContainsKey("subscription") ? inputParameters["subscription"] : null);
 
@@ -471,7 +465,6 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
         {
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 ThreadId!.Value,
-                string.Empty,
                 new ChatMessage(ChatRole.Assistant, $"Geneva Actions response: {response.Content}"));
             return $"Geneva Action '{actionName}' executed successfully. Response: {response.Content}.";
         }
@@ -485,7 +478,9 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         var tags = new Dictionary<string, string>();
         if (string.IsNullOrWhiteSpace(inputParameter))
+        {
             return tags;
+        }
 
         // Pattern: key=value; key="value with ; and \"quotes\""; key2=unquoted
         var pattern = @"(?<key>[^=;]*)=(?:(?:""(?<qval>(?:[^""\\]|\\.)*)"")|(?<val>[^;]*))(?:;|$)";
@@ -635,7 +630,6 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
             await _icmAPIClient.PostDiscussionEntryAsync(incidentId, message);
         }
     }
-
 }
 
 public enum OnebranchApprovalStatus

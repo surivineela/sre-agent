@@ -5,26 +5,24 @@
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Runtime.TrajectoryEvaluator;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Agent.Tests.Unit.TrajectoryEvaluator;
 
 public class InsightPostingServiceTests
 {
-    private Mock<IAgentOutboundCommunicationService> _mockOutboundService;
-    private Mock<IThreadRepository> _mockThreadRepository;
-    private Mock<IChatClientProvider> _mockChatClientProvider;
-    private Mock<ILogger<InsightPostingService>> _mockLogger;
-    private Mock<ISessionInsightRepository> _mockSessionInsightRepository;
-    private AgentMemorySettings _agentMemorySettings;
-    private InsightPostingService _service;
+    private readonly Mock<IAgentOutboundCommunicationService> _mockOutboundService;
+    private readonly Mock<IThreadRepository> _mockThreadRepository;
+    private readonly Mock<IChatClientProvider> _mockChatClientProvider;
+    private readonly Mock<ILogger<InsightPostingService>> _mockLogger;
+    private readonly Mock<ISessionInsightRepository> _mockSessionInsightRepository;
+    private readonly AgentMemorySettings _agentMemorySettings;
+    private readonly InsightPostingService _service;
 
     public InsightPostingServiceTests()
     {
@@ -78,7 +76,6 @@ public class InsightPostingServiceTests
         _mockOutboundService.Verify(
             x => x.UpdateThreadWithAgentMessageAsync(
                 It.IsAny<Guid>(),
-                It.IsAny<string>(),
                 It.IsAny<ChatMessage>(),
                 It.IsAny<Guid?>(),
                 It.IsAny<StreamMessageType?>()

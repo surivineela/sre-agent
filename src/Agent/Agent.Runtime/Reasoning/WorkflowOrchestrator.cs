@@ -42,7 +42,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly ISkillRegistry _skillRegistry;
 
     // Telemetry spans for workflow tracing
-    private TelemetrySpan? _rootSpan;
+    private readonly TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
     private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
     private TelemetrySpan? _currentGenerationSpan;
@@ -148,7 +148,6 @@ public class WorkflowOrchestrator : IDisposable
             Role: ReasoningMessageRoleEnum.User,
             SerializedChatMessage: JsonSerializer.Serialize(msg));
         //    SerializedChatMessage: JsonSerializer.Serialize(msg) + $"Debug Id: {_context.Id} MessageId: {messageId} ThreadId: {_context.ThreadId} ");
-
 
         await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
         _lastUserReasoningMessageId = reasoningMessage.Id;
@@ -393,7 +392,7 @@ public class WorkflowOrchestrator : IDisposable
                 // Execute each start agent as an independent branch with its own context
                 var branchTasks = new List<Task>();
 
-                for (int i = 0; i < startAgents.Count; i++)
+                for (var i = 0; i < startAgents.Count; i++)
                 {
                     var startAgent = startAgents[i];
                     var branchContext = baseExecutionContext.Clone(); // Each branch gets its own context
@@ -944,7 +943,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 try
                 {
                     var postTool = _toolFactory.GetTool("PostIcmRcaSummary", _context.ThreadId, orchestratorAgent);
-                    if (postTool != null) tools.Add(postTool);
+                    if (postTool != null)
+                    {
+                        tools.Add(postTool);
+                    }
                 }
                 catch { /* Tool might not be registered; proceed without it */ }
 
@@ -957,7 +959,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                     var sysIdx = summaryMessages.FindIndex(m => m.Role == ChatRole.System);
                     if (sysIdx >= 0)
                     {
-                        var merged = (summaryMessages[sysIdx].Text ?? string.Empty);
+                        var merged = summaryMessages[sysIdx].Text ?? string.Empty;
                         merged = string.IsNullOrEmpty(merged) ? toolInstruction : $"{merged}\n\n{toolInstruction}";
                         summaryMessages[sysIdx] = new ChatMessage(ChatRole.System, merged);
                     }
@@ -966,7 +968,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                         var userIdx = summaryMessages.FindIndex(m => m.Role == ChatRole.User);
                         if (userIdx >= 0)
                         {
-                            var merged = (summaryMessages[userIdx].Text ?? string.Empty);
+                            var merged = summaryMessages[userIdx].Text ?? string.Empty;
                             merged = string.IsNullOrEmpty(merged) ? toolInstruction : $"{merged}\n\n{toolInstruction}";
                             summaryMessages[userIdx] = new ChatMessage(ChatRole.User, merged);
                         }
@@ -1023,7 +1025,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 : (TryGetAssistantText(response) ?? "Unable to generate summary");
 
             // Add thread link for detailed view + conditional access note
-            string accessNote = string.Empty;
+            var accessNote = string.Empty;
             if (!isLocal)
             {
                 accessNote = "\n\n> Note: One-time setup required before you can open the link:" +
@@ -1063,7 +1065,6 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 Role: ReasoningMessageRoleEnum.Assistant,
                 SerializedChatMessage: JsonSerializer.Serialize(chatMessage));
 
-
             await _threadRepository.CreateReasoningMessageAsync(reasoningMessage);
 
             var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
@@ -1074,7 +1075,6 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 _context.ThreadId,
-                string.Empty,
                 chatMessage,
                 messageId);
         }
@@ -1122,7 +1122,11 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
     private static string FirstSentenceOrTrim(string? text, int maxLen)
     {
-        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
         var span = text.AsSpan();
         var periodIndex = text.IndexOf('.') >= 0 ? text.IndexOf('.') : -1;
         var candidate = periodIndex >= 0 ? text.Substring(0, periodIndex + 1) : text;
@@ -1136,7 +1140,11 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
     private static string CompressJson(string? json, int maxLen)
     {
-        if (string.IsNullOrWhiteSpace(json)) return "{}";
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return "{}";
+        }
+
         try
         {
             using var doc = JsonDocument.Parse(json);
@@ -1184,11 +1192,8 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
         hooks.AgentStart += (context, agent) =>
         {
-            if (_currentAgentSpan is not null)
-            {
-                _currentAgentSpan.End();
-                _currentAgentSpan = null;
-            }
+            _currentAgentSpan?.End();
+            _currentAgentSpan = null;
 
             _logger.LogInternalInformation("Workflow trace invoke agent: {AgentName}", agent.Name);
             _currentAgentSpan = _tracer.StartActiveSpan($"workflow.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
@@ -1239,7 +1244,6 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
             _toolSpans[functionCall.CallId] = currentToolSpan;
 
-
             // Stream auto tools to avoid missing them (manual tools are handled separately)
             if (tool.GetToolMode() == ToolMode.Auto)
             {
@@ -1248,7 +1252,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 {
                     _logger.LogInternalInformation("Workflow streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var toolCallMessageId = Guid.NewGuid();
-                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, (AIFunction)tool, toolCallMessageId, callId);
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, tool, toolCallMessageId, callId);
 
                     // Store the message ID for OnToolEnd to use
                     ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
@@ -1431,7 +1435,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
         try
         {
             var calls = ExtractFunctionCalls(response);
-            if (calls.Count == 0) return null;
+            if (calls.Count == 0)
+            {
+                return null;
+            }
 
             string? lastFinalText = null;
 
@@ -1558,7 +1565,10 @@ Please consolidate the findings, identify key insights, and provide actionable r
             if (!string.IsNullOrWhiteSpace(raw))
             {
                 var parsed = JsonSerializer.Deserialize<Dictionary<string, object?>>(raw!);
-                if (parsed != null) return parsed;
+                if (parsed != null)
+                {
+                    return parsed;
+                }
             }
         }
         catch { /* ignored */ }

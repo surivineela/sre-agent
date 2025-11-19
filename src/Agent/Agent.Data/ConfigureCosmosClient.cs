@@ -17,9 +17,6 @@ public static class AgentDataConfiguration
 {
     public const string ThreadContainerName = "documents";
     public const string AgentContextContainerName = "agentContexts";
-    public const string InstanceManagementContainerName = "instanceManagement";
-    public const string InstanceAssignmentsContainerName = "instanceAssignments";
-    public const string LeaseContainerName = "changeFeedLeases";
     public const string ReasoningLoopContainerName = "reasoningloopdocs";
     public const string ExtendedAgentContainerName = "extendedagents";
     public const string ReasoningLoopEncryptionKeyName = "reansoningloopkey";
@@ -71,19 +68,6 @@ public static class AgentDataConfiguration
             return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
-        // Add Thread Orchestration Mapping repository registration
-        serviceCollection.AddSingleton<IThreadOrchestrationMappingRepository>(serviceProvider =>
-        {
-            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
-            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
-            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
-
-            return new CosmosDbThreadOrchestrationMappingRepository(
-                cosmosClient,
-                cosmosDatabaseName);
-        });
-
-
         // Add Thread Teams Conversation Mapping repository registration
         serviceCollection.AddSingleton<IThreadTeamsMappingRepository>(serviceProvider =>
         {
@@ -93,23 +77,6 @@ public static class AgentDataConfiguration
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbThreadTeamsMappingRepository>>();
             return new CosmosDbThreadTeamsMappingRepository(cosmosClient, logger, cosmosDatabaseName);
-        });
-
-        // Add Thread Management repository registration
-        serviceCollection.AddSingleton<IInstanceManagementRepository>(serviceProvider =>
-        {
-            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
-            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
-            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
-            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbInstanceManagementRepository>>();
-            var threadManagementSettings = serviceProvider.GetRequiredService<InstanceManagementSettings>();
-
-            return new CosmosDbInstanceManagementRepository(
-                cosmosClient,
-                cosmosDatabaseName,
-                logger,
-                threadManagementSettings
-            );
         });
 
         // Register the Incident repository
@@ -190,7 +157,7 @@ public static class AgentDataConfiguration
 
         var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
         // Ensure database exists
-        DatabaseResponse database = await cosmosClient.CreateDatabaseIfNotExistsAsync(cosmosDatabaseName);
+        var database = await cosmosClient.CreateDatabaseIfNotExistsAsync(cosmosDatabaseName);
 
         // NOTE: The Cosmos Container creation behavior
         // If the database is created with provsioned throughput, the containers created with throughput = null will not have their own provisioned throughput.
@@ -199,24 +166,6 @@ public static class AgentDataConfiguration
         // Ensure container exists with appropriate partition key
         await database.Database.CreateContainerIfNotExistsAsync(
             id: ThreadContainerName,
-            partitionKeyPath: "/partitionKey",
-            throughput: null // Use the database level shared RU first.
-        );
-
-        await database.Database.CreateContainerIfNotExistsAsync(
-            id: LeaseContainerName,
-            partitionKeyPath: "/id", // change feed leases must be partitioned by ID
-            throughput: null // Use the database level shared RU.
-        );
-
-        await database.Database.CreateContainerIfNotExistsAsync(
-            id: InstanceManagementContainerName,
-            partitionKeyPath: "/partitionKey",
-            throughput: null // Use the database level shared RU first.
-        );
-
-        await database.Database.CreateContainerIfNotExistsAsync(
-            id: InstanceAssignmentsContainerName,
             partitionKeyPath: "/partitionKey",
             throughput: null // Use the database level shared RU first.
         );
@@ -232,74 +181,6 @@ public static class AgentDataConfiguration
             partitionKeyPath: "/partitionKey",
             throughput: null // Use the database level shared RU first.
         );
-
-        // The encryption key should be created from control plane because agent MI does not have permission
-        //var encryptionPath = new ClientEncryptionIncludedPath
-        //{
-        //    Path = ReasoningLoopDocumentEncryptedPath,
-        //    ClientEncryptionKeyId = ReasoningLoopEncryptionKeyName,
-        //    EncryptionType = EncryptionType.Deterministic,
-        //    EncryptionAlgorithm = DataEncryptionAlgorithm.AeadAes256CbcHmacSha256
-        //};
-
-        //await database.Database.DefineContainer(ReasoningLoopContainerName, "/partitionKey")
-        //    .WithClientEncryptionPolicy()
-        //    .WithIncludedPath(encryptionPath)
-        //    .Attach()
-        //    .CreateIfNotExistsAsync();
-        // Commented out the vector index creation for now. Leave it here for future reference.
-        // var embeddings = new List<Embedding>
-        // {
-        //     new()
-        //     {
-        //         DataType = VectorDataType.Float32,
-        //         Dimensions = 1536, // Set the vector size to 1536 for OpenAI embeddings
-        //         DistanceFunction = DistanceFunction.Cosine,
-        //         Path = "/descriptionVector"
-        //     },
-        //     new()
-        //     {
-        //         DataType = VectorDataType.Float32,
-        //         Dimensions = 1536, // Set the vector size to 1536 for OpenAI embeddings
-        //         DistanceFunction = DistanceFunction.Cosine,
-        //         Path = "/titleVector"
-        //     }
-        // };
-
-        // var collection = new Collection<Embedding>(embeddings);
-        // // see https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-vector-index-query#create-a-vector-index-in-the-indexing-policy
-        // var properties = new ContainerProperties
-        // {
-        //     Id = IncidentContainerName,
-        //     PartitionKeyPath = "/partitionKey",
-        //     DefaultTimeToLive = -1, // Set to -1 to disable TTL
-        //     VectorEmbeddingPolicy = new(collection),
-        //     IndexingPolicy = new IndexingPolicy
-        //     {
-        //         VectorIndexes =
-        //         [
-        //             new VectorIndexPath()
-        //             {
-        //                 Path = "/descriptionVector",
-        //                 Type = VectorIndexType.DiskANN,
-        //             },
-        //             new VectorIndexPath()
-        //             {
-        //                 Path = "/titleVector",
-        //                 Type = VectorIndexType.QuantizedFlat, // DiskANN index has a limit of 1 per container. Use QuantizedFlat instead
-        //             }
-        //         ]
-        //     }
-        // };
-
-        // properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
-        // properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/descriptionVector/*" });
-        // properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/titleVector/*" });
-        // await database.Database.CreateContainerIfNotExistsAsync(
-        //     properties,
-        //     throughput: 1000 // Minimum throughput for now
-        // );
-
     }
 }
 

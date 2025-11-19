@@ -121,7 +121,6 @@ public class ScheduledTaskPluginDefinition(
             var chatMessage = new ChatMessage(ChatRole.Assistant, cardMessage);
             await agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
                 threadId,
-                string.Empty,
                 chatMessage
             );
 

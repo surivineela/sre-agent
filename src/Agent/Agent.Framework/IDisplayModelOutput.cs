@@ -14,14 +14,14 @@ public interface IDisplayModelOutput
     /// </summary>
     /// <param name="content">The content to display</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task OnDisplay(string content);
+    Task OnDisplay(string content, StreamMessageType? streamMessageType = null);
 
     /// <summary>
     /// Called when streaming content ended
     /// </summary>
     /// <param name="content"></param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task OnComplete(string content = "");
+    Task OnComplete(string content = "", StreamMessageType? streamMessageType = null);
 
     /// <summary>
     /// Called when streaming content is incomplete (partial response)

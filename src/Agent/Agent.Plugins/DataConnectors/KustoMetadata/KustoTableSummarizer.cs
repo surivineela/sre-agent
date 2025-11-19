@@ -12,7 +12,6 @@ using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
 using Kusto.Data.Exceptions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;

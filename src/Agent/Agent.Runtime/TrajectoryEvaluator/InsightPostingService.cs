@@ -2,17 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
 using Agent.Framework;
-using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -174,7 +170,7 @@ public class InsightPostingService
         try
         {
             // Enable session insights if Memory is enabled OR insight posting is explicitly enabled
-            bool sessionInsightsEnabled = _agentMemorySettings.Enabled || _agentMemorySettings.EnableInsightPosting;
+            var sessionInsightsEnabled = _agentMemorySettings.Enabled || _agentMemorySettings.EnableInsightPosting;
 
             if (!sessionInsightsEnabled)
             {
@@ -198,7 +194,6 @@ public class InsightPostingService
             // Use empty orchestration ID to prevent triggering orchestration continuation
             await _outboundService.UpdateThreadWithAgentMessageAsync(
                 threadId: threadId,
-                orchestrationInstanceId: string.Empty,
                 message: message,
                 messageId: insightMessageId,
                 type: StreamMessageType.TrajectoryInsight

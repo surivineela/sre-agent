@@ -7,6 +7,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Evals.Models;
 using Agent.Framework;
 using Agent.Plugins;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Services;
 using Agent.Tests.Common;

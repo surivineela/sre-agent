@@ -29,7 +29,7 @@ public class ThreadManagementService(
         var threadId = userDefinedThreadId ?? Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
-        string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
+        var temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
 
         var message = new Message(
             Id: messageId,
@@ -166,7 +166,6 @@ public class ThreadManagementService(
             return new InboundServiceResponse(
                 ThreadId: threadId,
                 MessageId: Guid.Empty,
-                OrchestrationInstanceId: string.Empty,
                 Busy: true
             );
         }

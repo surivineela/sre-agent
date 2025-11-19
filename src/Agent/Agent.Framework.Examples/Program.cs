@@ -193,7 +193,6 @@ class Program
         builder.Services
             .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
-            .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
             .AddSingleton<SinkService>()
             .AddSingleton<ThreadService>()
             .AddSingleton<IStreamingService>(sp =>

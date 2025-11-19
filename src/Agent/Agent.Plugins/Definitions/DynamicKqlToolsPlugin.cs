@@ -1,9 +1,12 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Plugins;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
 using Microsoft.Extensions.DependencyInjection;
 
 [AgentToolPlugin(Category = ToolCategories.LogQuery)]
@@ -31,7 +34,9 @@ public class DynamicKqlToolsPlugin
         [Description("JSON string of parameters, e.g. {\"fromDate\":\"2024-01-01\",\"toDate\":\"2024-01-02\"}")] string parametersJson = "{}")
     {
         if (!_queries.TryGetValue(queryName, out var queryInfo))
+        {
             return $"Query '{queryName}' not found. Available queries: {string.Join(", ", _queries.Keys)}";
+        }
 
         // Extract required parameter names from the query
         var expectedParams = ExtractParametersFromQuery(queryInfo.query);
@@ -44,7 +49,9 @@ public class DynamicKqlToolsPlugin
             {
                 var jsonDoc = JsonDocument.Parse(parametersJson);
                 foreach (var prop in jsonDoc.RootElement.EnumerateObject())
+                {
                     providedParams[prop.Name] = prop.Value.GetString() ?? "";
+                }
             }
             catch (JsonException)
             {
@@ -60,7 +67,9 @@ public class DynamicKqlToolsPlugin
             var match = providedParams
                 .FirstOrDefault(kvp => string.Equals(kvp.Key, expected, StringComparison.OrdinalIgnoreCase));
             if (!string.IsNullOrEmpty(match.Key))
+            {
                 mappedParams[expected] = match.Value;
+            }
         }
 
         // Detect missing params
@@ -75,7 +84,9 @@ public class DynamicKqlToolsPlugin
         // Substitute only mapped params
         var finalQuery = queryInfo.query;
         foreach (var param in mappedParams)
+        {
             finalQuery = finalQuery.Replace($"##{param.Key}##", param.Value);
+        }
 
         // Lazy load the KustoPlugin
         _kustoPlugin ??= _serviceProvider.GetRequiredService<KustoPlugin>();
@@ -88,7 +99,6 @@ public class DynamicKqlToolsPlugin
         }
         return result.Result;
     }
-
 
     [Description("Lists all available registered KQL queries")]
     public Task<List<string>> ListAvailableQueries()

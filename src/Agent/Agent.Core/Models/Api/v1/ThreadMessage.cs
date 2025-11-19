@@ -19,6 +19,5 @@ public record ThreadMessage(
 public record InboundServiceResponse(
     Guid ThreadId,
     Guid MessageId,
-    string OrchestrationInstanceId,
     bool Busy = false // The thread is processing the message and cannot accept new messages at this time
 );

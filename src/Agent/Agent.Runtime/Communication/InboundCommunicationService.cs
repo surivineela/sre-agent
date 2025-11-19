@@ -113,7 +113,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     private async Task<InboundServiceResponse> ProcessMessageWithAgentFrameworkAsync(ThreadMessage threadMessage)
     {
-        AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+        var agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
         // we don't need to sink user message if the message is the start message
         var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
@@ -142,7 +142,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             //conversationModifier: ConversationModifierEnum.DeepInvestigation,
             cancellationToken: default);
 
-        return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty, string.Empty);
+        return new InboundServiceResponse(threadMessage.ThreadId, Guid.Empty);
     }
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
@@ -258,14 +258,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         try
         {
-            string orchestrationInstanceId = "";
-            Guid responseMessageId = Guid.Empty;
+            var responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            AgentContext? agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-            AgentChatHistory? agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
-
-            orchestrationInstanceId = agentContext != null ? await _threadService.GetOrchestrationInstanceId(agentContext.ThreadId) : orchestrationInstanceId;
+            var agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
 
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
@@ -286,30 +283,26 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 }
             }
 
-            if (string.IsNullOrEmpty(orchestrationInstanceId))
+            // No existing orchestration, create a new one
+            _logger.LogInternalInformation("ProcessIncidentMessageAsync: No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
+
+            var agentResponse = string.Empty;
+
+            if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident && agentChatHistory != null)
             {
-                // No existing orchestration, create a new one
-                _logger.LogInternalInformation("ProcessIncidentMessageAsync: No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
-
-                var agentResponse = string.Empty;
-
-                if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident && agentChatHistory != null)
-                {
-                    agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
-                }
-                else if (agentContext != null && agentChatHistory != null)
-                {
-                    // Process the message with MetaAgent
-                    agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
-                }
-                //responseMessageId = await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, agentResponse);
+                agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+            }
+            else if (agentContext != null && agentChatHistory != null)
+            {
+                // Process the message with MetaAgent
+                agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+            }
+            else
+            {
+                throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
             }
 
-            return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
+            return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId);
         }
         catch (Exception ex)
         {
@@ -548,14 +541,14 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext)> ValidateAndUpdateAgentMode(Core.Models.Api.v1.Thread thread, Core.Models.Api.v1.AgentContext agentContext, string requestedMode, bool isUpdateUponGlobalDefaultMode = true)
     {
         _logger.LogInternalInformation($"[InboundCommunicationService]Updating AgentMode with ThreadId:{thread.Id},RequestedMode: {requestedMode}");
-        bool isValidChange = true;
-        string errorMessage = "";
+        var isValidChange = true;
+        var errorMessage = "";
         if (isUpdateUponGlobalDefaultMode)
         {
-            string globalDefaultMode = _actionSettings.Mode.ToString() ?? AgentModes.Review;
+            var globalDefaultMode = _actionSettings.Mode.ToString() ?? AgentModes.Review;
             isValidChange = AgentModes.IsValidModeChange(globalDefaultMode, requestedMode);
 
-            string validationError = AgentModes.GetValidationErrorMessage(globalDefaultMode);
+            var validationError = AgentModes.GetValidationErrorMessage(globalDefaultMode);
             errorMessage = isValidChange ? string.Empty : $"[InboundCommunicationService]Cannot change thread mode to ReadOnly from {globalDefaultMode}. Details: {validationError}";
         }
         else

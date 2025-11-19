@@ -5,9 +5,9 @@
 namespace Agent.Framework;
 
 /// <summary>
-/// Handles simple text streaming content without structured output type processing.
+/// Handles reasoning summaries
 /// </summary>
-public class TextStreamContentHandler : IStreamContentHandler
+public class ReasoningStreamContentHandler : IStreamContentHandler
 {
     private readonly IDisplayModelOutput? _displayModelOutput;
     private bool _hasStreamedContent;
@@ -16,7 +16,7 @@ public class TextStreamContentHandler : IStreamContentHandler
     /// Initializes a new instance of the TextStreamContentHandler class.
     /// </summary>
     /// <param name="displayModelOutput">Optional display model output handler invoked for each chunk of content.</param>
-    public TextStreamContentHandler(IDisplayModelOutput? displayModelOutput)
+    public ReasoningStreamContentHandler(IDisplayModelOutput? displayModelOutput)
     {
         _displayModelOutput = displayModelOutput;
     }
@@ -40,7 +40,9 @@ public class TextStreamContentHandler : IStreamContentHandler
         }
 
         // Await OnDisplay to ensure DB write completes
-        await _displayModelOutput.OnDisplay(content);
+        await _displayModelOutput.OnDisplay(
+            content: content,
+            streamMessageType: StreamMessageType.Reasoning);
     }
 
     /// <summary>
@@ -54,7 +56,7 @@ public class TextStreamContentHandler : IStreamContentHandler
             return;
         }
 
-        await _displayModelOutput.OnComplete();
+        await _displayModelOutput.OnComplete(streamMessageType: StreamMessageType.Reasoning);
 
         _hasStreamedContent = false; // reset
     }

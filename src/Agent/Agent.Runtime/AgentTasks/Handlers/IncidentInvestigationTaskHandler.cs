@@ -91,7 +91,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // Check if this is a chat-triggered investigation that needs approval
             Approval? deepInvestigationApproval = null;
-            bool isChatTriggered = await IsChatTriggeredInvestigationAsync();
+            var isChatTriggered = await IsChatTriggeredInvestigationAsync();
 
             if (isChatTriggered)
             {
@@ -112,7 +112,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     await threadRepository.UpdateTaskOnThreadAsync(_currentAgentTask.ThreadId, _currentAgentTask.ToShortForm());
 
                     await SendDeepInvestigationNotificationAsync(agentTask.ThreadId, agentTask.Id, deepInvestigationApproval);
-                    bool approvalGranted = await WaitForApprovalAsync(deepInvestigationApproval.Id, CancellationToken.None);
+                    var approvalGranted = await WaitForApprovalAsync(deepInvestigationApproval.Id, CancellationToken.None);
                     var updatedApproval = await approvalService.GetApproval(_currentAgentTask.ThreadId, deepInvestigationApproval.Id.ToString());
 
                     if (!approvalGranted)
@@ -220,7 +220,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 var allAgents = new List<YamlAgentDescriptor>();
 
                 // Load agents from the extensibility API
-                for (int i = 0; ; i++)
+                for (var i = 0; ; i++)
                 {
                     var agentsFromExtensibleApi = await extendedAgentService.GetAgentsAsync(i, 100, null);
                     foreach (var agent in agentsFromExtensibleApi)
@@ -232,7 +232,9 @@ public sealed class IncidentInvestigationTaskHandler(
                     }
 
                     if (!agentsFromExtensibleApi.HasNextPage)
+                    {
                         break;
+                    }
                 }
 
                 toolSubset = allAgents.SelectMany(agent => agent.Tools)
@@ -553,13 +555,12 @@ public sealed class IncidentInvestigationTaskHandler(
 
             state = await SaveStateAndStreamUpdateAsync(newStatus: AgentTaskStatus.Complete, cancellationToken: cancellationToken);
 
-
             // Stream conclusion completion
             tracingHelper.EndAgentTaskStepSpan();
             logger.LogInternalInformation("Incident investigation task {TaskId} completed successfully.", agentTask.Id);
 
             // Post the conclusion to the thread
-            string conclusion = state.Conclusion.Title + "\n\n" + state.Conclusion.Summary;
+            var conclusion = state.Conclusion.Title + "\n\n" + state.Conclusion.Summary;
 
             var assistantMessage = new ChatMessage(ChatRole.Assistant, conclusion);
             var agentChatHistory = await threadRepository.GetAgentChatHistoryAsync(context.Id);
@@ -608,7 +609,9 @@ public sealed class IncidentInvestigationTaskHandler(
         CancellationToken cancellationToken)
     {
         if (hypotheses.Count == 0)
+        {
             return;
+        }
 
         // Use a concurrent queue to track all hypotheses to be processed (BFS style)
         var hypothesisQueue = new ConcurrentQueue<(HypothesisTreeItem hypothesis, int depth)>();
@@ -631,7 +634,9 @@ public sealed class IncidentInvestigationTaskHandler(
                 var (hypothesis, depth) = item;
 
                 if (depth > 3)
+                {
                     continue;
+                }
 
                 var task = ProcessSingleHypothesisWithQueueAsync(
                     hypothesis,
@@ -882,17 +887,15 @@ public sealed class IncidentInvestigationTaskHandler(
             else
             {
                 var notificationMessageId = Guid.NewGuid();
-                ChatMessage message = new ChatMessage(ChatRole.User, messageJson);
+                var message = new ChatMessage(ChatRole.User, messageJson);
 
                 await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                    threadId,
-                    string.Empty,
+                    threadId: threadId,
                     message: message,
                     agentTaskInfo: agentTaskInfo,
                     approval: sanitizedApproval,
                     messageId: notificationMessageId,
-                    type: StreamMessageType.DeepInvestigation
-                   );
+                    type: StreamMessageType.DeepInvestigation);
 
                 _deepInvestigationNotificationMessageId = notificationMessageId;
 
@@ -1342,7 +1345,7 @@ public sealed class IncidentInvestigationTaskHandler(
                 if (enableDocumentSearch)
                 {
                     var docs = new List<SearchDocument>();
-                    string query = await DocumentRetrieval.GenerateSearchQuery(
+                    var query = await DocumentRetrieval.GenerateSearchQuery(
                         chatClientProvider.GeneralPurposeModel,
                         [inputMessage],
                         "How to investigate this issue?",
@@ -1368,7 +1371,7 @@ public sealed class IncidentInvestigationTaskHandler(
 
                     docs.AddRange(await RetrieveDocumentsFromRegionalStore(query, threadId, parentSpan));
 
-                    string msg = inputMessage.Text;
+                    var msg = inputMessage.Text;
                     msg += $"""
                         ---
                         And Here are some relevant documents that can be referenced:
@@ -1574,7 +1577,7 @@ public sealed class IncidentInvestigationTaskHandler(
         logger.LogInternalInformation("Generating hypotheses for incident description.");
 
         var hypothesisGenerationAgent = IncidentInvestigationAgents.CreateHypothesisGenerationAgent(_llmDeploymentName, existingHypotheses);
-        string message = $"""
+        var message = $"""
             <incident_description>
             {incidentDescription}
             </incident_description>
@@ -1632,8 +1635,8 @@ public sealed class IncidentInvestigationTaskHandler(
         TelemetrySpan currentStepSpan,
         CancellationToken cancellationToken)
     {
-        string currentHypothesis = hypothesis.Description;
-        string validatedHypothesis = hypothesis.ParentHypothesisDescription;
+        var currentHypothesis = hypothesis.Description;
+        var validatedHypothesis = hypothesis.ParentHypothesisDescription;
         logger.LogInternalInformation("Validating hypothesis: {Hypothesis}", currentHypothesis);
 
         var toolSelectionAgent = IncidentInvestigationAgents.CreateHypothesisValidationToolSelectionAgent(toolFactory, incidentDescription, investigationSummary, toolSubset, _llmDeploymentName);
@@ -1666,7 +1669,6 @@ public sealed class IncidentInvestigationTaskHandler(
         {
             return await ValidateHypothesisWithGpt4Async(incidentDescription, investigationSummary, validatedHypothesis, hypothesis, state, context, runHooks, currentStepSpan, toolNames, inputMessage, cancellationToken);
         }
-
     }
 
     private async Task<HypothesisValidationResult> ValidateHypothesisWithGpt4Async(
@@ -1682,8 +1684,8 @@ public sealed class IncidentInvestigationTaskHandler(
         ChatMessage inputMessage,
         CancellationToken cancellationToken)
     {
-        Guid currentHypothesisId = hypothesis.Id;
-        string currentHypothesis = hypothesis.Description;
+        var currentHypothesisId = hypothesis.Id;
+        var currentHypothesis = hypothesis.Description;
 
         // start by generating a plan
         var planningAgent = IncidentInvestigationAgents.CreateHypothesisValidationPlanningAgent(
@@ -1929,7 +1931,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.ToString()}
+            {state.InitialInvestigation}
 
             **Investigation Outcome:**
             The investigation has identified a single validated hypothesis that can be treated as the likely root cause.
@@ -1983,7 +1985,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.ToString()}
+            {state.InitialInvestigation}
 
             **Investigation Outcome:**
             The investigation has identified multiple validated hypotheses that could be contributing factors.
@@ -2035,7 +2037,7 @@ public sealed class IncidentInvestigationTaskHandler(
             {inputData.IncidentDescription}
 
             **Initial Investigation Summary:**
-            {state.InitialInvestigation.ToString()}
+            {state.InitialInvestigation}
 
             **Investigation Outcome:**
             The investigation was unable to identify validated hypotheses or determine a root cause for this incident.
@@ -2188,7 +2190,9 @@ public sealed class IncidentInvestigationTaskHandler(
     private HypothesisTreeItem? FindHypothesisInState(IncidentInvestigationTaskProperties state, Guid hypothesisId)
     {
         if (state.FormingHypothesis?.Hypotheses == null)
+        {
             return null;
+        }
 
         return FindHypothesisRecursive(state.FormingHypothesis.Hypotheses, hypothesisId);
     }
@@ -2201,11 +2205,15 @@ public sealed class IncidentInvestigationTaskHandler(
         foreach (var hypothesis in hypotheses)
         {
             if (hypothesis.Id == hypothesisId)
+            {
                 return hypothesis;
+            }
 
             var found = FindHypothesisRecursive(hypothesis.Children, hypothesisId);
             if (found != null)
+            {
                 return found;
+            }
         }
         return null;
     }
@@ -2215,14 +2223,19 @@ public sealed class IncidentInvestigationTaskHandler(
     /// </summary>
     private T? ExtractToolParameter<T>(IEnumerable<KeyValuePair<string, object?>>? input, string parameterName)
     {
-        if (input == null) return default;
+        if (input == null)
+        {
+            return default;
+        }
 
         var parameter = input.FirstOrDefault(kvp => kvp.Key == parameterName);
-        if (parameter.Value == null) return default;
+        if (parameter.Value == null)
+        {
+            return default;
+        }
 
         return ConvertParameterValue<T>(parameter.Value, parameterName);
     }
-
 
     /// <summary>
     /// Converts a parameter value to the specified type.
@@ -2232,10 +2245,14 @@ public sealed class IncidentInvestigationTaskHandler(
         try
         {
             if (value is T directValue)
+            {
                 return directValue;
+            }
 
             if (value is JsonElement jsonElement)
+            {
                 return JsonSerializer.Deserialize<T>(jsonElement.GetRawText());
+            }
 
             return (T)Convert.ChangeType(value, typeof(T));
         }
@@ -2470,7 +2487,6 @@ public sealed class IncidentInvestigationTaskHandler(
                exception is TaskCanceledException ||
                exception is HttpRequestException;
     }
-
 
     #endregion
 }

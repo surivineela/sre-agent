@@ -2,17 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.Tools;
+using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.KustoPlugin;
-using Agent.Plugins.Tools;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -35,7 +29,6 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
         _outboundMock
             .Setup(o => o.UpdateThreadWithAgentMessageAsync(
                 It.IsAny<Guid?>(),
-                It.IsAny<string>(),
                 It.IsAny<ChatMessage>(),
                 It.IsAny<Guid?>(),
                 It.IsAny<StreamMessageType?>()))
@@ -97,7 +90,6 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
         Assert.Equal("testDb", plugin.CapturedDatabase);
         _outboundMock.Verify(o => o.UpdateThreadWithAgentMessageAsync(
             It.IsAny<Guid?>(),
-            It.IsAny<string>(),
             It.IsAny<ChatMessage>(),
             It.IsAny<Guid?>(),
             It.IsAny<StreamMessageType?>()), Times.Once);
@@ -131,7 +123,6 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
         Assert.Equal("print inline 99", plugin.CapturedQuery);
         _outboundMock.Verify(o => o.UpdateThreadWithAgentMessageAsync(
             It.IsAny<Guid?>(),
-            It.IsAny<string>(),
             It.IsAny<ChatMessage>(),
             It.IsAny<Guid?>(),
             It.IsAny<StreamMessageType?>()), Times.Once);
@@ -160,7 +151,6 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
         Assert.Null(plugin.CapturedQuery);
         _outboundMock.Verify(o => o.UpdateThreadWithAgentMessageAsync(
             It.IsAny<Guid?>(),
-            It.IsAny<string>(),
             It.IsAny<ChatMessage>(),
             It.IsAny<Guid?>(),
             It.IsAny<StreamMessageType?>()), Times.Never);
