@@ -79,6 +79,29 @@ public class ICMAPIClient : IICMAPIClient
     public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null)
     {
         owningServiceId = owningServiceId ?? _icmApiSettings.OwningServiceId;
+
+        if (statuses is not null)
+        {
+            var skippedStatuses = new List<string>();
+            statuses = statuses.Where(s =>
+            {
+                if (Enum.TryParse<IncidentStatus>(s, true, out _))
+                {
+                    return true;
+                }
+                else
+                {
+                    skippedStatuses.Add(s);
+                    return false;
+                }
+            }).ToList();
+
+            if (skippedStatuses.Count > 0)
+            {
+                _logger.LogInternalWarning($"[{nameof(ICMAPIClient)}][{nameof(GetIncidentsAsync)}]Skipping statuses {string.Join(",", skippedStatuses)} as they cannot be converted to IncidentStatus");
+            }
+        }
+
         return await _icmApiClientSDKService.GetIncidentsAsync(
             limit: limit,
             offset: offset,
