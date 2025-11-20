@@ -6,14 +6,14 @@ import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxDeepInvestigationDialog from '../Components/Chat/ChatBoxDeepInvestigationDialog';
 import ChatBoxSidePanel, { IChatBoxSidePanelProps } from '../Components/Chat/ChatBoxSidePanel';
+import ChatMessageGroupComponent from '../Components/Chat/ChatMessageGroupComponent';
+import ChatMessageGroups from '../Components/Chat/ChatMessageGroups';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
-import ChatMessage from '../Components/ChatMessage';
-import ChatMessages from '../Components/ChatMessages';
 import MemorySidePanel from '../Components/MemorySidePanel';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { AgentTaskGraphHandle, ChatBoxHandleRef, ChatBoxSidePanelType, IChatBoxProps } from '../Contracts/Activities';
-import { ChatBoxContext, ChatBoxSidePanelContext, ThreadAgentModeContext } from '../Contracts/Context';
+import { ChatBoxSidePanelContext, ThreadAgentModeContext } from '../Contracts/Context';
 import { useChatBox } from '../Hooks/useChatBox';
 import { useChatBoxSidePanel } from '../Hooks/useChatBoxSidePanel';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
@@ -46,10 +46,9 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
     const theme = useTheme();
 
     const {
-        messages,
+        messageGroups,
         isAgentTyping,
-        temporaryUserMessage,
-        streamingMessage,
+        streamingMessageGroup,
         toolCallText,
         isCancellingStreaming,
         isWaitingForStreamingMessages,
@@ -65,7 +64,6 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         onScroll,
         downButtonState,
         onClickDownButton,
-        getGroupedChatMessages,
         updateApprovalOrCliMessageInStreamingMessage,
         userDefinedThreadIdRef,
 
@@ -110,14 +108,10 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
             return;
         }
 
-        const combined = [...messages];
+        const combined = messageGroups.flatMap(group => [...group.userMessages, ...group.agentMessages]);
 
-        if (temporaryUserMessage) {
-            combined.push(temporaryUserMessage as any);
-        }
-
-        if (streamingMessage) {
-            combined.push(streamingMessage as any);
+        if (streamingMessageGroup) {
+            combined.push(...streamingMessageGroup.userMessages, ...streamingMessageGroup.agentMessages);
         }
 
         const snapshot = combined
@@ -150,7 +144,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
             });
 
         onTelemetryUpdate({ messages: snapshot });
-    }, [messages, onTelemetryUpdate, streamingMessage, temporaryUserMessage]);
+    }, [messageGroups, onTelemetryUpdate, streamingMessageGroup]);
 
     const chatBoxSidePanelProps: IChatBoxSidePanelProps = {
         open: isSidePanelOpen,
@@ -182,117 +176,103 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
             theme={theme.isInverted ? webDarkTheme : webLightTheme}
             style={stylesProps?.rootStyle || { height: `calc(100% - ${ThreadTitleHeight + 5}px)` }}
         >
-            <ChatBoxContext.Provider value={{ getGroupedChatMessages }}>
-                <ChatBoxSidePanelContext.Provider value={{ openAgentTask, openTodoPlan, openMemorySearchResult }}>
-                    <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
-                        <div className={chatBoxStyles.chatBoxAndAgentTask}>
-                            <div className={chatBoxStyles.chatBox}>
-                                <div className={chatBoxStyles.chatBoxInner}>
-                                    <div
-                                        className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
-                                        ref={messagesDivRef}
-                                        onScroll={onScroll}
-                                    >
-                                        <CopilotChat className={chatBoxStyles.chat}>
-                                            <div ref={intersectionObserverRef} />
+            <ChatBoxSidePanelContext.Provider value={{ openAgentTask, openTodoPlan, openMemorySearchResult }}>
+                <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+                    <div className={chatBoxStyles.chatBoxAndAgentTask}>
+                        <div className={chatBoxStyles.chatBox}>
+                            <div className={chatBoxStyles.chatBoxInner}>
+                                <div
+                                    className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
+                                    ref={messagesDivRef}
+                                    onScroll={onScroll}
+                                >
+                                    <CopilotChat className={chatBoxStyles.chat}>
+                                        <div ref={intersectionObserverRef} />
 
-                                            {isLoading && !isWelcomeThread && <ChatLoading />}
+                                        {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                                            {isNewAndCleanThread &&
-                                                !isWelcomeThread &&
-                                                (renderEmptyState ? (
-                                                    renderEmptyState({ sendMessage, forcedAgentName })
-                                                ) : (
-                                                    <ChatSuggestions sendMessage={sendMessage} />
-                                                ))}
+                                        {isNewAndCleanThread &&
+                                            !isWelcomeThread &&
+                                            (renderEmptyState ? (
+                                                renderEmptyState({ sendMessage, forcedAgentName })
+                                            ) : (
+                                                <ChatSuggestions sendMessage={sendMessage} />
+                                            ))}
 
-                                            {/* Insert the richer welcome experience once at the top for welcome threads */}
-                                            {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                                        {/* Insert the richer welcome experience once at the top for welcome threads */}
+                                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
 
-                                            {/* Display permission error message if any*/}
-                                            <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
+                                        {/* Display permission error message if any*/}
+                                        <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
 
-                                            {/* Non streaming messages */}
-                                            {!isLoading && (
-                                                <>
-                                                    <ChatMessages
-                                                        messages={messages}
+                                        {/* Non streaming messages */}
+                                        {!isLoading && (
+                                            <>
+                                                <ChatMessageGroups
+                                                    messageGroups={messageGroups}
+                                                    threadId={currentThreadId || ''}
+                                                    sendMessage={sendMessage}
+                                                />
+                                                {streamingMessageGroup && (
+                                                    <ChatMessageGroupComponent
+                                                        key={streamingMessageGroup.id}
+                                                        messageGroup={streamingMessageGroup}
+                                                        isStreamingMessage={true}
+                                                        isTyping={isAgentTyping}
                                                         threadId={currentThreadId || ''}
-                                                        nextMessageAfterTheLastMessage={
-                                                            temporaryUserMessage || streamingMessage || undefined
+                                                        threadSource={threadSource}
+                                                        toolCallText={toolCallText}
+                                                        isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                                        updateApprovalOrCliMessageInStreamingMessage={
+                                                            updateApprovalOrCliMessageInStreamingMessage
                                                         }
                                                     />
-                                                    {temporaryUserMessage && (
-                                                        <ChatMessage
-                                                            key={temporaryUserMessage.id}
-                                                            message={temporaryUserMessage}
-                                                            threadId={currentThreadId || ''}
-                                                            threadSource={threadSource}
-                                                            previousMessage={messages[messages.length - 1]}
-                                                        />
-                                                    )}
-                                                    {streamingMessage && (
-                                                        <ChatMessage
-                                                            key={streamingMessage.id}
-                                                            message={streamingMessage}
-                                                            isStreamingMessage={true}
-                                                            isTyping={isAgentTyping}
-                                                            threadId={currentThreadId || ''}
-                                                            threadSource={threadSource}
-                                                            toolCallText={toolCallText}
-                                                            isWaitingForStreamingMessages={isWaitingForStreamingMessages}
-                                                            updateApprovalOrCliMessageInStreamingMessage={
-                                                                updateApprovalOrCliMessageInStreamingMessage
-                                                            }
-                                                            previousMessage={temporaryUserMessage || messages[messages.length - 1]}
-                                                        />
-                                                    )}
-                                                </>
-                                            )}
-                                        </CopilotChat>
-                                    </div>
-
-                                    <ChatBoxFooter
-                                        sendMessage={sendMessage}
-                                        isLoading={isLoading}
-                                        downButtonState={downButtonState}
-                                        onClickDownButton={onClickDownButton}
-                                        prompts={prompts}
-                                        messagePromptsUsed={messagePromptsUsed}
-                                        cancelStreaming={cancelStreaming}
-                                        isTyping={!!isAgentTyping}
-                                        isCancellingStreaming={isCancellingStreaming}
-                                        threadId={currentThreadId}
-                                        threadSource={threadSource}
-                                        isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                                        isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                                        onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                                        forcedAgentName={forcedAgentName}
-                                        lockAgentSelection={lockAgentSelection}
-                                    />
+                                                )}
+                                            </>
+                                        )}
+                                    </CopilotChat>
                                 </div>
-                            </div>
 
-                            <ChatBoxSidePanel {...chatBoxSidePanelProps}>
-                                {selectedSidePanelType === ChatBoxSidePanelType.AgentTask && (
-                                    <AgentTask {...restAgentTaskProps} closeAgentTask={closeAgentTask} ref={agentTaskGraphRef} />
-                                )}
-                                {selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan && (
-                                    <TodoPlan {...restTodoPlanProps} closeTodoPlan={closeTodoPlan} />
-                                )}
-                                {selectedSidePanelType === ChatBoxSidePanelType.MemorySearchResult && (
-                                    <MemorySidePanel memoryResult={memorySearchResult} onClose={closeMemorySearchResult} />
-                                )}
-                            </ChatBoxSidePanel>
+                                <ChatBoxFooter
+                                    sendMessage={sendMessage}
+                                    isLoading={isLoading}
+                                    downButtonState={downButtonState}
+                                    onClickDownButton={onClickDownButton}
+                                    prompts={prompts}
+                                    messagePromptsUsed={messagePromptsUsed}
+                                    cancelStreaming={cancelStreaming}
+                                    isTyping={!!isAgentTyping}
+                                    isCancellingStreaming={isCancellingStreaming}
+                                    threadId={currentThreadId}
+                                    threadSource={threadSource}
+                                    isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                    isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                    onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                    forcedAgentName={forcedAgentName}
+                                    lockAgentSelection={lockAgentSelection}
+                                />
+                            </div>
                         </div>
-                        <ChatBoxDeepInvestigationDialog
-                            isOpen={isDeepInvestigationDialogVisible}
-                            setIsOpen={setIsDeepInvestigationDialogVisible}
-                            onClickDeepInvestigationDialogActionButton={onClickDeepInvestigationDialogActionButton}
-                        />
-                    </ThreadAgentModeContext.Provider>
-                </ChatBoxSidePanelContext.Provider>
-            </ChatBoxContext.Provider>
+
+                        <ChatBoxSidePanel {...chatBoxSidePanelProps}>
+                            {selectedSidePanelType === ChatBoxSidePanelType.AgentTask && (
+                                <AgentTask {...restAgentTaskProps} closeAgentTask={closeAgentTask} ref={agentTaskGraphRef} />
+                            )}
+                            {selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan && (
+                                <TodoPlan {...restTodoPlanProps} closeTodoPlan={closeTodoPlan} />
+                            )}
+                            {selectedSidePanelType === ChatBoxSidePanelType.MemorySearchResult && (
+                                <MemorySidePanel memoryResult={memorySearchResult} onClose={closeMemorySearchResult} />
+                            )}
+                        </ChatBoxSidePanel>
+                    </div>
+                    <ChatBoxDeepInvestigationDialog
+                        isOpen={isDeepInvestigationDialogVisible}
+                        setIsOpen={setIsDeepInvestigationDialogVisible}
+                        onClickDeepInvestigationDialogActionButton={onClickDeepInvestigationDialogActionButton}
+                    />
+                </ThreadAgentModeContext.Provider>
+            </ChatBoxSidePanelContext.Provider>
         </CopilotProvider>
     );
 });

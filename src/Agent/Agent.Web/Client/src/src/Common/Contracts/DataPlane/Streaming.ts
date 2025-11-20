@@ -1,16 +1,4 @@
-export type StreamingMessageType =
-    | 'chart'
-    | 'image'
-    | 'mermaid'
-    | 'azcli'
-    | 'kubectl'
-    | 'approval'
-    | 'psql'
-    | 'deepinvestigation'
-    | 'memorysearch'
-    | 'todoplan'
-    | 'trajectoryinsight'
-    | null;
+import { MessageType } from "./Message";
 
 export enum MessageRequestType {
     CreateMessage = 'CreateMessage',
@@ -36,7 +24,7 @@ export interface StreamingMessage {
         connectionId?: string | null;
         threadId?: string | null;
         messageId?: string | null;
-        streamMessageType?: StreamingMessageType;
+        streamMessageType?: MessageType;
         isCancelled?: boolean | null;
         userId?: string;
     } | null;

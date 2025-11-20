@@ -1,29 +1,27 @@
 import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
-import {
-    convertMessageToChatMessage,
-    getIntervalBetweenLoading,
-    isTrajectoryInsightMessageType,
-    shouldGroupWithPreviousMessage,
-} from '../Activities/Utility';
-import { ChatMessage, MessageLoadingCounts } from '../Contracts/Activities';
+import { Guid } from '../../Common/Helpers/Guid';
+import { getIntervalBetweenLoading, updateChatMessageGroups } from '../Activities/Utility';
+import { ChatMessage, ChatMessageGroup, MessageLoadingCounts } from '../Contracts/Activities';
 
 export const useChatHistory = (
-    setMessages: Dispatch<SetStateAction<ChatMessage[]>>,
+    setMessageGroups: Dispatch<SetStateAction<ChatMessageGroup[]>>,
     threadId: string | null | undefined,
     prepareForAddingChatHistory: () => void,
-    setStreamingMessage: Dispatch<SetStateAction<ChatMessage | null | undefined>>,
+    scrollToBottom: (smooth: boolean) => void,
+    setStreamingMessageGroup: Dispatch<SetStateAction<ChatMessageGroup | null | undefined>>,
     setIsAgentTyping: Dispatch<React.SetStateAction<boolean | undefined>>,
-    setIsWaitingForStreamingMessages: Dispatch<React.SetStateAction<boolean | undefined>>
+    setIsWaitingForStreamingMessages: Dispatch<React.SetStateAction<boolean | undefined>>,
+    hasExistingStreamingMessage: boolean
 ) => {
     const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string | null>(null);
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
-    const [chatHistoryLength, setChatHistoryLength] = useState<number>(0);
+    const [chatHistoryChangeTrigger, setChatHistoryChangeTrigger] = useState<string | null>(null);
 
     const exponentialBackoffDepth = useRef(-1);
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
-    const loadOlderMessagesRef = useRef<(() => void) | null>(null);
+    const loadOlderMessagesRef = useRef<(() => Promise<void>) | null>(null);
     const isFetchingPreviousPage = useRef<boolean>(false);
     const hasPreviousPage = useRef<boolean>(true);
     const timestampCutOffForFetchingOlderMessagesRef = useRef<string | undefined | null>(null);
@@ -44,10 +42,7 @@ export const useChatHistory = (
             });
 
             if (messagesResponse.isSuccessful) {
-                const page = (messagesResponse.content || [])
-                    .map(convertMessageToChatMessage)
-                    .filter(msg => !isTrajectoryInsightMessageType(msg as any)) // Filter out Session Insights from chat history
-                    .reverse();
+                const page = messagesResponse.content || [];
 
                 if (page.length < MessageLoadingCounts.default) {
                     hasPreviousPage.current = false;
@@ -80,11 +75,11 @@ export const useChatHistory = (
             } else {
                 if (newPage.length > 0) {
                     prepareForAddingChatHistory();
-                    setMessages(prev => [...newPage, ...prev]);
+                    setMessageGroups(prev => updateChatMessageGroups(newPage, prev));
                     if (newPage.length > 0) {
-                        timestampCutOffForFetchingOlderMessagesRef.current = newPage[0].timeStamp;
+                        timestampCutOffForFetchingOlderMessagesRef.current = newPage[newPage.length - 1].timeStamp;
                     }
-                    setChatHistoryLength(prev => prev + newPage.length);
+                    setChatHistoryChangeTrigger(Guid.newGuid());
                 }
                 exponentialBackoffDepth.current = -1; // Reset on successful fetch
             }
@@ -96,59 +91,52 @@ export const useChatHistory = (
         if (threadId) {
             const loadInitialPage = async () => {
                 setIsLoadingInitialChatHistory(true);
-                setMessages([]);
+                setMessageGroups([]);
                 timestampCutOffForFetchingOlderMessagesRef.current = null;
-                setChatHistoryLength(0);
+                setChatHistoryChangeTrigger(null);
 
                 const initialPage = await fetchPage(threadId, undefined);
+                const initialChatMessageGroup = updateChatMessageGroups(initialPage || [], []);
 
-                if (initialPage && initialPage.length > 0) {
-                    const lastMessage = initialPage?.[initialPage.length - 1];
-                    const initialChatHistory = [];
-                    // If the last message is incomplete, group it with the previous agent messages to construct
-                    // a streaming message.
-                    if (lastMessage && lastMessage.contents.length > 0 && lastMessage.contents[0].isComplete === false) {
-                        let startIndex = initialPage.length - 2;
-                        while (startIndex >= 0) {
-                            if (shouldGroupWithPreviousMessage(lastMessage, initialPage[startIndex])) {
-                                startIndex--;
-                            } else {
-                                break;
-                            }
-                        }
-
-                        const currentStreamingMessages = initialPage.slice(startIndex + 1);
-                        const streamingMessage: ChatMessage = {
-                            ...currentStreamingMessages[0],
-                            contents: currentStreamingMessages.flatMap(msg => msg.contents),
-                        };
-                        setStreamingMessage(streamingMessage);
+                if (initialChatMessageGroup.length > 0) {
+                    const lastMessageGroup = initialChatMessageGroup[initialChatMessageGroup.length - 1];
+                    const initialChatHistoryGroups = [];
+                    // If the last message in the last chat message group is incomplete,
+                    // set the last chat message group as a streaming message.
+                    if (
+                        (lastMessageGroup.agentMessages.length > 0 &&
+                            lastMessageGroup.agentMessages[lastMessageGroup.agentMessages.length - 1].isComplete === false) ||
+                        hasExistingStreamingMessage
+                    ) {
+                        setStreamingMessageGroup({ ...lastMessageGroup });
                         setIsAgentTyping(true);
                         setIsWaitingForStreamingMessages(true);
-                        initialChatHistory.push(...initialPage.slice(0, startIndex + 1));
+                        initialChatHistoryGroups.push(...initialChatMessageGroup.slice(0, initialChatMessageGroup.length - 1));
                     } else {
-                        initialChatHistory.push(...initialPage);
+                        initialChatHistoryGroups.push(...initialChatMessageGroup);
                     }
 
                     prepareForAddingChatHistory();
-                    setMessages([...initialChatHistory]);
-                    setChatHistoryLength(initialChatHistory.length);
-                    timestampCutOffForFetchingOlderMessagesRef.current = initialPage[0].timeStamp;
+                    setMessageGroups(initialChatHistoryGroups);
+                    timestampCutOffForFetchingOlderMessagesRef.current = initialPage?.[initialPage.length - 1]?.timeStamp;
                 }
-                setNewestMessageTimestampInOldMessages(initialPage?.[initialPage.length - 1]?.timeStamp || '');
+
+                setNewestMessageTimestampInOldMessages(initialPage?.[0]?.timeStamp || '');
                 setIsLoadingInitialChatHistory(false);
+
+                requestAnimationFrame(() => scrollToBottom(false));
             };
 
             loadInitialPage();
         } else {
             setNewestMessageTimestampInOldMessages('');
             setIsLoadingInitialChatHistory(false);
-            setMessages([]);
+            setMessageGroups([]);
             timestampCutOffForFetchingOlderMessagesRef.current = null;
-            setChatHistoryLength(0);
+            setChatHistoryChangeTrigger(null);
             hasPreviousPage.current = false;
         }
-    }, [threadId]);
+    }, [threadId, hasExistingStreamingMessage]);
 
     useEffect(() => {
         loadOlderMessagesRef.current = loadOlderMessages;
@@ -161,7 +149,7 @@ export const useChatHistory = (
     }, []);
 
     return {
-        chatHistoryLength,
+        chatHistoryChangeTrigger,
         isLoadingInitialChatHistory,
         loadOlderMessagesRef,
         newestMessageTimestampInOldMessages,

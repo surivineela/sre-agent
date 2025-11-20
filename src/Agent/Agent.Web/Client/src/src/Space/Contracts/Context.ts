@@ -7,7 +7,7 @@ import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
-import { ChatBoxSidePanelData, ChatMessage } from './Activities';
+import { ChatBoxSidePanelData } from './Activities';
 
 export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
 
@@ -84,10 +84,6 @@ type StreamingContextProps = {
     isConnected: boolean;
     isReconnecting: boolean;
     noPermission: boolean;
-};
-
-type ChatBoxContextProps = {
-    getGroupedChatMessages: (message: ChatMessage, isStreamingMessage?: boolean) => ChatMessage[];
 };
 
 type ChatBoxSidePanelProps = {
@@ -211,10 +207,6 @@ export const StreamingContext = createContext<StreamingContextProps>({
     isConnected: false,
     isReconnecting: false,
     noPermission: false,
-});
-
-export const ChatBoxContext = createContext<ChatBoxContextProps>({
-    getGroupedChatMessages: (_message: ChatMessage, _isStreamingMessage?: boolean) => [],
 });
 
 export const ChatBoxSidePanelContext = createContext<ChatBoxSidePanelProps>({

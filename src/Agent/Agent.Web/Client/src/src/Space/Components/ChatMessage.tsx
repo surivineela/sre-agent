@@ -1,61 +1,25 @@
 import { CopilotMessage, CopilotMessageProps, UserMessage } from '@fluentui-copilot/react-copilot-chat';
-import { mergeStyleSets } from '@fluentui/react';
-import { Image, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Image, Text, tokens } from '@fluentui/react-components';
 import mermaid from 'mermaid';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
+import { Guid } from '../../Common/Helpers/Guid';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { shouldGroupWithPreviousMessage } from '../Activities/Utility';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
-import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
+import { getScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
 import { getChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
 import ChatMessageFooter from './ChatMessageFooter';
 import ConnectionErrorComponent from './ConnectionErrorComponent';
 import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
-
-const chatMessageStyles = mergeStyleSets({
-    regularMessageContent: {
-        backgroundColor: tokens.colorNeutralBackground3,
-        padding: '0px 16px',
-        borderRadius: tokens.borderRadiusXLarge,
-    },
-    codeBlock: {
-        backgroundColor: tokens.colorNeutralBackground6,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        display: 'inline-block',
-        padding: '2px 4px',
-        borderRadius: tokens.borderRadiusSmall,
-    },
-    codeBlockInPre: {
-        backgroundColor: tokens.colorTransparentBackground,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
-        display: 'block',
-    },
-    preBlock: {
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        backgroundColor: tokens.colorNeutralBackground6,
-        borderRadius: tokens.borderRadiusSmall,
-        padding: '15px',
-    },
-    toolCallText: {
-        background: `linear-gradient(90deg, ${tokens.colorNeutralForeground3}, ${tokens.colorNeutralBackground6}, ${tokens.colorNeutralForeground1})`,
-        backgroundSize: '200% 100%',
-        backgroundClip: 'text',
-        color: 'transparent',
-        animation: 'shimmer 2s infinite linear',
-        marginBottom: `${tokens.spacingVerticalS}px`,
-    },
-});
+import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
+import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
 
 // Initialize mermaid with default configuration
 mermaid.initialize({
@@ -66,21 +30,24 @@ mermaid.initialize({
 });
 
 const ChatMessage = ({
-    message,
-    previousMessage,
-    nextMessage,
+    componentId,
+    messages,
+    role,
     isTyping,
     threadId,
-    threadSource,
     isStreamingMessage,
+    threadSource,
     toolCallText,
     isWaitingForStreamingMessages,
+    messagesToCopy,
     sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const chatBoxStyles = getChatBoxStyles();
     const intl = useIntl();
+
+    const id = useMemo(() => componentId || Guid.newGuid(), [componentId]);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -97,9 +64,9 @@ const ChatMessage = ({
                     {threadAgentModeToDisplay && (
                         <span className={chatStyles.modePill}>{getAgentModeDisplayName(threadAgentModeToDisplay, intl)}</span>
                     )}
-                    {!isTyping && message.timeStamp && (
+                    {!isTyping && messages[0]?.timeStamp && (
                         <Text size={200} color={tokens.colorNeutralForeground3}>
-                            {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
+                            {formatDateTimeWithShortYear(getSafeDateTime(messages[0].timeStamp))}
                         </Text>
                     )}
                 </div>
@@ -108,21 +75,7 @@ const ChatMessage = ({
         };
 
         return messageProps;
-    }, [intl, threadAgentModeToDisplay, chatStyles.modePill, isTyping, message.timeStamp]);
-
-    // Hide message's icon, name and timestamp if the message is grouped with the previous one
-    const hideMessageHeader = useMemo(() => shouldGroupWithPreviousMessage(message, previousMessage), [message, previousMessage]);
-
-    // Check if user message contains a scheduled task execution (called at top level to satisfy React hooks rules)
-    const userMessageText = message.contents?.[0]?.text || '';
-    const userScheduledTaskData = useScheduledTaskMessage(userMessageText);
-
-    if (
-        (userScheduledTaskData.isScheduledTaskMessage || userScheduledTaskData.isScheduledTaskCreationMessage) &&
-        message.author.role === 'User'
-    ) {
-        return null;
-    }
+    }, [intl, threadAgentModeToDisplay, chatStyles.modePill, isTyping, messages[0]?.timeStamp]);
 
     const Loading = () => {
         return (
@@ -138,49 +91,51 @@ const ChatMessage = ({
 
     const ToolCallTextComponent = () => {
         const styles = `
-            @keyframes shimmer {
-                0% {
-                    background-position: 100% 0;
+                @keyframes shimmer {
+                    0% {
+                        background-position: 100% 0;
+                    }
+                    100% {
+                        background-position: -100% 0;
+                    }
                 }
-                100% {
-                    background-position: -100% 0;
-                }
-            }
-        `;
+            `;
 
         return (
             isTyping &&
             toolCallText && (
                 <>
                     <style>{styles}</style>
-                    <Text className={chatMessageStyles.toolCallText}>{toolCallText}</Text>
+                    <Text className={chatBoxStyles.toolCallText}>{toolCallText}</Text>
                 </>
             )
         );
     };
 
-    if (message.contents[0]?.deepInvestigationStatus) {
-        return <DeepInvestigationStatusMessage isDeepInvestigationTurnedOn={message.contents[0].deepInvestigationStatus.enabled} />;
+    if (messages[0]?.deepInvestigationStatus) {
+        return <DeepInvestigationStatusMessage isDeepInvestigationTurnedOn={messages[0].deepInvestigationStatus.enabled} />;
     }
 
-    switch (message.author.role) {
+    switch (role) {
         case 'SREAgent':
             return (
                 <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined}>
                     <CopilotMessage
                         {...agentMessageProps}
-                        key={message.id}
-                        style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
-                        className={mergeClasses(
-                            chatBoxStyles.agentMessage,
-                            hideMessageHeader ? chatBoxStyles.hideAgentMessageHeader : undefined
-                        )}
+                        key={componentId}
+                        style={{
+                            font: 'Segoe UI',
+                            lineHeight: '20px',
+                            wordBreak: 'unset',
+                            maxWidth: '90%',
+                        }}
+                        className={chatBoxStyles.agentMessage}
                     >
-                        {message.contents.map((content, index) => {
+                        {messages.map(message => {
                             return (
                                 <AgentMessage
-                                    key={index}
-                                    messageContent={content}
+                                    key={message.id}
+                                    message={message}
                                     messageId={message.id}
                                     timeStamp={message.timeStamp}
                                     isTyping={isTyping}
@@ -193,42 +148,56 @@ const ChatMessage = ({
                             );
                         })}
 
-                        <ConnectionErrorComponent key={`${message.id}-connection-error`} isStreamingMessage={isStreamingMessage} />
-                        <ToolCallTextComponent key={`${message.id}-tool-call-text`} />
-                        <Loading key={`${message.id}-loading`} />
+                        <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
+                        <ToolCallTextComponent key={`${id}-tool-call-text`} />
+                        <Loading key={`${id}-loading`} />
 
                         <ChatMessageFooter
-                            key={`${message.id}-message-footer`}
-                            message={message}
+                            key={`${id}-message-footer`}
+                            messageContent={messagesToCopy || ''}
                             threadId={threadId}
                             threadSource={threadSource}
-                            nextMessage={nextMessage}
                             isTyping={isTyping}
-                            isStreamingMessage={isStreamingMessage}
                         />
                     </CopilotMessage>
                 </div>
             );
         default:
-            return (
-                <div className={chatBoxStyles.userMessage} key={message.id}>
-                    {hideMessageHeader ? null : (
-                        <div style={nameAndTimestampContainerStyle}>
-                            {message.author.userId !== userIdAndDisplayName.userId && (
-                                <Text block={true} weight={'semibold'} className={chatStyles.userName}>
-                                    {message.author.displayName}
+            return messages.map((message, index) => {
+                const userScheduledTaskData = getScheduledTaskMessage(message.text || '');
+                return (
+                    <div className={chatBoxStyles.userMessage} key={message.id}>
+                        {index !== 0 ? null : (
+                            <div style={nameAndTimestampContainerStyle}>
+                                {message.author.userId !== userIdAndDisplayName.userId && (
+                                    <Text block={true} weight={'semibold'} className={chatStyles.userName}>
+                                        {message.author.displayName}
+                                    </Text>
+                                )}
+                                <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
+                                    {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
                                 </Text>
-                            )}
-                            <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
-                                {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}
-                            </Text>
-                        </div>
-                    )}
-                    <UserMessage className={chatStyles.userBubble} message={{ className: chatStyles.userBubbleMessage }} key={message.id}>
-                        <ReactMarkdownComponent key={message.id} content={userMessageText} variant="chat" isUserMessage />
-                    </UserMessage>
-                </div>
-            );
+                            </div>
+                        )}
+                        {userScheduledTaskData.isScheduledTaskCreationMessage && userScheduledTaskData.task ? (
+                            <ScheduledTaskCreationChatMessage task={userScheduledTaskData.task} />
+                        ) : userScheduledTaskData.isScheduledTaskMessage && userScheduledTaskData.task ? (
+                            <ScheduledTaskExecutionChatMessage
+                                task={userScheduledTaskData.task}
+                                executionTime={userScheduledTaskData.executionTime}
+                            />
+                        ) : (
+                            <UserMessage
+                                className={chatStyles.userBubble}
+                                message={{ className: chatStyles.userBubbleMessage }}
+                                key={message.id}
+                            >
+                                <ReactMarkdownComponent key={message.id} content={message.text || ''} variant="chat" isUserMessage />
+                            </UserMessage>
+                        )}
+                    </div>
+                );
+            });
     }
 };
 

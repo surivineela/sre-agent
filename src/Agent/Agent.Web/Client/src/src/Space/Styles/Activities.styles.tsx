@@ -294,17 +294,13 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
             },
             ...overrides?.agentMessage,
         },
-        hideAgentMessageHeader: {
-            '.fai-CopilotMessage__accessibleHeading': {
-                display: 'none',
-            },
-            '.fai-CopilotMessage__avatar': {
-                display: 'none',
-            },
-            '.fai-CopilotMessage__name': {
-                display: 'none',
-            },
-            ...overrides?.hideAgentMessageHeader,
+        toolCallText: {
+            background: `linear-gradient(90deg, ${tokens.colorNeutralForeground3}, ${tokens.colorNeutralBackground6}, ${tokens.colorNeutralForeground1})`,
+            backgroundSize: '200% 100%',
+            backgroundClip: 'text',
+            color: 'transparent',
+            animation: 'shimmer 2s infinite linear',
+            marginBottom: `${tokens.spacingVerticalS}px`,
         },
     });
 

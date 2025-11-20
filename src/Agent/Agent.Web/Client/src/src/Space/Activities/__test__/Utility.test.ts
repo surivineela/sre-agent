@@ -3,10 +3,11 @@ import { ThreadSeverity } from '../../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
-import { ThreadListsState, ThreadListState } from '../../Contracts/Activities';
+import { ChatMessage, ChatMessageGroup, ThreadListsState, ThreadListState } from '../../Contracts/Activities';
 import {
     addOldThreads,
     addThreadToThreadsThatHaveModifiedTimestampUpdated,
+    doesChatMessageBelongToChatMessageGroup,
     getFilteredThreads,
     getUpdatedUnreadThreadIds,
     insertThreadThatHasFavoritePropertyChangedToThreadListState,
@@ -18,6 +19,58 @@ import {
     removeThreadFromThreadListsState,
     removeThreadIdsFromUnreadThreads,
 } from '../Utility';
+
+const getDefaultUserMessage = (modifiedTimestamp?: string): ChatMessage => {
+    return {
+        id: Guid.newGuid(),
+        timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
+        author: {
+            role: 'User',
+            userId: 'Web-Client-User',
+            displayName: 'Web Client User',
+        },
+        text: 'start message',
+        title: undefined,
+        isDailyReport: null,
+        isComplete: null,
+        isImageContent: null,
+        messageType: null,
+        approval: null,
+        azCliExecution: null,
+        kubectlExecution: null,
+        psqlExecution: null,
+        changeDiff: null,
+        agentTaskInfo: null,
+        memorySearchResult: null,
+        todoInfo: null,
+    };
+};
+
+const getDefaultAgentMessage = (modifiedTimestamp?: string): ChatMessage => {
+    return {
+        id: Guid.newGuid(),
+        timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
+        author: {
+            role: 'SREAgent',
+            userId: 'SREAgent',
+            displayName: 'SRE Agent',
+        },
+        text: 'last message',
+        title: undefined,
+        isDailyReport: null,
+        isComplete: null,
+        isImageContent: null,
+        messageType: null,
+        approval: null,
+        azCliExecution: null,
+        kubectlExecution: null,
+        psqlExecution: null,
+        changeDiff: null,
+        agentTaskInfo: null,
+        memorySearchResult: null,
+        todoInfo: null,
+    };
+};
 
 const getDefaultThread = (
     modifiedTimestamp?: string,
@@ -32,26 +85,8 @@ const getDefaultThread = (
         createdTimestamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
         modifiedTimestamp: modifiedTimestamp || '',
         title: title ?? Guid.newTinyGuid(),
-        startMessage: {
-            id: Guid.newGuid(),
-            timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
-            author: {
-                role: 'User',
-                userId: 'Web-Client-User',
-                displayName: 'Web Client User',
-            },
-            text: 'start message',
-        },
-        lastMessage: {
-            id: Guid.newGuid(),
-            timeStamp: modifiedTimestamp || '2023-10-06T00:00:00Z',
-            author: {
-                role: 'SREAgent',
-                userId: 'SREAgent',
-                displayName: 'SRE Agent',
-            },
-            text: 'last message',
-        },
+        startMessage: getDefaultUserMessage(modifiedTimestamp),
+        lastMessage: getDefaultAgentMessage(modifiedTimestamp),
         status: {
             actionsStatus: {
                 hasCriticalActions: severity === ThreadSeverity.Critical,
@@ -1356,5 +1391,139 @@ describe('pushAllThreadsThatHaveModifiedTimestampUpdatedToThreadLists', () => {
         );
         expect(areThreadsSame(updatedThreadListsState.threadsThatHaveModifiedTimestampUpdated, [])).toBe(true);
         expect(updatedThreadListsState.isLoadingInitialThreads).toBe(false);
+    });
+});
+
+describe('doesChatMessageBelongToChatMessageGroup', () => {
+    it('message is a deep investigation message', () => {
+        const message = getDefaultAgentMessage();
+        message.deepInvestigationStatus = { enabled: true };
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [],
+            agentMessages: [getDefaultAgentMessage()],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
+    });
+
+    it('messageGroup is a deep investigation group', () => {
+        const message = getDefaultAgentMessage();
+        const messageGroupMessage = getDefaultAgentMessage();
+        messageGroupMessage.deepInvestigationStatus = { enabled: true };
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [],
+            agentMessages: [messageGroupMessage],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
+    });
+
+    it('MessageGroup is empty', () => {
+        const message = getDefaultAgentMessage();
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [],
+            agentMessages: [],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
+    });
+
+    it('message and oldest message in message group are both agent messages', () => {
+        const message = getDefaultAgentMessage();
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [],
+            agentMessages: [getDefaultAgentMessage(), getDefaultAgentMessage()],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(true);
+    });
+
+    it('message is agent message but oldest message in message group is user message', () => {
+        const message = getDefaultAgentMessage();
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [getDefaultUserMessage(), getDefaultUserMessage()],
+            agentMessages: [getDefaultAgentMessage()],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
+    });
+
+    it('message is user message but oldest message in message group is agent message', () => {
+        const message = getDefaultUserMessage();
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [],
+            agentMessages: [getDefaultAgentMessage(), getDefaultAgentMessage()],
+        };
+
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(true);
+    });
+
+    it('message and oldest message in message group are both user messages, with the same user id and timestamp is within 5 minutes', () => {
+        const message = getDefaultUserMessage();
+        message.timeStamp = '2023-10-10T10:05:00Z';
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [
+                (() => {
+                    const msg = getDefaultUserMessage();
+                    msg.timeStamp = '2023-10-10T10:00:00Z';
+                    return msg;
+                })(),
+                getDefaultUserMessage(),
+            ],
+            agentMessages: [],
+        };
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(true);
+    });
+
+    it('message and oldest message in message group are both user messages, with different user ids', () => {
+        const message = getDefaultUserMessage();
+        message.author.userId = 'user1';
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [
+                (() => {
+                    const msg = getDefaultUserMessage();
+                    msg.author.userId = 'user2';
+                    return msg;
+                })(),
+                getDefaultUserMessage(),
+            ],
+            agentMessages: [],
+        };
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
+    });
+
+    it('message and oldest message in message group are both user messages, with the same user id but timestamp is more than 5 minutes apart', () => {
+        const message = getDefaultUserMessage();
+        message.timeStamp = '2023-10-10T10:10:00Z';
+        const messageGroup: ChatMessageGroup = {
+            id: 'group1',
+            userMessages: [
+                (() => {
+                    const msg = getDefaultUserMessage();
+                    msg.timeStamp = '2023-10-10T10:00:00Z';
+                    return msg;
+                })(),
+                getDefaultUserMessage(),
+            ],
+            agentMessages: [],
+        };
+        const result = doesChatMessageBelongToChatMessageGroup(message, messageGroup);
+        expect(result).toBe(false);
     });
 });

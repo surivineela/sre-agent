@@ -9,8 +9,7 @@ import {
     KubectlExecution,
     MemorySearchResult,
     Message,
-    MessageContent,
-    MessageMetaData,
+    MessageRole,
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
@@ -110,10 +109,34 @@ export interface ChatBoxHandleRef {
     closeTodoPlanFromOutside: () => any;
 }
 
+export interface ChatMessageGroup {
+    id: string;
+    userMessages: ChatMessage[];
+    agentMessages: ChatMessage[];
+}
+
 export interface IChatMessageProps {
-    message: ChatMessage;
-    previousMessage?: ChatMessage;
-    nextMessage?: ChatMessage;
+    componentId?: string;
+    messages: ChatMessage[];
+    role: MessageRole;
+    isTyping?: boolean;
+    threadId: string;
+    isStreamingMessage?: boolean;
+    toolCallText?: string | null;
+    isWaitingForStreamingMessages?: boolean;
+    threadSource?: string;
+    messagesToCopy?: string;
+    sendMessage?: (message: string) => Promise<void>;
+    updateApprovalOrCliMessageInStreamingMessage?: (approvalOrCliMessageProperties: {
+        approval?: Approval;
+        azCliExecution?: AzCliExecution;
+        kubectlExecution?: KubectlExecution;
+        psqlExecution?: PsqlExecution;
+    }) => void;
+}
+
+export interface IChatMessageGroupProps {
+    messageGroup: ChatMessageGroup;
     isTyping?: boolean;
     threadId: string;
     threadSource?: string;
@@ -129,32 +152,16 @@ export interface IChatMessageProps {
     }) => void;
 }
 
-export interface ChatMessageContent extends MessageContent {
-    messageId: string;
-    isImage?: boolean;
-    isTrajectoryInsight?: boolean;
+export interface ChatMessage extends Message {
+    isImage?: boolean | null | undefined;
     deepInvestigationStatus?: {
         enabled: boolean;
     };
     error?: ChatMessageError;
 }
 
-export interface ChatMessage extends MessageMetaData {
-    contents: ChatMessageContent[];
-}
-
-export interface ChatMessageComponentInput
-    extends Omit<Message, 'text' | 'approval' | 'azCliExecution' | 'kubectlExecution' | 'psqlExecution' | 'isDailyReport'> {
-    text: string;
-    approval?: Approval;
-    azCliExecution?: AzCliExecution;
-    kubectlExecution?: KubectlExecution;
-    isDailyReport?: boolean;
-    isImage?: boolean;
-}
-
 export interface IAgentMessageProps {
-    messageContent: ChatMessageContent;
+    message: ChatMessage;
     messageId: string;
     timeStamp: string;
     isTyping?: boolean;
@@ -166,10 +173,6 @@ export interface IAgentMessageProps {
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
     }) => void;
-}
-
-export interface IChatProps {
-    messages: Message[];
 }
 
 export interface IActionsProps {

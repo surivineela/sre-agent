@@ -1,30 +1,45 @@
 import { AgentTaskMetaData } from './AgentTask';
 import { TodoInfo } from './TodoPlan';
 
-export interface MessageMetaData {
+export type ChatMessageError = 'PermissionDenied' | 'UnknownError';
+
+export type MessageType =
+    | 'chart'
+    | 'image'
+    | 'mermaid'
+    | 'azcli'
+    | 'kubectl'
+    | 'approval'
+    | 'psql'
+    | 'deepinvestigation'
+    | 'memorysearch'
+    | 'todoplan'
+    | 'trajectoryinsight'
+    | 'reasoning'
+    | null;
+
+export interface Message {
     id: string;
     timeStamp: string;
     author: MessageAuthor;
-    title?: string;
-}
-
-export type ChatMessageError = 'PermissionDenied' | 'UnknownError';
-
-export interface MessageContent {
     text: string;
-    approval?: Approval;
-    azCliExecution?: AzCliExecution;
-    kubectlExecution?: KubectlExecution;
-    psqlExecution?: PsqlExecution;
-    isDailyReport?: boolean;
-    changeDiff?: ChangeDiffViewer;
-    agentTaskInfo?: AgentTaskMetaData;
-    memorySearchResult?: MemorySearchResult;
-    todoInfo?: TodoInfo;
-    isComplete?: boolean;
-}
+    title: string | null | undefined;
 
-export interface Message extends MessageMetaData, MessageContent {}
+    // special message type
+    approval: Approval | null | undefined;
+    azCliExecution: AzCliExecution | null | undefined;
+    kubectlExecution: KubectlExecution | null | undefined;
+    psqlExecution: PsqlExecution | null | undefined;
+    isDailyReport: boolean | null | undefined;
+    changeDiff: ChangeDiffViewer | null | undefined;
+    agentTaskInfo: AgentTaskMetaData | null | undefined;
+    memorySearchResult: MemorySearchResult | null | undefined;
+    todoInfo: TodoInfo | null | undefined;
+
+    isComplete: boolean | null | undefined;
+    isImageContent: boolean | null | undefined;
+    messageType: MessageType | null | undefined;
+}
 
 export interface Approval {
     id: string;
@@ -37,8 +52,10 @@ export interface Approval {
     oboTokenScope?: string;
 }
 
+export type MessageRole = 'SREAgent' | 'User';
+
 export interface MessageAuthor {
-    role: 'SREAgent' | 'User';
+    role: MessageRole;
     userId: string;
     displayName: string;
 }

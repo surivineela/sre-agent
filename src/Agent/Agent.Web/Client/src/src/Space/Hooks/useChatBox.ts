@@ -18,24 +18,21 @@ import { Guid } from '../../Common/Helpers/Guid';
 import { MessageCreateRequest } from '../../Common/Providers/StreamingProvider';
 import { PromptResources } from '../../Strings/SREAgentResources';
 import {
-    composeDefaultAgentMessage,
     composeUserMessage,
-    constructUserMessageFromStreamingMessage,
-    createChatMessageContentFromStreamingMessage,
-    getDefaultDeepInvestigationStatusChatMessage,
+    createChatMessageFromStreamingMessage,
+    getDefaultDeepInvestigationStatusChatMessageGroup,
     getStreamingMessageText,
     getToolCallText,
-    isChatMessageContentAnAgentTaskMessageContent,
-    isChatMessageContentAnApprovalOrCliMessageContent,
+    isAgentMessagesEmpty,
+    isChatMessageAMatchedAgentTaskMessage,
+    isChatMessageAMatchedApprovalOrCliMessage,
     isChatMessageContentNonImageText,
-    isChatMessageEmpty,
     isFinalStreamingMessage,
     isInitialState,
     isUpdatedCliOrApprovalStreamingMessage,
     isUserStreamingMessage,
-    shouldGroupWithPreviousMessage,
 } from '../Activities/Utility';
-import { ChatMessage, SendMessageOptions } from '../Contracts/Activities';
+import { ChatMessageGroup, SendMessageOptions } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -60,14 +57,14 @@ export const useChatBox = (
 
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messageGroups, setMessageGroups] = useState<ChatMessageGroup[]>([]);
 
-    const [temporaryUserMessage, setTemporaryUserMessage] = useState<ChatMessage | null>(null);
-    const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null | undefined>();
+    const [streamingMessageGroup, setStreamingMessageGroup] = useState<ChatMessageGroup | null | undefined>();
     const [isCancellingStreaming, setIsCancellingStreaming] = useState<boolean>(false);
     const [toolCallText, setToolCallText] = useState<string | null | undefined>();
     const [isAgentTyping, setIsAgentTyping] = useState<boolean | undefined>();
     const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean | undefined>();
+    const [hasExistingStreamingMessage, setHasExistingStreamingMessage] = useState<boolean>(false);
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
@@ -88,7 +85,7 @@ export const useChatBox = (
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const currentScrollTop = useRef<number>(0);
     const currentScrollHeight = useRef<number>(0);
-    const streamingMessageRef = useRef<ChatMessage | null | undefined>();
+    const streamingMessageGroupRef = useRef<ChatMessageGroup | null | undefined>();
     const currentThreadIdRef = useRef<string>(threadId || '');
     const isNewThreadAdded = useRef<boolean>(false);
     // pass userDefinedThreadId to thread create for matching the thread id from the stream message
@@ -106,22 +103,26 @@ export const useChatBox = (
     const prepareForAddingChatHistory = () => {
         currentScrollHeight.current = messagesDivRef.current?.scrollHeight || 0;
     };
-    const { chatHistoryLength, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } = useChatHistory(
-        setMessages,
-        threadId,
-        prepareForAddingChatHistory,
-        setStreamingMessage,
-        setIsAgentTyping,
-        setIsWaitingForStreamingMessages
-    );
-
-    const isNewAndCleanThread = useMemo(
-        () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0 && !streamingMessage,
-        [isLoadingInitialChatHistory, currentThreadId, messages, streamingMessage]
-    );
 
     const scrollToBottom = (smooth: boolean) =>
         messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: smooth ? 'smooth' : undefined });
+
+    const { chatHistoryChangeTrigger, isLoadingInitialChatHistory, loadOlderMessagesRef, newestMessageTimestampInOldMessages } =
+        useChatHistory(
+            setMessageGroups,
+            threadId,
+            prepareForAddingChatHistory,
+            scrollToBottom,
+            setStreamingMessageGroup,
+            setIsAgentTyping,
+            setIsWaitingForStreamingMessages,
+            hasExistingStreamingMessage
+        );
+
+    const isNewAndCleanThread = useMemo(
+        () => !isLoadingInitialChatHistory && !currentThreadId && messageGroups.length === 0 && !streamingMessageGroup,
+        [isLoadingInitialChatHistory, currentThreadId, messageGroups, streamingMessageGroup]
+    );
 
     const isChatAtBottom = () =>
         messagesDivRef.current &&
@@ -153,7 +154,7 @@ export const useChatBox = (
             setIsDeepInvestigationTurnedOn(on);
 
             pushCurrentStreamingMessageToNewMessages();
-            setMessages(prev => [...prev, getDefaultDeepInvestigationStatusChatMessage(on)]);
+            setMessageGroups(prev => [...prev, getDefaultDeepInvestigationStatusChatMessageGroup(on)]);
 
             proxy.logAmplitudeControlEvent({
                 targetType: 'button',
@@ -231,32 +232,12 @@ export const useChatBox = (
         }
     }, [isCancellingStreaming, currentThreadId, cancelMessageStreaming]);
 
-    const getGroupedChatMessages = useCallback(
-        (message: ChatMessage, isStreamingMessage?: boolean): ChatMessage[] => {
-            // Treat streaming messages as the latest message
-            const currentMessageIndex = isStreamingMessage ? messages.length : messages.findIndex(msg => msg.id === message.id);
-
-            const groupedMessages: ChatMessage[] = [message];
-            for (let i = currentMessageIndex - 1; i >= 0; i--) {
-                const previousMessage = messages[i];
-                if (shouldGroupWithPreviousMessage(message, previousMessage)) {
-                    groupedMessages.unshift(previousMessage);
-                } else {
-                    break;
-                }
-            }
-
-            return groupedMessages;
-        },
-        [messages]
-    );
-
     const pushCurrentStreamingMessageToNewMessages = () => {
-        const currentStreamingMessage = streamingMessageRef.current;
-        setStreamingMessage(null);
+        const currentStreamingMessageGroup = streamingMessageGroupRef.current;
+        setStreamingMessageGroup(null);
 
-        if (currentStreamingMessage && !isChatMessageEmpty(currentStreamingMessage)) {
-            setMessages(prev => [...prev, cloneDeep(currentStreamingMessage)]);
+        if (currentStreamingMessageGroup) {
+            setMessageGroups(prev => [...prev, cloneDeep(currentStreamingMessageGroup)]);
         }
     };
 
@@ -264,11 +245,18 @@ export const useChatBox = (
         async (message: string, options?: SendMessageOptions) => {
             pushCurrentStreamingMessageToNewMessages();
 
-            setTemporaryUserMessage(composeUserMessage(userId, displayName, message));
-            setStreamingMessage(composeDefaultAgentMessage());
+            setStreamingMessageGroup({
+                id: Guid.newGuid(),
+                userMessages: [composeUserMessage(userId, displayName, message)],
+                agentMessages: [],
+            });
             setIsAgentTyping(true);
             setIsWaitingForStreamingMessages(true);
             setToolCallText(null);
+
+            setTimeout(() => {
+                scrollToBottom(true);
+            }, 0);
 
             try {
                 const starterAgentName = options?.starterAgentName?.trim() || undefined;
@@ -304,34 +292,34 @@ export const useChatBox = (
     );
 
     useEffect(() => {
-        streamingMessageRef.current = streamingMessage;
-    }, [streamingMessage]);
+        streamingMessageGroupRef.current = streamingMessageGroup;
+    }, [streamingMessageGroup]);
 
     const getApprovalOrCliMessageIndexInStreamingMessage = (
-        streamingMessage: ChatMessage | undefined | null,
+        streamingMessageGroup: ChatMessageGroup | undefined | null,
         specialMessageId: string | undefined
     ) => {
-        const result = streamingMessage?.contents.findIndex(content => {
-            return isChatMessageContentAnApprovalOrCliMessageContent(content, specialMessageId);
+        const result = streamingMessageGroup?.agentMessages.findIndex(message => {
+            return isChatMessageAMatchedApprovalOrCliMessage(message, specialMessageId);
         });
         return result === -1 ? undefined : result;
     };
 
     const getAgentTaskMessageIndexInStreamingMessage = (
-        streamingMessage: ChatMessage | undefined | null,
+        streamingMessageGroup: ChatMessageGroup | undefined | null,
         specialMessageId: string | undefined
     ) => {
-        const result = streamingMessage?.contents.findIndex(content => {
-            return isChatMessageContentAnAgentTaskMessageContent(content, specialMessageId);
+        const result = streamingMessageGroup?.agentMessages.findIndex(message => {
+            return isChatMessageAMatchedAgentTaskMessage(message, specialMessageId);
         });
         return result === -1 ? undefined : result;
     };
 
-    const getApprovalOrCliMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
-        for (let i = messages.length - 1; i >= 0; i--) {
-            for (let j = messages[i].contents.length - 1; j >= 0; j--) {
-                const content = messages[i].contents[j];
-                if (isChatMessageContentAnApprovalOrCliMessageContent(content, specialMessageId)) {
+    const getApprovalOrCliMessageIndexInExistingMessages = (messageGroups: ChatMessageGroup[], specialMessageId: string | undefined) => {
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            for (let j = messageGroups[i].agentMessages.length - 1; j >= 0; j--) {
+                const message = messageGroups[i].agentMessages[j];
+                if (isChatMessageAMatchedApprovalOrCliMessage(message, specialMessageId)) {
                     return [i, j];
                 }
             }
@@ -339,11 +327,11 @@ export const useChatBox = (
         return undefined;
     };
 
-    const getAgentTaskMessageIndexInExistingMessages = (messages: ChatMessage[], specialMessageId: string | undefined) => {
-        for (let i = messages.length - 1; i >= 0; i--) {
-            for (let j = messages[i].contents.length - 1; j >= 0; j--) {
-                const content = messages[i].contents[j];
-                if (isChatMessageContentAnAgentTaskMessageContent(content, specialMessageId)) {
+    const getAgentTaskMessageIndexInExistingMessages = (messageGroups: ChatMessageGroup[], specialMessageId: string | undefined) => {
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            for (let j = messageGroups[i].agentMessages.length - 1; j >= 0; j--) {
+                const message = messageGroups[i].agentMessages[j];
+                if (isChatMessageAMatchedAgentTaskMessage(message, specialMessageId)) {
                     return [i, j];
                 }
             }
@@ -360,19 +348,23 @@ export const useChatBox = (
         }) => {
             const { approval, azCliExecution, kubectlExecution, psqlExecution } = approvalOrCliMessageProperties;
 
-            setStreamingMessage(prev => {
+            setStreamingMessageGroup(prev => {
                 if (!prev) return prev;
                 const specialMessageId = approval?.id || azCliExecution?.id || kubectlExecution?.id || psqlExecution?.id;
                 const index = getApprovalOrCliMessageIndexInStreamingMessage(prev, specialMessageId);
                 if (index !== undefined) {
-                    prev.contents[index] = {
-                        ...prev.contents[index],
+                    const agentMessages = [...prev.agentMessages];
+                    agentMessages[index] = {
+                        ...agentMessages[index],
                         approval,
                         azCliExecution,
                         kubectlExecution,
                         psqlExecution,
                     };
-                    return cloneDeep(prev);
+                    return cloneDeep({
+                        ...prev,
+                        agentMessages,
+                    });
                 } else {
                     return prev;
                 }
@@ -382,15 +374,12 @@ export const useChatBox = (
     );
 
     const processChatMessageContents = (streamingMessage: StreamingMessage) => {
-        const chatMessageContent = createChatMessageContentFromStreamingMessage(streamingMessage);
+        const chatMessage = createChatMessageFromStreamingMessage(streamingMessage);
 
         const cliOrApproval =
-            chatMessageContent.approval ||
-            chatMessageContent.azCliExecution ||
-            chatMessageContent.kubectlExecution ||
-            chatMessageContent.psqlExecution;
+            chatMessage.approval || chatMessage.azCliExecution || chatMessage.kubectlExecution || chatMessage.psqlExecution;
         const isCliOrApprovalMessageInInitialState = isInitialState(cliOrApproval?.status);
-        const agentTaskInfo = chatMessageContent.agentTaskInfo;
+        const agentTaskInfo = chatMessage.agentTaskInfo;
 
         // Log telemetry for pending approval/execution messages (once per message)
         if (cliOrApproval) {
@@ -401,7 +390,7 @@ export const useChatBox = (
                 cliOrApproval.status === ExecutionStatus.PendingAuthorization;
 
             if (isPending) {
-                const isApproval = !!chatMessageContent.approval;
+                const isApproval = !!chatMessage.approval;
 
                 const metadata: Record<string, unknown> = {
                     threadId:
@@ -415,11 +404,7 @@ export const useChatBox = (
                 };
 
                 if (!isApproval) {
-                    metadata.executionType = chatMessageContent.azCliExecution
-                        ? 'azCli'
-                        : chatMessageContent.kubectlExecution
-                          ? 'kubectl'
-                          : 'psql';
+                    metadata.executionType = chatMessage.azCliExecution ? 'azCli' : chatMessage.kubectlExecution ? 'kubectl' : 'psql';
                 }
 
                 proxy.logAmplitudeOperationEvent({
@@ -433,68 +418,87 @@ export const useChatBox = (
         }
 
         const appendMessageInTheStreamingMessage = () => {
-            setStreamingMessage(prev => {
-                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+            setStreamingMessageGroup(prev => {
+                if (!prev) {
+                    return {
+                        id: Guid.newGuid(),
+                        userMessages: [],
+                        agentMessages: [chatMessage],
+                    };
+                }
 
-                const latestContent = newStreamingMessage.contents[newStreamingMessage.contents.length - 1];
-                const latestContentText = latestContent?.text;
-                const latestContentId = latestContent?.messageId;
-                const currentContentText = chatMessageContent.text;
-                const currentContentId = chatMessageContent.messageId;
+                const latestAgentMessage = prev.agentMessages[prev.agentMessages.length - 1];
+                const latestContentText = latestAgentMessage?.text;
+                const latestContentId = latestAgentMessage?.id;
+                const currentText = chatMessage.text;
+                const currentId = chatMessage.id;
 
                 if (
-                    latestContent &&
+                    latestAgentMessage &&
                     latestContentText &&
                     latestContentId &&
-                    currentContentText &&
-                    currentContentId &&
-                    isChatMessageContentNonImageText(latestContent) &&
-                    isChatMessageContentNonImageText(chatMessageContent) &&
-                    latestContentId === currentContentId
+                    currentText &&
+                    currentId &&
+                    isChatMessageContentNonImageText(latestAgentMessage) &&
+                    isChatMessageContentNonImageText(chatMessage) &&
+                    latestContentId === currentId
                 ) {
                     return {
-                        ...newStreamingMessage,
-                        contents: [
-                            ...newStreamingMessage.contents.slice(0, -1),
+                        ...prev,
+                        agentMessages: [
+                            ...prev.agentMessages.slice(0, -1),
                             {
-                                ...latestContent,
-                                text: latestContentText + currentContentText,
+                                ...latestAgentMessage,
+                                text: latestContentText + currentText,
                             },
                         ],
                     };
                 }
+
                 return {
-                    ...newStreamingMessage,
-                    contents: [...newStreamingMessage.contents, chatMessageContent],
+                    ...prev,
+                    agentMessages: [...prev.agentMessages, chatMessage],
                 };
             });
         };
 
         const updateSpecialMessage = (type: 'approvalOrCli' | 'agentTask', id: string) => {
-            setStreamingMessage(prev => {
-                const newStreamingMessage = prev ? { ...prev } : composeDefaultAgentMessage();
+            setStreamingMessageGroup(prev => {
+                if (!prev) return prev;
+
                 const index =
                     type === 'approvalOrCli'
-                        ? getApprovalOrCliMessageIndexInStreamingMessage(newStreamingMessage, id)
-                        : getAgentTaskMessageIndexInStreamingMessage(newStreamingMessage, id);
+                        ? getApprovalOrCliMessageIndexInStreamingMessage(prev, id)
+                        : getAgentTaskMessageIndexInStreamingMessage(prev, id);
+
                 if (index !== undefined) {
-                    newStreamingMessage.contents[index] = chatMessageContent;
-                    return cloneDeep(newStreamingMessage);
+                    const updatedAgentMessages = [...prev.agentMessages];
+                    updatedAgentMessages[index] = chatMessage;
+                    return cloneDeep({
+                        ...prev,
+                        agentMessages: updatedAgentMessages,
+                    });
                 } else {
                     return prev;
                 }
             });
 
-            setMessages(prev => {
-                const messages = [...prev];
+            setMessageGroups(prev => {
+                const messageGroups = [...prev];
                 const index =
                     type === 'approvalOrCli'
-                        ? getApprovalOrCliMessageIndexInExistingMessages(messages, id)
-                        : getAgentTaskMessageIndexInExistingMessages(messages, id);
+                        ? getApprovalOrCliMessageIndexInExistingMessages(messageGroups, id)
+                        : getAgentTaskMessageIndexInExistingMessages(messageGroups, id);
                 if (index !== undefined) {
-                    const [messageIndex, contentIndex] = index;
-                    messages[messageIndex].contents[contentIndex] = chatMessageContent;
-                    return cloneDeep(messages);
+                    const [messageGroupIndex, messageIndex] = index;
+                    const messageGroup = { ...messageGroups[messageGroupIndex] };
+                    const agentMessages = [...messageGroup.agentMessages];
+                    agentMessages[messageIndex] = chatMessage;
+                    messageGroups[messageGroupIndex] = {
+                        ...messageGroup,
+                        agentMessages: [...agentMessages],
+                    };
+                    return cloneDeep(messageGroups);
                 } else {
                     return prev;
                 }
@@ -569,10 +573,6 @@ export const useChatBox = (
                     isNewThreadAdded.current = true;
                 }
             }
-
-            const userMessage = constructUserMessageFromStreamingMessage(currentMessageChunk);
-            setTemporaryUserMessage(null);
-            setMessages(prev => [...prev, userMessage]);
         } else if (isUpdatedCliOrApprovalStreamingMessage(currentMessageChunk)) {
             processChatMessageContents(currentMessageChunk);
         } else {
@@ -606,11 +606,7 @@ export const useChatBox = (
 
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
             if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUpdatedCliOrApprovalStreamingMessage(messageChunk)) {
-                setStreamingMessage(prev => {
-                    return prev === undefined ? composeDefaultAgentMessage() : prev;
-                });
-                setIsAgentTyping(prev => (prev === undefined ? true : prev));
-                setIsWaitingForStreamingMessages(prev => (prev === undefined ? true : prev));
+                setHasExistingStreamingMessage(true);
                 setToolCallText(prev => (prev === undefined ? getToolCallText(messageChunk) : prev));
             }
         };
@@ -656,8 +652,19 @@ export const useChatBox = (
     useEffect(() => {
         const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
             const entry = entries[0];
-            if (entry.isIntersecting) {
-                loadOlderMessagesRef.current?.();
+            if (entry.isIntersecting && intersectionObserverRef.current) {
+                // Unobserve immediately to prevent multiple triggers
+                observer.unobserve(intersectionObserverRef.current);
+
+                // Trigger the load request and wait for it to complete
+                const loadFunction = loadOlderMessagesRef.current;
+                if (loadFunction) {
+                    loadFunction().finally(() => {
+                        if (intersectionObserverRef.current) {
+                            observer.observe(intersectionObserverRef.current);
+                        }
+                    });
+                }
             }
         });
         if (observer && intersectionObserverRef.current && !isLoadingInitialChatHistory) {
@@ -677,7 +684,7 @@ export const useChatBox = (
     // to make sure the chat does not scroll to top before the next paint
     useLayoutEffect(() => {
         let timeoutId: number | undefined = undefined;
-        if (messagesDivRef.current && chatHistoryLength > 0) {
+        if (messagesDivRef.current && chatHistoryChangeTrigger !== null) {
             const prevScrollHeight = currentScrollHeight.current;
             const prevScrollTop = currentScrollTop.current;
 
@@ -694,14 +701,7 @@ export const useChatBox = (
                 cancelAnimationFrame(timeoutId);
             }
         };
-    }, [chatHistoryLength]);
-
-    useEffect(() => {
-        // When new messages are added or the streaming message is initialized, scroll to the bottom
-        if (!!temporaryUserMessage && !!streamingMessage) {
-            scrollToBottom(true);
-        }
-    }, [temporaryUserMessage, !!streamingMessage]);
+    }, [chatHistoryChangeTrigger]);
 
     const prompts = useMemo(
         () => [
@@ -713,31 +713,37 @@ export const useChatBox = (
     );
 
     const messagePromptsUsed = useMemo(() => {
-        const result: ChatMessage[] = [];
+        const result: string[] = [];
         const seenTexts = new Set<string>();
 
-        for (let i = messages.length - 1; i >= 0 && result.length < 3; i--) {
-            const msg = messages[i];
-            const text = msg.contents[0]?.text;
-            if (text && msg.author.role !== 'SREAgent' && !seenTexts.has(text)) {
-                result.push(msg);
-                seenTexts.add(text);
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            const messageGroup = messageGroups[i];
+            const userMessages = messageGroup.userMessages;
+
+            for (let j = userMessages.length - 1; j >= 0; j--) {
+                const text = userMessages[j].text;
+                if (text && !seenTexts.has(text)) {
+                    result.push(text);
+                    seenTexts.add(text);
+
+                    if (result.length >= 3) {
+                        return result;
+                    }
+                }
             }
         }
-        return result.map(message => {
-            return message.contents[0].text || '';
-        });
-    }, [messages]);
+        return result;
+    }, [messageGroups]);
 
     useEffect(() => {
-        if (streamingMessage && !isChatMessageEmpty(streamingMessage)) {
+        if (streamingMessageGroup && !isAgentMessagesEmpty(streamingMessageGroup)) {
             if (!isChatAtBottom()) {
                 setDownButtonState({ visible: true, flash: !!isAgentTyping });
             } else {
                 setDownButtonState({ visible: false, flash: false });
             }
         }
-    }, [streamingMessage, isAgentTyping]);
+    }, [streamingMessageGroup, isAgentTyping]);
 
     useEffect(() => {
         isCancellingStreamingRef.current = isCancellingStreaming;
@@ -757,12 +763,11 @@ export const useChatBox = (
     }, []);
 
     return {
-        messages,
+        messageGroups,
         isLoading: isLoadingInitialChatHistory,
         isAgentTyping,
         isWaitingForStreamingMessages,
-        temporaryUserMessage,
-        streamingMessage,
+        streamingMessageGroup,
         toolCallText,
         isCancellingStreaming,
         sendMessage: sendMessageHandler,
@@ -776,7 +781,6 @@ export const useChatBox = (
         onScroll,
         downButtonState,
         onClickDownButton,
-        getGroupedChatMessages,
         updateApprovalOrCliMessageInStreamingMessage,
         userDefinedThreadIdRef,
 

@@ -7,29 +7,18 @@ import ChatMessageComponent from './ChatMessage';
 /**
  * A chat message component that only shows error message
  */
-const ErrorChatMessage = ({
-    error,
-    previousMessage,
-    nextMessage,
-}: {
-    error?: ChatMessageError;
-    previousMessage?: ChatMessage;
-    nextMessage?: ChatMessage;
-}) => {
-    const message = useMemo(() => {
+const ErrorChatMessage = ({ error }: { error?: ChatMessageError }) => {
+    const messages = useMemo((): ChatMessage[] => {
         const agentMessage = composeDefaultAgentMessage();
-        agentMessage.contents = [
+        return [
             {
-                messageId: '',
-                text: '',
+                ...agentMessage,
                 error,
             },
         ];
-
-        return agentMessage;
     }, [error]);
 
-    return <ChatMessageComponent message={message} previousMessage={previousMessage} nextMessage={nextMessage} threadId="" />;
+    return <ChatMessageComponent messages={messages} threadId="" role={'SREAgent'} />;
 };
 
 export default memo(ErrorChatMessage);

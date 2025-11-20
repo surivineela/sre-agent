@@ -5,21 +5,20 @@ import {
     Approval,
     ApprovalDecision,
     AzCliExecution,
+    KubectlExecution,
     MemorySearchResult,
-    Message,
     MessageAuthor,
-    MessageMetaData,
+    MessageType,
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
-import { StreamingMessage, StreamingMessageType } from '../../Common/Contracts/DataPlane/Streaming';
+import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { GenericErrorResources } from '../../Strings/SREAgentResources';
-import { ChatMessage, ChatMessageContent, ThreadListsState, ThreadListState } from '../Contracts/Activities';
-import { DefaultUserIdAndDisplayName } from '../Hooks/useAuthenticatedUserInfo';
+import { ChatMessage, ChatMessageGroup, ThreadListsState, ThreadListState } from '../Contracts/Activities';
 
 /**
  * Use this when your thread list does not have favorite section or any addition section.
@@ -487,31 +486,9 @@ export const isAgentMessage = (message: ChatMessage): boolean => {
     return equals(message.author.role, 'SREAgent', AntUxStringComparison.IgnoreCase);
 };
 
-export const getMessageMetaDataFromChatMessage = (
-    streamingMessage: StreamingMessage,
-    userId: string,
-    displayName: string
-): MessageMetaData => {
-    const { additionalProperties, createdAt } = streamingMessage;
-
-    const author: MessageAuthor = isUserStreamingMessage(streamingMessage)
-        ? {
-              role: 'User',
-              userId,
-              displayName: displayName,
-          }
-        : getDefaultSREAgentAuthor();
-
-    return {
-        id: additionalProperties?.messageId || '',
-        timeStamp: createdAt || '',
-        author,
-    };
-};
-
 export const getSpecialMessageContentFromStreamingMessage = <T,>(
     streamingMessage: StreamingMessage,
-    streamingMessageType: StreamingMessageType
+    streamingMessageType: MessageType
 ): T | undefined => {
     const additionalProperties = streamingMessage.additionalProperties;
     const messageType = additionalProperties?.streamMessageType || '';
@@ -532,11 +509,11 @@ export const getSpecialMessageContentFromStreamingMessage = <T,>(
     }
 };
 
-export const createChatMessageContentFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessageContent => {
+export const createChatMessageFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessage => {
     const messageContent = streamingMessage.contents?.[0];
 
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
-    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
+    const kubectlExecution = getSpecialMessageContentFromStreamingMessage<KubectlExecution>(streamingMessage, 'kubectl');
     const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
     const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
     const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
@@ -566,9 +543,12 @@ export const createChatMessageContentFromStreamingMessage = (streamingMessage: S
 
     const isImage = isImageStreamingMessageType(streamingMessage);
 
-    const chatMessageContent: ChatMessageContent = {
-        messageId: streamingMessage.additionalProperties?.messageId || '',
+    const chatMessageContent: ChatMessage = {
+        id: streamingMessage.additionalProperties?.messageId || '',
         text,
+        author: getDefaultSREAgentAuthor(),
+        title: undefined,
+        timeStamp: streamingMessage.createdAt || '',
         isImage,
         approval,
         azCliExecution,
@@ -577,7 +557,11 @@ export const createChatMessageContentFromStreamingMessage = (streamingMessage: S
         memorySearchResult,
         agentTaskInfo: agentTaskData?.agentTaskInfo,
         todoInfo,
+        changeDiff: undefined,
         isDailyReport: false,
+        isComplete: true,
+        isImageContent: isImage,
+        messageType: streamingMessage.additionalProperties?.streamMessageType || null,
     };
 
     return chatMessageContent;
@@ -587,11 +571,6 @@ export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage
     const streamMessageType = streamingMessage.additionalProperties?.streamMessageType;
     // Default message type excludes special types like images, charts, and trajectory insights
     return !streamMessageType;
-};
-
-export const isTrajectoryInsightMessageType = (streamingMessage: StreamingMessage): boolean => {
-    const streamMessageType = streamingMessage.additionalProperties?.streamMessageType;
-    return !!streamMessageType && equals(streamMessageType, 'trajectoryinsight', AntUxStringComparison.IgnoreCase);
 };
 
 export const isImageStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
@@ -648,15 +627,6 @@ export const isUpdatedCliOrApprovalStreamingMessage = (streamingMessage: Streami
     return (!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution) && !isInitialState(status);
 };
 
-export const getCliOrApprovalContentFromChatMessageContent = (chatMessageContent: ChatMessageContent) => {
-    return (
-        chatMessageContent.approval ||
-        chatMessageContent.azCliExecution ||
-        chatMessageContent.kubectlExecution ||
-        chatMessageContent.psqlExecution
-    );
-};
-
 export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {
     if (status !== null && status !== undefined && typeof status === 'number') {
         return status === 0
@@ -673,24 +643,6 @@ export const processApprovalStreamingMessageStatus = (status: ApprovalDecision |
     return status;
 };
 
-export const constructUserMessageFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessage => {
-    const { additionalProperties, authorName, createdAt } = streamingMessage;
-    const { messageId, userId } = additionalProperties || {};
-
-    const id = messageId || Guid.newGuid();
-
-    return {
-        id: id,
-        timeStamp: createdAt || new Date().toISOString(),
-        author: {
-            role: 'User',
-            userId: userId || DefaultUserIdAndDisplayName.userId,
-            displayName: authorName || DefaultUserIdAndDisplayName.displayName,
-        },
-        contents: [{ messageId: id, text: getStreamingMessageText(streamingMessage) }],
-    };
-};
-
 export const composeUserMessage = (userId: string, userDisplayName: string, message: string): ChatMessage => {
     const id = Guid.newGuid();
 
@@ -702,7 +654,22 @@ export const composeUserMessage = (userId: string, userDisplayName: string, mess
             userId: userId,
             displayName: userDisplayName,
         },
-        contents: [{ messageId: id, text: message, isComplete: true }],
+        text: message,
+        title: undefined,
+        approval: undefined,
+        azCliExecution: undefined,
+        kubectlExecution: undefined,
+        psqlExecution: undefined,
+        memorySearchResult: undefined,
+        todoInfo: undefined,
+        isDailyReport: false,
+        changeDiff: undefined,
+        agentTaskInfo: undefined,
+        isComplete: true,
+        isImageContent: undefined,
+        messageType: null,
+        isImage: undefined,
+        deepInvestigationStatus: undefined,
     };
 };
 
@@ -711,50 +678,146 @@ export const composeDefaultAgentMessage = (): ChatMessage => {
         id: Guid.newGuid(),
         timeStamp: new Date().toISOString(),
         author: getDefaultSREAgentAuthor(),
-        contents: [],
+        text: '',
+        title: undefined,
+        approval: undefined,
+        azCliExecution: undefined,
+        kubectlExecution: undefined,
+        psqlExecution: undefined,
+        memorySearchResult: undefined,
+        todoInfo: undefined,
+        isDailyReport: false,
+        changeDiff: undefined,
+        agentTaskInfo: undefined,
+        isComplete: true,
+        isImageContent: undefined,
+        messageType: null,
+        isImage: undefined,
+        deepInvestigationStatus: undefined,
     };
 };
 
-export const isChatMessageContentNonImageText = (chatMessageContent: ChatMessageContent): boolean => {
+export const isChatMessageContentNonImageText = (chatMessage: ChatMessage): boolean => {
     return (
-        !chatMessageContent.approval &&
-        !chatMessageContent.azCliExecution &&
-        !chatMessageContent.kubectlExecution &&
-        !chatMessageContent.psqlExecution &&
-        !chatMessageContent.memorySearchResult &&
-        !chatMessageContent.isImage &&
-        !chatMessageContent.todoInfo &&
-        !chatMessageContent.deepInvestigationStatus &&
-        !chatMessageContent.changeDiff
+        !chatMessage.approval &&
+        !chatMessage.azCliExecution &&
+        !chatMessage.kubectlExecution &&
+        !chatMessage.psqlExecution &&
+        !chatMessage.memorySearchResult &&
+        !chatMessage.isImage &&
+        !chatMessage.isImageContent &&
+        !chatMessage.todoInfo &&
+        !chatMessage.deepInvestigationStatus &&
+        !chatMessage.changeDiff
     );
 };
 
-export const shouldGroupWithPreviousMessage = (currentChatMessage?: ChatMessage, previousMessage?: ChatMessage) => {
-    return (
-        !!previousMessage &&
-        !!currentChatMessage &&
-        !previousMessage.contents[0]?.deepInvestigationStatus &&
-        !currentChatMessage.contents[0]?.deepInvestigationStatus &&
-        currentChatMessage.author.userId === previousMessage.author.userId
-    );
+export const doesChatMessageBelongToChatMessageGroup = (message: ChatMessage, messageGroup: ChatMessageGroup) => {
+    if (
+        message &&
+        !message.deepInvestigationStatus &&
+        !messageGroup.agentMessages[0]?.deepInvestigationStatus &&
+        (messageGroup.userMessages.length > 0 || messageGroup.agentMessages.length > 0)
+    ) {
+        const oldestMessageInMessageGroup =
+            messageGroup.userMessages.length > 0 ? messageGroup.userMessages[0] : messageGroup.agentMessages[0];
+        const isMessageAgentMessage = isAgentMessage(message);
+        const isOldestMessageInMessageGroupAgentMessage = isAgentMessage(oldestMessageInMessageGroup);
+
+        if (isMessageAgentMessage && isOldestMessageInMessageGroupAgentMessage) {
+            return true;
+        } else if (isMessageAgentMessage && !isOldestMessageInMessageGroupAgentMessage) {
+            return false;
+        } else if (!isMessageAgentMessage && isOldestMessageInMessageGroupAgentMessage) {
+            return true;
+        } else {
+            return (
+                message.author.userId === oldestMessageInMessageGroup.author.userId &&
+                Math.abs(getSafeDateTime(message.timeStamp).getTime() - getSafeDateTime(oldestMessageInMessageGroup.timeStamp).getTime()) <=
+                    5 * 60 * 1000
+            );
+        }
+    }
+
+    return false;
 };
 
-export const getDefaultDeepInvestigationStatusChatMessage = (isDeepInvestigationTurnedOn: boolean): ChatMessage => {
-    const id = Guid.newGuid();
+/**
+ *
+ * @param messages messges in descending order based on timestamp
+ * @param messageGroups message groups in ascending order based on the timestamp
+ * @returns
+ */
+export const updateChatMessageGroups = (messages: ChatMessage[], messageGroups: ChatMessageGroup[]): ChatMessageGroup[] => {
+    if (messages.length === 0) return messageGroups;
 
-    return {
-        id,
+    const updatedMessageGroups = [...messageGroups];
+
+    for (let i = 0; i < messages.length; i++) {
+        const message = messages[i];
+        const isMessageAgentMessage = isAgentMessage(message);
+
+        const newMessageGroup: ChatMessageGroup = {
+            id: Guid.newGuid(),
+            userMessages: isMessageAgentMessage ? [] : [message],
+            agentMessages: isMessageAgentMessage ? [message] : [],
+        };
+
+        if (updatedMessageGroups.length === 0) {
+            updatedMessageGroups.push(newMessageGroup);
+        } else {
+            const oldestMessageGroup = updatedMessageGroups[0];
+            if (doesChatMessageBelongToChatMessageGroup(message, oldestMessageGroup)) {
+                const agentMessages = [...oldestMessageGroup.agentMessages];
+                const userMessages = [...oldestMessageGroup.userMessages];
+
+                if (isMessageAgentMessage) {
+                    agentMessages.unshift(message);
+                } else {
+                    userMessages.unshift(message);
+                }
+                updatedMessageGroups.splice(0, 1, {
+                    id: oldestMessageGroup.id,
+                    userMessages: [...userMessages],
+                    agentMessages: [...agentMessages],
+                });
+            } else {
+                updatedMessageGroups.unshift(newMessageGroup);
+            }
+        }
+    }
+    return [...updatedMessageGroups];
+};
+
+export const getDefaultDeepInvestigationStatusChatMessageGroup = (isDeepInvestigationTurnedOn: boolean): ChatMessageGroup => {
+    const agentMessage: ChatMessage = {
+        id: Guid.newGuid(),
         timeStamp: new Date().toISOString(),
         author: getDefaultSREAgentAuthor(),
-        contents: [
-            {
-                messageId: id,
-                text: '',
-                deepInvestigationStatus: {
-                    enabled: isDeepInvestigationTurnedOn,
-                },
-            },
-        ],
+        text: '',
+        title: undefined,
+        approval: undefined,
+        azCliExecution: undefined,
+        kubectlExecution: undefined,
+        psqlExecution: undefined,
+        memorySearchResult: undefined,
+        todoInfo: undefined,
+        isDailyReport: false,
+        changeDiff: undefined,
+        agentTaskInfo: undefined,
+        isComplete: true,
+        isImageContent: undefined,
+        messageType: null,
+        isImage: undefined,
+        deepInvestigationStatus: {
+            enabled: isDeepInvestigationTurnedOn,
+        },
+    };
+
+    return {
+        id: Guid.newGuid(),
+        userMessages: [],
+        agentMessages: [agentMessage],
     };
 };
 
@@ -836,26 +899,27 @@ export const removeThreadIdsFromUnreadThreads = (unreadThreadsIds: Set<string>, 
     return unreadThreadsIds;
 };
 
-export const isChatMessageEmpty = (message?: ChatMessage | null): boolean => {
-    const messageContents = message?.contents || [];
-
-    return !messageContents.some(content => {
-        return (
-            !!content.text ||
-            !!content.approval ||
-            !!content.azCliExecution ||
-            !!content.kubectlExecution ||
-            !!content.psqlExecution ||
-            !!content.memorySearchResult ||
-            !!content.todoInfo
-        );
-    });
+export const isAgentMessagesEmpty = (messageGroup?: ChatMessageGroup | null): boolean => {
+    return (
+        !messageGroup ||
+        messageGroup.agentMessages.length === 0 ||
+        !messageGroup.agentMessages.some(agentMessage => {
+            return (
+                !!agentMessage.text ||
+                !!agentMessage.approval ||
+                !!agentMessage.azCliExecution ||
+                !!agentMessage.kubectlExecution ||
+                !!agentMessage.psqlExecution ||
+                !!agentMessage.memorySearchResult ||
+                !!agentMessage.todoInfo ||
+                !!agentMessage.agentTaskInfo ||
+                !!agentMessage.changeDiff
+            );
+        })
+    );
 };
 
-export const isChatMessageContentAnApprovalOrCliMessageContent = (
-    content: ChatMessageContent,
-    specialMessageId: string | undefined
-): boolean => {
+export const isChatMessageAMatchedApprovalOrCliMessage = (content: ChatMessage, specialMessageId: string | undefined): boolean => {
     return (
         !!specialMessageId &&
         (content.approval?.id === specialMessageId ||
@@ -865,40 +929,8 @@ export const isChatMessageContentAnApprovalOrCliMessageContent = (
     );
 };
 
-export const isChatMessageContentAnAgentTaskMessageContent = (
-    content: ChatMessageContent,
-    specialMessageId: string | undefined
-): boolean => {
+export const isChatMessageAMatchedAgentTaskMessage = (content: ChatMessage, specialMessageId: string | undefined): boolean => {
     return !!specialMessageId && content.agentTaskInfo?.id === specialMessageId;
-};
-
-export const convertMessageToChatMessage = (message: Message): ChatMessage => {
-    return {
-        id: message.id,
-        timeStamp: message.timeStamp,
-        author: {
-            role: message.author.role,
-            userId: message.author.userId,
-            displayName: message.author.displayName,
-        },
-        title: message.title,
-        contents: [
-            {
-                messageId: message.id,
-                text: message.text,
-                approval: message.approval,
-                azCliExecution: message.azCliExecution,
-                kubectlExecution: message.kubectlExecution,
-                psqlExecution: message.psqlExecution,
-                isDailyReport: message.isDailyReport,
-                changeDiff: message.changeDiff,
-                agentTaskInfo: message.agentTaskInfo,
-                memorySearchResult: message.memorySearchResult,
-                todoInfo: message.todoInfo,
-                isComplete: message.isComplete,
-            },
-        ],
-    };
 };
 
 export const parseThreadFromStreamingText = (text: string) => {
