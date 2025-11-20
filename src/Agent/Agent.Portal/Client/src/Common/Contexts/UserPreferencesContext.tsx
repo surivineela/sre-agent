@@ -12,15 +12,6 @@ export interface UserPreferences {
 
     /** Selected Azure tenant/directory ID */
     tenantId?: string;
-
-    /** Filtered Azure subscription IDs */
-    selectedSubscriptions?: string[];
-
-    /** Filtered Azure resource groups */
-    selectedResourceGroups?: string[];
-
-    /** Last accessed agent resource ID for quick navigation */
-    lastAccessedAgentRscId?: string;
 }
 
 interface UserPreferencesContextValue {
@@ -32,15 +23,9 @@ interface UserPreferencesContextValue {
     resolvedTheme: 'dark' | 'light';
     locale: string;
     tenantId?: string;
-    selectedSubscriptions?: string[];
-    selectedResourceGroups?: string[];
-    lastAccessedAgentRscId?: string;
     setTheme: (theme: UserPreferences['theme']) => void;
     setLocale: (locale: string) => void;
     setTenantId: (tenantId: string | undefined) => void;
-    setSelectedSubscriptions: (subscriptions: string[] | undefined) => void;
-    setSelectedResourceGroups: (resourceGroups: string[] | undefined) => void;
-    setLastAccessedAgentRscId: (agentRscId: string | undefined) => void;
 }
 
 const STORAGE_KEY = 'sre-agent-portal-preferences';
@@ -94,21 +79,6 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
 
     const setTenantId = useCallback((tenantId: string | undefined) => updatePreference('tenantId', tenantId), [updatePreference]);
 
-    const setSelectedSubscriptions = useCallback(
-        (subscriptions: string[] | undefined) => updatePreference('selectedSubscriptions', subscriptions),
-        [updatePreference]
-    );
-
-    const setSelectedResourceGroups = useCallback(
-        (resourceGroups: string[] | undefined) => updatePreference('selectedResourceGroups', resourceGroups),
-        [updatePreference]
-    );
-
-    const setLastAccessedAgentRscId = useCallback(
-        (agentRscId: string | undefined) => updatePreference('lastAccessedAgentRscId', agentRscId),
-        [updatePreference]
-    );
-
     const value = useMemo<UserPreferencesContextValue>(
         () => ({
             preferences,
@@ -118,28 +88,11 @@ export const UserPreferencesProvider = ({ children }: { children: ReactNode }) =
             resolvedTheme,
             locale: preferences.locale,
             tenantId: preferences.tenantId,
-            selectedSubscriptions: preferences.selectedSubscriptions,
-            selectedResourceGroups: preferences.selectedResourceGroups,
-            lastAccessedAgentRscId: preferences.lastAccessedAgentRscId,
             setTheme,
             setLocale,
             setTenantId,
-            setSelectedSubscriptions,
-            setSelectedResourceGroups,
-            setLastAccessedAgentRscId,
         }),
-        [
-            preferences,
-            resolvedTheme,
-            updatePreference,
-            updatePreferences,
-            setTheme,
-            setLocale,
-            setTenantId,
-            setSelectedSubscriptions,
-            setSelectedResourceGroups,
-            setLastAccessedAgentRscId,
-        ]
+        [preferences, resolvedTheme, updatePreference, updatePreferences, setTheme, setLocale, setTenantId]
     );
 
     return <UserPreferencesContext.Provider value={value}>{children}</UserPreferencesContext.Provider>;

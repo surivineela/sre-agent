@@ -3,11 +3,11 @@ import { SubscriptionClient } from '../Clients/SubscriptionClient';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { Subscription } from '../Contracts/Arm';
 import { LogLevel } from '../Contracts/Telemetry';
+import { useLocalStorage } from '../Hooks/useLocalStorage';
 import { useTelemetry } from '../Hooks/useTelemetry';
 import { getArmErrorMessage } from '../Utilities/Client';
 import { useAuth } from './AuthContext';
 import { useNotifications } from './NotificationContext';
-import { useUserPreferences } from './UserPreferencesContext';
 
 export interface SubscriptionFilter {
     state?: string[];
@@ -47,12 +47,22 @@ interface SubscriptionsContextValue {
 const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined>(undefined);
 
 const MAX_SELECTED_SUBSCRIPTIONS = 100;
+const STORAGE_KEY_PREFIX = 'sre-agent-portal-subscriptions';
+const defaultSelectedSubscriptionsValue: string[] = [];
 
 export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => {
-    const { isAuthenticated } = useAuth();
-    const { selectedSubscriptions: selectedIds, setSelectedSubscriptions: persistSelectedIds } = useUserPreferences();
+    const { isAuthenticated, user } = useAuth();
     const { error: notifyError } = useNotifications();
     const { logEvent } = useTelemetry(TelemetrySource.SubscriptionsManager, undefined);
+
+    // Tenant-scoped storage key
+    const storageKey = useMemo(() => `${STORAGE_KEY_PREFIX}-${user?.tenantId || 'default'}`, [user?.tenantId]);
+
+    const { value: storedSubscriptionIds, setValue: setStoredSubscriptionIds } = useLocalStorage<string[]>(
+        storageKey,
+        defaultSelectedSubscriptionsValue,
+        TelemetrySource.SubscriptionsManager
+    );
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<Set<string>>(new Set());
@@ -120,30 +130,21 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
             subs.sort((a, b) => a.displayName.localeCompare(b.displayName));
             setSubscriptions(subs);
 
-            // Restore selected subscriptions from UserPreferences
-            const storedIds = selectedIds || [];
-            const validIds = storedIds.filter(id => subs.some(sub => sub.subscriptionId === id));
-
-            // If no valid stored selections, select first N subscriptions
-            if (validIds.length === 0 && subs.length > 0) {
-                const defaultCount = Math.min(MAX_SELECTED_SUBSCRIPTIONS, subs.length);
-                for (let i = 0; i < defaultCount; i++) {
-                    validIds.push(subs[i].subscriptionId);
-                }
-            }
+            // Restore selected subscriptions from tenant-scoped localStorage
+            const validIds = storedSubscriptionIds.filter(id => subs.some(sub => sub.subscriptionId === id));
 
             setSelectedSubscriptionIds(new Set(validIds));
 
             // Persist initial selection if it changed
-            if (validIds.length !== storedIds.length || !validIds.every(id => storedIds.includes(id))) {
-                persistSelectedIds(validIds);
+            if (validIds.length !== storedSubscriptionIds.length || !validIds.every(id => storedSubscriptionIds.includes(id))) {
+                setStoredSubscriptionIds(validIds);
             }
 
             setIsLoading(false);
         };
 
         loadSubscriptions();
-    }, [isAuthenticated, fetchSubscriptions, selectedIds, persistSelectedIds, notifyError]);
+    }, [isAuthenticated, fetchSubscriptions, storedSubscriptionIds, setStoredSubscriptionIds, notifyError]);
 
     // Get selected subscription objects
     const selectedSubscriptions = useMemo(
@@ -169,7 +170,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
             }
 
             setSelectedSubscriptionIds(new Set(validIds));
-            persistSelectedIds(validIds);
+            setStoredSubscriptionIds(validIds);
 
             logEvent({
                 action: 'set-selected-subscriptions',
@@ -178,7 +179,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
                 additionalData: { count: validIds.length },
             });
         },
-        [subscriptions, persistSelectedIds, logEvent]
+        [subscriptions, setStoredSubscriptionIds, logEvent]
     );
 
     // Toggle subscription selection
@@ -240,7 +241,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
 
         if (validIds.length !== currentIds.length) {
             setSelectedSubscriptionIds(new Set(validIds));
-            persistSelectedIds(validIds);
+            setStoredSubscriptionIds(validIds);
         }
 
         logEvent({
@@ -251,7 +252,7 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
         });
 
         setIsLoading(false);
-    }, [isAuthenticated, fetchSubscriptions, selectedSubscriptionIds, persistSelectedIds, logEvent, notifyError]);
+    }, [isAuthenticated, fetchSubscriptions, selectedSubscriptionIds, setStoredSubscriptionIds, logEvent, notifyError]);
 
     const filterSubscriptions = useCallback(
         (filter: SubscriptionFilter): Subscription[] => {

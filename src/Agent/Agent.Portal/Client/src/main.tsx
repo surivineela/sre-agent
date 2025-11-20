@@ -6,6 +6,7 @@ import App from './App';
 import { msalInstance } from './Common/Auth/msalConfig';
 import { AuthProvider } from './Common/Contexts/AuthContext';
 import { UserPreferencesProvider } from './Common/Contexts/UserPreferencesContext';
+import { UserTenantSettingsProvider } from './Common/Contexts/UserTenantSettingsContext';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -20,7 +21,9 @@ createRoot(rootElement).render(
             <MsalProvider instance={msalInstance}>
                 <AuthProvider>
                     <UserPreferencesProvider>
-                        <App />
+                        <UserTenantSettingsProvider>
+                            <App />
+                        </UserTenantSettingsProvider>
                     </UserPreferencesProvider>
                 </AuthProvider>
             </MsalProvider>

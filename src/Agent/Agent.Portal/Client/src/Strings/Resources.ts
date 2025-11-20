@@ -46,6 +46,12 @@ export const PortalResources = defineMessages({
     light: { defaultMessage: 'Light', id: '3cc4Ct' },
     dark: { defaultMessage: 'Dark', id: 'tOdNiY' },
     language: { defaultMessage: 'Language', id: 'y1Z3or' },
+    defaultSelectedSubscriptions: { defaultMessage: 'Default selected subscriptions', id: 'BMjugG' },
+    selectSubscriptions: { defaultMessage: 'Select subscriptions...', id: 'E7zWqc' },
+    subscriptionsSelected: {
+        defaultMessage: '{count, plural, one {# subscription} other {# subscriptions}}',
+        id: 'OZJBlx',
+    },
     reduceSiteReliabilityExpenses: {
         defaultMessage: 'Reduce site reliability expenses with Azure SRE Agents',
         id: 's7mQCK',

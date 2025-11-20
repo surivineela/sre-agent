@@ -109,7 +109,7 @@ export const HomeBrowseView = () => {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     // Initialize selected subscriptions from context, default to empty array (meaning "All")
-    const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[]>(selectedSubscriptions.map(sub => sub.subscriptionId));
+    const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[]>([]);
     const [selectedResourceGroupNames, setSelectedResourceGroupNames] = useState<string[]>([]);
 
     const subscriptionDisplayNameMap = useMemo(() => {
@@ -198,6 +198,10 @@ export const HomeBrowseView = () => {
     });
 
     const rows = sort(getRows());
+
+    useEffect(() => {
+        setSelectedSubscriptionIds(selectedSubscriptions.map(sub => sub.subscriptionId));
+    }, [selectedSubscriptions]);
 
     useEffect(() => {
         const fetchAgents = async () => {

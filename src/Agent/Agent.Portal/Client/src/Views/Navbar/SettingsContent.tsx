@@ -1,6 +1,7 @@
 import {
     Button,
     Combobox,
+    Dropdown,
     Label,
     Link,
     makeStyles,
@@ -12,12 +13,37 @@ import {
     Tooltip,
 } from '@fluentui/react-components';
 import { Settings32Regular } from '@fluentui/react-icons';
+import { useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ImageRadioGroup, ImageRadioOption } from '../../Common/Components/ImageRadioGroup';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { useAuth } from '../../Common/Contexts/AuthContext';
+import { useSubscriptions } from '../../Common/Contexts/SubscriptionsContext';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
 import { PortalResources } from '../../Strings/Resources';
+
+// Intentionally not localized so users can easily identify their language
+const languageOptions: LanguageOption[] = [
+    { value: 'en', label: 'English' },
+    { value: 'cs', label: 'Čeština' },
+    { value: 'de', label: 'Deutsch' },
+    { value: 'es', label: 'Español' },
+    { value: 'fr', label: 'Français' },
+    { value: 'hu', label: 'Magyar' },
+    { value: 'id', label: 'bahasa Indonesia' },
+    { value: 'it', label: 'Italiano' },
+    { value: 'ja', label: '日本語' },
+    { value: 'ko', label: '한국어' },
+    { value: 'nl', label: 'Nederlands' },
+    { value: 'pl', label: 'Polski' },
+    { value: 'pt-BR', label: 'Português (Brasil)' },
+    { value: 'pt-PT', label: 'Português (Portugal)' },
+    { value: 'ru', label: 'Русский' },
+    { value: 'sv', label: 'Svenska' },
+    { value: 'tr', label: 'Türkçe' },
+    { value: 'zh-Hans', label: '中文(简体)' },
+    { value: 'zh-Hant', label: '中文(繁體)' },
+];
 
 const useStyles = makeStyles({
     popoverSurface: {
@@ -69,64 +95,58 @@ export const SettingsContent = () => {
     const styles = useStyles();
     const { isAuthenticated } = useAuth();
     const { theme, locale, setTheme, setLocale } = useUserPreferences();
+    const { subscriptions, selectedSubscriptions, setSelectedSubscriptions, isLoading: isLoadingSubscriptions } = useSubscriptions();
 
-    const languageOptions: LanguageOption[] = [
-        { value: 'en', label: 'English' },
-        { value: 'cs', label: 'Čeština' },
-        { value: 'de', label: 'Deutsch' },
-        { value: 'es', label: 'Español' },
-        { value: 'fr', label: 'Français' },
-        { value: 'hu', label: 'Magyar' },
-        { value: 'id', label: 'bahasa Indonesia' },
-        { value: 'it', label: 'Italiano' },
-        { value: 'ja', label: '日本語' },
-        { value: 'ko', label: '한국어' },
-        { value: 'nl', label: 'Nederlands' },
-        { value: 'pl', label: 'Polski' },
-        { value: 'pt-BR', label: 'Português (Brasil)' },
-        { value: 'pt-PT', label: 'Português (Portugal)' },
-        { value: 'ru', label: 'Русский' },
-        { value: 'sv', label: 'Svenska' },
-        { value: 'tr', label: 'Türkçe' },
-        { value: 'zh-Hans', label: '中文(简体)' },
-        { value: 'zh-Hant', label: '中文(繁體)' },
-    ];
-
-    const getSelectedLanguage = () => {
+    const selectedLanguage = useMemo(() => {
         const selected = languageOptions.find(opt => opt.value === locale || locale.startsWith(opt.value));
         return selected?.label || languageOptions[0].label;
-    };
+    }, [locale]);
 
-    const handleLanguageChange = (value: string) => {
-        const option = languageOptions.find(opt => opt.label === value);
-        if (option) {
-            setLocale(option.value);
-        }
-    };
+    const handleLanguageChange = useCallback(
+        (value: string) => {
+            const option = languageOptions.find(opt => opt.label === value);
+            if (option) {
+                setLocale(option.value);
+            }
+        },
+        [setLocale]
+    );
 
-    const themeOptions: ImageRadioOption<'system' | 'light' | 'dark'>[] = [
-        {
-            value: 'system',
-            image: 'SystemTheme.svg',
-            label: intl.formatMessage(PortalResources.system),
-            imageWidth: '79px',
-            imageHeight: '44px',
-        },
-        {
-            value: 'light',
-            image: 'LightTheme.svg',
-            label: intl.formatMessage(PortalResources.light),
-            imageWidth: '79px',
-            imageHeight: '44px',
-        },
-        {
-            value: 'dark',
-            image: 'DarkTheme.svg',
-            label: intl.formatMessage(PortalResources.dark),
-            imageWidth: '79px',
-            imageHeight: '44px',
-        },
-    ];
+    const subscriptionDisplayValue = useMemo(() => {
+        const count = selectedSubscriptions.length;
+
+        if (count === 0) return intl.formatMessage(PortalResources.allSubscriptions);
+        if (count === 1) return selectedSubscriptions[0].displayName;
+
+        return intl.formatMessage(PortalResources.subscriptionsSelected, { count });
+    }, [selectedSubscriptions, intl]);
+
+    const themeOptions = useMemo<ImageRadioOption<'system' | 'light' | 'dark'>[]>(
+        () => [
+            {
+                value: 'system',
+                image: 'SystemTheme.svg',
+                label: intl.formatMessage(PortalResources.system),
+                imageWidth: '79px',
+                imageHeight: '44px',
+            },
+            {
+                value: 'light',
+                image: 'LightTheme.svg',
+                label: intl.formatMessage(PortalResources.light),
+                imageWidth: '79px',
+                imageHeight: '44px',
+            },
+            {
+                value: 'dark',
+                image: 'DarkTheme.svg',
+                label: intl.formatMessage(PortalResources.dark),
+                imageWidth: '79px',
+                imageHeight: '44px',
+            },
+        ],
+        [intl]
+    );
 
     return (
         <Popover>
@@ -157,7 +177,7 @@ export const SettingsContent = () => {
                         <Label className={styles.sectionTitle}>{intl.formatMessage(PortalResources.language)}</Label>
                         <Combobox
                             className={styles.combobox}
-                            value={getSelectedLanguage()}
+                            value={selectedLanguage}
                             onOptionSelect={(_, data) => data.optionText && handleLanguageChange(data.optionText)}
                             aria-label={intl.formatMessage(PortalResources.language)}
                         >
@@ -168,6 +188,32 @@ export const SettingsContent = () => {
                             ))}
                         </Combobox>
                     </div>
+
+                    {isAuthenticated && (
+                        <div className={styles.section}>
+                            <Label className={styles.sectionTitle}>
+                                {intl.formatMessage(PortalResources.defaultSelectedSubscriptions)}
+                            </Label>
+                            <Dropdown
+                                className={styles.combobox}
+                                placeholder={intl.formatMessage(PortalResources.selectSubscriptions)}
+                                selectedOptions={selectedSubscriptions.map(s => s.subscriptionId)}
+                                onOptionSelect={(_, data) => {
+                                    setSelectedSubscriptions(data.selectedOptions);
+                                }}
+                                value={subscriptionDisplayValue}
+                                disabled={isLoadingSubscriptions}
+                                aria-label={intl.formatMessage(PortalResources.defaultSelectedSubscriptions)}
+                                multiselect
+                            >
+                                {subscriptions.map(sub => (
+                                    <Option key={sub.subscriptionId} value={sub.subscriptionId}>
+                                        {sub.displayName}
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        </div>
+                    )}
 
                     <div className={styles.footer}>
                         <div className={styles.footerLinks}>
