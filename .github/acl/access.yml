@@ -52,6 +52,8 @@ configuration:
     role: Write
   - member: evtheodo
     role: Write
+  - member: tmauldin
+    role: Write
   - member: eriwan
     role: Write
   - member: zuh
