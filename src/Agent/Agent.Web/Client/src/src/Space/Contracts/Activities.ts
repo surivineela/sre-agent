@@ -152,12 +152,23 @@ export interface IChatMessageGroupProps {
     }) => void;
 }
 
+export interface ReasoningItem {
+    messageId: string;
+    content: string;
+}
+
+export interface Reasoning {
+    active: boolean;
+    items: ReasoningItem[];
+}
+
 export interface ChatMessage extends Message {
-    isImage?: boolean | null | undefined;
+    isImage: boolean | null | undefined;
     deepInvestigationStatus?: {
         enabled: boolean;
     };
     error?: ChatMessageError;
+    reasoning: Reasoning | undefined | null;
 }
 
 export interface IAgentMessageProps {

@@ -198,11 +198,35 @@ export const useChatBox = (
         [changeDeepInvestigationStatus]
     );
 
+    const finishReasoning = () => {
+        setStreamingMessageGroup(prev => {
+            if (!prev) return prev;
+            const newestAgentMessage = prev.agentMessages.length > 0 ? prev.agentMessages[prev.agentMessages.length - 1] : null;
+            if (newestAgentMessage && newestAgentMessage.reasoning && newestAgentMessage.reasoning.active) {
+                return {
+                    ...prev,
+                    agentMessages: [
+                        ...prev.agentMessages.slice(0, -1),
+                        {
+                            ...newestAgentMessage,
+                            reasoning: {
+                                ...newestAgentMessage.reasoning,
+                                active: false,
+                            },
+                        },
+                    ],
+                };
+            }
+            return prev;
+        });
+    };
+
     const finishStreaming = () => {
         setIsAgentTyping(false);
         setIsWaitingForStreamingMessages(false);
         setToolCallText(null);
         setIsCancellingStreaming(false);
+        finishReasoning();
 
         messageChunkQueue.current = [];
         isHandlingStreamingMessage.current = false;
@@ -429,8 +453,10 @@ export const useChatBox = (
 
                 const latestAgentMessage = prev.agentMessages[prev.agentMessages.length - 1];
                 const latestContentText = latestAgentMessage?.text;
+                const latestContentReasoning = latestAgentMessage?.reasoning;
                 const latestContentId = latestAgentMessage?.id;
                 const currentText = chatMessage.text;
+                const currentContentReasoning = chatMessage.reasoning;
                 const currentId = chatMessage.id;
 
                 if (
@@ -453,6 +479,57 @@ export const useChatBox = (
                             },
                         ],
                     };
+                }
+
+                if (latestAgentMessage && latestContentReasoning && latestContentReasoning.items.length > 0 && currentId) {
+                    if (currentContentReasoning && currentContentReasoning.items.length > 0) {
+                        const latestReasoning = latestContentReasoning.items[latestContentReasoning.items.length - 1];
+                        if (latestReasoning.messageId === currentId) {
+                            const updatedLatestContentReasoning = [
+                                ...latestContentReasoning.items.slice(0, -1),
+                                {
+                                    messageId: latestReasoning.messageId,
+                                    content: latestReasoning.content + currentContentReasoning.items.flatMap(r => r.content).join(''),
+                                },
+                            ];
+                            return {
+                                ...prev,
+                                agentMessages: [
+                                    ...prev.agentMessages.slice(0, -1),
+                                    {
+                                        ...latestAgentMessage,
+                                        reasoning: { active: true, items: updatedLatestContentReasoning },
+                                    },
+                                ],
+                            };
+                        } else {
+                            return {
+                                ...prev,
+                                agentMessages: [
+                                    ...prev.agentMessages.slice(0, -1),
+                                    {
+                                        ...latestAgentMessage,
+                                        reasoning: {
+                                            active: true,
+                                            items: [...latestContentReasoning.items, ...currentContentReasoning.items],
+                                        },
+                                    },
+                                ],
+                            };
+                        }
+                    } else {
+                        return {
+                            ...prev,
+                            agentMessages: [
+                                ...prev.agentMessages.slice(0, -1),
+                                {
+                                    ...latestAgentMessage,
+                                    reasoning: { active: false, items: [...latestContentReasoning.items] },
+                                },
+                                chatMessage,
+                            ],
+                        };
+                    }
                 }
 
                 return {

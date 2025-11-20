@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, u
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { MessageClient } from '../../Common/Clients/MessageClient';
 import { Guid } from '../../Common/Helpers/Guid';
-import { getIntervalBetweenLoading, updateChatMessageGroups } from '../Activities/Utility';
+import { convertMessageToChatMessage, getIntervalBetweenLoading, updateChatMessageGroups } from '../Activities/Utility';
 import { ChatMessage, ChatMessageGroup, MessageLoadingCounts } from '../Contracts/Activities';
 
 export const useChatHistory = (
@@ -48,7 +48,7 @@ export const useChatHistory = (
                     hasPreviousPage.current = false;
                 }
 
-                return page;
+                return page.map(convertMessageToChatMessage);
             } else {
                 return undefined;
             }

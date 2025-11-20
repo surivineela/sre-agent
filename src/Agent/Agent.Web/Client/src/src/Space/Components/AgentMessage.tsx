@@ -9,6 +9,7 @@ import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
 import MemoryChatMessage from './MemoryChatMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
+import ReasoningChatMessage from './ReasoningChatMessage';
 import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
 import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
 import SessionInsightCard from './SessionInsightCard';
@@ -84,6 +85,8 @@ const AgentMessage = ({
                 <ErrorChatMessage error={message.error} />
             ) : message.memorySearchResult ? (
                 <MemoryChatMessage memorySearchResult={message.memorySearchResult} />
+            ) : message.reasoning ? (
+                <ReasoningChatMessage reasoning={message.reasoning} />
             ) : (message.text || isTyping) &&
               !scheduledTaskData.isScheduledTaskMessage &&
               !scheduledTaskData.isScheduledTaskCreationMessage ? (

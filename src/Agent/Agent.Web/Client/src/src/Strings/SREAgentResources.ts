@@ -1286,6 +1286,18 @@ export const ActivitiesResources = defineMessages({
         defaultMessage: 'Loading chat threads',
         id: 'puQ/kF',
     },
+    reasoning: {
+        defaultMessage: 'Reasoning',
+        id: 'Aw3qRf',
+    },
+    thinking: {
+        defaultMessage: 'Thinking',
+        id: 'AHQWDT',
+    },
+    thoughtProcess: {
+        defaultMessage: 'Thought process',
+        id: 'zl6fNb',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

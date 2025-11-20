@@ -7,6 +7,7 @@ import {
     AzCliExecution,
     KubectlExecution,
     MemorySearchResult,
+    Message,
     MessageAuthor,
     MessageType,
     PsqlExecution,
@@ -18,7 +19,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { GenericErrorResources } from '../../Strings/SREAgentResources';
-import { ChatMessage, ChatMessageGroup, ThreadListsState, ThreadListState } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageGroup, Reasoning, ThreadListsState, ThreadListState } from '../Contracts/Activities';
 
 /**
  * Use this when your thread list does not have favorite section or any addition section.
@@ -512,6 +513,8 @@ export const getSpecialMessageContentFromStreamingMessage = <T,>(
 export const createChatMessageFromStreamingMessage = (streamingMessage: StreamingMessage): ChatMessage => {
     const messageContent = streamingMessage.contents?.[0];
 
+    const messageId = streamingMessage.additionalProperties?.messageId || '';
+
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<KubectlExecution>(streamingMessage, 'kubectl');
     const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
@@ -529,6 +532,19 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         };
     }
 
+    const isReasoning = isReasoningStreamingMessageType(streamingMessage);
+    const reasoning: Reasoning | undefined = isReasoning
+        ? {
+              active: true,
+              items: [
+                  {
+                      messageId,
+                      content: messageContent?.text || '',
+                  },
+              ],
+          }
+        : undefined;
+
     const text =
         messageContent?.text &&
         !approval &&
@@ -537,14 +553,15 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         !memorySearchResult &&
         !psqlExecution &&
         !todoInfo &&
-        !agentTaskData
+        !agentTaskData &&
+        !isReasoning
             ? messageContent.text
             : '';
 
     const isImage = isImageStreamingMessageType(streamingMessage);
 
     const chatMessageContent: ChatMessage = {
-        id: streamingMessage.additionalProperties?.messageId || '',
+        id: messageId,
         text,
         author: getDefaultSREAgentAuthor(),
         title: undefined,
@@ -562,6 +579,7 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         isComplete: true,
         isImageContent: isImage,
         messageType: streamingMessage.additionalProperties?.streamMessageType || null,
+        reasoning: reasoning,
     };
 
     return chatMessageContent;
@@ -571,6 +589,20 @@ export const isDefaultStreamingMessageType = (streamingMessage: StreamingMessage
     const streamMessageType = streamingMessage.additionalProperties?.streamMessageType;
     // Default message type excludes special types like images, charts, and trajectory insights
     return !streamMessageType;
+};
+
+export const isReasoningStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
+    const streamingMessageType = streamingMessage.additionalProperties?.streamMessageType || '';
+
+    return equals(streamingMessageType, 'reasoning', AntUxStringComparison.IgnoreCase);
+};
+
+export const isReasoningMessage = (message: Message): boolean => {
+    return equals(message.messageType || '', 'reasoning', AntUxStringComparison.IgnoreCase);
+};
+
+export const isReasoningChatMessage = (chatMessage: ChatMessage): boolean => {
+    return isReasoningMessage(chatMessage) || !!chatMessage.reasoning;
 };
 
 export const isImageStreamingMessageType = (streamingMessage: StreamingMessage): boolean => {
@@ -670,6 +702,7 @@ export const composeUserMessage = (userId: string, userDisplayName: string, mess
         messageType: null,
         isImage: undefined,
         deepInvestigationStatus: undefined,
+        reasoning: undefined,
     };
 };
 
@@ -694,6 +727,7 @@ export const composeDefaultAgentMessage = (): ChatMessage => {
         messageType: null,
         isImage: undefined,
         deepInvestigationStatus: undefined,
+        reasoning: undefined,
     };
 };
 
@@ -708,8 +742,33 @@ export const isChatMessageContentNonImageText = (chatMessage: ChatMessage): bool
         !chatMessage.isImageContent &&
         !chatMessage.todoInfo &&
         !chatMessage.deepInvestigationStatus &&
-        !chatMessage.changeDiff
+        !chatMessage.changeDiff &&
+        !chatMessage.agentTaskInfo &&
+        !chatMessage.reasoning
     );
+};
+
+export const convertMessageToChatMessage = (message: Message): ChatMessage => {
+    return {
+        ...message,
+        isImage: message.isImageContent,
+        text: isReasoningMessage(message) ? '' : message.text,
+        reasoning: isReasoningMessage(message)
+            ? {
+                  active: false,
+                  items: [
+                      {
+                          messageId: message.id,
+                          content: message.text,
+                      },
+                  ],
+              }
+            : undefined,
+    };
+};
+
+export const getOldestMessageInChatMessageGroup = (messageGroup: ChatMessageGroup) => {
+    return messageGroup.userMessages.length > 0 ? messageGroup.userMessages[0] : messageGroup.agentMessages[0];
 };
 
 export const doesChatMessageBelongToChatMessageGroup = (message: ChatMessage, messageGroup: ChatMessageGroup) => {
@@ -719,8 +778,7 @@ export const doesChatMessageBelongToChatMessageGroup = (message: ChatMessage, me
         !messageGroup.agentMessages[0]?.deepInvestigationStatus &&
         (messageGroup.userMessages.length > 0 || messageGroup.agentMessages.length > 0)
     ) {
-        const oldestMessageInMessageGroup =
-            messageGroup.userMessages.length > 0 ? messageGroup.userMessages[0] : messageGroup.agentMessages[0];
+        const oldestMessageInMessageGroup = getOldestMessageInChatMessageGroup(messageGroup);
         const isMessageAgentMessage = isAgentMessage(message);
         const isOldestMessageInMessageGroupAgentMessage = isAgentMessage(oldestMessageInMessageGroup);
 
@@ -772,7 +830,25 @@ export const updateChatMessageGroups = (messages: ChatMessage[], messageGroups: 
                 const userMessages = [...oldestMessageGroup.userMessages];
 
                 if (isMessageAgentMessage) {
-                    agentMessages.unshift(message);
+                    const oldestMessageInMessageGroup = getOldestMessageInChatMessageGroup(oldestMessageGroup);
+                    const isOldestMessageInMessageGroupAgentMessage = isAgentMessage(oldestMessageInMessageGroup);
+
+                    if (
+                        isMessageAgentMessage &&
+                        isOldestMessageInMessageGroupAgentMessage &&
+                        isReasoningChatMessage(message) &&
+                        isReasoningChatMessage(oldestMessageInMessageGroup)
+                    ) {
+                        agentMessages[0] = {
+                            ...message,
+                            reasoning: {
+                                active: false,
+                                items: [...(message.reasoning?.items || []), ...(oldestMessageInMessageGroup.reasoning?.items || [])],
+                            },
+                        };
+                    } else {
+                        agentMessages.unshift(message);
+                    }
                 } else {
                     userMessages.unshift(message);
                 }
@@ -812,6 +888,7 @@ export const getDefaultDeepInvestigationStatusChatMessageGroup = (isDeepInvestig
         deepInvestigationStatus: {
             enabled: isDeepInvestigationTurnedOn,
         },
+        reasoning: undefined,
     };
 
     return {

@@ -43,6 +43,8 @@ const getDefaultUserMessage = (modifiedTimestamp?: string): ChatMessage => {
         agentTaskInfo: null,
         memorySearchResult: null,
         todoInfo: null,
+        isImage: null,
+        reasoning: undefined,
     };
 };
 
@@ -69,6 +71,8 @@ const getDefaultAgentMessage = (modifiedTimestamp?: string): ChatMessage => {
         agentTaskInfo: null,
         memorySearchResult: null,
         todoInfo: null,
+        isImage: null,
+        reasoning: undefined,
     };
 };
 
