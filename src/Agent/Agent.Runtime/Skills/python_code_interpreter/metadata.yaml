@@ -1,6 +1,27 @@
 name: python_code_interpreter
 description: |
-  Enables advanced Python-based data analysis, statistical modeling, and automated report/file generation (PDF, images, CSV, Excel) on provided datasets within a secure sandbox, supporting reproducible workflows without external network or system access.
+  This skill enables any Python code execution (Jupyter environment) and copilot like POSIX shell commands for general programming, web content retrieval, data analysis, automation, and artifact (csv, txt, pdf, pptx, docx etc) generation with full outbound network connectivity in a VM.
+
+  Load this skill when the user asks to:
+  - Retrieve, inspect, or analyze web page content (HTML parsing, checking current website versions, rendering webpage using playwright)
+  - Execute custom Python script for any programming task or algorithm implementation
+  - Generate complex visualizations beyond standard charts (heatmaps, scatter plots, box plots, violin plots, 3D visualizations, custom graphics)
+  - Process, transform, or analyze user-provided data using Python/pandas
+  - Create downloadable artifacts (PDFs, CSVs, Excel files, images, reports)
+  - Perform statistical analysis, machine learning experiments, or mathematical computations
+  - Automate workflows or call external HTTP endpoints/APIs
+  - Run existing scripts or chain multiple operations with file outputs
+  - Parse structured data formats (JSON, XML, HTML, CSV) programmatically
+  - Implement custom logic not covered by specialized Azure diagnostic skills
+  
+  Do NOT load for:
+  - Azure resource management requiring ARM tokens or managed identity credentials
+  - Direct Azure CLI, kubectl, or cloud-admin CLI operations (defer to specialized skills)
+  - Simple Azure resource discovery or configuration queries handled by core system tools
+
 tools:
   - ExecutePythonSnippet
   - GeneratePdfReport
+  - RunShellCommand
+  - ReadSessionFile
+  - SearchSessionFiles

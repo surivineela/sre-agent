@@ -43,8 +43,8 @@ Avoid: web calls, installing packages, spawning processes.")]
 
     [Description(@"Generate a PDF report by executing Python code that writes a PDF file.
 Safety & Workflow:
-0. Script should save file in /mnt/data/<filename>
-1. Your code MUST write the PDF to the provided expectedOutputFilename path. Should refer to the same path as script: /mnt/data/<filename>
+0. Script should save the file under /mnt/data (use relative paths, e.g., 'reports/output.pdf')
+1. Your code MUST write the PDF to the provided expectedOutputFilename path (relative to /mnt/data)
 2. No external network, package installation, or process spawning allowed.
 3. Tool returns ONLY a status message with a markdown download link in format [Link Text](/api/files/<filename>).
 Examples:
@@ -58,6 +58,43 @@ Return format: Returns success message with markdown link like: '✅ PDF report 
         [Description("Local filename to save as (e.g. 'daily_summary.pdf')")] string saveAsFilename,
         [Description("Timeout in seconds (default 180, max 900)")] int timeoutSeconds = 180)
         => _plugin.GeneratePdfReportAsync(pythonCode, expectedOutputFilename, saveAsFilename, Math.Clamp(timeoutSeconds, 5, 900));
+
+    [Description(@"Execute a POSIX shell command (bash) inside the code interpreter sandbox.
+Rules:
+- Commands run from /mnt/data (relative paths only).
+- Chain commands with ';' instead of '&&'.
+- Background jobs are not supported; keep isBackground=false.
+- Timeout capped at 240 seconds.
+Returns exit code plus truncated STDOUT/STDERR.")]
+    [AgentTool(ToolMode.Manual)]
+    public Task<string> RunShellCommand(
+        [Description("Shell command to execute relative to /mnt/data (e.g., 'bash script.sh' or 'python main.py').")] string command,
+        [Description("One-line explanation logged with the command (optional).")] string explanation = "",
+        [Description("Background execution flag (must remain false in this sandbox).")] bool isBackground = false,
+        [Description("Timeout in seconds (default 120, max 240).")] int timeoutSeconds = 120)
+        => _plugin.ExecuteShellCommandAsync(command, explanation, isBackground, Math.Clamp(timeoutSeconds, 5, 240));
+
+    [Description(@"Read the contents of a text file stored in /mnt/data with simple paging support.
+Use to inspect artifacts produced by earlier commands or Python executions.")]
+    [AgentTool(ToolMode.Manual)]
+    public Task<string> ReadSessionFile(
+        [Description("File path relative to /mnt/data (e.g., 'logs/output.txt').")] string filePath,
+        [Description("1-based line number to start from (default 1).")] int offset = 1,
+        [Description("Maximum lines to return (default 200, max 2000).")] int limit = 200)
+        => _plugin.ReadSessionFileAsync(filePath, offset, limit);
+
+    [Description(@"Search for text within files under /mnt/data using grep-style semantics.
+- Set isRegexp=true for regex searches, false for fixed-string matches.
+- Use includePattern (glob) to scope files, e.g., '*.log'.
+- Results are capped to avoid flooding the conversation context.")]
+    [AgentTool(ToolMode.Manual)]
+    public Task<string> SearchSessionFiles(
+        [Description("Text or pattern to search for.")] string query,
+        [Description("Treat the query as a regular expression when true; fixed string when false.")] bool isRegexp,
+        [Description("Optional glob (e.g., '*.log'). Leave empty to search all files.")] string includePattern = "",
+        [Description("Maximum number of matches to return (default 50, max 500).")] int maxResults = 50,
+        [Description("Timeout in seconds (default 120, max 900).")] int timeoutSeconds = 120)
+        => _plugin.GrepSessionFilesAsync(query, isRegexp, includePattern, maxResults, Math.Clamp(timeoutSeconds, 5, 900));
 
     [Description(@"List all files in the current code interpreter session's /mnt/data directory.
 Useful for:
