@@ -5330,6 +5330,7 @@ export const ConnectorsResources = defineMessages({
     authentication: { defaultMessage: 'Authentication', id: 'YeKWbP' },
     authenticationMethod: { defaultMessage: 'Authentication method', id: 'Vs3jMi' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },
+    source: { defaultMessage: 'Source', id: 'aH4De2' },
     connected: { defaultMessage: 'Connected', id: 'IvjoDS' },
     noSearchResults: {
         defaultMessage: 'No connectors match your search',

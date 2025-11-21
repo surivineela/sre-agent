@@ -181,6 +181,12 @@ export const ConnectorsDataGrid = ({
                         </TableCellLayout>
                     )),
             }),
+            createTableColumn<ConnectorWithService>({
+                columnId: 'source',
+                compare: (a, b) => (a.source || '').localeCompare(b.source || ''),
+                renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.source)}</Text>,
+                renderCell: item => renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], () => <>{item.source}</>),
+            }),
         ],
         [intl, onDeleteConnector, onEditConnector, renderCellWithShimmer, styles]
     );
@@ -214,15 +220,23 @@ export const ConnectorsDataGrid = ({
         () => ({
             name: {
                 minWidth: 150,
+                idealWidth: 300,
                 defaultWidth: 300,
             },
             service: {
-                minWidth: 100,
-                defaultWidth: 150,
+                minWidth: 150,
+                idealWidth: 300,
+                defaultWidth: 300,
             },
             status: {
+                minWidth: 150,
+                idealWidth: 300,
+                defaultWidth: 300,
+            },
+            source: {
                 minWidth: 100,
-                defaultWidth: 150,
+                idealWidth: 100,
+                defaultWidth: 300,
             },
         }),
         []
