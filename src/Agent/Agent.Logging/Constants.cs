@@ -21,7 +21,6 @@ public static class AgentActionEvents
     public const string Heartbeat = nameof(Heartbeat);
     public const string ExtendedAgent = nameof(ExtendedAgent);
     public const string ExtendedTool = nameof(ExtendedTool);
-    public const string LLMHttpRequest = nameof(LLMHttpRequest);
 
     // LLM-as-Judge Evals
     public const string EvaluateHandoffs = "evaluate.handoffs";

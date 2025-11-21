@@ -170,66 +170,29 @@ public static class AgentsConfigurationExtensions
                 );
                 ExecuteAndSwallowException(() =>
                 {
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Success", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                            StatusCode = message.Response?.Status,
-                            ResponseSize = responseContentLength,
-                        }));
-
                     // Log detailed model request information
-                    LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp);
+                    LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp, threadId);
                 });
             }
             catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
             {
                 ExecuteAndSwallowException(() =>
                 {
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }));
-                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId);
                 });
                 throw;
             }
             catch (TimeoutException)
             {
                 ExecuteAndSwallowException(() =>
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }))
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId)
                 );
                 throw;
             }
             catch (OperationCanceledException) when (!message.CancellationToken.IsCancellationRequested)
             {
                 ExecuteAndSwallowException(() =>
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }))
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId)
                 );
                 throw;
             }
@@ -238,21 +201,8 @@ public static class AgentsConfigurationExtensions
             {
                 if (message.Response != null && message.Response.Status >= 400)
                 {
-
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, message.Response.Status.ToString(), 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            StatusCode = message.Response.Status,
-                            RequestBodySize = requestContentLength,
-                        }
-                    ));
-
                     // Log detailed model request information for errors too
-                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId);
                 }
             });
         }
@@ -263,7 +213,7 @@ public static class AgentsConfigurationExtensions
             long requestContentLength = -1;
             message.Request.Content?.TryComputeLength(out requestContentLength);
             var startTimestamp = DateTime.UtcNow;
-            LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
+            LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId);
             try
             {
                 // Invoke next policy in pipeline
@@ -278,64 +228,28 @@ public static class AgentsConfigurationExtensions
                 );
                 ExecuteAndSwallowException(() =>
                 {
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Success", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                            StatusCode = message.Response?.Status,
-                            ResponseSize = responseContentLength,
-                        }));
-
                     // Log detailed model request information
-                    LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp);
+                    LogModelRequestDetails(message, requestContentLength, responseContentLength, startTimestamp, endTimestamp, threadId);
                 });
             }
             catch (TaskCanceledException) when (!message.CancellationToken.IsCancellationRequested)
             {
                 ExecuteAndSwallowException(() =>
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }))
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId)
                 );
                 throw;
             }
             catch (TimeoutException)
             {
                 ExecuteAndSwallowException(() =>
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }))
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId)
                 );
                 throw;
             }
             catch (OperationCanceledException) when (!message.CancellationToken.IsCancellationRequested)
             {
                 ExecuteAndSwallowException(() =>
-                    _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                        string.Empty, "Timeout", 0, threadId,
-                        actionMetadata: WebJsonSerializer.Serialize(new
-                        {
-                            HttpMethod = message.Request.Method,
-                            Host = message.Request.Uri?.Host.ToString(),
-                            Path = message.Request.Uri?.AbsolutePath.ToString(),
-                            RequestBodySize = requestContentLength,
-                        }))
+                    LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId)
                 );
                 throw;
             }
@@ -344,20 +258,8 @@ public static class AgentsConfigurationExtensions
                 {
                     if (message.Response != null && message.Response.Status >= 400)
                     {
-                        _logger.LogAgentAction(AgentActionEvents.LLMHttpRequest,
-                            string.Empty, message.Response.Status.ToString(), 0, threadId,
-                            actionMetadata: WebJsonSerializer.Serialize(new
-                            {
-                                HttpMethod = message.Request.Method,
-                                Host = message.Request.Uri?.Host.ToString(),
-                                Path = message.Request.Uri?.AbsolutePath.ToString(),
-                                StatusCode = message.Response.Status,
-                                RequestBodySize = requestContentLength,
-                            }
-                        ));
-
                         // Log detailed model request information for errors too
-                        LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow);
+                        LogModelRequestDetails(message, requestContentLength, -1, startTimestamp, DateTime.UtcNow, threadId);
                     }
                 }
             );
@@ -375,7 +277,7 @@ public static class AgentsConfigurationExtensions
             }
         }
 
-        private void LogModelRequestDetails(PipelineMessage message, long requestContentLength, long responseContentLength, DateTime startTimestamp, DateTime endTimestamp)
+        private void LogModelRequestDetails(PipelineMessage message, long requestContentLength, long responseContentLength, DateTime startTimestamp, DateTime endTimestamp, string threadId)
         {
             try
             {
@@ -401,7 +303,8 @@ public static class AgentsConfigurationExtensions
                     requestSize: requestSize,
                     responseSize: responseSize,
                     remainingRequests: remainingRequests,
-                    remainingTokens: remainingTokens);
+                    remainingTokens: remainingTokens,
+                    threadId: threadId);
             }
             catch
             {
