@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Framework;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
-using Microsoft.Azure.Monitoring.DGrep.DataContracts.External;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins;
 
-[AgentToolPlugin(Category = ToolCategories.Diagnostics, EnabledIf = "DGrepSettings:Enabled")]
+[AgentToolPlugin(IsFirstPartyOnly = true, Category = ToolCategories.Diagnostics)]
 public class DGrepPluginDefinition
 {
     private readonly IDGrepPluginClient _dGrepPluginClient;
@@ -24,6 +24,7 @@ public class DGrepPluginDefinition
     {
         _dGrepPluginClient = dGrepPluginClient ?? throw new ArgumentNullException(nameof(dGrepPluginClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger.LogInternalInformation("DGrepPluginDefinition: Constructor called - Plugin initialized successfully");
     }
 
     [AgentTool(ToolMode.Auto)]
@@ -40,25 +41,36 @@ public class DGrepPluginDefinition
         [Description("Maximum number of results to return (default: 10 to prevent context window overflow)")] int maxResults = 10,
         CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("DGrepPluginDefinition: PerformDgrepSearch called with Namespace={Namespace}, EventName={EventName}, QueryType={QueryType}, MaxResults={MaxResults}",
+            nameSpace, eventName, queryLanguageMode, maxResults);
 
         if (string.IsNullOrWhiteSpace(nameSpace) || string.IsNullOrWhiteSpace(eventName) || string.IsNullOrWhiteSpace(serverQuery))
         {
+            _logger.LogInternalError("DGrepPluginDefinition: Validation failed - Namespace={Namespace}, EventName={EventName}, ServerQuery={ServerQuery}",
+                nameSpace ?? "NULL", eventName ?? "NULL", serverQuery ?? "NULL");
             _logger.LogInternalError("DGrep tool validation failed: missing parameters");
             throw new ArgumentException("Namespace, event name, and query must be provided.");
         }
+
+        _logger.LogInternalInformation("DGrepPluginDefinition: Parameters validated successfully");
 
         // Apply default time values if not provided
         var effectiveStartTime = startTime == default ? DateTime.UtcNow.AddHours(-1) : startTime;
         var effectiveEndTime = endTime == default ? DateTime.UtcNow : endTime;
 
+        _logger.LogInternalInformation("DGrepPluginDefinition: Time range: {StartTime} to {EndTime}", effectiveStartTime, effectiveEndTime);
+
         // Execute the DGrep search directly via client
         try
         {
+            _logger.LogInternalInformation("DGrepPluginDefinition: Calling DGrepPluginClient.ExecuteDGrepQuery");
             var result = await _dGrepPluginClient.ExecuteDGrepQuery(nameSpace, eventName, serverQuery, clientQuery, filters, queryLanguageMode, effectiveStartTime, effectiveEndTime, maxResults, cancellationToken);
-            return result;
+            _logger.LogInternalInformation("DGrepPluginDefinition: DGrep query completed successfully, result length={ResultLength}", result?.Length ?? 0);
+            return result ?? string.Empty;
         }
         catch (Exception ex)
         {
+            _logger.LogInternalError(ex, "DGrepPluginDefinition: DGrep query failed with exception: {ErrorMessage}", ex.Message);
             throw new InvalidOperationException($"Failed to execute DGrep query: {ex.Message}", ex);
         }
     }

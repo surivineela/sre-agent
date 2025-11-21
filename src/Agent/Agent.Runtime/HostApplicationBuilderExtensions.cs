@@ -164,7 +164,6 @@ Otherwise, there may be required settings which are not auto-populated by the pr
 
             // Register all known plugin settings types
             registry.Register<IncidentManagementSettings>("IncidentManagement");
-            registry.Register<DGrepSettings>("DGrep");
 
             return registry;
         });

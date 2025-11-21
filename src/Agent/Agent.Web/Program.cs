@@ -226,10 +226,6 @@ public class Program
         builder.Services.Configure<AppInsightsSettings>(
             builder.Configuration.GetSection("AppInsightsSettings"));
 
-        // Configure DGrep settings
-        builder.Services.Configure<Agent.Core.Configuration.DGrepSettings>(
-            builder.Configuration.GetSection("AppSettings:Core:External:DGrep"));
-
         //Configure Azure Storage settings
         builder.Services.Configure<StorageSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:Storage"));

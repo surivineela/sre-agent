@@ -4,275 +4,166 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Plugins.Interface;
-using Azure.Identity;
-using Microsoft.Azure.Monitoring.DGrep.DataContracts.External;
-using Microsoft.Azure.Monitoring.DGrep.SDK;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Plugins.Implementation;
 
-public class DGrepPluginClient : IDGrepPluginClient, IDisposable
+// Query type enum (replaces SDK version)
+public enum QueryType
 {
-    private readonly DGrepSettings _settings;
+    MQL = 0,
+    KQL = 1
+}
+
+public class DGrepPluginClient : IDGrepPluginClient
+{
     private readonly IAuthenticationService _authService;
     private readonly ILogger<DGrepPluginClient> _logger;
-    private Dictionary<string, ManagedIdentityCredential> _managedIdentityCredentialCache = new Dictionary<string, ManagedIdentityCredential>();
+    private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
+    private readonly TokenCredentialHttpClientHandler _tokenCredentialHttpClientHandler;
+    private readonly string _agentResourceId;
 
-    // Unified cache entry for DGrepClient
-    private class DGrepClientCacheEntry
+    public DGrepPluginClient(
+        IAuthenticationService authService,
+        ILogger<DGrepPluginClient> logger,
+        AgentSpaceProxySettings agentSpaceProxySettings)
     {
-        public DGrepClient? Client { get; set; }
-        public DateTimeOffset? ExpiresOn { get; set; } // Only used for Managed Identity
-    }
-
-    // Use a single cache for all DGrepClients
-    private Dictionary<string, DGrepClientCacheEntry> _dGrepClientCache = new Dictionary<string, DGrepClientCacheEntry>();
-
-    public DGrepPluginClient(IOptions<DGrepSettings> settings, IAuthenticationService authService, ILogger<DGrepPluginClient> logger)
-    {
-        if (settings?.Value == null)
-        {
-            throw new ArgumentNullException(nameof(settings), "DGrep settings cannot be null.");
-        }
-
-        _settings = settings.Value;
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _agentSpaceProxySettings = agentSpaceProxySettings ?? throw new ArgumentNullException(nameof(agentSpaceProxySettings));
+
+        // Initialize Agent Space Proxy support
+        _agentResourceId = AgentNameHelper.GetAgentResourceId(isProd: true);
+
+        var proxyCredential = _authService.GetAgentSpaceProxyCredential();
+        _tokenCredentialHttpClientHandler = new TokenCredentialHttpClientHandler(
+            proxyCredential,
+            _agentSpaceProxySettings.Scope);
+
+        _logger.LogInternalInformation("DGrepPluginClient initialized - ProxyEndpoint={ProxyEndpoint}, AgentResourceId={AgentResourceId}",
+            _agentSpaceProxySettings.Endpoint, _agentResourceId);
     }
 
-    public void Dispose()
+    // NEW: Agent Space Proxy HTTP client
+    private HttpClient GetHttpClient()
     {
-        // Dispose of any resources if necessary
-        foreach (var client in _dGrepClientCache.Values)
+        if (string.IsNullOrEmpty(_agentSpaceProxySettings?.Endpoint))
         {
-            client.Client?.Dispose();
+            throw new InvalidOperationException("Agent Space Proxy endpoint is not configured.");
         }
 
-        _dGrepClientCache.Clear();
-        _managedIdentityCredentialCache.Clear();
+        var httpClient = new HttpClient(_tokenCredentialHttpClientHandler, disposeHandler: false)
+        {
+            BaseAddress = new Uri(_agentSpaceProxySettings.Endpoint),
+            Timeout = TimeSpan.FromMinutes(5)
+        };
+
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("SREAgent-DGrepPlugin/1.0");
+
+        return httpClient;
+    }
+
+    // NEW: Agent Space Proxy low-level call
+    private async Task<HttpResponseMessage> CallAgentSpaceProxy(string path, string jsonPayload, CancellationToken ct = default)
+    {
+        _logger.LogInternalInformation("CallAgentSpaceProxy: Calling proxy - Endpoint={Endpoint}, Path={Path}, AgentResourceId={AgentResourceId}",
+            _agentSpaceProxySettings.Endpoint, path, _agentResourceId);
+
+        var httpClient = GetHttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, path)
+        {
+            Content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json")
+        };
+
+        request.Headers.Add("x-ms-sreagent-resource-id", _agentResourceId);
+
+        var response = await httpClient.SendAsync(request, ct);
+        return response;
+    }
+
+    // Production mode: Agent Space Proxy workflow
+    private async Task<string> ExecuteViaAgentSpaceProxy(
+        string nameSpace, string eventName, string serverQuery, string clientQuery,
+        string filters, QueryType queryType, DateTime startTime, DateTime endTime,
+        int maxResults, CancellationToken ct = default)
+    {
+        var payload = new Dictionary<string, object>
+        {
+            ["namespace"] = nameSpace,
+            ["eventName"] = eventName,
+            ["serverQuery"] = serverQuery ?? string.Empty,
+            ["clientQuery"] = clientQuery ?? string.Empty,
+            ["filters"] = filters ?? string.Empty,
+            ["queryType"] = queryType.ToString(),
+            ["startTime"] = startTime.ToString("o"),
+            ["endTime"] = endTime.ToString("o"),
+            ["maxResults"] = maxResults
+        };
+
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        _logger.LogInternalInformation("ExecuteViaAgentSpaceProxy: Sending request to proxy - Namespace={Namespace}, Event={Event}, QueryType={QueryType}",
+            nameSpace, eventName, queryType);
+
+        try
+        {
+            var httpResponse = await CallAgentSpaceProxy("/dgrep/query", jsonPayload, ct);
+            var content = await httpResponse.Content.ReadAsStringAsync(ct);
+
+            // Wrap in DGrepWorkflowResponse (Geneva Actions pattern)
+            var response = new DGrepWorkflowResponse
+            {
+                StatusCode = httpResponse.StatusCode,
+                Content = content ?? string.Empty
+            };
+
+            // Log status + content together BEFORE checking success (Geneva Actions pattern)
+            _logger.LogInternalInformation("ExecuteViaAgentSpaceProxy: DGrep query executed with status code: {StatusCode}, response length: {ContentLength}",
+                response.StatusCode, response.Content.Length);
+
+            // Return error string on failure (don't throw)
+            if (!response.IsSuccessStatusCode)
+            {
+                return $"DGrep proxy query failed with status {response.StatusCode}: {response.Content}";
+            }
+
+            return response.Content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "ExecuteViaAgentSpaceProxy: Request failed - {ErrorMessage}", ex.Message);
+            return $"DGrep proxy request failed: {ex.Message}";
+        }
     }
 
     public async Task<string> ExecuteDGrepQuery(string nameSpace, string eventName, string serverQuery, string clientQuery, string filters, QueryType queryType, DateTime startTime, DateTime endTime, int maxResults = 10, CancellationToken ct = default)
     {
-        // DEBUG POINT 1: Entry point - check if method is called
-        _logger.LogInternalInformation("DGrep query started: Namespace={Namespace}, Event={EventName}, Query={ServerQuery}", nameSpace, eventName, serverQuery);
-
-        var dGrepEndpoint = new Uri(_settings.DGrepEndpoint);
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(TimeSpan.FromMinutes(_settings.QueryTimeoutMinutes));
-
+        // Validation
         if (string.IsNullOrWhiteSpace(nameSpace) || string.IsNullOrWhiteSpace(eventName) || string.IsNullOrWhiteSpace(serverQuery))
         {
             _logger.LogInternalError("DGrep query validation failed: missing required parameters");
             throw new ArgumentException("Namespace, event name, and query must be provided.");
         }
 
-        var queryInput = new QueryInput
-        {
-            MdsEndpoint = new Uri(_settings.MdsEndpoint),
-            EventFilters = new List<EventFilter>
-            {
-                new EventFilter
-                {
-                    NamespaceRegex = $"^{nameSpace}$",
-                    NameRegex = $"^{eventName}$"
-                }
-            },
-            StartTime = startTime,
-            EndTime = endTime,
-            ServerQueryType = queryType
-        };
+        _logger.LogInternalInformation("DGrep query started - Namespace={Namespace}, Event={EventName}, Query={ServerQuery}",
+            nameSpace, eventName, serverQuery);
 
-        if (!string.IsNullOrWhiteSpace(filters))
-        {
-            var filterPairs = filters.Split(';')
-                .Select(f => f.Split('='))
-                .Where(p => p.Length == 2)
-                .ToDictionary(p => p[0].Trim(), p => p[1].Trim());
+        // Production: Use Agent Space Proxy only
+        _logger.LogInternalInformation("DGrep: Using Agent Space Proxy - Endpoint={ProxyEndpoint}, AgentResourceId={AgentResourceId}",
+            _agentSpaceProxySettings.Endpoint, _agentResourceId);
 
-            queryInput.IdentityColumns = filters.Split(';')
-                .Select(f => f.Split('='))
-                .Where(p => p.Length == 2)
-                .Select(p => new KeyValuePair<string, List<string>>(p[0].Trim(), new List<string> { p[1].Trim() }))
-                .ToDictionary(p => p.Key, p => p.Value);
-        }
-
-        try
-        {
-            // DEBUG POINT 2: Authentication attempt
-            _logger.LogInternalInformation("DGrep: Attempting authentication with mode={AuthMode}, CertLocation={CertLocation}", _settings.AuthenticationMode, _settings.CertificateLocation);
-            var dGrepClient = await GetDGrepClientWithAuth();
-            _logger.LogInternalInformation("DGrep: Authentication successful, executing query");
-
-            // DEBUG POINT 3: Query execution
-            var rows = await dGrepClient.GetRowSetResultAsync(queryInput, serverQuery, cts.Token);
-            _logger.LogInternalInformation("DGrep: Query executed, processing results");
-
-            if (rows == null || rows.RowSet == null || rows.RowSet.Rows == null || !rows.RowSet.Rows.Any())
-            {
-                var status = rows?.QueryStatus?.Status ?? "Unknown";
-                var queryId = rows != null ? rows.QueryId.ToString() : "Unknown";
-                _logger.LogInternalWarning("DGrep: No results returned. Status={Status}, QueryId={QueryId}", status, queryId);
-                return $"Query Status: {status}, Query RequestId: {queryId}, Query Results: No Rows Returned From Query";
-            }
-
-            // DEBUG POINT 4: Results processing
-            _logger.LogInternalInformation("DGrep: Processing {RowCount} rows from query results", rows.RowSet.Rows.Count());
-            var resultBuilder = new StringBuilder();
-            resultBuilder.AppendLine($"Query Status: {rows.QueryStatus.Status}, Query RequestId: {rows.QueryId.ToString()}");
-            resultBuilder.AppendLine("Query CSV Results:");
-
-            resultBuilder.AppendLine(string.Join(", ", rows.RowSet.ColumnDefinitions.Keys));
-
-            foreach (var row in rows.RowSet.Rows.Take(maxResults))
-            {
-                var sanitizedValues = row.Values.Select(v => SanitizeContent(v?.ToString() ?? ""));
-                resultBuilder.AppendLine(string.Join(", ", sanitizedValues));
-            }
-            return resultBuilder.ToString();
-        }
-        catch (Exception ex)
-        {
-            // DEBUG POINT 5: Error occurred
-            _logger.LogInternalError(ex, "DGrep query failed: {ErrorMessage}", ex.Message);
-            throw new DGrepException($"An error occurred while executing the DGrep query: {ex.Message}", ex);
-        }
-    }
-
-    private async Task<DGrepClient> GetDGrepClientWithAuth()
-    {
-        switch (_settings.AuthenticationMode)
-        {
-            case AuthMode.ManagedIdentity:
-                try
-                {
-                    var cacheKey = _settings.ManagedIdentityClientId ?? "system-assigned";
-                    if (!_managedIdentityCredentialCache.TryGetValue(cacheKey, out var credential))
-                    {
-                        // If the credential is not cached, create a new ManagedIdentityCredential
-                        if (string.IsNullOrWhiteSpace(_settings.ManagedIdentityClientId))
-                        {
-                            // System assigned
-                            credential = new ManagedIdentityCredential();
-                        }
-                        else
-                        {
-                            // User assigned
-                            credential = new ManagedIdentityCredential(_settings.ManagedIdentityClientId);
-                        }
-
-                        if (!_managedIdentityCredentialCache.TryAdd(cacheKey, credential))
-                        {
-                            // If the credential was already added by another thread, use the cached one
-                            credential = _managedIdentityCredentialCache.GetValueOrDefault(cacheKey);
-                        }
-                    }
-
-                    if (credential == null)
-                    {
-                        throw new InvalidOperationException("ManagedIdentityCredential could not be created or retrieved from cache.");
-                    }
-
-                    // Check if we have a valid cached DGrepClient
-                    if (_dGrepClientCache.TryGetValue(cacheKey, out var cacheEntry) && cacheEntry?.Client != null && cacheEntry.ExpiresOn.HasValue)
-                    {
-                        // Add a 5 minute buffer to avoid using a token that's about to expire
-                        if (cacheEntry.ExpiresOn.Value > DateTimeOffset.UtcNow.AddMinutes(5))
-                        {
-                            return cacheEntry.Client;
-                        }
-                        else
-                        {
-                            // Dispose the old client if expired
-                            cacheEntry.Client.Dispose();
-                            _dGrepClientCache.Remove(cacheKey);
-                        }
-                    }
-
-                    var tokenRequestContext = new Azure.Core.TokenRequestContext(new[] { _settings.AADResource });
-                    var token = await credential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
-                    if (string.IsNullOrEmpty(token.Token))
-                    {
-                        throw new InvalidOperationException("Failed to acquire access token using Managed Identity.");
-                    }
-                    var dgrepClient = new DGrepClient(new Uri(_settings.DGrepEndpoint), token.Token);
-                    _dGrepClientCache[cacheKey] = new DGrepClientCacheEntry
-                    {
-                        Client = dgrepClient,
-                        ExpiresOn = token.ExpiresOn
-                    };
-                    return dgrepClient;
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidOperationException("Failed to acquire access token using Managed Identity.", ex);
-                }
-            case AuthMode.Certificate:
-                string? certCacheKey = null;
-                switch (_settings.CertificateLocation)
-                {
-                    case CertificateLocation.KeyVault:
-                        certCacheKey = _settings.KeyVaultCertificateName;
-                        break;
-                    case CertificateLocation.FileSystem:
-                        certCacheKey = _settings.CertificateFilePath;
-                        break;
-                    case CertificateLocation.CertStore:
-                        certCacheKey = _settings.CertificateSubjectName;
-                        break;
-                    default:
-                        throw new NotSupportedException($"Certificate location '{_settings.CertificateLocation}' is not supported.");
-                }
-                if (string.IsNullOrWhiteSpace(certCacheKey))
-                {
-                    throw new ArgumentException("A valid certificate cache key must be provided for certificate authentication.");
-                }
-                if (_dGrepClientCache.TryGetValue(certCacheKey, out var certCacheEntry) && certCacheEntry?.Client != null)
-                {
-                    return certCacheEntry.Client;
-                }
-                DGrepClient certClient;
-                switch (_settings.CertificateLocation)
-                {
-                    case CertificateLocation.KeyVault:
-                        var certificate = CertLoader.LoadCertFromKeyVault(
-                            _authService,
-                            _settings.KeyVaultUri,
-                            _settings.KeyVaultCertificateName,
-                            _settings.ManagedIdentityClientId,
-                            _settings.CertificatePassword,
-                            _logger);
-                        certClient = new DGrepClient(new Uri(_settings.DGrepEndpoint), certificate);
-                        break;
-                    case CertificateLocation.FileSystem:
-                        var fileCertificate = CertLoader.LoadCertFromFile(_settings.CertificateFilePath, _settings.CertificatePassword);
-                        certClient = new DGrepClient(new Uri(_settings.DGrepEndpoint), fileCertificate);
-                        break;
-                    case CertificateLocation.CertStore:
-                        var storeCertificate = CertLoader.LoadCertFromAppService(_settings.CertificateSubjectName, "", null);
-                        certClient = new DGrepClient(new Uri(_settings.DGrepEndpoint), storeCertificate);
-                        break;
-                    default:
-                        throw new NotSupportedException($"Certificate location '{_settings.CertificateLocation}' is not supported.");
-                }
-                _dGrepClientCache[certCacheKey] = new DGrepClientCacheEntry
-                {
-                    Client = certClient,
-                    ExpiresOn = null // Not used for certificate
-                };
-                return certClient;
-            default:
-                throw new NotSupportedException($"Authentication mode '{_settings.AuthenticationMode}' is not supported.");
-        }
+        return await ExecuteViaAgentSpaceProxy(
+            nameSpace, eventName, serverQuery, clientQuery,
+            filters, queryType, startTime, endTime, maxResults, ct);
     }
 
     private static string SanitizeContent(string content)
@@ -311,4 +202,12 @@ public class DGrepPluginClient : IDGrepPluginClient, IDisposable
         // Limit length aggressively - use sanitized string length to avoid ArgumentOutOfRangeException
         return sanitized.Substring(0, Math.Min(sanitized.Length, 200));
     }
+}
+
+// Simple response wrapper - matches GenevaActionWorkflowResponse pattern
+public class DGrepWorkflowResponse
+{
+    public System.Net.HttpStatusCode StatusCode { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public bool IsSuccessStatusCode => (int)StatusCode >= 200 && (int)StatusCode <= 299;
 }

@@ -618,30 +618,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             return hasConnector;
         }
 
-        // Check if it's a DGrepSettings condition
-        if (conditionType.Equals("DGrepSettings", StringComparison.OrdinalIgnoreCase))
-        {
-            var coreSettings = _serviceProvider.GetService<CoreSettings>();
-            if (coreSettings == null)
-            {
-                _logger.LogInternalWarning("CoreSettings not found in service provider for DGrepSettings condition check");
-                return false;
-            }
-
-            var dgrepSettings = coreSettings.External?.DGrep;
-            if (dgrepSettings == null)
-            {
-                return false;
-            }
-
-            if (expectedValue.Equals("Enabled", StringComparison.OrdinalIgnoreCase))
-            {
-                return dgrepSettings.Enabled;
-            }
-
-            return false;
-        }
-
         // Default: treat as environment variable check
         var actualValue = Environment.GetEnvironmentVariable(conditionType);
         return string.Equals(actualValue, expectedValue, StringComparison.OrdinalIgnoreCase);

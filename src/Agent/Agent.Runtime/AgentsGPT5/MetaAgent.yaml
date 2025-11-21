@@ -148,7 +148,6 @@ tools:
   - SendOutlookEmail
   - PostTeamsMessage
   - GetTeamsMessages
-  - PerformDgrepSearch
 
 handoffs:
   - resource_discovery_agent

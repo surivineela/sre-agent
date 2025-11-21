@@ -25,8 +25,6 @@ namespace Agent.Core.Configuration
         public KustoConfiguration Kusto { get; set; } = new();
 
         public ObserverClientSettings ObserverClient { get; set; } = new();
-
-        public DGrepSettings DGrep { get; set; } = new();
     }
 }
 

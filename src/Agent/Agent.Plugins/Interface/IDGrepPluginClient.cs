@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.Monitoring.DGrep.DataContracts.External;
+using Agent.Plugins.Implementation;
 
 namespace Agent.Plugins.Interface;
 
