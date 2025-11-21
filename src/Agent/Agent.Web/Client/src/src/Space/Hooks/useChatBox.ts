@@ -32,7 +32,7 @@ import {
     isUpdatedCliOrApprovalStreamingMessage,
     isUserStreamingMessage,
 } from '../Activities/Utility';
-import { ChatMessageGroup, SendMessageOptions } from '../Contracts/Activities';
+import { ChatMessage, ChatMessageGroup, SendMessageOptions } from '../Contracts/Activities';
 import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 import { useChatHistory } from './useChatHistory';
@@ -790,13 +790,10 @@ export const useChatBox = (
     );
 
     const messagePromptsUsed = useMemo(() => {
-        const result: string[] = [];
+        let result: string[] = [];
         const seenTexts = new Set<string>();
 
-        for (let i = messageGroups.length - 1; i >= 0; i--) {
-            const messageGroup = messageGroups[i];
-            const userMessages = messageGroup.userMessages;
-
+        const getMessagePrompts = (userMessages: ChatMessage[], result: string[]): string[] => {
             for (let j = userMessages.length - 1; j >= 0; j--) {
                 const text = userMessages[j].text;
                 if (text && !seenTexts.has(text)) {
@@ -808,9 +805,23 @@ export const useChatBox = (
                     }
                 }
             }
+            return result;
+        };
+
+        result = getMessagePrompts(streamingMessageGroup?.userMessages || [], result);
+
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            const messageGroup = messageGroups[i];
+            const userMessages = messageGroup.userMessages;
+
+            result = getMessagePrompts(userMessages, result);
+
+            if (result.length >= 3) {
+                break;
+            }
         }
         return result;
-    }, [messageGroups]);
+    }, [messageGroups, streamingMessageGroup?.userMessages]);
 
     useEffect(() => {
         if (streamingMessageGroup && !isAgentMessagesEmpty(streamingMessageGroup)) {
