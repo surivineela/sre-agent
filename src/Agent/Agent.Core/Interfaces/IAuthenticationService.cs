@@ -117,12 +117,6 @@ public interface IAuthenticationService
     public TokenCredential GetApplensCredential();
 
     /// <summary>
-    /// Get the scope for Applens based on the current tenant
-    /// </summary>
-    /// <returns></returns>
-    public string GetApplensScope();
-
-    /// <summary>
     /// Get the runtime host URL for Applens based on the environment
     /// </summary>
     /// <returns></returns>

@@ -285,7 +285,6 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetAzureDevOpsCredential() => _credential;
         public Task<string> GetGitHubAccessToken() => Task.FromResult("gh-token");
         public TokenCredential GetApplensCredential() => _credential;
-        public string GetApplensScope() => "scope";
         public string GetApplensRuntimeHostUrl() => "https://applens.test";
         public TokenCredential Get1PAgentKeyVaultCredential(string managedIdentityId) => _credential;
         public TokenCredential GetIcmApiCredential() => _credential;

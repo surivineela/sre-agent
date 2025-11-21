@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -41,11 +42,23 @@ namespace Agent.Core.Helpers
             try
             {
                 var tokenCredential = _authenticationService.GetApplensCredential();
-                var scope = _authenticationService.GetApplensScope();
 
                 var token = await tokenCredential.GetTokenAsync(
-                    new TokenRequestContext(new[] { scope }),
+                    new TokenRequestContext(new[] { Constants.ApplensTokenScope }),
                     CancellationToken.None);
+
+                // Log token claims
+                try
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwtToken = handler.ReadJwtToken(token.Token);
+                    var claims = string.Join(", ", jwtToken.Claims.Select(c => $"{c.Type}={c.Value}"));
+                    _logger.LogInternalInformation($"Applens token claims: {claims}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to parse token claims");
+                }
 
                 return token.Token;
             }
