@@ -34,27 +34,32 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
         url: string()
             .ensure()
             .required(intl.formatMessage(SreAgentResources.fieldRequired))
-            .test(
-                'validateUrlFormat',
-                intl.formatMessage(ConnectorsResources.urlKustoFormatError, { format: kustoDataSourceExample }),
-                function (url: string | undefined) {
-                    if (!url) return true;
+            .when('connectorType', {
+                is: (connectorType: string) =>
+                    connectorType === ConnectorType.AzureDataExplorerQuery || connectorType === ConnectorType.AzureDataExplorerIndexing,
+                then: schema =>
+                    schema.test(
+                        'validateUrlFormat',
+                        intl.formatMessage(ConnectorsResources.urlKustoFormatError, { format: kustoDataSourceExample }),
+                        function (url: string | undefined) {
+                            if (!url) return true;
 
-                    let isValidUri = false;
-                    try {
-                        const urlFormat = new URL(url);
-                        isValidUri =
-                            urlFormat.protocol === 'https:' &&
-                            !!urlFormat.host.trim() &&
-                            !!urlFormat.pathname &&
-                            urlFormat.pathname.trim() !== '/';
-                    } catch {
-                        isValidUri = false;
-                    }
+                            let isValidUri = false;
+                            try {
+                                const urlFormat = new URL(url);
+                                isValidUri =
+                                    urlFormat.protocol === 'https:' &&
+                                    !!urlFormat.host.trim() &&
+                                    !!urlFormat.pathname &&
+                                    urlFormat.pathname.trim() !== '/';
+                            } catch {
+                                isValidUri = false;
+                            }
 
-                    return isValidUri;
-                }
-            ),
+                            return isValidUri;
+                        }
+                    ),
+            }),
         email: string()
             .ensure()
             .when('connectorType', {
