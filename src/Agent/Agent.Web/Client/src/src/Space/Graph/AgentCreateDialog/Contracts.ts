@@ -13,6 +13,7 @@ export interface AgentCreateFormValues {
     tools: string[];
     mcpTools: string[];
     enableMemory?: boolean;
+    enableVanillaMode?: boolean;
 }
 
 export type PanelType = 'tools' | 'suggestions' | undefined;

@@ -153,6 +153,7 @@ export const tryParseAgentYaml = (
             max_reflection_count: assignNumber('maxReflectionCount'),
             critic_on_hand_off: assignBoolean('criticOnHandOff'),
             allow_parallel_tool_calls: assignBoolean('allowParallelToolCalls'),
+            vanilla_mode: assignBoolean('enableVanillaMode'),
             handoffs: assignStringArray(values => {
                 next.handoffs = values;
             }),

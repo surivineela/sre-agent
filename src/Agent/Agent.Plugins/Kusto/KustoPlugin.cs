@@ -488,7 +488,9 @@ public partial class KustoPlugin : IKustoPlugin
     /// <returns>The formatted string with parameters substituted.</returns>
     public static string FormatTemplate(string template, Dictionary<string, string> args)
     {
-        if (string.IsNullOrEmpty(template) || args == null || args.Count == 0)
+        if (string.IsNullOrEmpty(template)
+            || args == null
+            || args.Count == 0)
         {
             return template;
         }
@@ -505,6 +507,7 @@ public partial class KustoPlugin : IKustoPlugin
 
         return formatted;
     }
+
     // Single method: optional displayOptions keeps existing behavior when null
     public async Task<string> ExecuteLocalFunctionOnClusterAsync(
         string functionName,
@@ -515,11 +518,20 @@ public partial class KustoPlugin : IKustoPlugin
         KustoToolDefinition? toolDefinition = null)
     {
         var fileName = GetKqlFilePath(functionName);
-        var displayFunctionName = !string.IsNullOrWhiteSpace(toolDefinition?.Function)
-            ? toolDefinition.Function!
-            : !string.IsNullOrWhiteSpace(toolDefinition?.Name)
-                ? toolDefinition.Name
-                : functionName;
+
+        string displayFunctionName;
+        if (!string.IsNullOrWhiteSpace(toolDefinition?.Function))
+        {
+            displayFunctionName = toolDefinition.Function;
+        }
+        else if (!string.IsNullOrWhiteSpace(toolDefinition?.Name))
+        {
+            displayFunctionName = toolDefinition.Name;
+        }
+        else
+        {
+            displayFunctionName = functionName;
+        }
 
         KustoQueryResult queryResult;
         if (File.Exists(fileName))

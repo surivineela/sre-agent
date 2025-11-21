@@ -1,5 +1,7 @@
-using System.Collections.Generic;
-using System.ComponentModel;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json;
@@ -89,17 +91,22 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
 
         var transformer = instance as IToolArgumentTransformer ?? new DeclarativeArgumentTransformer();
         var transformedArgs = transformer.TransformArguments(method, flatArgs, _toolDef);
-        var invokeArgs = transformedArgs?.Select(arg => arg ?? (object)string.Empty).ToArray() ?? new object[0];
+        var invokeArgs = transformedArgs?.Select(arg => arg ?? string.Empty).ToArray() ?? new object[0];
 
         if (instance is IYamlToolAware aware)
         {
             aware.SetToolDefinition(_toolDef);
         }
+
         try
         {
             var result = method.Invoke(instance, invokeArgs);
 
-            if (result is Task<string> taskStr) return await taskStr;
+            if (result is Task<string> taskStr)
+            {
+                return await taskStr;
+            }
+
             if (result is Task task) { await task; return null; }
 
             return result?.ToString();
@@ -122,7 +129,9 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
     public static Dictionary<string, object?> ConvertArgsToDictionary(JsonElement jsonArgs)
     {
         if (jsonArgs.ValueKind != JsonValueKind.Object)
+        {
             throw new ArgumentException("Expected a JSON object for arguments.");
+        }
 
         var result = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
         foreach (var prop in jsonArgs.EnumerateObject())

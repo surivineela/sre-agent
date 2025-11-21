@@ -24,6 +24,7 @@ export type ExtendedAgent = {
     outputType?: string;
     metaAgentOverride?: boolean;
     enableMemory?: boolean;
+    enableVanillaMode?: boolean;
     metadata?: Record<string, any>;
 };
 

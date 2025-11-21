@@ -4,10 +4,9 @@
 
 using Agent.Framework;
 
-namespace Agent.Plugins.Tools
+namespace Agent.Plugins.Tools;
+
+public interface IYamlToolAware
 {
-    public interface IYamlToolAware
-    {
-        void SetToolDefinition(YamlToolDefinitionBase definition);
-    }
+    void SetToolDefinition(YamlToolDefinitionBase definition);
 }

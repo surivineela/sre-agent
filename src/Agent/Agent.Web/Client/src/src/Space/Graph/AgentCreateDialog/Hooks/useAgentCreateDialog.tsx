@@ -61,6 +61,7 @@ export const useAgentCreateDialog = (
                 tools: values.tools,
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
+                enableVanillaMode: values.enableVanillaMode,
             };
 
             // If enableMemory is true, ensure SearchMemory is in the tools list
@@ -172,6 +173,7 @@ export const useAgentCreateDialog = (
                 tools: values.tools,
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
+                enableVanillaMode: values.enableVanillaMode,
             };
 
             // If enableMemory is true, ensure SearchMemory is in the tools list
@@ -246,6 +248,7 @@ export const useAgentCreateDialog = (
                 tools: agentToEdit.tools || [],
                 mcpTools: agentToEdit.mcpTools || [],
                 enableMemory: agentToEdit.enableMemory || agentToEdit.tools?.includes('SearchMemory') || false,
+                enableVanillaMode: agentToEdit.enableVanillaMode ?? false,
             });
         } else if (agentCreateOrEditInfo.mode === 'createSource') {
             const sourceAgent = agentCreateOrEditInfo.agent;

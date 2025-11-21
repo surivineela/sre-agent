@@ -36,7 +36,6 @@ using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Link.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;

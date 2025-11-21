@@ -73,6 +73,7 @@ export const useAgentCreateDialogFormik = (
                 tools: values.tools,
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
+                enableVanillaMode: values.enableVanillaMode,
             };
             const agentYaml = buildAgentConfigurationYaml(agentObj, true);
             setYamlContent(agentYaml);
@@ -91,6 +92,7 @@ export const useAgentCreateDialogFormik = (
                     tools: [],
                     mcpTools: [],
                     enableMemory: false,
+                    enableVanillaMode: false,
                 });
                 return;
             }
@@ -106,6 +108,7 @@ export const useAgentCreateDialogFormik = (
                 tools: values.tools,
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
+                enableVanillaMode: values.enableVanillaMode,
             };
 
             const parsedYaml = tryParseAgentYaml(newYaml, currentAgent);
@@ -120,6 +123,7 @@ export const useAgentCreateDialogFormik = (
                     tools: agent.tools || [],
                     mcpTools: agent.mcpTools || [],
                     enableMemory: agent.enableMemory ?? false,
+                    enableVanillaMode: agent.enableVanillaMode ?? false,
                 });
             }
         },

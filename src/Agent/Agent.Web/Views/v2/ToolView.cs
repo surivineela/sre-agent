@@ -26,20 +26,16 @@ public class ToolView
 
     public Settable<List<string>> Attributes { get; set; }
 
+    public Settable<ToolMode> ToolMode { get; set; } = Framework.ToolMode.Auto;
+
     public static ApiResponseEnvelope<ToolView> CreateApiResponseEnvelope(ToolDocumentModel toolDoc)
     {
-        ToolView toolView;
-        switch (toolDoc)
+        ToolView toolView = toolDoc switch
         {
-            case KustoToolDocumentModel kustoToolDocumentModel:
-                toolView = KustoToolView.CreateApiResponseEnvelope(kustoToolDocumentModel).Properties!;
-                break;
-            case LinkToolDocumentModel linkToolDocumentModel:
-                toolView = LinkToolView.CreateApiResponseEnvelope(linkToolDocumentModel).Properties!;
-                break;
-            default:
-                throw new NotSupportedException($"Unsupported tool type: {toolDoc.Type}");
-        }
+            KustoToolDocumentModel kustoToolDocumentModel => KustoToolView.CreateApiResponseEnvelope(kustoToolDocumentModel).Properties!,
+            LinkToolDocumentModel linkToolDocumentModel => LinkToolView.CreateApiResponseEnvelope(linkToolDocumentModel).Properties!,
+            _ => throw new NotSupportedException($"Unsupported tool type: {toolDoc.Type}"),
+        };
 
         return new ApiResponseEnvelope<ToolView>
         {
@@ -153,11 +149,23 @@ public class KustoToolView : ToolView
     public static ApiResponseEnvelope<KustoToolView> CreateApiResponseEnvelope(KustoToolDocumentModel toolDoc)
     {
         var tool = toolDoc.Spec;
-        var toolView = new KustoToolView();
-
-        toolView.Type = tool.Type;
-        toolView.Connector = tool.Connector;
-        toolView.Description = tool.Description;
+        var toolView = new KustoToolView
+        {
+            Type = tool.Type,
+            Connector = tool.Connector,
+            Description = tool.Description,
+            Attributes = tool.Attributes,
+            Mode = tool.Mode,
+            Function = tool.Function,
+            Query = tool.Query,
+            File = tool.File,
+            Database = tool.Database,
+            ClusterHint = tool.ClusterHint,
+            RegionalClusterGroups = tool.RegionalClusterGroups,
+            ClusterUri = tool.ClusterUri,
+            DisplayOptions = tool.DisplayOptions,
+            ToolMode = tool.ToolMode
+        };
 
         var paramView = new List<ParameterView>();
         foreach (var parameter in tool.Parameters ?? [])
@@ -175,16 +183,6 @@ public class KustoToolView : ToolView
             paramView.Add(parameterView);
         }
         toolView.Parameters = paramView;
-        toolView.Attributes = tool.Attributes;
-        toolView.Mode = tool.Mode;
-        toolView.Function = tool.Function;
-        toolView.Query = tool.Query;
-        toolView.File = tool.File;
-        toolView.Database = tool.Database;
-        toolView.ClusterHint = tool.ClusterHint;
-        toolView.RegionalClusterGroups = tool.RegionalClusterGroups;
-        toolView.ClusterUri = tool.ClusterUri;
-        toolView.DisplayOptions = tool.DisplayOptions;
 
         ApiResponseEnvelope<KustoToolView> apiResponse = new()
         {
@@ -263,6 +261,7 @@ public class KustoToolView : ToolView
             properties.RegionalClusterGroups.ApplyTo(value => result.Spec.RegionalClusterGroups = value!);
             properties.ClusterUri.ApplyTo(value => result.Spec.ClusterUri = value);
             properties.DisplayOptions.ApplyTo(value => result.Spec.DisplayOptions = value);
+            properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
         });
 
         return result;
@@ -276,11 +275,16 @@ public class LinkToolView : ToolView
     public static ApiResponseEnvelope<LinkToolView> CreateApiResponseEnvelope(LinkToolDocumentModel toolDoc)
     {
         var tool = toolDoc.Spec;
-        var toolView = new LinkToolView();
+        var toolView = new LinkToolView
+        {
+            Type = tool.Type,
+            Connector = tool.Connector,
+            Description = tool.Description,
+            Attributes = tool.Attributes,
+            Template = tool.Template,
+            ToolMode = tool.ToolMode,
+        };
 
-        toolView.Type = tool.Type;
-        toolView.Connector = tool.Connector;
-        toolView.Description = tool.Description;
         var paramView = new List<ParameterView>();
         foreach (var parameter in tool.Parameters ?? [])
         {
@@ -296,8 +300,7 @@ public class LinkToolView : ToolView
             };
             paramView.Add(parameterView);
         }
-        toolView.Attributes = tool.Attributes;
-        toolView.Template = tool.Template;
+        toolView.Parameters = paramView;
 
         ApiResponseEnvelope<LinkToolView> apiResponse = new()
         {
@@ -368,6 +371,7 @@ public class LinkToolView : ToolView
             });
             properties.Attributes.ApplyTo(value => result.Spec.Attributes = value!);
             properties.Template.ApplyTo(value => result.Spec.Template = value!);
+            properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
         });
 
         return result;

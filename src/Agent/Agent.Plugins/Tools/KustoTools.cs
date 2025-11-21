@@ -34,7 +34,6 @@ public class KustoToolType : IYamlToolAware
 
     public async Task<string> Run(string kustoCluster, Dictionary<string, string> args)
     {
-
         if (_definition == null)
         {
             throw new InvalidOperationException("Tool definition was not set.");
@@ -53,18 +52,21 @@ public class KustoToolType : IYamlToolAware
         var kustoChat = _kustoFactory.Create(connector);
 
         // Determine if we should print the query based on tool definition and LLM-supplied args
-        var printQuery = _definition.PrintQuery && args.GetValueOrDefault("printQuery", "true").ToLower() == "true";
+        var argPrintQuery = args.TryGetValue("printQuery", out var value) && bool.TryParse(value, out var parsed)
+            ? parsed // if args contain the value, honor that
+            : true; // default to true
+        var printQuery = _definition.PrintQuery && argPrintQuery;
 
         switch (_definition.Mode)
         {
             case KustoExecutionMode.Function:
                 var displayOptions = ConvertDisplayOptions(_definition.DisplayOptions);
                 return await kustoChat.ExecuteLocalFunctionOnClusterAsync(
-                    _definition.Function!,
-                    connector.ClusterUrl,
-                    _definition.Database,
-                    args,
-                    displayOptions,
+                    functionName: _definition.Function!,
+                    clusterName: connector.ClusterUrl,
+                    databaseName: _definition.Database,
+                    args: args,
+                    displayOptions: displayOptions,
                     toolDefinition: _definition);
 
             case KustoExecutionMode.Query:
@@ -96,7 +98,7 @@ public class KustoToolType : IYamlToolAware
         };
     }
 
-    [ToolTypeAttribute("KustoQuery")]
+    [ToolType("KustoQuery")]
     public class KustoQuery
     {
         private readonly IKustoPlugin _kustoChat;

@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;
