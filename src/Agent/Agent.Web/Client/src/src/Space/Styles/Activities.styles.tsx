@@ -290,7 +290,7 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
             lineHeight: '20px',
             '.fai-CopilotMessage__content': {
                 width: '90%',
-                gap: `${tokens.spacingVerticalS}`,
+                gap: tokens.spacingVerticalM,
             },
             ...overrides?.agentMessage,
         },
