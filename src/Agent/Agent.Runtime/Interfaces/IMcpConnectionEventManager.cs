@@ -26,7 +26,7 @@ public interface IMcpConnectionEventManager
     /// </summary>
     Task<McpConnection> CreateAndAddConnectionAsync(
         string name,
-        string type,
+        McpTransportType type,
         string? endpoint = null,
         string? command = null,
         string[]? arguments = null,

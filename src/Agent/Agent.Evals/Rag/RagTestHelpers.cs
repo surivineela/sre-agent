@@ -139,6 +139,7 @@ public static class RagTestHelpers
         });
         builder.Services.AddSingleton<ISearchIndexingClient, SearchIndexingClient>();
         builder.Services.AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>();
+        builder.Services.AddSingleton<ISessionTransportFactory, SessionTransportFactory>();
         builder.Services.AddSingleton<IMcpConnectionEventManager, McpConnectionEventManager>();
         builder.Services.AddSingleton<IMcpAuthenticationService, McpAuthenticationService>();
         builder.RegisterDataConnectors();

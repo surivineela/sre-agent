@@ -124,9 +124,19 @@ public class McpConnectionController : ControllerBase
         {
             _logger.LogInternalInformation("Creating MCP connection: {Name}", request.Name);
 
+            // Parse the type string to enum with case-insensitive matching
+            if (!Enum.TryParse<McpTransportType>(request.Type, ignoreCase: true, out var transportType))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Error = $"Invalid transport type '{request.Type}'. Valid values are: {string.Join(", ", Enum.GetNames<McpTransportType>())}",
+                    ExceptionType = "ArgumentException"
+                });
+            }
+
             var connection = await _connectionManager.CreateAndAddConnectionAsync(
                 request.Name,
-                request.Type,
+                transportType,
                 request.Endpoint,
                 request.Command,
                 request.Arguments,

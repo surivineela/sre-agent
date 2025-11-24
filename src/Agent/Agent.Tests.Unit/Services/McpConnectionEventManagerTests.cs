@@ -26,9 +26,7 @@ public class McpConnectionEventManagerTests
     private readonly Mock<IAuthenticationService> _mockCoreAuthService;
     private readonly Mock<IOptions<MCPSettings>> _mockMcpSettings;
     private readonly McpConnectionEventManager _eventManager;
-    private readonly SessionPoolSettings _mockSessionPoolSettings;
-    private readonly Mock<ISessionPoolService> _mockSessionPoolService;
-    private readonly Mock<IHostEnvironment> _mockHostEnvironment;
+    private readonly Mock<ISessionTransportFactory> _mockSessionTransportFactory;
 
     public McpConnectionEventManagerTests()
     {
@@ -46,60 +44,36 @@ public class McpConnectionEventManagerTests
             PingIntervalInSeconds = 60,
             PingTimeoutInSeconds = 5
         });
-        _mockSessionPoolSettings = new SessionPoolSettings
-        {
-            PoolManagementEndpoint = "http://localhost:5000"
-        };
-        _mockSessionPoolService = new Mock<ISessionPoolService>();
-        _mockHostEnvironment = new Mock<IHostEnvironment>();
+        _mockSessionTransportFactory = new Mock<ISessionTransportFactory>();
 
         _eventManager = new McpConnectionEventManager(
             _mockBackend.Object,
             _mockAuthService.Object,
             _mockCoreAuthService.Object,
-            _mockSessionPoolService.Object,
+            _mockSessionTransportFactory.Object,
             _mockMcpSettings.Object,
-            _mockSessionPoolSettings,
-            _mockLogger.Object,
-            _mockHostEnvironment.Object);
+            _mockLogger.Object);
     }
 
     #region Basic Validation Tests - These don't initialize connections
 
     [Fact]
-    public async Task CreateAndAddConnectionAsync_InvalidType_ThrowsArgumentException()
-    {
-        // Arrange
-        var name = "test-connection";
-        var invalidType = "invalid";
-
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(async () =>
-            await _eventManager.CreateAndAddConnectionAsync(
-                name,
-                invalidType,
-                null,
-                null,
-                null,
-                null));
-    }
-
-    [Fact]
-    public async Task CreateAndAddConnectionAsync_SseMissingEndpoint_ThrowsArgumentException()
+    public async Task CreateAndAddConnectionAsync_HttpMissingEndpoint_ThrowsArgumentException()
     {
         // Arrange
         var name = "test-connection";
 
-        // Act & Assert
+        // Act & Assert - Http transport requires endpoint
         await Assert.ThrowsAsync<ArgumentException>(async () =>
             await _eventManager.CreateAndAddConnectionAsync(
                 name,
-                "sse",
+                McpTransportType.Http,
                 null, // Missing endpoint
                 null,
                 null,
                 null));
     }
+
 
     [Fact]
     public async Task CreateAndAddConnectionAsync_StdioMissingCommand_ThrowsArgumentException()
@@ -107,11 +81,11 @@ public class McpConnectionEventManagerTests
         // Arrange
         var name = "test-connection";
 
-        // Act & Assert
+        // Act & Assert - Stdio transport requires command
         await Assert.ThrowsAsync<ArgumentException>(async () =>
             await _eventManager.CreateAndAddConnectionAsync(
                 name,
-                "stdio",
+                McpTransportType.Stdio,
                 null,
                 null, // Missing command
                 null,

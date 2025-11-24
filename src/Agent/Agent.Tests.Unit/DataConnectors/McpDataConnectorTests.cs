@@ -38,7 +38,7 @@ public class McpDataConnectorTests
         _connectionManagerMock
             .Setup(m => m.CreateAndAddConnectionAsync(
                 It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string[]?>(),
@@ -47,7 +47,7 @@ public class McpDataConnectorTests
                 It.IsAny<Dictionary<string, string>?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
-            .Callback<string, string, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
             {
                 capturedAuth = authConfig;
             })
@@ -80,7 +80,7 @@ public class McpDataConnectorTests
         _connectionManagerMock
             .Setup(m => m.CreateAndAddConnectionAsync(
                 It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string[]?>(),
@@ -89,7 +89,7 @@ public class McpDataConnectorTests
                 It.IsAny<Dictionary<string, string>?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
-            .Callback<string, string, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType) =>
             {
                 capturedAuth = authConfig;
             })

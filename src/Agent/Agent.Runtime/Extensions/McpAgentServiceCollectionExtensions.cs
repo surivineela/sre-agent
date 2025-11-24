@@ -32,6 +32,19 @@ public static class McpAgentServiceCollectionExtensions
             return new McpAuthenticationService(logger);
         });
 
+        // Register ISessionTransportFactory
+        services.AddSingleton<ISessionTransportFactory>(sp =>
+        {
+            var coreAuthService = sp.GetRequiredService<IAuthenticationService>();
+            var sessionPoolService = sp.GetRequiredService<ISessionPoolService>();
+            var azureSettings = sp.GetRequiredService<AzureSettings>();
+            var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
+            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<SessionTransportFactory>();
+
+            return new SessionTransportFactory(coreAuthService, sessionPoolService, azureSettings.SessionPool, hostEnvironment, logger);
+        });
+
         // Register IMcpConnectionEventManager
         services.AddSingleton<IMcpConnectionEventManager>(sp =>
         {
@@ -39,13 +52,11 @@ public static class McpAgentServiceCollectionExtensions
             var backend = sp.GetRequiredService<IMcpConnectable>();
             var authService = sp.GetRequiredService<IMcpAuthenticationService>();
             var coreAuthService = sp.GetRequiredService<IAuthenticationService>();
-            var sessionPoolService = sp.GetRequiredService<ISessionPoolService>();
+            var sessionTransportFactory = sp.GetRequiredService<ISessionTransportFactory>();
             var mcpSettings = sp.GetRequiredService<IOptions<MCPSettings>>();
-            var azureSettings = sp.GetRequiredService<AzureSettings>();
             var logger = loggerFactory.CreateLogger<McpConnectionEventManager>();
-            var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
 
-            return new McpConnectionEventManager(backend, authService, coreAuthService, sessionPoolService, mcpSettings, azureSettings.SessionPool, logger, hostEnvironment);
+            return new McpConnectionEventManager(backend, authService, coreAuthService, sessionTransportFactory, mcpSettings, logger);
         });
 
         // Register IMcpConnectionHealthService

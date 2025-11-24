@@ -5,11 +5,9 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Client;
@@ -25,12 +23,10 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
     private readonly IMcpConnectable _backend;
     private readonly ILogger<McpConnectionEventManager> _logger;
     private readonly IMcpAuthenticationService _authService;
-    private readonly IAuthenticationService _coreAuthService;
-    private readonly ISessionPoolService _sessionPoolService;
+    private readonly ISessionTransportFactory _sessionTransportFactory;
     private readonly MCPSettings _mcpSettings;
-    private readonly SessionPoolSettings _sessionPoolSettings;
+    private readonly IAuthenticationService _coreAuthService;
     private readonly ConcurrentDictionary<string, McpConnection> _connections = new();
-    private readonly IHostEnvironment _hostEnvironment;
     private static readonly Regex _unsafeToolNameChars = new("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
 
     public event Func<McpConnection, Task>? ConnectionAdded;
@@ -40,25 +36,21 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         IMcpConnectable backend,
         IMcpAuthenticationService authService,
         IAuthenticationService coreAuthService,
-        ISessionPoolService sessionPoolService,
+        ISessionTransportFactory sessionTransportFactory,
         IOptions<MCPSettings> mcpSettings,
-        SessionPoolSettings sessionPoolSettings,
-        ILogger<McpConnectionEventManager> logger,
-        IHostEnvironment hostEnvironment)
+        ILogger<McpConnectionEventManager> logger)
     {
         _backend = backend;
         _authService = authService;
         _coreAuthService = coreAuthService;
-        _sessionPoolService = sessionPoolService;
+        _sessionTransportFactory = sessionTransportFactory;
         _mcpSettings = mcpSettings.Value;
-        _sessionPoolSettings = sessionPoolSettings;
         _logger = logger;
-        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<McpConnection> CreateAndAddConnectionAsync(
         string name,
-        string type,
+        McpTransportType type,
         string? endpoint = null,
         string? command = null,
         string[]? arguments = null,
@@ -83,13 +75,11 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 CustomHeaders = headers
             };
         }
-        var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
-        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
 
         // Create transport based on type
-        var transport = type.ToLowerInvariant() switch
+        var transport = type switch
         {
-            "http" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig),
+            McpTransportType.Http when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig),
             //"sse" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig), // Legacy SSE now uses HTTP
             //"stdio" when !string.IsNullOrEmpty(command) => new StdioClientTransport(new StdioClientTransportOptions
             //{
@@ -99,15 +89,10 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             //    WorkingDirectory = workingDirectory
             //}),
             // run local MCP servers via session pool proxy
-            "stdio" when !string.IsNullOrEmpty(command) => new SessionWebsocketClientTransport(new()
-            {
-                ServerUrl = _sessionPoolSettings.PoolManagementEndpoint.Replace("https://", "wss://") + "/mcp/run",
-                SessionId = _sessionPoolService.BuildSessionIdentifier(agentName, threadId, true),
-                Credential = _coreAuthService.GetSessionPoolCredential(),
-                Name = _unsafeToolNameChars.Replace(name, string.Empty),
-                Command = command,
-                Arguments = arguments ?? Array.Empty<string>(),
-            }, _logger),
+            McpTransportType.Stdio when !string.IsNullOrEmpty(command) => _sessionTransportFactory.CreateSessionTransport(
+                name,
+                command,
+                arguments ?? Array.Empty<string>()),
             _ => throw new ArgumentException($"Invalid connection type '{type}' or missing required parameters")
         };
 
@@ -118,7 +103,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             Authentication = authConfig,
             Metadata = new McpConnectionMetadata
             {
-                Type = type.ToLowerInvariant(),
+                Type = type.ToString().ToLowerInvariant(),
                 Endpoint = endpoint,
                 Command = command,
                 Arguments = arguments,
@@ -248,10 +233,16 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 await ConnectionRemoved.Invoke(connectionId);
             }
 
+            // Parse the type string back to enum for reconnection
+            if (!Enum.TryParse<McpTransportType>(metadata.Type, ignoreCase: true, out var transportType))
+            {
+                throw new InvalidOperationException($"Invalid transport type '{metadata.Type}' in connection metadata");
+            }
+
             // Create new connection with same parameters
             var newConnection = await CreateAndAddConnectionAsync(
                 name,
-                metadata.Type,
+                transportType,
                 metadata.Endpoint,
                 metadata.Command,
                 metadata.Arguments,

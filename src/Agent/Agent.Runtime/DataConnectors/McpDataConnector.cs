@@ -14,17 +14,25 @@ namespace Agent.Runtime.DataConnectors;
 /// Data connector that provisions MCP connections using the agent runtime infrastructure.
 /// </summary>
 [DataConnector("Mcp")]
-public class McpDataConnector : IDataConnector
+public partial class McpDataConnector : IDataConnector
 {
-    private sealed record McpConnectionSettings(
-        string TransportType,
-        string? Command,
-        string[]? Arguments,
-        string? Endpoint,
+    private abstract record McpConnectionSettings(
+        McpTransportType TransportType,
+        string? Description,
+        string? ServiceType);
+
+    private sealed record HttpMcpConnectionSettings(
+        string Endpoint,
         McpAuthenticationConfig? Authentication,
         Dictionary<string, string>? Headers,
         string? Description,
-        string? ServiceType);
+        string? ServiceType) : McpConnectionSettings(McpTransportType.Http, Description, ServiceType);
+
+    private sealed record StdioMcpConnectionSettings(
+        string Command,
+        string[]? Arguments,
+        string? Description,
+        string? ServiceType) : McpConnectionSettings(McpTransportType.Stdio, Description, ServiceType);
 
     public string Endpoint { get; private set; } = string.Empty;
     public McpAuthenticationConfig? AuthenticationConfig { get; private set; }
@@ -54,24 +62,37 @@ public class McpDataConnector : IDataConnector
 
         McpConnectionSettings parsedSettings = ParseDataSource(instanceSettings.Name, instanceSettings.DataSource);
 
+        var endpointHost = parsedSettings is HttpMcpConnectionSettings http ? GetEndpointHost(http.Endpoint) : "N/A";
+
         _logger.LogInternalInformation(
             "Initializing MCP connector '{Name}' with transport '{Transport}' and endpoint host '{Host}'",
             instanceSettings.Name,
             parsedSettings.TransportType,
-            GetEndpointHost(parsedSettings.Endpoint));
+            endpointHost);
 
         try
         {
-            var connection = await _mcpConnectionManager.CreateAndAddConnectionAsync(
-                name: instanceSettings.Name,
-                type: parsedSettings.TransportType,
-                command: parsedSettings.Command,
-                arguments: parsedSettings.Arguments,
-                endpoint: parsedSettings.Endpoint,
-                authConfig: parsedSettings.Authentication,
-                headers: parsedSettings.Headers,
-                description: parsedSettings.Description,
-                serviceType: parsedSettings.ServiceType);
+            McpConnection connection = parsedSettings switch
+            {
+                HttpMcpConnectionSettings httpSettings => await _mcpConnectionManager.CreateAndAddConnectionAsync(
+                    name: instanceSettings.Name,
+                    type: McpTransportType.Http,
+                    endpoint: httpSettings.Endpoint,
+                    authConfig: httpSettings.Authentication,
+                    headers: httpSettings.Headers,
+                    description: httpSettings.Description,
+                    serviceType: httpSettings.ServiceType),
+
+                StdioMcpConnectionSettings stdioSettings => await _mcpConnectionManager.CreateAndAddConnectionAsync(
+                    name: instanceSettings.Name,
+                    type: McpTransportType.Stdio,
+                    command: stdioSettings.Command,
+                    arguments: stdioSettings.Arguments,
+                    description: stdioSettings.Description,
+                    serviceType: stdioSettings.ServiceType),
+
+                _ => throw new InvalidOperationException($"Unsupported connection settings type: {parsedSettings.GetType().Name}")
+            };
 
             _connectionId = connection.Id;
 
@@ -161,12 +182,18 @@ public class McpDataConnector : IDataConnector
             }
         }
 
-        if (!values.TryGetValue("Type", out string? type) || string.IsNullOrWhiteSpace(type))
+        if (!values.TryGetValue("Type", out string? typeString) || string.IsNullOrWhiteSpace(typeString))
         {
-            type = "http";  // backward compatibility default to HTTP
+            typeString = "http";  // backward compatibility default to HTTP
         }
 
-        if (type == "http")
+        // Parse the type string to enum with case-insensitive matching
+        if (!Enum.TryParse<McpTransportType>(typeString, ignoreCase: true, out var type))
+        {
+            throw new NotSupportedException($"Transport Type '{typeString}' is not supported by the MCP data connector.");
+        }
+
+        if (type == McpTransportType.Http)
         {
             if (!values.TryGetValue("Endpoint", out string? endpoint) || string.IsNullOrWhiteSpace(endpoint))
             {
@@ -180,9 +207,14 @@ public class McpDataConnector : IDataConnector
                 authentication = BuildAuthenticationConfig(authTypeValue, values);
             }
 
-            return new McpConnectionSettings(type, null, null, endpoint, authentication, null, "Mcp Tool", connectionName);
+            return new HttpMcpConnectionSettings(
+                Endpoint: endpoint,
+                Authentication: authentication,
+                Headers: null,
+                Description: "Mcp Tool",
+                ServiceType: connectionName);
         }
-        else if (type == "stdio")
+        else if (type == McpTransportType.Stdio)
         {
             if (!values.TryGetValue("Command", out string? command) || string.IsNullOrWhiteSpace(command))
             {
@@ -200,7 +232,11 @@ public class McpDataConnector : IDataConnector
                     throw new ArgumentException("ArgumentsJson value is not a valid JSON array of strings.", nameof(dataSource), ex);
                 }
             }
-            return new McpConnectionSettings(type, command, arguments, null, null, Headers: null, "Mcp Tool", connectionName);
+            return new StdioMcpConnectionSettings(
+                Command: command,
+                Arguments: arguments,
+                Description: "Mcp Tool",
+                ServiceType: connectionName);
         }
         else
         {
