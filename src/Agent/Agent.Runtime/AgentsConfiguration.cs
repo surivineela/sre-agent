@@ -4,6 +4,8 @@
 
 using System.ClientModel;
 using System.ClientModel.Primitives;
+using System.Net.Http.Headers;
+using System.Reflection;
 using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
@@ -24,6 +26,15 @@ namespace Agent.Runtime;
 
 public static class AgentsConfigurationExtensions
 {
+    private static readonly string UserAgent = GetUserAgent();
+
+    private static string GetUserAgent()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        var versionString = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0.0";
+        var productInfo = new ProductInfoHeaderValue("azure-sre-agent", versionString);
+        return productInfo.ToString();
+    }
     public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
     {
         return services
@@ -74,7 +85,8 @@ public static class AgentsConfigurationExtensions
                 var options = new AzureOpenAIClientOptions()
                 {
                     NetworkTimeout = TimeSpan.FromMinutes(5),
-                    RetryPolicy = new ClientRetryPolicy(2)
+                    RetryPolicy = new ClientRetryPolicy(2),
+                    UserAgentApplicationId = UserAgent
                 };
 
                 // register a pipeline policy that logs LLM Http request details
@@ -120,7 +132,8 @@ public static class AgentsConfigurationExtensions
                     {
                         Endpoint = new(openAISettings.GhcpEndpoint),
                         NetworkTimeout = TimeSpan.FromMinutes(5),
-                        RetryPolicy = new ClientRetryPolicy(2)
+                        RetryPolicy = new ClientRetryPolicy(2),
+                        UserAgentApplicationId = UserAgent
                     };
 
                     // register a pipeline policy that logs 429 responses
