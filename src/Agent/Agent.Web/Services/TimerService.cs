@@ -18,6 +18,7 @@ using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
+using Agent.Runtime.SubAgents.LinuxAppServiceConfigAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
@@ -85,6 +86,7 @@ public class TimerService : IHostedService, IDisposable
     private CustomerAuditLogger _customerAuditLogger;
     private LocalAuthScanner _localAuthScanner;
     private ScheduledTasks.Services.ScheduledTaskExecutionService _scheduledTaskExecutionService;
+    private readonly LinuxAppServiceConfigScanner _linuxAppServiceConfigScanner;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -142,6 +144,11 @@ public class TimerService : IHostedService, IDisposable
     private TimeSpan _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
     private DateTime? _localAuthScannerLastRunUtc;
 
+    private Timer? _linuxAppServiceConfigScannerTimer = null;
+    private bool _linuxAppServiceConfigScannerTimerIsRunning = false;
+
+    private readonly TimeSpan _linuxAppServiceConfigScannerTimerInterval = TimeSpan.FromHours(12);
+
     private Timer? _scheduledTaskTimer = null;
     private bool _scheduledTaskTimerIsRunning = false;
     private TimeSpan _scheduledTaskTimerInterval = TimeSpan.FromMinutes(1);
@@ -184,6 +191,7 @@ public class TimerService : IHostedService, IDisposable
         CustomerAuditLogger customerAuditLogger,
         IIncidentScanner incidentScanner,
         LocalAuthScanner localAuthScanner,
+        LinuxAppServiceConfigScanner linuxAppServiceConfigScanner,
         HeartbeatReporter heartbeatReporter,
         ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
     {
@@ -213,6 +221,7 @@ public class TimerService : IHostedService, IDisposable
         _incidentScanner = incidentScanner;
         _localAuthScanner = localAuthScanner;
         _heartbeatReporter = heartbeatReporter;
+        _linuxAppServiceConfigScanner = linuxAppServiceConfigScanner;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
 
@@ -258,6 +267,7 @@ public class TimerService : IHostedService, IDisposable
         _customerLogger = default!;
         _customerAuditLogger = default!;
         _localAuthScanner = default!;
+        _linuxAppServiceConfigScanner = default!;
         _scheduledTaskExecutionService = default!;
         _incidentScanner = default!;
     }
@@ -318,6 +328,9 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInternalInformation("Starting Local Auth scanner timer...");
         StartLocalAuthScannerTimer(cancellationToken);
+
+        _logger.LogInternalInformation("Starting Linux App Service Config scanner timer...");
+        StartLinuxAppServiceConfigScannerTimer(cancellationToken);
 
         _logger.LogInternalInformation("Starting Scheduled Task execution timer...");
         StartScheduledTaskTimer(cancellationToken);
@@ -965,6 +978,38 @@ public class TimerService : IHostedService, IDisposable
         _localAuthScannerTimerInterval = interval;
     }
 
+    public void StartLinuxAppServiceConfigScannerTimer(CancellationToken cancellationToken)
+    {
+        _linuxAppServiceConfigScannerTimer = new Timer(async _ =>
+        {
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInternalInformation("StartLinuxAppServiceConfigScannerTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
+
+            if (_linuxAppServiceConfigScannerTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Linux App Service Config scanner is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _linuxAppServiceConfigScannerTimerIsRunning = true;
+
+                await _linuxAppServiceConfigScanner.ScanAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing Linux App Service Config scanner timer.");
+            }
+            finally
+            {
+                _linuxAppServiceConfigScannerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.FromMinutes(5), _linuxAppServiceConfigScannerTimerInterval);
+    }
+
     public void StartScheduledTaskTimer(CancellationToken cancellationToken)
     {
         _scheduledTaskTimer = new Timer(async _ =>
@@ -1023,6 +1068,7 @@ public class TimerService : IHostedService, IDisposable
         _crawlerTimer?.Dispose();
         _threadEvaluatorTimer?.Dispose();
         _localAuthScannerTimer?.Dispose();
+        _linuxAppServiceConfigScannerTimer?.Dispose();
         _scheduledTaskTimer?.Dispose();
         _heartbeatTimer?.Dispose();
 

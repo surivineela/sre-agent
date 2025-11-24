@@ -42,6 +42,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OpenTelemetry.Resources;
+using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Core.Helpers;
@@ -2572,6 +2573,22 @@ public class ArmHelper
             Name: kubernetesClusterResource.Data.Name,
             Location: kubernetesClusterResource.Data.Location,
             DisableLocalAccounts: kubernetesClusterResource.Data.DisableLocalAccounts ?? false
+        );
+    }
+
+    public async Task<LinuxAppServiceConfiguration> GetLinuxAppServiceConfigurationAsync(string resourceId, CancellationToken cancellationToken)
+    {
+        var appService = await GetAppServiceAsync(resourceId);
+
+        // Get site configuration to access LinuxFxVersion
+        var siteConfig = await appService.GetWebSiteConfig().GetAsync(cancellationToken);
+
+        return new LinuxAppServiceConfiguration(
+            ResourceId: resourceId,
+            Name: appService.Data.Name,
+            Location: appService.Data.Location,
+            LinuxFxVersion: siteConfig.Value.Data.LinuxFxVersion ?? "",
+            AppKind: appService.Data.Kind ?? ""
         );
     }
 

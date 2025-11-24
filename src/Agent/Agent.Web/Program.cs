@@ -12,6 +12,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Core.Services.LinuxAppService.Validators;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
@@ -58,6 +59,7 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
+using Agent.Runtime.SubAgents.LinuxAppServiceConfigAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
@@ -76,6 +78,7 @@ using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
@@ -406,6 +409,7 @@ public class Program
             .AddSingleton<IRemediationPlugin, RemediationPlugin>()
             .AddSingleton<AzureResourceGraphClient>()
             .AddSingleton<ArmHelper>()
+            .AddSingleton<ILinuxAppServiceConfigValidator, LinuxFxVersionValidator>()
             .AddSingleton<AzureMonitorMetricsHelper>()
             .AddSingleton<PostgresSQLCommandHelper>()
             .AddSingleton<ArmResourceCrawlerFactory>()
@@ -545,6 +549,7 @@ public class Program
         builder.Services
             .AddSingleton<TlsBestPracticesScanner>()
             .AddTransient<LocalAuthScanner>()
+            .AddSingleton<LinuxAppServiceConfigScanner>()
             .AddSingleton<SourceCodeScanner>()
             .AddSingleton<CVEScanner>()
             .AddSingleton<FeedbackRCAScanner>()
@@ -1691,3 +1696,4 @@ public class Program
         return agentName.Contains("enable-3p-skills", StringComparison.InvariantCultureIgnoreCase) || configSet;
     }
 }
+
