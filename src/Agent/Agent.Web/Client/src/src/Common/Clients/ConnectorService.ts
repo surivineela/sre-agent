@@ -249,6 +249,14 @@ export interface PutConnectorOptions {
     apiVersion?: string;
 }
 
+export interface GetConnectorAccessPoliciesOptions {
+    subscriptionId: string;
+    resourceGroup: string;
+    connectionName: string;
+    agentName: string;
+    apiVersion?: string;
+}
+
 export interface PutConnectorAccessPoliciesOptions {
     subscriptionId: string;
     resourceGroup: string;
@@ -304,6 +312,19 @@ export class ConnectorService {
         return MakeArmCall({
             commandName: 'deleteConnector',
             method: 'DELETE',
+            url,
+            apiVersion,
+        });
+    }
+
+    public static async getConnectorAccessPolicies(options: GetConnectorAccessPoliciesOptions) {
+        const { subscriptionId, resourceGroup, connectionName, agentName, apiVersion = '2018-07-01-preview' } = options;
+
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${agentName}-${connectionName}/accessPolicies?api-version=${apiVersion}`;
+
+        return MakeArmCall({
+            commandName: 'getConnectorAccessPolicies',
+            method: 'GET',
             url,
             apiVersion,
         });

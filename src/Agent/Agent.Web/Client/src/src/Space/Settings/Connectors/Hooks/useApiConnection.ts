@@ -4,6 +4,7 @@ import { getErrorMessage } from '../../../../Common/Clients/ArmClient';
 import {
     Connector,
     ConnectorService,
+    GetConnectorAccessPoliciesOptions,
     GetConnectorOptions,
     PutConnectorAccessPoliciesOptions,
     PutConnectorOptions,
@@ -63,6 +64,37 @@ export const useApiConnection = () => {
         [fetchApiConnection]
     );
 
+    const getAccessPolicies = useCallback(
+        async (options: GetConnectorAccessPoliciesOptions) => {
+            log({
+                action: 'get-access-policies',
+                actionModifier: 'start',
+                logLevel: 'info',
+            });
+
+            const response = await ConnectorService.getConnectorAccessPolicies(options);
+
+            if (response?.metadata?.success) {
+                log({
+                    action: 'get-access-policies',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                });
+                return (response.data as any).value;
+            } else {
+                const error = getErrorMessage(response?.metadata?.error);
+                log({
+                    action: 'get-access-policies',
+                    actionModifier: 'failed',
+                    logLevel: 'error',
+                    data: { error },
+                });
+            }
+            return undefined;
+        },
+        [log]
+    );
+
     const assignAccessPolicies = useCallback(
         async (options: PutConnectorAccessPoliciesOptions) => {
             log({
@@ -93,7 +125,7 @@ export const useApiConnection = () => {
     );
 
     const createApiConnection = useCallback(
-        async (options: PutConnectorOptions & PutConnectorAccessPoliciesOptions) => {
+        async (options: PutConnectorOptions) => {
             log({
                 action: 'create-api-connection',
                 actionModifier: 'start',
@@ -112,7 +144,6 @@ export const useApiConnection = () => {
                 });
                 setApiConnection(response.data);
                 setApiConnectionCreated(true);
-                await assignAccessPolicies(options);
 
                 return response.data;
             } else {
@@ -128,7 +159,7 @@ export const useApiConnection = () => {
 
             setApiConnectionCreating(false);
         },
-        [assignAccessPolicies, log]
+        [log]
     );
 
     const deleteApiConnection = useCallback(
@@ -170,6 +201,8 @@ export const useApiConnection = () => {
         fetchApiConnection,
         createApiConnection,
         deleteApiConnection,
+        getAccessPolicies,
+        assignAccessPolicies,
         refresh,
     };
 };

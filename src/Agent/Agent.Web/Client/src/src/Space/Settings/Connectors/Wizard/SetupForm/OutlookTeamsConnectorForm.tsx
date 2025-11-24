@@ -70,8 +70,6 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
             connectionName: connectorApiName,
             location: agentLocation || '',
             agentName: agentName || '',
-            tenantId: agentIdentity?.tenantId || '',
-            objectId: agentIdentity?.principalId || '',
         });
         const consentLinkObject = await fetchConsentLink();
         if (consentLinkObject?.link) {
@@ -99,10 +97,6 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 connectionName: connectorApiName,
             });
             await refreshConsentLink();
-
-            if (fetchedConnection) {
-                await OAuthServiceClient.testConnection(fetchedConnection);
-            }
 
             setFieldValue('email', fetchedConnection?.properties?.authenticatedUser?.name || '');
             setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
@@ -149,7 +143,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         });
         await fetchConsentLink();
 
-        setFieldValue('email', fetchedConnection?.properties?.displayName || '');
+        setFieldValue('email', fetchedConnection?.properties?.authenticatedUser?.name || '');
         setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
     }, [agentName, connectorApiName, fetchApiConnection, fetchConsentLink, resourceGroup, setFieldValue, subscription]);
 

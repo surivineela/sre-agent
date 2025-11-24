@@ -1,19 +1,25 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { HttpResponseObject } from '../../../Common/ArmHelper.types';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { TextWithLink } from '../../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
+import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
+import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
+import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { IdentityKeys } from '../../Contracts/Identity';
 import DeleteConfirmationDialog from '../DataKnowledgeSpaceComponents.tsx/DeleteConfirmationDialog';
 import { useAgentConnectors } from '../Hooks/useAgentConnectors';
 import { useSreAgent } from '../Hooks/useSreAgent';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';
-import { ConnectorEditDialog } from './Edit/ConnectorEditDialog';
+import { ConnectorEditDialogFormik } from './Edit/ConnectorEditDialogFormik';
+import { useApiConnection } from './Hooks/useApiConnection';
 import { ConnectorType } from './Wizard/Common/ConnectorType';
 import { ConnectorWizardFormik } from './Wizard/ConnectorWizardFormik';
 
@@ -23,6 +29,8 @@ export const Connectors = () => {
 
     const { resourceId } = useContext(EnvironmentContext);
     const { log, startNotification, stopNotification } = useContext(AzPortalContext);
+
+    const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceId);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -52,6 +60,50 @@ export const Connectors = () => {
         setIsDeleteConfirmOpen(true);
     }, []);
 
+    const { getAccessPolicies, assignAccessPolicies } = useApiConnection();
+
+    const putAssignAccessPolicies = useCallback(
+        async (connector: Connector, isEditMode = false) => {
+            const tenantId = agent?.identity?.tenantId || '';
+            let objectId: string;
+            if (connector.identity === IdentityKeys.system) {
+                objectId = agent?.identity?.principalId || '';
+            } else {
+                const selectedIdentity = Object.entries(agent?.identity?.userAssignedIdentities || {}).find(([key, _]) =>
+                    equals(key, connector.identity)
+                );
+                objectId = selectedIdentity ? selectedIdentity[1].principalId : '';
+            }
+
+            if (isEditMode) {
+                const getAccessPoliciesOptions = {
+                    subscriptionId: subscription,
+                    resourceGroup,
+                    connectionName: connector.dataConnectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams',
+                    agentName: agent?.name || '',
+                };
+                const policies: ArmObj<any>[] = await getAccessPolicies(getAccessPoliciesOptions);
+                const policyName = `${agent?.name}-${connector.dataConnectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams'}-${objectId}`;
+                if (policies?.some(policy => equals(policy.name, policyName, AntUxStringComparison.IgnoreCase))) {
+                    return;
+                }
+            }
+
+            const assignAccessPoliciesOptions = {
+                subscriptionId: subscription,
+                resourceGroup,
+                connectionName: connector.dataConnectorType === ConnectorType.OutlookSendEmail ? 'office365' : 'teams',
+                agentName: agent?.name || '',
+                location: agent?.location || '',
+                tenantId,
+                objectId,
+            };
+
+            return await assignAccessPolicies(assignAccessPoliciesOptions);
+        },
+        [agent, assignAccessPolicies, getAccessPolicies, resourceGroup, subscription]
+    );
+
     const createDataConnection = useCallback(
         async (connector: Connector) => {
             setIsOperationInProgress(true);
@@ -60,13 +112,15 @@ export const Connectors = () => {
                 intl.formatMessage(ConnectorsResources.creatingConnectorDescription, { name: connector.name })
             );
 
-            const response = await putConnector(connector);
-            if (response.metadata.success) {
+            const promises = [putConnector(connector), putAssignAccessPolicies(connector)];
+            const responses = await Promise.all(promises);
+
+            const putConnectorResponse = responses[0] as HttpResponseObject<ArmObj<Connector>>;
+            if (putConnectorResponse.metadata.success) {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorCreated, { name: connector.name }));
             } else {
-                const errorMessage = getErrorMessage(response.metadata.error);
-
+                const errorMessage = getErrorMessage(putConnectorResponse.metadata.error);
                 log({
                     action: 'createDataConnector',
                     actionModifier: 'failed',
@@ -87,7 +141,7 @@ export const Connectors = () => {
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, refresh, stopNotification, log, resourceId]
+        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId]
     );
 
     const updateDataConnection = useCallback(
@@ -98,12 +152,15 @@ export const Connectors = () => {
                 intl.formatMessage(ConnectorsResources.updatingConnectorDescription, { name: connector.name })
             );
 
-            const response = await putConnector(connector);
-            if (response.metadata.success) {
+            const promises: Promise<any>[] = [putConnector(connector), putAssignAccessPolicies(connector, true)];
+            const responses = await Promise.all(promises);
+
+            const updateConnectorResponse = responses[0];
+            if (updateConnectorResponse.metadata.success) {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorUpdated, { name: connector.name }));
             } else {
-                const errorMessage = getErrorMessage(response.metadata.error);
+                const errorMessage = getErrorMessage(updateConnectorResponse.metadata.error);
 
                 log({
                     action: 'updateConnector',
@@ -125,7 +182,7 @@ export const Connectors = () => {
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, refresh, stopNotification, log, resourceId]
+        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId]
     );
 
     const bulkDeleteDataConnectors = useCallback(async () => {
@@ -320,7 +377,7 @@ export const Connectors = () => {
                 existingConnectors={connectors}
             />
             {selectedConnector && (
-                <ConnectorEditDialog
+                <ConnectorEditDialogFormik
                     agentName={agent?.name}
                     agentLocation={agent?.location}
                     agentIdentity={agent?.identity}
