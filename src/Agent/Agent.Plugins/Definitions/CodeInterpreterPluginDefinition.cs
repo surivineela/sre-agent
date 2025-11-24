@@ -21,8 +21,7 @@ public class CodeInterpreterPluginDefinition
 
     [Description(@"Execute a safe Python snippet inside an isolated ACA code interpreter session.
 Safety:
-- Outbound network & process spawning are blocked by static validation (no requests/httpx/urllib/subprocess/os.system/etc)
-- Use ONLY for local data transformation, math, simple charts (if libs preinstalled), text formatting.
+- Process spawning is blocked by static validation (no subprocess/os.system/etc)
 File handling:
 - Files saved to /mnt/data/ are automatically retrieved and returned as markdown links
 - Images (matplotlib, seaborn, PIL outputs) return as ![filename](link) for inline display
@@ -34,10 +33,11 @@ Examples:
 - Create matplotlib visualizations and save as PNG/SVG
 - Generate data analysis reports in multiple formats
 - Process datasets and export to Excel, JSON, or HDF5
-Avoid: web calls, installing packages, spawning processes.")]
+- Fetching web content
+Avoid: installing packages, spawning processes.")]
     [AgentTool(ToolMode.Manual)]
     public Task<string> ExecutePythonSnippetAsync(
-        [Description("Python code to execute (<=20k chars, no network/process operations)")] string pythonCode,
+        [Description("Python code to execute (<=20k chars)")] string pythonCode,
         [Description("Timeout in seconds (default 120, max 900)")] int timeoutSeconds = 120)
         => _plugin.ExecutePythonSnippetAsync(pythonCode, Math.Clamp(timeoutSeconds, 5, 900));
 

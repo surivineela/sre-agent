@@ -146,24 +146,31 @@ public class SkillRegistry(
         sb.AppendLine();
         sb.AppendLine("Available skills:");
 
+        List<ISkill> includedSkills = [.. _extendedSkills.Values];
+
         if (includeSystemSkills)
         {
-            foreach (var skill in _systemSkills.Values.OrderBy(s => s.Name))
-            {
-                sb.AppendLine($"<skill name=\"{skill.Name}\">");
-                sb.AppendLine($"  <description>{skill.Description}</description>");
-                sb.AppendLine($"</skill>");
-            }
+            includedSkills.AddRange(_systemSkills.Values);
         }
 
-        if (_extendedSkills.Count > 0)
+        foreach (var skill in includedSkills.OrderBy(s => s.Name))
         {
-            foreach (var skill in _extendedSkills.Values.OrderBy(s => s.Name))
+            sb.AppendLine($"<skill name=\"{skill.Name}\">");
+            sb.AppendLine($"  <description>{skill.Description}</description>");
+
+            if (skill.Tools.Count > 0)
             {
-                sb.AppendLine($"<skill name=\"{skill.Name}\">");
-                sb.AppendLine($"  <description>{skill.Description}</description>");
-                sb.AppendLine($"</skill>");
+                sb.AppendLine("  <skill_tools>");
+
+                foreach (var toolName in skill.Tools)
+                {
+                    sb.AppendLine($"    <tool>{toolName}</tool>");
+                }
+
+                sb.AppendLine("  </skill_tools>");
             }
+
+            sb.AppendLine($"</skill>");
         }
 
         sb.AppendLine();

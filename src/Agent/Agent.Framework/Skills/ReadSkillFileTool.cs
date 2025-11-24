@@ -27,10 +27,10 @@ public class ReadSkillFileTool<TContext>(
     public override string Description => $"""
     <skills_instructions>
     When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively.
-    Skills help you gain domain-specific expertise and knowledge.
+    Skills help you gain domain-specific expertise and knowledge, and may also add additional tools for specialized operations.
     You MUST load and utilize the relevant skills to inform your actions and decisions. Do not attempt to answer domain-specific questions without first loading the appropriate skill(s).
 
-    Skills contain detailed instructions, examples, and best practices for specific domains such as:
+    Skills contain detailed instructions, examples, best practices, and tools for specific domains such as:
     - Kubernetes cluster management and troubleshooting
     - PostgreSQL performance diagnostics and optimization
     - Azure Container Apps autoscaling and diagnostics
@@ -50,6 +50,19 @@ public class ReadSkillFileTool<TContext>(
        - Start with SKILL.md to get the core expertise
        - Load detailed files that are referenced only as the task requires
 
+    Tools provided by skills:
+    - Skills may provide additional tools for specialized operations. After loading a skill for the first time with read_skill_file(skill_name="skill_name", file_path="SKILL.md"), new tools may be added to your tool set.
+    - If a skill provides tools, the tool names will be listed along with the skill's metadata in the <available_skills> section below.
+    - Use these tools as per the skill instructions to perform domain-specific tasks effectively.
+    - Always refer back to the skill instructions when using these tools to ensure best practices are followed.
+    - <example>
+        User request: "Create pdf file with CPU metrics chart for resource X"
+        Assistant: reasoning: (does not have any tools for generating pdf documents, but sees available skill which mentions pdf file generation, called 'document_generation')
+        Assistant: read_skill_file(skill_name="document_generation", file_path="SKILL.md")
+        Assistant: reasoning: (now has new tools 'ExecutePythonSnippet' and 'GeneratePdfReport' available)
+        Assistant: <uses new tools per skill instructions to generate the pdf with charts>
+      </example>
+
     When to use skills:
     - You need domain-specific expertise (e.g., "How do I diagnose PostgreSQL slow queries?")
     - The task requires specialized knowledge beyond general capabilities
@@ -62,6 +75,18 @@ public class ReadSkillFileTool<TContext>(
     - Do not read metadata.yaml
     - Do not read skill files more than once per task to avoid redundancy
     </skills_instructions>
+
+    <active_skills_guidelines>
+    - You may continue to load skill files as needed throughout the conversation to gain additional expertise.
+    - The first time you read 'SKILL.md' from a skill, that skill is now considered "active" and may provide additional tools.
+    - You can have multiple active skills at the same time, but there is a limit to how many you can maintain concurrently (default is 5).
+    - This limit is maintained by the system, and you will be informed of your currently active skills with a message like:
+        "<system-reminder>These are your currently active skills: [skill1, skill2, skill3].</system-reminder>"
+    - Your oldest active skills will be unloaded automatically when you exceed the limit.
+    - Your active skills may also be reset if the conversation context is cleared or reset. In that case you will see a message like:
+        "<system_notice> Your active skills have been cleared. You must re-evaluate which skills are currently needed (if any), and re-activate them by using the 'read_skill_file' tool.</system_notice>"
+    - If a skill is active, you will have access to any tools it provides. If a skill is not active (not listed in the active skills reminder), you will not have access to its tools even if you have read its SKILL.md before. If you need to use this skill again, you must re-activate it by reading its SKILL.md file again.
+    </active_skills_guidelines>
 
     <example_decision_flows>
     <note>
