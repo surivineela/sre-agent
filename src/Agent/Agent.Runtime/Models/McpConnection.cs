@@ -28,7 +28,7 @@ public class McpConnection
     /// <summary>
     /// Connection status indicating the health of the MCP connection.
     /// </summary>
-    public McpConnectionStatus Status { get; private set; } = McpConnectionStatus.Initializing;
+    public DataConnectorStatus Status { get; private set; } = DataConnectorStatus.Initializing;
 
     /// <summary>
     /// Error message if connection failed.
@@ -110,7 +110,7 @@ public class McpConnection
                     ServerInstructions = Client.ServerInstructions;
                 }
 
-                Status = McpConnectionStatus.Connected;
+                Status = DataConnectorStatus.Connected;
                 _initialized = true;
             }
             catch (HttpRequestException hre)
@@ -118,7 +118,7 @@ public class McpConnection
                 // Network/HTTP errors indicate server unreachable or authentication failure
                 _logger.LogInternalError(hre, "HTTP error connecting to MCP server at {endpoint}", Id);
 
-                Status = McpConnectionStatus.Failed;
+                Status = DataConnectorStatus.Failed;
                 ErrorMessage = hre.StatusCode.HasValue
                     ? $"HTTP {(int)hre.StatusCode.Value} {hre.StatusCode.Value}: {hre.Message}"
                     : $"Network error: {hre.Message}";
@@ -131,7 +131,7 @@ public class McpConnection
                 // Socket errors indicate network/connectivity issues
                 _logger.LogInternalError(se, "Socket error connecting to MCP server at {endpoint}", Id);
 
-                Status = McpConnectionStatus.Failed;
+                Status = DataConnectorStatus.Failed;
                 ErrorMessage = $"Connection failed: {se.Message}";
 
                 Tools = new List<AITool>();
@@ -184,7 +184,7 @@ public class McpConnection
     /// <param name="errorMessage">The error message describing why the connection failed</param>
     public void MarkAsFailed(string errorMessage)
     {
-        Status = McpConnectionStatus.Failed;
+        Status = DataConnectorStatus.Failed;
         ErrorMessage = errorMessage;
         ConsecutivePingFailures++;
     }
@@ -195,35 +195,9 @@ public class McpConnection
     /// </summary>
     public void MarkAsConnected()
     {
-        Status = McpConnectionStatus.Connected;
+        Status = DataConnectorStatus.Connected;
         ErrorMessage = null;
     }
-}
-
-/// <summary>
-/// Status of an MCP connection.
-/// </summary>
-public enum McpConnectionStatus
-{
-    /// <summary>
-    /// Connection is being initialized.
-    /// </summary>
-    Initializing,
-
-    /// <summary>
-    /// Connection is active and healthy.
-    /// </summary>
-    Connected,
-
-    /// <summary>
-    /// Connection failed to initialize or encountered an error.
-    /// </summary>
-    Failed,
-
-    /// <summary>
-    /// Connection was disconnected.
-    /// </summary>
-    Disconnected
 }
 
 /// <summary>

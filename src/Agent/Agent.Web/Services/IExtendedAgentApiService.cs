@@ -4,6 +4,9 @@
 
 using Agent.Data.DataModels;
 using Agent.Web.ApiResources;
+using Agent.Web.Models.ExtendedAgents; // added for ConnectorStatusResponse
+using Agent.Web.Models.ExtendedAgents.Request; // for KustoQueryTestRequest
+using Agent.Web.Models.ExtendedAgents.Response; // for KustoQueryTestResponse
 
 namespace Agent.Web.Services;
 
@@ -26,6 +29,10 @@ public interface IExtendedAgentApiService
     Task<ApiCommandResult<ConnectorDocumentModel>> CreateOrUpdateConnectorAsync(string connectorName, ConnectorDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName, bool dryRun = false);
     Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName);
+
+    // Kusto tool test
+    Task<KustoQueryTestResponse> TestKustoQueryAsync(string toolName, KustoQueryTestRequest request, CancellationToken cancellationToken);
 
     // Plugin operations
     Task<ApiCommandResult<PlugInConfigDocumentModel>> GetPluginConfigAsync(string pluginName);

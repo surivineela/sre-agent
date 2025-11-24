@@ -4,9 +4,16 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
+using Agent.Framework;
+using Agent.Plugins.Connector;
+using Agent.Plugins.Kusto;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Models;
 using Agent.Runtime.Services;
 using Agent.Web.ApiResources;
+using Agent.Web.Models.ExtendedAgents;
+using Agent.Web.Models.ExtendedAgents.Request;
+using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Validation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,20 +26,31 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IExtendedAgentRepository _repository;
     private readonly IExtendedAgentValidator _validator;
     private readonly AgentToSkillService _agentToSkillService;
+    private readonly IAuthenticationService _authService;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly IMcpConnectionEventManager _mcpConnectionManager;
+    private readonly IConnectorResolver _connectorResolver;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
         IExtendedAgentService extendedAgentService,
         IExtendedAgentRepository repository,
         IExtendedAgentValidator validator,
-        AgentToSkillService agentToSkillService
-    )
+        AgentToSkillService agentToSkillService,
+        IAuthenticationService authService,
+        ILoggerFactory loggerFactory,
+        IMcpConnectionEventManager mcpConnectionEventManager,
+        IConnectorResolver connectorResolver)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
         _repository = repository;
         _validator = validator;
         _agentToSkillService = agentToSkillService;
+        _authService = authService;
+        _loggerFactory = loggerFactory;
+        _mcpConnectionManager = mcpConnectionEventManager;
+        _connectorResolver = connectorResolver;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -760,6 +778,220 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         {
             _logger.LogInternalError(ex, "Error occurred while converting agent to skill: {AgentName}", agentName);
             throw;
+        }
+    }
+
+    // Helper: MCP connector status
+    private ConnectorStatusResponse BuildMcpConnectorStatus(string connectorName)
+    {
+        var mcpActive = _mcpConnectionManager.GetActiveConnections()
+            .FirstOrDefault(c => string.Equals(c.Id, connectorName, StringComparison.OrdinalIgnoreCase));
+        if (mcpActive == null)
+        {
+            return new ConnectorStatusResponse(
+                Name: connectorName,
+                Type: "Mcp",
+                Healthy: false,
+                Message: "No active MCP connection found.",
+                Status: DataConnectorStatus.Disconnected.ToString(),
+                ExecutionTimeMs: 0,
+                Details: null);
+        }
+        var healthy = mcpActive.Status == DataConnectorStatus.Connected;
+        var message = healthy ? "MCP connection established." : $"MCP connection status: {mcpActive.Status}. {mcpActive.ErrorMessage}";
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "Mcp",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: 0,
+            Details: new
+            {
+                error = mcpActive.ErrorMessage,
+                tools = mcpActive.Tools?.Count ?? 0,
+                lastHeartbeat = mcpActive.LastHeartbeat
+            });
+    }
+
+    // Helper: Kusto connector status using TestKustoQueryAsync
+    private async Task<ConnectorStatusResponse> BuildKustoConnectorStatusAsync(string connectorName)
+    {
+        string standardQuery = "union * | take 1";
+        var testRequest = new KustoQueryTestRequest
+        {
+            Query = standardQuery,
+            Connector = connectorName,
+            Database = string.Empty, // use default
+            Parameters = new Dictionary<string, string>()
+        };
+        var testResult = await TestKustoQueryAsync("kusto", testRequest, CancellationToken.None);
+
+        var healthy = testResult.Success;
+        var message = healthy
+            ? (testResult.RowCount > 0 ? "Kusto connectivity OK. Sample row retrieved." : "Kusto connectivity OK. No rows returned.")
+            : ($"Kusto connectivity failed: {testResult.ErrorMessage}");
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "Kusto",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: testResult.ExecutionTimeMs,
+            Details: healthy ? new { sampleRow = testResult.RowCount > 0, rowCount = testResult.RowCount, query = standardQuery } : null);
+    }
+
+    public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
+    {
+        try
+        {
+            var all = _connectorResolver.GetAllDataConnectors();
+            var connector = all.FirstOrDefault(c => c.Name.Equals(connectorName, StringComparison.OrdinalIgnoreCase));
+            if (connector == null)
+            {
+                return new ApiCommandResult<ConnectorStatusResponse>(new NotFoundResult());
+            }
+
+            ConnectorStatusResponse response = connector.ConnectorType.ToLowerInvariant() switch
+            {
+                "mcp" => BuildMcpConnectorStatus(connectorName),
+                "kusto" => await BuildKustoConnectorStatusAsync(connectorName),
+                _ => new ConnectorStatusResponse(
+                        Name: connectorName,
+                        Type: connector.ConnectorType,
+                        Healthy: false,
+                        Message: $"Status not available for connector type '{connector.ConnectorType}'.",
+                        Status: DataConnectorStatus.Failed.ToString(),
+                        ExecutionTimeMs: 0,
+                        Details: null)
+            };
+
+            return new ApiCommandResult<ConnectorStatusResponse>(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Unexpected error while retrieving connector status: {ConnectorName}", connectorName);
+            throw;
+        }
+    }
+
+    public async Task<KustoQueryTestResponse> TestKustoQueryAsync(string toolName, KustoQueryTestRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Validate tool name - only Kusto is supported for now
+            if (!toolName.Equals("kusto", StringComparison.OrdinalIgnoreCase))
+            {
+                return new KustoQueryTestResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Tool type '{toolName}' is not supported. Only 'kusto' is currently supported.",
+                    QueryExecuted = request.Query
+                };
+            }
+
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.Query) ||
+                string.IsNullOrWhiteSpace(request.Connector))
+            {
+                return new KustoQueryTestResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Query and Connector are required",
+                    QueryExecuted = request.Query
+                };
+            }
+
+            // Get the connector using resolver
+            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(
+                request.Connector,
+                "kusto",
+                dataSource: string.Empty);
+
+            // Use default database
+            if (string.IsNullOrEmpty(request.Database))
+            {
+                request.Database = connector.Database;
+            }
+
+            // Substitute parameters in the query
+            var processedQuery = request.Query;
+            foreach (var param in request.Parameters)
+            {
+                var placeholder = $"##{param.Key}##";
+                processedQuery = processedQuery.Replace(placeholder, param.Value, StringComparison.OrdinalIgnoreCase);
+            }
+
+            // Enforce limit by appending "| take 50" if not already present
+            var trimmedQuery = processedQuery.Trim();
+            if (!trimmedQuery.Contains("| take", StringComparison.OrdinalIgnoreCase))
+            {
+                processedQuery = $"{processedQuery}\n| take 50";
+            }
+
+            // Create KustoClient and execute the query
+            var kustoLogger = _loggerFactory.CreateLogger<KustoClient>();
+            var kustoClient = new KustoClient(kustoLogger, connector, _authService);
+
+            var startTime = DateTime.UtcNow;
+            var queryResult = await kustoClient.ExecuteClusterKustoQuery(
+                connector.ClusterUrl,
+                request.Database,
+                processedQuery,
+                cancellationToken);
+            var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            // Parse the result string to extract columns and rows
+            var columns = new List<string>();
+            var rows = new List<Dictionary<string, object>>();
+
+            if (!string.IsNullOrWhiteSpace(queryResult.Result))
+            {
+                var lines = queryResult.Result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length > 0)
+                {
+                    // First line contains column names
+                    columns = lines[0].Split('\t').ToList();
+
+                    // Remaining lines are data rows (limit to 50 rows + header ignored)
+                    for (int i = 1; i < Math.Min(lines.Length, 51); i++)
+                    {
+                        var values = lines[i].Split('\t');
+                        var rowDict = new Dictionary<string, object>();
+                        for (int j = 0; j < Math.Min(columns.Count, values.Length); j++)
+                        {
+                            rowDict[columns[j]] = values[j];
+                        }
+                        rows.Add(rowDict);
+                    }
+                }
+            }
+
+            return new KustoQueryTestResponse
+            {
+                Success = queryResult.Success,
+                RowCount = queryResult.RowCount,
+                Columns = columns,
+                Rows = rows,
+                ExecutionTimeMs = executionTime,
+                QueryExecuted = processedQuery,
+                ErrorMessage = queryResult.Success ? null : queryResult.Result
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Kusto test execution failed for tool {ToolName}", toolName);
+            return new KustoQueryTestResponse
+            {
+                Success = false,
+                RowCount = 0,
+                Columns = new List<string>(),
+                Rows = new List<Dictionary<string, object>>(),
+                ExecutionTimeMs = 0,
+                QueryExecuted = request.Query,
+                ErrorMessage = ex.Message
+            };
         }
     }
 }

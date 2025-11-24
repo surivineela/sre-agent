@@ -32,7 +32,7 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
         }
 
         // Check if connection is in a failed state
-        if (connection.Status == McpConnectionStatus.Failed)
+        if (connection.Status == DataConnectorStatus.Failed)
         {
             var errorMessage = connection.ErrorMessage ?? "Connection failed";
             _logger.LogInternalWarning(
@@ -46,7 +46,7 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
         }
 
         // Check if connection is disconnected
-        if (connection.Status == McpConnectionStatus.Disconnected)
+        if (connection.Status == DataConnectorStatus.Disconnected)
         {
             _logger.LogInternalWarning(
                 "Rejecting tool invocation for '{ToolName}' - Connection '{ConnectionId}' is disconnected",

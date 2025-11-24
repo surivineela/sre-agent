@@ -137,7 +137,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
                 connection.UpdateHeartbeat();
                 connection.ResetPingFailures();
                 // If connection was previously failed due to ping issues, mark it as healthy again
-                if (connection.Status == McpConnectionStatus.Failed)
+                if (connection.Status == DataConnectorStatus.Failed)
                 {
                     connection.MarkAsConnected();
                 }

@@ -12,12 +12,11 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
 using Agent.Framework;
 using Agent.Framework.Skills;
-using Agent.Plugins.Connector;
-using Agent.Plugins.Kusto;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Runtime.Services;
+using Agent.Web.ApiResources;
 using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
@@ -43,6 +42,7 @@ public class ExtendedAgentController : ControllerBase
     private readonly IChatClientProvider _chatClientProvider;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly AgentToSkillService _agentToSkillService;
+    private readonly IExtendedAgentApiService _extendedAgentApiService;
 
     public ExtendedAgentController(
         IExtendedAgentService extendedAgentService,
@@ -52,8 +52,8 @@ public class ExtendedAgentController : ControllerBase
         IAuthenticationService authenticationService,
         IChatClientProvider chatClientProvider,
         IToolFactory<AgentContext> toolFactory,
-        AgentToSkillService agentToSkillService
-    )
+        AgentToSkillService agentToSkillService,
+        IExtendedAgentApiService extendedAgentApiService)
     {
         _resourceDeploymentService = agentService;
         _logger = logger;
@@ -63,6 +63,7 @@ public class ExtendedAgentController : ControllerBase
         _chatClientProvider = chatClientProvider;
         _toolFactory = toolFactory;
         _agentToSkillService = agentToSkillService;
+        _extendedAgentApiService = extendedAgentApiService; // fixed duplicate assignment
     }
 
     /// <summary>
@@ -285,7 +286,7 @@ public class ExtendedAgentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "ApplyAgentConfiguration: Unexpected exception encountered");
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(StatusCodes.Status500InternalServerError, ErrorMap.InternalServerError.CreateErrorEntity());
         }
     }
 
@@ -309,8 +310,7 @@ public class ExtendedAgentController : ControllerBase
         try
         {
             var result = await _extendedAgentService.GetAgentsAsync(page, limit, search);
-            var webResponse = PaginatedResponse<YamlAgentDescriptor>.FromPaginatedList(result);
-            return Ok(webResponse);
+            return Ok(PaginatedResponse<YamlAgentDescriptor>.FromPaginatedList(result));
         }
         catch (Exception ex)
         {
@@ -382,6 +382,27 @@ public class ExtendedAgentController : ControllerBase
                 Message = "An internal error occurred while retrieving data connectors"
             });
         }
+    }
+
+    [HttpGet("dataconnectors/{connectorName}/status")]
+    [HttpGet("connectors/{connectorName}/status")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(ConnectorStatusResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetConnectorStatusAsync(string connectorName)
+    {
+        var result = await _extendedAgentApiService.GetConnectorStatusAsync(connectorName);
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(result.Response);
+        }
+        return UnexpectedError();
     }
 
     /// <summary>
@@ -507,131 +528,22 @@ public class ExtendedAgentController : ControllerBase
     {
         try
         {
-            // Validate tool name - only Kusto is supported for now
             if (!toolName.Equals("kusto", StringComparison.OrdinalIgnoreCase))
             {
-                return BadRequest(new ExtendedAgentErrorResponse
-                {
-                    ErrorCode = "UNSUPPORTED_TOOL_TYPE",
-                    Message = $"Tool type '{toolName}' is not supported for testing. Only 'kusto' is currently supported."
-                });
+                return BadRequest(new ExtendedAgentErrorResponse { ErrorCode = "UNSUPPORTED_TOOL_TYPE", Message = $"Tool type '{toolName}' is not supported for testing. Only 'kusto' is currently supported." });
             }
-
-            // Validate request
-            if (string.IsNullOrWhiteSpace(request.Query))
+            if (string.IsNullOrWhiteSpace(request.Query) || string.IsNullOrWhiteSpace(request.Connector))
             {
-                return BadRequest(new ExtendedAgentErrorResponse
-                {
-                    ErrorCode = "INVALID_REQUEST",
-                    Message = "Query is required"
-                });
+                return BadRequest(new ExtendedAgentErrorResponse { ErrorCode = "INVALID_REQUEST", Message = "Query and Connector are required" });
             }
-
-            if (string.IsNullOrWhiteSpace(request.Connector))
-            {
-                return BadRequest(new ExtendedAgentErrorResponse
-                {
-                    ErrorCode = "INVALID_REQUEST",
-                    Message = "Connector is required"
-                });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Database))
-            {
-                return BadRequest(new ExtendedAgentErrorResponse
-                {
-                    ErrorCode = "INVALID_REQUEST",
-                    Message = "Database is required"
-                });
-            }
-
-            // Get the connector
-            var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(
-                request.Connector,
-                "kusto",
-                request.Database);
-
-            // Substitute parameters in the query
-            var processedQuery = request.Query;
-            foreach (var param in request.Parameters)
-            {
-                var placeholder = $"##{param.Key}##";
-                processedQuery = processedQuery.Replace(placeholder, param.Value, StringComparison.OrdinalIgnoreCase);
-            }
-
-            // Enforce limit by appending "| take 50" if not already present
-            var trimmedQuery = processedQuery.Trim();
-            if (!trimmedQuery.Contains("| take", StringComparison.OrdinalIgnoreCase))
-            {
-                processedQuery = $"{processedQuery}\n| take 50";
-            }
-
-            // Create KustoClient and execute the query
-            var kustoLogger = HttpContext.RequestServices.GetRequiredService<ILogger<KustoClient>>();
-            var kustoClient = new KustoClient(kustoLogger, connector, _authenticationService);
-
-            var startTime = DateTime.UtcNow;
-            var queryResult = await kustoClient.ExecuteClusterKustoQuery(
-                connector.ClusterUrl,
-                request.Database,
-                processedQuery,
-                HttpContext.RequestAborted);
-            var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
-
-            // Parse the result string to extract columns and rows
-            var columns = new List<string>();
-            var rows = new List<Dictionary<string, object>>();
-
-            if (!string.IsNullOrWhiteSpace(queryResult.Result))
-            {
-                var lines = queryResult.Result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                if (lines.Length > 0)
-                {
-                    // First line contains column names
-                    columns = lines[0].Split('\t').ToList();
-
-                    // Remaining lines are data rows
-                    for (int i = 1; i < Math.Min(lines.Length, 51); i++) // Take at most 50 rows (+ 1 for header)
-                    {
-                        var values = lines[i].Split('\t');
-                        var rowDict = new Dictionary<string, object>();
-                        for (int j = 0; j < Math.Min(columns.Count, values.Length); j++)
-                        {
-                            rowDict[columns[j]] = values[j];
-                        }
-                        rows.Add(rowDict);
-                    }
-                }
-            }
-
-            var response = new KustoQueryTestResponse
-            {
-                Success = queryResult.Success,
-                RowCount = queryResult.RowCount,
-                Columns = columns,
-                Rows = rows,
-                ExecutionTimeMs = executionTime,
-                QueryExecuted = processedQuery,
-                ErrorMessage = queryResult.Success ? null : queryResult.Result
-            };
-
-            return Ok(response);
+            // Delegate execution to service (logic centralized there)
+            var result = await _extendedAgentApiService.TestKustoQueryAsync(toolName, request, HttpContext.RequestAborted);
+            return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error in TestKustoQuery");
-
-            // Return error as a failed query result
-            return Ok(new KustoQueryTestResponse
-            {
-                Success = false,
-                RowCount = 0,
-                Columns = new List<string>(),
-                Rows = new List<Dictionary<string, object>>(),
-                ExecutionTimeMs = 0,
-                QueryExecuted = request.Query,
-                ErrorMessage = ex.Message
-            });
+            return StatusCode(500, new ExtendedAgentErrorResponse { ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
         }
     }
 
@@ -1776,5 +1688,11 @@ If ANY diff fails validation, REWRITE it before returning the response. Do not s
                 Message = "An internal error occurred while converting the agent to a skill"
             });
         }
+    }
+
+    private IActionResult UnexpectedError()
+    {
+        var error = ErrorMap.InternalServerError.CreateErrorEntity();
+        return StatusCode(StatusCodes.Status500InternalServerError, error);
     }
 }

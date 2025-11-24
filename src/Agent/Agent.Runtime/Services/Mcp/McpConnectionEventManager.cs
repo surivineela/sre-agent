@@ -141,7 +141,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 connection.Tools?.Count ?? 0);
 
             // Check if initialization failed
-            if (connection.Status == McpConnectionStatus.Failed)
+            if (connection.Status == DataConnectorStatus.Failed)
             {
                 var errorMsg = connection.ErrorMessage ?? "Unknown error during initialization";
                 _logger.LogInternalError(
@@ -339,7 +339,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                     connection.UpdateHeartbeat();
                     connection.ResetPingFailures();
                     // If connection was previously failed due to ping issues, mark it as healthy again
-                    if (connection.Status == McpConnectionStatus.Failed)
+                    if (connection.Status == DataConnectorStatus.Failed)
                     {
                         connection.MarkAsConnected();
                     }

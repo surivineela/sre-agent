@@ -4,6 +4,7 @@
 
 using Agent.Web.ApiResources;
 using Agent.Web.Authorization;
+using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Services;
 using Agent.Web.Views.v2;
@@ -21,8 +22,7 @@ public class ExtendedAgentApiController : ControllerBase
 
     public ExtendedAgentApiController(
         ILogger<ExtendedAgentApiController> logger,
-        IExtendedAgentApiService extendedAgentApiService
-    )
+        IExtendedAgentApiService extendedAgentApiService)
     {
         _logger = logger;
         _extendedAgentApiService = extendedAgentApiService;
@@ -528,6 +528,26 @@ public class ExtendedAgentApiController : ControllerBase
             return Ok(ConnectorView.CreateApiResponseEnvelope(result.Response));
         }
 
+        return UnexpectedError();
+    }
+
+    [HttpGet("connectors/{connectorName}/status")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(ConnectorStatusResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetConnectorStatusAsync(string connectorName)
+    {
+        var result = await _extendedAgentApiService.GetConnectorStatusAsync(connectorName);
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(result.Response);
+        }
         return UnexpectedError();
     }
 
@@ -1227,6 +1247,5 @@ public class ExtendedAgentApiController : ControllerBase
     {
         var error = ErrorMap.InternalServerError.CreateErrorEntity();
         return StatusCode(StatusCodes.Status500InternalServerError, error);
-
     }
 }
