@@ -56,6 +56,38 @@ public class GenevaActionsPlugin : IGenevaActionsPlugin
 
     public Guid? ThreadId { get; set; }
 
+    private bool IsICMClientAvailable()
+    {
+        return _icmAPIClient is not NullableICMAPIClient;
+    }
+
+    /// <summary>
+    /// Posts a discussion entry to ICM with proper error handling and availability checks.
+    /// </summary>
+    /// <param name="incidentId">The incident ID to post to</param>
+    /// <param name="message">The message to post</param>
+    /// <param name="htmlRendering">Whether to render HTML (default: true)</param>
+    /// <returns>True if posting succeeded or was skipped, false if an error occurred</returns>
+    private async Task<bool> TryPostDiscussionEntryAsync(string incidentId, string message, bool htmlRendering = true)
+    {
+        if (!IsICMClientAvailable())
+        {
+            _logger.LogInternalWarning($"[GenevaActionsPlugin] ICM client is not available. Skipping posting discussion entry for incident {incidentId}");
+            return true; // Return true because skipping is not an error
+        }
+
+        try
+        {
+            await _icmAPIClient.PostDiscussionEntryAsync(incidentId, message, htmlRendering);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"[GenevaActionsPlugin] Failed to post discussion entry to ICM for incident {incidentId}");
+            return false;
+        }
+    }
+
     public GenevaActionsPlugin(
         IHostEnvironment hostEnvironment,
         KustoClient kustoPlugin,
@@ -315,7 +347,7 @@ No approval request found for document ID: {documentId}. Please ensure the docum
         var response = await ExecuteGenevaActionWorkflow(extensionName, actionName, parsedInputParameters);
 
         // Log Geneva Action execution result to ICM
-        await _icmAPIClient.PostDiscussionEntryAsync(incidentId, $"Geneva Action '{actionName}' executed with status code: {response.StatusCode}, response: {response.Content}");
+        await TryPostDiscussionEntryAsync(incidentId, $"Geneva Action '{actionName}' executed with status code: {response.StatusCode}, response: {response.Content}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -357,10 +389,26 @@ No approval request found for document ID: {documentId}. Please ensure the docum
             return "Success. ICM Workflow Client is in ReadOnly mode.";
         }
 
-        var incident = await _icmAPIClient.GetIncidentAsync(incidentId);
-        if (incident == null)
+        // Check if ICM client is available before calling GetIncidentAsync
+        if (IsICMClientAvailable())
         {
-            return $"Incident with ID {incidentId} not found.";
+            try
+            {
+                var incident = await _icmAPIClient.GetIncidentAsync(incidentId);
+                if (incident == null)
+                {
+                    return $"Incident with ID {incidentId} not found.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"[GenevaActionsPlugin] Failed to get incident {incidentId} from ICM");
+                return $"Failed to retrieve incident {incidentId} from ICM: {ex.Message}";
+            }
+        }
+        else
+        {
+            _logger.LogInternalWarning($"[GenevaActionsPlugin] ICM client is not available. Skipping incident validation for incident {incidentId}");
         }
 
         if (_oneBranchApprovalService.IsEnabled && genevaAction.IsApprovalNeeded)
@@ -627,7 +675,7 @@ In order to potentially resolve the incident, the following Geneva Action '{acti
     {
         if (ShouldLogToICM(genevaAction, LogLevel.Information) || overrideLogLevel)
         {
-            await _icmAPIClient.PostDiscussionEntryAsync(incidentId, message);
+            await TryPostDiscussionEntryAsync(incidentId, message);
         }
     }
 }
