@@ -22,17 +22,30 @@ RUN apt-get update && \
 RUN apt-get install -y curl python3 python3-pip python3-venv && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
-    pip3 install --break-system-packages uv && \
-    apt-get clean && \
+    pip3 install --break-system-packages uv
+
+WORKDIR /app
+COPY . .
+
+# Temporarily install azure devops mcp server from source code instead of npm registry due to federation auth
+RUN apt-get install -y git && \
+    git clone https://github.com/howang-ms/azure-devops-mcp.git /azure-devops-mcp && \
+    cd /azure-devops-mcp && \
+    npm install && \
+    npm run build && \
+    mkdir -p /app/mcp-tools && \
+    cp -r /azure-devops-mcp /app/mcp-tools/ && \
+    cd / && \
+    rm -rf /azure-devops-mcp
+
+# Clean up apt cache
+RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN az extension add --allow-preview -y --system --name containerapp && \
     az extension add --allow-preview -y --system --name log-analytics && \
     az extension add --allow-preview -y --system --name kusto && \
     az extension add --allow-preview -y --system --name vm-repair
-
-WORKDIR /app
-COPY . .
 
 # Run the application
 ENTRYPOINT ["dotnet", "Session.Proxy.dll"]

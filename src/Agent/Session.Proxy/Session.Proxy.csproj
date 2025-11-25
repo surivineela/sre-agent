@@ -10,10 +10,18 @@
   <ItemGroup>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Azure.Identity" />
-  </ItemGroup>
+    <PackageReference Include="Ev2.McpServer" GeneratePathProperty="true" ExcludeAssets="all" />
+</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyEv2McpServer" AfterTargets="Build">
+    <ItemGroup>
+      <Ev2McpServerFiles Include="$(PkgEv2_McpServer)\tools\$(TargetFramework)\any\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Ev2McpServerFiles)" DestinationFiles="@(Ev2McpServerFiles->'$(OutputPath)mcp-tools\ev2-mcp-server\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 
 </Project>
