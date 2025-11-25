@@ -120,6 +120,23 @@ export enum NodeRelations {
     UsesTriggerAction = 'USES_TRIGGER_ACTION',
 }
 
+export interface ResourceSearchResult {
+    resource_id: string;
+    name: string;
+    type: string;
+    kind?: string;
+    subscription_id?: string;
+    resource_group?: string;
+    location?: string;
+    properties?: any;
+}
+
+export interface ResourceSearchPagniation<T> {
+    data: T[];
+    has_next_page: boolean;
+    page_index: number;
+}
+
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';
 
 export const GRAPH_CARD_TYPE = 'GraphCard';

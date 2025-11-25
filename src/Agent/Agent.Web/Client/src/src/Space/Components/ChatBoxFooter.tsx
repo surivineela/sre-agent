@@ -41,6 +41,7 @@ import {
     Popover,
     PopoverSurface,
     PositioningImperativeRef,
+    PositioningProps,
     Spinner,
     Table,
     TableBody,
@@ -67,6 +68,7 @@ import { SearchBoxWithDebounce } from '../../Common/Components/SearchBox/SearchB
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { getResourceTypeFriendlyName } from '../../Common/Helpers/Resources';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -81,7 +83,9 @@ import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps, Shortcut } from '../Contracts/Activities';
 import { AgentContext, StreamingContext } from '../Contracts/Context';
 import { ExtendedAgent } from '../Contracts/ExtendedAgentGraph';
+import { ResourceSearchResult } from '../Contracts/Graph';
 import { usePermissionContext } from '../Contracts/PermissionContext';
+import { useResourceSearching } from '../Hooks/useResourceSearching';
 import { useThreadList } from '../Hooks/useThreadList';
 import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
@@ -192,6 +196,20 @@ const useDownButtonStyles = makeStyles({
     },
 });
 
+const useShortcutStyles = makeStyles({
+    incidentOrResourcePopoverSurface: {
+        minHeight: '300px',
+        maxHeight: '500px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+    },
+    incidentOrResourceContainer: {
+        minWidth: '510px',
+        maxWidth: '950px',
+    },
+});
+
 const useNoSearchResultWarningStyles = makeStyles({
     root: {
         display: 'flex',
@@ -248,7 +266,8 @@ const ChatBoxFooter = ({
     const [selectedShortcut, setSelectedShortcut] = useState<Shortcut | null>(null);
     const [focusedShortcut, setFocusedShortcut] = useState<Shortcut | null>(null);
     const [focusedIncident, setFocusedIncident] = useState<Thread | null>(null);
-    const [focusedExtendedAgent, setFocusedExtendedAgent] = useState<string | null>(null);
+    const [focusedResource, setFocusedResource] = useState<ResourceSearchResult | null>(null);
+    const [focusedExtendedAgent, setFocusedExtendedAgent] = useState<ExtendedAgent | null>(null);
     const [searchText, setSearchText] = useState<string>('');
     const [matchedShortcutString, setMatchedShortcutString] = useState<string | null>(null);
     const [selectedAgentName, setSelectedAgentName] = useState<string | null>(forcedAgentName ?? null);
@@ -269,17 +288,20 @@ const ChatBoxFooter = ({
     const chatInputRef = useRef<HTMLDivElement | null>(null);
     const shortcutMenuPositionRef = useRef<PositioningImperativeRef>(null);
     const extendedAgentMenuPositionRef = useRef<PositioningImperativeRef>(null);
-    const incidentPopoverPositionRef = useRef<PositioningImperativeRef>(null);
+    const incidentOrResourcePopoverPositionRef = useRef<PositioningImperativeRef>(null);
     const focusedShortcutRef = useRef<Shortcut | null>(null);
-    const focusedExtendedAgentRef = useRef<string | null>(null);
+    const focusedExtendedAgentRef = useRef<ExtendedAgent | null>(null);
     const focusedIncidentRef = useRef<Thread | null>(null);
+    const focusedResourceRef = useRef<ResourceSearchResult | null>(null);
 
     focusedShortcutRef.current = focusedShortcut;
     focusedExtendedAgentRef.current = focusedExtendedAgent;
     focusedIncidentRef.current = focusedIncident;
+    focusedResourceRef.current = focusedResource;
 
     const restoreFocusTargetAttribute = useRestoreFocusTarget();
     const { scrollable } = useScrollableComponentStyles();
+    const shortcutStyles = useShortcutStyles();
 
     const disableInputInteraction = useMemo(
         () => isLoading || !isConnected || isCancellingStreaming || !canWriteThreads,
@@ -331,6 +353,7 @@ const ChatBoxFooter = ({
     const closeShortcutResourcePopover = () => {
         setSelectedShortcut(null);
         setFocusedIncident(null);
+        setFocusedResource(null);
         setFocusedExtendedAgent(null);
         setSearchText('');
     };
@@ -346,7 +369,7 @@ const ChatBoxFooter = ({
         }
     };
 
-    const removeDecorateNode = (nodeType: Klass<DecoratorNode<JSX.Element | null>>) => {
+    const removeDecorateNode = useCallback((nodeType: Klass<DecoratorNode<JSX.Element | null>>) => {
         const nodes = $nodesOfType(nodeType);
         if (nodes) {
             nodes.forEach(node => {
@@ -355,50 +378,68 @@ const ChatBoxFooter = ({
                 }
             });
         }
-    };
+    }, []);
 
-    const removeShortcutNode = () => {
+    const removeShortcutNode = useCallback(() => {
         removeDecorateNode(ShortcutNode);
-    };
+    }, [removeDecorateNode]);
 
-    const removeGhostTextNode = () => {
+    const removeGhostTextNode = useCallback(() => {
         removeDecorateNode(GhostTextNode);
-    };
+    }, [removeDecorateNode]);
 
-    const onSelectIncident = useCallback((incident: Thread) => {
-        setFocusedIncident(null);
-        setSelectedShortcut(null);
+    const replaceShortcutWithSelectedValue = useCallback(
+        (selectedValue: string) => {
+            setSelectedShortcut(null);
 
-        editorRef.current?.update(() => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-                const { anchor } = selection;
-                const offset = anchor.offset ?? -1;
+            editorRef.current?.update(() => {
+                const selection = $getSelection();
+                if ($isRangeSelection(selection)) {
+                    const { anchor } = selection;
+                    const offset = anchor.offset ?? -1;
 
-                if ($isElementNode(anchor.getNode())) {
-                    const shortcutNode = anchor.getNode()?.getChildAtIndex(anchor.offset - 1);
+                    if ($isElementNode(anchor.getNode())) {
+                        const shortcutNode = anchor.getNode()?.getChildAtIndex(anchor.offset - 1);
 
-                    if ($isShortcutNode(shortcutNode)) {
-                        removeShortcutNode();
+                        if ($isShortcutNode(shortcutNode)) {
+                            removeShortcutNode();
 
-                        const incidentNameNode = $createTextNode(incident.title);
-                        selection.insertNodes([incidentNameNode]);
-                    }
-                } else if ($isTextNode(anchor.getNode()) && offset !== -1) {
-                    const shortcutNode = anchor.getNode()?.getPreviousSibling();
-                    if ($isShortcutNode(shortcutNode)) {
-                        removeShortcutNode();
+                            const nameNode = $createTextNode(selectedValue);
+                            selection.insertNodes([nameNode]);
+                        }
+                    } else if ($isTextNode(anchor.getNode()) && offset !== -1) {
+                        const shortcutNode = anchor.getNode()?.getPreviousSibling();
+                        if ($isShortcutNode(shortcutNode)) {
+                            removeShortcutNode();
 
-                        const node = anchor.getNode();
-                        const rangeSelection = selection.clone();
-                        rangeSelection.setTextNodeRange(node, 0, node, offset);
-                        $setSelection(rangeSelection);
-                        rangeSelection.insertNodes([$createTextNode(incident.title)]);
+                            const node = anchor.getNode();
+                            const rangeSelection = selection.clone();
+                            rangeSelection.setTextNodeRange(node, 0, node, offset);
+                            $setSelection(rangeSelection);
+                            rangeSelection.insertNodes([$createTextNode(selectedValue)]);
+                        }
                     }
                 }
-            }
-        });
-    }, []);
+            });
+        },
+        [removeShortcutNode]
+    );
+
+    const onSelectIncident = useCallback(
+        (incident: Thread) => {
+            setFocusedIncident(null);
+            replaceShortcutWithSelectedValue(incident.title);
+        },
+        [replaceShortcutWithSelectedValue]
+    );
+
+    const onSelectResource = useCallback(
+        (resource: ResourceSearchResult) => {
+            setFocusedResource(null);
+            replaceShortcutWithSelectedValue(resource.resource_id);
+        },
+        [replaceShortcutWithSelectedValue]
+    );
 
     const onSelectExtendedAgent = useCallback(
         (agentName: string) => {
@@ -436,15 +477,23 @@ const ChatBoxFooter = ({
 
     const includedSourcesForQueryingIncidents = useMemo(() => [ThreadSource.incident], []);
 
-    const { threads, moreThreadsToLoad, isLoadingInitialThreads, threadListDivRef, intersectionObserverRef, onScroll } = useThreadList(
-        undefined,
-        [],
-        includedSourcesForQueryingIncidents,
-        undefined,
-        undefined,
-        searchText.trim(),
-        'modifiedTimestamp'
-    );
+    const {
+        threads,
+        moreThreadsToLoad,
+        isLoadingInitialThreads,
+        threadListDivRef,
+        intersectionObserverRef: threadsListIntersectionObserverRef,
+        onScroll: onScrollThreadsList,
+    } = useThreadList(undefined, [], includedSourcesForQueryingIncidents, undefined, undefined, searchText.trim(), 'modifiedTimestamp');
+
+    const {
+        resourcesSearchResult,
+        moreResourcesSearchResultToLoad,
+        isLoadingInitialResults,
+        resourcesSearchResultDivRef,
+        intersectionObserverRef: resourceSearchResultPopoverIntersectionObserverRef,
+        onScroll: onScrollResourceSearchResultDiv,
+    } = useResourceSearching(searchText.trim());
 
     const chatInputHandleSendClick = useCallback(
         (input?: string) => {
@@ -487,6 +536,7 @@ const ChatBoxFooter = ({
                     return;
                 case Shortcut.Agent:
                 case Shortcut.Incident:
+                case Shortcut.Resource:
                     if (shortcut === Shortcut.Agent && lockAgentSelection) {
                         return;
                     }
@@ -532,49 +582,42 @@ const ChatBoxFooter = ({
 
     const onKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLSpanElement>) => {
+            const focus = <T,>(items: T[], prev: T | null, compare: (item: T, prev: T | null) => boolean, arrowUp: boolean) => {
+                if (items.length === 0) {
+                    return null;
+                }
+
+                const currentIndex = items.findIndex(t => compare(t, prev));
+                if (currentIndex === -1) {
+                    return arrowUp ? items[items.length - 1] : items[0];
+                } else {
+                    const newIndex = (currentIndex + (arrowUp ? -1 : 1) + items.length) % items.length;
+                    return items[newIndex];
+                }
+            };
             const focusShortcut = (arrowUp: boolean) => {
-                setFocusedShortcut(prev => {
-                    const currentIndex = matchedShortcuts.findIndex(s => s === prev);
-                    if (currentIndex === -1) {
-                        return arrowUp ? matchedShortcuts[matchedShortcuts.length - 1] : matchedShortcuts[0];
-                    } else {
-                        const newIndex = (currentIndex + (arrowUp ? -1 : 1) + matchedShortcuts.length) % matchedShortcuts.length;
-                        return matchedShortcuts[newIndex];
-                    }
-                });
+                setFocusedShortcut(prev => focus<Shortcut>(matchedShortcuts, prev, (item, prev) => item === prev, arrowUp));
             };
 
             const focusIncident = (arrowUp: boolean) => {
-                setFocusedIncident(prev => {
-                    if (threads.length === 0) {
-                        return null;
-                    }
+                setFocusedIncident(prev => focus<Thread>(threads, prev, (item, prev) => item.id === prev?.id, arrowUp));
+            };
 
-                    const currentIndex = threads.findIndex(t => t.id === prev?.id);
-                    if (currentIndex === -1) {
-                        return arrowUp ? threads[threads.length - 1] : threads[0];
-                    } else {
-                        const newIndex = (currentIndex + (arrowUp ? -1 : 1) + threads.length) % threads.length;
-                        return threads[newIndex];
-                    }
-                });
+            const focusResource = (arrowUp: boolean) => {
+                setFocusedResource(prev =>
+                    focus<ResourceSearchResult>(
+                        resourcesSearchResult,
+                        prev,
+                        (item, prev) => item.resource_id === prev?.resource_id,
+                        arrowUp
+                    )
+                );
             };
 
             const focusExtendedAgent = (arrowUp: boolean) => {
-                setFocusedExtendedAgent(prev => {
-                    if (filteredExtendedAgents.length === 0) {
-                        return null;
-                    }
-
-                    const currentIndex = filteredExtendedAgents.findIndex(a => a.name === prev);
-                    if (currentIndex === -1) {
-                        return arrowUp ? filteredExtendedAgents[filteredExtendedAgents.length - 1].name : filteredExtendedAgents[0].name;
-                    } else {
-                        const newIndex =
-                            (currentIndex + (arrowUp ? -1 : 1) + filteredExtendedAgents.length) % filteredExtendedAgents.length;
-                        return filteredExtendedAgents[newIndex].name;
-                    }
-                });
+                setFocusedExtendedAgent(prev =>
+                    focus<ExtendedAgent>(filteredExtendedAgents, prev, (item, prev) => item.name === prev?.name, arrowUp)
+                );
             };
 
             if (event.key.toLowerCase() === 'g') {
@@ -586,8 +629,12 @@ const ChatBoxFooter = ({
                         onSelectIncident(focusedIncidentRef.current);
                     }
 
+                    if (selectedShortcut === Shortcut.Resource && focusedResourceRef.current) {
+                        onSelectResource(focusedResourceRef.current);
+                    }
+
                     if (selectedShortcut === Shortcut.Agent && focusedExtendedAgentRef.current) {
-                        onSelectExtendedAgent(focusedExtendedAgentRef.current);
+                        onSelectExtendedAgent(focusedExtendedAgentRef.current.name);
                     }
                 } else if (showShortcutLists && focusedShortcutRef.current) {
                     onSelectShortcut(focusedShortcutRef.current);
@@ -600,6 +647,8 @@ const ChatBoxFooter = ({
             } else if (event.key === 'ArrowUp' && (messagePromptsUsed.length > 0 || showShortcutLists || selectedShortcut)) {
                 if (selectedShortcut === Shortcut.Incident) {
                     focusIncident(true);
+                } else if (selectedShortcut === Shortcut.Resource) {
+                    focusResource(true);
                 } else if (selectedShortcut === Shortcut.Agent) {
                     focusExtendedAgent(true);
                 } else if (showShortcutLists) {
@@ -621,6 +670,8 @@ const ChatBoxFooter = ({
             } else if (event.key === 'ArrowDown' && (historyIndex >= 0 || showShortcutLists || selectedShortcut)) {
                 if (selectedShortcut === Shortcut.Incident) {
                     focusIncident(false);
+                } else if (selectedShortcut === Shortcut.Resource) {
+                    focusResource(false);
                 } else if (selectedShortcut === Shortcut.Agent) {
                     focusExtendedAgent(false);
                 } else if (showShortcutLists) {
@@ -652,18 +703,30 @@ const ChatBoxFooter = ({
             selectedShortcut,
             threads,
             onSelectIncident,
+            resourcesSearchResult,
+            onSelectResource,
             filteredExtendedAgents,
             onSelectExtendedAgent,
         ]
     );
-    const columns = useMemo(() => {
+
+    const incidentColumns = useMemo(() => {
         return [
-            { columnKey: 'id', label: intl.formatMessage(IncidentManagementResources.alertId) },
-            { columnKey: 'title', label: intl.formatMessage(IncidentManagementResources.alertTitle) },
+            { columnKey: 'id', label: intl.formatMessage(IncidentManagementResources.incidentId) },
+            { columnKey: 'title', label: intl.formatMessage(IncidentManagementResources.incidentTitle) },
         ];
     }, [intl]);
 
-    const getShortcutSubtext = (shortcut: Shortcut) => {
+    const resourceColumns = useMemo(() => {
+        return [
+            { columnKey: 'name', label: intl.formatMessage(SreAgentResources.name) },
+            { columnKey: 'type', label: intl.formatMessage(SreAgentResources.resourceType) },
+            { columnKey: 'resource_group', label: intl.formatMessage(SreAgentResources.resourceGroup) },
+            { columnKey: 'subscription_id', label: intl.formatMessage(SreAgentResources.subscriptionId) },
+        ];
+    }, [intl]);
+
+    const getShortcutDescription = (shortcut: Shortcut) => {
         switch (shortcut) {
             case Shortcut.Agent:
                 return intl.formatMessage(ActivitiesResources.extendedAgentShortcutDescription);
@@ -671,8 +734,25 @@ const ChatBoxFooter = ({
                 return intl.formatMessage(ActivitiesResources.clearShortcutDescription);
             case Shortcut.Compact:
                 return intl.formatMessage(ActivitiesResources.compactShortcutDescription);
-            default:
+            case Shortcut.Incident:
                 return intl.formatMessage(ActivitiesResources.incidentsShortcutDescription);
+            case Shortcut.Resource:
+                return intl.formatMessage(ActivitiesResources.resourceShortcutDescription);
+            default:
+                return '';
+        }
+    };
+
+    const getShortcutPlaceholderText = (shortcut: Shortcut) => {
+        switch (shortcut) {
+            case Shortcut.Agent:
+                return intl.formatMessage(ActivitiesResources.extendedAgentShortcutPlaceholder);
+            case Shortcut.Incident:
+                return intl.formatMessage(ActivitiesResources.incidentsShortcutPlaceholer);
+            case Shortcut.Resource:
+                return intl.formatMessage(ActivitiesResources.resourceShortcutPlaceholder);
+            default:
+                return '';
         }
     };
 
@@ -696,9 +776,9 @@ const ChatBoxFooter = ({
         if (chatInputRef.current) {
             shortcutMenuPositionRef.current?.setTarget(chatInputRef.current);
             extendedAgentMenuPositionRef.current?.setTarget(chatInputRef.current);
-            incidentPopoverPositionRef.current?.setTarget(chatInputRef.current);
+            incidentOrResourcePopoverPositionRef.current?.setTarget(chatInputRef.current);
         }
-    }, [chatInputRef, shortcutMenuPositionRef, extendedAgentMenuPositionRef, incidentPopoverPositionRef]);
+    }, [chatInputRef, shortcutMenuPositionRef, extendedAgentMenuPositionRef, incidentOrResourcePopoverPositionRef]);
 
     useEffect(() => {
         const unregister = editorRef.current?.registerCommand(
@@ -732,7 +812,7 @@ const ChatBoxFooter = ({
                                 // Reset the focus on the empty space
                                 const emptySpaceTextNode = $createTextNode('');
                                 const shortcut = $getShortcutValuefromShortcutNode(shortcutNode);
-                                const shortcutPlaceholder = shortcut ? getShortcutSubtext(shortcut) : '';
+                                const shortcutPlaceholder = shortcut ? getShortcutPlaceholderText(shortcut) : '';
                                 if (shortcutPlaceholder) {
                                     const ghostTextNode = $createGhostTextNode(Guid.newGuid(), ` ${shortcutPlaceholder}`);
                                     selection.insertNodes([emptySpaceTextNode, ghostTextNode]);
@@ -773,7 +853,7 @@ const ChatBoxFooter = ({
 
                         if (isShortcutNode && !textBeforeAnchorHasLeadingEmptySpace) {
                             // We take the string starting after the shortcut node to the first white space as the search string for searching
-                            // incidents or external agents
+                            // incidents, resources or external agents
                             openShortcutResourcePopover($getShortcutValuefromShortcutNode(shortcutNode));
                             const endingSpaceIndex = text.indexOf(' ', offset);
                             const searchString = text.substring(0, endingSpaceIndex === -1 ? text.length : endingSpaceIndex);
@@ -831,6 +911,8 @@ const ChatBoxFooter = ({
         };
     }, []);
 
+    const popoverPositioningShorthand = useMemo<PositioningProps>(() => ({ position: 'above', align: 'start', offset: 8 }), []);
+
     return (
         <div className={root}>
             <KnowledgeGraphBuildStatus />
@@ -839,7 +921,7 @@ const ChatBoxFooter = ({
                 <Popover
                     unstable_disableAutoFocus={true}
                     open={showShortcutLists}
-                    positioning={{ positioningRef: shortcutMenuPositionRef, position: 'above', align: 'start', offset: 8 }}
+                    positioning={{ positioningRef: shortcutMenuPositionRef, ...popoverPositioningShorthand }}
                 >
                     <PopoverSurface style={{ padding: '5px' }}>
                         <MenuList>
@@ -852,7 +934,7 @@ const ChatBoxFooter = ({
                                             onSelectShortcut(shortcut);
                                         }}
                                         aria-selected={shortcut === focusedShortcutRef.current}
-                                        subText={getShortcutSubtext(shortcut)}
+                                        subText={getShortcutDescription(shortcut)}
                                         style={
                                             shortcut === focusedShortcutRef.current
                                                 ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
@@ -869,7 +951,7 @@ const ChatBoxFooter = ({
                 <Popover
                     unstable_disableAutoFocus={true}
                     open={selectedShortcut === Shortcut.Agent}
-                    positioning={{ positioningRef: extendedAgentMenuPositionRef, position: 'above', align: 'start', offset: 8 }}
+                    positioning={{ positioningRef: extendedAgentMenuPositionRef, ...popoverPositioningShorthand }}
                 >
                     <PopoverSurface style={{ padding: '5px' }}>
                         {filteredExtendedAgents.length > 0 ? (
@@ -880,64 +962,83 @@ const ChatBoxFooter = ({
                                             key={agent.name}
                                             agent={agent}
                                             onSelectExtendedAgent={onSelectExtendedAgent}
-                                            isFocused={agent.name === focusedExtendedAgent}
+                                            isFocused={agent.name === focusedExtendedAgent?.name}
                                         />
                                     );
                                 })}
                             </MenuList>
                         ) : (
-                            <NoSearchResultWarning searchText={searchText} isIncident={false} />
+                            <NoSearchResultWarning searchText={searchText} isExtendedAgent={true} />
                         )}
                     </PopoverSurface>
                 </Popover>
                 <Popover
                     inline={true}
                     unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.Incident}
-                    positioning={{ positioningRef: incidentPopoverPositionRef, position: 'above', align: 'start', offset: 8 }}
+                    open={selectedShortcut === Shortcut.Incident || selectedShortcut === Shortcut.Resource}
+                    positioning={{ positioningRef: incidentOrResourcePopoverPositionRef, ...popoverPositioningShorthand }}
                 >
-                    <PopoverSurface
-                        style={{
-                            minHeight: '300px',
-                            maxHeight: '500px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: tokens.spacingVerticalL,
-                        }}
-                    >
-                        <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScroll}>
-                            <Table style={{ minWidth: '510px', maxWidth: '950px' }}>
-                                <TableHeader>
-                                    <TableRow>
-                                        {columns.map(column => (
-                                            <TableHeaderCell key={column.columnKey}>
-                                                <Text weight={'semibold'}>{column.label}</Text>
-                                            </TableHeaderCell>
+                    <PopoverSurface className={shortcutStyles.incidentOrResourcePopoverSurface}>
+                        {selectedShortcut === Shortcut.Incident ? (
+                            <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScrollThreadsList}>
+                                <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                    <IncidentOrResourceTableHeader columns={incidentColumns} />
+                                    <TableBody>
+                                        {threads.map(thread => (
+                                            <IncidentOrResourceRow
+                                                key={thread.id}
+                                                id={thread.id}
+                                                cells={[thread.id, thread.title]}
+                                                onClick={() => onSelectIncident(thread)}
+                                                isFocused={focusedIncident?.id === thread.id}
+                                            />
                                         ))}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {threads.map(thread => (
-                                        <ThreadRow
-                                            key={thread.id}
-                                            thread={thread}
-                                            onSelectIncident={onSelectIncident}
-                                            isFocused={focusedIncident?.id === thread.id}
-                                        />
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            {moreThreadsToLoad && (
-                                <div ref={intersectionObserverRef}>
-                                    <GroundingMenuItemSkeleton />
-                                    <GroundingMenuItemSkeleton />
-                                    <GroundingMenuItemSkeleton />
-                                </div>
-                            )}
-                            {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
-                                <NoSearchResultWarning searchText={searchText} isIncident={true} />
-                            )}
-                        </div>
+                                    </TableBody>
+                                </Table>
+                                {moreThreadsToLoad && (
+                                    <div ref={threadsListIntersectionObserverRef}>
+                                        <IncidentOrResourcePopoverLoader />
+                                    </div>
+                                )}
+                                {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
+                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                )}
+                            </div>
+                        ) : (
+                            <div
+                                className={mergeClasses(scrollable)}
+                                ref={resourcesSearchResultDivRef}
+                                onScroll={onScrollResourceSearchResultDiv}
+                            >
+                                <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                    <IncidentOrResourceTableHeader columns={resourceColumns} />
+                                    <TableBody>
+                                        {resourcesSearchResult.map(resource => (
+                                            <IncidentOrResourceRow
+                                                key={resource.resource_id}
+                                                id={resource.resource_id}
+                                                cells={[
+                                                    resource.name || '-',
+                                                    getResourceTypeFriendlyName(resource.type) || '-',
+                                                    resource.resource_group || '-',
+                                                    resource.subscription_id || '-',
+                                                ]}
+                                                onClick={() => onSelectResource(resource)}
+                                                isFocused={focusedResource?.resource_id === resource.resource_id}
+                                            />
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                                {moreResourcesSearchResultToLoad && (
+                                    <div ref={resourceSearchResultPopoverIntersectionObserverRef}>
+                                        <IncidentOrResourcePopoverLoader />
+                                    </div>
+                                )}
+                                {!isLoadingInitialResults && !moreResourcesSearchResultToLoad && resourcesSearchResult.length === 0 && (
+                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                )}
+                            </div>
+                        )}
                     </PopoverSurface>
                 </Popover>
                 <ChatInput
@@ -994,11 +1095,11 @@ const ChatBoxFooter = ({
     );
 };
 
-const NoSearchResultWarning = memo((props: { searchText?: string | null; isIncident: boolean }) => {
+const NoSearchResultWarning = memo((props: { searchText?: string | null; isExtendedAgent: boolean }) => {
     const { root, extendedAgent, incident } = useNoSearchResultWarningStyles();
 
     return (
-        <div className={mergeClasses(root, props.isIncident ? incident : extendedAgent)}>
+        <div className={mergeClasses(root, props.isExtendedAgent ? extendedAgent : incident)}>
             <ChatWarningRegular fontSize={'50px'} />
             <Text weight={'semibold'}>
                 {props.searchText ? (
@@ -1047,7 +1148,21 @@ const ExtendedAgentMenuItem = memo(
     }
 );
 
-const ThreadRow = memo((props: { thread: Thread; onSelectIncident: (incident: Thread) => void; isFocused: boolean }) => {
+const IncidentOrResourceTableHeader = memo(({ columns }: { columns: { columnKey: string; label: string }[] }) => {
+    return (
+        <TableHeader>
+            <TableRow>
+                {columns.map(column => (
+                    <TableHeaderCell key={column.columnKey}>
+                        <Text weight={'semibold'}>{column.label}</Text>
+                    </TableHeaderCell>
+                ))}
+            </TableRow>
+        </TableHeader>
+    );
+});
+
+const IncidentOrResourceRow = memo((props: { id: string; cells: string[]; onClick: () => void; isFocused: boolean }) => {
     const rowRef = useRef<HTMLTableRowElement>(null);
 
     useEffect(() => {
@@ -1059,16 +1174,32 @@ const ThreadRow = memo((props: { thread: Thread; onSelectIncident: (incident: Th
     return (
         <TableRow
             ref={rowRef}
-            key={props.thread.id}
-            onClick={() => props.onSelectIncident(props.thread)}
+            key={props.id}
+            onClick={props.onClick}
             aria-selected={props.isFocused}
             style={props.isFocused ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` } : undefined}
         >
-            <TableCell>{props.thread.id}</TableCell>
-            <TableCell>{props.thread.title}</TableCell>
+            {props.cells.map((cell, index) => (
+                <TableCell
+                    key={index}
+                    style={{ wordBreak: 'break-word', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}` }}
+                >
+                    {cell}
+                </TableCell>
+            ))}
         </TableRow>
     );
 });
+
+const IncidentOrResourcePopoverLoader = () => {
+    return (
+        <>
+            <GroundingMenuItemSkeleton />
+            <GroundingMenuItemSkeleton />
+            <GroundingMenuItemSkeleton />
+        </>
+    );
+};
 
 const Attachments = memo(
     (props: {
