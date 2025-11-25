@@ -573,6 +573,7 @@ const AllocationChangeDialog = ({
                             type={'number'}
                             min={0}
                             max={MAX_LIMIT}
+                            step={100}
                             value={value.toString()}
                             onChange={(_, data) => {
                                 if (!data.value) {
