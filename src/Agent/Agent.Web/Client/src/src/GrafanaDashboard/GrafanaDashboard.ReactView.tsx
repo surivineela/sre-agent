@@ -7,6 +7,7 @@ import {
     Button,
     Dropdown,
     Field,
+    InfoLabel,
     Input,
     Link,
     MessageBar,
@@ -16,9 +17,7 @@ import {
     PopoverSurface,
     PopoverTrigger,
     Spinner,
-    Tooltip,
 } from '@fluentui/react-components';
-import { Info16Regular } from '@fluentui/react-icons';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -90,9 +89,7 @@ const GrafanaDashboard: FC = () => {
                         label={
                             <div className={styles.grafanaUrlLabelContainer}>
                                 {intl.formatMessage(GrafanaDashboardResources.grafanaDashboardUrl)}
-                                <Tooltip content={intl.formatMessage(GrafanaDashboardResources.tooltipContent)} relationship="label">
-                                    <Info16Regular />
-                                </Tooltip>
+                                <InfoLabel info={intl.formatMessage(GrafanaDashboardResources.tooltipContent)} />
                             </div>
                         }
                         orientation="horizontal"
