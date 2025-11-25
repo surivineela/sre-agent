@@ -25,12 +25,12 @@ import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, Replay
 import { Link } from '@fluentui/react/lib/Link';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
-import { getHumanReadableCronExpression } from '../../../Common/Helpers/CronExpression';
-import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
-import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { ScheduledTask, ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
+import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
+import { getLocaleDateTimeHHMM } from '../../Common/Helpers/Date';
+import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
 import ScheduledTaskStatusBadge from './Common/ScheduledTaskStatusBadge';

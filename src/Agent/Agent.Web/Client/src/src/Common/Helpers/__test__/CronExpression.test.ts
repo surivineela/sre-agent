@@ -4,7 +4,7 @@ import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { getHumanReadableCronExpression } from '../CronExpression';
 
 // Mock the dependencies at the top level before any other code
-vi.mock('../../../Space/ScheduledTasks/V2/ScheduledTasksUtilities', () => ({
+vi.mock('../../../Space/ScheduledTasks/ScheduledTasksUtilities', () => ({
     DayOfTheWeek: {
         Sunday: 0,
         Monday: 1,

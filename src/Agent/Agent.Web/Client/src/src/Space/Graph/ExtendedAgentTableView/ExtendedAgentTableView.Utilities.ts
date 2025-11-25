@@ -1,4 +1,4 @@
-import { TaskStatusFilterKey } from '../../ScheduledTasks/V2/ScheduledTasksUtilities';
+import { TaskStatusFilterKey } from '../../ScheduledTasks/ScheduledTasksUtilities';
 
 export const getFilterKeyFromTriggerStatus = (status: string = '') => {
     switch (status.toLowerCase()) {

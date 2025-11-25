@@ -1,8 +1,8 @@
 import { Badge } from '@fluentui/react-components';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources } from '../../../../Strings/SREAgentResources';
-import { ScheduledTaskStatus } from '../../../Contracts/ScheduledTasks';
+import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
+import { ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
 
 const ScheduledTaskStatusBadge = ({ status }: { status: ScheduledTaskStatus }) => {
     const intl = useIntl();

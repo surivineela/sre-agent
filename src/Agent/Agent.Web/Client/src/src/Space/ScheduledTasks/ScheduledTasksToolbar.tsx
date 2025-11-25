@@ -1,112 +1,342 @@
+import { SearchBox, Text, Toolbar, ToolbarButton, ToolbarDivider } from '@fluentui/react-components';
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    DialogTrigger,
-} from '@fluentui/react-components';
-import { Add16Regular, ArrowClockwise16Regular, Delete16Regular, Pause16Regular, Play16Regular } from '@fluentui/react-icons';
-import { FC } from 'react';
+    AddRegular,
+    ArrowClockwise20Regular,
+    ArrowClockwiseRegular,
+    DeleteRegular,
+    PlayRegular,
+    RecordStopRegular,
+    ReplayRegular,
+} from '@fluentui/react-icons';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { ScheduledTask } from '../Contracts/ScheduledTasks';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
+import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
+import { getLocaleTimeHHMM } from '../../Common/Helpers/Date';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
+import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
+import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { useScheduledTasksStyles } from './ScheduledTasks.styles';
+import { TaskStatusFilterKey } from './ScheduledTasksUtilities';
 
-export interface ScheduledTasksToolbarProps {
-    onRefreshClick: () => void;
-    onNewTaskClick: () => void;
-    onDeleteTaskClick: () => void;
-    onPauseResumeTaskClick: () => void;
-    selectedTask?: ScheduledTask;
-    loading?: boolean;
+interface ScheduledTasksToolbarProps {
+    selectedTasks?: ScheduledTask[];
+    isLoading?: boolean;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+    statusFilter: TaskStatusFilterKey;
+    setStatusFilter: (status: TaskStatusFilterKey) => void;
 }
 
-const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
-    onRefreshClick,
-    onNewTaskClick,
-    onDeleteTaskClick,
-    onPauseResumeTaskClick,
-    selectedTask,
-    loading = false,
+export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
+    selectedTasks,
+    isLoading = false,
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
 }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
+    const azPortalContext = useContext(AzPortalContext);
+    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
+        useContext(ScheduledTasksContext);
+    const [lastUpdated, setLastUpdated] = useState<string>();
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
 
-    const isTaskSelected = !!selectedTask;
-    const isTaskActive = selectedTask?.status === 'Active';
-    const isTaskPaused = selectedTask?.status === 'Paused';
+    const isPauseButtonDisabled = useMemo(() => {
+        const hasActiveTaskSelected = selectedTasks?.some(task => task.status === ScheduledTaskStatus.Active);
+        return !hasActiveTaskSelected || isLoading || isOperationInProgress;
+    }, [isLoading, isOperationInProgress, selectedTasks]);
+
+    const isResumeButtonDisabled = useMemo(() => {
+        const hasPausedTaskSelected = selectedTasks?.some(task => task.status === ScheduledTaskStatus.Paused);
+        return !hasPausedTaskSelected || isLoading || isOperationInProgress;
+    }, [isLoading, isOperationInProgress, selectedTasks]);
+
+    const isRunButtonDisabled = useMemo(
+        () => selectedTasks?.length === 0 || isLoading || isOperationInProgress,
+        [isLoading, isOperationInProgress, selectedTasks?.length]
+    );
+
+    const isDeleteButtonDisabled = useMemo(
+        () => selectedTasks?.length === 0 || isLoading || isOperationInProgress,
+        [isLoading, isOperationInProgress, selectedTasks?.length]
+    );
+
+    const onRefresh = useCallback(async () => {
+        await refreshTasks();
+    }, [refreshTasks]);
+
+    const onPauseTasks = useCallback(async () => {
+        const activeTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Active) || [];
+
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(ScheduledTasksResources.pauseTasksTitle),
+            intl.formatMessage(ScheduledTasksResources.pauseTasksInProgress)
+        );
+
+        try {
+            setIsOperationInProgress(true);
+            const responses = await Promise.all(activeTasks.map(task => pauseTask(task.id)));
+            if (responses.some(response => response.isSuccessful)) {
+                await refreshTasks();
+                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksPausedSuccessfully));
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToPauseTask, {
+                        errorMessage: responses.find(r => !r.isSuccessful)?.error,
+                    })
+                );
+            }
+        } catch (error) {
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(ScheduledTasksResources.failedToPauseTask, { errorMessage: getErrorMessageOrStringify(error) })
+            );
+        } finally {
+            setIsOperationInProgress(false);
+        }
+    }, [azPortalContext, intl, pauseTask, refreshTasks, selectedTasks, setIsOperationInProgress]);
+
+    const onRunTasks = useCallback(async () => {
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(ScheduledTasksResources.runTasksTitle),
+            intl.formatMessage(ScheduledTasksResources.runTasksInProgress)
+        );
+
+        try {
+            setIsOperationInProgress(true);
+            const responses = await Promise.all(selectedTasks?.map(task => runTask(task.id)) || []);
+            if (responses.some(response => response.isSuccessful)) {
+                await refreshTasks();
+                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksRanSuccessfully));
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToRunTask, {
+                        errorMessage: responses.find(r => !r.isSuccessful)?.error,
+                    })
+                );
+            }
+        } catch (error) {
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(ScheduledTasksResources.failedToRunTask, { errorMessage: getErrorMessageOrStringify(error) })
+            );
+        } finally {
+            setIsOperationInProgress(false);
+        }
+    }, [azPortalContext, intl, refreshTasks, runTask, selectedTasks, setIsOperationInProgress]);
+
+    const onResumeTasks = useCallback(async () => {
+        const pausedTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Paused) || [];
+
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(ScheduledTasksResources.resumeTasksTitle),
+            intl.formatMessage(ScheduledTasksResources.resumeTasksInProgress)
+        );
+
+        try {
+            setIsOperationInProgress(true);
+            const responses = await Promise.all(pausedTasks.map(task => resumeTask(task.id)));
+            if (responses.some(response => response.isSuccessful)) {
+                await refreshTasks();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.tasksResumedSuccessfully)
+                );
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToResumeTask, {
+                        errorMessage: responses.find(r => !r.isSuccessful)?.error,
+                    })
+                );
+            }
+        } catch (error) {
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(ScheduledTasksResources.failedToResumeTask, { errorMessage: getErrorMessageOrStringify(error) })
+            );
+        } finally {
+            setIsOperationInProgress(false);
+        }
+    }, [selectedTasks, azPortalContext, intl, setIsOperationInProgress, resumeTask, refreshTasks]);
+
+    const onDeleteTasks = useCallback(async () => {
+        const notificationId = azPortalContext.startNotification(
+            intl.formatMessage(ScheduledTasksResources.deleteTasksTitle),
+            intl.formatMessage(ScheduledTasksResources.deleteTasksInProgress)
+        );
+
+        try {
+            setIsOperationInProgress(true);
+            const responses = await Promise.all(selectedTasks?.map(task => deleteTask(task.id)) || []);
+            if (responses.some(response => response.isSuccessful)) {
+                await refreshTasks();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.tasksDeletedSuccessfully)
+                );
+            } else {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, {
+                        errorMessage: responses.find(r => !r.isSuccessful)?.error,
+                    })
+                );
+            }
+        } catch (error) {
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, { errorMessage: getErrorMessageOrStringify(error) })
+            );
+        } finally {
+            setIsOperationInProgress(false);
+        }
+    }, [azPortalContext, deleteTask, intl, refreshTasks, selectedTasks, setIsOperationInProgress]);
+
+    useEffect(() => {
+        if (!isLoading) {
+            setLastUpdated(getLocaleTimeHHMM(new Date()));
+        }
+    }, [isLoading]);
 
     return (
         <div className={styles.toolbar}>
-            <Button icon={<Add16Regular />} appearance="transparent" className={styles.button} onClick={onNewTaskClick} disabled={loading}>
-                {intl.formatMessage(ScheduledTasksResources.createScheduledTask)}
-            </Button>
-            <Button
-                icon={<ArrowClockwise16Regular />}
-                appearance="transparent"
-                className={styles.button}
-                onClick={onRefreshClick}
-                disabled={loading}
-            >
-                {intl.formatMessage({ defaultMessage: 'Refresh', id: 'rELDbB' })}
-            </Button>
-            <div className={styles.divider} />
-
-            {/* Pause/Resume Button */}
-            {(isTaskActive || isTaskPaused) && (
-                <Button
-                    icon={isTaskActive ? <Pause16Regular /> : <Play16Regular />}
-                    appearance="transparent"
-                    className={styles.button}
-                    onClick={onPauseResumeTaskClick}
-                    disabled={!isTaskSelected || loading}
-                >
-                    {isTaskActive ? intl.formatMessage(ScheduledTasksResources.pause) : intl.formatMessage(ScheduledTasksResources.resume)}
-                </Button>
-            )}
-
-            {/* Delete Button with Confirmation */}
-            <Dialog modalType="alert">
-                <DialogTrigger disableButtonEnhancement>
-                    <Button
-                        icon={<Delete16Regular />}
-                        appearance="transparent"
-                        className={styles.button}
-                        disabled={!isTaskSelected || loading}
+            <div className={styles.toolbarButtons}>
+                <Toolbar style={{ padding: 0 }}>
+                    <ScheduledTaskCreateOrEditDialog
+                        dialogTrigger={
+                            <ToolbarButton className={styles.toolbarButton} icon={<AddRegular />}>
+                                {intl.formatMessage(ScheduledTasksResources.createTask)}
+                            </ToolbarButton>
+                        }
+                        isDialogOpen={isCreateDialogOpen}
+                        setIsDialogOpen={setIsCreateDialogOpen}
+                        mode={ScheduledTaskDialogMode.Create}
+                    />
+                    <ToolbarButton className={styles.toolbarButton} icon={<ArrowClockwiseRegular />} onClick={onRefresh}>
+                        {intl.formatMessage(ScheduledTasksResources.updateList)}
+                    </ToolbarButton>
+                    <ToolbarDivider />
+                    <ToolbarButton
+                        className={styles.toolbarButton}
+                        icon={<RecordStopRegular />}
+                        onClick={onPauseTasks}
+                        disabled={isPauseButtonDisabled}
                     >
-                        {intl.formatMessage(SreAgentResources.delete)}
-                    </Button>
-                </DialogTrigger>
-                <DialogSurface>
-                    <DialogBody>
-                        <DialogTitle>{intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskConfirmation)}</DialogTitle>
-                        <DialogContent>
-                            {selectedTask && (
-                                <>
-                                    {intl.formatMessage(ScheduledTasksResources.deleteTaskConfirmationMessage, {
-                                        name: selectedTask.name,
-                                    })}
-                                </>
-                            )}
-                        </DialogContent>
-                        <DialogActions>
-                            <DialogTrigger>
-                                <Button className={styles.dangerButton} onClick={onDeleteTaskClick}>
-                                    {intl.formatMessage(SreAgentResources.yes)}
-                                </Button>
-                            </DialogTrigger>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button appearance="secondary">{intl.formatMessage(SreAgentResources.no)}</Button>
-                            </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
+                        {intl.formatMessage(ScheduledTasksResources.turnOff)}
+                    </ToolbarButton>
+                    <ToolbarButton
+                        className={styles.toolbarButton}
+                        icon={<ReplayRegular />}
+                        onClick={onResumeTasks}
+                        disabled={isResumeButtonDisabled}
+                    >
+                        {intl.formatMessage(ScheduledTasksResources.turnOn)}
+                    </ToolbarButton>
+                    <ToolbarButton
+                        className={styles.toolbarButton}
+                        icon={<PlayRegular />}
+                        onClick={onRunTasks}
+                        disabled={isRunButtonDisabled}
+                    >
+                        {intl.formatMessage(ScheduledTasksResources.runTaskNow)}
+                    </ToolbarButton>
+                    <ScheduledTaskDeleteDialog
+                        dialogTrigger={
+                            <ToolbarButton className={styles.toolbarButton} icon={<DeleteRegular />} disabled={isDeleteButtonDisabled}>
+                                {intl.formatMessage(SreAgentResources.delete)}
+                            </ToolbarButton>
+                        }
+                        deleteTasks={onDeleteTasks}
+                        title={intl.formatMessage(ScheduledTasksResources.deleteTasksConfirmationTitle)}
+                        content={intl.formatMessage(ScheduledTasksResources.deleteTasksConfirmationMessage)}
+                    />
+                </Toolbar>
+                <ScheduledTasksFilters
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                />
+            </div>
+            {lastUpdated && (
+                <div className={styles.menuItems}>
+                    <ArrowClockwise20Regular />
+                    <Text>{`${intl.formatMessage(ScheduledTasksResources.lastUpdated)}: ${lastUpdated}`}</Text>
+                </div>
+            )}
         </div>
     );
 };
 
-export default ScheduledTasksToolbar;
+interface ScheduledTasksFiltersProps {
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+    statusFilter: TaskStatusFilterKey;
+    setStatusFilter: (status: TaskStatusFilterKey) => void;
+}
+
+export const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQuery, setSearchQuery, statusFilter, setStatusFilter }) => {
+    const intl = useIntl();
+    const styles = useScheduledTasksStyles();
+
+    const statusOptions = useMemo(
+        () => [
+            {
+                key: TaskStatusFilterKey.All,
+                label: intl.formatMessage(ScheduledTasksResources.all),
+            },
+            {
+                key: TaskStatusFilterKey.On,
+                label: intl.formatMessage(ScheduledTasksResources.on),
+            },
+            {
+                key: TaskStatusFilterKey.Off,
+                label: intl.formatMessage(ScheduledTasksResources.off),
+            },
+            {
+                key: TaskStatusFilterKey.Ended,
+                label: intl.formatMessage(ScheduledTasksResources.ended),
+            },
+        ],
+        [intl]
+    );
+
+    return (
+        <div className={styles.filters}>
+            <SearchBox
+                className={styles.searchBox}
+                value={searchQuery}
+                onChange={(_, data) => setSearchQuery(data.value)}
+                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByScheduledTask)}
+            />
+            <PillFilter
+                label={`${intl.formatMessage(SreAgentResources.status)}`}
+                filterType="combobox"
+                options={statusOptions}
+                selectedKeys={[statusFilter]}
+                onApply={keys => {
+                    setStatusFilter(keys[0] as TaskStatusFilterKey);
+                }}
+            />
+        </div>
+    );
+};

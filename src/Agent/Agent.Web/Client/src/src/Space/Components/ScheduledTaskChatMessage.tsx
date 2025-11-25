@@ -7,7 +7,7 @@ import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
+import { GroupMessageKey } from '../ScheduledTasks/ScheduledTasksUtilities';
 
 export interface ScheduledTaskExecutionCardProps {
     name: string;

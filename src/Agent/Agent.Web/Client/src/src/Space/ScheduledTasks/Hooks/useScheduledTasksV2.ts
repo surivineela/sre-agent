@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { ScheduledTasksClient } from '../../../../Common/Clients/ScheduledTasksClient';
-import { CreateScheduledTaskRequest, ScheduledTask } from '../../../Contracts/ScheduledTasks';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { ScheduledTasksClient } from '../../../Common/Clients/ScheduledTasksClient';
+import { CreateScheduledTaskRequest, ScheduledTask } from '../../Contracts/ScheduledTasks';
 
 export const useScheduledTasksV2 = () => {
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);

@@ -1,7 +1,7 @@
 import { IntlShape } from 'react-intl';
-import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
-import { ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
-import { normalizeCronExpression } from '../../Graph/ExtendedAgentCreationDialog/utils/schedule';
+import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
+import { normalizeCronExpression } from '../Graph/ExtendedAgentCreationDialog/utils/schedule';
 
 export enum TaskStatusFilterKey {
     All = 'All',

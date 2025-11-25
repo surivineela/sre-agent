@@ -1,5 +1,5 @@
 import { IntlShape } from 'react-intl';
-import { DayOfTheWeek, getDaysOfTheWeek } from '../../Space/ScheduledTasks/V2/ScheduledTasksUtilities';
+import { DayOfTheWeek, getDaysOfTheWeek } from '../../Space/ScheduledTasks/ScheduledTasksUtilities';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 
 const convertUTCToLocal = (utcHours: number, utcMinutes: number): { hours: number; minutes: number } => {

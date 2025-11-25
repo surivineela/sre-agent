@@ -65,7 +65,7 @@ import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
-import { ScheduledTasks } from './ScheduledTasks/V2/ScheduledTasks.ReactView';
+import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';

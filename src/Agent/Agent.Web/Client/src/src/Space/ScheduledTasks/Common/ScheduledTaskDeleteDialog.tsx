@@ -11,7 +11,7 @@ import {
 } from '@fluentui/react-components';
 import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../../Strings/SREAgentResources';
 
 interface ScheduledTaskDeleteDialogProps {
     dialogTrigger?: React.ReactElement;

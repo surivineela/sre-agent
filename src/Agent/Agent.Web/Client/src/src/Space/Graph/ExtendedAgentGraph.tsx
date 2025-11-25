@@ -37,8 +37,8 @@ import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
-import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/V2/Common/ScheduledTaskCreateOrEditDialog';
-import { ScheduledTasksContext } from '../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/Common/ScheduledTaskCreateOrEditDialog';
+import { ScheduledTasksContext } from '../ScheduledTasks/Hooks/ScheduledTasksContext';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import {
     AddExistingAgentHandoffDialog,

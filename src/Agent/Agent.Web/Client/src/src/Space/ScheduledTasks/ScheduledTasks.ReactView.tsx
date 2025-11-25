@@ -1,10 +1,10 @@
 import { Text } from '@fluentui/react-components';
 import { FC, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { TextWithLink } from '../../../Common/Components/TextWithLink';
-import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
-import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
-import { ScheduledTaskStatus } from '../../Contracts/ScheduledTasks';
+import { TextWithLink } from '../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
+import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCard } from './Common/ScheduledTaskCard';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
 import { useScheduledTasksV2 } from './Hooks/useScheduledTasksV2';

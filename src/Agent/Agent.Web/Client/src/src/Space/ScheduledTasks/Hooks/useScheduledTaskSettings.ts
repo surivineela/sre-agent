@@ -1,14 +1,14 @@
 import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { mixed, object, string } from 'yup';
-import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
-import { roundTimeToNearestMinuteInterval } from '../../../../Common/Helpers/Date';
-import { Guid } from '../../../../Common/Helpers/Guid';
-import { ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { CreateScheduledTaskRequest, ScheduledTask } from '../../../Contracts/ScheduledTasks';
-import { normalizeCronExpression } from '../../../Graph/ExtendedAgentCreationDialog/utils/schedule';
-import { useAuthenticatedUserInfo } from '../../../Hooks/useAuthenticatedUserInfo';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
+import { roundTimeToNearestMinuteInterval } from '../../../Common/Helpers/Date';
+import { Guid } from '../../../Common/Helpers/Guid';
+import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { CreateScheduledTaskRequest, ScheduledTask } from '../../Contracts/ScheduledTasks';
+import { normalizeCronExpression } from '../../Graph/ExtendedAgentCreationDialog/utils/schedule';
+import { useAuthenticatedUserInfo } from '../../Hooks/useAuthenticatedUserInfo';
 import { ScheduledTaskDialogMode } from '../Common/ScheduledTaskCreateOrEditDialog';
 import {
     DayOfTheWeek,
@@ -197,7 +197,17 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                 }
             }
         },
-        [azPortalContext, createTask, displayName, intl, mode, scheduledTask?.id, setIsOperationInProgress, updateTask]
+        [
+            azPortalContext,
+            createTask,
+            displayName,
+            intl,
+            mode,
+            scheduledTask?.id,
+            scheduledTask?.threadId,
+            setIsOperationInProgress,
+            updateTask,
+        ]
     );
 
     return {

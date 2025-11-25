@@ -1,7 +1,7 @@
 import { createContext } from 'react';
-import { Response } from '../../../../Common/Clients/DataPlaneClient';
-import { ExtendedAgentAnchorEntity } from '../../../Contracts/ExtendedAgentGraph';
-import { CreateScheduledTaskRequest } from '../../../Contracts/ScheduledTasks';
+import { Response } from '../../../Common/Clients/DataPlaneClient';
+import { ExtendedAgentAnchorEntity } from '../../Contracts/ExtendedAgentGraph';
+import { CreateScheduledTaskRequest } from '../../Contracts/ScheduledTasks';
 
 export interface ScheduledTasksContextProps {
     refreshTasks: (anchorEntity?: ExtendedAgentAnchorEntity) => Promise<void>;

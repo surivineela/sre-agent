@@ -15,7 +15,7 @@ import {
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
-import { useScheduledTasksV2 } from '../ScheduledTasks/V2/Hooks/useScheduledTasksV2';
+import { useScheduledTasksV2 } from '../ScheduledTasks/Hooks/useScheduledTasksV2';
 import { useIncidentFilters } from './useIncidentFilters';
 import { useIncidentHandlers } from './useIncidentHandlers';
 
@@ -396,7 +396,7 @@ export const useExtendedAgentGraph = () => {
         }
 
         return { nodes: filteredNodes, edges: filteredEdges };
-    }, [nodes, edges, anchorEntity, triggers]);
+    }, [nodes, edges, anchorEntity]);
 
     // Nodes and edges to highlight
     const { nodesToHighlight, edgesToHighlight } = useMemo(() => {

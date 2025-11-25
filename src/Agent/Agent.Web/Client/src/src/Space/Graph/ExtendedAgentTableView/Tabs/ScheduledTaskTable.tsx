@@ -6,9 +6,9 @@ import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPo
 import { getHumanReadableCronExpression } from '../../../../Common/Helpers/CronExpression';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
-import { ScheduledTasksContext } from '../../../ScheduledTasks/V2/Hooks/ScheduledTasksContext';
-import { ScheduledTasksFilters } from '../../../ScheduledTasks/V2/ScheduledTasksToolbar';
-import { TaskStatusFilterKey } from '../../../ScheduledTasks/V2/ScheduledTasksUtilities';
+import { ScheduledTasksContext } from '../../../ScheduledTasks/Hooks/ScheduledTasksContext';
+import { ScheduledTasksFilters } from '../../../ScheduledTasks/ScheduledTasksToolbar';
+import { TaskStatusFilterKey } from '../../../ScheduledTasks/ScheduledTasksUtilities';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
 import { BaseTableItem, EntityTableProps, EntityToolbarProps, ScheduledTaskItem, STATUS } from '../ExtendedAgentTableView.Contracts';

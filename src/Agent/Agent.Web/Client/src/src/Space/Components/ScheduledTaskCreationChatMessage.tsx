@@ -12,8 +12,8 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
 import { EntityIcon } from '../Graph/EntityIcon';
-import ScheduledTaskStatusBadge from '../ScheduledTasks/V2/Common/ScheduledTaskStatusBadge';
-import { GroupMessageKey } from '../ScheduledTasks/V2/ScheduledTasksUtilities';
+import ScheduledTaskStatusBadge from '../ScheduledTasks/Common/ScheduledTaskStatusBadge';
+import { GroupMessageKey } from '../ScheduledTasks/ScheduledTasksUtilities';
 import ScheduledTaskChatMessage from './ScheduledTaskChatMessage';
 
 interface ScheduledTaskCreationChatMessageProps {
