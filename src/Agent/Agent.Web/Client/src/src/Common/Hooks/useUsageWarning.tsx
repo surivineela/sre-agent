@@ -5,8 +5,6 @@ import { getErrorMessage } from '../Clients/ArmClient';
 import SreAgentClient from '../Clients/SreAgentClient';
 import { MonthlyUsage } from '../Contracts/Azure/SreAgent';
 
-const USAGE_BANNER_DISMISSED_KEY = 'sreagent.usageWarningBannerDismissed';
-
 const processUsageResult = (montlyUsage: MonthlyUsage | null | undefined) => {
     if (!montlyUsage) {
         return {
@@ -31,13 +29,7 @@ export const useUsageWarning = () => {
     const proxy = useContext(AzPortalContext);
     const { resourceId } = useContext(EnvironmentContext);
 
-    const [isDismissed, setIsDismissed] = useState<boolean>(() => {
-        try {
-            return localStorage.getItem(USAGE_BANNER_DISMISSED_KEY) === 'true';
-        } catch {
-            return false;
-        }
-    });
+    const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
     const onUsageUpdate = useCallback((newUsages: MonthlyUsage | null | undefined) => {
         const { reachedLimit, approachingLimit } = processUsageResult(newUsages);
@@ -46,11 +38,6 @@ export const useUsageWarning = () => {
     }, []);
 
     const handleDismiss = useCallback(() => {
-        try {
-            localStorage.setItem(USAGE_BANNER_DISMISSED_KEY, 'true');
-        } catch {
-            // Ignore localStorage errors
-        }
         setIsDismissed(true);
     }, []);
 

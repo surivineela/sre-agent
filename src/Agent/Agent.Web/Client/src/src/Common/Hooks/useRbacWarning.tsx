@@ -7,19 +7,11 @@ import { getErrorMessage } from '../Clients/ArmClient';
 import { PermissionClient } from '../Clients/PermissionsClient';
 import { RBACRoleIds } from '../Contracts/Azure/Permission';
 
-const RBAC_BANNER_DISMISSED_KEY = 'sreagent.rbacWarningBannerDismissed';
-
 export const useRbacWarning = () => {
     const intl = useIntl();
     const { resourceId, userInfo, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const azPortalContext = useContext(AzPortalContext);
-    const [isDismissed, setIsDismissed] = useState<boolean>(() => {
-        try {
-            return localStorage.getItem(RBAC_BANNER_DISMISSED_KEY) === 'true';
-        } catch {
-            return false;
-        }
-    });
+    const [isDismissed, setIsDismissed] = useState<boolean>(false);
     const [checking, setChecking] = useState<boolean>(true);
     const [alreadyHasAgentRole, setAlreadyHasAgentRole] = useState<boolean>(false);
 
@@ -110,11 +102,6 @@ export const useRbacWarning = () => {
     }, [userInfo, resourceId, azPortalContext, intl]);
 
     const handleDismiss = useCallback(() => {
-        try {
-            localStorage.setItem(RBAC_BANNER_DISMISSED_KEY, 'true');
-        } catch {
-            // Ignore localStorage errors
-        }
         setIsDismissed(true);
     }, []);
 
