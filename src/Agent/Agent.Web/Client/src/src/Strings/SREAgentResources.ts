@@ -857,6 +857,11 @@ export const ToDoPlanResources = defineMessages({
 });
 
 export const PermissionsResources = defineMessages({
+    resourceGroupInfoBar: {
+        defaultMessage:
+            'It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge.',
+        id: 'znSLJS',
+    },
     roles: { defaultMessage: 'Roles', id: 'c35gM5' },
     role: { defaultMessage: 'Role', id: '1ZgrhW' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },

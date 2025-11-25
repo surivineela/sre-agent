@@ -7,9 +7,12 @@ import {
     DataGridHeaderCell,
     DataGridRow,
     makeStyles,
+    MessageBar,
+    MessageBarBody,
     SkeletonItem,
     TableCellLayout,
     TableColumnDefinition,
+    Text,
     tokens,
 } from '@fluentui/react-components';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -26,6 +29,7 @@ const useLocalStyles = makeStyles({
     dataGrid: {
         width: '100%',
         tableLayout: 'auto',
+        minWidth: '0px',
     },
     dataGridHeader: {
         fontWeight: '600',
@@ -35,7 +39,6 @@ const useLocalStyles = makeStyles({
         zIndex: '1',
     },
     scrollContainer: {
-        paddingTop: '10px',
         overflowY: 'auto',
         minHeight: '0px',
         maxHeight: '470px',
@@ -43,6 +46,12 @@ const useLocalStyles = makeStyles({
     innerScrollContainer: {
         overflowY: 'auto',
         maxHeight: '100%',
+    },
+    messageBar: {
+        marginBottom: '10px',
+    },
+    messageBarBody: {
+        padding: '5px',
     },
 });
 
@@ -502,30 +511,41 @@ const PermissionsDetailsList: React.FC<PermissionsDetailsListProps> = ({ accessL
                         </DataGridBody>
                     </DataGrid>
                 ) : (
-                    <div className={localStyles.innerScrollContainer}>
-                        <DataGrid
-                            items={basePermissionsGridItems}
-                            columns={columns}
-                            getRowId={item => item.role}
-                            className={localStyles.dataGrid}
-                            resizableColumns
-                            sortable
-                            columnSizingOptions={columnSizingOptions}
-                        >
-                            <DataGridHeader className={localStyles.dataGridHeader}>
-                                <DataGridRow>
-                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                                </DataGridRow>
-                            </DataGridHeader>
-                            <DataGridBody<RoleGridItem>>
-                                {({ item, rowId }) => (
-                                    <DataGridRow<RoleGridItem> key={rowId}>
-                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                                    </DataGridRow>
-                                )}
-                            </DataGridBody>
-                        </DataGrid>
-                    </div>
+                    <>
+                        <div className={localStyles.dataGridHeader}>
+                            <MessageBar className={localStyles.messageBar}>
+                                <MessageBarBody className={localStyles.messageBarBody}>
+                                    <Text>{intl.formatMessage(PermissionsResources.resourceGroupInfoBar)}</Text>
+                                </MessageBarBody>
+                            </MessageBar>
+                        </div>
+                        <div className={localStyles.innerScrollContainer}>
+                            <div>
+                                <DataGrid
+                                    items={basePermissionsGridItems}
+                                    columns={columns}
+                                    getRowId={item => item.role}
+                                    className={localStyles.dataGrid}
+                                    resizableColumns
+                                    sortable
+                                    columnSizingOptions={columnSizingOptions}
+                                >
+                                    <DataGridHeader className={localStyles.dataGridHeader}>
+                                        <DataGridRow>
+                                            {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                        </DataGridRow>
+                                    </DataGridHeader>
+                                    <DataGridBody<RoleGridItem>>
+                                        {({ item, rowId }) => (
+                                            <DataGridRow<RoleGridItem> key={rowId}>
+                                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                            </DataGridRow>
+                                        )}
+                                    </DataGridBody>
+                                </DataGrid>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
