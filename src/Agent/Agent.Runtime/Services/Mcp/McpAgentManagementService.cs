@@ -44,25 +44,27 @@ public class McpAgentManagementService : IHostedService, IAsyncDisposable
         _logger = logger;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInternalInformation("Starting MCP Agent Management Service");
 
         if (!_mcpSettings.Enabled)
         {
             _logger.LogInternalInformation("MCP is disabled via settings. MCP Agent Management Service will not start.");
-            return Task.CompletedTask;
+            return;
         }
 
         // Subscribe to connection events
         _connectionManager.ConnectionAdded += OnConnectionAdded;
         _connectionManager.ConnectionRemoved += OnConnectionRemoved;
 
+        // Process any connections that were established before this service started (race condition fix)
+        await ProcessExistingConnectionsAsync();
+
         // Start heartbeat verification timer for dynamically added connections
         StartHeartbeatTimer();
 
         _logger.LogInternalInformation("MCP Agent Management Service started");
-        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -215,4 +217,29 @@ public class McpAgentManagementService : IHostedService, IAsyncDisposable
     //         _logger.LogInternalError(ex, "Failed to add MCP tools to meta_agent");
     //     }
     // }
+
+    /// <summary>
+    /// Processes any MCP connections that were created before the service subscribed to events.
+    /// Ensures deferred MCP agents are loaded when the service starts after connections are established.
+    /// </summary>
+    private async Task ProcessExistingConnectionsAsync()
+    {
+        try
+        {
+            var existing = _connectionManager.GetActiveConnections();
+            if (existing.Count == 0)
+            {
+                return;
+            }
+
+            _logger.LogInternalInformation("Processing {Count} existing MCP connections on service start.", existing.Count);
+            await _toolFactory.RefreshMcpToolsAsync();
+            _agentFactory.AttemptLoadDeferredMcpAgents();
+            _logger.LogInternalInformation("Processed existing MCP connections. Deferred MCP agents (if any) re-evaluated.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed processing existing MCP connections on service start");
+        }
+    }
 }

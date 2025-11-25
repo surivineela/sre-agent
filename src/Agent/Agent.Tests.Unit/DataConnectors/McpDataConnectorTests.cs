@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.DataConnectors;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -16,10 +18,11 @@ public class McpDataConnectorTests
 {
     private readonly Mock<ILogger<McpDataConnector>> _loggerMock = new();
     private readonly Mock<IMcpConnectionEventManager> _connectionManagerMock = new();
+    private readonly Mock<IToolFactory<AgentContext>> _toolFactoryMock = new();
 
     private McpDataConnector CreateConnector()
     {
-        return new McpDataConnector(_loggerMock.Object, _connectionManagerMock.Object);
+        return new McpDataConnector(_loggerMock.Object, _connectionManagerMock.Object, _toolFactoryMock.Object);
     }
 
     [Fact]

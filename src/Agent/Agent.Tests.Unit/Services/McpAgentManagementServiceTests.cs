@@ -187,6 +187,25 @@ public class McpAgentManagementServiceTests
         _mockToolFactory.Verify(f => f.RefreshMcpToolsAsync(), Times.Exactly(2));
     }
 
+    [Fact]
+    public async Task StartAsync_WithPreExistingConnection_ProcessesDeferredAgents()
+    {
+        // Arrange
+        var service = CreateService();
+        var preExisting = CreateTestConnection("pre-existing");
+        var existingList = new List<McpConnection> { preExisting }.AsReadOnly();
+        _mockConnectionManager.Setup(m => m.GetActiveConnections()).Returns(existingList);
+        _mockToolFactory.Setup(f => f.RefreshMcpToolsAsync()).Returns(Task.CompletedTask);
+        _mockAgentFactory.Setup(a => a.AttemptLoadDeferredMcpAgents());
+
+        // Act
+        await service.StartAsync(CancellationToken.None);
+
+        // Assert
+        _mockToolFactory.Verify(f => f.RefreshMcpToolsAsync(), Times.Once);
+        _mockAgentFactory.Verify(a => a.AttemptLoadDeferredMcpAgents(), Times.Once);
+    }
+
     // Helper methods
     private McpAgentManagementService CreateService()
     {

@@ -4,6 +4,8 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Agent.Core.Models.Api.v1;
+using Agent.Framework;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.Logging;
@@ -39,16 +41,19 @@ public partial class McpDataConnector : IDataConnector
 
     private readonly ILogger<McpDataConnector> _logger;
     private readonly IMcpConnectionEventManager _mcpConnectionManager;
+    private readonly IToolFactory<AgentContext> _toolFactory;
 
     private DataConnectorInstanceSettings? _settings;
     private string? _connectionId;
 
     public McpDataConnector(
         ILogger<McpDataConnector> logger,
-        IMcpConnectionEventManager mcpConnectionManager)
+        IMcpConnectionEventManager mcpConnectionManager,
+        IToolFactory<AgentContext> toolFactory)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _mcpConnectionManager = mcpConnectionManager ?? throw new ArgumentNullException(nameof(mcpConnectionManager));
+        _toolFactory = toolFactory ?? throw new ArgumentNullException(nameof(toolFactory));
     }
 
     /// <summary>
@@ -137,6 +142,17 @@ public partial class McpDataConnector : IDataConnector
                     _settings.Name,
                     connection.Status,
                     connection.Tools?.Count ?? 0);
+
+                try
+                {
+                    // In case a tool has been added/removed/updated, refresh the tools.
+                    await _toolFactory.RefreshMcpToolsAsync();
+                    _logger.LogInternalDebug("Refreshed MCP tools after verification for connector '{Name}'", _settings.Name);
+                }
+                catch (Exception refreshEx)
+                {
+                    _logger.LogInternalError(refreshEx, "Failed refreshing MCP tools during verification for connector '{Name}'", _settings.Name);
+                }
             }
             else
             {

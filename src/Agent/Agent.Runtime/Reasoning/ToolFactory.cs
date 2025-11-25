@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Concurrent;
 using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -33,8 +33,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
-    private readonly Dictionary<string, IDeferredToolFunction<TContext>> _tools = new();
     private readonly Dictionary<string, AggregateToolCallPluginDefinitionBase> _aggregatePluginDefinitionsByType = new();
+    private readonly ConcurrentDictionary<string, IDeferredToolFunction<TContext>> _tools = new();
     private readonly HashSet<string> _disabledTools = new();
     private readonly HashSet<string> _extendedTools = new();
     private readonly IExtensibilityLoader? _extensibilityLoader;
