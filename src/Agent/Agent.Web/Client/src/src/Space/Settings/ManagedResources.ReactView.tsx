@@ -15,9 +15,6 @@ import {
     InputOnChangeData,
     Link,
     makeStyles,
-    MessageBar,
-    MessageBarBody,
-    MessageBarGroup,
     SearchBox,
     SearchBoxChangeEvent,
     SkeletonItem,
@@ -196,16 +193,10 @@ const ManagedResources: FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>{intl.formatMessage(SettingsTabResources.managedResources)}</div>
-            <MessageBarGroup animate={'exit-only'} className={styles.messageBarGroup}>
-                <MessageBar className={styles.messageBar}>
-                    <MessageBarBody className={styles.messageBarBody}>
-                        <TextWithLink
-                            text={intl.formatMessage(SreAgentResources.elevatePermissionsMessage)}
-                            linkUrl={SreAgentFwLinks.agentManagedIdentity}
-                        />
-                    </MessageBarBody>
-                </MessageBar>
-            </MessageBarGroup>
+            <TextWithLink
+                text={intl.formatMessage(SreAgentResources.elevatePermissionsMessage)}
+                linkUrl={SreAgentFwLinks.agentManagedIdentity}
+            />
             <div className={styles.buttonsContainer}>
                 <Toolbar>
                     <PermissionedToolbarButton
