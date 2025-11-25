@@ -13,8 +13,9 @@ export const SreAgentResources = defineMessages({
     collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
     deleteAgentDescription: {
-        defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
-        id: 'O8zbbB',
+        defaultMessage:
+            'This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?',
+        id: 'tTjB+b',
     },
     deleteAgentNotificationTitle: { defaultMessage: '{count, plural, one {Delete SRE Agent} other {Delete SRE Agents}}', id: 'Kfr1WB' },
     deleteAgentNotificationDescription: {
@@ -2074,10 +2075,13 @@ export const SettingsTabResources = defineMessages({
     dataSource: { defaultMessage: 'Data Source', id: 'uudb6D' },
     subAgents: { defaultMessage: 'Subagents', id: 'lQmkhq' },
     mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
-    upgradeChannel: { defaultMessage: 'Preview Upgrade Channel', id: 'W6NO8g' },
+    upgradeChannel: { defaultMessage: 'Early access to features', id: 'uBPOyN' },
     upgradeChannelDescription: { defaultMessage: 'Choose the channel for receiving agent updates', id: 'hfqoIO' },
-    upgradeChannelStable: { defaultMessage: 'Stable - Receives updates once a month', id: 'bect+9' },
-    upgradeChannelPreview: { defaultMessage: 'Preview - Receives updates twice a week', id: 'nOrKIK' },
+    upgradeChannelStable: { defaultMessage: 'Current status: Stable - Receives updates once a month', id: 'rPdyc5' },
+    upgradeChannelPreview: {
+        defaultMessage: 'Enable the preview channel to test out new features early, however they may be less stable.',
+        id: 'pU0SQw',
+    },
     upgradeChannelCurrentStatus: { defaultMessage: 'Current status', id: 'pFm27r' },
     upgradeChannelUpdatingTitle: { defaultMessage: 'Updating upgrade channel', id: 'ppARxn' },
     upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },

@@ -285,11 +285,9 @@ const Basics: FC = () => {
                         {intl.formatMessage(SettingsTabResources.upgradeChannel)}
                         <Tooltip
                             content={
-                                intl.formatMessage(SettingsTabResources.upgradeChannelCurrentStatus) +
-                                ': ' +
-                                (isPreviewChannel
-                                    ? intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
-                                    : intl.formatMessage(SettingsTabResources.upgradeChannelStable))
+                                isPreviewChannel
+                                    ? intl.formatMessage(SettingsTabResources.upgradeChannelStable)
+                                    : intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
                             }
                             relationship="description"
                         >
@@ -380,12 +378,12 @@ const Basics: FC = () => {
                                 <DialogTitle>{intl.formatMessage(SreAgentResources.deleteAgentTitle)}</DialogTitle>
                                 <DialogContent>{intl.formatMessage(SreAgentResources.deleteAgentDescription)}</DialogContent>
                                 <DialogActions>
-                                    <Button appearance="primary" onClick={onDeleteAgent}>
-                                        {intl.formatMessage(SreAgentResources.delete)}
+                                    <Button appearance="primary" className={dialogStyles.dangerButton} onClick={onDeleteAgent}>
+                                        {intl.formatMessage(SreAgentResources.yes)}
                                     </Button>
                                     <DialogTrigger disableButtonEnhancement>
                                         <Button appearance="secondary" onClick={() => setDeleteDialogOpen(false)}>
-                                            {intl.formatMessage(SreAgentResources.cancel)}
+                                            {intl.formatMessage(SreAgentResources.no)}
                                         </Button>
                                     </DialogTrigger>
                                 </DialogActions>
