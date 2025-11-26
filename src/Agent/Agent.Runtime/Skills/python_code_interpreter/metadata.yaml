@@ -1,10 +1,10 @@
-name: python_code_interpreter
+name: code_execution_runtime
 description: |
   This skill enables any Python code execution (Jupyter environment) and copilot like POSIX shell commands for general programming, web content retrieval, data analysis, automation, and artifact (csv, txt, pdf, pptx, docx etc) generation with full outbound network connectivity in a VM.
 
   Load this skill when the user asks to:
-  - Retrieve, inspect, or analyze web page content (HTML parsing, checking current website versions, rendering webpage using playwright)
-  - Execute custom Python script for any programming task or algorithm implementation
+  - Retrieve, inspect, or analyze web page content (HTML parsing, checking current website versions, rendering webpage using playwright, chromium is already installed)
+  - Execute custom Python script for any programming task or data analysis or algorithm implementation
   - Generate complex visualizations beyond standard charts (heatmaps, scatter plots, box plots, violin plots, 3D visualizations, custom graphics)
   - Process, transform, or analyze user-provided data using Python/pandas
   - Create downloadable artifacts (PDFs, CSVs, Excel files, images, reports)

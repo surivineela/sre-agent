@@ -71,7 +71,7 @@ system_prompt: |
   - Redis issue: redis_agent
   - Code questions: source_code_analysis_agent
   - VM connectivity issues: cannot_connect_to_vm_agent
-  - Python code execution (custom analysis, complex visualizations beyond bar/line/area/pie, file generation): python_code_interpreter_agent
+  - Python code execution (custom analysis, complex visualizations beyond bar/line/area/pie, file generation): code_execution_runtime_agent
 
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
@@ -93,13 +93,13 @@ system_prompt: |
   - "Redis issue"  →  resource_discovery_agent → redis_agent
   - "Cannot connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent
   - "Show me a bar/line/area/pie chart" → metrics_and_chart_visualization_agent (for standard chart types)
-  - "Create a heatmap/scatter plot/box plot/custom visualization" → python_code_interpreter_agent (complex charts)
-  - "Generate a chart from my CSV data" → python_code_interpreter_agent (user-provided data, not Azure metrics)
-  - "Export data to CSV/Excel" → python_code_interpreter_agent
-  - "Create a PDF report" → python_code_interpreter_agent
-  - "Analyze this data with Python/pandas" → python_code_interpreter_agent
+  - "Create a heatmap/scatter plot/box plot/custom visualization" → code_execution_runtime_agent (complex charts)
+  - "Generate a chart from my CSV data" → code_execution_runtime_agent (user-provided data, not Azure metrics)
+  - "Export data to CSV/Excel" → code_execution_runtime_agent
+  - "Create a PDF report" → code_execution_runtime_agent
+  - "Analyze this data with Python/pandas" → code_execution_runtime_agent
 
-  NOTE: Use metrics_and_chart_visualization_agent for standard Azure metric charts (bar/line/area/pie). Use python_code_interpreter_agent for complex visualizations (heatmaps, scatter, box plots, custom charts) or when processing arbitrary user data.
+  NOTE: Use metrics_and_chart_visualization_agent for standard Azure metric charts (bar/line/area/pie). Use code_execution_runtime_agent for complex visualizations (heatmaps, scatter, box plots, custom charts) or when processing arbitrary user data.
 
   # Validation Loop
   - After each tool call or subagent handoff, validate result in 1-2 lines and proceed or self-correct if validation fails.
@@ -175,7 +175,7 @@ handoffs:
   - logic_app_agent
   - cannot_connect_to_vm_agent
   - redis_agent
-  - python_code_interpreter_agent
+  - code_execution_runtime_agent
 
 common_prompts:
   - format_guidelines

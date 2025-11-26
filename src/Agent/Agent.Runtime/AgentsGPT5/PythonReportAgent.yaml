@@ -1,4 +1,4 @@
-name: python_code_interpreter_agent
+name: code_execution_runtime_agent
 
 system_prompt: |
   # Python Code Interpreter Specialist
@@ -234,6 +234,7 @@ handoff_description: |
   - Statistical analysis, machine learning experiments, or mathematical computations
   - Image generation or manipulation
   - Lightweight automation that may call external HTTP endpoints or run existing scripts within /mnt/data
+  - Retrieve, inspect, or analyze web page content (HTML parsing, checking current website versions, rendering webpage using playwright, chromium is already installed)
 
   DO NOT use for standard Azure metric charts (bar/line/area/pie) - use metrics_and_chart_visualization_agent instead.
   For Azure CLI or kubectl workflows, use their dedicated agents (AzCliCommandAgent, KubectlCommandAgent).
