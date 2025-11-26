@@ -13,6 +13,7 @@ namespace Agent.Web.Models.ExtendedAgents;
 public abstract class ExtendedAgentToolApiModel
 {
     public string Name { get; set; } = string.Empty;
+    [JsonIgnore]
     public string Type { get; set; } = string.Empty;
     public string Connector { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

@@ -31,6 +31,7 @@ public record ToolDocumentModel(
     [JsonIgnore]
     public string Name => Spec.Name;
 
+    // [JsonIgnore] uncomment when we remove the CustomizedJsonPolymorphic attribute
     public string Type => Spec.Type;
 
     #region Conversion between runtime and data model

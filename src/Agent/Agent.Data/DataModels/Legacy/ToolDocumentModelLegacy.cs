@@ -20,7 +20,7 @@ using Agent.Framework;
 public record ToolDocumentModelLegacy(
     string Id,
     string Name,
-    string Type,
+    [property: JsonIgnore] string Type,
     string Connector,
     string Description,
     List<YamlParameter> Parameters,

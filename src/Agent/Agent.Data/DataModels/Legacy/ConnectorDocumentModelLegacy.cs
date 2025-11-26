@@ -22,7 +22,7 @@ using Agent.Framework;
 public record ConnectorDocumentModelLegacy(
     string Id,
     string Name,
-    string Type,
+    [property: JsonIgnore] string Type,
     string Description,
     YamlMetadata Metadata,
     ConnectorAuthSettings Auth,
