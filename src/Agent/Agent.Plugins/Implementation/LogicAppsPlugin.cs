@@ -517,7 +517,7 @@ public class LogicAppsPlugin : ILogicAppsPlugin
             string? connectionString = null;
             string? instrumentationKey = null;
 
-            if(propertiesElement.TryGetProperty("APPLICATIONINSIGHTS_CONNECTION_STRING", out var connectionStringElement) &&
+            if (propertiesElement.TryGetProperty("APPLICATIONINSIGHTS_CONNECTION_STRING", out var connectionStringElement) &&
                connectionStringElement.ValueKind == JsonValueKind.String)
             {
                 connectionString = connectionStringElement.GetString();

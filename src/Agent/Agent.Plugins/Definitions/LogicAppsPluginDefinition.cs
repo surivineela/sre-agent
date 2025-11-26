@@ -18,13 +18,13 @@ namespace Agent.Plugins.Definitions
         {
             _plugin = plugin;
         }
-        
+
         [Description("Gets the details of a Logic App")]
         [AgentTool(ToolMode.Auto)]
         public async Task<LogicAppDescriptor?> GetLogicAppInfoAsync(
             [Description("The ARM resource id of a Logic App")] string logicAppResourceId)
         {
-             return await this._plugin.GetLogicAppInfoAsync(logicAppResourceId);
+            return await this._plugin.GetLogicAppInfoAsync(logicAppResourceId);
         }
 
         [Description("Update the app setting for a given Logic App")]
