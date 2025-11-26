@@ -257,7 +257,7 @@ public static class ToolDescriptionHelper
             "transfer_to_aks_general_agent" => "Analyzing Kubernetes cluster configuration...",
             "transfer_to_github_issue_agent" => "Managing GitHub issues for incident tracking...",
             "transfer_to_azure_cli_command_executor_agent" => "Executing Azure CLI commands...",
-            "transfer_to_python_code_interpreter_agent" => "Running analysis using Python...",
+            "transfer_to_code_execution_runtime_agent" => "Running analysis using Python...",
             "HandoffBack" => "Continuing with the investigation...",
 
             // GitHub Issue Plugin functions (from GithubIssueAgent.yaml)
