@@ -1,4 +1,4 @@
-import { Body1, Body1Strong, tokens } from '@fluentui-copilot/react-copilot';
+import { Body1, Body1Strong, Caption1, tokens } from '@fluentui-copilot/react-copilot';
 import {
     Accordion,
     AccordionHeader,
@@ -8,7 +8,7 @@ import {
     makeStyles,
     mergeClasses,
 } from '@fluentui/react-components';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -115,6 +115,21 @@ const useStyles = makeStyles({
     },
     panelContent: {
         padding: '16px 20px',
+    },
+    headerWithTime: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        width: '100%',
+    },
+    headerContent: {
+        flex: 1,
+        minWidth: 0,
+    },
+    timeCaption: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+        flexShrink: 0,
     },
 });
 
@@ -233,6 +248,39 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
     const styles = useStyles();
     const intl = useIntl();
 
+    // Track if accordion should be open - default to open only if currently active
+    const [openItems, setOpenItems] = useState<string[]>(reasoning.active ? [THINK_MODE] : []);
+    const [startTime, setStartTime] = useState<number | null>(reasoning.active ? Date.now() : null);
+    const [elapsedTime, setElapsedTime] = useState<string | null>(null);
+    const itemCountRef = useRef(reasoning.items.length);
+
+    // Track time and collapse when new messages appear
+    useEffect(() => {
+        if (reasoning.active) {
+            // Thinking is active - ensure accordion is open and track start time
+            if (!startTime) {
+                setStartTime(Date.now());
+            }
+            setOpenItems([THINK_MODE]);
+        } else if (startTime && !elapsedTime) {
+            // Thinking just completed - calculate elapsed time and keep open
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.round(elapsed / 1000);
+            setElapsedTime(seconds > 0 ? `${seconds}s` : '<1s');
+            setOpenItems([THINK_MODE]);
+        }
+
+        // Detect if new items appeared after this reasoning (indicating a new message)
+        // This happens when reasoning is done and the items array grows with new content
+        if (!reasoning.active && reasoning.items.length > itemCountRef.current) {
+            // New message appeared - collapse the accordion
+            setOpenItems([]);
+        }
+
+        // Update item count reference
+        itemCountRef.current = reasoning.items.length;
+    }, [reasoning.active, reasoning.items.length, startTime, elapsedTime]);
+
     const items = useMemo(() => {
         const getHeaderAndContent = (content: string) => {
             let header: string = '';
@@ -275,19 +323,30 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
                 isMarkdown: false,
             };
         }
-    }, [items, reasoning.active]);
+    }, [items, reasoning.active, intl]);
 
     return (
-        <Accordion multiple collapsible defaultOpenItems={[THINK_MODE]} className={styles.root}>
+        <Accordion
+            multiple
+            collapsible
+            openItems={openItems}
+            onToggle={(_, data) => setOpenItems(data.openItems as string[])}
+            className={styles.root}
+        >
             <AccordionItem value={THINK_MODE} key={THINK_MODE}>
                 <AccordionHeader expandIconPosition={'end'} size={'small'}>
-                    <Header
-                        isMarkdown={reasoningHeader.isMarkdown}
-                        content={reasoningHeader.content}
-                        active={reasoning.active}
-                        bold={true}
-                        ellipsis={true}
-                    />
+                    <div className={styles.headerWithTime}>
+                        <div className={styles.headerContent}>
+                            <Header
+                                isMarkdown={reasoningHeader.isMarkdown}
+                                content={reasoningHeader.content}
+                                active={reasoning.active}
+                                bold={true}
+                                ellipsis={true}
+                            />
+                        </div>
+                        {elapsedTime && !reasoning.active && <Caption1 className={styles.timeCaption}>{elapsedTime}</Caption1>}
+                    </div>
                 </AccordionHeader>
                 <AccordionPanel>
                     <div className={styles.panelContent}>
