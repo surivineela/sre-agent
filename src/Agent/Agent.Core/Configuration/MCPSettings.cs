@@ -13,6 +13,11 @@ namespace Agent.Core.Configuration
         public bool Enabled { get; set; } = true;
 
         /// <summary>
+        /// Whether to run a stdio MCP server in the session pool.
+        /// </summary>
+        public bool UseSessionForStdio { get; set; } = false;
+
+        /// <summary>
         /// The list of MCP servers that will be exposed as individual subagents
         /// </summary>
         public HashSet<string> IsolatedServers { get; set; } = [];

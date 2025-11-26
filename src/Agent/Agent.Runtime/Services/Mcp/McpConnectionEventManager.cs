@@ -81,16 +81,16 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         {
             McpTransportType.Http when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig),
             //"sse" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig), // Legacy SSE now uses HTTP
-            //"stdio" when !string.IsNullOrEmpty(command) => new StdioClientTransport(new StdioClientTransportOptions
-            //{
-            //    Name = _unsafeToolNameChars.Replace(name, string.Empty),
-            //    Command = command,
-            //    Arguments = arguments ?? Array.Empty<string>(),
-            //    WorkingDirectory = workingDirectory
-            //}),
+            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && !_mcpSettings.UseSessionForStdio => new StdioClientTransport(new StdioClientTransportOptions
+            {
+                Name = _unsafeToolNameChars.Replace(name, string.Empty),
+                Command = command,
+                Arguments = arguments ?? Array.Empty<string>(),
+                WorkingDirectory = workingDirectory
+            }),
             // run local MCP servers via session pool proxy
-            McpTransportType.Stdio when !string.IsNullOrEmpty(command) => _sessionTransportFactory.CreateSessionTransport(
-                name,
+            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && _mcpSettings.UseSessionForStdio => _sessionTransportFactory.CreateSessionTransport(
+                _unsafeToolNameChars.Replace(name, string.Empty),
                 command,
                 arguments ?? Array.Empty<string>()),
             _ => throw new ArgumentException($"Invalid connection type '{type}' or missing required parameters")
