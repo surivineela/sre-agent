@@ -23,13 +23,7 @@ public abstract record DataConnectorSourceDocument
     /// <summary>
     /// The type is used to filter documents for a specific data connector when searching the index.
     /// </summary>
-    public string Type
-    {
-        get
-        {
-            return GetType().Name;
-        }
-    }
+    public string Type => GetType().Name;
 
     /// <summary>
     /// Additional search filter. Can be any string.

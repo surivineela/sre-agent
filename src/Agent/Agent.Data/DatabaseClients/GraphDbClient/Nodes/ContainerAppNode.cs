@@ -1,6 +1,14 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DatabaseClients.Attributes;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient;
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class ContainerAppNode : ArmResourceNode
 {
@@ -112,14 +120,14 @@ public class ContainerAppNode : ArmResourceNode
             props.Add("hostNames", string.Join(",", HostNames));
 
             // Also add individual hostnames for easier querying
-            for (int i = 0; i < HostNames.Count; i++)
+            for (var i = 0; i < HostNames.Count; i++)
             {
                 // Add all hostnames as separate properties
                 props.Add($"hostname_{i}", HostNames[i]);
             }
 
             // Flag if there are custom domains
-            bool hasCustomDomains = HostNames.Any(h => !h.EndsWith(".azurecontainerapps.io", StringComparison.OrdinalIgnoreCase));
+            var hasCustomDomains = HostNames.Any(h => !h.EndsWith(".azurecontainerapps.io", StringComparison.OrdinalIgnoreCase));
             if (hasCustomDomains)
             {
                 props.Add("hasCustomDomains", true);
@@ -129,7 +137,7 @@ public class ContainerAppNode : ArmResourceNode
         // Add containers
         if (Containers != null && Containers.Count > 0)
         {
-            for (int i = 0; i < Containers.Count; i++)
+            for (var i = 0; i < Containers.Count; i++)
             {
                 var container = Containers[i];
                 props.Add($"container_{i}_name", container.Name ?? string.Empty);
@@ -142,7 +150,7 @@ public class ContainerAppNode : ArmResourceNode
         // Add init containers
         if (InitContainers != null && InitContainers.Count > 0)
         {
-            for (int i = 0; i < InitContainers.Count; i++)
+            for (var i = 0; i < InitContainers.Count; i++)
             {
                 var container = InitContainers[i];
                 props.Add($"initContainer_{i}_name", container.Name ?? string.Empty);
@@ -154,7 +162,7 @@ public class ContainerAppNode : ArmResourceNode
 
         if (Traffic != null && Traffic.Count > 0)
         {
-            for (int i = 0; i < Traffic.Count; i++)
+            for (var i = 0; i < Traffic.Count; i++)
             {
                 var trafficConfig = Traffic[i];
                 props.Add($"traffic_{i}_revisionName", trafficConfig.RevisionName ?? string.Empty);
@@ -166,7 +174,7 @@ public class ContainerAppNode : ArmResourceNode
 
         if (Registries != null && Registries.Count > 0)
         {
-            for (int i = 0; i < Registries.Count; i++)
+            for (var i = 0; i < Registries.Count; i++)
             {
                 var registry = Registries[i];
                 props.Add($"registry_{i}_server", registry.Server ?? string.Empty);

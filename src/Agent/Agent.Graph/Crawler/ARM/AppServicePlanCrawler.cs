@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
@@ -22,7 +23,7 @@ public class AppServicePlanCrawler : GenericArmResourceCrawler
         _dbGraphDbClient = dbGraphDbClient;
     }
 
-    public async override IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
+    public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         await foreach (var n in base.Crawl(node))
         {

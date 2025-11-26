@@ -7,7 +7,7 @@ using Agent.Data.DatabaseClients.Attributes;
 using Azure.Core;
 using k8s;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient;
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class KubernetesResourceNode : GraphNode
 {
@@ -15,7 +15,7 @@ public class KubernetesResourceNode : GraphNode
     public IKubernetesObject? ResourceObject { get; set; }
 
     [GraphProperty("subscriptionId")]
-    public string? SubscriptionId { get; set; }
+    public string SubscriptionId { get; set; }
 
     [GraphProperty("resourceGroupName")]
     public string? ResourceGroupName { get; set; }
@@ -70,11 +70,12 @@ public class KubernetesResourceNode : GraphNode
         Annotations = annotations;
         Labels = labels;
 
-        if (string.IsNullOrEmpty(subscriptionId) && !string.IsNullOrEmpty(clusterResourceId))
+        if (string.IsNullOrEmpty(subscriptionId)
+            && !string.IsNullOrEmpty(clusterResourceId))
         {
             var id = new ResourceIdentifier(clusterResourceId);
-            SubscriptionId = id.SubscriptionId?.ToLowerInvariant();
-            ResourceGroupName = id.ResourceGroupName?.ToLowerInvariant();
+            SubscriptionId = id.SubscriptionId?.ToLowerInvariant() ?? string.Empty;
+            ResourceGroupName = id.ResourceGroupName?.ToLowerInvariant() ?? string.Empty;
         }
     }
 

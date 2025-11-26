@@ -5,8 +5,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 using Agent.Core.Configuration;
@@ -58,6 +56,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
     private int _pendingCount = 0;
     private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
     private static readonly TimeSpan SoftDeletedNodesStaleThreshold = TimeSpan.FromDays(3); // Threshold for soft-deleted nodes cleanup
+    private static readonly TimeSpan GlobalStaleThreshold = TimeSpan.FromHours(6);
     private readonly ConcurrentDictionary<string, TokenBucketRateLimiter> _rateLimitersByResourceType = new(); // Token bucket rate limiters per resource type
     private readonly ConcurrentDictionary<string, QueuedCrawlRequest> _queuedCrawlRequests = new(); // Queue for rate-limited crawl requests, keyed by resource ID
     private readonly Timer _queueProcessingTimer; // Timer to periodically process the queue
@@ -90,7 +89,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
     public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? typeFilters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
         _logger.LogInternalInformation($"Crawl roots: {string.Join(",", rootIds)}. Cascade = {cascade}.");
-        List<GraphNode> roots = new List<GraphNode>();
+        var roots = new List<GraphNode>();
         foreach (var rootId in rootIds)
         {
             if (IsSourceCodeRepoUrl(rootId))
@@ -107,7 +106,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             }
         }
 
-        HashSet<string> scopeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var scopeFiltersSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var sorted = rootIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase);
         var last = string.Empty;
         foreach (var id in sorted)
@@ -294,7 +293,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         try
         {
             Queue queue = new();
-            Queue toCrawl = Queue.Synchronized(queue);
+            var toCrawl = Queue.Synchronized(queue);
             IList<Task> tasks = new List<Task>();
 
             _crawledCount = 0;
@@ -494,7 +493,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         const int maxRetries = 5;
         const int baseDelayMs = 500; // 0.5 second
 
-        for (int attempt = 0; attempt <= maxRetries; attempt++)
+        for (var attempt = 0; attempt <= maxRetries; attempt++)
         {
             try
             {
@@ -598,7 +597,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             return (null, null, null);
         }
 
-        ResourceIdentifier id = ResourceIdentifier.Parse(resourceId);
+        var id = ResourceIdentifier.Parse(resourceId);
         if (!string.IsNullOrEmpty(id.SubscriptionId) && string.IsNullOrEmpty(id.ResourceGroupName))
         {
             return (id.SubscriptionId, null, null);
@@ -615,7 +614,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
 
     private List<WatchEventSource> GetArmWatchEventSources(IEnumerable<string> resourceIds)
     {
-        List<WatchEventSource> sources = new List<WatchEventSource>();
+        var sources = new List<WatchEventSource>();
         foreach (var resourceId in resourceIds)
         {
             if (string.IsNullOrEmpty(resourceId))
@@ -772,7 +771,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
             eventData.HttpRequest.Method == null ||
             string.IsNullOrEmpty(eventData.Status?.Value))
         {
-            _logger.LogInternalWarning($"Incomplete event data received: {(eventData?.ResourceId ?? "unknown resource")}");
+            _logger.LogInternalWarning($"Incomplete event data received: {eventData?.ResourceId ?? "unknown resource"}");
             return ArmResourceOperationType.Other;
         }
 
@@ -881,8 +880,7 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                                     resourceName: k8sItem.ResourceName,
                                     group: k8sItem.Group,
                                     apiVersion: k8sItem.ApiVersion,
-                                    kind: k8sItem.Kind
-                                );
+                                    kind: k8sItem.Kind);
 
                                 if (k8sItem.IsDelete)
                                 {
@@ -907,7 +905,6 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
                         default:
                             throw new NotSupportedException($"Unsupported trigger item type: {item.GetType().Name}");
                     }
-
                 });
             }
         }
@@ -987,7 +984,29 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
         }
     }
 
-    private string GetResourceTypeForRateLimit(GraphNode node)
+    public async Task GlobalCleanupStaleNodes(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Running global stale node cleanup");
+
+            // 6 hours - longer than per-scope cleanup to avoid false positives from temporary crawl failures
+            var deleteBefore = DateTimeOffset.UtcNow - GlobalStaleThreshold;
+
+            // Use empty props to run cleanup across entire graph, but only for Azure resource nodes
+            // This ensures we only clean up ARM resources (have subscriptionId) and K8s resources (have clusterResourceId),
+            // not incidents, source code repos, etc.
+            await CrawlerExtensions.SoftDeleteStaleNodesWithFilter(_graphDbClient, new Dictionary<string, string>(), deleteBefore, azureResourcesOnly: true);
+
+            _logger.LogInternalInformation($"Global cleanup completed - soft-deleted nodes older than {GlobalStaleThreshold.TotalMinutes} minutes");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error during global stale node cleanup");
+        }
+    }
+
+    private static string GetResourceTypeForRateLimit(GraphNode node)
     {
         if (node is ArmResourceNode armNode)
         {

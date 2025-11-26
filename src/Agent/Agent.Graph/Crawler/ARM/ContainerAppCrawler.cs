@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -22,7 +23,6 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
     private readonly SqlConnectionStringHelper _sqlHelper;
     private readonly PostgreSqlConnectionStringHelper _postgreSqlHelper;
     private readonly AzureResourceGraphClient _graphClient;
-
 
     public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient, AzureResourceGraphClient graphClient)
         : base(logger, graphDbClient, armClient)
@@ -60,18 +60,18 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         }
 
         var capp = cappResp.Value.Data;
-        this.UpdateContainerAppNode(cappNode, capp);
+        UpdateContainerAppNode(cappNode, capp);
 
         await _graphDbClient.AddOrUpdateNodeAsync(cappNode);
 
         var secrets = cappResp.Value.GetSecretsAsync();
-        await foreach (var nextNode in this.ProcessSecrets(capp, cappNode, secrets))
+        await foreach (var nextNode in ProcessSecrets(capp, cappNode, secrets))
         {
             yield return nextNode;
         }
 
         var revisions = cappResp.Value.GetContainerAppRevisions().GetAllAsync();
-        await foreach (var nextNode in this.ProcessRevisions(cappNode, revisions))
+        await foreach (var nextNode in ProcessRevisions(cappNode, revisions))
         {
             yield return nextNode;
         }
@@ -168,7 +168,10 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     if (secrets.ContainsKey(env.SecretRef))
                     {
                         var secretValue = secrets[env.SecretRef];
-                        if (string.IsNullOrEmpty(secretValue)) continue;
+                        if (string.IsNullOrEmpty(secretValue))
+                        {
+                            continue;
+                        }
 
                         await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, secretValue, "secret"))
                         {
@@ -322,7 +325,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         string sourceType)
     {
         // Strip any port if present
-        int portIndex = hostName.LastIndexOf(':');
+        var portIndex = hostName.LastIndexOf(':');
         if (portIndex >= 0)
         {
             hostName = hostName.Substring(0, portIndex);

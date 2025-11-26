@@ -39,6 +39,14 @@ public interface ICrawlerService
     public Task DeleteStaleSoftDeletedNodes(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Runs a global cleanup to soft-delete stale nodes across the entire graph.
+    /// This catches orphaned nodes from scopes that have been removed from crawl roots.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task GlobalCleanupStaleNodes(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the current crawler result. This is a snapshot of the crawler state.
     /// </summary>
     public Task<CrawlerResult> GetCrawlerResult();

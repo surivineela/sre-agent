@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
@@ -30,7 +31,7 @@ public class GraphService : IGraphService
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
 
-    private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new(StringComparer.OrdinalIgnoreCase)
         {
             { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
             { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
@@ -73,7 +74,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
     {
         _logger.LogInternalInformation("Querying subscriptions from graph database");
-        string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}').has('isDeleted', false)
+        var query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}').has('isDeleted', false)
                          .project('name', 'id')
                          .by('subscriptionName')
                          .by('subscriptionId')";
@@ -103,7 +104,7 @@ public class GraphService : IGraphService
     public async Task<List<IGraphService.AppGroupWithRepo>> GetAppGroupsWithRepo()
     {
         _logger.LogInternalInformation("Querying app groups with repositories from graph database");
-        string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}')).has('isDeleted', false)
+        var query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}')).has('isDeleted', false)
                          .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp', 'clusterResourceId', 'namespace')
                          .by(coalesce(values('resourceId'), constant('')))
                          .by(coalesce(values('resourceName'), constant('')))
@@ -128,11 +129,11 @@ public class GraphService : IGraphService
         return azureResourceApps.Select(item =>
         {
             var resourceId = item["resourceId"]?.ToString() ?? string.Empty;
-            string name = item["name"]?.ToString() ?? string.Empty;
-            string type = item["type"]?.ToString() ?? string.Empty;
-            string repoUrl = item["repo"]?.ToString() ?? string.Empty;
-            long linkedTimestamp = Convert.ToInt64(item["linkedTimestamp"] ?? 0);
-            string aksNamespace = item["namespace"]?.ToString() ?? string.Empty;
+            var name = item["name"]?.ToString() ?? string.Empty;
+            var type = item["type"]?.ToString() ?? string.Empty;
+            var repoUrl = item["repo"]?.ToString() ?? string.Empty;
+            var linkedTimestamp = Convert.ToInt64(item["linkedTimestamp"] ?? 0);
+            var aksNamespace = item["namespace"]?.ToString() ?? string.Empty;
 
             if (type == ArmConstants.AzureKubernetesServiceDeploymentType.ToLower() || type == ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower())
             {
@@ -173,7 +174,7 @@ public class GraphService : IGraphService
             }
         }
 
-        string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}').has('isDeleted', false)
+        var query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}').has('isDeleted', false)
                         .has('resourceType', {resourceTypeFilter})
                         .project('id', 'name', 'type', 'properties')
                         .by(id())
@@ -209,7 +210,7 @@ public class GraphService : IGraphService
             {
                 // Replace direct property access with GetFirstValueAsString method
                 var properties = aksResource?["properties"] as IDictionary<string, object>;
-                string aksResourceId = properties != null
+                var aksResourceId = properties != null
                     ? GetFirstValueAsString(properties, "resourceId")
                     : string.Empty;
 
@@ -221,7 +222,7 @@ public class GraphService : IGraphService
                 _logger.LogInternalInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
 
                 // Query to get deployments and statefulsets for this AKS cluster
-                string k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}').has('isDeleted', false)
+                var k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}').has('isDeleted', false)
                             .has('resourceType',  {k8sResourceTypeFilter})
                             .project('id', 'name', 'type', 'properties')
                             .by(id())
@@ -247,7 +248,7 @@ public class GraphService : IGraphService
 
     private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId)
     {
-        string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
+        var query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}').has('isDeleted', false)
                      .union(
                         outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'USES', 'USES_ACTION', 'USES_TRIGGER', 'USES_TRIGGER_ACTION')
                           .where(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).not(has('isDeleted', true)))
@@ -300,7 +301,7 @@ public class GraphService : IGraphService
         {
             var properties = item["properties"] as IDictionary<string, object>;
 
-            string kind = string.Empty;
+            var kind = string.Empty;
             if (properties?.TryGetValue("resourceKind", out var kindValue) == true && kindValue != null)
             {
                 kind = kindValue.ToString() ?? string.Empty;
@@ -325,7 +326,7 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
     {
-        int hops = 3;
+        var hops = 3;
 
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
@@ -478,7 +479,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
         _logger.LogInternalInformation("Querying graph resource {resourceId}", resourceId);
-        string query = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
+        var query = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
                     .project('id', 'name', 'type', 'properties')
                     .by(id())
                     .by(coalesce(values('resourceName'), constant('')))
@@ -499,18 +500,18 @@ public class GraphService : IGraphService
                 }
 
                 var properties = (IDictionary<string, object>)propertiesObj;
-                string resourceType = GetFirstValueAsString(properties, "resourceType")?.ToLowerInvariant() ?? "";
-                string resourceName = dict["name"]?.ToString() ??
+                var resourceType = GetFirstValueAsString(properties, "resourceType")?.ToLowerInvariant() ?? "";
+                var resourceName = dict["name"]?.ToString() ??
                                      GetFirstValueAsString(properties, "resourceName") ?? "";
-                string resourceGroupName = GetFirstValueAsString(properties, "resourceGroupName") ?? "";
-                string subscription = GetFirstValueAsString(properties, "subscriptionId") ?? "";
+                var resourceGroupName = GetFirstValueAsString(properties, "resourceGroupName") ?? "";
+                var subscription = GetFirstValueAsString(properties, "subscriptionId") ?? "";
 
                 // Check for repository connection
-                string repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
+                var repoQuery = $@"g.V().has('id', '{resourceId}').has('isDeleted', false)
                                 .outE('{ArmConstants.Relationships.ServesCode}').inV().not(has('isDeleted', true))
                                 .values('resourceId')";
                 var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
-                string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
+                var repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
 
                 // Get GitHub access token status - change this to test for AzDo token.
                 var githubAccessToken = await _threadRepository.GetGitHubAccessTokenAsync();
@@ -524,7 +525,7 @@ public class GraphService : IGraphService
 
                 var githubRepoRegex = new Regex(GithubRepoRegexPattern, RegexOptions.Compiled);
                 var azDoMatch = Regex.Match(repoUrl, AzDoRepoRegexPattern, RegexOptions.IgnoreCase);
-                bool isAzDoRepo = azDoMatch.Success;
+                var isAzDoRepo = azDoMatch.Success;
 
                 bool GithubRegexMatch(string url) => !string.IsNullOrEmpty(url) && githubRepoRegex.IsMatch(url);
                 bool AzdoRegexMatch(string url) => !string.IsNullOrEmpty(url) && isAzDoRepo;
@@ -564,7 +565,6 @@ public class GraphService : IGraphService
                      ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = string.Empty }
                      : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
 
-
                     ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
                 }
 
@@ -572,9 +572,9 @@ public class GraphService : IGraphService
                 if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl) &&
                     !string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaApiKey))
                 {
-                    if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string? dashboardType))
+                    if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out var dashboardType))
                     {
-                        string baseUrl = $"{_dashboardSettings.GrafanaUrl}/d/{dashboardType}";
+                        var baseUrl = $"{_dashboardSettings.GrafanaUrl}/d/{dashboardType}";
                         var queryParams = new Dictionary<string, string>
                         {
                             { "var-ds", "azure-monitor-oob" },
@@ -597,7 +597,7 @@ public class GraphService : IGraphService
                         }
 
                         // Try to get actual dashboard URL from Grafana API
-                        string dashboardUrl = baseUrl;
+                        var dashboardUrl = baseUrl;
                         try
                         {
                             using var httpClient = await GetHttpClient();
@@ -693,7 +693,7 @@ public class GraphService : IGraphService
             .Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
 
         // Determine the correct separator: ? if no query exists, otherwise use &
-        char separator = url.Contains("?") ? '&' : '?';
+        var separator = url.Contains("?") ? '&' : '?';
 
         // Append the query string to the URL
         return $"{url}{separator}{queryString}";
@@ -714,7 +714,7 @@ public class GraphService : IGraphService
         _logger.LogInternalInformation("Updating properties for resource {resourceId}", resourceId);
 
         // check if the vertex exists
-        string checkQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false).count()";
+        var checkQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false).count()";
 
         var checkResult = await _graphDatabaseClient.Query(checkQuery);
 
@@ -726,7 +726,7 @@ public class GraphService : IGraphService
 
         var bindings = new Dictionary<string, object>();
 
-        string updateQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false)"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
+        var updateQuery = $"g.V().has('id', '{resourceId}').has('isDeleted', false)"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
 
         foreach (var property in properties)
         {
@@ -735,7 +735,7 @@ public class GraphService : IGraphService
 
         var now = DateTime.UtcNow.Ticks;
         // update timestamp
-        string tsParamName = "updateTs";
+        var tsParamName = "updateTs";
 
         updateQuery += $".property('{tsParamName}', {now})";
 
@@ -821,7 +821,7 @@ public class GraphService : IGraphService
             queryParts.Add(".has('resourceName')");
         }
 
-        string countQuery = string.Join("", queryParts) + ".count()";
+        var countQuery = string.Join("", queryParts) + ".count()";
 
         queryParts.Add(@"
             .project('resourceId', 'name', 'type', 'kind', 'subscriptionId', 'resourceGroup', 'location', 'properties')
@@ -834,11 +834,11 @@ public class GraphService : IGraphService
             .by(coalesce(values('location'), constant('')))
             .by(valueMap())");
 
-        string mainQuery = string.Join("", queryParts);
+        var mainQuery = string.Join("", queryParts);
 
         _logger.LogInternalInformation("Executing count query: {query}", countQuery);
         var countResult = await _graphDatabaseClient.Query<long>(countQuery);
-        long totalCountBeforeNameFilter = countResult.FirstOrDefault();
+        var totalCountBeforeNameFilter = countResult.FirstOrDefault();
 
         _logger.LogInternalInformation("Executing main query: {query}", mainQuery);
         var results = await _graphDatabaseClient.Query<Dictionary<string, object>>(mainQuery);
@@ -855,7 +855,7 @@ public class GraphService : IGraphService
             });
         }
 
-        int totalCount = filteredResults.Count();
+        var totalCount = filteredResults.Count();
 
         var pagedResults = filteredResults
             .Skip(pageIndex * pageSize)

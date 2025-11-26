@@ -4,6 +4,7 @@
 
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 namespace Agent.Plugins.Services.Interfaces;

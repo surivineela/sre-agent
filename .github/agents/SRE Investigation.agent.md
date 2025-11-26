@@ -1,12 +1,12 @@
 ---
-model: Claude Sonnet 4.5 (Preview) (copilot)
+model: Claude Sonnet 4.5
 tools: ['usages', 'vscodeAPI', 'think', 'changes', 'fetch', 'githubRepo', 'todos', 'edit', 'search', 'runCommands', 'runTasks', 'Microsoft Docs/*', 'Azure MCP/kusto', 'Azure MCP/search', 'github/add_comment_to_pending_review', 'github/add_issue_comment', 'github/add_sub_issue', 'github/create_issue', 'github/get_commit', 'github/get_discussion', 'github/get_discussion_comments', 'github/get_file_contents', 'github/get_issue', 'github/get_issue_comments', 'github/get_latest_release', 'github/get_me', 'github/get_pull_request', 'github/get_pull_request_diff', 'github/get_pull_request_files', 'github/get_pull_request_review_comments', 'github/get_pull_request_reviews', 'github/get_pull_request_status', 'github/get_release_by_tag', 'github/get_tag', 'github/list_branches', 'github/list_commits', 'github/list_discussion_categories', 'github/list_discussions', 'github/list_issue_types', 'github/list_issues', 'github/list_project_fields', 'github/list_projects', 'github/list_pull_requests', 'github/list_sub_issues', 'github/list_tags', 'github/reprioritize_sub_issue', 'github/search_code', 'github/search_issues', 'github/search_orgs', 'github/search_pull_requests', 'github/search_repositories', 'github/search_users', 'ado/build_get_builds', 'ado/build_get_changes', 'ado/build_get_status', 'ado/repo_get_repo_by_name_or_id', 'ado/repo_search_commits', 'ado/search_code', 'ado/search_wiki', 'ado/search_workitem', 'ado/wiki_get_page_content', 'ado/wiki_get_wiki', 'ado/wiki_list_pages', 'ado/wiki_list_wikis', 'ado/wit_get_query', 'ado/wit_get_query_results_by_id', 'ado/wit_get_work_item', 'ado/wit_get_work_item_type', 'ado/wit_get_work_items_batch_by_ids', 'ado/wit_get_work_items_for_iteration', 'ado/wit_link_work_item_to_pull_request', 'ado/wit_list_backlog_work_items', 'ado/wit_list_backlogs', 'ado/wit_list_work_item_comments', 'ado/wit_my_work_items', 'ado/wit_update_work_item', 'ado/wit_update_work_items_batch', 'ado/wit_work_item_unlink', 'ado/wit_work_items_link']
 description: Comprehensive instructions for SRE Agent investigations, Kusto queries, ADO build tracking, GitHub PR correlation, and source code analysis in locally cloned sreagent-runtime repository.
 ---
-## 🏠 Local Repository Context  
+## 🏠 Local Repository Context
 
 You are working within a **locally cloned** `serverless-paas-balam/sreagent-runtime` repository on Windows. This gives you access to:
-- **Local VS Code search tools** (PowerShell/grep-based) for current workspace state  
+- **Local VS Code search tools** (PowerShell/grep-based) for current workspace state
 - **GitHub MCP search tools** (semantic search) for faster cross-repository discovery
 - **Mixed approach**: Use GitHub MCP for speed and breadth, local search for precision and current context
 
@@ -51,7 +51,7 @@ You are working within a **locally cloned** `serverless-paas-balam/sreagent-runt
 
 ### 🚫 FAILURE MODES TO AVOID
 - Jumping to queries without analysis
-- Random exploration without hypotheses  
+- Random exploration without hypotheses
 - Tunnel vision on single causes
 - Stopping at telemetry without validating against source code
 - Ignoring existing PRs and GitHub issues that might explain the problem
@@ -109,9 +109,9 @@ All("AgentDocumentDBState")
 | where subscriptionId == "customer-subscription-id"
 | summarize arg_max(PreciseTimeStamp, *) by agentName
 | extend ConfigDoc = parse_json(document)
-| project 
+| project
     agentName,
-    subscriptionId, 
+    subscriptionId,
     resourceGroup,
     provisioningState,
     agentEndpoint,
@@ -126,7 +126,7 @@ let CustomerAgents = dynamic(["agent1", "agent2"]); // From Step 1 results
 All("SREAgentDataPlaneEvents")
 | where AgentName in (CustomerAgents)
 | where PreciseTimeStamp >= ago(3d)
-| summarize 
+| summarize
     EventCount = count(),
     FirstEvent = min(PreciseTimeStamp),
     LastEvent = max(PreciseTimeStamp),
@@ -193,7 +193,7 @@ All("SREAgentAdminEvents")
 🚨 **CRITICAL - NEVER SKIP**: Always use `All("TableName")` for all Kusto queries - this is required for proper table access and cross-cluster data retrieval in the SRE Agent Kusto environment.
 
 **Examples of CORRECT syntax:**
-- ✅ `All("SREAgentDataPlaneEvents")` 
+- ✅ `All("SREAgentDataPlaneEvents")`
 - ✅ `All("AgentActionEvents")`
 - ✅ `All("UserSubscriptionDBState")`
 
@@ -204,7 +204,7 @@ All("SREAgentAdminEvents")
 
 ### Discovery-First Tool Usage
 - Always start by discovering available Azure tools and their capabilities
-- Use natural language to understand tool parameters and options  
+- Use natural language to understand tool parameters and options
 - Bind cluster/database as variables, run small time-bounded queries first, then iterate
 - Avoid hard-coded command names/parameters; prefer discovery and adapt to discovered contracts
 
@@ -212,7 +212,7 @@ All("SREAgentAdminEvents")
 ⚠️ **MANDATORY**: Before using any example queries from this document, validate them against actual data:
 
 1. **Discover Table Structure**: Use `kusto_table_list` and `kusto_table_schema` to verify available tables
-2. **Get Sample Data**: Use `kusto_sample` to understand actual field names and data structures  
+2. **Get Sample Data**: Use `kusto_sample` to understand actual field names and data structures
 3. **Test Small Queries**: Start with simple projections before complex aggregations
 4. **Validate Assumptions**: Check that fields and JSON structures exist before parsing
 
@@ -278,9 +278,9 @@ All("SREAgentAdminEvents")
 ```kql
 // Step 1: List all available tables using MCP tools kusto_table_list
 
-// Step 2: Verify table schema before writing complex queries  
+// Step 2: Verify table schema before writing complex queries
 All("AgentDocumentDBState") | getschema
-All("SREAgentDataPlaneEvents") | getschema  
+All("SREAgentDataPlaneEvents") | getschema
 All("AgentActionEvents") | getschema
 
 // Step 3: Get sample data to understand actual structure
@@ -308,7 +308,7 @@ All("AgentActionEvents")
 // Active agents and their recent activity (verify fields exist)
 All("AgentActionEvents")
 | where PreciseTimeStamp >= ago(15m)
-| summarize 
+| summarize
     LastActivity = max(PreciseTimeStamp),
     ActionCount = count(),
     UniqueActions = dcount(Action)
@@ -323,13 +323,13 @@ All("AgentDocumentDBState")
 | top 1 by PreciseTimeStamp desc
 | project PreciseTimeStamp, document, docLength = strlen(document)
 
-// Search for agents with specific configuration features  
+// Search for agents with specific configuration features
 // Example: Find agents with specific action modes
 All("AgentDocumentDBState")
 | extend cfg = parse_json(document)
 | where isnotempty(cfg.spec.actionConfiguration.mode)
-| project 
-    agentName, 
+| project
+    agentName,
     ActionMode = tostring(cfg.spec.actionConfiguration.mode),
     AccessLevel = tostring(cfg.spec.actionConfiguration.accessLevel),
     PreciseTimeStamp
@@ -344,12 +344,12 @@ All("AgentDocumentDBState")
 | join kind=leftouter (
     All("SREAgentDataPlaneEvents")
     | where PreciseTimeStamp >= ago(24h)
-    | summarize 
+    | summarize
         RecentEventCount = count(),
         LastActivity = max(PreciseTimeStamp)
         by AgentName
     ) on $left.agentName == $right.AgentName
-| project 
+| project
     agentName,
     provisioningState,
     powerState = tostring(ConfigDoc.metadata.powerState),
@@ -358,7 +358,7 @@ All("AgentDocumentDBState")
     agentEndpoint,
     HealthStatus = case(
         RecentEventCount > 10, "🟢 Active",
-        RecentEventCount > 0, "🟡 Limited Activity", 
+        RecentEventCount > 0, "🟡 Limited Activity",
         "🔴 No Recent Activity"
     )
 | order by RecentEventCount desc
@@ -394,20 +394,20 @@ All("SREAgentDataPlaneEvents")
 let TimeWindow = 7d;  // Change to desired timeframe (e.g., 1d, 24h, 30d)
 let ContainerPattern = "sreagentprod.azurecr.io/sre-agent-web:";  // Change for different containers
 All("SREAgentDataPlaneEvents")
-| where PreciseTimeStamp >= ago(TimeWindow) 
-| where isnotempty(ContainerImage) 
+| where PreciseTimeStamp >= ago(TimeWindow)
+| where isnotempty(ContainerImage)
 | where ContainerImage startswith ContainerPattern
-| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage) 
-| where isnotempty(Version) 
-| summarize 
-    AgentCount = dcount(AgentName), 
-    EventCount = count(), 
-    FirstSeen = min(PreciseTimeStamp), 
+| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage)
+| where isnotempty(Version)
+| summarize
+    AgentCount = dcount(AgentName),
+    EventCount = count(),
+    FirstSeen = min(PreciseTimeStamp),
     LastSeen = max(PreciseTimeStamp),
     Regions = make_set(Region),
     RegionCount = dcount(Region),
     AgentsByRegion = make_bag(pack(Region, dcount(AgentName)))
-    by Version, ContainerImage 
+    by Version, ContainerImage
 | extend ActiveDuration = LastSeen - FirstSeen
 | order by Version desc
 ```
@@ -460,7 +460,7 @@ All("AgentActionEvents")
 All("AgentActionEvents")
 | where Action == "evaluate.thread"
 | extend ThreadData = parse_json(Parameter)
-| summarize 
+| summarize
     ThreadCount = count(),
     AvgSATScore = avg(toreal(ThreadData.SATScore))
     by Category = tostring(ThreadData.Category)
@@ -470,30 +470,30 @@ All("AgentActionEvents")
 ```kql
 // Find all distinct agents running version X.Y.Z or higher (with specific fix)
 let MinMajor = 25;  // Change to target major version
-let MinMinor = 8;   // Change to target minor version  
+let MinMinor = 8;   // Change to target minor version
 let MinPatch = 1;   // Change to target patch version
 let TimeWindow = 24h;  // Change to desired timeframe
 All("SREAgentDataPlaneEvents")
-| where PreciseTimeStamp >= ago(TimeWindow) 
-| where isnotempty(ContainerImage) 
-| where ContainerImage startswith "sreagentprod.azurecr.io/sre-agent-web:" 
-| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage) 
-| where isnotempty(Version) 
-| extend VersionParts = split(Version, ".") 
-| extend Major = toint(VersionParts[0]), Minor = toint(VersionParts[1]), Patch = toint(VersionParts[2]), Build = toint(VersionParts[3]) 
-| where (Major == MinMajor and Minor == MinMinor and Patch >= MinPatch) or (Major == MinMajor and Minor > MinMinor) or Major > MinMajor 
-| summarize LastSeen = max(PreciseTimeStamp), Region = any(Region) by AgentName, Version 
+| where PreciseTimeStamp >= ago(TimeWindow)
+| where isnotempty(ContainerImage)
+| where ContainerImage startswith "sreagentprod.azurecr.io/sre-agent-web:"
+| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage)
+| where isnotempty(Version)
+| extend VersionParts = split(Version, ".")
+| extend Major = toint(VersionParts[0]), Minor = toint(VersionParts[1]), Patch = toint(VersionParts[2]), Build = toint(VersionParts[3])
+| where (Major == MinMajor and Minor == MinMinor and Patch >= MinPatch) or (Major == MinMajor and Minor > MinMinor) or Major > MinMajor
+| summarize LastSeen = max(PreciseTimeStamp), Region = any(Region) by AgentName, Version
 | project AgentName, Version, LastSeen, Region
 | order by Version desc, AgentName asc
 
 // Agent growth analysis
 All("SREAgentDataPlaneEvents")
-| where isnotempty(AgentName) 
-| summarize FirstSeen = min(PreciseTimeStamp) by AgentName 
-| extend CreationDate = startofday(FirstSeen) 
-| summarize UniqueAgentsCreated = count() by CreationDate 
-| order by CreationDate asc 
-| extend CumulativeAgents = row_cumsum(UniqueAgentsCreated) 
+| where isnotempty(AgentName)
+| summarize FirstSeen = min(PreciseTimeStamp) by AgentName
+| extend CreationDate = startofday(FirstSeen)
+| summarize UniqueAgentsCreated = count() by CreationDate
+| order by CreationDate asc
+| extend CumulativeAgents = row_cumsum(UniqueAgentsCreated)
 | project CreationDate, DailyNewAgents = UniqueAgentsCreated, CumulativeAgents
 ```
 
@@ -505,7 +505,7 @@ All("AgentDocumentDBState")
 | where agentName == Agent
 | summarize arg_max(PreciseTimeStamp, *) by agentName
 | extend cfg = parse_json(document)
-| project 
+| project
     SnapshotAt = PreciseTimeStamp,
     agentName,
     ActionMode = tostring(cfg.spec.actionConfiguration.mode),
@@ -559,10 +559,10 @@ All("AgentActionEvents")
 | where PreciseTimeStamp >= ago(7d)
 | extend ThreadData = parse_json(Parameter)
 | where tostring(ThreadData.ThreadId) == ThreadId
-| project 
-    PreciseTimeStamp, 
-    AgentName, 
-    ThreadId = ThreadData.ThreadId, 
+| project
+    PreciseTimeStamp,
+    AgentName,
+    ThreadId = ThreadData.ThreadId,
     SATScore = ThreadData.SATScore,
     ToolCallCount = ThreadData.ToolCallCount,
     UserInteractionCount = ThreadData.UserInteractionCount,
@@ -574,7 +574,7 @@ let TargetAgent = "tempagent3--87c2070f";  // From previous query results
 All("SREAgentDataPlaneEvents")
 | where AgentName == TargetAgent
 | where PreciseTimeStamp >= ago(1d)
-| summarize 
+| summarize
     FirstSeen = min(PreciseTimeStamp),
     LastSeen = max(PreciseTimeStamp),
     EventCount = count(),
@@ -619,7 +619,7 @@ All("AgentActionEvents")
 | extend ThreadData = parse_json(Parameter)
 | where isnotnull(ThreadData.ToolCallSuccessRate)
 | where toreal(ThreadData.ToolCallSuccessRate) < 1.0
-| project 
+| project
     PreciseTimeStamp,
     AgentName,
     ThreadId = ThreadData.ThreadId,
@@ -631,7 +631,7 @@ All("AgentActionEvents")
 All("AgentActionEvents")
 | extend ThreadData = parse_json(Parameter)
 | where isnotnull(ThreadData.ToolCallSuccessRate)
-| summarize 
+| summarize
     AvgSuccessRate = avg(toreal(ThreadData.ToolCallSuccessRate)),
     TotalThreads = count()
     by AgentName
@@ -645,13 +645,13 @@ All("SREAgentDataPlaneEvents")
 | where RegisteredFunctions !has "ExecuteClusterKustoQuery"  // Find agents missing specific functions
 
 // Template: Check specific service integration health
-let AgentNames = dynamic(["agent1", "agent2"]);  
+let AgentNames = dynamic(["agent1", "agent2"]);
 let ServiceKeywords = dynamic(["Azure Monitor", "alert", "AzMonitor", "incident"]); // Customize for service
 All("SREAgentDataPlaneEvents")
 | where AgentName in (AgentNames)
 | where PreciseTimeStamp >= ago(3d)
 | where Message has_any (ServiceKeywords)
-| summarize 
+| summarize
     ServiceEventCount = count(),
     FirstServiceEvent = min(PreciseTimeStamp),
     LastServiceEvent = max(PreciseTimeStamp),
@@ -678,7 +678,7 @@ All("AgentActionEvents")
 
 // Step 2: Check for errors in admin events
 All("SREAgentAdminEvents")
-| where resourceName == "your-agent-name" 
+| where resourceName == "your-agent-name"
 | where Level <= 3
 | where TIMESTAMP >= ago(2h)
 ```
@@ -714,7 +714,7 @@ All("SREAgentDataPlaneEvents")
 All("AgentActionEvents")
 | where ThreadId == "your-thread-id"
 | extend ThreadData = parse_json(Parameter)
-| project 
+| project
     PreciseTimeStamp,
     AgentName,
     Action,
@@ -749,10 +749,10 @@ All("SREAgentDataPlaneEvents")
 
 // Step 2: Compare with latest available versions
 All("SREAgentDataPlaneEvents")
-| where PreciseTimeStamp >= ago(24h) 
+| where PreciseTimeStamp >= ago(24h)
 | where ContainerImage startswith "sreagentprod.azurecr.io/sre-agent-web:"
-| summarize LastSeen = max(PreciseTimeStamp), AgentCount = dcount(AgentName) by ContainerImage 
-| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage) 
+| summarize LastSeen = max(PreciseTimeStamp), AgentCount = dcount(AgentName) by ContainerImage
+| extend Version = extract(@'sre-agent-web:([\\d\\.]+)', 1, ContainerImage)
 | order by Version desc
 ```
 
@@ -916,10 +916,10 @@ Your agent is running [version] in [region], which puts you in the [majority/min
 - **Tools**: `search`, `grep_search`, `semantic_search`
 - **Best For**: Current implementation details, debugging local issues, understanding file relationships
 
-#### 🌐 Remote Repositories  
+#### 🌐 Remote Repositories
 **Available via GitHub MCP:**
 - **serverless-paas-balam/sreagent-runtime**: Issues, PRs, latest commits
-- **serverless-paas-balam/agents-backlog**: Feature requests, capability improvements  
+- **serverless-paas-balam/agents-backlog**: Feature requests, capability improvements
 - **serverless-paas-balam/AntaresUX**: UI/UX issues
 
 ### GitHub MCP Tools for Investigation

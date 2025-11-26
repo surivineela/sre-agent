@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Helpers;
 using k8s.Models;
@@ -114,7 +115,7 @@ public static partial class KubernetesExtensions
     }
 
     // try to extract service name and service namespace if the env value is a service url
-    public async static Task<KubernetesNamespacedResourceNode?> TryMatchAndLinkServiceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public static async Task<KubernetesNamespacedResourceNode?> TryMatchAndLinkServiceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         var serviceName = string.Empty;
         var serviceNamespace = string.Empty;
@@ -167,7 +168,7 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public async static Task<KubernetesNamespacedResourceNode?> TryLinkEnvReferenceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public static async Task<KubernetesNamespacedResourceNode?> TryLinkEnvReferenceAsync(this V1EnvVar env, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         if (env.ValueFrom == null)
         {
@@ -183,7 +184,7 @@ public static partial class KubernetesExtensions
                 node.Namespace,
                 node.SubscriptionId,
                 node.ResourceGroupName,
-                 node.Location,
+                node.Location,
                 env.ValueFrom.SecretKeyRef.Name,
                 Constants.KubernetesCoreGroup,
                 Constants.KubernetesV1Version,
@@ -220,7 +221,7 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public async static Task<KubernetesNamespacedResourceNode?> TryLinkVolumeReferenceAsync(this V1Volume volume, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
+    public static async Task<KubernetesNamespacedResourceNode?> TryLinkVolumeReferenceAsync(this V1Volume volume, KubernetesNamespacedResourceNode node, IKubernetesService k8sService, IGraphDatabaseClient graphDbClient, ILogger logger)
     {
         if (volume.Secret != null)
         {
@@ -290,24 +291,24 @@ public static partial class KubernetesExtensions
         return null;
     }
 
-    public async static Task SaveKubernetesResourceNode(this KubernetesResourceNode node, IGraphDatabaseClient graphDbClient)
+    public static async Task SaveKubernetesResourceNode(this KubernetesResourceNode node, IGraphDatabaseClient graphDbClient)
     {
         await graphDbClient.AddOrUpdateNodeAsync(node);
         GraphNode pNode;
         if (node is KubernetesNamespacedResourceNode namespacedNode)
         {
             pNode = ArmResourceCrawlerFactory.CreateKubernetesResourceNode(
-            k8sObject: null,
-            subscriptionId: namespacedNode.SubscriptionId,
-            resourceGroupName: namespacedNode.ResourceGroupName,
-            location: namespacedNode.Location,
-            clusterResourceId: namespacedNode.ClusterResourceId,
-            namespaceName: null,
-            resourceName: namespacedNode.Namespace,
-            group: Constants.KubernetesCoreGroup,
-            apiVersion: Constants.KubernetesV1Version,
-            kind: Constants.KubernetesNamespaceType
-        );
+                k8sObject: null,
+                subscriptionId: namespacedNode.SubscriptionId,
+                resourceGroupName: namespacedNode.ResourceGroupName,
+                location: namespacedNode.Location,
+                clusterResourceId: namespacedNode.ClusterResourceId,
+                namespaceName: null,
+                resourceName: namespacedNode.Namespace,
+                group: Constants.KubernetesCoreGroup,
+                apiVersion: Constants.KubernetesV1Version,
+                kind: Constants.KubernetesNamespaceType
+            );
         }
         else
         {

@@ -7,12 +7,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Extensions;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Kusto.Cloud.Platform.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -192,7 +192,6 @@ public class ConnectionCrawler : GenericArmResourceCrawler
 
         return null;
     }
-
 }
 
 public class ApiConnectionPropertiesDefinition

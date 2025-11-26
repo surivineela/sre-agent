@@ -4,15 +4,14 @@
 
 using System.Text.Json;
 using Agent.Core.Helpers;
-using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Extensions;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
-using static Agent.Graph.Crawler.ARM.LogicAppCrawler;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -50,7 +49,6 @@ public class LogicAppCrawler : AppServiceCrawler
         var appSettingsResponse = await webApp.GetApplicationSettingsAsync();
         var appSettings = new Dictionary<string, string>(appSettingsResponse.Value.Properties, StringComparer.OrdinalIgnoreCase);
 
-
         if (appSettings.TryGetValue("AzureWebJobsStorage", out var storageConnStr) && !string.IsNullOrEmpty(storageConnStr))
         {
             ArmResourceNode? storageNode = null;
@@ -86,7 +84,9 @@ public class LogicAppCrawler : AppServiceCrawler
             {
                 var appInsightsNode = await TryAddAppInsightsNodeAsync(logicAppNode, appInsightsKey);
                 if (appInsightsNode != null)
+                {
                     yield return appInsightsNode;
+                }
             }
         }
 
@@ -252,7 +252,9 @@ public class LogicAppCrawler : AppServiceCrawler
         var workflowFileData = files["workflow.json"];
         var workflowFile = workflowFileData?.ToString();
         if (string.IsNullOrWhiteSpace(workflowFile))
+        {
             return;
+        }
 
         using var doc = JsonDocument.Parse(workflowFile);
 
@@ -272,7 +274,9 @@ public class LogicAppCrawler : AppServiceCrawler
                 {
                     var triggerDefinition = trigger.Value;
                     if (triggerDefinition.ValueKind != JsonValueKind.Object)
+                    {
                         continue;
+                    }
 
                     await CrawlWorkflowOperation(triggerDefinition, siteResource, workflowNode, connections, graphAccumulatorDictionary, start, Constants.Relationships.UsesTrigger);
                 }
@@ -340,7 +344,6 @@ public class LogicAppCrawler : AppServiceCrawler
             );
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             graphAccumulatorDictionary.AddEdge(edge);
-
 
             // Find the corresponding ServiceProviderResourceNode
             var serviceProviderResourceNode = await CrawlServiceProviderConnection(
@@ -500,7 +503,9 @@ public class LogicAppCrawler : AppServiceCrawler
             workflowConnectionNode.SubscriptionId);
 
         if (serviceProviderResourceNode == null)
+        {
             return null;
+        }
 
         // Add or update the service provider resource node
         await _graphDbClient.AddOrUpdateNodeAsync(serviceProviderResourceNode);
@@ -531,7 +536,9 @@ public class LogicAppCrawler : AppServiceCrawler
         var apiManagementResourceNode = await _armClient.FindGenericArmResource(apiManagementConnectionNode.SubscriptionId, "Microsoft.ApiManagement/service", resourceName);
 
         if (apiManagementResourceNode == null)
+        {
             return null;
+        }
 
         await _graphDbClient.AddOrUpdateNodeAsync(apiManagementResourceNode);
 
@@ -561,7 +568,9 @@ public class LogicAppCrawler : AppServiceCrawler
         var functionResourceNode = await _armClient.FindGenericArmResource(functionConnectionNode.SubscriptionId, Constants.AppServiceType, resourceName);
 
         if (functionResourceNode == null)
+        {
             return null;
+        }
 
         await _graphDbClient.AddOrUpdateNodeAsync(functionResourceNode);
 
@@ -578,14 +587,18 @@ public class LogicAppCrawler : AppServiceCrawler
     private string GetUpdatedEdgeRelationship(string existingRelationship, string newRelationship)
     {
         if (string.IsNullOrEmpty(existingRelationship))
+        {
             return newRelationship;
+        }
 
         if (existingRelationship.Equals(newRelationship, StringComparison.OrdinalIgnoreCase))
+        {
             return existingRelationship; // No change needed if they're the same
+        }
 
         // If one is Trigger and one is Action, return "UsesTriggerAction"
-        if (existingRelationship.Equals(Constants.Relationships.UsesTrigger, StringComparison.OrdinalIgnoreCase) && newRelationship.Equals(Constants.Relationships.UsesAction, StringComparison.OrdinalIgnoreCase) ||
-            existingRelationship.Equals(Constants.Relationships.UsesAction, StringComparison.OrdinalIgnoreCase) && newRelationship.Equals(Constants.Relationships.UsesTrigger, StringComparison.OrdinalIgnoreCase))
+        if ((existingRelationship.Equals(Constants.Relationships.UsesTrigger, StringComparison.OrdinalIgnoreCase) && newRelationship.Equals(Constants.Relationships.UsesAction, StringComparison.OrdinalIgnoreCase)) ||
+            (existingRelationship.Equals(Constants.Relationships.UsesAction, StringComparison.OrdinalIgnoreCase) && newRelationship.Equals(Constants.Relationships.UsesTrigger, StringComparison.OrdinalIgnoreCase)))
         {
             return Constants.Relationships.UsesTriggerAction;
         }
@@ -608,7 +621,9 @@ public class LogicAppCrawler : AppServiceCrawler
         string instrumentationKey)
     {
         if (string.IsNullOrEmpty(instrumentationKey))
+        {
             return null;
+        }
 
         try
         {
@@ -646,7 +661,9 @@ public class LogicAppCrawler : AppServiceCrawler
         var connectionsFile = connectionsResponse?.Value?.Properties?.Files?["connections.json"];
 
         if (connectionsFile == null)
+        {
             return null;
+        }
 
         var options = new JsonSerializerOptions
         {
@@ -679,7 +696,9 @@ public class LogicAppCrawler : AppServiceCrawler
                     foreach (var (key, value) in kvp.Value.ParameterValues)
                     {
                         if (value is JsonElement element && (element.ValueKind != JsonValueKind.String))
+                        {
                             continue;
+                        }
 
                         var strValue = value?.ToString();
 
@@ -708,7 +727,9 @@ public class LogicAppCrawler : AppServiceCrawler
     {
         // Checking if we support the service provider currently
         if (!ServiceProviderConnectorRegistry.Entries.TryGetValue(connection.ServiceProvider.Id, out var registryEntry))
+        {
             return null;
+        }
 
         ArmResourceNode? resourceNode = null;
 
@@ -808,7 +829,9 @@ public class LogicAppCrawler : AppServiceCrawler
     private static string? ExtractInstrumentationKeyFromConnectionString(string connectionString)
     {
         if (string.IsNullOrEmpty(connectionString))
+        {
             return null;
+        }
 
         var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
         foreach (var part in parts)
@@ -1027,10 +1050,14 @@ internal class StorageAccountParser : IServiceProviderConnectorParser
     public string? Parse(string parameterValue, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterValue))
+        {
             return null;
+        }
 
         if (string.Equals(parameterName, "connectionString", StringComparison.OrdinalIgnoreCase))
+        {
             return ArmHelper.TryParseStorageAccountFromConnectionString(parameterValue);
+        }
 
         if (string.Equals(parameterName, "blobStorageEndpoint", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(parameterName, "tableStorageEndpoint", StringComparison.OrdinalIgnoreCase) ||
@@ -1049,13 +1076,19 @@ internal class ServiceBusParser : IServiceProviderConnectorParser
     public string? Parse(string parameterValue, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterValue))
+        {
             return null;
+        }
 
         if (string.Equals(parameterName, "connectionString", StringComparison.OrdinalIgnoreCase))
+        {
             return ArmHelper.TryParseServiceBusFromConnectionString(parameterValue);
+        }
 
         if (string.Equals(parameterName, "fullyQualifiedNamespace", StringComparison.OrdinalIgnoreCase))
+        {
             return ArmHelper.TryParseFirstSubdomainFromHttpsUrl(parameterValue);
+        }
 
         return null;
     }
@@ -1066,11 +1099,15 @@ internal class SqlServerParser : IServiceProviderConnectorParser
     public string? Parse(string parameterValue, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterValue))
+        {
             return null;
+        }
 
         // SQL only has connection string parameter
         if (string.Equals(parameterName, "connectionString", StringComparison.OrdinalIgnoreCase))
+        {
             return ArmHelper.TryParseSQLServerFromConnectionString(parameterValue);
+        }
 
         return null;
     }
@@ -1081,10 +1118,14 @@ internal class CosmosDBParser : IServiceProviderConnectorParser
     public string? Parse(string parameterValue, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterValue))
+        {
             return null;
+        }
 
         if (string.Equals(parameterName, "connectionString", StringComparison.OrdinalIgnoreCase))
+        {
             return ArmHelper.TryParseCosmosDbFromConnectionString(parameterValue);
+        }
 
         return null;
     }
@@ -1096,7 +1137,9 @@ internal class EndpointSubdomainParser : IServiceProviderConnectorParser
     public string? Parse(string parameterValue, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(parameterValue))
+        {
             return null;
+        }
 
         return ArmHelper.TryParseFirstSubdomainFromHttpsUrl(parameterValue);
     }

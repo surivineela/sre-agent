@@ -4,28 +4,27 @@
 
 using Agent.Data.DatabaseClients.Attributes;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
+
+public class AzureMonitorWorkspaceNode : ArmResourceNode
 {
-    public class AzureMonitorWorkspaceNode : ArmResourceNode
+    [GraphProperty("prometheusQueryEndpoint")]
+    public string? PrometheusQueryEndpoint { get; set; }
+
+    public AzureMonitorWorkspaceNode(string resourceType,
+        string resourceId,
+        string subscriptionId,
+        string resourceGroupName,
+        string resourceName,
+        string? resourceKind,
+        string? prometheusQueryEndpoint = null,
+        string? location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, resourceKind, location: location)
     {
-        [GraphProperty("prometheusQueryEndpoint")]
-        public string? PrometheusQueryEndpoint { get; set; }
+        PrometheusQueryEndpoint = prometheusQueryEndpoint;
+    }
 
-        public AzureMonitorWorkspaceNode(string resourceType,
-            string resourceId,
-            string subscriptionId,
-            string resourceGroupName,
-            string resourceName,
-            string? resourceKind,
-            string? prometheusQueryEndpoint = null,
-            string? location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, resourceKind, location: location)
-        {
-            PrometheusQueryEndpoint = prometheusQueryEndpoint;
-        }
-
-        public AzureMonitorWorkspaceNode(IDictionary<string, object> properties)
-            : base(properties)
-        {
-        }
+    public AzureMonitorWorkspaceNode(IDictionary<string, object> properties)
+        : base(properties)
+    {
     }
 }

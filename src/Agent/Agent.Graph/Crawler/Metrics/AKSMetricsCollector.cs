@@ -4,7 +4,7 @@
 
 using System.Globalization;
 using Agent.Core.Interfaces;
-using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Services;
 using Agent.Prometheus;
@@ -83,27 +83,27 @@ public class AKSMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAvgCpuUsageAsync(KubernetesNamespacedResourceNode node)
     {
-        string _namespace = node.Namespace;
-        string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
-        string workloadName = node.ResourceName;
+        var _namespace = node.Namespace;
+        var workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
+        var workloadName = node.ResourceName;
         _logger.LogInternalInformation($"Getting average CPU usage for AKS {workloadType}: {_namespace}/{workloadName}");
         return await GetAzureMonitorPrometheusMetricsAsync(node, "cpu");
     }
 
     private async Task<double> GetAvgMemoryUsageAsync(KubernetesNamespacedResourceNode node)
     {
-        string _namespace = node.Namespace;
-        string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
-        string workloadName = node.ResourceName;
+        var _namespace = node.Namespace;
+        var workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
+        var workloadName = node.ResourceName;
         _logger.LogInternalInformation($"Getting average Memory usage for AKS {workloadType}: {_namespace}/{workloadName}");
         return await GetAzureMonitorPrometheusMetricsAsync(node, "memory");
     }
 
     private async Task<double> GetAvailabilityAsync(KubernetesNamespacedResourceNode node)
     {
-        string _namespace = node.Namespace;
-        string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
-        string workloadName = node.ResourceName;
+        var _namespace = node.Namespace;
+        var workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
+        var workloadName = node.ResourceName;
         var aksResourceId = node.ClusterResourceId;
         _logger.LogInternalInformation($"Getting availability for AKS {workloadType}: {_namespace}/{workloadName}");
         try
@@ -118,11 +118,11 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                 case "statefulset":
                     var client2 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId) ?? throw new Exception("Unable to create Kubernetes client");
                     var status2 = await client2.AppsV1.ReadNamespacedStatefulSetStatusAsync(workloadName, _namespace);
-                    return (double)status2.Status.AvailableReplicas! / (double)status2.Status.Replicas * 100;
+                    return (double)status2.Status.AvailableReplicas! / status2.Status.Replicas * 100;
                 case "pod":
                     var client3 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(aksResourceId) ?? throw new Exception("Unable to create Kubernetes client");
                     var status3 = await client3.CoreV1.ReadNamespacedPodStatusAsync(workloadName, _namespace);
-                    return (double)status3.Status.ContainerStatuses.Count(s => s.Ready) / (double)status3.Status.ContainerStatuses.Count * 100;
+                    return status3.Status.ContainerStatuses.Count(s => s.Ready) / (double)status3.Status.ContainerStatuses.Count * 100;
                 default:
                     _logger.LogInternalWarning($"Unsupported availability type for AKS {workloadType}: {_namespace}/{workloadName}");
                     return 100;
@@ -163,7 +163,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         {
 
             // Build the PromQL query based on the specified metric type
-            string query = BuildPromQuery(metricType, _namespace, workloadType, workloadName);
+            var query = BuildPromQuery(metricType, _namespace, workloadType, workloadName);
 
             if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
             {
@@ -193,11 +193,11 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                     foreach (var resultItem in vectorData.Result)
                     {
                         // --- Metric Value ---
-                        double timestamp = resultItem.Value.Item1; // Unix timestamp (seconds)
-                        string rawValue = resultItem.Value.Item2;
+                        var timestamp = resultItem.Value.Item1; // Unix timestamp (seconds)
+                        var rawValue = resultItem.Value.Item2;
                         DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeSeconds((long)timestamp);
 
-                        if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double numericValue))
+                        if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var numericValue))
                         {
                             // Check for NaN or Infinity which Prometheus can return
                             if (double.IsNaN(numericValue) || double.IsInfinity(numericValue))
@@ -221,7 +221,6 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                         response.GetType().Name, metricType, _namespace, workloadType, workloadName);
                     return 0;
             }
-
         }
         catch (HttpRequestException httpEx)
         {
@@ -244,7 +243,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
     // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
     private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName)
     {
-        string filter = "";
+        var filter = "";
         switch (workloadType)
         {
             case "deployment":

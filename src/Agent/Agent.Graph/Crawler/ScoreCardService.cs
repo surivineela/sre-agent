@@ -4,6 +4,7 @@
 
 using System.Collections;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.Repositories;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
@@ -33,10 +34,10 @@ public class ScoreCardService
     public async Task UpdateAllScoreCardsAsync(CancellationToken cancellationToken)
     {
         _logger.LogInternalInformation("Starting score card update for all resources");
-        string nodesToUpdateQuery = GetResourceNodesToUpdateQuery();
+        var nodesToUpdateQuery = GetResourceNodesToUpdateQuery();
 
         var queryResults = await _graphDatabaseClient.Query(nodesToUpdateQuery);
-        int updatedCount = 0;
+        var updatedCount = 0;
 
         // First, prune old health history data points (older than 24 hours)
         // this is 24 hours bc we use this health history for the daily report, we can extend this in the future
@@ -80,7 +81,11 @@ public class ScoreCardService
                     }
 
                     updated = await UpdateScoreCardForAKSNode(node);
-                    if (updated) updatedCount++;
+                    if (updated)
+                    {
+                        updatedCount++;
+                    }
+
                     continue;
                 }
                 var armResourceNode = CreateArmResourceNodeFromDictionary(result);
@@ -91,7 +96,10 @@ public class ScoreCardService
                 }
 
                 updated = await UpdateScoreCard(armResourceNode);
-                if (updated) updatedCount++;
+                if (updated)
+                {
+                    updatedCount++;
+                }
             }
             catch (Exception ex)
             {
@@ -107,9 +115,9 @@ public class ScoreCardService
         try
         {
             // Get primary fields
-            string id = result["id"]?.ToString() ?? throw new Exception("ID is missing from the result.");
-            string name = result["name"]?.ToString() ?? throw new Exception("Name is missing from the result.");
-            string type = result["type"]?.ToString() ?? throw new Exception("Type is missing from the result.");
+            var id = result["id"]?.ToString() ?? throw new Exception("ID is missing from the result.");
+            var name = result["name"]?.ToString() ?? throw new Exception("Name is missing from the result.");
+            var type = result["type"]?.ToString() ?? throw new Exception("Type is missing from the result.");
 
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
@@ -119,11 +127,11 @@ public class ScoreCardService
             }
 
             // Extract values, handling arrays in property values
-            string resourceId = GetFirstPropertyValue(properties, "resourceId") ?? id;
-            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
-            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
-            string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
-            string location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Location is missing");
+            var resourceId = GetFirstPropertyValue(properties, "resourceId") ?? id;
+            var subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
+            var resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
+            var resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
+            var location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Location is missing");
 
             // Create the ArmResourceNode
             var armResourceNode = new ArmResourceNode(
@@ -140,7 +148,7 @@ public class ScoreCardService
             {
                 if (!armResourceNode.GetNodeProperties().ContainsKey(prop.Key))
                 {
-                    string? value = GetFirstPropertyValue(properties, prop.Key);
+                    var value = GetFirstPropertyValue(properties, prop.Key);
                     if (!string.IsNullOrEmpty(value))
                     {
                         armResourceNode.GetNodeProperties()[prop.Key] = value;
@@ -162,9 +170,9 @@ public class ScoreCardService
         try
         {
             // Get primary fields
-            string id = result["id"]?.ToString() ?? throw new Exception("ID is missing from the result.");
-            string name = result["name"]?.ToString() ?? throw new Exception("Name is missing from the result.");
-            string type = result["type"]?.ToString() ?? throw new Exception("Type is missing from the result.");
+            var id = result["id"]?.ToString() ?? throw new Exception("ID is missing from the result.");
+            var name = result["name"]?.ToString() ?? throw new Exception("Name is missing from the result.");
+            var type = result["type"]?.ToString() ?? throw new Exception("Type is missing from the result.");
 
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
@@ -174,15 +182,15 @@ public class ScoreCardService
             }
 
             // Extract Kubernetes specific values
-            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
-            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
-            string location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Location is missing");
-            string _namespace = GetFirstPropertyValue(properties, "namespace") ?? throw new Exception("Namespace is missing");
-            string clusterResourceId = GetFirstPropertyValue(properties, "clusterResourceId") ?? throw new Exception("ClusterResourceId is missing");
-            string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
-            string group = GetFirstPropertyValue(properties, "group") ?? throw new Exception("Group is missing");
-            string apiVersion = GetFirstPropertyValue(properties, "apiVersion") ?? throw new Exception("ApiVersion is missing");
-            string kind = GetFirstPropertyValue(properties, "kind") ?? throw new Exception("Kind is missing");
+            var subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
+            var resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
+            var location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Location is missing");
+            var _namespace = GetFirstPropertyValue(properties, "namespace") ?? throw new Exception("Namespace is missing");
+            var clusterResourceId = GetFirstPropertyValue(properties, "clusterResourceId") ?? throw new Exception("ClusterResourceId is missing");
+            var resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
+            var group = GetFirstPropertyValue(properties, "group") ?? throw new Exception("Group is missing");
+            var apiVersion = GetFirstPropertyValue(properties, "apiVersion") ?? throw new Exception("ApiVersion is missing");
+            var kind = GetFirstPropertyValue(properties, "kind") ?? throw new Exception("Kind is missing");
 
             // Extract annotations and labels
             Dictionary<string, string> annotations = new Dictionary<string, string>();
@@ -192,8 +200,8 @@ public class ScoreCardService
             {
                 if (prop.Key.StartsWith("annotation_"))
                 {
-                    string annotationKey = prop.Key.Substring("annotation_".Length);
-                    string? value = GetFirstPropertyValue(properties, prop.Key);
+                    var annotationKey = prop.Key.Substring("annotation_".Length);
+                    var value = GetFirstPropertyValue(properties, prop.Key);
                     if (!string.IsNullOrEmpty(value))
                     {
                         annotations[annotationKey] = value;
@@ -201,8 +209,8 @@ public class ScoreCardService
                 }
                 else if (prop.Key.StartsWith("label_"))
                 {
-                    string labelKey = prop.Key.Substring("label_".Length);
-                    string? value = GetFirstPropertyValue(properties, prop.Key);
+                    var labelKey = prop.Key.Substring("label_".Length);
+                    var value = GetFirstPropertyValue(properties, prop.Key);
                     if (!string.IsNullOrEmpty(value))
                     {
                         labels[labelKey] = value;
@@ -239,7 +247,9 @@ public class ScoreCardService
     private string? GetFirstPropertyValue(Dictionary<string, object> properties, string key)
     {
         if (properties == null || !properties.ContainsKey(key) || properties[key] == null)
+        {
             return null;
+        }
 
         var value = properties[key];
 
@@ -300,7 +310,6 @@ public class ScoreCardService
             return false;
         }
     }
-
 
     private async Task<bool> UpdateScoreCardForAKSNode(KubernetesNamespacedResourceNode node)
     {

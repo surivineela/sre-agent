@@ -12,6 +12,7 @@ using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Framework;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -290,7 +291,7 @@ Input JSON:
 
                 var mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
-                Guid messageId = Guid.NewGuid();
+                var messageId = Guid.NewGuid();
 
                 // Save to database via the outbound service
                 await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage, messageId);
@@ -405,7 +406,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                 var mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
-                Guid messageId = Guid.NewGuid();
+                var messageId = Guid.NewGuid();
 
                 // Save to database via the outbound service
                 await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage, messageId);
@@ -878,7 +879,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 // TODO: read threadcontext from cosmos db
                 var dashboardMessage = $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r";
 
-                Guid messageId = Guid.NewGuid();
+                var messageId = Guid.NewGuid();
 
                 // Save to database via the outbound service
                 await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, dashboardMessage, messageId);
@@ -933,7 +934,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         try
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append("g.V().has('isDeleted', false)");
 
             if (actualGraphResourceType != "all")

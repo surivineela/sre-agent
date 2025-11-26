@@ -9,6 +9,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class PagerDutyIncidentNode : GraphNode
 {
+    public const string PagerDutyResourceType = "incidents/pagerduty";
+
     [GraphProperty("incidentId")]
     public string? IncidentId { get; set; }
 
@@ -24,12 +26,12 @@ public class PagerDutyIncidentNode : GraphNode
 
     public override string GetNodeLabel()
     {
-        return "incidents/pagerduty";
+        return GetResourceType();
     }
 
     public override string GetResourceType()
     {
-        return GetNodeLabel();
+        return PagerDutyResourceType;
     }
 
     public override string GetResourceKind()

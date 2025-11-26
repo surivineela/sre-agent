@@ -5,7 +5,7 @@
 using Agent.Data.DatabaseClients.Attributes;
 using k8s;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient;
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class KubernetesNamespacedResourceNode : KubernetesResourceNode
 {

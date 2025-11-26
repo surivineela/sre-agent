@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -89,7 +90,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         _logger.LogInternalInformation($"Getting average CPU usage for Function App: {resourceId}");
         var metrics = new List<Metric>
         {
-            new Metric { Name = "FunctionExecutionUnits", Unit = "Count", Aggregation = "Total" },
+            new() { Name = "FunctionExecutionUnits", Unit = "Count", Aggregation = "Total" },
         };
 
         var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -106,7 +107,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
             {
-                new Metric { Name = "MemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
+                new() { Name = "MemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -129,7 +130,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
             {
-                new Metric { Name = "FunctionExecutionCount", Unit = "Count", Aggregation = "Total" },
+                new() { Name = "FunctionExecutionCount", Unit = "Count", Aggregation = "Total" },
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -153,8 +154,8 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
             // For Function Apps, calculate availability based on HTTP status codes
             var metrics = new List<Metric>
             {
-                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
-                new Metric { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
+                new() { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+                new() { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -168,9 +169,11 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
             errors = Math.Min(errors, requests);
 
             if (requests == 0)
+            {
                 return 100; // No requests = 100% availability by default
+            }
 
-            return Math.Max(0, ((requests - errors) / requests) * 100);
+            return Math.Max(0, (requests - errors) / requests * 100);
         }
         catch (Exception ex)
         {

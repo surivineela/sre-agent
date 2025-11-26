@@ -3,6 +3,7 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Plugins.Extensions;
 using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;

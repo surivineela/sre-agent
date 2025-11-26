@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -73,7 +74,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
             {
-                new Metric { Name = "CpuTime", Unit = "Seconds", Aggregation = "Total" },
+                new() { Name = "CpuTime", Unit = "Seconds", Aggregation = "Total" },
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -81,10 +82,12 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
                 metrics);
 
             if (!metricsData.Any())
+            {
                 return 0;
+            }
 
             // Convert CPU time in seconds to percentage (each minute has 60 seconds max)
-            return metricsData.Select(s => (s.Value / 60) * 100).Average();
+            return metricsData.Select(s => s.Value / 60 * 100).Average();
         }
         catch (Exception ex)
         {
@@ -100,7 +103,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
             {
-                new Metric { Name = "AverageMemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
+                new() { Name = "AverageMemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -123,7 +126,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
             {
-                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+                new() { Name = "Requests", Unit = "Count", Aggregation = "Total" },
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -147,8 +150,8 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
             // For App Service, we calculate availability as the percentage of successful requests
             var metrics = new List<Metric>
             {
-                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
-                new Metric { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
+                new() { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+                new() { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -162,9 +165,11 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
             errors = Math.Min(errors, requests);
 
             if (requests == 0)
+            {
                 return 100; // No requests = 100% availability by default
+            }
 
-            return Math.Max(0, ((requests - errors) / requests) * 100);
+            return Math.Max(0, (requests - errors) / requests * 100);
         }
         catch (Exception ex)
         {
@@ -181,8 +186,8 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
             // For App Service, we calculate availability as the percentage of successful requests
             var metrics = new List<Metric>
             {
-                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
-                new Metric { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
+                new() { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+                new() { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
             };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(

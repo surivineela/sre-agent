@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
@@ -49,12 +50,15 @@ public class PostgreSqlConnectionStringHelper
         try
         {
             var parsedData = ParsePostgreSqlConnectionString(value, sourceName);
-            if (parsedData == null || parsedData.Host == null) return null;
+            if (parsedData == null || parsedData.Host == null)
+            {
+                return null;
+            }
 
             var rawHost = parsedData.Host;
             var database = parsedData.Database;
             var serverName = rawHost;
-            int portIndex = serverName.IndexOf(":");
+            var portIndex = serverName.IndexOf(":");
             if (portIndex > 0)
             {
                 serverName = serverName.Substring(0, portIndex);
@@ -99,7 +103,10 @@ public class PostgreSqlConnectionStringHelper
     }
     public bool IsPostgreSqlConnectionString(string value, string? keyName = null)
     {
-        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
 
         // Strip potential Azure App Service quotes
         value = value.Trim().Trim('"');
@@ -111,7 +118,9 @@ public class PostgreSqlConnectionStringHelper
             value.Contains("AttachDbFilename=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Connect Timeout=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Trusted_Connection=", StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         // Check for Azure connection string prefixes in key name
         if (keyName != null &&
@@ -119,29 +128,39 @@ public class PostgreSqlConnectionStringHelper
              keyName.StartsWith("CUSTOMCONNSTR_", StringComparison.OrdinalIgnoreCase) ||
              keyName.Contains("POSTGRESQL", StringComparison.OrdinalIgnoreCase) ||
              keyName.Contains("POSTGRES", StringComparison.OrdinalIgnoreCase)))
+        {
             return true;
+        }
 
         // URI formats (including Python driver variants)
         if (value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("psql://", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("postgresql+", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         // JDBC format
         if (value.StartsWith("jdbc:postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         // ODBC format
         if (value.Contains("DRIVER={PostgreSQL", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         // Service name detection (simple word with appropriate key)
         if (Regex.IsMatch(value, @"^\w+$") &&
             (keyName?.Equals("PGSERVICE", StringComparison.OrdinalIgnoreCase) == true ||
              keyName?.Equals("service", StringComparison.OrdinalIgnoreCase) == true ||
              value.Contains("service=", StringComparison.OrdinalIgnoreCase)))
+        {
             return true;
+        }
 
         // JSON format detection
         var trimmed = value.Trim();
@@ -155,7 +174,9 @@ public class PostgreSqlConnectionStringHelper
 
         // Azure-specific patterns (even without other indicators)
         if (value.Contains(".postgres.database.azure.com", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         // Key-value format with PostgreSQL indicators
         if ((value.Contains("host=", StringComparison.OrdinalIgnoreCase) ||
@@ -163,7 +184,9 @@ public class PostgreSqlConnectionStringHelper
             (value.Contains(".postgres.database.azure.com", StringComparison.OrdinalIgnoreCase) ||
              value.Contains("postgresql", StringComparison.OrdinalIgnoreCase) ||
              value.Contains("port=5432", StringComparison.OrdinalIgnoreCase)))
+        {
             return true;
+        }
         // Single parameter checks for common PostgreSQL parameters
         if (value.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Server=", StringComparison.OrdinalIgnoreCase))
@@ -175,7 +198,7 @@ public class PostgreSqlConnectionStringHelper
             {
                 // Also ensure the host/server has a non-empty value
                 var parts = value.Split(';', '=', ' ');
-                for (int i = 0; i < parts.Length - 1; i++)
+                for (var i = 0; i < parts.Length - 1; i++)
                 {
                     if ((parts[i].Trim().Equals("Host", StringComparison.OrdinalIgnoreCase) ||
                          parts[i].Trim().Equals("Server", StringComparison.OrdinalIgnoreCase)) &&
@@ -234,19 +257,26 @@ public class PostgreSqlConnectionStringHelper
         foreach (var pattern in patterns)
         {
             if (connectionString.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
                 return true;
+            }
         }
 
         // Check for parameter at end with empty value
         if (connectionString.EndsWith($"{parameterName}=", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         return false;
     }
 
     public PostgreSqlConnectionFormat DetectFormat(string value, string? keyName = null)
     {
-        if (string.IsNullOrWhiteSpace(value)) return PostgreSqlConnectionFormat.Unknown;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return PostgreSqlConnectionFormat.Unknown;
+        }
 
         // Strip potential Azure App Service quotes
         value = value.Trim().Trim('"');
@@ -256,38 +286,52 @@ public class PostgreSqlConnectionStringHelper
             value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("jdbc:postgresql://", StringComparison.OrdinalIgnoreCase) ||
             value.StartsWith("postgresql+", StringComparison.OrdinalIgnoreCase))
+        {
             return PostgreSqlConnectionFormat.URL;
+        }
 
         // JSON format
         var trimmed = value.Trim();
         if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+        {
             return PostgreSqlConnectionFormat.JSONPayload;
+        }
 
         // ODBC format
         if (value.Contains("DRIVER={PostgreSQL", StringComparison.OrdinalIgnoreCase))
+        {
             return PostgreSqlConnectionFormat.ODBC;
+        }
 
         // Service name (simple word)
         if (Regex.IsMatch(value, @"^\w+$") &&
             (keyName?.Equals("PGSERVICE", StringComparison.OrdinalIgnoreCase) == true ||
              keyName?.Equals("service", StringComparison.OrdinalIgnoreCase) == true))
+        {
             return PostgreSqlConnectionFormat.ServiceName;
+        }
 
         // Semicolon list (typical for .NET/Npgsql)
         if (value.Contains(';') && value.Contains('=') &&
             value.Count(c => c == ';') >= value.Count(c => c == ' '))
+        {
             return PostgreSqlConnectionFormat.SemicolonList;
+        }
         // Key-value list (libpq conninfo)
         if (value.Contains("host=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("dbname=", StringComparison.OrdinalIgnoreCase))
+        {
             return PostgreSqlConnectionFormat.KeyValueList;
+        }
 
         // Single key-value pair (might be incomplete but still recognizable format)
         if (value.Contains('=') && !value.Contains(';') &&
             (value.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
              value.Contains("Database=", StringComparison.OrdinalIgnoreCase) ||
              value.Contains("Server=", StringComparison.OrdinalIgnoreCase)))
+        {
             return PostgreSqlConnectionFormat.SemicolonList;  // Treat single param as semicolon format
+        }
 
         return PostgreSqlConnectionFormat.Unknown;
     }
@@ -336,20 +380,37 @@ public class PostgreSqlConnectionStringHelper
 
         // Add enhanced properties to the knowledge graph
         if (!string.IsNullOrEmpty(connectionData.Database))
+        {
             properties["database"] = connectionData.Database;
+        }
+
         if (connectionData.Port != 5432)
+        {
             properties["port"] = connectionData.Port.ToString();
+        }
+
         if (!string.IsNullOrEmpty(connectionData.SslMode))
+        {
             properties["sslMode"] = connectionData.SslMode;
+        }
+
         if (!string.IsNullOrEmpty(connectionData.DriverFamily))
+        {
             properties["driverFamily"] = connectionData.DriverFamily;
+        }
+
         if (!string.IsNullOrEmpty(connectionData.ApplicationName))
+        {
             properties["applicationName"] = connectionData.ApplicationName;
+        }
+
         if (connectionData.IsAzureManaged)
         {
             properties["azureManaged"] = "true";
             if (!string.IsNullOrEmpty(connectionData.AzureServerType))
+            {
                 properties["serverType"] = connectionData.AzureServerType;
+            }
         }
         if (connectionData.IsHighAvailability)
         {
@@ -358,17 +419,29 @@ public class PostgreSqlConnectionStringHelper
         }
         properties["connectionFormat"] = connectionData.Format.ToString();
         if (!string.IsNullOrEmpty(connectionData.KeyName))
-            properties["sourceKey"] = connectionData.KeyName; await _graphDbClient.AddOrUpdateNodeAsync(postgresNode);
+        {
+            properties["sourceKey"] = connectionData.KeyName;
+        }
+
+        await _graphDbClient.AddOrUpdateNodeAsync(postgresNode);
 
         var edge = new ArmResourceEdge(workloadNode.GetNodeId(), postgresNode.GetNodeId(), Constants.Relationships.PostgreSqlConnected);
 
         // Add connection-specific properties to the edge
         if (!string.IsNullOrEmpty(connectionData.Database))
+        {
             edge.AdditionalProperties.AddOrUpdateEdgeProperty("database", connectionData.Database);
+        }
+
         if (!string.IsNullOrEmpty(connectionData.AuthMethod))
+        {
             edge.AdditionalProperties.AddOrUpdateEdgeProperty("authMethod", connectionData.AuthMethod);
+        }
+
         if (!string.IsNullOrEmpty(connectionData.SslMode))
+        {
             edge.AdditionalProperties.AddOrUpdateEdgeProperty("sslMode", connectionData.SslMode);
+        }
 
         await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
@@ -378,7 +451,10 @@ public class PostgreSqlConnectionStringHelper
 
     private string DetermineAuthType(PostgreSqlConnectionData connectionData)
     {
-        if (connectionData == null) return "unknown";
+        if (connectionData == null)
+        {
+            return "unknown";
+        }
 
         // Use the enhanced auth method detection
         if (!string.IsNullOrEmpty(connectionData.AuthMethod))
@@ -403,7 +479,10 @@ public class PostgreSqlConnectionStringHelper
 
     private PostgreSqlConnectionData? ParsePostgreSqlConnectionString(string connectionString, string? keyName = null)
     {
-        if (string.IsNullOrWhiteSpace(connectionString)) return null;
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            return null;
+        }
 
         var format = DetectFormat(connectionString, keyName);
         var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -525,17 +604,35 @@ public class PostgreSqlConnectionStringHelper
             if (match.Success)
             {
                 if (match.Groups["driver"].Success)
+                {
                     parameters["driver_variant"] = match.Groups["driver"].Value;
+                }
+
                 if (match.Groups["user"].Success)
+                {
                     parameters["user"] = HttpUtility.UrlDecode(match.Groups["user"].Value);
+                }
+
                 if (match.Groups["password"].Success)
+                {
                     parameters["password"] = HttpUtility.UrlDecode(match.Groups["password"].Value);
+                }
+
                 if (match.Groups["host"].Success)
+                {
                     parameters["host"] = match.Groups["host"].Value;
+                }
+
                 if (match.Groups["port"].Success)
+                {
                     parameters["port"] = match.Groups["port"].Value;
+                }
+
                 if (match.Groups["database"].Success)
+                {
                     parameters["dbname"] = match.Groups["database"].Value;
+                }
+
                 if (match.Groups["query"].Success)
                 {
                     var queryString = match.Groups["query"].Value;
@@ -750,11 +847,19 @@ public class PostgreSqlConnectionStringHelper
 
         // Extract basic connection properties
         if (parameters.TryGetValue("host", out var host))
+        {
             data.Host = host;
+        }
+
         if (parameters.TryGetValue("dbname", out var database))
+        {
             data.Database = database;
+        }
+
         if (parameters.TryGetValue("user", out var username))
+        {
             data.Username = username;
+        }
 
         if (parameters.TryGetValue("port", out var portStr) && int.TryParse(portStr, out var port))
         {
@@ -763,11 +868,19 @@ public class PostgreSqlConnectionStringHelper
 
         // Extract security properties
         if (parameters.TryGetValue("sslmode", out var sslMode))
+        {
             data.SslMode = sslMode;
+        }
+
         if (parameters.TryGetValue("authentication", out var authType))
+        {
             data.AuthenticationType = authType;
+        }
+
         if (parameters.TryGetValue("application_name", out var appName))
+        {
             data.ApplicationName = appName;
+        }
 
         // Detect driver family
         data.DriverFamily = DetectDriverFamily(originalConnectionString, keyName, parameters);
@@ -794,32 +907,79 @@ public class PostgreSqlConnectionStringHelper
 
     private string DetectDriverFamily(string connectionString, string? keyName, Dictionary<string, string> parameters)
     {
-        if (string.IsNullOrEmpty(connectionString)) return "unknown";
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            return "unknown";
+        }
 
         // URL scheme patterns
-        if (connectionString.StartsWith("jdbc:postgresql://")) return "java";
-        if (connectionString.StartsWith("postgresql+psycopg2://")) return "python-psycopg2";
-        if (connectionString.StartsWith("postgresql+asyncpg://")) return "python-asyncpg";
-        if (connectionString.StartsWith("postgresql+psycopg://")) return "python-psycopg3";
-        if (connectionString.StartsWith("pgsql://")) return "php";
+        if (connectionString.StartsWith("jdbc:postgresql://"))
+        {
+            return "java";
+        }
+
+        if (connectionString.StartsWith("postgresql+psycopg2://"))
+        {
+            return "python-psycopg2";
+        }
+
+        if (connectionString.StartsWith("postgresql+asyncpg://"))
+        {
+            return "python-asyncpg";
+        }
+
+        if (connectionString.StartsWith("postgresql+psycopg://"))
+        {
+            return "python-psycopg3";
+        }
+
+        if (connectionString.StartsWith("pgsql://"))
+        {
+            return "php";
+        }
 
         // Format-based detection
-        if (connectionString.Contains("SSL Mode=") || connectionString.Contains("Pooling=")) return "dotnet";
-        if (connectionString.Contains("DRIVER={PostgreSQL")) return "odbc";
+        if (connectionString.Contains("SSL Mode=") || connectionString.Contains("Pooling="))
+        {
+            return "dotnet";
+        }
+
+        if (connectionString.Contains("DRIVER={PostgreSQL"))
+        {
+            return "odbc";
+        }
 
         // Key name patterns
         if (keyName != null)
         {
-            if (keyName.StartsWith("SPRING_DATASOURCE_")) return "java-spring";
-            if (keyName.Contains("RAILS_")) return "ruby-rails";
-            if (keyName.StartsWith("DB_") && !keyName.Contains("URL")) return "generic-split";
+            if (keyName.StartsWith("SPRING_DATASOURCE_"))
+            {
+                return "java-spring";
+            }
+
+            if (keyName.Contains("RAILS_"))
+            {
+                return "ruby-rails";
+            }
+
+            if (keyName.StartsWith("DB_") && !keyName.Contains("URL"))
+            {
+                return "generic-split";
+            }
         }
 
         // JSON structure patterns
         if (connectionString.TrimStart().StartsWith("{"))
         {
-            if (connectionString.Contains("\"ssl\"") && connectionString.Contains("\"database\"")) return "nodejs";
-            if (connectionString.Contains("\"sslmode\"")) return "python";
+            if (connectionString.Contains("\"ssl\"") && connectionString.Contains("\"database\""))
+            {
+                return "nodejs";
+            }
+
+            if (connectionString.Contains("\"sslmode\""))
+            {
+                return "python";
+            }
         }
 
         // Driver variant from parameters
@@ -874,7 +1034,10 @@ public class PostgreSqlConnectionStringHelper
 
     private string DetermineAzureServerType(string host)
     {
-        if (string.IsNullOrEmpty(host)) return "unknown";
+        if (string.IsNullOrEmpty(host))
+        {
+            return "unknown";
+        }
 
         // This is a simplified heuristic - in practice you might need to query Azure APIs
         // to determine the exact server type
@@ -956,12 +1119,15 @@ public class PostgreSqlConnectionStringHelper
         try
         {
             var connectionData = BuildConnectionFromEnvironmentVariables(environmentVariables);
-            if (connectionData == null || connectionData.Host == null) return null;
+            if (connectionData == null || connectionData.Host == null)
+            {
+                return null;
+            }
 
             var rawHost = connectionData.Host;
             var database = connectionData.Database;
             var serverName = rawHost;
-            int portIndex = serverName.IndexOf(":");
+            var portIndex = serverName.IndexOf(":");
             if (portIndex > 0)
             {
                 serverName = serverName.Substring(0, portIndex);
@@ -1010,13 +1176,19 @@ public class PostgreSqlConnectionStringHelper
     /// </summary>
     public bool HasPostgreSqlEnvironmentVariables(Dictionary<string, string> environmentVariables)
     {
-        if (environmentVariables == null || !environmentVariables.Any()) return false;
+        if (environmentVariables == null || !environmentVariables.Any())
+        {
+            return false;
+        }
 
         // Check for core PostgreSQL environment variables
         var pgVars = new[] { "PGHOST", "PGDATABASE", "PGUSER", "PGPASSWORD", "PGPORT", "PGSERVICE" };
         var hasAnyPgVar = pgVars.Any(var => environmentVariables.ContainsKey(var) && !string.IsNullOrEmpty(environmentVariables[var]));
 
-        if (hasAnyPgVar) return true;
+        if (hasAnyPgVar)
+        {
+            return true;
+        }
 
         // Check for common PostgreSQL connection string variables
         var connectionStringVars = new[] {

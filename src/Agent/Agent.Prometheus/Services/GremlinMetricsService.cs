@@ -1,7 +1,12 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Prometheus.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,7 +18,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 {
     private readonly IMetricsRegistry _metricsRegistry;
     private readonly ILogger<GremlinMetricsService> _logger;
-    private CancellationTokenSource _cancellationTokenSource;
+    private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly ConcurrentDictionary<string, Task> _metricTasks = new();
 
     // Core metrics
@@ -238,7 +243,6 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         [property: JsonPropertyName("appHealthInfo")] string AppHealthInfo
     );
 
-
     private async Task CollectAppGroupMetrics(CancellationToken cancellationToken)
     {
         _logger.LogInternalInformation("Starting App group metrics collection");
@@ -268,41 +272,41 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                         {
                             if (appHealthInfo.Costs.HasValue)
                             {
-                                double cost = appHealthInfo.Costs.Value;
+                                var cost = appHealthInfo.Costs.Value;
                                 _appCostsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(cost);
                             }
 
                             if (appHealthInfo.AvgCpuUsage.HasValue)
                             {
-                                double cpuUsage = appHealthInfo.AvgCpuUsage.Value;
+                                var cpuUsage = appHealthInfo.AvgCpuUsage.Value;
                                 _appAvgCpuUsageGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(cpuUsage);
                             }
 
                             if (appHealthInfo.AvgLatencyInMs.HasValue)
                             {
-                                double latency = appHealthInfo.AvgLatencyInMs.Value;
+                                var latency = appHealthInfo.AvgLatencyInMs.Value;
                                 _appAvgLatencyInMsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(latency);
                             }
 
                             if (appHealthInfo.AvgMemoryUsage.HasValue)
                             {
-                                double memoryUsage = appHealthInfo.AvgMemoryUsage.Value;
+                                var memoryUsage = appHealthInfo.AvgMemoryUsage.Value;
                                 _appAvgMemoryUsageGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(memoryUsage);
                             }
 
                             if (appHealthInfo.Availability.HasValue)
                             {
-                                double availability = appHealthInfo.Availability.Value;
+                                var availability = appHealthInfo.Availability.Value;
                                 _appAvailabilityGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(availability);
                             }
 
                             if (appHealthInfo.Transactions.HasValue)
                             {
-                                double transactions = appHealthInfo.Transactions.Value;
+                                var transactions = appHealthInfo.Transactions.Value;
                                 _appTransactionsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(transactions);
                             }
 
-                            int health = (int)appHealthInfo.Health;
+                            var health = (int)appHealthInfo.Health;
                             _appHealthGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(health);
                         }
 
@@ -447,7 +451,9 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             foreach (var metric in metrics)
             {
                 if (metric.Status != "active")
+                {
                     continue;
+                }
 
                 // If metric task doesn't exist or has completed, start a new one
                 if (!_metricTasks.TryGetValue(metric.Name, out var task) || task.IsCompleted)
@@ -489,7 +495,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     public async Task<long> ExecuteCountQuery(string query)
     {
         var startTime = DateTime.UtcNow;
-        string queryType = "count";
+        var queryType = "count";
 
         try
         {
@@ -532,7 +538,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     public async Task<Dictionary<string, long>> ExecuteGroupCountQuery(string query)
     {
         var startTime = DateTime.UtcNow;
-        string queryType = "group_count";
+        var queryType = "group_count";
 
         try
         {
@@ -566,7 +572,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     public async Task<List<string>> ExecuteDeduplicationQuery(string query)
     {
         var startTime = DateTime.UtcNow;
-        string queryType = "dedup";
+        var queryType = "dedup";
 
         try
         {
@@ -600,7 +606,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         }
 
         var startTime = DateTime.UtcNow;
-        string queryType = "custom";
+        var queryType = "custom";
 
         try
         {

@@ -1,8 +1,12 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.Core;
 using Azure.ResourceManager;
-using Azure.ResourceManager.AppService;
 
 namespace Agent.Graph.Extensions;
 
@@ -19,7 +23,9 @@ internal static class ArmClientExtensions
         await foreach (var resource in subscription.GetGenericResourcesAsync(filter: $"resourceType eq '{resourceType}'"))
         {
             if (!resource.Data.Name.Equals(resourceName, StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
 
             if (string.Equals(resourceType, "Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
             {

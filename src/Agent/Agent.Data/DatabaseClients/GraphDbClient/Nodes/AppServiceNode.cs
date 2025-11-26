@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 using Agent.Data.DatabaseClients.Attributes;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient;
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class AppServiceNode : ArmResourceNode
 {
@@ -110,14 +110,14 @@ public class AppServiceNode : ArmResourceNode
             props.Add("hostNames", string.Join(",", HostNames));
 
             // Also add individual hostnames for easier querying
-            for (int i = 0; i < HostNames.Count; i++)
+            for (var i = 0; i < HostNames.Count; i++)
             {
                 // Add all hostnames as separate properties
                 props.Add($"hostname_{i}", HostNames[i]);
             }
 
             // Flag if there are custom domains (non-azurewebsites.net domains)
-            bool hasCustomDomains = HostNames.Any(h => !h.Contains(".azurewebsites.net", StringComparison.OrdinalIgnoreCase));
+            var hasCustomDomains = HostNames.Any(h => !h.Contains(".azurewebsites.net", StringComparison.OrdinalIgnoreCase));
             if (hasCustomDomains)
             {
                 props.Add("hasCustomDomains", true);

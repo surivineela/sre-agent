@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -78,7 +79,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
         {
-            new Metric { Name = "percentProcessorTime", Unit = "Percent", Aggregation = "Average" },
+            new() { Name = "percentProcessorTime", Unit = "Percent", Aggregation = "Average" },
         };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -101,7 +102,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
         {
-            new Metric { Name = "usedmemorypercentage", Unit = "Percent", Aggregation = "Average" },
+            new() { Name = "usedmemorypercentage", Unit = "Percent", Aggregation = "Average" },
         };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -124,7 +125,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
         {
-            new Metric { Name = "totalcommandsprocessed", Unit = "Count", Aggregation = "Total" },
+            new() { Name = "totalcommandsprocessed", Unit = "Count", Aggregation = "Total" },
         };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(
@@ -147,7 +148,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         {
             var metrics = new List<Metric>
         {
-            new Metric { Name = "connectedclients", Unit = "Count", Aggregation = "Maximum" },
+            new() { Name = "connectedclients", Unit = "Count", Aggregation = "Maximum" },
         };
 
             var metricsData = await _azureMetricsClient.GetMetricsAsync(

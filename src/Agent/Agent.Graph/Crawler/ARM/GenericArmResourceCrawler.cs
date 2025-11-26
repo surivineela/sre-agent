@@ -5,6 +5,7 @@
 using System.Net;
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Interfaces;
 using Azure;
 using Azure.Core;
@@ -27,7 +28,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
 
     protected readonly ArmClient _armClient;
 
-    private static HashSet<string> _skipPath = new()
+    private static readonly HashSet<string> _skipPath = new()
     {
         ".identity", // skip identity section because it is explicitly crawled
     };
@@ -167,7 +168,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 }
                 break;
             case JsonValueKind.Array:
-                int idx = 0;
+                var idx = 0;
                 foreach (var element in root.EnumerateArray())
                 {
                     foreach (var node in Traverse(element, $"[{idx}]"))

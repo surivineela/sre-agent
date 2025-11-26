@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ContainerService;
@@ -43,7 +44,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         _logger.LogInternalInformation($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
 
         // Get AKS cluster details to extract network, identity, and disk information
-        List<GraphNode> extractedNodes = new List<GraphNode>();
+        var extractedNodes = new List<GraphNode>();
         try
         {
             var aksResourceId = new ResourceIdentifier(aksNode.ResourceId);
@@ -98,7 +99,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 
         // Find connected Azure Monitor workspaces using Azure Resource Graph
         // This query looks for Azure Monitor workspaces that are connected to this AKS cluster
-        List<AzureMonitorWorkspaceNode> monitorWorkspaces = new List<AzureMonitorWorkspaceNode>();
+        var monitorWorkspaces = new List<AzureMonitorWorkspaceNode>();
         try
         {
             monitorWorkspaces = await FindConnectedMonitorWorkspaces(aksNode);
@@ -188,7 +189,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
     /// <returns>List of AzureMonitorWorkspaceNode instances that are connected to this AKS cluster</returns>
     private async Task<List<AzureMonitorWorkspaceNode>> FindConnectedMonitorWorkspaces(AksNode aksNode)
     {
-        List<AzureMonitorWorkspaceNode> workspaces = new List<AzureMonitorWorkspaceNode>();        // This query identifies Azure Monitor workspaces connected to an AKS cluster through data collection rules
+        var workspaces = new List<AzureMonitorWorkspaceNode>();        // This query identifies Azure Monitor workspaces connected to an AKS cluster through data collection rules
         string query = $@"
         resources        
         | where type == ""microsoft.insights/datacollectionrules""        
@@ -412,7 +413,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             yield break;
         }
 
-        List<GraphNode> diskNodes = new List<GraphNode>();
+        var diskNodes = new List<GraphNode>();
 
         try
         {
@@ -481,7 +482,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         }
 
         _logger.LogDebug($"Extracting resources from node resource group: {nodeResourceGroup}");
-        List<GraphNode> resourceNodes = new List<GraphNode>();
+        var resourceNodes = new List<GraphNode>();
 
         try
         {
@@ -604,7 +605,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
             yield break;
         }
 
-        List<GraphNode> acrNodes = new List<GraphNode>();
+        var acrNodes = new List<GraphNode>();
 
         try
         {
@@ -718,15 +719,29 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
     private string DetermineRelationshipType(string resourceType)
     {
         if (resourceType.Contains("virtualmachinescalesets"))
+        {
             return Constants.Relationships.Manages;
+        }
+
         if (resourceType.Contains("loadbalancers") || resourceType.Contains("publicip"))
+        {
             return Constants.Relationships.Uses;
+        }
+
         if (resourceType.Contains("networksecuritygroups"))
+        {
             return Constants.Relationships.Linked;
+        }
+
         if (resourceType.Contains("routetables"))
+        {
             return Constants.Relationships.Linked;
+        }
+
         if (resourceType.Contains("storage"))
+        {
             return Constants.Relationships.StoresIn;
+        }
 
         return Constants.Relationships.Uses;
     }

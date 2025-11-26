@@ -12,175 +12,247 @@ using Agent.Framework;
 using Agent.Plugins.DataConnectors.Documentation;
 using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.AI;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
-namespace Agent.Web.Controllers.v1
+namespace Agent.Web.Controllers.v1;
+
+internal record FailedUpload(string FileName, string ErrorMessage);
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class AgentMemoryController(
+    ILogger<AgentMemoryController> logger,
+    IAgentMemoryClient agentMemoryClient,
+    IChatClientProvider chatClientProvider,
+    ISearchIndexService searchIndexService,
+    DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
+    DataConnectorIndex dataConnectorIndex,
+    AgentMemorySettings agentMemorySettings)
+    : ControllerBase
 {
-    internal record FailedUpload(string FileName, string ErrorMessage);
+    private static readonly char[] InvalidChars = [
+        '\\',
+        '/',
+        '?',
+        '#',
+        .. Path.GetInvalidFileNameChars()];
 
-    [ApiController]
-    [Route("api/v1/[controller]")]
-    public class AgentMemoryController(ILogger<AgentMemoryController> logger,
-                                    IAgentMemoryClient agentMemoryClient,
-                                    IChatClientProvider chatClientProvider,
-                                    ISearchIndexService searchIndexService,
-                                    DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
-                                    DataConnectorIndex dataConnectorIndex,
-                                    AgentMemorySettings agentMemorySettings) : ControllerBase
+    private static readonly Regex SafeIndexKeyRegex = new(
+        pattern: @"[^A-Za-z0-9_\-=]+",
+        options: RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled,
+        matchTimeout: TimeSpan.FromSeconds(1));
+
+    private static readonly HashSet<string> _allowedExtensions = [".md", ".txt"];
+
+    [HttpPost("upload")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100MB limit for the entire request
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadDocument(
+        [FromForm] List<IFormFile> files,
+        [FromForm] bool triggerIndexing = true) // Default to true for immediate availability of docs for retrieval
     {
-
-        private static readonly char[] InvalidChars = Path.GetInvalidFileNameChars().Concat(['\\', '/', '?', '#']).ToArray();
-        private static readonly Regex SafeIndexKeyRegex = new Regex(@"[^A-Za-z0-9_\-=]+", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-
-        private HashSet<string> allowedExtensions = [".md", ".txt"];
-
-        [HttpPost("upload")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 100MB limit for the entire request
-        [Consumes("multipart/form-data")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UploadDocument(
-            [FromForm] List<IFormFile> files,
-            [FromForm] bool triggerIndexing = true) // Default to true for immediate availability of docs for retrieval
+        if (files == null || files.Count == 0)
         {
-            if (files == null || files.Count == 0)
+            return BadRequest(new { error = "No files provided" });
+        }
+
+        logger.LogInternalInformation($"Received {files.Count} files for upload");
+
+        // Azure AI Search has a maximum file size limit of 16MB
+        const long maxFileSize = 16 * 1024 * 1024; // 16MB
+
+        var failedUploads = new List<FailedUpload>();
+        var successfulUploads = new List<string>();
+
+        foreach (var file in files)
+        {
+            if (file == null || file.Length == 0)
             {
-                return BadRequest(new { error = "No files provided" });
+                failedUploads.Add(new FailedUpload(file?.FileName ?? "unknown", "File name or content is empty"));
+                continue;
             }
 
-            logger.LogInternalInformation($"Received {files.Count} files for upload");
-
-            // Azure AI Search has a maximum file size limit of 16MB
-            const long maxFileSize = 16 * 1024 * 1024; // 16MB
-
-            var failedUploads = new List<FailedUpload>();
-            var successfulUploads = new List<string>();
-
-            foreach (var file in files)
+            if (file.Length > maxFileSize)
             {
-                if (file == null || file.Length == 0)
-                {
-                    failedUploads.Add(new FailedUpload(file?.FileName ?? "unknown", "File name or content is empty"));
-                    continue;
-                }
-
-                if (file.Length > maxFileSize)
-                {
-                    failedUploads.Add(new FailedUpload(file.FileName, "File exceeds maximum size of 16MB"));
-                    continue;
-                }
-
-                if (!allowedExtensions.Contains(Path.GetExtension(file.FileName)))
-                {
-                    failedUploads.Add(new FailedUpload(file.FileName, "File type not allowed"));
-                    continue;
-                }
-
-                var safeFileName = GetSafeBlobName(file.FileName);
-                if (string.IsNullOrWhiteSpace(safeFileName))
-                {
-                    failedUploads.Add(new FailedUpload(file.FileName, "Invalid file name or too long"));
-                    continue;
-                }
-
-                if (!TryGetSafeIndexId(file.FileName, out string indexIdString))
-                {
-                    failedUploads.Add(new FailedUpload(file.FileName, "Invalid file name or too long"));
-                    continue;
-                }
-
-                try
-                {
-                    using var stream = file.OpenReadStream();
-                    using var reader = new StreamReader(stream);
-
-                    string content = await reader.ReadToEndAsync();
-
-                    UserDocument doc = new UserDocument()
-                    {
-                        Id = indexIdString,
-                        Title = safeFileName,
-                        Filter = string.Empty,
-                        Contents = content,
-                    };
-
-                    await dataConnectorStorage.UploadBlobContentsAsync(safeFileName, doc);
-
-                    successfulUploads.Add(file.FileName);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInternalError(ex, $"Failed to upload file: {file.FileName}");
-                    // TODO: allow uploading files concurrently
-                    failedUploads.Add(new FailedUpload(file.FileName, $"Failed to upload file"));
-                }
+                failedUploads.Add(new FailedUpload(file.FileName, "File exceeds maximum size of 16MB"));
+                continue;
             }
 
-            // Trigger indexing if requested and at least one file was uploaded successfully
-            bool indexingTriggered = false;
-            if (triggerIndexing && successfulUploads.Count > 0)
+            if (!_allowedExtensions.Contains(Path.GetExtension(file.FileName)))
             {
-                try
-                {
-                    logger.LogInternalInformation($"Triggering indexer for {successfulUploads.Count} newly uploaded files");
-                    await dataConnectorIndex.RunIndexerAsync();
-                    indexingTriggered = true;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInternalError(ex, "Failed to trigger indexing after upload");
-                    // Don't fail the entire request if indexing fails - files are still uploaded
-                }
+                failedUploads.Add(new FailedUpload(file.FileName, "File type not allowed"));
+                continue;
             }
 
-            if (failedUploads.Count > 0)
+            var safeFileName = GetSafeBlobName(file.FileName);
+            if (string.IsNullOrWhiteSpace(safeFileName))
             {
-                return BadRequest(new
-                {
-                    error = "Failed to upload some files",
-                    detail = failedUploads,
-                    uploaded = successfulUploads,
-                    indexingTriggered
-                });
+                failedUploads.Add(new FailedUpload(file.FileName, "Invalid file name or too long"));
+                continue;
             }
 
-            return Ok(new
+            if (!TryGetSafeIndexId(file.FileName, out var indexIdString))
             {
-                message = $"Files uploaded successfully{(indexingTriggered ? " and indexing triggered" : "")}.",
+                failedUploads.Add(new FailedUpload(file.FileName, "Invalid file name or too long"));
+                continue;
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+
+                var content = await reader.ReadToEndAsync();
+
+                var doc = new UserDocument()
+                {
+                    Id = indexIdString,
+                    Title = safeFileName,
+                    Filter = string.Empty,
+                    Contents = content,
+                };
+
+                await dataConnectorStorage.UploadBlobContentsAsync(safeFileName, doc);
+
+                successfulUploads.Add(file.FileName);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, $"Failed to upload file: {file.FileName}");
+                // TODO: allow uploading files concurrently
+                failedUploads.Add(new FailedUpload(file.FileName, $"Failed to upload file"));
+            }
+        }
+
+        // Trigger indexing if requested and at least one file was uploaded successfully
+        var indexingTriggered = false;
+        if (triggerIndexing && successfulUploads.Count > 0)
+        {
+            try
+            {
+                logger.LogInternalInformation($"Triggering indexer for {successfulUploads.Count} newly uploaded files");
+                await dataConnectorIndex.RunIndexerAsync();
+                indexingTriggered = true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError(ex, "Failed to trigger indexing after upload");
+                // Don't fail the entire request if indexing fails - files are still uploaded
+            }
+        }
+
+        if (failedUploads.Count > 0)
+        {
+            return BadRequest(new
+            {
+                error = "Failed to upload some files",
+                detail = failedUploads,
                 uploaded = successfulUploads,
                 indexingTriggered
             });
         }
 
-        // Delete a single document
-        [HttpDelete("document/{fileName}")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteDocument(string fileName)
+        return Ok(new
+        {
+            message = $"Files uploaded successfully{(indexingTriggered ? " and indexing triggered" : "")}.",
+            uploaded = successfulUploads,
+            indexingTriggered
+        });
+    }
+
+    // Delete a single document
+    [HttpDelete("document/{fileName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteDocument(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return BadRequest(new { error = "File name must be provided" });
+        }
+
+        logger.LogInternalInformation($"Received request to delete document: {fileName}");
+
+        // Validate file extension if you want to ensure only certain types can be deleted
+        var extension = Path.GetExtension(fileName);
+        if (!string.IsNullOrEmpty(extension) && !_allowedExtensions.Contains(extension))
+        {
+            return BadRequest(new { error = "File type not allowed for deletion" });
+        }
+
+        var safeFileName = GetSafeBlobName(fileName);
+        if (string.IsNullOrWhiteSpace(safeFileName))
+        {
+            return BadRequest(new { error = "Invalid file name" });
+        }
+
+        try
+        {
+            var deleteSuccess = await dataConnectorStorage.DeleteBlobContentsAsync(safeFileName);
+
+            if (!deleteSuccess)
+            {
+                logger.LogInternalWarning($"Document not found or could not be deleted: {fileName}");
+                return NotFound(new { error = $"Document '{fileName}' not found or could not be deleted" });
+            }
+
+            logger.LogInternalInformation($"Successfully deleted document: {fileName}");
+
+            await dataConnectorIndex.RunIndexerAsync();
+
+            return Ok(new { message = $"Document '{fileName}' deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, $"Failed to delete document: {fileName}");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "Failed to delete document" });
+        }
+    }
+
+    // Delete multiple documents at once
+    [HttpDelete("documents")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteDocuments([FromBody] List<string> fileNames)
+    {
+        if (fileNames == null || fileNames.Count == 0)
+        {
+            return BadRequest(new { error = "No file names provided" });
+        }
+
+        logger.LogInternalInformation($"Received request to delete {fileNames.Count} documents");
+
+        var failedDeletions = new ConcurrentBag<FailedUpload>();
+        var successfulDeletions = new ConcurrentBag<string>();
+
+        // Configure parallelization settings
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Math.Min(10, fileNames.Count) // Limit concurrency
+        };
+
+        await Parallel.ForEachAsync(fileNames, parallelOptions, async (fileName, ct) =>
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                return BadRequest(new { error = "File name must be provided" });
-            }
-
-            logger.LogInternalInformation($"Received request to delete document: {fileName}");
-
-            // Validate file extension if you want to ensure only certain types can be deleted
-            var extension = Path.GetExtension(fileName);
-            if (!string.IsNullOrEmpty(extension) && !allowedExtensions.Contains(extension))
-            {
-                return BadRequest(new { error = "File type not allowed for deletion" });
+                failedDeletions.Add(new FailedUpload(fileName ?? "unknown", "Invalid file name"));
+                return;
             }
 
             var safeFileName = GetSafeBlobName(fileName);
             if (string.IsNullOrWhiteSpace(safeFileName))
             {
-                return BadRequest(new { error = "Invalid file name" });
+                failedDeletions.Add(new FailedUpload(fileName, "Invalid file name format"));
+                return;
             }
 
             try
@@ -189,383 +261,322 @@ namespace Agent.Web.Controllers.v1
 
                 if (!deleteSuccess)
                 {
-                    logger.LogInternalWarning($"Document not found or could not be deleted: {fileName}");
-                    return NotFound(new { error = $"Document '{fileName}' not found or could not be deleted" });
+                    failedDeletions.Add(new FailedUpload(fileName, "Document not found or could not be deleted"));
                 }
-
-                logger.LogInternalInformation($"Successfully deleted document: {fileName}");
-
-                await dataConnectorIndex.RunIndexerAsync();
-
-                return Ok(new { message = $"Document '{fileName}' deleted successfully" });
+                else
+                {
+                    successfulDeletions.Add(fileName);
+                }
             }
             catch (Exception ex)
             {
                 logger.LogInternalError(ex, $"Failed to delete document: {fileName}");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "Failed to delete document" });
+                failedDeletions.Add(new FailedUpload(fileName, "Failed to delete document"));
             }
+        });
+
+        // Convert ConcurrentBag to List for the response
+        var successList = successfulDeletions.ToList();
+        var failedList = failedDeletions.ToList();
+
+        if (successList.Count == 0 && failedList.Count > 0)
+        {
+            return BadRequest(new { error = "Failed to delete all documents", detail = failedList });
         }
 
-        // Delete multiple documents at once
-        [HttpDelete("documents")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryDeleteActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteDocuments([FromBody] List<string> fileNames)
+        if (successList.Count > 0)
         {
-            if (fileNames == null || fileNames.Count == 0)
+            await dataConnectorIndex.RunIndexerAsync();
+        }
+
+        return Ok(new
+        {
+            message = $"Deleted {successList.Count} document(s) successfully",
+            deleted = successList,
+            failed = failedList
+        });
+    }
+
+    // Get the status of the AgentMemory feature
+    [HttpGet("status")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetAgentMemoryStatus()
+    {
+        try
+        {
+            if (agentMemorySettings == null)
             {
-                return BadRequest(new { error = "No file names provided" });
-            }
-
-            logger.LogInternalInformation($"Received request to delete {fileNames.Count} documents");
-
-            var failedDeletions = new ConcurrentBag<FailedUpload>();
-            var successfulDeletions = new ConcurrentBag<string>();
-
-            // Configure parallelization settings
-            var parallelOptions = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = Math.Min(10, fileNames.Count) // Limit concurrency
-            };
-
-            await Parallel.ForEachAsync(fileNames, parallelOptions, async (fileName, ct) =>
-            {
-                if (string.IsNullOrWhiteSpace(fileName))
+                return Ok(new
                 {
-                    failedDeletions.Add(new FailedUpload(fileName ?? "unknown", "Invalid file name"));
-                    return;
-                }
-
-                var safeFileName = GetSafeBlobName(fileName);
-                if (string.IsNullOrWhiteSpace(safeFileName))
-                {
-                    failedDeletions.Add(new FailedUpload(fileName, "Invalid file name format"));
-                    return;
-                }
-
-                try
-                {
-                    var deleteSuccess = await dataConnectorStorage.DeleteBlobContentsAsync(safeFileName);
-
-                    if (!deleteSuccess)
-                    {
-                        failedDeletions.Add(new FailedUpload(fileName, "Document not found or could not be deleted"));
-                    }
-                    else
-                    {
-                        successfulDeletions.Add(fileName);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInternalError(ex, $"Failed to delete document: {fileName}");
-                    failedDeletions.Add(new FailedUpload(fileName, "Failed to delete document"));
-                }
-            });
-
-            // Convert ConcurrentBag to List for the response
-            var successList = successfulDeletions.ToList();
-            var failedList = failedDeletions.ToList();
-
-            if (successList.Count == 0 && failedList.Count > 0)
-            {
-                return BadRequest(new { error = "Failed to delete all documents", detail = failedList });
-            }
-
-            if (successList.Count > 0)
-            {
-                await dataConnectorIndex.RunIndexerAsync();
+                    enabled = false,
+                    documentRetrievalEnabled = false,
+                    trajectoryRetrievalEnabled = false,
+                    userMemoryRetrievalEnabled = false,
+                    message = "AgentMemory configuration not found"
+                });
             }
 
             return Ok(new
             {
-                message = $"Deleted {successList.Count} document(s) successfully",
-                deleted = successList,
-                failed = failedList
+                enabled = agentMemorySettings.Enabled,
+                documentRetrievalEnabled = agentMemorySettings.DocumentRetrievalEnabled,
+                trajectoryRetrievalEnabled = agentMemorySettings.TrajectoryRetrievalEnabled,
+                userMemoryRetrievalEnabled = agentMemorySettings.UserMemoryRetrievalEnabled,
+                message = agentMemorySettings.Enabled ? "AgentMemory is enabled" : "AgentMemory is disabled"
             });
         }
-
-        // Get the status of the AgentMemory feature
-        [HttpGet("status")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetAgentMemoryStatus()
+        catch (Exception ex)
         {
-            try
-            {
-                if (agentMemorySettings == null)
-                {
-                    return Ok(new
-                    {
-                        enabled = false,
-                        documentRetrievalEnabled = false,
-                        trajectoryRetrievalEnabled = false,
-                        userMemoryRetrievalEnabled = false,
-                        message = "AgentMemory configuration not found"
-                    });
-                }
+            logger.LogInternalError(ex, "Failed to retrieve AgentMemory status");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "Failed to retrieve AgentMemory status" });
+        }
+    }
 
-                return Ok(new
-                {
-                    enabled = agentMemorySettings.Enabled,
-                    documentRetrievalEnabled = agentMemorySettings.DocumentRetrievalEnabled,
-                    trajectoryRetrievalEnabled = agentMemorySettings.TrajectoryRetrievalEnabled,
-                    userMemoryRetrievalEnabled = agentMemorySettings.UserMemoryRetrievalEnabled,
-                    message = agentMemorySettings.Enabled ? "AgentMemory is enabled" : "AgentMemory is disabled"
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to retrieve AgentMemory status");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "Failed to retrieve AgentMemory status" });
-            }
+    // Azure Blob Storage legal name helper
+    private static string? GetSafeBlobName(string fileName)
+    {
+        // Remove invalid chars, trim, and ensure length is valid for Azure Blob Storage
+        // Azure blob names cannot contain: \, /, ?, #, and must be between 1 and 1024 chars
+
+        var safeName = new string(fileName.Where(ch => !InvalidChars.Contains(ch)).ToArray());
+        safeName = safeName.Trim().TrimEnd('.');
+        if (safeName.Length == 0 || safeName.Length > 1024)
+        {
+            return null;
         }
 
-        // Azure Blob Storage legal name helper
-        private static string? GetSafeBlobName(string fileName)
-        {
-            // Remove invalid chars, trim, and ensure length is valid for Azure Blob Storage
-            // Azure blob names cannot contain: \, /, ?, #, and must be between 1 and 1024 chars
+        return safeName;
+    }
 
-            var safeName = new string(fileName.Where(ch => !InvalidChars.Contains(ch)).ToArray());
-            safeName = safeName.Trim().TrimEnd('.');
-            if (safeName.Length == 0 || safeName.Length > 1024)
-                return null;
-            return safeName;
+    private static bool TryGetSafeIndexId(string fileName, out string result)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            result = string.Empty;
+            return false;
         }
 
-        private static bool TryGetSafeIndexId(string fileName, out string result)
+        result = SafeIndexKeyRegex.Replace(fileName, "_");
+        result = Regex.Replace(result, "_{2,}", "_");
+        result = result.Trim('_', '-', '=');
+
+        if (string.IsNullOrWhiteSpace(result))
         {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                result = string.Empty;
-                return false;
-            }
-
-            result = SafeIndexKeyRegex.Replace(fileName, "_");
-            result = Regex.Replace(result, "_{2,}", "_");
-            result = result.Trim('_', '-', '=');
-
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        [HttpPost("rebuildIndex")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> TriggerIndexing()
+        return true;
+    }
+
+    [HttpPost("rebuildIndex")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> TriggerIndexing()
+    {
+        try
         {
-            try
+            await dataConnectorIndex.RunIndexerAsync();
+            await agentMemoryClient.RunIndexerAsync();
+            return Ok(new { message = "Indexing triggered successfully." });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to trigger indexing.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to trigger indexing." });
+        }
+    }
+
+    [HttpPost("indexTrajectory")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> IndexTrajectory([FromBody] ProcessedTrajectoryOutput_v3 trajectoryOutput)
+    {
+        logger.LogInternalInformation($"Received trajectory for indexing");
+
+        try
+        {
+            var embedding = await chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved, logger);
+            var memory = AgentMemory.FromTrajectory(
+                trajectoryGuid: Guid.NewGuid(), // generate random guid
+                trajectoryData: trajectoryOutput,
+                embedding: [.. embedding.Span]);
+
+            var result = await searchIndexService.IndexContentAsync(memory);
+
+            if (!result)
             {
-                await dataConnectorIndex.RunIndexerAsync();
-                await agentMemoryClient.RunIndexerAsync();
-                return Ok(new { message = "Indexing triggered successfully." });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to index trajectory content." });
             }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to trigger indexing.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to trigger indexing." });
-            }
+
+            return Ok(new { message = "Trajectory indexed successfully." });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to index trajectory.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = $"Failed to index trajectory: {ex.Message}" });
+        }
+    }
+
+    [HttpGet("documents")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SearchDocuments([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+    {
+        if (string.IsNullOrWhiteSpace(query) || k <= 0)
+        {
+            return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
         }
 
-        [HttpPost("indexTrajectory")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> IndexTrajectory([FromBody] ProcessedTrajectoryOutput_v3 trajectoryOutput)
+        try
         {
-            logger.LogInternalInformation($"Received trajectory for indexing");
+            var searchResults = dataConnectorIndex.SearchAsync<UserDocument>(query, filter ?? string.Empty, 100);
 
-            try
-            {
-                var embedding = await chatClientProvider.EmbeddingModel.GenerateVectorForAgentMemoryAsync(trajectoryOutput.SymptomsObserved, logger);
-                var memory = AgentMemory.FromTrajectory(
-                    trajectoryGuid: Guid.NewGuid(), // generate random guid
-                    trajectoryData: trajectoryOutput,
-                    embedding: [.. embedding.Span]);
+            var results = await searchResults.Select(x => x.OriginalDocument.Contents).ToListAsync();
 
-                var result = await searchIndexService.IndexContentAsync(memory);
+            return Ok(new { results });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to search documents.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search documents." });
+        }
+    }
 
-                if (!result)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to index trajectory content." });
-                }
-
-                return Ok(new { message = "Trajectory indexed successfully." });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to index trajectory.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = $"Failed to index trajectory: {ex.Message}" });
-            }
+    [HttpGet("trajectories")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SearchTrajectories([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+    {
+        if (string.IsNullOrWhiteSpace(query) || k <= 0)
+        {
+            return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
         }
 
-        [HttpGet("documents")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> SearchDocuments([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        try
         {
-            if (string.IsNullOrWhiteSpace(query) || k <= 0)
-            {
-                return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
-            }
+            var results = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
+                Query: query,
+                K: k,
+                VectorSimilarityThreshold: vectorSimilarityThreshold,
+                Filter: filter,
+                EnableHybridSearch: enableHybridSearch
+            ));
+            return Ok(new { results });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to search documents.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search documents." });
+        }
+    }
 
-            try
-            {
-                IAsyncEnumerable<DataConnectorSearchResult<UserDocument>> searchResults = dataConnectorIndex.SearchAsync<UserDocument>(query, filter ?? string.Empty, 100);
-
-                List<string> results = await searchResults.Select(x => x.OriginalDocument.Contents).ToListAsync();
-
-                return Ok(new { results });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to search documents.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search documents." });
-            }
+    [HttpGet("userMemories")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SearchUserMemory([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+    {
+        if (string.IsNullOrWhiteSpace(query) || k <= 0)
+        {
+            return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
         }
 
-        [HttpGet("trajectories")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> SearchTrajectories([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        try
         {
-            if (string.IsNullOrWhiteSpace(query) || k <= 0)
-            {
-                return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
-            }
+            var results = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
+                Query: query,
+                K: k,
+                VectorSimilarityThreshold: vectorSimilarityThreshold,
+                Filter: filter,
+                EnableHybridSearch: enableHybridSearch
+            ));
+            return Ok(new { results });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to search user memory.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search user memory." });
+        }
+    }
 
-            try
-            {
-                var results = await agentMemoryClient.SearchTrajectoriesAsync(new SearchParams(
-                    Query: query,
-                    K: k,
-                    VectorSimilarityThreshold: vectorSimilarityThreshold,
-                    Filter: filter,
-                    EnableHybridSearch: enableHybridSearch
-                ));
-                return Ok(new { results });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to search documents.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search documents." });
-            }
+    [HttpGet("files")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ListFiles(
+        [FromQuery] string? prefix = null,
+        [FromQuery] int? pageSize = null,
+        [FromQuery] string? continuationToken = null,
+        CancellationToken cancellationToken = default)
+    {
+
+        if (pageSize.HasValue && (pageSize <= 0 || pageSize > 1000))
+        {
+            return BadRequest(new { error = "pageSize must be between 1 and 1000 if provided." });
         }
 
-        [HttpGet("userMemories")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> SearchUserMemory([FromQuery] string query, [FromQuery] string? filter = null, [FromQuery] uint k = 5, [FromQuery] float? vectorSimilarityThreshold = null, [FromQuery] bool enableHybridSearch = false)
+        try
         {
-            if (string.IsNullOrWhiteSpace(query) || k <= 0)
-            {
-                return BadRequest(new { error = "Query must be provided and k must be greater than 0." });
-            }
+            var page = await dataConnectorStorage.ListFilesAsync(
+                prefix: prefix,
+                pageSize: pageSize,
+                continuationToken: continuationToken,
+                cancellationToken: cancellationToken);
 
-            try
+            return Ok(new
             {
-                var results = await agentMemoryClient.SearchUserMemoriesAsync(new SearchParams(
-                    Query: query,
-                    K: k,
-                    VectorSimilarityThreshold: vectorSimilarityThreshold,
-                    Filter: filter,
-                    EnableHybridSearch: enableHybridSearch
-                ));
-                return Ok(new { results });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to search user memory.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to search user memory." });
-            }
+                files = page.Items,
+                continuationToken = page.ContinuationToken
+            });
         }
-
-        [HttpGet("files")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ListFiles(
-            [FromQuery] string? prefix = null,
-            [FromQuery] int? pageSize = null,
-            [FromQuery] string? continuationToken = null,
-            CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
+            logger.LogInternalError(ex, "Failed to list files.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to list files." });
+        }
+    }
 
-            if (pageSize.HasValue && (pageSize <= 0 || pageSize > 1000))
-            {
-                return BadRequest(new { error = "pageSize must be between 1 and 1000 if provided." });
-            }
+    [HttpGet("files/count")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetFilesCount(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var totalCount = 0;
+            string? continuationToken = null;
 
-            try
+            do
             {
                 var page = await dataConnectorStorage.ListFilesAsync(
-                    prefix: prefix,
-                    pageSize: pageSize,
+                    prefix: null,
+                    pageSize: 1000,
                     continuationToken: continuationToken,
                     cancellationToken: cancellationToken);
 
-                return Ok(new
-                {
-                    files = page.Items,
-                    continuationToken = page.ContinuationToken
-                });
+                totalCount += page.Items.Count;
+                continuationToken = page.ContinuationToken;
             }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to list files.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to list files." });
-            }
+            while (!string.IsNullOrEmpty(continuationToken));
+
+            return Ok(new { count = totalCount });
         }
-
-        [HttpGet("files/count")]
-        [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetFilesCount(CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            try
-            {
-                int totalCount = 0;
-                string? continuationToken = null;
-
-                do
-                {
-                    var page = await dataConnectorStorage.ListFilesAsync(
-                        prefix: null,
-                        pageSize: 1000,
-                        continuationToken: continuationToken,
-                        cancellationToken: cancellationToken);
-
-                    totalCount += page.Items.Count;
-                    continuationToken = page.ContinuationToken;
-                }
-                while (!string.IsNullOrEmpty(continuationToken));
-
-                return Ok(new { count = totalCount });
-            }
-            catch (Exception ex)
-            {
-                logger.LogInternalError(ex, "Failed to get files count.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to get files count." });
-            }
+            logger.LogInternalError(ex, "Failed to get files count.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to get files count." });
         }
     }
 }

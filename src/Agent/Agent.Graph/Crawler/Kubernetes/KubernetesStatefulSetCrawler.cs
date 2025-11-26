@@ -1,5 +1,10 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Agent.Graph.Interfaces;
 using Azure.ResourceManager;
@@ -120,6 +125,5 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                 }
             }
         }
-
     }
 }

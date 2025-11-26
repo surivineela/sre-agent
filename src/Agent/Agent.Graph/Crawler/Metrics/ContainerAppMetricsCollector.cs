@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -156,16 +157,18 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
                 metrics,
                 filter: "$filter=(statusCodeCategory ne '2xx')");
 
-            double totalRequestCount = totalRequests.Sum(s => s.Value);
-            double errorRequestCount = errorRequests.Sum(s => s.Value);
+            var totalRequestCount = totalRequests.Sum(s => s.Value);
+            var errorRequestCount = errorRequests.Sum(s => s.Value);
 
             // Ensure error count doesn't exceed total count
             errorRequestCount = Math.Min(errorRequestCount, totalRequestCount);
 
             if (totalRequestCount == 0)
+            {
                 return 100; // No requests = 100% availability by default
+            }
 
-            return Math.Max(0, ((totalRequestCount - errorRequestCount) / totalRequestCount) * 100);
+            return Math.Max(0, (totalRequestCount - errorRequestCount) / totalRequestCount * 100);
         }
         catch (Exception ex)
         {

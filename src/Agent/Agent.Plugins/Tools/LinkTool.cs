@@ -2,13 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.RegularExpressions;
 using Agent.Data.Tools;
 using Agent.Framework;
 
 namespace Agent.Plugins.Tools;
 
 [ToolType("LinkTool")]
-public class LinkToolType : IYamlToolAware
+public partial class LinkToolType : IYamlToolAware
 {
     private LinkToolDefinition? _definition;
 
@@ -36,9 +37,9 @@ public class LinkToolType : IYamlToolAware
         var result = _definition.Template;
 
         // Find all placeholders in the format {{key}}
-        var matches = System.Text.RegularExpressions.Regex.Matches(result, @"{{(.*?)}}");
+        var matches = PlaceholderRegex().Matches(result);
 
-        foreach (System.Text.RegularExpressions.Match match in matches)
+        foreach (Match match in matches)
         {
             var placeholder = match.Groups[0].Value;   // e.g. {{fromDate}} or {{threadId}} or {{agent_endpoint}} or {{agent_name}}
             var key = match.Groups[1].Value;           // e.g. fromDate or threadId or agent_endpoint or agent_name
@@ -79,4 +80,7 @@ public class LinkToolType : IYamlToolAware
 
         return await Task.FromResult(result);
     }
+
+    [GeneratedRegex(@"{{(.*?)}}")]
+    private static partial Regex PlaceholderRegex();
 }

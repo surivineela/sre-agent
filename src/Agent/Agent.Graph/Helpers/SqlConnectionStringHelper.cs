@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -42,7 +43,7 @@ public class SqlConnectionStringHelper
             {
                 serverName = serverName.Substring(4);
             }
-            int commaIndex = serverName.IndexOf(",");
+            var commaIndex = serverName.IndexOf(",");
             if (commaIndex > 0)
             {
                 serverName = serverName.Substring(0, commaIndex);
@@ -99,7 +100,10 @@ public class SqlConnectionStringHelper
 
     public bool IsSqlConnectionString(string value)
     {
-        if (string.IsNullOrEmpty(value)) return false;
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
 
         // Common SQL connection string indicators
         return value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);

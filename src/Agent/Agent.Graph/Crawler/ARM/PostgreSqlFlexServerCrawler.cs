@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
@@ -52,20 +53,30 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                 try
                 {
                     if (serverData.Version != null)
+                    {
                         postgreSqlNode.ServerVersion = serverData.Version.ToString();
+                    }
 
                     if (serverData.State != null)
+                    {
                         postgreSqlNode.ProvisioningState = serverData.State.ToString();
+                    }
 
                     if (!string.IsNullOrEmpty(serverData.FullyQualifiedDomainName))
+                    {
                         postgreSqlNode.FullyQualifiedDomainName = serverData.FullyQualifiedDomainName;
+                    }
 
                     if (!string.IsNullOrEmpty(serverData.AvailabilityZone))
+                    {
                         postgreSqlNode.AvailabilityZone = serverData.AvailabilityZone;
+                    }
 
                     // Enhanced basic properties
                     if (!string.IsNullOrEmpty(serverData.AdministratorLogin))
+                    {
                         postgreSqlNode.AdministratorLogin = serverData.AdministratorLogin;
+                    }
 
                     // SKU information
                     if (serverData.Sku != null)
@@ -78,59 +89,105 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                     if (serverData.Storage != null)
                     {
                         if (serverData.Storage.StorageSizeInGB.HasValue)
+                        {
                             postgreSqlNode.StorageSize = serverData.Storage.StorageSizeInGB;
+                        }
+
                         if (serverData.Storage.AutoGrow.HasValue)
+                        {
                             postgreSqlNode.StorageAutoGrow = serverData.Storage.AutoGrow == Azure.ResourceManager.PostgreSql.FlexibleServers.Models.StorageAutoGrow.Enabled;
+                        }
+
                         if (serverData.Storage.Tier.HasValue)
+                        {
                             postgreSqlNode.StorageTier = serverData.Storage.Tier.ToString();
+                        }
+
                         if (serverData.Storage.StorageType.HasValue)
+                        {
                             postgreSqlNode.StorageType = serverData.Storage.StorageType.ToString();
+                        }
+
                         if (serverData.Storage.Iops.HasValue)
+                        {
                             postgreSqlNode.StorageIops = serverData.Storage.Iops;
+                        }
+
                         if (serverData.Storage.Throughput.HasValue)
+                        {
                             postgreSqlNode.StorageThroughput = serverData.Storage.Throughput;
+                        }
                     }
 
                     // Enhanced backup information
                     if (serverData.Backup != null)
                     {
                         if (serverData.Backup.BackupRetentionDays.HasValue)
+                        {
                             postgreSqlNode.BackupRetentionDays = serverData.Backup.BackupRetentionDays;
+                        }
+
                         if (serverData.Backup.GeoRedundantBackup.HasValue)
+                        {
                             postgreSqlNode.GeoRedundantBackup = serverData.Backup.GeoRedundantBackup == Azure.ResourceManager.PostgreSql.FlexibleServers.Models.PostgreSqlFlexibleServerGeoRedundantBackupEnum.Enabled;
+                        }
+
                         if (serverData.Backup.EarliestRestoreOn.HasValue)
+                        {
                             postgreSqlNode.EarliestRestoreOn = serverData.Backup.EarliestRestoreOn.Value.DateTime;
+                        }
                     }
 
                     // Enhanced high availability
                     if (serverData.HighAvailability != null)
                     {
                         if (serverData.HighAvailability.Mode.HasValue)
+                        {
                             postgreSqlNode.HighAvailabilityEnabled = serverData.HighAvailability.Mode.ToString() != "Disabled";
+                        }
+
                         if (serverData.HighAvailability.State.HasValue)
+                        {
                             postgreSqlNode.HighAvailabilityState = serverData.HighAvailability.State.ToString();
+                        }
+
                         if (!string.IsNullOrEmpty(serverData.HighAvailability.StandbyAvailabilityZone))
+                        {
                             postgreSqlNode.StandbyAvailabilityZone = serverData.HighAvailability.StandbyAvailabilityZone;
+                        }
                     }
 
                     // Enhanced network information
                     if (serverData.Network != null)
                     {
                         if (serverData.Network.PublicNetworkAccess.HasValue)
+                        {
                             postgreSqlNode.PublicNetworkAccess = serverData.Network.PublicNetworkAccess.ToString();
+                        }
+
                         if (serverData.Network.DelegatedSubnetResourceId is not null)
+                        {
                             postgreSqlNode.DelegatedSubnetResourceId = serverData.Network.DelegatedSubnetResourceId.ToString();
+                        }
+
                         if (serverData.Network.PrivateDnsZoneArmResourceId is not null)
+                        {
                             postgreSqlNode.PrivateDnsZoneArmResourceId = serverData.Network.PrivateDnsZoneArmResourceId.ToString();
+                        }
                     }
 
                     // Authentication configuration
                     if (serverData.AuthConfig != null)
                     {
                         if (serverData.AuthConfig.ActiveDirectoryAuth.HasValue)
+                        {
                             postgreSqlNode.AuthConfigActiveDirectoryAuthEnabled = serverData.AuthConfig.ActiveDirectoryAuth == Azure.ResourceManager.PostgreSql.FlexibleServers.Models.PostgreSqlFlexibleServerActiveDirectoryAuthEnum.Enabled;
+                        }
+
                         if (serverData.AuthConfig.PasswordAuth.HasValue)
+                        {
                             postgreSqlNode.AuthConfigPasswordAuthEnabled = serverData.AuthConfig.PasswordAuth == Azure.ResourceManager.PostgreSql.FlexibleServers.Models.PostgreSqlFlexibleServerPasswordAuthEnum.Enabled;
+                        }
                     }                    // Data encryption (simplified - may need property name adjustment based on SDK)
                     if (serverData.DataEncryption != null)
                     {
@@ -143,11 +200,15 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                             {
                                 var encryptionTypeValue = encryptionTypeProp.GetValue(serverData.DataEncryption);
                                 if (encryptionTypeValue != null)
+                                {
                                     postgreSqlNode.DataEncryptionType = encryptionTypeValue.ToString();
+                                }
                             }
 
                             if (serverData.DataEncryption.PrimaryKeyUri != null)
+                            {
                                 postgreSqlNode.DataEncryptionKeyUri = serverData.DataEncryption.PrimaryKeyUri.ToString();
+                            }
                         }
                         catch (Exception encEx)
                         {
@@ -159,9 +220,14 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                     if (serverData.MaintenanceWindow != null)
                     {
                         if (!string.IsNullOrEmpty(serverData.MaintenanceWindow.CustomWindow))
+                        {
                             postgreSqlNode.MaintenanceWindowCustom = serverData.MaintenanceWindow.CustomWindow;
+                        }
+
                         if (serverData.MaintenanceWindow.StartHour.HasValue)
+                        {
                             postgreSqlNode.MaintenanceWindowStartHour = serverData.MaintenanceWindow.StartHour;
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -286,9 +352,14 @@ public class PostgreSqlFlexServerCrawler : GenericArmResourceCrawler
                         // Add enhanced database-specific properties
                         var properties = databaseNode.GetNodeProperties();
                         if (!string.IsNullOrEmpty(databaseData.Charset))
+                        {
                             properties["charset"] = databaseData.Charset;
+                        }
+
                         if (!string.IsNullOrEmpty(databaseData.Collation))
+                        {
                             properties["collation"] = databaseData.Collation;
+                        }
 
                         await _graphDbClient.AddOrUpdateNodeAsync(databaseNode);
 

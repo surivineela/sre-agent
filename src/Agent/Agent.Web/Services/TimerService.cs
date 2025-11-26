@@ -10,13 +10,10 @@ using Agent.Core.Models.Api.v1;
 using Agent.Graph.Crawler;
 using Agent.Graph.Interfaces;
 using Agent.Logging;
-using Agent.Plugins;
-using Agent.Plugins.Interface;
-using Agent.Runtime.Communication;
 using Agent.Runtime.Heartbeat;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.CVEAgent;
-using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.DailySummaryAgent;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.LinuxAppServiceConfigAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
@@ -25,9 +22,9 @@ using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
+using Agent.ScheduledTasks.Services;
 
 namespace Agent.Web.Services;
-
 
 public class TimerService : IHostedService, IDisposable
 {
@@ -60,32 +57,27 @@ public class TimerService : IHostedService, IDisposable
 
     private readonly ILogger<TimerService> _logger;
     private readonly ICrawlerService _crawlerService;
-    private readonly IPostToTeamsPlugin _teamsPlugin;
-    private readonly IGraphDBPlugin _graphPlugin;
-    private readonly ChartPluginV2 _chartPlugin;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IThreadRepository _repository;
-    private readonly SinkService _sinkService;
     private readonly HeartbeatReporter _heartbeatReporter;
 
-    private CrawlerSettings _settings;
-    private TimerSettings _timerSettings;
-    private IncidentManagementSettings _incidentManagementSettings;
-    private AgentMemorySettings _agentMemorySettings;
-    private DashboardSettings _dashboardSettings;
-    private TlsBestPracticesScanner _tlsBestPracticesScanner;
-    private DailyReportScanner _dailyReportScanner;
-    private SourceCodeScanner _sourceCodeScanner;
-    private CVEScanner _cveScanner;
-    private AppServiceScanner _appServiceScanner;
-    private ScoreCardService _scoreCardService;
-    private FeedbackRCAScanner _feedbackRCAScanner;
-    private ThreadEvaluator _threadEvaluator;
-    private TrajectoryEvaluator _trajectoryEvaluator;
-    private CustomerLogger _customerLogger;
-    private CustomerAuditLogger _customerAuditLogger;
-    private LocalAuthScanner _localAuthScanner;
-    private ScheduledTasks.Services.ScheduledTaskExecutionService _scheduledTaskExecutionService;
+    private readonly CrawlerSettings _settings;
+    private readonly TimerSettings _timerSettings;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
+    private readonly AgentMemorySettings _agentMemorySettings;
+    private readonly TlsBestPracticesScanner _tlsBestPracticesScanner;
+    private readonly DailyReportScanner _dailyReportScanner;
+    private readonly SourceCodeScanner _sourceCodeScanner;
+    private readonly CVEScanner _cveScanner;
+    private readonly AppServiceScanner _appServiceScanner;
+    private readonly ScoreCardService _scoreCardService;
+    private readonly FeedbackRCAScanner _feedbackRCAScanner;
+    private readonly ThreadEvaluator _threadEvaluator;
+    private readonly TrajectoryEvaluator _trajectoryEvaluator;
+    private readonly CustomerLogger _customerLogger;
+    private readonly CustomerAuditLogger _customerAuditLogger;
+    private readonly LocalAuthScanner _localAuthScanner;
+    private readonly ScheduledTaskExecutionService _scheduledTaskExecutionService;
     private readonly LinuxAppServiceConfigScanner _linuxAppServiceConfigScanner;
 
     private Timer? _crawlerTimer = null;
@@ -95,49 +87,49 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _tlsTimer = null;
     private bool _tlsTimerIsRunning = false;
-    private TimeSpan _tlsTimerInterval = TimeSpan.FromHours(1);
+    private readonly TimeSpan _tlsTimerInterval = TimeSpan.FromHours(1);
 
     private Timer? _dailyReportTimer = null;
     private bool _dailyReportTimerIsRunning = false;
-    private TimeSpan _dailyReportTimerInterval = TimeSpan.FromHours(1); // daily report timer needs to attempt to run every hour so we can send it at 7am everyday
+    private readonly TimeSpan _dailyReportTimerInterval = TimeSpan.FromHours(1); // daily report timer needs to attempt to run every hour so we can send it at 7am everyday
     private Timer? _sourceCodeCrawlerTimer = null;
     private bool _sourceCodeCrawlerTimerIsRunning = false;
-    private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(1);
 
     private Timer? _cveCrawlerTimer = null;
     private bool _cveCrawlerTimerIsRunning = false;
-    private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
     private bool _cveCrawlerFinishedOnce = false;
 
     private Timer? _appServiceCrawlerTimer = null;
     private bool _appServiceCrawlerTimerIsRunning = false;
-    private TimeSpan _appServiceTimerInterval = TimeSpan.FromMinutes(10);
+    private readonly TimeSpan _appServiceTimerInterval = TimeSpan.FromMinutes(10);
 
     private Timer? _scoreCardTimer = null;
     private bool _scoreCardTimerIsRunning = false;
-    private TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(10);
+    private readonly TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(10);
 
     private Timer? _feedbackRCATimer = null;
     private bool _feedbackRCATimerIsRunning = false;
-    private TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
 
     private Timer? _threadEvaluatorTimer = null;
     private bool _threadEvaluatorTimerIsRunning = false;
-    private TimeSpan _threadEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _threadEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
 
     private Timer? _trajectoryEvaluatorTimer = null;
     private bool _trajectoryEvaluatorTimerIsRunning = false;
-    private TimeSpan _trajectoryEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _trajectoryEvaluatorTimerInterval = TimeSpan.FromMinutes(30);
 
     private Timer? _githubAccessTokenTimer = null;
     private bool _githubAccessTokenTimerIsRunning = false;
-    private TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
 
     private Timer? _pagerDutyWelcomeTimer;
 
     private Timer? _logFlushTimer = null;
     private bool _logFlushTimerIsRunning = false;
-    private TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
+    private readonly TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
 
     private Timer? _localAuthScannerTimer = null;
     private bool _localAuthScannerTimerIsRunning = false;
@@ -151,39 +143,33 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _scheduledTaskTimer = null;
     private bool _scheduledTaskTimerIsRunning = false;
-    private TimeSpan _scheduledTaskTimerInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _scheduledTaskTimerInterval = TimeSpan.FromMinutes(1);
 
     private Timer? _heartbeatTimer = null;
     private bool _heartbeatTimerIsRunning = false;
-    private TimeSpan _heartbeatTimerInterval = TimeSpan.FromMinutes(30);
+    private readonly TimeSpan _heartbeatTimerInterval = TimeSpan.FromMinutes(30);
 
-    private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
+    private readonly List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
 
-    private IIncidentScanner _incidentScanner;
+    private readonly IIncidentScanner _incidentScanner;
 
     public TimerService(
         ICrawlerService crawlerService,
         CrawlerSettings settings,
         TimerSettings timerSettings,
-        DashboardSettings dashboardSettings,
         IncidentManagementSettings incidentManagementSettings,
         AgentMemorySettings agentMemorySettings,
-        IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
         SourceCodeScanner sourceCodeScanner,
         AppServiceScanner appServiceScanner,
         CVEScanner cveScanner,
         ILogger<TimerService> logger,
-        IServiceProvider serviceProvider,
-        IGraphDBPlugin graphPlugin,
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
-        ChartPluginV2 chartPlugin,
         ScoreCardService scoreCardService,
-        SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
         ThreadEvaluator threadEvaluator,
         TrajectoryEvaluator trajectoryEvaluator,
@@ -193,27 +179,22 @@ public class TimerService : IHostedService, IDisposable
         LocalAuthScanner localAuthScanner,
         LinuxAppServiceConfigScanner linuxAppServiceConfigScanner,
         HeartbeatReporter heartbeatReporter,
-        ScheduledTasks.Services.ScheduledTaskExecutionService scheduledTaskExecutionService)
+        ScheduledTaskExecutionService scheduledTaskExecutionService)
     {
         _logger = logger;
         _crawlerService = crawlerService;
-        _graphPlugin = graphPlugin;
         _settings = settings;
         _repository = repository;
         _agentInboundCommunicationService = agentInboundCommunicationService;
-        _chartPlugin = chartPlugin;
         _timerSettings = timerSettings;
         _incidentManagementSettings = incidentManagementSettings;
-        _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _dailyReportScanner = dailyReportScanner;
         _sourceCodeScanner = sourceCodeScanner;
         _appServiceScanner = appServiceScanner;
         _cveScanner = cveScanner;
         _scoreCardService = scoreCardService;
-        _sinkService = sinkService;
         _feedbackRCAScanner = feedbackRCAScanner;
-        _dashboardSettings = dashboardSettings;
         _threadEvaluator = threadEvaluator;
         _trajectoryEvaluator = trajectoryEvaluator;
         _customerLogger = customerLogger;
@@ -226,50 +207,6 @@ public class TimerService : IHostedService, IDisposable
         _agentMemorySettings = agentMemorySettings;
 
         _customerAuditLogger = customerAuditLogger;
-    }
-
-    // ============================================================================
-    // DO NOT USE - Test-only constructor
-    // This constructor uses default! should ONLY be used by unit tests.
-    // It only initializes the minimal dependencies needed for ShouldRunLocalAuthScannerAsync testing.
-    // ============================================================================
-    /// <summary>
-    /// Internal constructor for testing - only initializes dependencies required for ShouldRunLocalAuthScannerAsync.
-    /// </summary>
-    internal TimerService(IThreadRepository repository, ILogger<TimerService> logger)
-    {
-        _repository = repository;
-        _logger = logger;
-        _localAuthScannerTimerInterval = TimeSpan.FromDays(1);
-
-        // Initialize non-nullable fields with default values - not used in tests
-        _crawlerService = default!;
-        _teamsPlugin = default!;
-        _graphPlugin = default!;
-        _chartPlugin = default!;
-        _agentInboundCommunicationService = default!;
-        _sinkService = default!;
-        _heartbeatReporter = default!;
-        _settings = default!;
-        _timerSettings = default!;
-        _incidentManagementSettings = default!;
-        _agentMemorySettings = default!;
-        _dashboardSettings = default!;
-        _tlsBestPracticesScanner = default!;
-        _dailyReportScanner = default!;
-        _sourceCodeScanner = default!;
-        _cveScanner = default!;
-        _appServiceScanner = default!;
-        _scoreCardService = default!;
-        _feedbackRCAScanner = default!;
-        _threadEvaluator = default!;
-        _trajectoryEvaluator = default!;
-        _customerLogger = default!;
-        _customerAuditLogger = default!;
-        _localAuthScanner = default!;
-        _linuxAppServiceConfigScanner = default!;
-        _scheduledTaskExecutionService = default!;
-        _incidentScanner = default!;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -351,12 +288,23 @@ public class TimerService : IHostedService, IDisposable
     {
         _logger.LogInternalInformation("Stopping background services...");
 
-        _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
-        _threadEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the ThreadEvaluator timer
-        _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0); // Stop the TrajectoryEvaluator timer
-        _localAuthScannerTimer?.Change(Timeout.Infinite, 0); // Stop the Local Auth scanner timer
-        _scheduledTaskTimer?.Change(Timeout.Infinite, 0); // Stop the Scheduled Task timer
-        _heartbeatTimer?.Change(Timeout.Infinite, 0); // Stop the Heartbeat timer
+        _crawlerTimer?.Change(Timeout.Infinite, 0);
+        _tlsTimer?.Change(Timeout.Infinite, 0);
+        _sourceCodeCrawlerTimer?.Change(Timeout.Infinite, 0);
+        _cveCrawlerTimer?.Change(Timeout.Infinite, 0);
+        _dailyReportTimer?.Change(Timeout.Infinite, 0);
+        _scoreCardTimer?.Change(Timeout.Infinite, 0);
+        _appServiceCrawlerTimer?.Change(Timeout.Infinite, 0);
+        _pagerDutyWelcomeTimer?.Change(Timeout.Infinite, 0);
+        _feedbackRCATimer?.Change(Timeout.Infinite, 0);
+        _threadEvaluatorTimer?.Change(Timeout.Infinite, 0);
+        _trajectoryEvaluatorTimer?.Change(Timeout.Infinite, 0);
+        _githubAccessTokenTimer?.Change(Timeout.Infinite, 0);
+        _logFlushTimer?.Change(Timeout.Infinite, 0);
+        _localAuthScannerTimer?.Change(Timeout.Infinite, 0);
+        _linuxAppServiceConfigScannerTimer?.Change(Timeout.Infinite, 0);
+        _scheduledTaskTimer?.Change(Timeout.Infinite, 0);
+        _heartbeatTimer?.Change(Timeout.Infinite, 0);
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -406,6 +354,9 @@ public class TimerService : IHostedService, IDisposable
                     await _crawlerService.StartKubernetesWatchCrawler(roots, cancellationToken);
                     _logger.LogInternalInformation("Started Kubernetes watch crawler");
                 }
+
+                // Run global stale node cleanup (soft-delete orphaned nodes older than 6h)
+                await _crawlerService.GlobalCleanupStaleNodes(cancellationToken);
 
                 await _crawlerService.DeleteStaleSoftDeletedNodes(cancellationToken);
             }
@@ -1066,7 +1017,18 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
+        _tlsTimer?.Dispose();
+        _sourceCodeCrawlerTimer?.Dispose();
+        _cveCrawlerTimer?.Dispose();
+        _dailyReportTimer?.Dispose();
+        _scoreCardTimer?.Dispose();
+        _appServiceCrawlerTimer?.Dispose();
+        _pagerDutyWelcomeTimer?.Dispose();
+        _feedbackRCATimer?.Dispose();
         _threadEvaluatorTimer?.Dispose();
+        _trajectoryEvaluatorTimer?.Dispose();
+        _githubAccessTokenTimer?.Dispose();
+        _logFlushTimer?.Dispose();
         _localAuthScannerTimer?.Dispose();
         _linuxAppServiceConfigScannerTimer?.Dispose();
         _scheduledTaskTimer?.Dispose();

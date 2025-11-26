@@ -4,7 +4,7 @@
 
 using Agent.Data.DatabaseClients.Attributes;
 
-namespace Agent.Data.DatabaseClients.GraphDbClient;
+namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 
 public class PostgreSqlFlexServerNode : ArmResourceNode
 {

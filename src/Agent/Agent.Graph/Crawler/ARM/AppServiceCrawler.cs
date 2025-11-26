@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Azure;
 using Azure.Core;
@@ -161,7 +162,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
                     // Container app function apps have different available properties
                     //appServiceNode.Functions = appServiceNode.Functions ?? new List<AppServiceNode.Function>();
-                    ResourceIdentifier containerAppEnvironmentResourceIdentifier = new ResourceIdentifier(webApp.Data.ManagedEnvironmentId) ?? throw new Exception("Failed to parse managed environment id");
+                    var containerAppEnvironmentResourceIdentifier = new ResourceIdentifier(webApp.Data.ManagedEnvironmentId) ?? throw new Exception("Failed to parse managed environment id");
                     string subscriptionId = containerAppEnvironmentResourceIdentifier.SubscriptionId ?? throw new Exception("Failed to extract subscription id from managed env resource id");
                     string rgName = containerAppEnvironmentResourceIdentifier.ResourceGroupName ?? throw new Exception("Failed to extract resource group name from managed env resource id");
                     string location = containerAppEnvironmentResourceIdentifier.Location ?? throw new Exception("Failed to extract location from managed env resource id");
@@ -369,7 +370,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 edge2.AddNetworkIngressEdgeProperties();
                 await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
-                ResourceIdentifier vnetResourceId = subnetId.Parent ?? throw new InvalidOperationException("SubnetId parent resource identifier cannot be null.");
+                var vnetResourceId = subnetId.Parent ?? throw new InvalidOperationException("SubnetId parent resource identifier cannot be null.");
                 vnetNode = new ArmResourceNode(
                     vnetResourceId.ResourceType,
                     vnetResourceId.ToString(),
@@ -400,7 +401,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         {
             var name = setting.Key;
             var value = setting.Value;
-            if (string.IsNullOrEmpty(value)) continue;
+            if (string.IsNullOrEmpty(value))
+            {
+                continue;
+            }
 
             // Look for SQL connection strings in app settings
             ArmResourceNode? sqlNode = null;

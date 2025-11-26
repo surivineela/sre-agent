@@ -269,7 +269,17 @@ public class ArmResourceCrawlerFactory
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
     }
 
-    public static KubernetesResourceNode CreateKubernetesResourceNode(IKubernetesObject? k8sObject, string? subscriptionId, string? resourceGroupName, string? location, string clusterResourceId, string? namespaceName, string resourceName, string group, string apiVersion, string kind)
+    public static KubernetesResourceNode CreateKubernetesResourceNode(
+        IKubernetesObject? k8sObject,
+        string? subscriptionId,
+        string? resourceGroupName,
+        string? location,
+        string clusterResourceId,
+        string? namespaceName,
+        string resourceName,
+        string group,
+        string apiVersion,
+        string kind)
     {
         if (!string.IsNullOrEmpty(namespaceName))
         {

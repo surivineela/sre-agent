@@ -11,6 +11,7 @@ using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Graph.Interfaces;
 using Agent.Plugins.Interface;
@@ -86,8 +87,8 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
 
         var apiUrl = "https://api.pagerduty.com/advance/chat";
 
-        string sessionId = Guid.NewGuid().ToString();
-        string timestamp = DateTime.UtcNow.ToString("o");
+        var sessionId = Guid.NewGuid().ToString();
+        var timestamp = DateTime.UtcNow.ToString("o");
 
         var payload = new
         {
@@ -97,29 +98,26 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             incident_id = incidentId
         };
 
-        string jsonPayload = JsonSerializer.Serialize(payload);
+        var jsonPayload = JsonSerializer.Serialize(payload);
 
-        using (var request = new HttpRequestMessage(HttpMethod.Post, apiUrl))
+        using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Token", $"token={_settings.ConnectionKey}");
+        request.Headers.Add("X-EARLY-ACCESS", "gen_ai_api_early_access");
+        request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.SendAsync(request);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
         {
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Token", $"token={_settings.ConnectionKey}");
-            request.Headers.Add("X-EARLY-ACCESS", "gen_ai_api_early_access");
-            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
-            string responseContent = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"PagerDuty API error: {response.StatusCode} - {response.ReasonPhrase}\n{responseContent}");
-            }
-
-            var doc = JsonNode.Parse(responseContent);
-            string agentMessage = doc?["message"]?.ToString() ?? "No message";
-            return agentMessage;
+            throw new Exception($"PagerDuty API error: {response.StatusCode} - {response.ReasonPhrase}\n{responseContent}");
         }
-    }
 
+        var doc = JsonNode.Parse(responseContent);
+        var agentMessage = doc?["message"]?.ToString() ?? "No message";
+        return agentMessage;
+    }
 
     public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5)
     {
@@ -129,7 +127,14 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
             logger.LogInternalWarning("ResourceId is null or empty.");
             return [];
         }
-        var query = $"g.V().has('resourceId', '{resourceId}').has('isDeleted', false).out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('isDeleted', false).has('incidentId').project('incidentId').by('incidentId')";
+        var query = $"g.V()" +
+            $".has('resourceId', '{resourceId}')" +
+            $".has('isDeleted', false).out('RELATED_TO_INCIDENT')" +
+            $".has('resourceType', '{PagerDutyIncidentNode.PagerDutyResourceType}')" +
+            $".has('isDeleted', false)" +
+            $".has('incidentId')" +
+            $".project('incidentId')" +
+            $".by('incidentId')";
         logger.LogInternalInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
 
         var result = await graphDatabaseClient.Query<Dictionary<string, object>>(query);
@@ -211,7 +216,7 @@ public class PagerDutyIncidentPlugin(ILogger<PagerDutyIncidentPlugin> logger,
     {
         try
         {
-            ItemResponse<T> response = await azMonitorContainer.ReadItemAsync<T>(
+            var response = await azMonitorContainer.ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CosmosDB;
@@ -82,7 +83,9 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
     private string? SerializeLocations(IReadOnlyList<CosmosDBAccountLocation> locations)
     {
         if (locations == null || locations.Count == 0)
+        {
             return null;
+        }
 
         return string.Join(",", locations.Select(l => l.LocationName));
     }
@@ -90,7 +93,9 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
     private string? SerializeIPRules(IList<CosmosDBIPAddressOrRange> rules)
     {
         if (rules == null || rules.Count == 0)
+        {
             return null;
+        }
 
         return string.Join(",", rules.Select(r => r.IPAddressOrRange));
     }

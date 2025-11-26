@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -93,7 +94,7 @@ public class ManagedIdentityCrawler : IResourceCrawler
             }
 
             // TODO: better logic to handle scope
-            ArmResourceNode? targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
+            var targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
             if (targetResourceNode == null)
             {
                 _logger.LogInternalWarning($"Failed to create resource node from scope {scope}");

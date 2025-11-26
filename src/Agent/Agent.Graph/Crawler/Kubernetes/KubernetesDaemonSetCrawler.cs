@@ -4,7 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler.ARM;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Helpers;
 using Agent.Graph.Interfaces;
 using Azure.ResourceManager;
@@ -123,6 +123,5 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                 }
             }
         }
-
     }
 }

@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
@@ -97,7 +98,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         // network
         if (env.VnetConfiguration?.InfrastructureSubnetId is not null)
         {
-            ResourceIdentifier id = env.VnetConfiguration?.InfrastructureSubnetId!;
+            var id = env.VnetConfiguration?.InfrastructureSubnetId!;
 
             // subnet
             var subnetResourceId = new ResourceIdentifier(id!);

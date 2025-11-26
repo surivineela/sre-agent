@@ -57,7 +57,7 @@ using Agent.Runtime.Services.AzMonitorAlertInvestigation;
 using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
-using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.DailySummaryAgent;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.LinuxAppServiceConfigAgent;
 using Agent.Runtime.SubAgents.LocalAuthAgent;
@@ -78,7 +78,6 @@ using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
@@ -203,7 +202,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(options);
 
-        bool isAcaFirstPartyAgent = IsAcaFirstParty(options.Args ?? []);
+        var isAcaFirstPartyAgent = IsAcaFirstParty(options.Args ?? []);
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
 
@@ -649,8 +648,8 @@ public class Program
             var experimentalSettings = sp.GetRequiredService<ExperimentalSettings>();
             var modeConfigurator = sp.GetRequiredService<IAgentModeConfigurator<AgentContext>>();
             var extensibilityLoader = sp.GetRequiredService<IExtensibilityLoader>();
-            bool isGPT5Enabled = GPT5Enabled(builder);
-            bool agentMemoryRetrievalEnabled = AgentMemoryRetrievalEnabled(builder);
+            var isGPT5Enabled = GPT5Enabled(builder);
+            var agentMemoryRetrievalEnabled = AgentMemoryRetrievalEnabled(builder);
             // Get ScheduledTaskSettings to determine if scheduled tasks should be enabled
             var scheduledTaskSettings = sp.GetRequiredService<IConfiguration>()
                 .GetSection("AppSettings:Core:Azure:ScheduledTasks")
@@ -1152,7 +1151,7 @@ public class Program
                     PopulateLogColumnsDelegate populateInternalLogColumns = (logRecord, logData) =>
                     {
                         // Get the message template and attributes for formatting
-                        string logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
+                        var logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
 
                         // Try to format the message properly if it contains unformatted placeholders
                         if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains("{") && logRecord.Attributes != null)
@@ -1267,7 +1266,7 @@ public class Program
                         PopulateLogColumnsDelegate populateExternalLogColumns = (logRecord, logData) =>
                         {
                             // Get the message template and attributes for formatting
-                            string logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
+                            var logMessage = logRecord.FormattedMessage ?? logRecord.Body?.ToString() ?? string.Empty;
 
                             // Try to format the message properly if it contains unformatted placeholders
                             if (!string.IsNullOrEmpty(logMessage) && logMessage.Contains("{") && logRecord.Attributes != null)
@@ -1588,7 +1587,7 @@ public class Program
             var predicate = customPredicate ?? (record => record.EventId.Id == eventId);
 
             // Derive EventHub name from ADX table name (lowercase)
-            string eventHubName = adxTableName.ToLowerInvariant();
+            var eventHubName = adxTableName.ToLowerInvariant();
 
             // Prefer Event Hub exporter when configured
             if (!string.IsNullOrEmpty(azureSettings?.AgentTraceEventHub.FullyQualifiedNamespace))
@@ -1654,7 +1653,7 @@ public class Program
     // Helper method to get Azure Portal domains
     private static string[] GetAzurePortalDomains(IConfiguration configuration)
     {
-        string azurePortalDomains = "";
+        var azurePortalDomains = "";
         var configDomains = configuration.GetValue<string>("AppSettings:AzurePortalDomains");
         if (!string.IsNullOrEmpty(configDomains))
         {

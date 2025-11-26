@@ -7,7 +7,6 @@ using Agent.Core.Interfaces;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.Services.Mcp;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -73,7 +72,6 @@ public class McpConnectionEventManagerTests
                 null,
                 null));
     }
-
 
     [Fact]
     public async Task CreateAndAddConnectionAsync_StdioMissingCommand_ThrowsArgumentException()

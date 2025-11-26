@@ -2,10 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.Data.AppConfiguration;
@@ -51,7 +50,7 @@ public class AppConfigurationHelper
         _logger.LogInternalInformation($"Processing App Configuration connections for {appConfigurationUrl}");
 
         ConfigurationClient? configClient = null;
-        List<ConfigurationSetting> allSettings = new List<ConfigurationSetting>();
+        var allSettings = new List<ConfigurationSetting>();
         TokenCredential? credential = null;
 
         try
@@ -103,7 +102,7 @@ public class AppConfigurationHelper
                 continue;
             }
 
-            HashSet<string> uniqueNodes = new HashSet<string>();
+            var uniqueNodes = new HashSet<string>();
             foreach (var sourceNode in sourceNodes)
             {
                 await foreach (var resourceNode in ProcessConfigurationValue(sourceNode, configKey, configValue))

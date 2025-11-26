@@ -6,10 +6,14 @@ using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.Attributes;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient.Nodes;
+
 public class AzMonitorAlertNode : GraphNode
 {
+    public const string AzMonitorAlertResourceType = "incidents/azmonitor";
+
     [GraphProperty("incidentId")]
     public string IncidentId { get; set; } = string.Empty;
+
     public override string GetHashString()
     {
         return GetNodeId();
@@ -22,12 +26,12 @@ public class AzMonitorAlertNode : GraphNode
 
     public override string GetNodeLabel()
     {
-        return "incidents/azmonitor";
+        return GetResourceType();
     }
 
     public override string GetResourceType()
     {
-        return GetNodeLabel();
+        return AzMonitorAlertResourceType;
     }
 
     public override string GetResourceKind()

@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using k8s.Models;
@@ -61,7 +62,6 @@ public class KubernetesServiceCrawler : IResourceCrawler
             _logger.LogDebug($"No owner references found for pod in service: {serviceNode.GetNodeId()}");
             yield break;
         }
-
 
         switch (ownerRef.Kind.ToLowerInvariant())
         {
