@@ -8,6 +8,7 @@ import {
     IncidentPlatformTypeResponse,
     IncidentQueryRequest,
     IncidentQueryResponse,
+    IncidentTeamSearchResponse,
     InstructionGenerationRequest,
     InstructionGenerationResponse,
     TestHandlerPayload,
@@ -565,6 +566,44 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'getAgentSpaceIdentity',
                 actionModifier: 'failed',
                 data: `Failed to get agent space identity: ${errorMessage}`,
+            });
+
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public searchIncidentTeams = async (
+        searchTerm: string,
+        assignableOnly: boolean,
+        withOnCallRotationsOnly: boolean
+    ): Promise<Response<IncidentTeamSearchResponse[]>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/searchTeams`);
+        try {
+            const body = {
+                searchString: searchTerm,
+                top: 100,
+                skip: 0,
+                withOnCallRotationsOnly: withOnCallRotationsOnly,
+                assignableOnly: assignableOnly,
+            };
+            const { data } = await axios.post<IncidentTeamSearchResponse[] | undefined>(url, body, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+
+            this._log?.({
+                logLevel: 'error',
+                action: 'searchIncidentTeams',
+                actionModifier: 'failed',
+                data: `Failed to search incident teams: ${errorMessage}`,
             });
 
             return {

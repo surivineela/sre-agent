@@ -41,6 +41,7 @@ public interface IICMAPIClient
     Task<string> AddIncidentAttachment(string incidentId, string fileName, string base64Content);
     Task<List<Attachment>> ListIncidentAttachments(string incidentId);
     //Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
+    Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true);
 }
 
 public class ICMAPIClient : IICMAPIClient
@@ -376,6 +377,11 @@ public class ICMAPIClient : IICMAPIClient
     //    }
     //    return res.Message;
     //}
+
+    public async Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true)
+    {
+        return await _icmApiClientSDKService.SearchTeamsAsync(limit, offset, teamNameContains, withOnCallRotationsOnly, assignableOnly);
+    }
 }
 
 public class NullableICMAPIClient : IICMAPIClient
@@ -506,6 +512,11 @@ public class NullableICMAPIClient : IICMAPIClient
     }
 
     public Task<List<ExternalLink>> GetIncidentRepairItemsAsync(long incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true)
     {
         throw new NotImplementedException();
     }

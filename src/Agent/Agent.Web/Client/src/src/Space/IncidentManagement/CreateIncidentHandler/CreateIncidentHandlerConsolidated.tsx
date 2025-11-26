@@ -88,7 +88,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
         handlerCreateOrEditInfo,
         setInitialValues
     );
-    const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
+    const { incidentTypeOptions, impactedServiceOptions, priorityOptions, searchIncidentTeams } = useIncidentFilterFields();
     const { filterMode, handlerMode } = incidentHandlerCreateMetadata;
 
     const innerComponent = useMemo(() => {
@@ -101,6 +101,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                         incidentTypeOptions,
                         impactedServiceOptions,
                         priorityOptions,
+                        searchIncidentTeams,
                     }}
                 >
                     {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}

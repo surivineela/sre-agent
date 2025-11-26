@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -30,6 +29,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
     protected readonly Container _container;
     private bool isScanSucceeded = true;
     protected DateTime lastScanTime { get; private set; }
+    protected abstract IncidentManagementType incidentType { get; }
     public IncidentScannerBase(
         Container container,
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
@@ -78,7 +78,6 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
 
     public virtual async Task ScanAsync(CancellationToken cancellationToken)
     {
-        var incidentType = GetIncidentManagementType();
         var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(incidentType);
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
@@ -89,31 +88,31 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
                 var filters = await GetIncidentFiltersAsync();
                 if (filters is null || filters.Count == 0)
                 {
-                    _logger.LogInternalInformation($"[IncidentScannerBase] No incident filters found, skipping scan.");
+                    _logger.LogInternalInformation("[IncidentScannerBase][{incidentType}] No incident filters found, skipping scan.", incidentType);
                     return;
                 }
                 else
                 {
-                    _logger.LogInternalInformation("[IncidentScannerBase] Found {filterCount} incident filters, starting ServiceNow scanner.", filters.Count);
+                    _logger.LogInternalInformation("[IncidentScannerBase][{incidentType}] Found {filterCount} incident filters, starting scanner.", incidentType, filters.Count);
                     var scanStartTime = DateTime.UtcNow;
                     await ScanAllIncidentsAsync(filters, cancellationToken);
 
                     if (isScanSucceeded)
                     {
                         var adjustedLastScanTime = AdjustLastScanTime(lastScanTime);
-                        lastScanTime = await UpdateLastScanTimeDocAsync(adjustedLastScanTime, GetIncidentManagementType());
-                        _logger.LogInternalInformation("[IncidentScannerBase] Scan completed successfully at {scanTime}. Last scan time updated to {lastScanTime}.", scanStartTime, lastScanTime);
+                        lastScanTime = await UpdateLastScanTimeDocAsync(adjustedLastScanTime, incidentType);
+                        _logger.LogInternalInformation("[IncidentScannerBase][{incidentType}] Scan completed successfully at {scanTime}. Last scan time updated to {lastScanTime}.", incidentType, scanStartTime, lastScanTime);
                     }
                     else
                     {
-                        _logger.LogInternalError("[IncidentScannerBase] Incident scan failed, will retry in the next cycle.");
+                        _logger.LogInternalError("[IncidentScannerBase][{incidentType}] Incident scan failed, will retry in the next cycle.", incidentType);
                     }
                 }
                 await PostScanningAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "[IncidentScannerBase] Error occurred during scanning process.");
+                _logger.LogInternalError(ex, "[IncidentScannerBase][{incidentType}] Error occurred during scanning process.", incidentType);
             }
 
             await Task.Delay(_scanInterval, cancellationToken);
@@ -156,19 +155,12 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
         return lastScanTime;
     }
 
-    /// <summary>
-    /// Get the incident management type for this scanner.
-    /// Must be implemented by derived classes to specify their incident type.
-    /// </summary>
-    /// <returns></returns>
-    protected abstract IncidentManagementType GetIncidentManagementType();
-
     protected virtual async Task ScanAllIncidentsAsync(List<TIncidentFilterDocument> filters, CancellationToken cancellationToken)
     {
         IEnumerable<TIncident> incidents = [];
         if (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInternalInformation("Cancellation requested, stopping the ServiceNow scanner.");
+            _logger.LogInternalInformation("[IncidentScannerBase][{incidentType}] Cancellation requested, stopping the scanner.", incidentType);
             return;
         }
 
@@ -180,7 +172,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
                 incidents = await ScanIncidentsForFilter(filter, cancellationToken);
                 if (incidents is null || !incidents.Any())
                 {
-                    _logger.LogInternalInformation($"No incidents found for filter {filter.Id}");
+                    _logger.LogInternalInformation("[IncidentScannerBase][{incidentType}] No incidents found for filter {filterId}", incidentType, filter.Id);
                     continue;
                 }
                 foreach (var incident in incidents)
@@ -198,7 +190,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
             catch (Exception ex)
             {
                 isScanSucceeded = false;
-                _logger.LogInternalError(ex, "Error scanning incidents for filter {filterId}", filter.Id);
+                _logger.LogInternalError(ex, "[IncidentScannerBase][{incidentType}] Error scanning incidents for filter {filterId}", incidentType, filter.Id);
                 return;
             }
         }
@@ -238,7 +230,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error updating LastScanTime for {incidentType} scanner", type);
+            _logger.LogInternalError(ex, "[IncidentScannerBase][{incidentType}] Error updating LastScanTime for {incidentType} scanner", incidentType, type);
             return DateTime.UtcNow;
         }
     }
@@ -260,7 +252,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
             }
             else if (response.Count > 1)
             {
-                _logger.LogInternalWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                _logger.LogInternalWarning("[IncidentScannerBase][{incidentType}] Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", incidentType, string.Join(',', response.Select(t => t.Id)), incidentId);
                 return response.FirstOrDefault();
             }
         }

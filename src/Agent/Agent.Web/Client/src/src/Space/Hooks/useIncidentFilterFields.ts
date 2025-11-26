@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
+import { IncidentTeamSearchResponse } from '../../Common/Contracts/Azure/IncidentHandler';
 
 type KeyValuePair = { key: string; value: string };
 
@@ -56,6 +57,17 @@ export const useIncidentFilterFields = () => {
         return incidentResults?.content ?? [];
     }, [azPortalContext, sreAgentEndpoint]);
 
+    const searchIncidentTeams = useCallback(
+        async (searchString: string, assignableOnly: boolean, withOnCallRotationsOnly: boolean): Promise<IncidentTeamSearchResponse[]> => {
+            const incidentResults = await IncidentHandlerClient.getInstance(
+                sreAgentEndpoint,
+                azPortalContext.log.bind(azPortalContext)
+            ).searchIncidentTeams(searchString, assignableOnly, withOnCallRotationsOnly);
+            return incidentResults?.content ?? [];
+        },
+        [azPortalContext, sreAgentEndpoint]
+    );
+
     const refresh = useCallback(async () => {
         setIsLoading(true);
         const results = await getFilterFieldOptions();
@@ -85,6 +97,7 @@ export const useIncidentFilterFields = () => {
         incidentTypeOptions,
         priorityOptions,
         filterFieldOptions,
+        searchIncidentTeams,
         filterFieldOptionsLoading: isLoading,
     };
 };

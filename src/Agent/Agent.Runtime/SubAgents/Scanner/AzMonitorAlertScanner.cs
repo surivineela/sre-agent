@@ -39,6 +39,8 @@ public class AzMonitorScanner(
     private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService = incidentsStatusMetricsService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService = outboundCommunicationService;
 
+    protected override IncidentManagementType incidentType => IncidentManagementType.AzMonitor;
+
     protected override string GetIncidentId(AlertItem incident)
     {
         return new ResourceIdentifier(incident.Id).Name ?? incident.Id;
@@ -85,11 +87,6 @@ public class AzMonitorScanner(
     {
         var incidentMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
         await _outboundCommunicationService.NotifyIncidentStatusMetrics(Guid.Empty, incidentMetrics);
-    }
-
-    protected override IncidentManagementType GetIncidentManagementType()
-    {
-        return IncidentManagementType.AzMonitor;
     }
 
     protected override async Task<IEnumerable<AlertItem>> ScanIncidentsForFilter(AzMonitorIncidentFilterDocument filter, CancellationToken cancellationToken)

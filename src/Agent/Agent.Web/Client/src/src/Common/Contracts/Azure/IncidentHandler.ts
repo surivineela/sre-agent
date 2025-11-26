@@ -122,3 +122,16 @@ export interface IncidentPlatformTypeResponse {
 export type WithSelection<T> = T & {
     selected: boolean;
 };
+
+export interface IncidentTeamSearchResponse {
+    id: number;
+    name: string;
+    description: string;
+    teamPublicId: string;
+    tenant?: {
+        id: number;
+        name: string;
+        tenantPublicId: string;
+        description: string;
+    };
+}

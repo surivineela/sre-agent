@@ -1578,7 +1578,9 @@ export const IncidentManagementResources = defineMessages({
     allSeverity: { defaultMessage: 'All severity', id: 'zGhyFV' },
     title: { defaultMessage: 'Title', id: '9a9+ww' },
     titlePlaceholder: { defaultMessage: 'Enter title keywords', id: 'sH0O5v' },
+    owningTeam: { defaultMessage: 'Owning team', id: '0BVwlv' },
     owningTeamId: { defaultMessage: 'Owning team ID', id: 'SezWLK' },
+    owningIcmTeamPlaceholder: { defaultMessage: 'Search Icm team', id: 'lCe4Sh' },
     owningTeamIdPlaceholder: { defaultMessage: 'Enter owning team ID', id: '5S1JBf' },
     monitorId: { defaultMessage: 'Monitor ID', id: 'Hv7pA2' },
     monitorIdPlaceholder: { defaultMessage: 'Enter monitor ID', id: 'VYjDXQ' },
@@ -1776,6 +1778,8 @@ export const IncidentManagementResources = defineMessages({
     relatedIncidents: { defaultMessage: 'Related incidents', id: '+Kcoxv' },
     close: { defaultMessage: 'Close', id: 'rbrahO' },
     whatHappened: { defaultMessage: 'What happened', id: 'Xup5P8' },
+    incidentTeamSearchAssignableOnly: { defaultMessage: 'Only teams that allow incident assignment', id: 'Q0B/Lb' },
+    incidentTeamSearchWithOncallRotation: { defaultMessage: 'Only teams with an on-call rotation', id: 'dLWrbO' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

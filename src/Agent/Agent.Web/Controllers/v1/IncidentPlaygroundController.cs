@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
+using Agent.Core.Services;
 using Agent.Core.Validation;
 using Agent.Data;
 using Agent.Data.DataModels;
@@ -32,6 +33,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
     private readonly IConnectorResolver _connectorResolver;
+    private readonly IICMAPIClient _icmAPIClient;
 
     public IncidentPlaygroundController(
         IInstructionGenerationService instructionGenerationService,
@@ -42,7 +44,8 @@ public class IncidentPlaygroundController : ControllerBase
         ILogger<IncidentPlaygroundController> logger,
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
-        IConnectorResolver connectorResolver)
+        IConnectorResolver connectorResolver,
+        IICMAPIClient icmAPIClient)
     {
         _instructionGenerationService = instructionGenerationService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
@@ -52,6 +55,7 @@ public class IncidentPlaygroundController : ControllerBase
         _logger = logger;
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _connectorResolver = connectorResolver;
+        _icmAPIClient = icmAPIClient;
     }
 
     /// <summary>
@@ -594,6 +598,36 @@ public class IncidentPlaygroundController : ControllerBase
         }
     }
 
+    [HttpPost("searchTeams")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public async Task<IActionResult> SearchTeams([FromBody] IcmSearchTeamsRequestPayload searchPayload)
+    {
+        if (searchPayload is null || string.IsNullOrWhiteSpace(searchPayload.SearchString))
+        {
+            _logger.LogInternalWarning("SearchTeams: Invalid search payload");
+            return BadRequest("Invalid search payload");
+        }
+
+        try
+        {
+            var teams = await _icmAPIClient.SearchTeamsAsync(
+                limit: (uint)searchPayload.Top,
+                offset: (uint)searchPayload.Skip,
+                teamNameContains: searchPayload.SearchString,
+                assignableOnly: searchPayload.AssignableOnly,
+                withOnCallRotationsOnly: searchPayload.WithOnCallRotationsOnly
+            );
+            _logger.LogInternalInformation("SearchTeams: Retrieved {Count} teams", teams?.Count ?? 0);
+            return Ok(teams);
+        }
+        catch (Exception ex)
+        {
+            string incidentPlatformType = _incidentManagementSettings.Type.ToString() ?? string.Empty;
+            _logger.LogInternalError(ex, "SearchTeams Error searching teams with payload: {SearchPayload}, IncidentPlatformType: {IncidentPlatformType}", searchPayload, incidentPlatformType);
+            return StatusCode(500, "Failed to search teams");
+        }
+    }
+
     // ---------- Test Scanner Queue (local only) ----------
     public sealed record EnqueueTestScannerRequest(string IncidentId, string? OwningTeamId, bool ForceTeamSpecific = false);
 
@@ -654,4 +688,13 @@ public class IncidentPlaygroundController : ControllerBase
 
         return result;
     }
+}
+
+public class IcmSearchTeamsRequestPayload
+{
+    public bool AssignableOnly { get; set; }
+    public string SearchString { get; set; } = string.Empty;
+    public int Skip { get; set; }
+    public bool WithOnCallRotationsOnly { get; set; }
+    public int Top { get; set; }
 }

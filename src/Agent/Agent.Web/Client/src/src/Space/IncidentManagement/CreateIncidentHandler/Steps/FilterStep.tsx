@@ -1,6 +1,7 @@
 import {
     Button,
     Checkbox,
+    Combobox,
     Dropdown,
     Field,
     InfoLabel,
@@ -16,9 +17,11 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useContext, useMemo } from 'react';
+import debounce from 'lodash/debounce';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { LearnMoreLinks } from '../../../../Common/Constants/Links';
+import { IncidentTeamSearchResponse } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskResources, IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
@@ -30,7 +33,6 @@ import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormVal
 export const FilterStep: FC = () => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-
     const { filterMode, exitToHome, setCurrentStep, incidentTypeOptions, impactedServiceOptions, priorityOptions, incidentPlatformType } =
         useContext(IncidentHandlerConsolidatedCreateContext);
     const { values, setFieldValue, setFieldTouched, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
@@ -140,15 +142,7 @@ export const FilterStep: FC = () => {
 
                     {incidentPlatformType === IncidentManagementType.Icm && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <Field label={intl.formatMessage(IncidentManagementResources.owningTeamId)} required>
-                                <Input
-                                    name={'owningTeamId'}
-                                    value={values.owningTeamId}
-                                    onChange={(_, data) => setFieldValue('owningTeamId', data.value)}
-                                    placeholder={intl.formatMessage(IncidentManagementResources.owningTeamIdPlaceholder)}
-                                    className={styles.inputField}
-                                />
-                            </Field>
+                            <IcmTeamSearch />
 
                             <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
                                 <Input
@@ -346,5 +340,94 @@ export const FilterStep: FC = () => {
                 </DirtyStateConfirmationWrapper>
             </div>
         </>
+    );
+};
+
+const IcmTeamSearch: FC = () => {
+    const intl = useIntl();
+    const styles = useIncidentManagementStyles();
+    const { values, setFieldValue, setFieldTouched } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { searchIncidentTeams } = useContext(IncidentHandlerConsolidatedCreateContext);
+
+    const [owningTeamOptions, setOwningTeamOptions] = useState<IncidentTeamSearchResponse[]>(
+        values.owningTeamId ? [{ id: parseInt(values.owningTeamId), name: values.owningTeamId, description: '', teamPublicId: '' }] : []
+    );
+    const [icmTeamSearchOptions, setIcmTeamSearchOptions] = useState<{
+        owningTeamAssignableOnly: boolean;
+        owningTeamWithOnCallRotationsOnly: boolean;
+        searchTerm: string;
+    }>({
+        owningTeamAssignableOnly: true,
+        owningTeamWithOnCallRotationsOnly: true,
+        searchTerm: '',
+    });
+
+    const debouncedSearch = useMemo(
+        () =>
+            debounce(async () => {
+                const teams = await searchIncidentTeams(
+                    icmTeamSearchOptions.searchTerm,
+                    icmTeamSearchOptions.owningTeamAssignableOnly,
+                    icmTeamSearchOptions.owningTeamWithOnCallRotationsOnly
+                );
+                setOwningTeamOptions(teams);
+            }, 500),
+        [icmTeamSearchOptions, searchIncidentTeams]
+    );
+
+    useEffect(() => {
+        if (icmTeamSearchOptions.searchTerm.trim()) {
+            debouncedSearch();
+        }
+        return () => debouncedSearch.cancel();
+    }, [icmTeamSearchOptions.searchTerm, debouncedSearch]);
+
+    return (
+        <Field label={intl.formatMessage(IncidentManagementResources.owningTeam)} required>
+            <Combobox
+                onChange={ev =>
+                    setIcmTeamSearchOptions(prev => ({
+                        ...prev,
+                        searchTerm: ev.target.value,
+                    }))
+                }
+                className={styles.inputField}
+                onOptionSelect={(_, data) => {
+                    setFieldValue('owningTeamId', data.optionValue);
+                }}
+                placeholder={intl.formatMessage(IncidentManagementResources.owningIcmTeamPlaceholder)}
+                onBlur={() => setFieldTouched('owningTeamId', true)}
+                defaultValue={values.owningTeamId}
+            >
+                {owningTeamOptions.map(team => (
+                    <Option key={team.id} value={`${team.id}`}>
+                        {team.tenant ? `${team.tenant.name} / ${team.name}` : team.name}
+                    </Option>
+                ))}
+            </Combobox>
+
+            <Checkbox
+                label={intl.formatMessage(IncidentManagementResources.incidentTeamSearchAssignableOnly)}
+                checked={icmTeamSearchOptions.owningTeamAssignableOnly}
+                onChange={(_, data) =>
+                    setIcmTeamSearchOptions(prev => ({
+                        ...prev,
+                        owningTeamAssignableOnly: data.checked === true,
+                    }))
+                }
+                required={false}
+            />
+            <Checkbox
+                label={intl.formatMessage(IncidentManagementResources.incidentTeamSearchWithOncallRotation)}
+                checked={icmTeamSearchOptions.owningTeamWithOnCallRotationsOnly}
+                onChange={(_, data) =>
+                    setIcmTeamSearchOptions(prev => ({
+                        ...prev,
+                        owningTeamWithOnCallRotationsOnly: data.checked === true,
+                    }))
+                }
+                required={false}
+            />
+        </Field>
     );
 };
