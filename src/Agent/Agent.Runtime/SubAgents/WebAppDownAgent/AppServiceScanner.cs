@@ -1,18 +1,16 @@
-using System;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
-using Agent.Logging;
-using Agent.Runtime.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.WebAppDownAgent;
+
 public class AppServiceScanner
 {
     private readonly ILogger<AppServiceScanner> _logger;
@@ -93,16 +91,20 @@ public class AppServiceScanner
         var value = properties[key];
 
         // If it's an array/list, get the first item
-        if (value is IEnumerable enumerable && !(value is string))
+        if (value is IEnumerable enumerable && value is not string)
         {
             foreach (var item in enumerable)
             {
-                return item?.ToString();
+                var itemString = item?.ToString();
+                if (!string.IsNullOrWhiteSpace(itemString))
+                    return itemString;
             }
+            return null;
         }
 
         // Otherwise, just return the value as string
-        return value.ToString();
+        var result = value.ToString();
+        return string.IsNullOrWhiteSpace(result) ? null : result;
     }
 
     private ArmResourceNode? CreateArmResourceNodeFromDictionary(Dictionary<string, object> result)
@@ -127,7 +129,12 @@ public class AppServiceScanner
             string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("Failed to get property subscriptionId");
             string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("Failed to get property resourceGroupName");
             string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
-            string location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Failed to get property location");
+            string? location = GetFirstPropertyValue(properties, "location");
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                _logger.LogInternalWarning($"Location is missing or empty for resource {resourceId}, using empty string");
+                location = string.Empty;
+            }
 
             // Create the ArmResourceNode
             var armResourceNode = new ArmResourceNode(

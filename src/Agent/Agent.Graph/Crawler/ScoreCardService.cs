@@ -127,11 +127,16 @@ public class ScoreCardService
             }
 
             // Extract values, handling arrays in property values
-            var resourceId = GetFirstPropertyValue(properties, "resourceId") ?? id;
-            var subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
-            var resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
-            var resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
-            var location = GetFirstPropertyValue(properties, "location") ?? throw new Exception("Location is missing");
+            string resourceId = GetFirstPropertyValue(properties, "resourceId") ?? id;
+            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId") ?? throw new Exception("SubscriptionId is missing");
+            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName") ?? throw new Exception("ResourceGroupName is missing");
+            string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
+            string? location = GetFirstPropertyValue(properties, "location");
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                _logger.LogInternalWarning($"Location is missing or empty for resource {resourceId}, using empty string");
+                location = string.Empty;
+            }
 
             // Create the ArmResourceNode
             var armResourceNode = new ArmResourceNode(
@@ -258,12 +263,16 @@ public class ScoreCardService
         {
             foreach (var item in enumerable)
             {
-                return item?.ToString();
+                var itemString = item?.ToString();
+                if (!string.IsNullOrWhiteSpace(itemString))
+                    return itemString;
             }
+            return null;
         }
 
         // Otherwise, just return the value as string
-        return value.ToString();
+        var result = value.ToString();
+        return string.IsNullOrWhiteSpace(result) ? null : result;
     }
 
     private async Task<bool> UpdateScoreCard(ArmResourceNode node)

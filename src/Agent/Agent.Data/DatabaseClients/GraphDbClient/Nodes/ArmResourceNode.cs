@@ -72,9 +72,6 @@ public class ArmResourceNode : GraphNode
 
     public override string GetNodeLabel()
     {
-        //var parts = ResourceType.Split('/');
-        //return parts[parts.Length - 1];
-
         // use full arm type to avoid potential conflict
         return ResourceType;
     }
@@ -118,7 +115,7 @@ public static partial class LocationExtensions
     {
         if (string.IsNullOrEmpty(location))
         {
-            throw new ArgumentNullException(nameof(location));
+            return string.Empty;
         }
 
         return LocationNormalizationRegex().Replace(location, string.Empty).ToLowerInvariant();
