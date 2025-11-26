@@ -139,6 +139,14 @@ namespace Agent.Plugins
             return await _armPlugin.CheckDnsResolution(resourceId, destinationUrl);
         }
 
+        [Description("Retrieves the resource IDs of all deployment slots for a given Azure resource")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<List<string>> GetDeploymentSlotsResourceIdsAsync(
+            [Description("Full resource id of an Azure Resource")] string appServiceResourceId)
+        {
+            return await _armPlugin.GetDeploymentSlotsResourceIdsAsync(appServiceResourceId);
+        }
+
         [Description("Retrieves the key value pair for given App Setting key")]
         [AgentTool(ToolMode.Auto)]
         public async Task<IDictionary<string, string>> GetAppSetting(

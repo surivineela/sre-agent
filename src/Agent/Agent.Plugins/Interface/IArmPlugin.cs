@@ -27,6 +27,7 @@ namespace Agent.Plugins.Interface
         Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId, string providerType = "BlobStorage");
         Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
         Task<string> CheckDnsResolution(string resourceId, string destinationUrl);
+        Task<List<string>> GetDeploymentSlotsResourceIdsAsync(string resourceId);
         Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey);
         Task<bool> ListKeysAndUpdateAppSettingsAsync(string storageResourceId, string appServiceResourceId, string appSettingKey);
         Task<bool> ConfigureAppSettingsForManagedIdentityStorage(string resourceId, string storageAccountName, bool useUserAssignedManagedIdentity = false, string userManagedIdentityClientId = "");

@@ -3052,6 +3052,63 @@ public class ArmHelper
         }
     }
 
+    public async Task<string> GetDiagnosticSettingsByResourceIdAsync(string resourceId)
+    {
+        try
+        {
+            var requestUrl = $"https://management.azure.com{resourceId}/providers/microsoft.insights/diagnosticSettings?api-version=2021-05-01-preview";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(responseMessage))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+
+                // Handle unsuccessfull response
+                var errorContent = await responseMessage.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to retrieve diagnostic settings. Response : {errorContent}");
+            }
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            return content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error retrieving Diagnostic Settings for resource {ResourceId}", resourceId);
+            return string.Empty;
+        }
+    }
+
+    public async Task<string> GetAuthSettingsV2Async(string resourceId)
+    {
+        try
+        {
+            var url = $"https://management.azure.com{resourceId}/config/authsettingsv2?api-version=2021-02-01";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            using HttpResponseMessage response = await httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                if (CheckForUnauthorizedAccess(response))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceId}");
+                }
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInternalError($"Failed to get auth settings v2 for resource {resourceId}: {errorContent}");
+                return string.Empty;
+            }
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return jsonResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Failed to get auth settings v2: {ex.Message}");
+            return String.Empty;
+        }
+    }
+
     public async Task<string> QueryLogAnalyticsByWebAppDiagnosticSettings(string resourceId, string queryString, string? timeSpan, bool formatAsTsv = false)
     {
         try

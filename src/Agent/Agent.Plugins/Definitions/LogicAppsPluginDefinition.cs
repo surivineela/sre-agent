@@ -18,6 +18,14 @@ namespace Agent.Plugins.Definitions
         {
             _plugin = plugin;
         }
+        
+        [Description("Gets the details of a Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<LogicAppDescriptor?> GetLogicAppInfoAsync(
+            [Description("The ARM resource id of a Logic App")] string logicAppResourceId)
+        {
+             return await this._plugin.GetLogicAppInfoAsync(logicAppResourceId);
+        }
 
         [Description("Update the app setting for a given Logic App")]
         public async Task<UpdateAppSettingResult> UpdateAppSetting(string resourceId, string key, string value)
@@ -104,6 +112,46 @@ namespace Agent.Plugins.Definitions
         public async Task<ServiceProviderConnector?> LookupServiceProviderConnectorEquivalent(string managedConnectorId)
         {
             return await _plugin.LookupServiceProviderConnectorEquivalent(managedConnectorId);
+        }
+
+        [Description("Gets the missing Diagnostic Settings categories of the Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<IReadOnlyList<string>> GetMissingDiagnosticSettingsAsync(
+            [Description("The ARM resource id of a Logic App")] string resourceId)
+        {
+            return await _plugin.GetMissingDiagnosticSettingsAsync(resourceId);
+        }
+
+        [Description("Check if Easy Auth is enabled for a given Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<bool> IsEasyAuthEnabled(
+            [Description("The ARM resource id of a Logic App")] string resourceId)
+        {
+            return await _plugin.IsEasyAuthEnabledAsync(resourceId);
+        }
+
+        [Description("Check if Application Insights is configured for a given Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<bool> IsApplicationInsightsConfigured(
+            [Description("The ARM resource id of a Logic App")] string resourceId)
+        {
+            return await _plugin.IsApplicationInsightsConfiguredAsync(resourceId);
+        }
+
+        [Description("Check if Extension Bundle version is pinned for a given Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<bool> IsExtensionBundleVersionPinned(
+            [Description("The ARM resource id of a Logic App")] string resourceId)
+        {
+            return await _plugin.IsExtensionBundleVersionPinnedAsync(resourceId);
+        }
+
+        [Description("Get the list of workflows with HTTP Request trigger in a Logic App")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<IReadOnlyList<Workflow>> ListHttpRequestTriggerWorkflows(
+            [Description("The ARM resource id of a Logic App")] string logicAppResourceId)
+        {
+            return await _plugin.ListHttpRequestTriggerWorkflowsAsync(logicAppResourceId);
         }
     }
 }

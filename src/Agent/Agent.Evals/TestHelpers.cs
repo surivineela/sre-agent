@@ -472,6 +472,10 @@ public static class TestHelpers
         builder.Services.AddTransient<ArmPluginDefinition>();
         builder.Services.AddTransient<IArmPlugin, ArmPlugin>();
 
+        builder.Services.AddSingleton(Mock.Of<IGraphService>());
+        builder.Services.AddTransient<LogicAppsPluginDefinition>();
+        builder.Services.AddTransient<ILogicAppsPlugin, LogicAppsPlugin>();
+
         // Register DGrep plugin for tests
         builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient>(sp => Mock.Of<Agent.Plugins.Interface.IDGrepPluginClient>());
         builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();

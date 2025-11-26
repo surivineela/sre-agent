@@ -163,6 +163,11 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.CheckDnsResolution(resourceId, destinationUrl);
         }
 
+        public async Task<List<string>> GetDeploymentSlotsResourceIdsAsync(string resourceId)
+        {
+            return await _armHelper.GetDeploymentSlotsResourceIdsAsync(resourceId);
+        }
+
         public async Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey)
         {
             return await _armHelper.GetAppSetting(resourceId, appSettingKey);

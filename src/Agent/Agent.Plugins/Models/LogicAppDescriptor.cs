@@ -1,0 +1,26 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
+
+namespace Agent.Plugins.Models;
+
+public sealed record LogicAppDescriptor(
+    string ResourceId,
+    string Name,
+    string Kind,
+    string ResourceKind,
+    string Location,
+    string Sku,
+    string State,
+    string ResourceGroup,
+    string? VnetId,
+    string? StackVersion,
+    string? PlanType,
+    string? MinTlsVersion,
+    bool? WebSocketEnabled,
+    int? NumberOfWorkers,
+    bool? AutoHealEnabled,
+    bool? AlwaysOn,
+    bool? HealthCheckEnabled);
