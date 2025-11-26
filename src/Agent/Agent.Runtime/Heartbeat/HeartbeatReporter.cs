@@ -23,7 +23,7 @@ public class HeartbeatReporter
     private readonly IAgentFactory<AgentContext> _agentFactory;
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly IExtendedAgentRepository _extendedAgentRepository;
-    private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
+    private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
 
     private static readonly JsonSerializerOptions PayloadSerializerOptions = new()
     {
@@ -35,13 +35,13 @@ public class HeartbeatReporter
         IAgentFactory<AgentContext> agentFactory,
         IToolFactory<AgentContext> toolFactory,
         IExtendedAgentRepository extendedAgentRepository,
-        IIncidentHandlerManagementService incidentHandlerManagementService)
+        IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory)
     {
         _logger = logger;
         _agentFactory = agentFactory;
         _toolFactory = toolFactory;
         _extendedAgentRepository = extendedAgentRepository;
-        _incidentHandlerManagementService = incidentHandlerManagementService;
+        _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
     }
 
     /// <summary>
@@ -59,8 +59,8 @@ public class HeartbeatReporter
 
         try
         {
-            var incidentHandlers = await _incidentHandlerManagementService.ListIncidentHandlers();
-            var incidentHandlerCount = incidentHandlers?.Count ?? 0;
+            var incidentHandlers = await _incidentFilterManagementServiceFactory.GetServiceDynamic().ListIncidentFilters();
+            int incidentHandlerCount = incidentHandlers?.Count ?? 0;
 
             var payload = BuildStatusPayload(
                 _agentFactory.RegisteredAgentCount,
@@ -82,6 +82,7 @@ public class HeartbeatReporter
 
             // Log detailed information about extended agents and tools
             await LogExtendedAgentsAndToolsAsync(cancellationToken);
+            LogIncidentHandlers(incidentHandlers ?? new List<dynamic>());
         }
         catch (Exception ex)
         {
@@ -179,6 +180,25 @@ public class HeartbeatReporter
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to log extended agents and tools");
+        }
+    }
+
+    private void LogIncidentHandlers(dynamic incidentHandlers)
+    {
+        try
+        {
+            string handlerPayload = JsonSerializer.Serialize(incidentHandlers, PayloadSerializerOptions);
+            _logger.LogAgentAction(
+                action: AgentActionEvents.IncidentHandlers,
+                parameter: handlerPayload,
+                status: "Success",
+                duration: 0,
+                threadId: string.Empty,
+                subAgentName: "");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to Log incident handlers");
         }
     }
 

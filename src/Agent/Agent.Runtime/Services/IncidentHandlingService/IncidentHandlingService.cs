@@ -566,7 +566,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
             // Emit agent action telemetry for meta thread creation with incident source
             try
             {
-                var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString() ?? string.Empty });
+                var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString() ?? string.Empty, IncidentId = request.IncidentId ?? string.Empty, HandlerId = incidentFilter.Id ?? string.Empty });
                 _logger.LogAgentAction(
                     action: AgentActionEvents.CreateThread,
                     parameter: param,
@@ -722,7 +722,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 // Emit agent action telemetry for thread creation with incident source
                 try
                 {
-                    var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString(), HandlerId = incidentHandler.Id });
+                    var param = JsonSerializer.Serialize(new { IncidentSource = IncidentType.ToString() ?? string.Empty, HandlerId = incidentHandler.Id ?? string.Empty, IncidentId = request.IncidentId ?? string.Empty });
                     _logger.LogAgentAction(
                         action: AgentActionEvents.CreateThread,
                         parameter: param,
