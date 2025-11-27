@@ -48,6 +48,7 @@ import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
 import { PlatformConnectionIndicator } from '../IncidentManagement/Common/PlatformConnectionIndicator';
 import { PlatformConnectionMessageBar } from '../IncidentManagement/Common/PlatformConnectionMessageBar';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
+import { IcmOwningTeamSearch } from '../IncidentManagement/IcmOwningTeamSearch';
 import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
@@ -452,7 +453,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     id="createDefaultHandlerField"
                                     label={intl.formatMessage(IncidentManagementResources.quickstartHandler)}
                                     orientation="horizontal"
-                                    style={{ maxWidth: '78.5%', marginTop: 20 }}
+                                    style={{ maxWidth: 'calc(80% - 24px)', marginTop: 20 }}
                                 >
                                     <Checkbox
                                         id="createDefaultHandler"
@@ -484,29 +485,15 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     />
                                 </Field>
                                 {formikProps.values.createDefaultHandler && values.platform === IncidentManagementType.Icm && (
-                                    <Field
-                                        id="owningTeamIdField"
-                                        label={intl.formatMessage(IncidentManagementResources.owningTeamId)}
+                                    <IcmOwningTeamSearch
+                                        defaultTeamId={values.owningTeamId}
+                                        onFieldTouched={() => setFieldTouched('owningTeamId', true)}
+                                        onUpdateOwningTeam={team => setFieldValue('owningTeamId', `${team.id}`)}
                                         orientation="horizontal"
-                                        required={true}
-                                        validationMessage={
-                                            formikProps.touched.owningTeamId && !isValidating ? formikProps.errors.owningTeamId : undefined
-                                        }
-                                        style={{ maxWidth: '80%', marginTop: 16 }}
-                                    >
-                                        <Input
-                                            style={styles.plainTextFieldStyles}
-                                            id="owningTeamId"
-                                            value={values.owningTeamId}
-                                            placeholder={isApiKeyEditable ? undefined : ''}
-                                            onChange={(_event, newValue) => {
-                                                setFieldTouched('owningTeamId', true, false);
-                                                setFieldValue('owningTeamId', newValue.value);
-                                            }}
-                                            disabled={saving}
-                                            contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
-                                        />
-                                    </Field>
+                                        fieldStyles={{ maxWidth: 'calc(80% - 24px)', marginTop: 20 }}
+                                        comboboxStyles={{ ...styles.dropdownStyles, ...styles.alignedWithCheckboxesStyles }}
+                                        disabled={saving}
+                                    />
                                 )}
                                 {!formikProps.values.createDefaultHandler && (
                                     <MessageBar style={{ maxWidth: '80%', marginTop: 16, marginBottom: 16 }}>

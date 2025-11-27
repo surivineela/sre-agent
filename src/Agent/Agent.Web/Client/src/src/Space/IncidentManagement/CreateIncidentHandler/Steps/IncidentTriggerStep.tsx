@@ -9,6 +9,7 @@ import {
     IncidentManagementResources,
 } from '../../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
+import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -132,16 +133,13 @@ export const IncidentTriggerStep: FC = () => {
 
                     {incidentPlatformType === IncidentManagementType.Icm && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <Field label={intl.formatMessage(IncidentManagementResources.owningTeamId)} required>
-                                <Input
-                                    name={'owningTeamId'}
-                                    value={values.owningTeamId}
-                                    onChange={(_, data) => setFieldValue('owningTeamId', data.value)}
-                                    placeholder={intl.formatMessage(IncidentManagementResources.owningTeamIdPlaceholder)}
-                                    disabled={disableAllFields}
-                                    className={styles.inputField}
-                                />
-                            </Field>
+                            <IcmOwningTeamSearch
+                                defaultTeamId={values.owningTeamId}
+                                onFieldTouched={() => setFieldTouched('owningTeamId', true)}
+                                onUpdateOwningTeam={team => setFieldValue('owningTeamId', `${team.id}`)}
+                                disabled={disableAllFields}
+                                comboboxClassName={styles.inputField}
+                            />
 
                             <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
                                 <Input

@@ -102,6 +102,10 @@ const dropdownStyles = {
     ...controlStyles,
 };
 
+const alignedWithCheckboxesStyles = {
+    marginLeft: '7px',
+};
+
 const secureTextFieldStyles = {
     ...controlStyles,
     fontFamily: 'monospace',
@@ -175,6 +179,7 @@ export const useSettingsStyles = () => {
         deleteButtonStyle,
         controlStyles,
         dropdownStyles,
+        alignedWithCheckboxesStyles,
         secureTextFieldStyles,
         plainTextFieldStyles,
         basicsCardStyle,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IncidentDocument, IncidentTeamSearchResponse, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentDocument, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
@@ -76,11 +76,6 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
 
     handlerTestMetadata: IncidentHandlerTestMetadata;
     incidentsPreviewMetadata: IncidentsPreviewMetadata;
-    searchIncidentTeams: (
-        searchString: string,
-        assignableOnly: boolean,
-        withOnCallRotationsOnly: boolean
-    ) => Promise<IncidentTeamSearchResponse[]>;
 }
 
 export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
@@ -119,7 +114,6 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     priorityOptions: [],
     impactedServiceOptions: [],
     incidentTypeOptions: [],
-    searchIncidentTeams: () => Promise.resolve([]),
     handlerTestMetadata: {
         searchTerm: '',
         setSearchTerm: () => {},
