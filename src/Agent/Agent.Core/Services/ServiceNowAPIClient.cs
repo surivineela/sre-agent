@@ -181,6 +181,19 @@ namespace Agent.Core.Services
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
+
+                // Validate Content-Type header to detect HTML/XML responses
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                if (!string.IsNullOrEmpty(contentType) && 
+                    !contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInternalError(
+                        "GetIncidentsAsync: ServiceNow returned non-JSON content. Content-Type: {ContentType}. This usually indicates authentication failure or incorrect endpoint configuration. Response preview: {ResponsePreview}",
+                        contentType,
+                        content.Length > 500 ? content.Substring(0, 500) + "..." : content);
+                    return new List<ServiceNowIncident>();
+                }
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
@@ -190,14 +203,26 @@ namespace Agent.Core.Services
 
                 if (result == null || result.Result == null)
                 {
+                    _logger.LogInternalWarning("GetIncidentsAsync: Deserialization returned null result");
                     return new List<ServiceNowIncident>();
                 }
 
+                _logger.LogInternalInformation("GetIncidentsAsync: Successfully retrieved {Count} incidents", result.Result.Count);
                 return result.Result;
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger.LogInternalError(jsonEx, "GetIncidentsAsync: Failed to deserialize JSON response from ServiceNow. This usually means ServiceNow returned HTML (login page or error page) instead of JSON. Check authentication credentials and endpoint configuration.");
+                return new List<ServiceNowIncident>();
+            }
+            catch (HttpRequestException httpEx)
+            {
+                _logger.LogInternalError(httpEx, "GetIncidentsAsync: HTTP request failed. Check network connectivity and ServiceNow endpoint configuration.");
+                return new List<ServiceNowIncident>();
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "GetIncidentsAsync: Error retrieving incidents");
+                _logger.LogInternalError(ex, "GetIncidentsAsync: Unexpected error retrieving incidents");
                 return new List<ServiceNowIncident>();
             }
         }

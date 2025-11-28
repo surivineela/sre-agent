@@ -327,6 +327,144 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.Empty(result);
         }
 
+        [Fact]
+        public async Task GetIncidentsAsync_WithHtmlResponse_ReturnsEmptyList()
+        {
+            // Arrange - ServiceNow returns HTML login page instead of JSON
+            var htmlContent = "<!DOCTYPE html><html><body><h1>ServiceNow Login</h1></body></html>";
+            var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(htmlContent, Encoding.UTF8, "text/html")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(httpResponse);
+
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+
+            // Act
+            var result = await client.GetIncidentsAsync(10, 0, null, null, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetIncidentsAsync_WithInvalidJsonButCorrectContentType_ReturnsEmptyList()
+        {
+            // Arrange - ServiceNow returns HTML with application/json content type (misconfigured server)
+            var htmlContent = "<!DOCTYPE html><html><body>Error</body></html>";
+            var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(htmlContent, Encoding.UTF8, "application/json")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(httpResponse);
+
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+
+            // Act
+            var result = await client.GetIncidentsAsync(10, 0, null, null, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetIncidentsAsync_WithXmlResponse_ReturnsEmptyList()
+        {
+            // Arrange - ServiceNow returns XML instead of JSON
+            var xmlContent = "<?xml version=\"1.0\"?><error><message>Authentication failed</message></error>";
+            var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(xmlContent, Encoding.UTF8, "application/xml")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(httpResponse);
+
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+
+            // Act
+            var result = await client.GetIncidentsAsync(10, 0, null, null, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetIncidentsAsync_WithEmptyResponse_ReturnsEmptyList()
+        {
+            // Arrange
+            var responseData = new ServiceNowListResponse<ServiceNowIncident>
+            {
+                Result = null
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(responseData);
+            var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json")
+            };
+
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(httpResponse);
+
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+
+            // Act
+            var result = await client.GetIncidentsAsync(10, 0, null, null, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetIncidentsAsync_WithHttpRequestException_ReturnsEmptyList()
+        {
+            // Arrange
+            _mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(new HttpRequestException("Network connection failed"));
+
+            var client = new ServiceNowAPIClient(_httpClient, _mockLogger.Object, _validSettings);
+
+            // Act
+            var result = await client.GetIncidentsAsync(10, 0, null, null, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
 
     }
 }

@@ -38,9 +38,20 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
     private readonly static int maxOffset = 200;
     private bool isScanSucceeded = true;
 
+    private bool IsServiceNowClientAvailable()
+    {
+        return serviceNowApiClient is not NullableServiceNowAPIClient;
+    }
+
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
+        if (!IsServiceNowClientAvailable())
+        {
+            logger.LogInternalWarning("ServiceNow client is not available (using NullableServiceNowAPIClient). Scanner will not run. Check ServiceNow configuration.");
+            return;
+        }
+
         var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.ServiceNow);
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
@@ -161,7 +172,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             catch (Exception ex)
             {
                 isScanSucceeded = false;
-                logger.LogInternalError(ex, "Error scanning ServiceNow incidents");
+                logger.LogInternalError(ex, "[ServiceNowScanner] Error scanning ServiceNow incidents for filter {filterId}", filterDocument.Id);
             }
             page++;
         }
