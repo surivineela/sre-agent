@@ -112,6 +112,11 @@ const useStyles = makeStyles({
     dailyConsumptionLoader: {
         height: '550px',
     },
+    chartLegendOverride: {
+        '& .fui-legend__resizableArea': {
+            maxWidth: 'none',
+        },
+    },
     dialog: {
         maxWidth: '700px',
     },
@@ -139,7 +144,25 @@ const useStyles = makeStyles({
 });
 
 const getNumberLocale = (num: number) => {
-    return num.toLocaleString();
+    return Math.round(num).toLocaleString();
+};
+
+const roundToScale = (num: number): number => {
+    const absNum = Math.abs(num);
+
+    if (absNum === 0) {
+        return 0;
+    } else if (absNum < 10) {
+        return Math.round(num);
+    } else if (absNum < 100) {
+        return Math.round(num / 10) * 10;
+    } else if (absNum < 1000) {
+        return Math.round(num / 100) * 100;
+    } else if (absNum < 10000) {
+        return Math.round(num / 500) * 500;
+    } else {
+        return Math.round(num / 1000) * 1000;
+    }
 };
 
 const MAX_LIMIT = 200000;
@@ -189,6 +212,12 @@ const Usage = () => {
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         return endOfMonth.getDate() - currentDate.getDate();
     }, [currentDate]);
+
+    const chartMaxValue = useMemo(() => {
+        if (dailyUsagesDataPoint.length === 0) return undefined;
+        const maxDataValue = Math.max(...dailyUsagesDataPoint.map(d => d.y));
+        return roundToScale(maxDataValue);
+    }, [dailyUsagesDataPoint]);
 
     const fetchData = useCallback(async () => {
         const getMonthlyUsage = async (resourceId: string) => {
@@ -266,7 +295,7 @@ const Usage = () => {
             const dataPoints: VerticalBarChartDataPoint[] = dailyUsages.map(usage => {
                 return {
                     x: getSafeDateTime(usage.date).toLocaleString(undefined, { month: 'numeric', day: 'numeric' }),
-                    y: usage.value,
+                    y: Math.round(usage.value),
                     color: tokens.colorPaletteCornflowerBorderActive,
                     legend: intl.formatMessage(UsageResources.aauConsumptionLegendText),
                 };
@@ -437,7 +466,7 @@ const Usage = () => {
                                             <span className={styles.extraSmallSpaceOnRight}>{totalLimitDisplayData}</span>
                                             <span>{'AAUs'}</span>
                                         </Caption1>
-                                        <ProgressBar value={1000} max={totalLimit} className={styles.progressBar}></ProgressBar>
+                                        <ProgressBar value={currentUsage} max={totalLimit} className={styles.progressBar}></ProgressBar>
                                     </div>
                                 </>
                             )}
@@ -462,13 +491,15 @@ const Usage = () => {
                             {dailyUsageError ? (
                                 <NoDataMessage />
                             ) : (
-                                <div className={styles.fullWidth}>
+                                <div className={`${styles.fullWidth} ${styles.chartLegendOverride}`}>
                                     <VerticalBarChart
                                         culture={typeof window !== 'undefined' ? window.navigator.language : 'en-us'}
                                         data={dailyUsagesDataPoint}
                                         lineLegendText={intl.formatMessage(UsageResources.aauConsumptionLegendText)}
                                         useUTC={false}
                                         parentRef={dailyUsageChartRef.current}
+                                        yMaxValue={chartMaxValue}
+                                        yMinValue={0}
                                     />
                                 </div>
                             )}
