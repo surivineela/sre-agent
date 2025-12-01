@@ -13,6 +13,7 @@ import useIntl from 'react-intl/src/components/useIntl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { Reasoning } from '../Contracts/Activities';
 
@@ -94,8 +95,7 @@ const useStyles = makeStyles({
         height: '12px',
         borderRadius: '50%',
         backgroundColor: tokens.colorNeutralForeground1, // Fluent UI token for primary foreground
-        marginTop: '6px',
-        marginRight: '12px',
+        margin: '3px 12px 3px 0px',
         flexShrink: 0,
         zIndex: 1,
         position: 'relative',
@@ -115,6 +115,8 @@ const useStyles = makeStyles({
     },
     panelContent: {
         padding: '16px 20px',
+        overflowY: 'auto',
+        maxHeight: '450px',
     },
     headerWithTime: {
         display: 'flex',
@@ -246,6 +248,7 @@ const THINK_MODE = 'think';
 
 const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
     const styles = useStyles();
+    const { scrollable } = useScrollableComponentStyles();
     const intl = useIntl();
 
     // Track if accordion should be open - default to open only if currently active
@@ -349,7 +352,7 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
                     </div>
                 </AccordionHeader>
                 <AccordionPanel>
-                    <div className={styles.panelContent}>
+                    <div className={mergeClasses(styles.panelContent, scrollable)}>
                         {items.map((item, index) => (
                             <div key={item.messageId} className={styles.reasoningStep}>
                                 {index === items.length - 1 && reasoning.active ? (
