@@ -395,16 +395,14 @@ public class ReasoningLoop : IDisposable
 
             ReasoningLoopIterationResult? iterationResult = null;
             uint currentIterationCount = 0;
-            TelemetrySpan _msgSpan;
 
             if (_rootSpan == null)
             {
                 // don't reset the root span if one exists (loop continuation)
-                _rootSpan = _tracer.StartRootSpan(TraceOperationName.ReasoningLoop);
-                _rootSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                _rootSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ReasoningLoop);
-                _rootSpan.SetAttribute(TraceAttribute.FeatureConfig, WebJsonSerializer.Serialize(_featureConfig));
-                _rootSpan.SetAttribute(TraceAttribute.ExperimentVariants, FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
+                _rootSpan = _tracer.StartReasoningLoopRootSpan(
+                    _context.ThreadId.ToString(),
+                    WebJsonSerializer.Serialize(_featureConfig),
+                    FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
             }
 
             try
@@ -487,14 +485,8 @@ public class ReasoningLoop : IDisposable
                             var msg = new ChatMessage(chatMessage.Message.Role, sb.ToString());
 
                             _logger.LogInternalInformation("[{threadId}]Processing chat message.", _context.ThreadId);
-                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserMessage);
-                            _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, chatMessage.Message.Text);
 
-                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserMessage, SpanKind.Internal, _rootSpan);
-                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserMessage);
-                            _msgSpan.SetAttribute(TraceAttribute.MessageContent, chatMessage.Message.Text);
-                            _msgSpan.End();
+                            _tracer.RecordUserMessageSpan(_context.ThreadId.ToString(), chatMessage.Message.Text, _rootSpan);
 
                             await PersistReasoningMessageAsync(agentChatHistory, msg);
 
@@ -505,8 +497,7 @@ public class ReasoningLoop : IDisposable
                                 if (!modificationResult.PassToMainLoop)
                                 {
                                     // Modifier handled the message, no need to continue with main loop
-                                    _rootSpan?.End();
-                                    _rootSpan = null;
+                                    TracerExtensions.EndAndClear(ref _rootSpan);
                                     return;
                                 }
                             }
@@ -522,14 +513,11 @@ public class ReasoningLoop : IDisposable
                                 _logger.LogInternalWarning("[{threadId}]Received approval message while not in PendingApproval state, but in state: {State}", _context.ThreadId, _context.ContextState);
                             }
 
-                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserApproval);
-                            _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, approvalMessage.Approval.Description.ToString());
-                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserApproval, SpanKind.Internal, _rootSpan);
-                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserApproval);
-                            _msgSpan.SetAttribute(TraceAttribute.ApprovalDescription, approvalMessage.Approval.Description.ToString());
-                            _msgSpan.SetAttribute(TraceAttribute.ApprovalStatus, approvalMessage.Approval.Status.ToString());
-                            _msgSpan.End();
+                            _tracer.RecordUserApprovalSpan(
+                                _context.ThreadId.ToString(),
+                                approvalMessage.Approval.Description.ToString(),
+                                approvalMessage.Approval.Status.ToString(),
+                                _rootSpan);
 
                             var approval = approvalMessage.Approval;
                             var shouldStop = await ProcessNewApprovalAsync(agentChatHistory, approval, cancellationToken);
@@ -560,25 +548,23 @@ public class ReasoningLoop : IDisposable
                                 }
                             }
 
-                            _rootSpan.SetAttribute(TraceAttribute.TriggeredBy, TraceOperationName.UserContinueTool);
-                            _msgSpan = _tracer.StartActiveSpan(TraceOperationName.UserContinueTool, SpanKind.Internal, _rootSpan);
-                            _msgSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-                            _msgSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.UserContinueTool);
+                            string? toolName = null;
+                            string? toolInput = null;
+                            string? toolOutput = null;
 
                             if (functionCallContent != null)
                             {
-                                _rootSpan.SetAttribute(TraceAttribute.TriggeredMessage, functionCallContent.Name);
-                                _msgSpan.SetAttribute(TraceAttribute.ToolName, functionCallContent.Name);
-                                _msgSpan.SetAttribute(TraceAttribute.ToolInput, JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions));
+                                toolName = functionCallContent.Name;
+                                toolInput = JsonSerializer.Serialize(functionCallContent.Arguments, _toolArgumentsJsonOptions);
                             }
 
                             if (functionResultContent != null)
                             {
                                 var resultString = functionResultContent.Result?.ToString() ?? "null";
-                                _msgSpan.SetAttribute(TraceAttribute.ToolOutput, resultString.Substring(0, Math.Min(500, resultString.Length)));
+                                toolOutput = resultString.Substring(0, Math.Min(500, resultString.Length));
                             }
 
-                            _msgSpan.End();
+                            _tracer.RecordUserContinueToolSpan(_context.ThreadId.ToString(), toolName, toolInput, toolOutput, _rootSpan);
 
                             var toolResults = functionCall.Messages.Where(m => m.Role == ChatRole.Tool).ToList();
                             await PersistReasoningMessagesAsync(agentChatHistory, toolResults);
@@ -657,8 +643,7 @@ public class ReasoningLoop : IDisposable
                 {
                     await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                     // only end the root span if we didn't continue the loop
-                    _rootSpan?.End();
-                    _rootSpan = null;
+                    TracerExtensions.EndAndClear(ref _rootSpan);
                 }
 
                 if (_context.ContextState == ContextStateEnum.Processing)
@@ -1143,12 +1128,19 @@ public class ReasoningLoop : IDisposable
 
             _logger.LogInternalInformation("Reasoning loop iteration completed.");
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
+            _currentException = ex;
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            _tracer.RecordErrorSpan(ex, $"Operation canceled: {ex.GetType()}: {ex.Message}", _context.ThreadId.ToString(), parentSpan);
             throw;
         }
         catch (TurnLimitReachedException<AgentContext> ex)
         {
+            _currentException = ex;
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            _tracer.RecordErrorSpan(ex, $"Turn limit reached: {ex.GetType()}: {ex.Message}", _context.ThreadId.ToString(), parentSpan);
+
             _logger.LogInternalWarning("[{threadId}]Turn limit reached.", _context.ThreadId, ex);
 
             // generate progress summary
@@ -1191,12 +1183,7 @@ public class ReasoningLoop : IDisposable
         {
             _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
-            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
-            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
-            errorSpan.SetAttribute("error.message", $"Model Rate-limit exceeded: {ex.GetType()}: {ex.Message}");
-            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
-            errorSpan.End();
+            _tracer.RecordErrorSpan(ex, $"Model Rate-limit exceeded: {ex.GetType()}: {ex.Message}", _context.ThreadId.ToString(), parentSpan);
 
             _logger.LogInternalWarning(ex, "[{threadId}]Rate limit encountered during reasoning loop.", _context.ThreadId);
             var message = new ChatMessage(ChatRole.Assistant, Agent.Core.Constants.ErrorMessages.RateLimitExceeded);
@@ -1211,12 +1198,7 @@ public class ReasoningLoop : IDisposable
         {
             _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
-            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
-            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
-            errorSpan.SetAttribute("error.message", $"Content filter triggered: {ex.GetType()}: {ex.Message}");
-            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
-            errorSpan.End();
+            _tracer.RecordErrorSpan(ex, $"Content filter triggered: {ex.GetType()}: {ex.Message}", _context.ThreadId.ToString(), parentSpan);
 
             _logger.LogInternalWarning(ex, "[{threadId}]Content filter triggered during reasoning loop.", _context.ThreadId);
             var message = new ChatMessage(ChatRole.Assistant, Agent.Core.Constants.ErrorMessages.ContentFilterTriggered);
@@ -1229,12 +1211,7 @@ public class ReasoningLoop : IDisposable
         {
             _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
-            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
-            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
-            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
-            errorSpan.SetAttribute("error.message", $"{ex.GetType()}: {ex.Message}");
-            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
-            errorSpan.End();
+            _tracer.RecordErrorSpan(ex, $"{ex.GetType()}: {ex.Message}", _context.ThreadId.ToString(), parentSpan);
 
             _logger.LogInternalError(ex, "[{threadId}]An error occurred during reasoning loop.", _context.ThreadId);
             var message = new ChatMessage(ChatRole.Assistant, "I am unable to fully address your request due to an internal error. Please retry to continue the conversation!");
