@@ -74,5 +74,5 @@ configuration:
     role: Read
   - member: csigs
     role: Write
-  - member: shimedh
+  - team: srea-ux-devs
     role: Write
