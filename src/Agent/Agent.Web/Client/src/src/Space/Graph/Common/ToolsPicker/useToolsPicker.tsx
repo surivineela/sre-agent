@@ -70,6 +70,12 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         [intl]
     );
 
+    // Helper to get tool names in a specific group from filtered options
+    const getToolNamesInGroup = useCallback((groupName: string, groups: { category: string; tools: { name: string }[] }[]) => {
+        const group = groups.find(g => g.category === groupName);
+        return group?.tools.map(t => t.name) ?? [];
+    }, []);
+
     const availableToolOptions = useMemo(() => {
         const normalize = (value?: string | null) => (value ?? '').trim();
         const currentToolsNormalized = new Set((excludedToolNames ?? []).map(normalize).filter(Boolean));
@@ -188,6 +194,49 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         setExpandedGroupNames([]);
     }, []);
 
+    // Select/deselect all tools in a specific group
+    const onSelectAllToolsInGroup = useCallback(
+        (groupName: string, isSelected: boolean) => {
+            const toolNamesInGroup = getToolNamesInGroup(groupName, groups);
+            if (isSelected) {
+                // Add all tools in the group that are not already selected
+                const newSelectedTools = [...selectedToolNames];
+                toolNamesInGroup.forEach(name => {
+                    if (!newSelectedTools.includes(name)) {
+                        newSelectedTools.push(name);
+                    }
+                });
+                setSelectedToolNames(newSelectedTools);
+            } else {
+                // Remove all tools in the group from selection
+                setSelectedToolNames(selectedToolNames.filter(name => !toolNamesInGroup.includes(name)));
+            }
+        },
+        [selectedToolNames, setSelectedToolNames, groups, getToolNamesInGroup]
+    );
+
+    // Select/deselect all tools across all groups
+    const onSelectAllTools = useCallback(
+        (isSelected: boolean) => {
+            if (isSelected) {
+                // Select all tools from all groups
+                const allToolNames = groups.flatMap(group => group.tools.map(tool => tool.name));
+                const newSelectedTools = [...selectedToolNames];
+                allToolNames.forEach(name => {
+                    if (!newSelectedTools.includes(name)) {
+                        newSelectedTools.push(name);
+                    }
+                });
+                setSelectedToolNames(newSelectedTools);
+            } else {
+                // Deselect all tools from all groups
+                const allToolNames = new Set(groups.flatMap(group => group.tools.map(tool => tool.name)));
+                setSelectedToolNames(selectedToolNames.filter(name => !allToolNames.has(name)));
+            }
+        },
+        [selectedToolNames, setSelectedToolNames, groups]
+    );
+
     return {
         toolType,
         onToolTypeChange: setToolType,
@@ -195,6 +244,8 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         onGroupExpandedChange,
         selectedToolNames,
         onSelectedToolChange,
+        onSelectAllToolsInGroup,
+        onSelectAllTools,
         onClearSelectedTools,
         onClearSearchAndExpandedGroups,
         searchQuery,

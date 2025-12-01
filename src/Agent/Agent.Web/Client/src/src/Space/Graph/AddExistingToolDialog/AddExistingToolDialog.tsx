@@ -90,6 +90,8 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
         expandedGroupNames,
         onGroupExpandedChange,
         onSelectedToolChange,
+        onSelectAllToolsInGroup,
+        onSelectAllTools,
         onClearSelectedTools,
         searchQuery,
         setSearchQuery,
@@ -136,6 +138,8 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                         onGroupExpandedChange={onGroupExpandedChange}
                         selectedToolNames={selectedToolNames}
                         onSelectedToolChange={onSelectedToolChange}
+                        onSelectAllToolsInGroup={onSelectAllToolsInGroup}
+                        onSelectAllTools={onSelectAllTools}
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
                     />
