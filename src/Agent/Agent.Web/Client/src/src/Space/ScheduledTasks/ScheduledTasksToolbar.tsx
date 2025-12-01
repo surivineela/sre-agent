@@ -14,7 +14,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { getLocaleTimeHHMM } from '../../Common/Helpers/Date';
-import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
@@ -75,8 +75,8 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         const activeTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Active) || [];
 
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(ScheduledTasksResources.pauseTasksTitle),
-            intl.formatMessage(ScheduledTasksResources.pauseTasksInProgress)
+            intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationTitleMultiple),
+            intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationInProgressMultiple)
         );
 
         try {
@@ -84,12 +84,16 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             const responses = await Promise.all(activeTasks.map(task => pauseTask(task.id)));
             if (responses.some(response => response.isSuccessful)) {
                 await refreshTasks();
-                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksPausedSuccessfully));
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationSuccessMultiple)
+                );
             } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.failedToPauseTask, {
+                    intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationError, {
                         errorMessage: responses.find(r => !r.isSuccessful)?.error,
                     })
                 );
@@ -98,7 +102,9 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.failedToPauseTask, { errorMessage: getErrorMessageOrStringify(error) })
+                intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationError, {
+                    errorMessage: getErrorMessageOrStringify(error),
+                })
             );
         } finally {
             setIsOperationInProgress(false);
@@ -107,8 +113,8 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
 
     const onRunTasks = useCallback(async () => {
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(ScheduledTasksResources.runTasksTitle),
-            intl.formatMessage(ScheduledTasksResources.runTasksInProgress)
+            intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationTitleMultiple),
+            intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationInProgressMultiple)
         );
 
         try {
@@ -116,12 +122,16 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             const responses = await Promise.all(selectedTasks?.map(task => runTask(task.id)) || []);
             if (responses.some(response => response.isSuccessful)) {
                 await refreshTasks();
-                azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksRanSuccessfully));
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationSuccessMultiple)
+                );
             } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.failedToRunTask, {
+                    intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationError, {
                         errorMessage: responses.find(r => !r.isSuccessful)?.error,
                     })
                 );
@@ -130,7 +140,9 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.failedToRunTask, { errorMessage: getErrorMessageOrStringify(error) })
+                intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationError, {
+                    errorMessage: getErrorMessageOrStringify(error),
+                })
             );
         } finally {
             setIsOperationInProgress(false);
@@ -141,8 +153,8 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         const pausedTasks = selectedTasks?.filter(task => task.status === ScheduledTaskStatus.Paused) || [];
 
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(ScheduledTasksResources.resumeTasksTitle),
-            intl.formatMessage(ScheduledTasksResources.resumeTasksInProgress)
+            intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationTitleMultiple),
+            intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationInProgressMultiple)
         );
 
         try {
@@ -153,13 +165,13 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                 azPortalContext.stopNotification(
                     notificationId,
                     true,
-                    intl.formatMessage(ScheduledTasksResources.tasksResumedSuccessfully)
+                    intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationSuccessMultiple)
                 );
             } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.failedToResumeTask, {
+                    intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationError, {
                         errorMessage: responses.find(r => !r.isSuccessful)?.error,
                     })
                 );
@@ -168,7 +180,9 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.failedToResumeTask, { errorMessage: getErrorMessageOrStringify(error) })
+                intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationError, {
+                    errorMessage: getErrorMessageOrStringify(error),
+                })
             );
         } finally {
             setIsOperationInProgress(false);
@@ -177,8 +191,8 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
 
     const onDeleteTasks = useCallback(async () => {
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(ScheduledTasksResources.deleteTasksTitle),
-            intl.formatMessage(ScheduledTasksResources.deleteTasksInProgress)
+            intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationTitleMultiple),
+            intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationInProgressMultiple)
         );
 
         try {
@@ -189,13 +203,13 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                 azPortalContext.stopNotification(
                     notificationId,
                     true,
-                    intl.formatMessage(ScheduledTasksResources.tasksDeletedSuccessfully)
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessMultiple)
                 );
             } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, {
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, {
                         errorMessage: responses.find(r => !r.isSuccessful)?.error,
                     })
                 );
@@ -204,7 +218,9 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, { errorMessage: getErrorMessageOrStringify(error) })
+                intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, {
+                    errorMessage: getErrorMessageOrStringify(error),
+                })
             );
         } finally {
             setIsOperationInProgress(false);
@@ -266,8 +282,8 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                             </ToolbarButton>
                         }
                         deleteTasks={onDeleteTasks}
-                        title={intl.formatMessage(ScheduledTasksResources.deleteTasksConfirmationTitle)}
-                        content={intl.formatMessage(ScheduledTasksResources.deleteTasksConfirmationMessage)}
+                        title={intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationTitleMultiple)}
+                        content={intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskConfirmationDescriptionMultiple)}
                     />
                 </Toolbar>
                 <ScheduledTasksFilters
@@ -302,7 +318,7 @@ export const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQu
         () => [
             {
                 key: TaskStatusFilterKey.All,
-                label: intl.formatMessage(ScheduledTasksResources.all),
+                label: intl.formatMessage(SreAgentResources.all),
             },
             {
                 key: TaskStatusFilterKey.On,
@@ -326,7 +342,7 @@ export const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQu
                 className={styles.searchBox}
                 value={searchQuery}
                 onChange={(_, data) => setSearchQuery(data.value)}
-                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByScheduledTask)}
+                placeholder={intl.formatMessage(ScheduledTasksResources.searchByScheduledTask)}
             />
             <PillFilter
                 label={`${intl.formatMessage(SreAgentResources.status)}`}

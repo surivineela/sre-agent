@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { FieldWrapperProps } from '../../Common/Components/Field/FieldWrapper';
 import TextareaNoFormik from '../../Common/Components/Textarea/TextareaNoFormik';
-import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { improvePrompt } from '../Graph/ExtendedAgentCreationDialog/services/promptImprovementService';
 
 type AgentPromptTextareaProps = TextareaProps &
@@ -76,7 +76,7 @@ export const AgentPromptTextarea: FC<AgentPromptTextareaProps> = ({ label, promp
                                 {intl.formatMessage(SreAgentResources.undo)}
                             </>
                         </Button>
-                        <Tooltip content={intl.formatMessage(ScheduledTasksResources.refineWithAiTooltip)} relationship="description">
+                        <Tooltip content={intl.formatMessage(SreAgentResources.refineWithAiTooltip)} relationship="description">
                             <Button
                                 appearance="subtle"
                                 size="small"
@@ -87,12 +87,12 @@ export const AgentPromptTextarea: FC<AgentPromptTextareaProps> = ({ label, promp
                                 {isApplyingImprovement ? (
                                     <>
                                         <Spinner size="extra-tiny" />
-                                        {intl.formatMessage(ScheduledTasksResources.refining)}
+                                        {intl.formatMessage(SreAgentResources.refining)}
                                     </>
                                 ) : (
                                     <>
                                         <PenSparkle16Regular />
-                                        {intl.formatMessage(ScheduledTasksResources.refineWithAi)}
+                                        {intl.formatMessage(SreAgentResources.refineWithAi)}
                                     </>
                                 )}
                             </Button>

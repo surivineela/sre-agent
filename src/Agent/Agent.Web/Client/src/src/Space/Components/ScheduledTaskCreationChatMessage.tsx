@@ -34,33 +34,37 @@ const ScheduledTaskCreationChatMessage: React.FC<ScheduledTaskCreationChatMessag
 
     const onRunTasks = useCallback(async () => {
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(ScheduledTasksResources.runTasksTitle),
-            intl.formatMessage(ScheduledTasksResources.runTasksInProgress)
+            intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationTitleSingle),
+            intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationInProgressSingle, { name: task.name ?? task.id })
         );
 
         setIsRunningScheduledTask(true);
         const response = await scheduledTasksClient.runScheduledTask(task.id);
         if (response.isSuccessful) {
-            azPortalContext.stopNotification(notificationId, true, intl.formatMessage(ScheduledTasksResources.tasksRanSuccessfully));
+            azPortalContext.stopNotification(
+                notificationId,
+                true,
+                intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationSuccessSingle, { name: task.name ?? task.id })
+            );
         } else {
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.failedToRunTask, {
+                intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationError, {
                     errorMessage: getErrorMessageOrStringify(response.error),
                 })
             );
         }
 
         setIsRunningScheduledTask(false);
-    }, [azPortalContext, intl, scheduledTasksClient, task.id]);
+    }, [azPortalContext, intl, scheduledTasksClient, task.id, task.name]);
 
     return (
         <ScheduledTaskChatMessage
             name={task.name}
             media={<EntityIcon type={'scheduledTask'} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />}
             description={task.description}
-            secondaryText={intl.formatMessage(ScheduledTasksResources.taskCreatedSuccessfully)}
+            secondaryText={intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationSuccessSingle)}
             footer={{
                 status: <ScheduledTaskStatusBadge status={task.status} />,
                 timestamp: (

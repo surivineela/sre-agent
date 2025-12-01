@@ -74,7 +74,7 @@ const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({
                                                 icon={<ArrowRightRegular />}
                                                 onClick={() => navigate({ ...location, pathname: '/views/scheduledtasks' })}
                                             >
-                                                {intl.formatMessage(ScheduledTasksResources.goToScheduledTasksButtonText)}
+                                                {intl.formatMessage(ScheduledTasksResources.goToScheduledTasks)}
                                             </MenuItem>
                                         </MenuList>
                                     </MenuPopover>

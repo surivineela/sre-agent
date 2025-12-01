@@ -184,7 +184,7 @@ namespace Agent.Core.Services
 
                 // Validate Content-Type header to detect HTML/XML responses
                 var contentType = response.Content.Headers.ContentType?.MediaType;
-                if (!string.IsNullOrEmpty(contentType) && 
+                if (!string.IsNullOrEmpty(contentType) &&
                     !contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogInternalError(

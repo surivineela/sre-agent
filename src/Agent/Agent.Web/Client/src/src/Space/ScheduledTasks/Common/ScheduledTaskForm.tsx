@@ -156,7 +156,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                     )}
                     {values.frequency === TaskFrequencyKey.Custom ? (
                         <Field
-                            label={intl.formatMessage(ScheduledTasksResources.cronExpression)}
+                            label={intl.formatMessage(ScheduledTasksResources.cronExpressionUTC)}
                             validationState={touched.customCron && errors.customCron ? 'error' : undefined}
                             validationMessage={touched.customCron ? errors.customCron : undefined}
                             required
@@ -208,7 +208,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                         validationMessage={touched.repeatUntil ? errors.repeatUntil : undefined}
                     >
                         <DatePicker
-                            placeholder={intl.formatMessage(ScheduledTasksResources.endDateOptional)}
+                            placeholder={intl.formatMessage(ScheduledTasksResources.repeatUntilPlaceholder)}
                             value={values.repeatUntil}
                             onSelectDate={date => {
                                 setFieldValue('repeatUntil', date);

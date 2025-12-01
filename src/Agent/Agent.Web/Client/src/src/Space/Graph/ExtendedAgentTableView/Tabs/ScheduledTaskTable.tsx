@@ -190,8 +190,8 @@ const ScheduledTaskTableToolbar = memo<ScheduledTaskTableToolbarProps>(
             setIsDeleting(true);
             setShowDeleteConfirmationDialog(false);
             const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(ScheduledTasksResources.deleteTasksTitle),
-                intl.formatMessage(ScheduledTasksResources.deleteTasksInProgress)
+                intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationTitleMultiple),
+                intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationInProgressMultiple)
             );
 
             try {
@@ -201,13 +201,13 @@ const ScheduledTaskTableToolbar = memo<ScheduledTaskTableToolbarProps>(
                     azPortalContext.stopNotification(
                         notificationId,
                         true,
-                        intl.formatMessage(ScheduledTasksResources.tasksDeletedSuccessfully)
+                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessMultiple)
                     );
                 } else {
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(ScheduledTasksResources.failedToDeleteTask, {
+                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, {
                             errorMessage: responses.find(r => !r.isSuccessful)?.error,
                         })
                     );

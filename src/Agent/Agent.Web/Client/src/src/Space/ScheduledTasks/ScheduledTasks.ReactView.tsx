@@ -7,7 +7,7 @@ import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCard } from './Common/ScheduledTaskCard';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
-import { useScheduledTasksV2 } from './Hooks/useScheduledTasksV2';
+import { useScheduledTasks } from './Hooks/useScheduledTasks';
 import { useScheduledTasksStyles } from './ScheduledTasks.styles';
 import { ScheduledTasksDataGrid } from './ScheduledTasksDataGrid';
 import { ScheduledTasksToolbar } from './ScheduledTasksToolbar';
@@ -26,7 +26,7 @@ export const ScheduledTasks: FC = () => {
         deleteTask,
         pauseTask,
         resumeTask,
-    } = useScheduledTasksV2();
+    } = useScheduledTasks();
     const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<TaskStatusFilterKey>(TaskStatusFilterKey.All);

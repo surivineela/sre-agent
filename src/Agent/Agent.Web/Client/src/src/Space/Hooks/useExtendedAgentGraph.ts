@@ -15,7 +15,7 @@ import {
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
-import { useScheduledTasksV2 } from '../ScheduledTasks/Hooks/useScheduledTasksV2';
+import { useScheduledTasks } from '../ScheduledTasks/Hooks/useScheduledTasks';
 import { useIncidentFilters } from './useIncidentFilters';
 import { useIncidentHandlers } from './useIncidentHandlers';
 
@@ -43,7 +43,7 @@ export const useExtendedAgentGraph = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const scheduledTasksHook = useScheduledTasksV2();
+    const scheduledTasksHook = useScheduledTasks();
     const incidentFiltersHook = useIncidentFilters();
     const incidentHandlersHook = useIncidentHandlers();
 

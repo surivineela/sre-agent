@@ -97,8 +97,8 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                                     }
                                 >
                                     {mode === ScheduledTaskDialogMode.Create
-                                        ? intl.formatMessage(ScheduledTasksResources.createAScheduledTask)
-                                        : intl.formatMessage(ScheduledTasksResources.editAScheduledTask)}
+                                        ? intl.formatMessage(ScheduledTasksResources.createScheduledTask)
+                                        : intl.formatMessage(ScheduledTasksResources.editScheduledTask)}
                                 </DialogTitle>
                                 <DialogContent id="task-dialog-content">
                                     <ScheduledTaskForm agents={agents} />

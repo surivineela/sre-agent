@@ -82,7 +82,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                     .nullable()
                     .test(
                         'validateEndDateIsAfterStartDate',
-                        intl.formatMessage(ScheduledTasksResources.endDateValidationMessage),
+                        intl.formatMessage(ScheduledTasksResources.repeatUntilValidationMessage),
                         (value: any, context: any) => {
                             const startDate: Date = context.parent?.startOn;
                             if (value) {
@@ -132,8 +132,10 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
 
             if (mode === ScheduledTaskDialogMode.Create) {
                 const notificationId = azPortalContext.startNotification(
-                    intl.formatMessage(ScheduledTasksResources.createTaskTitle),
-                    intl.formatMessage(ScheduledTasksResources.createTaskInProgress)
+                    intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationTitle),
+                    intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationInProgress, {
+                        name: values.name,
+                    })
                 );
                 try {
                     setIsOperationInProgress(true);
@@ -142,13 +144,17 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                         azPortalContext.stopNotification(
                             notificationId,
                             true,
-                            intl.formatMessage(ScheduledTasksResources.taskCreatedSuccessfully)
+                            intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationSuccess, {
+                                name: values.name,
+                            })
                         );
                     } else {
                         azPortalContext.stopNotification(
                             notificationId,
                             false,
-                            intl.formatMessage(ScheduledTasksResources.failedToCreateTask, { errorMessage: response.error })
+                            intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationError, {
+                                errorMessage: response.error,
+                            })
                         );
                     }
                     return response;
@@ -156,7 +162,9 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(ScheduledTasksResources.failedToCreateTask, { errorMessage: getErrorMessageOrStringify(error) })
+                        intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationError, {
+                            errorMessage: getErrorMessageOrStringify(error),
+                        })
                     );
                 } finally {
                     setIsSaving(false);
@@ -164,8 +172,10 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                 }
             } else {
                 const notificationId = azPortalContext.startNotification(
-                    intl.formatMessage(ScheduledTasksResources.updateTaskTitle),
-                    intl.formatMessage(ScheduledTasksResources.updateTaskInProgress)
+                    intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationTitle),
+                    intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationInProgress, {
+                        name: values.name,
+                    })
                 );
                 try {
                     setIsOperationInProgress(true);
@@ -174,13 +184,17 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                         azPortalContext.stopNotification(
                             notificationId,
                             true,
-                            intl.formatMessage(ScheduledTasksResources.taskUpdatedSuccessfully)
+                            intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationSuccess, {
+                                name: values.name,
+                            })
                         );
                     } else {
                         azPortalContext.stopNotification(
                             notificationId,
                             false,
-                            intl.formatMessage(ScheduledTasksResources.failedToUpdateTask, { errorMessage: response.error })
+                            intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationError, {
+                                errorMessage: response.error,
+                            })
                         );
                     }
 
@@ -189,7 +203,9 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(ScheduledTasksResources.failedToUpdateTask, { errorMessage: getErrorMessageOrStringify(error) })
+                        intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationError, {
+                            errorMessage: getErrorMessageOrStringify(error),
+                        })
                     );
                 } finally {
                     setIsSaving(false);

@@ -4,7 +4,7 @@ import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/Star
 import { ScheduledTasksClient } from '../../../Common/Clients/ScheduledTasksClient';
 import { CreateScheduledTaskRequest, ScheduledTask } from '../../Contracts/ScheduledTasks';
 
-export const useScheduledTasksV2 = () => {
+export const useScheduledTasks = () => {
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingError, setLoadingError] = useState<string | null>(null);
