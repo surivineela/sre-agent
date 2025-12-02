@@ -22,7 +22,6 @@ export interface Agent {
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
-    dataConnectors?: Connector[];
     upgradeChannel?: UpgradeChannel;
     monthlyAgentUnitLimit?: number;
 }

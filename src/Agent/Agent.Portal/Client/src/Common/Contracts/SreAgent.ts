@@ -107,6 +107,5 @@ export interface Agent {
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
-    dataConnectors?: DataConnector[];
     upgradeChannel?: UpgradeChannel;
 }

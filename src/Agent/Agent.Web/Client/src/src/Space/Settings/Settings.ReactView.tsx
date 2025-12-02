@@ -13,7 +13,6 @@ import { useSharedNavDrawerStyles } from '../Styles/Navigation.styles';
 import AccessControl from './AccessControl.ReactView';
 import Basics from './Basics.ReactView';
 import { Connectors } from './Connectors/Connectors';
-import DataConnectors from './DataConnectors.ReactView';
 import KnowledgeBase from './DataKnowledgeSpaceComponents.tsx/KnowledgeBase.ReactView';
 import Identity from './Identity.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
@@ -28,7 +27,6 @@ export enum SettingsKeys {
     Basics = 'basics',
     GrafanaDashboard = 'grafanaDashboard',
     managedResources = 'managedResourcesGroups',
-    DataConnectors = 'dataConnectors',
     Connectors = 'connectors',
     Identity = 'identity',
     KnowledgeBase = 'knowledgeBase',
@@ -50,7 +48,6 @@ const Settings: FC = () => {
     const { menuItem } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
-    const showDataConnectors = useConfigSetting(SettingNames.DataConnectors);
     const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
@@ -83,13 +80,6 @@ const Settings: FC = () => {
                 key: SettingsKeys.GrafanaDashboard,
             },
         ];
-
-        if (showDataConnectors) {
-            items.push({
-                name: intl.formatMessage(SettingsTabResources.dataConnectors),
-                key: SettingsKeys.DataConnectors,
-            });
-        }
 
         if (showConnectors) {
             items.push({
@@ -146,7 +136,7 @@ const Settings: FC = () => {
         });
 
         return items;
-    }, [intl, showConnectors, showDataConnectors, showMcpServer, showSubAgents, showSessionInsights]);
+    }, [intl, showConnectors, showMcpServer, showSubAgents, showSessionInsights]);
 
     const onNavigationClick = useCallback(
         (navKey: string) => {
@@ -198,7 +188,6 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.GrafanaDashboard && <GrafanaDashboard />}
-                    {selectedKey === SettingsKeys.DataConnectors && showDataConnectors && <DataConnectors />}
                     {selectedKey === SettingsKeys.Connectors && showConnectors && <Connectors />}
                     {selectedKey === SettingsKeys.KnowledgeBase && <KnowledgeBase />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
