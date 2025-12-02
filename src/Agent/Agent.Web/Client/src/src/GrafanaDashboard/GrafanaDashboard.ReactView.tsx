@@ -5,6 +5,13 @@ import {
     AccordionItem,
     AccordionPanel,
     Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
     Dropdown,
     Field,
     InfoLabel,
@@ -13,9 +20,6 @@ import {
     MessageBar,
     MessageBarBody,
     Option,
-    Popover,
-    PopoverSurface,
-    PopoverTrigger,
     Spinner,
 } from '@fluentui/react-components';
 import { FC, useContext } from 'react';
@@ -169,57 +173,61 @@ const GrafanaDashboard: FC = () => {
                                             </Option>
                                         ))}
                                     </Dropdown>
-                                    <Popover open={isGrafanaPopoverOpen} withArrow trapFocus>
-                                        <PopoverTrigger>
+                                    <Dialog open={isGrafanaPopoverOpen} onOpenChange={(_, data) => setIsGrafanaPopoverOpen(data.open)}>
+                                        <DialogTrigger disableButtonEnhancement>
                                             <Link
-                                                onClick={() => setIsGrafanaPopoverOpen(true)}
                                                 className={styles.popoverLink}
                                                 disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
                                             >
                                                 {intl.formatMessage(SreAgentResources.new)}
                                             </Link>
-                                        </PopoverTrigger>
-                                        <PopoverSurface tabIndex={-1} className={styles.popoverContainer}>
-                                            <h3>{intl.formatMessage(GrafanaDashboardResources.createNew)}</h3>
-                                            <Field
-                                                label={intl.formatMessage(GrafanaDashboardResources.grafanaResourceName)}
-                                                orientation="horizontal"
-                                                validationState={newGrafanaResourceNameErrorMessage ? 'error' : 'success'}
-                                                validationMessage={newGrafanaResourceNameErrorMessage}
-                                                required
-                                                className={styles.inputFieldLabel}
-                                            >
-                                                <Input
-                                                    onChange={(_, input) => {
-                                                        setIsGrafanaDirty(true);
-                                                        setNewGrafanaResourceName(input.value);
-                                                    }}
-                                                    value={newGrafanaResourceName}
-                                                    placeholder={intl.formatMessage(GrafanaDashboardResources.enterResourceName)}
-                                                    disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
-                                                    className={styles.inputTextField}
-                                                />
-                                            </Field>
-                                            <div className={styles.popoverButtonRow}>
-                                                <Button
-                                                    disabled={!newGrafanaResourceName || !!newGrafanaResourceNameErrorMessage}
-                                                    onClick={onAddNewGrafanaResourceName}
-                                                    appearance="primary"
-                                                >
-                                                    {intl.formatMessage(SreAgentResources.add)}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => {
-                                                        setIsGrafanaDirty(false);
-                                                        setNewGrafanaResourceName('');
-                                                        setIsGrafanaPopoverOpen(false);
-                                                    }}
-                                                >
-                                                    {intl.formatMessage(SreAgentResources.cancel)}
-                                                </Button>
-                                            </div>
-                                        </PopoverSurface>
-                                    </Popover>
+                                        </DialogTrigger>
+                                        <DialogSurface>
+                                            <DialogBody>
+                                                <DialogTitle>{intl.formatMessage(GrafanaDashboardResources.createNew)}</DialogTitle>
+                                                <DialogContent>
+                                                    <Field
+                                                        label={intl.formatMessage(GrafanaDashboardResources.grafanaResourceName)}
+                                                        orientation="horizontal"
+                                                        validationState={newGrafanaResourceNameErrorMessage ? 'error' : 'success'}
+                                                        validationMessage={newGrafanaResourceNameErrorMessage}
+                                                        required
+                                                        className={styles.inputFieldLabel}
+                                                    >
+                                                        <Input
+                                                            onChange={(_, input) => {
+                                                                setIsGrafanaDirty(true);
+                                                                setNewGrafanaResourceName(input.value);
+                                                            }}
+                                                            value={newGrafanaResourceName}
+                                                            placeholder={intl.formatMessage(GrafanaDashboardResources.enterResourceName)}
+                                                            disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
+                                                            className={styles.inputTextField}
+                                                        />
+                                                    </Field>
+                                                </DialogContent>
+                                                <DialogActions>
+                                                    <DialogTrigger disableButtonEnhancement>
+                                                        <Button
+                                                            onClick={() => {
+                                                                setIsGrafanaDirty(false);
+                                                                setNewGrafanaResourceName('');
+                                                            }}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.cancel)}
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <Button
+                                                        disabled={!newGrafanaResourceName || !!newGrafanaResourceNameErrorMessage}
+                                                        onClick={onAddNewGrafanaResourceName}
+                                                        appearance="primary"
+                                                    >
+                                                        {intl.formatMessage(SreAgentResources.add)}
+                                                    </Button>
+                                                </DialogActions>
+                                            </DialogBody>
+                                        </DialogSurface>
+                                    </Dialog>
                                 </Field>
                                 <Field
                                     label={intl.formatMessage(GrafanaDashboardResources.azureMonitorWorkspaceResourceName)}
@@ -244,60 +252,71 @@ const GrafanaDashboard: FC = () => {
                                             </Option>
                                         ))}
                                     </Dropdown>
-                                    <Popover open={isAzureMonitorWorkspacePopoverOpen} withArrow trapFocus>
-                                        <PopoverTrigger>
+                                    <Dialog
+                                        open={isAzureMonitorWorkspacePopoverOpen}
+                                        onOpenChange={(_, data) => setIsAzureMonitorWorkspacePopoverOpen(data.open)}
+                                    >
+                                        <DialogTrigger disableButtonEnhancement>
                                             <Link
-                                                onClick={() => setIsAzureMonitorWorkspacePopoverOpen(true)}
                                                 className={styles.popoverLink}
                                                 disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
                                             >
                                                 {intl.formatMessage(SreAgentResources.new)}
                                             </Link>
-                                        </PopoverTrigger>
-                                        <PopoverSurface tabIndex={-1} className={styles.popoverContainer}>
-                                            <h3>{intl.formatMessage(GrafanaDashboardResources.createNew)}</h3>
-                                            <Field
-                                                label={intl.formatMessage(GrafanaDashboardResources.azureMonitorWorkspaceResourceName)}
-                                                orientation="horizontal"
-                                                validationState={newAzureMonitorWorkspaceResourceNameErrorMessage ? 'error' : 'success'}
-                                                validationMessage={newAzureMonitorWorkspaceResourceNameErrorMessage}
-                                                required
-                                                className={styles.inputFieldLabel}
-                                            >
-                                                <Input
-                                                    onChange={(_, input) => {
-                                                        setIsAzureMonitorWorkspaceDirty(true);
-                                                        setNewAzureMonitorWorkspaceResourceName(input.value);
-                                                    }}
-                                                    value={newAzureMonitorWorkspaceResourceName}
-                                                    placeholder={intl.formatMessage(GrafanaDashboardResources.enterResourceName)}
-                                                    disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
-                                                    className={styles.inputTextField}
-                                                />
-                                            </Field>
-                                            <div className={styles.popoverButtonRow}>
-                                                <Button
-                                                    disabled={
-                                                        !newAzureMonitorWorkspaceResourceName ||
-                                                        !!newAzureMonitorWorkspaceResourceNameErrorMessage
-                                                    }
-                                                    onClick={onAddNewAzureMonitorWorkspaceName}
-                                                    appearance="primary"
-                                                >
-                                                    {intl.formatMessage(SreAgentResources.add)}
-                                                </Button>
-                                                <Button
-                                                    onClick={() => {
-                                                        setIsAzureMonitorWorkspaceDirty(false);
-                                                        setNewAzureMonitorWorkspaceResourceName('');
-                                                        setIsAzureMonitorWorkspacePopoverOpen(false);
-                                                    }}
-                                                >
-                                                    {intl.formatMessage(SreAgentResources.cancel)}
-                                                </Button>
-                                            </div>
-                                        </PopoverSurface>
-                                    </Popover>
+                                        </DialogTrigger>
+                                        <DialogSurface>
+                                            <DialogBody>
+                                                <DialogTitle>{intl.formatMessage(GrafanaDashboardResources.createNew)}</DialogTitle>
+                                                <DialogContent>
+                                                    <Field
+                                                        label={intl.formatMessage(
+                                                            GrafanaDashboardResources.azureMonitorWorkspaceResourceName
+                                                        )}
+                                                        orientation="horizontal"
+                                                        validationState={
+                                                            newAzureMonitorWorkspaceResourceNameErrorMessage ? 'error' : 'success'
+                                                        }
+                                                        validationMessage={newAzureMonitorWorkspaceResourceNameErrorMessage}
+                                                        required
+                                                        className={styles.inputFieldLabel}
+                                                    >
+                                                        <Input
+                                                            onChange={(_, input) => {
+                                                                setIsAzureMonitorWorkspaceDirty(true);
+                                                                setNewAzureMonitorWorkspaceResourceName(input.value);
+                                                            }}
+                                                            value={newAzureMonitorWorkspaceResourceName}
+                                                            placeholder={intl.formatMessage(GrafanaDashboardResources.enterResourceName)}
+                                                            disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
+                                                            className={styles.inputTextField}
+                                                        />
+                                                    </Field>
+                                                </DialogContent>
+                                                <DialogActions>
+                                                    <DialogTrigger disableButtonEnhancement>
+                                                        <Button
+                                                            onClick={() => {
+                                                                setIsAzureMonitorWorkspaceDirty(false);
+                                                                setNewAzureMonitorWorkspaceResourceName('');
+                                                            }}
+                                                        >
+                                                            {intl.formatMessage(SreAgentResources.cancel)}
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <Button
+                                                        disabled={
+                                                            !newAzureMonitorWorkspaceResourceName ||
+                                                            !!newAzureMonitorWorkspaceResourceNameErrorMessage
+                                                        }
+                                                        onClick={onAddNewAzureMonitorWorkspaceName}
+                                                        appearance="primary"
+                                                    >
+                                                        {intl.formatMessage(SreAgentResources.add)}
+                                                    </Button>
+                                                </DialogActions>
+                                            </DialogBody>
+                                        </DialogSurface>
+                                    </Dialog>
                                 </Field>
                                 <div className={styles.buttonRow}>
                                     <Button
