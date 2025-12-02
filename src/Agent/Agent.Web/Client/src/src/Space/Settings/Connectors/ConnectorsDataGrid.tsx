@@ -19,7 +19,7 @@ import {
     TableColumnDefinition,
     Text,
 } from '@fluentui/react-components';
-import { CheckmarkCircle16Regular, Delete16Regular, Edit16Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { Delete16Regular, Edit16Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
@@ -41,6 +41,7 @@ export interface ConnectorsDataGridProps {
     addNewConnector: () => void;
     onEditConnector: (connector: Connector) => void;
     onDeleteConnector: (connectorName: string) => void;
+    connectionMap: Record<string, string>;
 }
 
 export const ConnectorsDataGrid = ({
@@ -54,6 +55,7 @@ export const ConnectorsDataGrid = ({
     onEditConnector,
     onDeleteConnector,
     setSelectedKeys,
+    connectionMap,
 }: ConnectorsDataGridProps) => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
@@ -169,17 +171,21 @@ export const ConnectorsDataGrid = ({
             }),
             createTableColumn<ConnectorWithService>({
                 columnId: 'status',
-                compare: (_a, _b) => 0, // No sorting for now since data not available
+                compare: (a, b) => {
+                    const statusA = connectionMap[a.name] || '-';
+                    const statusB = connectionMap[b.name] || '-';
+                    return statusA.localeCompare(statusB);
+                },
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.status)}</Text>,
                 renderCell: item =>
-                    renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], () => (
-                        <TableCellLayout>
-                            <div className={styles.iconAndTextContainer}>
-                                <CheckmarkCircle16Regular className={styles.statusIcon} />
-                                <Text>{intl.formatMessage(ConnectorsResources.connected)}</Text>
-                            </div>
-                        </TableCellLayout>
-                    )),
+                    renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], item => {
+                        const status = connectionMap[item.name] || '-';
+                        return (
+                            <TableCellLayout>
+                                <Text>{status}</Text>
+                            </TableCellLayout>
+                        );
+                    }),
             }),
             createTableColumn<ConnectorWithService>({
                 columnId: 'source',
@@ -188,7 +194,18 @@ export const ConnectorsDataGrid = ({
                 renderCell: item => renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], () => <>{item.source}</>),
             }),
         ],
-        [intl, onDeleteConnector, onEditConnector, renderCellWithShimmer, styles]
+        [
+            connectionMap,
+            intl,
+            onDeleteConnector,
+            onEditConnector,
+            renderCellWithShimmer,
+            styles.connectorIcon,
+            styles.iconAndTextContainer,
+            styles.nameCellContainer,
+            styles.nameMenuContainer,
+            styles.nameText,
+        ]
     );
 
     const selectedItemsForDataGrid = useMemo(() => {
@@ -281,7 +298,7 @@ export const ConnectorsDataGrid = ({
                     )}
                 </DataGridBody>
             </DataGrid>
-            {!isLoading && !isRefreshing && connectors.length === 0 && (
+            {!isLoading && !isRefreshing && !isOperationInProgress && connectors.length === 0 && (
                 <div className={styles.emptyStateContainer}>
                     <EmptyState
                         variant={isEmpty ? EmptyStateType.NoItems : EmptyStateType.NoSearchResults}

@@ -164,6 +164,21 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
+    public getConnectorStatus = async (
+        connectorName: string
+    ): Promise<Response<{ state?: string; status?: string; connectionState?: string }>> => {
+        const { data } = await axios.get(
+            this.getRequestUrl(`/api/v2/extendedAgent/connectors/${encodeURIComponent(connectorName)}/status`),
+            {
+                headers: getAgentHeaders(),
+            }
+        );
+        return {
+            isSuccessful: true,
+            content: data,
+        };
+    };
+
     private convertExtendedEntityToYamlDocuments(
         data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
         type: 'agent' | 'tool' | 'connector'

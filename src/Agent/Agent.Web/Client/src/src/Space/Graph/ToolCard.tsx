@@ -90,7 +90,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>
-                        {!isSystemTool && tool?.connector && (
+                        {!isSystemTool && tool?.connector && tool?.type !== 'mcp' && (
                             <Badge appearance="outline" size="tiny">
                                 {tool.connector}
                             </Badge>

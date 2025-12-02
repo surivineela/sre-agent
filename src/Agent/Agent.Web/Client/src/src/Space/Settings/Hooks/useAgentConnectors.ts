@@ -1,6 +1,8 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { ExtendedAgentClient } from '../../../Common/Clients/ExtendedAgentClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 
@@ -12,6 +14,9 @@ export const useAgentConnectors = (agentResourceId: string) => {
     const [isConnectorsUpdating, setIsConnectorsUpdating] = useState(false);
     const [connectorsUpdateFailure, setConnectorsUpdateFailure] = useState('');
     const azPortalContext = useContext(AzPortalContext);
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+
+    const [connectionMap, setConnectionMap] = useState<Record<string, string>>({});
 
     const getConnectors = useCallback(async () => {
         azPortalContext.log({
@@ -28,7 +33,6 @@ export const useAgentConnectors = (agentResourceId: string) => {
 
         const [connectorsResponse, connectorsSecretsResponse] = await Promise.all([listConnectorsPromise, listConnectorsSecretsPromise]);
 
-        setIsConnectorsLoading(false);
         if (connectorsResponse?.metadata?.success && connectorsResponse.data) {
             azPortalContext.log({
                 action: 'fetch-agent-connectors',
@@ -75,6 +79,7 @@ export const useAgentConnectors = (agentResourceId: string) => {
                 data: { error },
             });
             setConnectorsFailure(error || 'Failed to get agent connectors');
+            setIsConnectorsLoading(false);
         }
     }, [agentResourceId, azPortalContext]);
 
@@ -160,6 +165,63 @@ export const useAgentConnectors = (agentResourceId: string) => {
         }
     }, [agentResourceId, getConnectors]);
 
+    useEffect(() => {
+        if (!sreAgentEndpoint) {
+            return;
+        }
+
+        if (!connectors || connectors.length === 0) {
+            setConnectionMap({});
+            return;
+        }
+        const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
+
+        const statusPromises = connectors.map(c => {
+            azPortalContext.log({
+                action: 'fetch-connector-status',
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId: agentResourceId,
+                data: { connectorName: c.name },
+            });
+
+            return extendedAgentClient.getConnectorStatus(c.name).then(response => {
+                if (response.isSuccessful && response.content) {
+                    const state = (response.content.state ||
+                        response.content.status ||
+                        response.content.connectionState ||
+                        'unknown') as string;
+                    azPortalContext.log({
+                        action: 'fetch-connector-status',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId: agentResourceId,
+                        data: { connectorName: c.name, state },
+                    });
+                    return { name: c.name, state };
+                } else {
+                    azPortalContext.log({
+                        action: 'fetch-connector-status',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId: agentResourceId,
+                        data: { connectorName: c.name, error: response.error },
+                    });
+                    return { name: c.name, state: 'error' };
+                }
+            });
+        });
+
+        Promise.all(statusPromises).then(results => {
+            const map: Record<string, string> = {};
+            results.forEach(r => {
+                map[r.name] = r.state;
+            });
+            setConnectionMap(map);
+            setIsConnectorsLoading(false);
+        });
+    }, [connectors, sreAgentEndpoint, agentResourceId, azPortalContext]);
+
     return {
         connectors,
         isConnectorsLoading,
@@ -169,5 +231,6 @@ export const useAgentConnectors = (agentResourceId: string) => {
         putConnector,
         deleteConnector,
         refreshConnectors: getConnectors,
+        connectionMap,
     };
 };

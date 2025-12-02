@@ -42,7 +42,8 @@ export const Connectors = () => {
     const [selectedConnector, setSelectedConnector] = useState<Connector | undefined>();
 
     const { agent, refresh: refreshAgent } = useSreAgent(resourceId);
-    const { connectors, isConnectorsLoading, putConnector, deleteConnector, refreshConnectors } = useAgentConnectors(resourceId);
+    const { connectors, isConnectorsLoading, putConnector, deleteConnector, refreshConnectors, connectionMap } =
+        useAgentConnectors(resourceId);
 
     const refresh = useCallback(async () => {
         setIsRefreshing(true);
@@ -352,6 +353,7 @@ export const Connectors = () => {
                 addNewConnector={addNewConnector}
                 onEditConnector={onEditConnector}
                 onDeleteConnector={onDeleteConnector}
+                connectionMap={connectionMap}
             />
             <DeleteConfirmationDialog
                 isOpen={isDeleteConfirmOpen}
