@@ -16,9 +16,17 @@ import {
     useRestoreFocusSource,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { CopyRegular, DeleteRegular, EditRegular, InfoRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import {
+    CopyRegular,
+    DeleteRegular,
+    EditRegular,
+    InfoRegular,
+    MoreHorizontal20Regular,
+    StarOffRegular,
+    StarRegular,
+} from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useMemo, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import CopyButton from '../../Common/Components/CopyButton';
 import DeleteThreadDialog from '../../Common/Components/DeleteThreadDialog';
@@ -28,7 +36,7 @@ import RenameThreadDialog from '../../Common/Components/RenameThreadDialog';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
-import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 
@@ -71,19 +79,21 @@ interface ThreadActionsMenuProps {
     handleThreadDelete: () => void;
     hideCopyDeeplink?: boolean;
     hideDelete?: boolean;
+    hideFavorite?: boolean;
 }
 
-const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideDelete }: ThreadActionsMenuProps) => {
+const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideDelete, hideFavorite }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
     const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { updateThreadTitle } = useContext(AgentContext);
+    const { updateThreadTitle, updateThreadFavorite } = useContext(AgentContext);
     const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isThreadRenamingDialogOpen, setIsThreadRenamingDialogOpen] = useState(false);
+    const [isFavoriteSwitchButtonDisabled, setIsFavoriteSwitchButtonDisabled] = useState(false);
 
     const onUpdateThreadTitle = useCallback(
         (newTitle: string) => {
@@ -91,6 +101,15 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
             updateThreadTitle(thread.id, newTitle);
         },
         [updateThreadTitle, thread.id]
+    );
+
+    const onUpdateThreadFavorite = useCallback(
+        (isFavorite: boolean) => {
+            setIsFavoriteSwitchButtonDisabled(true);
+            updateThreadFavorite(thread.id, isFavorite);
+            setIsFavoriteSwitchButtonDisabled(false);
+        },
+        [updateThreadFavorite, thread.id]
     );
 
     const formattedThreadInfoText = useMemo(() => {
@@ -183,6 +202,23 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
+                        {!hideFavorite && (
+                            <PermissionedMenuItem
+                                canPerform={canWriteThreads}
+                                disabledReason={isFavoriteSwitchButtonDisabled}
+                                noPermissionTooltip={<FormattedMessage {...ActivitiesResources.favoriteThreadNoPermissionTooltip} />}
+                                icon={thread.favorite ? <StarOffRegular /> : <StarRegular />}
+                                onClick={() => {
+                                    onUpdateThreadFavorite(!thread.favorite);
+                                }}
+                            >
+                                {thread.favorite ? (
+                                    <FormattedMessage {...ActivitiesResources.removeFromFavorites} />
+                                ) : (
+                                    <FormattedMessage {...ActivitiesResources.addToFavorites} />
+                                )}
+                            </PermissionedMenuItem>
+                        )}
                         <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.info)}
                         </MenuItem>

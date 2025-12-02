@@ -66,6 +66,9 @@ type AgentContextProps = {
     notifyThreadTitleUpdate: (threadId: string, newTitle: string) => void;
     subscribeThreadTitleUpdate: (callBack: (threadId: string, newTitle: string) => void) => () => void;
     setMenuCollapsed: Dispatch<SetStateAction<boolean>>;
+    updateThreadFavorite: (threadId: string, isFavorite: boolean) => void;
+    notifyThreadFavoriteUpdate: (threadId: string, isFavorite: boolean) => void;
+    subscribeThreadFavoriteUpdate: (callBack: (threadId: string, isFavorite: boolean) => void) => () => void;
 };
 
 type StreamingContextProps = {
@@ -187,6 +190,9 @@ export const AgentContext = createContext<AgentContextProps>({
     notifyThreadTitleUpdate: async (_threadId: string, _newTitle: string) => {},
     subscribeThreadTitleUpdate: (_callBack: (threadId: string, newTitle: string) => void) => () => {},
     setMenuCollapsed: () => {},
+    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
+    notifyThreadFavoriteUpdate: async (_threadId: string, _isFavorite: boolean) => {},
+    subscribeThreadFavoriteUpdate: (_callBack: (threadId: string, isFavorite: boolean) => void) => () => {},
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({

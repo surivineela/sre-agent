@@ -81,7 +81,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
             setShowUnreadOnly,
             setIsFavoriteThreadListHidden,
             setIsRegularThreadListHidden,
-            updateThreadFavoriteProperty,
             onScroll,
             favoriteThreadsIntersectionObserverRef,
             regularThreadsIntersectionObserverRef,
@@ -229,7 +228,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                     selectThread={selectThread}
                                     deleteThread={deleteThread}
                                     assignThreadItemDivRef={assignThreadItemDivRef}
-                                    updateThreadFavoriteProperty={updateThreadFavoriteProperty}
                                 >
                                     {threadListsState.favoriteThreadListState.moreThreadsToLoad && (
                                         <div ref={favoriteThreadsIntersectionObserverRef}>
@@ -248,7 +246,6 @@ export const ThreadsMenu = forwardRef<ThreadMenuHandle, IThreadsMenuProps>(
                                     selectThread={selectThread}
                                     deleteThread={deleteThread}
                                     assignThreadItemDivRef={assignThreadItemDivRef}
-                                    updateThreadFavoriteProperty={updateThreadFavoriteProperty}
                                 >
                                     {threadListsState.regularThreadListState.moreThreadsToLoad && (
                                         <div ref={regularThreadsIntersectionObserverRef}>
@@ -275,7 +272,6 @@ const ThreadListAccordion = ({
     selectThread,
     deleteThread,
     assignThreadItemDivRef,
-    updateThreadFavoriteProperty,
 }: {
     children: ReactNode;
     isFavorite: boolean;
@@ -286,7 +282,6 @@ const ThreadListAccordion = ({
     selectThread: (thread: Thread | null) => void;
     deleteThread: ((thread: Thread) => void) | undefined;
     assignThreadItemDivRef: (threadId: string, el: HTMLDivElement) => void;
-    updateThreadFavoriteProperty: (threadId: string, favorite: boolean) => Promise<void>;
 }) => {
     const accordionHeaderStyles = useAccordionHeaderStyles();
     return (
@@ -312,7 +307,6 @@ const ThreadListAccordion = ({
                             isThreadUnread={unreadThreadIds.has(thread.id)}
                             ref={(el: HTMLDivElement) => assignThreadItemDivRef(thread.id, el)}
                             favorite={isFavorite}
-                            updateThreadFavoriteProperty={updateThreadFavoriteProperty}
                         />
                     );
                 })}
@@ -327,7 +321,6 @@ const ThreadListAccordion = ({
                             isThreadUnread={unreadThreadIds.has(thread.id)}
                             ref={(el: HTMLDivElement) => assignThreadItemDivRef(thread.id, el)}
                             favorite={isFavorite}
-                            updateThreadFavoriteProperty={updateThreadFavoriteProperty}
                         />
                     );
                 })}

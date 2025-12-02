@@ -44,6 +44,7 @@ export type ThreadMenuHandle = {
     removeThreadFromList: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
     updateThreadWithNewTitle: (threadId: string, newTitle: string) => void;
+    updateThreadFavoriteProperty: (threadId: string, isFavorite: boolean) => Promise<void>;
 };
 
 export interface ThreadListState {

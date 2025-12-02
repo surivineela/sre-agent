@@ -30,7 +30,14 @@ const IncidentChat: FC<IncidentChatProps> = ({
         <TitleBarNavigation
             title={selectedThread.title}
             onBackClick={exitToHome}
-            titleChildren={<ThreadActionsMenu thread={selectedThread} handleThreadDelete={handleThreadDelete} hideCopyDeeplink={true} />}
+            titleChildren={
+                <ThreadActionsMenu
+                    thread={selectedThread}
+                    handleThreadDelete={handleThreadDelete}
+                    hideCopyDeeplink={true}
+                    hideFavorite={true}
+                />
+            }
             titleActions={titleActions}
         >
             <div className={styles.navPanelContent}>

@@ -27,6 +27,7 @@ export const useActivities = () => {
     activeThreadIdRef.current = activeThreadId;
 
     const threadTitleUpdateListeners = useRef<Set<(threadId: string, newTitle: string) => void>>(new Set());
+    const threadFavoriteUpdateListeners = useRef<Set<(threadId: string, isFavorite: boolean) => void>>(new Set());
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -113,10 +114,21 @@ export const useActivities = () => {
         threadTitleUpdateListeners.current.forEach(listener => listener(threadId, newTitle));
     }, []);
 
+    const notifyThreadFavoriteUpdate = useCallback((threadId: string, isFavorite: boolean) => {
+        threadFavoriteUpdateListeners.current.forEach(listener => listener(threadId, isFavorite));
+    }, []);
+
     const subscribeThreadTitleUpdate = useCallback((listener: (threadId: string, newTitle: string) => void) => {
         threadTitleUpdateListeners.current.add(listener);
         return () => {
             threadTitleUpdateListeners.current.delete(listener);
+        };
+    }, []);
+
+    const subscribeThreadFavoriteUpdate = useCallback((listener: (threadId: string, isFavorite: boolean) => void) => {
+        threadFavoriteUpdateListeners.current.add(listener);
+        return () => {
+            threadFavoriteUpdateListeners.current.delete(listener);
         };
     }, []);
 
@@ -178,6 +190,35 @@ export const useActivities = () => {
     const updateThreadLastReadTime = useCallback((threadId: string) => {
         threadMenuHandleRef.current?.updateThreadLastReadTime(threadId);
     }, []);
+
+    const updateThreadFavorite = useCallback(
+        async (threadId: string, isFavorite: boolean) => {
+            const response = await threadClient.updateThreadFavorite(threadId, isFavorite);
+
+            if (response.isSuccessful) {
+                proxy.log({
+                    action: 'updateThreadFavorite',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    resourceId: threadId,
+                });
+                threadMenuHandleRef.current?.updateThreadFavoriteProperty(threadId, isFavorite);
+                notifyThreadFavoriteUpdate(threadId, isFavorite);
+            } else {
+                const errorMessage = response.error?.message || response.error?.response?.data;
+                proxy.log({
+                    action: 'updateThreadFavorite',
+                    actionModifier: 'failure',
+                    logLevel: 'error',
+                    resourceId: threadId,
+                    data: {
+                        error: errorMessage,
+                    },
+                });
+            }
+        },
+        [proxy, threadClient, selectedThread]
+    );
 
     useEffect(() => {
         // Only regenerate the key when the thread ID changes, not when thread properties update
@@ -253,8 +294,11 @@ export const useActivities = () => {
         selectThread,
         updateThreadLastReadTime,
         updateThreadTitle,
+        updateThreadFavorite,
         notifyThreadTitleUpdate,
+        notifyThreadFavoriteUpdate,
         subscribeThreadTitleUpdate,
+        subscribeThreadFavoriteUpdate,
         threadContentAndActionKey,
         activeThreadId,
         threadMenuHandleRef,

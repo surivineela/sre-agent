@@ -36,7 +36,7 @@ const ThreadContentTitle = ({
 }) => {
     const intl = useIntl();
     const [latestThread, setLatestThread] = useState<Thread | null | undefined>(thread);
-    const { activeThreadId, subscribeThreadTitleUpdate } = useContext(AgentContext);
+    const { activeThreadId, subscribeThreadTitleUpdate, subscribeThreadFavoriteUpdate } = useContext(AgentContext);
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
@@ -95,6 +95,17 @@ const ThreadContentTitle = ({
             }
         };
 
+        const threadFavoriteUpdateHandler = (threadId: string, isFavorite: boolean) => {
+            if (threadId === id) {
+                setLatestThread(prev => {
+                    if (prev) {
+                        return { ...prev, favorite: isFavorite };
+                    }
+                    return prev;
+                });
+            }
+        };
+
         const unsubscribeMessageUpdateEvent = subscribeMessageUpdateEvent({
             handler: messageUpdateHandler,
         });
@@ -102,11 +113,13 @@ const ThreadContentTitle = ({
         const unsubscribeThreadUpdateEvent = subscribeThreadUpdateEvent(threadCreateHandler);
 
         const unsubscribeThreadTitleUpdate = subscribeThreadTitleUpdate(threadTitleUpdateHandler);
+        const unsubscribeThreadFavoriteUpdate = subscribeThreadFavoriteUpdate(threadFavoriteUpdateHandler);
 
         return () => {
             unsubscribeMessageUpdateEvent();
             unsubscribeThreadUpdateEvent();
             unsubscribeThreadTitleUpdate();
+            unsubscribeThreadFavoriteUpdate();
         };
     }, [thread?.id, activeThreadId, subscribeThreadUpdateEvent, subscribeMessageUpdateEvent, subscribeThreadTitleUpdate]);
 

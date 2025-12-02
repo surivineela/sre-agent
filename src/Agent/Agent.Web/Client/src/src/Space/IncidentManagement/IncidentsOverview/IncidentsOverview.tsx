@@ -898,6 +898,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                     thread={selectedThreadInfo.thread}
                                     handleThreadDelete={handleThreadDelete}
                                     hideCopyDeeplink={true}
+                                    hideFavorite={true}
                                 />
                             ) : undefined
                         }

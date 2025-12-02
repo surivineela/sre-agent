@@ -156,6 +156,7 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                     thread={selectedThread}
                     handleThreadDelete={() => handleThreadDelete(selectedThread)}
                     hideCopyDeeplink={true}
+                    hideFavorite={true}
                 />
             )}
         </div>

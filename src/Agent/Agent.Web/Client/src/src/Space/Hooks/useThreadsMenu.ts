@@ -28,8 +28,14 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
         [excludedSources, showUnreadOnly]
     );
 
-    const { removeThread, removeUnreadThreadId, onThreadModifiedTimestampUpdated, updateThreadWithNewTitle, ...rest } =
-        useThreadListWithFavoriteList(isFavoriteThreadListHidden, isRegularThreadListHidden, filter, 'modifiedTimestamp');
+    const {
+        removeThread,
+        removeUnreadThreadId,
+        onThreadModifiedTimestampUpdated,
+        updateThreadWithNewTitle,
+        updateThreadFavoriteProperty,
+        ...rest
+    } = useThreadListWithFavoriteList(isFavoriteThreadListHidden, isRegularThreadListHidden, filter, 'modifiedTimestamp');
 
     const updateThreadLastReadTime = useCallback(
         async (threadId: string) => {
@@ -61,6 +67,7 @@ export const useThreadsMenu = (ref: Ref<ThreadMenuHandle>, excludedSources?: Thr
         removeThreadFromList: (threadId: string) => removeThreadFromList(threadId),
         updateThreadLastReadTime: (threadId: string) => updateThreadLastReadTime(threadId),
         updateThreadWithNewTitle: (threadId: string, newTitle: string) => updateThreadWithNewTitle(threadId, newTitle),
+        updateThreadFavoriteProperty: (threadId: string, isFavorite: boolean) => updateThreadFavoriteProperty(threadId, isFavorite),
     }));
 
     useEffect(() => {

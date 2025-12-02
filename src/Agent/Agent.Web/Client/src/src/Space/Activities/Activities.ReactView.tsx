@@ -25,15 +25,17 @@ const Activities: FC = () => {
         selectThread,
         updateThreadLastReadTime,
         updateThreadTitle,
+        updateThreadFavorite,
         notifyThreadTitleUpdate,
         subscribeThreadTitleUpdate,
         threadContentAndActionKey,
         activeThreadId,
         threadMenuHandleRef,
+        subscribeThreadFavoriteUpdate,
+        notifyThreadFavoriteUpdate,
     } = useActivities();
 
     const [menuCollapsed, setMenuCollapsed] = useState<boolean>(false);
-
     const onExpandOrCollapseThreadsMenu = useCallback(
         (collapsed: boolean) => {
             setMenuCollapsed(collapsed);
@@ -57,9 +59,12 @@ const Activities: FC = () => {
                 activeThreadId,
                 selectThread,
                 updateThreadTitle,
+                updateThreadFavorite,
                 notifyThreadTitleUpdate,
                 subscribeThreadTitleUpdate,
                 setMenuCollapsed,
+                subscribeThreadFavoriteUpdate,
+                notifyThreadFavoriteUpdate,
             }}
         >
             <div style={activitiesStylesRoot}>
