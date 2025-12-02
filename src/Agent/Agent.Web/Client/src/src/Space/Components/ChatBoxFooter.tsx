@@ -57,6 +57,7 @@ import {
 } from '@fluentui/react-components';
 import { ChartMultiple24Regular, ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
+import debounce from 'lodash/debounce';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
@@ -89,6 +90,7 @@ import { useResourceSearching } from '../Hooks/useResourceSearching';
 import { useThreadList } from '../Hooks/useThreadList';
 import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
 import AgentModeSelector from './AgentModeSelector';
+import { $createResourceNode, ResourceNode } from './Chat/ResourceNode';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
@@ -389,7 +391,7 @@ const ChatBoxFooter = ({
     }, [removeDecorateNode]);
 
     const replaceShortcutWithSelectedValue = useCallback(
-        (selectedValue: string) => {
+        (selectedValue: string, displayValue: string) => {
             setSelectedShortcut(null);
 
             editorRef.current?.update(() => {
@@ -404,8 +406,8 @@ const ChatBoxFooter = ({
                         if ($isShortcutNode(shortcutNode)) {
                             removeShortcutNode();
 
-                            const nameNode = $createTextNode(selectedValue);
-                            selection.insertNodes([nameNode]);
+                            const resourceNode = $createResourceNode(selectedValue, displayValue);
+                            selection.insertNodes([resourceNode]);
                         }
                     } else if ($isTextNode(anchor.getNode()) && offset !== -1) {
                         const shortcutNode = anchor.getNode()?.getPreviousSibling();
@@ -416,7 +418,7 @@ const ChatBoxFooter = ({
                             const rangeSelection = selection.clone();
                             rangeSelection.setTextNodeRange(node, 0, node, offset);
                             $setSelection(rangeSelection);
-                            rangeSelection.insertNodes([$createTextNode(selectedValue)]);
+                            rangeSelection.insertNodes([$createResourceNode(selectedValue, displayValue)]);
                         }
                     }
                 }
@@ -428,7 +430,7 @@ const ChatBoxFooter = ({
     const onSelectIncident = useCallback(
         (incident: Thread) => {
             setFocusedIncident(null);
-            replaceShortcutWithSelectedValue(incident.title);
+            replaceShortcutWithSelectedValue(`$${incident.title} (ID: ${incident.id})`, incident.title);
         },
         [replaceShortcutWithSelectedValue]
     );
@@ -436,7 +438,10 @@ const ChatBoxFooter = ({
     const onSelectResource = useCallback(
         (resource: ResourceSearchResult) => {
             setFocusedResource(null);
-            replaceShortcutWithSelectedValue(resource.resource_id);
+            replaceShortcutWithSelectedValue(
+                resource.resource_id,
+                resource.name || resource.resource_group || resource.subscription_id || resource.resource_id
+            );
         },
         [replaceShortcutWithSelectedValue]
     );
@@ -764,6 +769,10 @@ const ChatBoxFooter = ({
         setSelectedAgentName(null);
     }, [lockAgentSelection]);
 
+    const updateSearchText = debounce((text: string) => {
+        setSearchText(text.trim());
+    }, 300);
+
     useEffect(() => {
         extendedAgentClient.getExtendedAgents().then(response => {
             if (response.isSuccessful) {
@@ -872,7 +881,7 @@ const ChatBoxFooter = ({
                                 // If the search string after the short cut is not empty, then remove the current placeholder after the cursor if any.
                                 removeGhostTextNode();
                             }
-                            setSearchText(cleanedSearchString.trim());
+                            updateSearchText(cleanedSearchString);
                             return;
                         }
 
@@ -1046,7 +1055,7 @@ const ChatBoxFooter = ({
                     root={{ ref: chatInputRef }}
                     aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
                     placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
-                    customNodes={[ShortcutNode, GhostTextNode]}
+                    customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
                     contentBefore={
                         <ContentBefore
                             isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
