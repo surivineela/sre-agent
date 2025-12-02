@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
+import { useAuth } from '../../Common/Contexts/AuthContext';
 import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { parseArmId } from '../../Common/Utilities/ArmId';
 import { PortalResources } from '../../Strings/Resources';
@@ -10,7 +11,6 @@ import { FeedbackButton } from './FeedbackButton';
 import { NotificationButton } from './NotificationButton';
 import { SettingsContent } from './SettingsContent';
 import { UserAuthContent } from './UserAuthContent';
-import { useAuth } from '../../Common/Contexts/AuthContext';
 
 const useStyles = makeStyles({
     navbar: {
@@ -65,16 +65,24 @@ export const Navbar = () => {
     const intl = useIntl();
     const navigate = usePersistentNavigate();
     const styles = useStyles();
-    const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
+    const { agentId: encodedAgentId, agentName: encodedExternalAgentName } = useParams<{ agentId: string; agentName: string }>();
     const { isAuthenticated } = useAuth();
 
     // Parse agent name from the route if we're on an agent page
     const agentName = useMemo(() => {
-        if (!encodedAgentId) return undefined;
+        // External agent name from route parameter
+        if (encodedExternalAgentName) {
+            return decodeURIComponent(encodedExternalAgentName);
+        }
 
-        const agentRscId = decodeURIComponent(encodedAgentId);
-        return parseArmId(agentRscId).resourceName;
-    }, [encodedAgentId]);
+        // ARM-based agent name from resource ID
+        if (encodedAgentId) {
+            const agentRscId = decodeURIComponent(encodedAgentId);
+            return parseArmId(agentRscId).resourceName;
+        }
+
+        return undefined;
+    }, [encodedAgentId, encodedExternalAgentName]);
 
     return (
         <div className={styles.navbar}>

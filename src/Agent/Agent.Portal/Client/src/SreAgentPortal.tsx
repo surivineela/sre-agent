@@ -6,9 +6,11 @@ import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } fr
 import { RouteErrorBoundary } from './Common/Components/RouteErrorBoundary';
 import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';
+import { useIsInternal } from './Common/Hooks/useIsInternal';
 import { useTelemetry } from './Common/Hooks/useTelemetry';
 import { PortalResources } from './Strings/Resources';
 import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
+import { ExternalAgentIFrameView } from './Views/Agent/External/ExternalAgentIFrameView';
 import { HomeBrowseView } from './Views/Home/HomeBrowseView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
@@ -87,6 +89,7 @@ const router = createBrowserRouter(
                 { index: true, element: <HomeBrowseView /> },
                 { path: 'welcome', element: <LandingPage /> },
                 { path: 'agents/:agentId', element: <AgentIFrameView /> },
+                { path: 'externalagents/:agentName/:agentUri', element: <ExternalAgentIFrameView /> },
                 { path: '*', element: <HomeBrowseView /> },
             ],
         },
@@ -98,6 +101,7 @@ const router = createBrowserRouter(
 
 export const SreAgentPortal = () => {
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
+    const { isInternalDevTenant, isInternalTenant, isInternalProdTenant } = useIsInternal();
 
     useEffect(() => {
         const logSiteVersion = () => {
@@ -105,6 +109,7 @@ export const SreAgentPortal = () => {
             console.log(`
                     ╔═════════════════════════════════════════════╗
                        🤖🌀 SRE Agent Portal Version: ${version}
+                       ${isInternalDevTenant ? 'Dev tenant' : isInternalTenant ? 'MSFT tenant' : isInternalProdTenant ? 'MSFT prod tenant' : ''}
                     ╚═════════════════════════════════════════════╝
                 `);
 
@@ -120,7 +125,7 @@ export const SreAgentPortal = () => {
         const interval = setInterval(logSiteVersion, 60 * 60 * 1000);
 
         return () => clearInterval(interval);
-    }, [logEvent]);
+    }, [logEvent, isInternalDevTenant, isInternalTenant, isInternalProdTenant]);
 
     return <RouterProvider router={router} />;
 };

@@ -98,4 +98,13 @@ export class SreAgentClient extends Client {
             };
         }
     }
+
+    public async deleteAgent(resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview): Promise<Response<void>> {
+        return this.armClient.makeArmCall<void>({
+            resourceId,
+            commandName: 'deleteAgent',
+            method: 'DELETE',
+            apiVersion,
+        });
+    }
 }

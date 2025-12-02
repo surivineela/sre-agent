@@ -2,6 +2,7 @@ export enum TelemetrySource {
     PortalLayout = 'PortalLayout',
     HomeBrowseView = 'HomeBrowseView',
     AgentIFrameView = 'AgentIFrameView',
+    ExternalAgentIFrameView = 'ExternalAgentIFrameView',
     SubscriptionsManager = 'SubscriptionsManager',
     SreAgentCreate = 'SreAgentCreate',
     AuthTokenCache = 'AuthTokenCache',

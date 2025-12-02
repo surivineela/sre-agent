@@ -1,8 +1,6 @@
-import { MessageBar, MessageBarBody } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { newShortGuid } from '../../Common/Utilities/Guid';
-import MockShimmeredUx from './MockShimmeredUx';
+import { AgentIFrame } from './AgentIFrame';
 import { useAgentView } from './useAgentView';
 
 export const AgentIFrameView = () => {
@@ -46,31 +44,13 @@ export const AgentIFrameView = () => {
 
     const { agentUxUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage } = useAgentView(agentId ?? '', sreLink);
 
-    const iframeId = useMemo(() => newShortGuid(), []);
-
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            {errorBannerMessage && (
-                <MessageBar intent="error" layout="multiline">
-                    <MessageBarBody>{errorBannerMessage}</MessageBarBody>
-                </MessageBar>
-            )}
-
-            {!iframeInitialized && <MockShimmeredUx />}
-
-            {agentUxUrl && isSiteRunning && (
-                <iframe
-                    id={iframeId}
-                    ref={iframeRef}
-                    src={agentUxUrl}
-                    allow="clipboard-write"
-                    style={{
-                        flex: 1,
-                        width: '100%',
-                        border: 'unset',
-                    }}
-                />
-            )}
-        </div>
+        <AgentIFrame
+            agentUxUrl={agentUxUrl}
+            isSiteRunning={isSiteRunning}
+            iframeRef={iframeRef}
+            iframeInitialized={iframeInitialized}
+            errorBannerMessage={errorBannerMessage}
+        />
     );
 };
