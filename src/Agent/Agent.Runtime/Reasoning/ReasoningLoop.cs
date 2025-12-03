@@ -85,6 +85,10 @@ public class ReasoningLoop : IDisposable
     // Store todo arguments for processing in OnToolEnd
     private IEnumerable<KeyValuePair<string, object?>>? _currentTodoArguments = null;
 
+    // Track which missing tools have already been warned about per subagent to avoid duplicate notifications
+    // Key: SubAgentName, Value: HashSet of warned tool names
+    private readonly Dictionary<string, HashSet<string>> _warnedMissingToolsPerSubAgent = new();
+
     // Retry configuration
     private const int MaxRetryAttempts = 3;
 
@@ -1306,9 +1310,10 @@ public class ReasoningLoop : IDisposable
             return Task.CompletedTask;
         };
 
-        hooks.ResolveFactoryTools += (context, agent, additionalToolNames) =>
+        hooks.ResolveFactoryTools += async (context, agent, additionalToolNames) =>
         {
             List<AIFunction> tools = [];
+            List<string> missingTools = [];
 
             List<string> allToolNames = [.. agent.FactoryTools, .. additionalToolNames];
 
@@ -1321,12 +1326,50 @@ public class ReasoningLoop : IDisposable
                     continue;
                 }
 
-                var tool = _toolFactory.GetTool(toolName, _context.ThreadId, agent);
+                if (!_toolFactory.HasTool(toolName))
+                {
+                    missingTools.Add(toolName);
+                    _logger.LogInternalWarning(
+                        "ReasoningLoop: Tool '{ToolName}' not found for agent '{AgentName}', ThreadId: {ThreadId}. Continuing without this tool.",
+                        toolName, agent.Name, _context.ThreadId);
+                    continue;
+                }
 
+                var tool = _toolFactory.GetTool(toolName, _context.ThreadId, agent);
                 tools.Add(tool);
             }
 
-            return Task.FromResult(tools);
+            if (missingTools.Any())
+            {
+                _logger.LogInternalWarning(
+                    "ReasoningLoop: Agent '{AgentName}' has missing tools for ThreadId: {ThreadId}. MissingTools: {MissingTools}. Continuing with {AvailableToolCount} available tools.",
+                    agent.Name, _context.ThreadId, string.Join(", ", missingTools), tools.Count);
+
+                if (!_warnedMissingToolsPerSubAgent.TryGetValue(agent.Name, out var warnedTools))
+                {
+                    warnedTools = new HashSet<string>();
+                    _warnedMissingToolsPerSubAgent[agent.Name] = warnedTools;
+                }
+
+                var newMissingTools = missingTools.Where(tool => !warnedTools.Contains(tool)).ToList();
+                if (newMissingTools.Any())
+                {
+                    // we warn only once per missing tool per subagent
+                    foreach (var tool in newMissingTools)
+                    {
+                        warnedTools.Add(tool);
+                    }
+
+                    var warningMessage = $"Configuration Warning: the following tool(s) are not available: {string.Join(", ", newMissingTools)}. I will continue helping you without these tool(s). '{agent.Name}' may have been configured with tool(s) that have since been removed or disabled. Please remove any references to these tool(s).";
+
+                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                        _context.ThreadId,
+                        new ChatMessage(ChatRole.Assistant, warningMessage)
+                    );
+                }
+            }
+
+            return tools;
         };
 
         hooks.AgentStart += (context, agent) =>
