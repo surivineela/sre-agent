@@ -62,6 +62,11 @@ public static class AIFunctionExtensions
         return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(AgentAsTool<>);
     }
 
+    public static bool IsHandoff(this AIFunction tool)
+    {
+        return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(Handoff<>);
+    }
+
     public static bool IsMcpTool(this AIFunction tool)
     {
         // Native MCP client tool OR runtime wrapper named McpToolAIFunction

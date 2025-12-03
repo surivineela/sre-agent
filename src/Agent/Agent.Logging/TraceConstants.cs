@@ -34,6 +34,8 @@ public static class TraceAttribute
     public const string ModelInput = "model.input";
     public const string ModelOutput = "model.output";
     public const string ModelTools = "model.tools";
+    public const string ModelHandoffs = "model.handoffs";
+    public const string ModelAgentAsTools = "model.agentAsTools";
     public const string ModelInputTokensCount = "model.input.tokens.count";
     public const string ModelOutputTokensCount = "model.output.tokens.count";
     public const string ModelTotalTokensCount = "model.total.tokens.count";

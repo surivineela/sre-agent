@@ -1478,7 +1478,9 @@ public class ReasoningLoop : IDisposable
             _currentGenerationSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentGenerationSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.ModelGeneration);
             _currentGenerationSpan.SetAttribute(TraceAttribute.ModelInput, FormatChatMessages(messages));
-            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatTools(chatOptions.Tools));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatToolsByType(chatOptions.Tools));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelHandoffs, FormatHandoffs(chatOptions.Tools));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelAgentAsTools, FormatAgentAsTools(chatOptions.Tools));
             return Task.CompletedTask;
         };
 
@@ -2610,15 +2612,105 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private static string FormatTools(IEnumerable<AITool>? tools)
+    private static string FormatToolsByType(IEnumerable<AITool>? tools)
     {
-        if (tools is null
-            || !tools.Any())
+        if (tools is null || !tools.Any())
         {
             return string.Empty;
         }
 
-        return JsonSerializer.Serialize(tools.Select(t => ((AIFunction)t).JsonSchema), AIJsonUtilities.DefaultOptions);
+        try
+        {
+            var regularTools = new List<string>();
+
+            foreach (var tool in tools)
+            {
+                var aiFunction = (AIFunction)tool;
+
+                if (!aiFunction.IsHandoff() && !aiFunction.IsAgentAsTool())
+                {
+                    regularTools.Add(aiFunction.Name);
+                }
+            }
+
+            return regularTools.Count > 0
+                ? JsonSerializer.Serialize(regularTools, AIJsonUtilities.DefaultOptions)
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatHandoffs(IEnumerable<AITool>? tools)
+    {
+        if (tools is null || !tools.Any())
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var handoffAgents = new List<string>();
+
+            foreach (var tool in tools)
+            {
+                var aiFunction = (AIFunction)tool;
+
+                if (aiFunction.IsHandoff())
+                {
+                    var agentNameProp = aiFunction.GetType().GetProperty("AgentName");
+                    if (agentNameProp != null)
+                    {
+                        var agentName = agentNameProp.GetValue(aiFunction)?.ToString();
+                        if (!string.IsNullOrEmpty(agentName))
+                        {
+                            handoffAgents.Add(agentName);
+                        }
+                    }
+                }
+            }
+
+            return handoffAgents.Count > 0
+                ? JsonSerializer.Serialize(handoffAgents, AIJsonUtilities.DefaultOptions)
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatAgentAsTools(IEnumerable<AITool>? tools)
+    {
+        if (tools is null || !tools.Any())
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var agentTools = new List<string>();
+
+            foreach (var tool in tools)
+            {
+                var aiFunction = (AIFunction)tool;
+
+                if (aiFunction.IsAgentAsTool())
+                {
+                    agentTools.Add(aiFunction.Name);
+                }
+            }
+
+            return agentTools.Count > 0
+                ? JsonSerializer.Serialize(agentTools, AIJsonUtilities.DefaultOptions)
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
     }
 
     private static string FormatExperimentVariants(IReadOnlyDictionary<string, Variant> variants)
