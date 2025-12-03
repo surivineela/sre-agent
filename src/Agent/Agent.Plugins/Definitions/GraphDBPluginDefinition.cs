@@ -309,14 +309,14 @@ namespace Agent.Plugins
         }
 
         // TODO(jianbosun): Add prompt to get resource details for AKS resources (combine resourceID with AKS GVK) and register this func to AKS plugin
-        [Description("Returns resource-specific properties along with basic metadata for an Azure resource identified by its ResourceId. " +
+        [Description("Returns resource-specific configuration properties along with basic metadata for an Azure resource identified by its ResourceId. " +
             "Input must be in Azure ResourceId format (e.g., /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp). " +
             "\nResource-specific properties include:" +
-            "\n- For App Service/Web/Function Apps: hosting plan, VNET, TLS, workers, auto-heal, health checks, runtime stack, App Insights. " +
+            "\n- For App Service/Web/Function Apps: hosting plan, VNET, TLS, workers, auto-heal, runtime stack, App Insights. " +
             "\n- For App Service Plans: workers, status, zone redundancy, region, kind. " +
             "\n- For Container Apps: state, profile, access, containers, scaling. " +
             "\n- For API Management Services: status, Gateway & Management API URI, capacity. " +
-            "Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries (example zone redundancy, sku etc).This function will return all properties directly attached to the requested resource. Also retuns Health Scorecard for the resource if available")]
+            "Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries (example zone redundancy, sku etc). This function returns configuration properties directly attached to the requested resource.")]
         [AgentTool(ToolMode.Auto)]
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(
              [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
@@ -348,12 +348,12 @@ namespace Agent.Plugins
             return await _plugin.GetApplicationHealthInfoAsync(resourceId);
         }
 
-        [Description("REAL-TIME AZURE QUERY - Queries Azure Resource Graph directly for live resource information as a fallback when the knowledge graph is missing data. " +
+        [Description("REAL-TIME AZURE QUERY - Queries Azure Resource Graph directly for current resource configuration and state as a fallback when the knowledge graph is missing data. " +
             "Does a GET on ARG. Essential when you need: 1) Recently deployed resources not yet synced to knowledge graph, " +
-            "2) Current status queries ('how is it doing right now', 'live status', 'real-time'), " +
+            "2) Current resource state and configuration (provisioning state, operational state), " +
             "3) When SearchResourceByName returns empty but resource likely exists, " +
             "4) Latest configuration and provisioning state. " +
-            "Use for new deployments, status checks, resource validation, configuration drift. " +
+            "Use for new deployments, resource validation, configuration drift. " +
             "Bypasses knowledge graph sync delays and provides real-time Azure data with comprehensive JSON output. Use AzCLI via HandoffBack tool for more complex querying")]
         [AgentTool(ToolMode.Auto)]
         public async Task<string> GetResourcePropertiesRealTime(

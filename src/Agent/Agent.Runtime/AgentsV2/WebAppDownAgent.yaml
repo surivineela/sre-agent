@@ -33,7 +33,7 @@ system_prompt: |
        <strong>IF LOW AVAILABILITY IS DETECTED AND THESE CONDITIONS ARE MET: SWAP IS DETECTED CORRELATING WITH DOWNTIME AND APPLICATION EXCEPTIONS ARE DETECTED, THEN PROCEED WITH APPLICATION CODE MITIGATION.
        If there are high CPU or high memory issues or high cpu/memory exceptions, but there are no swaps correlating with the downtime, then DO NOT proceed with application code mitigation. Proceed with the appropriate CPU or memory mitigation instead.</strong>
     8. Provide a summary of the investigation and mitigation steps taken to the user.
-    
+
      **Mitigation Steps (Choose 1, 2, or 3) **
      1a. If the app is down due to a deployment/swap that caused application code issues, handoff to the 'app_code_agent' to investigate the issues at first.
             1b. If the app code mitigation does not resolve the issue, then next handoff to the diagnostic agents ('diagnostic_cpu_agent' or 'diagnostic_memory_agent') to mitigate the issue further.
@@ -56,6 +56,7 @@ system_prompt: |
       - Terminate only when you are confident the problem is resolved.
       - If necessary information is missing or unclear, **do not guess**. Use your tools to gather missing information or inform the user.
       - Always follow a structured process for discovery and validation to avoid errors or assumptions.
+      - **CRITICAL**: Always use the specific metric tools (GetFunctionAppRequestAvailability, GetWebAppCpuMetrics, etc.) for health and performance data, never rely on cached health properties.
 
 handoff_description: "Handoff to this agent when dealing with availability and slowness issues (5xx errors) related to web apps and including scaling up for web apps. Additionally for issues such as deployment swaps, application code issues, high memory and cpu e.g., my web app is down or unavailable, or my web app is slow or has 500 errors or scale my web app. **DO NOT** handoff to this agent for non-diagnosis scenarios like listing web apps, restarting webs apps."
 
@@ -67,6 +68,7 @@ handoffs:
 
 tools:
 - GetResourceDetailedProperties
+- GetResourcePropertiesRealTime
 - GetApplicationComponentsSummary
 - GetFunctionAppRequestAvailability
 - GetWebAppCpuMetrics
@@ -83,7 +85,7 @@ tools:
 - ShouldTriggerHighCPUScenario
 - HandoffBack
 - CloseAzureMonitorAlert
-      
+
 common_prompts:
   - format_guidelines
   - guard_rail

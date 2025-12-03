@@ -48,8 +48,6 @@ public class GraphDBPlugin : IGraphDBPlugin
     private readonly IHostEnvironment _hostEnvironment;
     private readonly AzureResourceGraphClient _azureResourceGraphClient;
 
-    private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
-
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new(StringComparer.OrdinalIgnoreCase)
     {
         { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
@@ -81,9 +79,7 @@ public class GraphDBPlugin : IGraphDBPlugin
         _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
         _httpClient = new HttpClient();
         _authService = authService;
-        _crawlRoots = crawlerSettings.CrawlRoots.Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(root => root.Trim())
-            .ToList();
+        _crawlRoots = [.. crawlerSettings.CrawlRoots.Split([','], StringSplitOptions.RemoveEmptyEntries).Select(root => root.Trim())];
 
         _hostEnvironment = hostEnvironment;
         _azureResourceGraphClient = azureResourceGraphClient;
@@ -208,7 +204,7 @@ public class GraphDBPlugin : IGraphDBPlugin
                 var tempJson = JsonSerializer.Serialize(result);
 
                 var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson)
-              ?? new List<Dictionary<string, object>>();
+              ?? [];
 
                 // Filter out pods, services, and nodes from each item
                 foreach (var item in typedResult)
@@ -528,7 +524,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                     Id = entryPoint.Id,
                     Name = entryPoint.Name,
                     EntryPoint = new SimpleNode(entryPoint),
-                    Nodes = components.Select(c => new SimpleNode(c)).ToList()
+                    Nodes = [.. components.Select(c => new SimpleNode(c))]
                 };
 
                 applications.Add(application);
@@ -539,7 +535,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error discovering applications");
-            return new List<ApplicationGraph>();
+            return [];
         }
     }
 
@@ -596,7 +592,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             var query = $@"g.V().hasId('{resourceNodeId}').has('isDeleted', false)";
             var resourceNodeResults = await _graphDbClient.Query(query);
 
-            if (!resourceNodeResults.Any())
+            if (resourceNodeResults.Count == 0)
             {
                 _logger.LogInternalWarning($"Resource with ID {resourceId} not found in graph database.");
                 return string.Empty;
@@ -652,7 +648,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             var vertexFilter = $"hasId('{containerAppNodeId}')";
             var query = $@"g.V().{vertexFilter}.has('isDeleted', false)";
             var containerAppNodeResults = await _graphDbClient.Query(query);
-            if (!containerAppNodeResults.Any())
+            if (containerAppNodeResults.Count == 0)
             {
                 return;
             }
@@ -660,7 +656,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             var sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_"); var checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository').has('isDeleted', false)";
             var sourceCodeNodeResults = await _graphDbClient.Query(checkSourceCodeNodeQuery);
 
-            if (!sourceCodeNodeResults.Any())
+            if (sourceCodeNodeResults.Count == 0)
             {
                 var properties = new Dictionary<string, object>
                 {
@@ -734,7 +730,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
 
-        return results.FirstOrDefault(new Dictionary<string, object>());
+        return results.FirstOrDefault([]);
     }
 
     public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
@@ -745,10 +741,11 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         {
             throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");
         }
-        var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').has('isDeleted', false).properties().as('p').group().by(select('p').key()).by(select('p').value())";
+        // Filter out appHealthInfo property as it may be stale
+        var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').has('isDeleted', false).properties().as('p').where(select('p').key().is(neq('appHealthInfo'))).group().by(select('p').key()).by(select('p').value())";
 
         var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
-        return results.FirstOrDefault(new Dictionary<string, object>());
+        return results.FirstOrDefault([]);
     }
 
     public async Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
@@ -800,7 +797,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
             // Look up the resource in our database/graph
             var resourceNodes = await SearchResourceAsync(resourceName, resourceType);
-            if (resourceNodes == null || !resourceNodes.Any())
+            if (resourceNodes == null || resourceNodes.Count == 0)
             {
                 _logger.LogInternalWarning("Resource not found: {ResourceName} of type {ResourceType}", resourceName, resourceType);
                 return $"Failed to generate health summary: Resource '{resourceName}' of type '{resourceType}' was not found in the knwoledge graph.";
@@ -968,12 +965,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             foreach (var item in result)
             {
                 // Create a new dictionary for each resource
-                var propertyBag = new Dictionary<string, object>();
-                // Add label
-                propertyBag["subscriptionId"] = item?["subscriptionId"]?.ToString() ?? string.Empty;
-                propertyBag["resourceGroupName"] = item?["resourceGroupName"]?.ToString() ?? string.Empty;
-                propertyBag["resourceName"] = item?["resourceName"]?.ToString() ?? string.Empty;
-                propertyBag["resourceType"] = item?["resourceType"]?.ToString() ?? string.Empty;
+                var propertyBag = new Dictionary<string, object>
+                {
+                    // Add label
+                    ["subscriptionId"] = item?["subscriptionId"]?.ToString() ?? string.Empty,
+                    ["resourceGroupName"] = item?["resourceGroupName"]?.ToString() ?? string.Empty,
+                    ["resourceName"] = item?["resourceName"]?.ToString() ?? string.Empty,
+                    ["resourceType"] = item?["resourceType"]?.ToString() ?? string.Empty
+                };
 
                 if (!string.IsNullOrEmpty(item?["clusterResourceId"]?.ToString()))
                 {
@@ -1388,7 +1387,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             _logger.LogInternalInformation("Found {Count} subscriptions", result.Count);
 
             // Return the list of subscription objects with name and id properties intact
-            return result.ToList();
+            return [.. result];
         }
         catch (Exception ex)
         {
@@ -1415,12 +1414,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
             foreach (var item in result)
             {
-                var propertyBag = new Dictionary<string, object>();
-                propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString() ?? string.Empty;
-                propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString() ?? string.Empty;
-                propertyBag["resourceType"] = item["resourceType"]?.ToString() ?? string.Empty;
-                propertyBag["resourceId"] = item["resourceId"]?.ToString() ?? string.Empty;
-                propertyBag["location"] = item["location"]?.ToString() ?? string.Empty;
+                var propertyBag = new Dictionary<string, object>
+                {
+                    ["subscriptionId"] = item["subscriptionId"]?.ToString() ?? string.Empty,
+                    ["resourceGroupName"] = item["resourceGroupName"]?.ToString() ?? string.Empty,
+                    ["resourceType"] = item["resourceType"]?.ToString() ?? string.Empty,
+                    ["resourceId"] = item["resourceId"]?.ToString() ?? string.Empty,
+                    ["location"] = item["location"]?.ToString() ?? string.Empty
+                };
 
                 resources.Add(propertyBag);
             }
@@ -1453,7 +1454,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
             var result = await _graphDbClient.Query<dynamic>(query);
 
-            if (result == null || !result.Any())
+            if (result == null || result.Count == 0)
             {
                 var message = $"Resource with ID {resourceId} not found in graph database.";
                 _logger.LogInternalWarning(message);
@@ -1694,7 +1695,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         try
         {
             // Validate the resource ID format
-            if (!Azure.Core.ResourceIdentifier.TryParse(resourceId, out var parsedResourceId))
+            if (!ResourceIdentifier.TryParse(resourceId, out var parsedResourceId))
             {
                 throw new ArgumentException($"Invalid Azure resource ID format: {resourceId}");
             }

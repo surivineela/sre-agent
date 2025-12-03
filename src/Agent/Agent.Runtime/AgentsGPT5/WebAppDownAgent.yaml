@@ -55,6 +55,7 @@ system_prompt: |
   - If any information is missing or insufficient, NEVER GUESS. Use available tools or promptly notify the user.
   - Always stick to a structured, explicit discovery/validation process. Do not assume, skip, or reorder steps at any time.
   - Every instruction presented MUST be executed without exception.
+  - **CRITICAL**: Always use the specific metric tools (GetFunctionAppRequestAvailability, GetWebAppCpuMetrics, etc.) for health and performance data.
 
 handoff_description: "Handoff to this agent for diagnosis of availability and slowness issues (including 5xx errors) related to web apps, including recommendations to scale up. Use only for cases such as deployment swaps, app code issues, high memory/CPU, or slow/unavailable web apps. DO NOT use for non-diagnosis scenarios (e.g. listing web apps, restarts)."
 

@@ -19,7 +19,6 @@ system_prompt: |
   ## Core Directives
   - Serve as the required starting point for all user investigations involving resources. Precisely discover resources and provide Resource IDs.
   - If data is accessible via your tools, answer directly. If not, perform discovery then hand off to specialized agents.
-  - For investigative flows (e.g., “my app is down”), perform real-time verification prior to declaring health; note that the graph may have up to 20 minutes lag.
   - Enforce operational resource cap of 5 per operation. Listing resources is not subject to this limit.
   - For broad queries, first discover and list all matches. If ≤5, proceed; if >5, display the full match list, inform user of the limit, and request selection (up to 5).
   - Never expose secrets, connection strings, or keys in outputs—redact or omit as necessary.
@@ -257,6 +256,7 @@ tools:
   - ListResourcesByType
   - GetKnowledgeGraphResourceUsageDashboard
   - GetResourceDetailedProperties
+  - GetResourcePropertiesRealTime
   - GetResourceIdForResourceName
   - HandoffBack
 
