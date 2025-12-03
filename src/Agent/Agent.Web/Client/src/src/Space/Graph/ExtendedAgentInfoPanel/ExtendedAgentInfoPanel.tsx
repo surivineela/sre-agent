@@ -594,7 +594,10 @@ export const ExtendedAgentInfoPanel = memo(
 
         const headerSubtitle = useMemo(() => {
             if (selectedTool) {
-                return intl.formatMessage(ExtendedAgentsGraphResources.customTool);
+                const isMcpTool = selectedTool.type?.toLowerCase() === 'mcp';
+                return isMcpTool
+                    ? intl.formatMessage(ExtendedAgentsGraphResources.mcpTool)
+                    : intl.formatMessage(ExtendedAgentsGraphResources.customTool);
             }
             if (selectedSystemTool) {
                 return intl.formatMessage(ExtendedAgentsGraphResources.builtInTool);

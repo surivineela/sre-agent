@@ -3428,6 +3428,7 @@ export const SubAgentsResources = defineMessages({
 });
 
 export const McpServerResources = defineMessages({
+    mcp: { defaultMessage: 'MCP', id: 'RbWH8Q' },
     title: { defaultMessage: 'Connect an MCP server', id: 'fssuHC' },
     description: {
         defaultMessage:
@@ -4115,6 +4116,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     category: { defaultMessage: 'Category', id: 'ccXLVi' },
     builtInTool: { defaultMessage: 'Built-in Tool', id: 'EQa6dK' },
     customTool: { defaultMessage: 'Custom Tool', id: 'ONbwY2' },
+    mcpTool: { defaultMessage: 'MCP Tool', id: 'LstsP/' },
     builtInTools: { defaultMessage: 'Built-in Tools', id: 'Eu772h' },
     url: { defaultMessage: 'URL', id: 'bWjdfa' },
 

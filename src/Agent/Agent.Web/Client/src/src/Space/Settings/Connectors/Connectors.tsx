@@ -23,6 +23,13 @@ import { useApiConnection } from './Hooks/useApiConnection';
 import { ConnectorType } from './Wizard/Common/ConnectorType';
 import { ConnectorWizardFormik } from './Wizard/ConnectorWizardFormik';
 
+export enum McpConnectorStatus {
+    Connected = 'Connected',
+    Disconnected = 'Disconnected',
+    Failed = 'Failed',
+    Initializing = 'Initializing',
+}
+
 export const Connectors = () => {
     const intl = useIntl();
     const styles = useConnectorsStyles();

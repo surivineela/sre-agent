@@ -1,6 +1,8 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
+import { useIntl } from 'react-intl';
+import { McpServerResources } from '../../Strings/SREAgentResources';
 import {
     ExtendedAgentGraphContext,
     ExtendedAgentGraphNode,
@@ -55,6 +57,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         nameBlock,
         nameText,
     } = useToolNodeStyles();
+    const intl = useIntl();
     const isHovered = hoveredNodeId === id;
     const isSelectedNode = selectedNodeId === id;
 
@@ -76,6 +79,10 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         isSelectedNode ? cardSelected : undefined
     );
 
+    const isMcpTool = useMemo(() => {
+        return tool?.type?.toLowerCase() === 'mcp';
+    }, [tool?.type]);
+
     const toolIconType = useMemo(() => {
         if (isSystemTool) {
             return 'toolWithGear';
@@ -83,12 +90,11 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         if (isPythonTool) {
             return 'pythonTool';
         }
-        if (tool?.type === 'mcp') {
+        if (isMcpTool) {
             return 'windowWrenchRegular';
         }
         return 'tool';
-    }, [isPythonTool, isSystemTool, tool?.type]);
-
+    }, [isPythonTool, isSystemTool, isMcpTool]);
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
@@ -105,16 +111,23 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>
-                        {!isSystemTool && tool?.connector && tool?.type !== 'mcp' && (
-                            <Badge appearance="outline" size="tiny">
-                                {tool.connector}
-                            </Badge>
-                        )}
-                        {isSystemTool && systemTool?.resourceType && (
-                            <Badge appearance="outline" size="tiny">
-                                {systemTool.resourceType}
-                            </Badge>
-                        )}
+                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                            {!isSystemTool && tool?.connector && !isMcpTool && (
+                                <Badge appearance="outline" size="tiny">
+                                    {tool.connector}
+                                </Badge>
+                            )}
+                            {!isSystemTool && isMcpTool && (
+                                <Badge appearance="filled" size="small" color={'informative'}>
+                                    {intl.formatMessage(McpServerResources.mcp)}
+                                </Badge>
+                            )}
+                            {isSystemTool && systemTool?.resourceType && (
+                                <Badge appearance="outline" size="tiny">
+                                    {systemTool.resourceType}
+                                </Badge>
+                            )}
+                        </div>
                     </div>
                 </div>
             </Card>
