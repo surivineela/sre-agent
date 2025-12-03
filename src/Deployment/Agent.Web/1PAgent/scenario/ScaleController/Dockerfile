@@ -21,9 +21,18 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV AppSettings__Core__External__IncidentManagement__Type=Icm
 ENV AppSettings__Core__External__IncidentManagement__ICMAPI__ReadOnly=false
 ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__Enabled=true
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__DefaultResultTag=RCAPreflightProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__scale_controller_preflight_agent=ScaleCtrlRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__blob_trigger_preflight_agent=BlobTrigRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__durable_functions_preflight_agent=DurableRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__servicebus_trigger_preflight_agent=SBTrigRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__eventhub_trigger_preflight_agent=EHTrigRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__python_preflight_agent=PythonRCAProcessed
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__ResultTags__functions_loop_unsupported_preflight_agent=FuncLoopUnsupportedRCAProcessed
 ENV AppSettings__Core__Experimental__EnableModeSwitch=true
 # TODO: This URL requires SAW access. Once we got cross-tenant access, revisit this.
 ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__WebBaseUrl=https://aka.ms/sreagent-prefixonly#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/FunctionsRCA%20agent/agentUrl/https%3A%2F%2Ffunctionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai
+ENV AppSettings__Core__External__IncidentManagement__AutomatedRCA__AccessNote="\n\n> Note: One-time setup required before you can open the link:\n> 1. Join the [SREAgent-Functions security group](https://idweb.microsoft.com/IdentityManagement/aspx/groups/MyGroups.aspx?popupFromClipboard=https%3A%2F%2Fidweb.microsoft.com%2Fidentitymanagement%2Faspx%2FGroups%2FEditGroup.aspx%3Fid%3De881e4a1-26b0-4e74-9bda-7e0fb6e4009c%26UOCInitialTabName%3DGroupingBasicInfo).\n> 2. Go to https://aka.ms/sreagent-portal and add an External agent:\n>    - Agent: Functions RCA\n>    - URI: https://functionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai\n> After completing these steps once, you can access the link directly."
 ENV AGENT_TYPE_NAME=RCARouterAgent
 
 # Expose the port the app runs on

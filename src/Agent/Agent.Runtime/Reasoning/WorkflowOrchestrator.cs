@@ -916,17 +916,8 @@ Please consolidate the findings, identify key insights, and provide actionable r
                     .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
             }
 
-            var defaultTag = orchestratorAgent.Name switch
-            {
-                "scale_controller_preflight_agent" => "ScaleCtrlRCAProcessed",
-                "blob_trigger_preflight_agent" => "BlobTrigRCAProcessed",
-                "durable_functions_preflight_agent" => "DurableRCAProcessed",
-                "servicebus_trigger_preflight_agent" => "SBTrigRCAProcessed",
-                "eventhub_trigger_preflight_agent" => "EHTrigRCAProcessed",
-                "python_preflight_agent" => "PythonRCAProcessed",
-                "functions_loop_unsupported_preflight_agent" => "FuncLoopUnsupportedRCAProcessed",
-                _ => "RCAPreflightProcessed"
-            };
+            var automatedRcaSettings = _incidentManagementSettings?.AutomatedRCA;
+            var defaultTag = AutomatedRcaConfigurationHelper.ResolveResultTag(automatedRcaSettings, orchestratorAgent.Name);
 
             // Only when scanner-origin (set by IcmScanner) and incidentId resolvable, inject tool and instruction
             var tools = new List<AITool>();
@@ -988,20 +979,9 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 chatOptions.ToolMode = ChatToolMode.RequireSpecific("PostIcmRcaSummary");
             }
 
-            // Build thread link (localhost => /static path, otherwise production /sreLink path)
-            var baseUrl = _incidentManagementSettings?.AutomatedRCA?.WebBaseUrl;
-            var isLocal = string.IsNullOrWhiteSpace(baseUrl) ||
-                          baseUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase) ||
-                          baseUrl.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
-                          baseUrl.Contains("::1");
-
-            var threadPath = isLocal
-                ? $"/static/#/views/activities/threads/{_context.ThreadId}"
-                : $"/sreDeepLink/views%2Factivities%2Fthreads%2F{_context.ThreadId}";
-
-            var threadLink = isLocal || string.IsNullOrWhiteSpace(baseUrl)
-                ? threadPath
-                : $"{baseUrl!.TrimEnd('/')}{threadPath}";
+            var threadLinkInfo = AutomatedRcaConfigurationHelper.BuildThreadLink(automatedRcaSettings, _context.ThreadId);
+            var threadLink = threadLinkInfo.Link;
+            var isLocal = threadLinkInfo.IsLocal;
 
             var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(summaryMessages, options: chatOptions, cancellationToken: cancellationToken);
 
@@ -1025,16 +1005,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 : (TryGetAssistantText(response) ?? "Unable to generate summary");
 
             // Add thread link for detailed view + conditional access note
-            var accessNote = string.Empty;
-            if (!isLocal)
-            {
-                accessNote = "\n\n> Note: One-time setup required before you can open the link:" +
-                             "\n> 1. Join the [SREAgent-Functions security group](https://idweb.microsoft.com/IdentityManagement/aspx/groups/MyGroups.aspx?popupFromClipboard=https%3A%2F%2Fidweb.microsoft.com%2Fidentitymanagement%2Faspx%2FGroups%2FEditGroup.aspx%3Fid%3De881e4a1-26b0-4e74-9bda-7e0fb6e4009c%26UOCInitialTabName%3DGroupingBasicInfo)." +
-                             "\n> 2. Go to https://aka.ms/sreagent-portal and add an External agent:" +
-                             "\n>    - Agent: Functions RCA" +
-                             "\n>    - URI: https://functionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai" +
-                             "\n> After completing these steps once, you can access the link directly.";
-            }
+            var accessNote = threadLinkInfo.AccessNote;
             var finalMessage = $"{summaryText}\n\n**Thread Details:** [View detailed conversation]({threadLink}){accessNote}";
 
             // Post summary to thread

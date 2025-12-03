@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -49,6 +51,14 @@ namespace Agent.Core.Configuration
     {
         public bool Enabled { get; set; } = false;
         public string WebBaseUrl { get; set; } = string.Empty;
+        public string DefaultResultTag { get; set; } = "RCAPreflightProcessed";
+        public Dictionary<string, string> ResultTags { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+        public string AccessNote { get; set; } = "\n\n> Note: One-time setup required before you can open the link:" +
+                                           "\n> 1. Join the [SREAgent-Functions security group](https://idweb.microsoft.com/IdentityManagement/aspx/groups/MyGroups.aspx?popupFromClipboard=https%3A%2F%2Fidweb.microsoft.com%2Fidentitymanagement%2Faspx%2FGroups%2FEditGroup.aspx%3Fid%3De881e4a1-26b0-4e74-9bda-7e0fb6e4009c%26UOCInitialTabName%3DGroupingBasicInfo)." +
+                                           "\n> 2. Go to https://aka.ms/sreagent-portal and add an External agent:" +
+                                           "\n>    - Agent: Functions RCA" +
+                                           "\n>    - URI: https://functionsrca-001--06ae8b31.3d3f9aed.eastus2.azuresre.ai" +
+                                           "\n> After completing these steps once, you can access the link directly.";
     }
 
     public class ICMAPISettings
