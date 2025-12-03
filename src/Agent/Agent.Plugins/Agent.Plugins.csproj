@@ -45,6 +45,7 @@
     <PackageReference Include="Octokit" />
     <PackageReference Include="KubernetesClient" />
     <PackageReference Include="ReverseMarkdown" />
+    <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
   <ItemGroup>

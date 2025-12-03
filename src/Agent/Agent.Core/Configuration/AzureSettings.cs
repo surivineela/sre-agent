@@ -50,6 +50,8 @@ namespace Agent.Core.Configuration
         };
 
         public EmergingIssueSettings EmergingIssue { get; set; } = new();
+
+        public ToolOutputSettings ToolOutputSettings { get; set; } = new();
     }
 }
 

@@ -23,6 +23,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.ThreadEvaluator;
 using Agent.Runtime.TrajectoryEvaluator;
 using Agent.ScheduledTasks.Services;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Web.Services;
 
@@ -79,6 +80,8 @@ public class TimerService : IHostedService, IDisposable
     private readonly LocalAuthScanner _localAuthScanner;
     private readonly ScheduledTaskExecutionService _scheduledTaskExecutionService;
     private readonly LinuxAppServiceConfigScanner _linuxAppServiceConfigScanner;
+    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IOptions<ToolOutputSettings> _toolOutputStorageSettings;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -149,6 +152,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _heartbeatTimerIsRunning = false;
     private readonly TimeSpan _heartbeatTimerInterval = TimeSpan.FromMinutes(30);
 
+    private Timer? _toolOutputCleanupTimer = null;
+    private bool _toolOutputCleanupTimerIsRunning = false;
+    private readonly TimeSpan _toolOutputCleanupTimerInterval = TimeSpan.FromDays(1);
+
     private readonly List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -179,7 +186,9 @@ public class TimerService : IHostedService, IDisposable
         LocalAuthScanner localAuthScanner,
         LinuxAppServiceConfigScanner linuxAppServiceConfigScanner,
         HeartbeatReporter heartbeatReporter,
-        ScheduledTaskExecutionService scheduledTaskExecutionService)
+        ScheduledTaskExecutionService scheduledTaskExecutionService,
+        IToolOutputStorage toolOutputStorage,
+        IOptions<ToolOutputSettings> toolOutputStorageSettings)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -205,6 +214,8 @@ public class TimerService : IHostedService, IDisposable
         _linuxAppServiceConfigScanner = linuxAppServiceConfigScanner;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
+        _toolOutputStorage = toolOutputStorage;
+        _toolOutputStorageSettings = toolOutputStorageSettings;
 
         _customerAuditLogger = customerAuditLogger;
     }
@@ -275,6 +286,9 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting heartbeat reporter timer...");
         StartHeartbeatTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting tool output cleanup timer...");
+        StartToolOutputCleanupTimer(cancellationToken);
+
         if (!string.IsNullOrEmpty(_incidentManagementSettings.Type?.ToString()))
         {
             _logger.LogInternalInformation($"Starting {_incidentManagementSettings.Type} Scanner timer ...");
@@ -305,6 +319,7 @@ public class TimerService : IHostedService, IDisposable
         _linuxAppServiceConfigScannerTimer?.Change(Timeout.Infinite, 0);
         _scheduledTaskTimer?.Change(Timeout.Infinite, 0);
         _heartbeatTimer?.Change(Timeout.Infinite, 0);
+        _toolOutputCleanupTimer?.Change(Timeout.Infinite, 0);
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -1012,6 +1027,38 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _heartbeatTimerInterval);
     }
 
+    public void StartToolOutputCleanupTimer(CancellationToken cancellationToken)
+    {
+        _toolOutputCleanupTimer = new Timer(async _ =>
+        {
+            if (_toolOutputCleanupTimerIsRunning)
+            {
+                _logger.LogInternalInformation("Tool output cleanup is already running. Skip this round.");
+                return;
+            }
+
+            try
+            {
+                _toolOutputCleanupTimerIsRunning = true;
+                _logger.LogInternalInformation("Starting tool output cleanup with retention of {RetentionDays} days...",
+                    _toolOutputStorageSettings.Value.RetentionDays);
+
+                var deletedCount = await Task.Run(() =>
+                    _toolOutputStorage.CleanupOldFiles(_toolOutputStorageSettings.Value.RetentionDays),
+                    cancellationToken);
+                _logger.LogInternalInformation("Tool output cleanup completed. Deleted {DeletedCount} old files.", deletedCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error during tool output cleanup");
+            }
+            finally
+            {
+                _toolOutputCleanupTimerIsRunning = false;
+            }
+        }, null, TimeSpan.FromMinutes(5), _toolOutputCleanupTimerInterval);
+    }
+
     public void Dispose()
     {
         _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
@@ -1033,6 +1080,7 @@ public class TimerService : IHostedService, IDisposable
         _linuxAppServiceConfigScannerTimer?.Dispose();
         _scheduledTaskTimer?.Dispose();
         _heartbeatTimer?.Dispose();
+        _toolOutputCleanupTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)

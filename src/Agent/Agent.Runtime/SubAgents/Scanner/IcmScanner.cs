@@ -73,7 +73,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
         if (lastScanTimeDoc != null)
         {
-            if(lastScanTimeDoc.LastScanTime == DateTime.MinValue)
+            if (lastScanTimeDoc.LastScanTime == DateTime.MinValue)
             {
                 logger.LogInternalWarning("[IcmScanner] Last scan time document has MinValue, ignoring and using default 30 days ago.");
             }
@@ -118,7 +118,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         lastScanTime = await UpdateLastScanTimeDocAsync(latestModifiedDateInScan.Value, IncidentManagementType.Icm);
                         logger.LogInternalInformation("[IcmScanner] Updated checkpoint to latest incident ModifiedDate: {lastScanTime}", lastScanTime);
 
-                        if(lastScanTime == DateTime.MinValue)
+                        if (lastScanTime == DateTime.MinValue)
                         {
                             logger.LogInternalWarning($"[IcmScanner] Last scan time updated to MinValue, resetting to {latestModifiedDateInScan.Value}");
                             lastScanTime = latestModifiedDateInScan.Value;

@@ -9,6 +9,7 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
+using Agent.Core.Implementations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -238,6 +239,9 @@ public class Program
         builder.Services.Configure<ExtendedAgentsGraphSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ExtendedAgentsGraph"));
 
+        // Configure Tool Output Storage settings
+        builder.Services.Configure<ToolOutputSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:ToolOutputSettings"));
         // Configure Python Tool settings
         builder.Services.Configure<PythonToolSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:PythonTool"));
@@ -519,6 +523,20 @@ public class Program
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
             .AddTransient<IAzureActivityLogsPlugin, AzureActivityLogsPlugin>()
+            .AddSingleton<IToolOutputStorage>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
+                var settings = sp.GetRequiredService<IOptions<ToolOutputSettings>>().Value;
+
+                // Use configured path if available, otherwise fall back to temp directory
+                var storagePath = !string.IsNullOrEmpty(settings.StoragePath)
+                    ? settings.StoragePath
+                    : Path.Combine(Path.GetTempPath(), "SREAgent", "ToolOutputs");
+
+                return new LocalToolOutputStorage(storagePath, logger);
+            })
+            .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
+            .AddTransient<ToolOutputRetrieverPluginDefinition>()
             .AddTransient<IAzureApplicationInsightsPlugin, AzureApplicationInsightsPlugin>()
             .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
