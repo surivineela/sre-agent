@@ -1,6 +1,6 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
-import { memo, useContext } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import {
     ExtendedAgentGraphContext,
     ExtendedAgentGraphNode,
@@ -76,8 +76,18 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         isSelectedNode ? cardSelected : undefined
     );
 
-    // Determine icon type based on tool type
-    const iconType = isSystemTool ? 'tool' : isPythonTool ? 'pythonTool' : 'toolWithGear';
+    const toolIconType = useMemo(() => {
+        if (isSystemTool) {
+            return 'toolWithGear';
+        }
+        if (isPythonTool) {
+            return 'pythonTool';
+        }
+        if (tool?.type === 'mcp') {
+            return 'windowWrenchRegular';
+        }
+        return 'tool';
+    }, [isPythonTool, isSystemTool, tool?.type]);
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -91,7 +101,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
             >
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <EntityIcon type={iconType} iconStyle={{ height: '24px', width: '24px' }} />
+                        <EntityIcon type={toolIconType} iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>

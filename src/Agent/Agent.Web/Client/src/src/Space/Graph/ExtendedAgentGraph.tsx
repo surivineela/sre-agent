@@ -61,7 +61,7 @@ import {
     TOOL_CARD_TYPE,
     TRIGGER_CARD_TYPE,
 } from './ExtendedAgentGraphUtility';
-import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel';
+import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel/ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import ExtendedAgentTableView from './ExtendedAgentTableView/ExtendedAgentTableView';

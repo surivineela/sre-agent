@@ -6,6 +6,7 @@ import {
     PlugConnectedRegular,
     TimerRegular,
     WarningRegular,
+    WindowWrenchRegular,
     WrenchRegular,
     WrenchSettingsRegular,
 } from '@fluentui/react-icons';
@@ -21,6 +22,7 @@ export type EntityIconType =
     | 'genericTrigger'
     | 'tool'
     | 'toolWithGear'
+    | 'windowWrenchRegular'
     | 'pythonTool'
     | 'connector';
 
@@ -98,6 +100,12 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                     backgroundColor: tokens.colorPaletteGoldBackground2,
                     foregroundColor: tokens.colorPaletteGoldForeground2,
                     Icon: PlugConnectedRegular,
+                };
+            case 'windowWrenchRegular':
+                return {
+                    backgroundColor: tokens.colorPaletteLilacBackground2,
+                    foregroundColor: tokens.colorPaletteLilacForeground2,
+                    Icon: WindowWrenchRegular,
                 };
         }
     }, [type]);

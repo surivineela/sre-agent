@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedConnector } from '../Contracts/ExtendedAgentGraph';
 import { Badge } from '../Foundry/common/components/src/Badge/Badge';
+import { ConnectorType, getConnectorIcon, getConnectorName } from '../Settings/Connectors/Wizard/Common/ConnectorType';
 import { useConnectorNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
@@ -103,7 +104,7 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
                     : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
             </Badge>
         );
-    }, [badge, isEnabled]);
+    }, [badge, intl, isEnabled]);
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -117,7 +118,15 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
             >
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <EntityIcon type="connector" iconStyle={{ height: '24px', width: '24px' }} />
+                        {connector?.connectorType === ConnectorType.McpServer ? (
+                            <img
+                                style={{ height: '24px', width: '24px' }}
+                                src={getConnectorIcon(connector?.connectorType as ConnectorType, intl)}
+                                alt={getConnectorName(connector?.connectorType as ConnectorType, intl)}
+                            />
+                        ) : (
+                            <EntityIcon type="connector" iconStyle={{ height: '24px', width: '24px' }} />
+                        )}
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                             <Text className={subtitleText}>{intl.formatMessage(ExtendedAgentsGraphResources.connector)}</Text>

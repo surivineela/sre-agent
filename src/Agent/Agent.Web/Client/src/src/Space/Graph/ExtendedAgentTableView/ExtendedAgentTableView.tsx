@@ -20,7 +20,7 @@ import {
 } from '../../Contracts/ExtendedAgentGraph';
 import PlaygroundModal, { PlaygroundTarget } from '../../Playground/PlaygroundModal';
 import { useExtendedAgentGraphStyles } from '../../Styles/ExtendedAgentGraph.styles';
-import { ExtendedAgentInfoPanel } from '../ExtendedAgentInfoPanel';
+import { ExtendedAgentInfoPanel } from '../ExtendedAgentInfoPanel/ExtendedAgentInfoPanel';
 import { EntityCard } from './Common/EntityCard';
 import { TableViewTabValue } from './ExtendedAgentTableView.Contracts';
 import { useListViewStyles } from './ExtendedAgentTableView.Styles';
