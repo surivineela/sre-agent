@@ -64,7 +64,9 @@ const ScheduledTaskCreationChatMessage: React.FC<ScheduledTaskCreationChatMessag
             name={task.name}
             media={<EntityIcon type={'scheduledTask'} shorthandStyle={{ wrapperSize: 40, iconSize: 28, borderRadius: 8 }} />}
             description={task.description}
-            secondaryText={intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationSuccessSingle)}
+            secondaryText={intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationSuccessSingle, {
+                name: task.name ?? task.id,
+            })}
             footer={{
                 status: <ScheduledTaskStatusBadge status={task.status} />,
                 timestamp: (
