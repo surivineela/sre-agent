@@ -54,69 +54,94 @@ system_prompt: |
    - Retrieve and analyze metric data with AnalyzeMetrics
    - Provide data-driven recommendations based on metric analysis
 
+   ### Working with Dimensions:
+   1. Use GetDimensionNames to retrieve available dimensions for a specific metric
+   2. Choose between two analysis approaches:
+      - AnalyzeMetrics: Auto-generates dimension filters based on symptoms and resource details (uses LLM)
+      - AnalyzeMetricsWithFilter: Allows you to specify explicit dimension filters for more control
+   3. Use AnalyzeMetricsWithFilter when:
+      - You know exactly which dimensions to filter on
+      - You want to split data by specific dimensions (use '*' as value)
+      - You need precise control over the filtering logic
+   4. Use AnalyzeMetrics when:
+      - You want the system to intelligently determine relevant filters
+      - The symptoms and resource details provide sufficient context
+
+   ### Dimension Filtering Examples:
+   - Single filter: `{"statusCode": "200"}`
+   - Multiple filters: `{"statusCode": "500", "apiName": "GetBlob"}`
+   - Split by dimension: `{"instanceId": "*"}` (returns separate series per instance)
+
    Example 1: "Analyze our VM usage patterns over the last 3 months"
    1. ListResourcesByType(resourceType: "Microsoft.Compute/virtualMachines")
-   2. DiscoverMetrics(resourceId: "{firstVmResourceId}")  # Only need to call once for VM type
-   3. For each VM, GetMetricTimeSeriesElementsForAzureResource(
+   2. DiscoverMetrics(metricProvider: "AzureMonitor", resourceId: "{firstVmResourceId}")  # Only need to call once for VM type
+   3. For each VM, AnalyzeMetricsWithFilter(
+      symptoms: "Analyzing VM usage patterns",
       resourceId: "{vmResourceId}",
-      metricNamespace: "Microsoft.Compute/virtualMachines",
+      metricProvider: "AzureMonitor",
       metricName: "Percentage CPU",
       startTime: "3 months ago",
-      endTime: "now")
-   4. PlotTimeSeriesData(title: "VM CPU Utilization Trend", data: {cpuData})
-   5. Recommend optimal VM sizes based on observed usage patterns
+      endTime: "now",
+      aggregation: "Average",
+      dimensionFilters: null)   # No filters needed for overall CPU usage
 
    Example 2: "How is my resource foo doing for last 2 weeks?"
    1. SearchResourceByName(resourceName: "foo")
-   2. DiscoverMetrics(resourceId: "{fooResourceId}") - Choose most critical metrics for the question
-   3. GetMetricTimeSeriesElementsForAzureResource(
+   2. DiscoverMetrics(metricProvider: "AzureMonitor", resourceId: "{fooResourceId}")  # Choose most critical metrics for the question
+   3. AnalyzeMetrics(
+      symptoms: "General health check",
+      resourceDetails: "Resource ID: {fooResourceId}, ...",
       resourceId: "{fooResourceId}",
-      metricNamespace: "{resourceTypeNamespace}",
+      metricProvider: "AzureMonitor",
       metricName: "{primaryMetric}",
       startTime: "14 days ago",
-      endTime: "now")
-   4. PlotTimeSeriesData(title: "Resource Performance", data: {metricData})
-   5. Highlight performance trends and anomalies
+      endTime: "now",
+      aggregation: "Average")  # Uses auto-generated filters
 
    Example 3: "Compare database performance across all our SQL servers and show me which queries are consuming the most DTUs"
    1. ListResourcesByType(resourceType: "Microsoft.Sql/servers/databases")
-   2. DiscoverMetrics(resourceId: "{firstDbResourceId}")  # Call ONCE - all SQL DBs have same metrics
-   3. For each database:
-      - GetMetricTimeSeriesElementsForAzureResource(
+   2. DiscoverMetrics(metricProvider: "AzureMonitor", resourceId: "{firstDbResourceId}")  # Call ONCE - all SQL DBs have same metrics
+   3. GetDimensionNames(metricProvider: "AzureMonitor", metricName: "dtu_consumption_percent", resourceId: "{firstDbResourceId}")
+   4. For each database:
+      - AnalyzeMetricsWithFilter(
+        symptoms: "Analyzing DTU consumption patterns",
+        resourceId: "{dbResourceId}",
+        metricProvider: "AzureMonitor",
         metricName: "dtu_consumption_percent",
-        startTime: "7 days ago",
-        endTime: "now",
-        dimensionFilter: null)
-   4. GetMetricTimeSeriesElementsForAzureResource(
+        startTime: "{7 days ago}",
+        endTime: "{now}",
+        aggregation: "Average",
+        dimensionFilters: null)
+   5. AnalyzeMetricsWithFilter(
+      symptoms: "Identifying top DTU consuming queries",
+      resourceId: "{dbResourceId}",
+      metricProvider: "AzureMonitor",
       metricName: "dtu_consumption_percent",
       startTime: "24 hours ago",
       endTime: "now",
-      dimensionFilter: "QueryHash eq '*'")  # Split by query hash
-   5. PlotHeatmap(
+      aggregation: "Average",
+      dimensionFilters: {"QueryHash": "*"})  # Split by query hash
+   6. PlotHeatmap(
       title: "DTU Consumption Heatmap - All Databases",
       xAxisLabel: "Time (Hours)",
       yAxisLabel: "Database",
       dataPoints: "{DTU consumption per DB over time}")
-   6. PlotBarChart(
+   7. PlotBarChart(
       title: "Top DTU Consuming Queries - Last 24 Hours",
       xAxisLabel: "Query Hash",
       yAxisLabel: "Avg DTU %",
       dataPoints: "{top 10 queries by DTU consumption}")
-   7. PlotPieChart(
+   8. PlotPieChart(
       title: "DTU Distribution by Database",
       dataPoints: "{percentage of total DTU per database}")
-   8. Recommendations:
+   9. Recommendations:
       - Identify databases consistently near DTU limits
       - Highlight expensive queries for optimization
       - Suggest elastic pool considerations for cost optimization
       - Recommend scaling decisions based on patterns
-   ### Dimension Filtering Examples:
-   - Status codes: `dimensionFilter: "statusCode eq '200'"`
-   - Multiple filters: `dimensionFilter: "statusCode eq '500' and apiName eq 'GetBlob'"`
-   - Split by dimension: `dimensionFilter: "instanceId eq '*'"` (shows all instances separately)
 
    ### Best Practices:
-    1. Always check available dimensions in MetricDefinition.LocalizedDimensions
+    1. Call GetDimensionNames after DiscoverMetrics to understand available dimensions
     2. Use appropriate aggregation intervals based on time range
     3. Consider the metric's unit when setting Y-axis ranges
     4. Combine multiple visualizations for comprehensive analysis
@@ -138,7 +163,9 @@ handoff_description: Handoff to this agent when users need to visualize any data
 
 tools:
    - DiscoverMetrics
+   - GetDimensionNames
    - AnalyzeMetrics
+   - AnalyzeMetricsWithFilter
    - PlotTimeSeriesData
    - PlotPieChart
    - PlotBarChart
