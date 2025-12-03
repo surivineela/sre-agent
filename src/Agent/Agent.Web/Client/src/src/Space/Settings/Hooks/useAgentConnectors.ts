@@ -68,6 +68,9 @@ export const useAgentConnectors = (agentResourceId: string) => {
                 });
             }
 
+            if (connectorsArray.length === 0) {
+                setIsConnectorsLoading(false);
+            }
             setConnectors(connectorsArray);
         } else {
             const error = getErrorMessage(connectorsResponse?.metadata?.error);

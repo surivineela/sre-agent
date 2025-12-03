@@ -1070,7 +1070,7 @@ export const ExtendedAgentInfoPanel = memo(
                                 onClick={() => navigate('/views/settings/data-connectors')}
                                 className={styles.flexRowCenter}
                             >
-                                {intl.formatMessage(SettingsTabResources.dataConnectors)}
+                                {intl.formatMessage(SettingsTabResources.connectors)}
                             </Link>
                         </div>
                     </div>

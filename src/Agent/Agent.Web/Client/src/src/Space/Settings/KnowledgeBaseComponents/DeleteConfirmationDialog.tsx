@@ -3,9 +3,8 @@ import { Dismiss20Regular, DocumentText16Regular } from '@fluentui/react-icons';
 import * as React from 'react';
 import { useIntl } from 'react-intl';
 import { DeleteConfirmationDialogResources } from '../../../Strings/SREAgentResources';
+import { connectorTypeOptions as getConnectorTypeOptions } from '../Connectors/Wizard/Common/ConnectorType';
 import { useDataKnowledgeSpaceStyles, useDeleteConfirmationDialogStyles } from '../Styles/DataKnowledgeSpace.styles';
-import { getConnectorTypeOptions } from './AddEditDataConnectorsNew';
-
 interface DeleteConfirmationDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;

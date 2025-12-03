@@ -12,9 +12,9 @@ import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescripto
 import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IdentityKeys } from '../../Contracts/Identity';
-import DeleteConfirmationDialog from '../DataKnowledgeSpaceComponents.tsx/DeleteConfirmationDialog';
 import { useAgentConnectors } from '../Hooks/useAgentConnectors';
 import { useSreAgent } from '../Hooks/useSreAgent';
+import DeleteConfirmationDialog from '../KnowledgeBaseComponents/DeleteConfirmationDialog';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';

@@ -212,7 +212,6 @@ const KnowledgeBase: FC = () => {
                 </Table>
                 {!isLoadingFiles && uploadedFiles.length === 0 && (
                     <EmptyState
-                        type="knowledgeBase"
                         variant={originalUploadedFiles.length === 0 ? 'noItems' : 'noSearchResults'}
                         onPrimaryAction={originalUploadedFiles.length === 0 ? () => setIsUploadModalOpen(true) : () => {}}
                         isActionDisabled={isLoadingFiles || isUploading}
