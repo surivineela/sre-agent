@@ -580,14 +580,6 @@ The available tools go below:
     ]
   },
   {
-    "Name": "GetGeneralHealth",
-    "Description": "Retrieves dashboard metrics for a specific Azure resource and generates an AI-powered health summary. This function is useful when you need to: 1) Get a quick health assessment of a resource/general health of the resource for questions like how i my resource doing?, 2) Understand performance trends and potential issues, 3) View summarized metrics without accessing the Azure portal, or 4) Get actionable insights about resource behavior. The resources themselves also have a health score cord, use this method for verbose analysis.The output is a text summary that describes the resource\u0027s health status, important metrics, and any anomalies or concerns.",
-    "Parameters": [
-      "resourceName",
-      "resourceType"
-    ]
-  },
-  {
     "Name": "GetManagedResourcesInfo",
     "Description": "Retrieves information about all managed resources by yourself in your Knowledge Graph. This function is useful when you need to: 1) Get an inventory of all Azure resources, 2) Count resources by type for reporting or monitoring, 3) Understand the distribution of resources across different services, or 4) Get aggregate metrics on resource usage. The output provides counts for different resource types and totals that can be used for dashboards or resource management.",
     "Parameters": []
@@ -682,13 +674,6 @@ The available tools go below:
     "Parameters": [
       "resourceName",
       "resourceType"
-    ]
-  },
-  {
-    "Name": "GetResourceHealthInfo",
-    "Description": "Retrieves detailed health metrics for a specific Azure resource from the graph database. This function is useful when you need to: 1) Check the current health state of a resource, 2) Get performance metrics like CPU, memory usage and availability, 3) Verify if a resource is active or potentially idle, or 4) Get insight into the resource\u0027s performance characteristics. The output provides health state, availability, transaction count, latency, CPU and memory usage when available.",
-    "Parameters": [
-      "resourceId"
     ]
   },
   {

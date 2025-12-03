@@ -143,11 +143,6 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<string> GetGeneralHealthAsync(string resourceName, string resourceType)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType)
         {
             throw new NotImplementedException();
@@ -229,11 +224,6 @@ namespace Agent.Plugins.Mocks
         public Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
         {
             return Task.FromResult<string>("/subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp");
-        }
-
-        public Task<string> GetApplicationHealthInfoAsync(string resourceId)
-        {
-            throw new NotImplementedException();
         }
 
         public Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null)

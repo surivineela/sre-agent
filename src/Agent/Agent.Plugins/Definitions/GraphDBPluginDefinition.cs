@@ -127,21 +127,6 @@ namespace Agent.Plugins
             await _plugin.UpdateRepoNodeWithLastScanTime(repoUrl);
         }
 
-        [KernelFunction("GetGeneralHealth")]
-        [Description("Retrieves dashboard metrics for a specific Azure resource and generates an AI-powered health summary. " +
-            "This function is useful when you need to: 1) Get a quick health assessment of a resource/general health of the resource for questions like how i my resource doing?, " +
-            "2) Understand performance trends and potential issues, " +
-            "3) View summarized metrics without accessing the Azure portal, or " +
-            "4) Get actionable insights about resource behavior. " +
-            "The resources themselves also have a health score cord, use this method for verbose analysis." +
-            "The output is a text summary that describes the resource's health status, important metrics, and any anomalies or concerns.")]
-        public async Task<string> GetGeneralHealth(
-            [Description("Name of the Azure resource to analyze. This should be the exact resource name as shown in the Azure portal.")] string resourceName,
-            [Description("Type of the Azure resource (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts', 'microsoft.documentdb/databaseaccounts', 'microsoft.cache/redis')")] string resourceType)
-        {
-            return await _plugin.GetGeneralHealthAsync(resourceName, resourceType);
-        }
-
         [KernelFunction("GetManagedResourcesInfo")]
         [Description("Retrieves information about all managed resources by yourself in your Knowledge Graph. " +
             "This function is useful when you need to: 1) Get an inventory of all Azure resources, " +
@@ -332,20 +317,6 @@ namespace Agent.Plugins
              [Description("Azure Resource Type for this resource.")] string resourceType)
         {
             return await _plugin.GetResourceIdForResourceName(resourceName, resourceType);
-        }
-
-        [KernelFunction("GetResourceHealthInfo")]
-        [Description("Retrieves detailed health metrics for a specific Azure resource from the graph database. " +
-            "This function is useful when you need to: " +
-            "1) Check the current health state of a resource, " +
-            "2) Get performance metrics like CPU, memory usage and availability, " +
-            "3) Verify if a resource is active or potentially idle, or " +
-            "4) Get insight into the resource's performance characteristics. " +
-            "The output provides health state, availability, transaction count, latency, CPU and memory usage when available.")]
-        public async Task<string> GetResourceHealthInfo(
-    [Description("Azure Resource Id of the resource to get health information for. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
-        {
-            return await _plugin.GetApplicationHealthInfoAsync(resourceId);
         }
 
         [Description("REAL-TIME AZURE QUERY - Queries Azure Resource Graph directly for current resource configuration and state as a fallback when the knowledge graph is missing data. " +

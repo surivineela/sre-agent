@@ -4,7 +4,6 @@
 
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Azure.ResourceManager.AppService.Models;
 
 namespace Agent.Runtime.Helpers;
 
@@ -94,7 +93,6 @@ public static class ToolDescriptionHelper
             "AddIgnoreTagToResource" => "Adding ignore tag to resource...",
             "GetContainerAppsWithNodesWithoutSourceCodeNodes" => "Finding Container Apps without source code links...",
             "UpdateRepoNodeWithLastScanTime" => "Updating repository scan timestamp...",
-            "GetGeneralHealth" => "Checking resource health status...",
             "GetManagedResourcesInfoAsync" => "Getting managed resources inventory...",
             "SearchResource" => "Searching for resources...",
             "SearchResourceByName" => "Finding resources by name...",
@@ -108,7 +106,6 @@ public static class ToolDescriptionHelper
             "GetResourceBasicProperties" => "Getting basic resource information...",
             "GetResourceDetailedProperties" => "Fetching detailed resource properties...",
             "GetResourceIdForResourceName" => "Finding resource ID by name...",
-            "GetResourceHealthInfo" => "Checking resource health metrics...",
 
             // ACA Kusto functions
             "ExecuteFunction" => "Running Kusto query function...",

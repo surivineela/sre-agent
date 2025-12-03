@@ -187,7 +187,6 @@ These methods need to show complete application topology including discovered de
 | `DiscoverApplications` | ❌ No | Discover full application graph |
 | `GetResourceBasicProperties` | ❌ No | Get properties of any known resource |
 | `GetResourceDetailedProperties` | ❌ No | Get properties of any known resource |
-| `GetResourceHealthInfo` | ❌ No | Get health of any known resource |
 | `GetResourcePropertiesRealTime` | ❌ No | Real-time query, not KG listing |
 | `Query` (generic) | ❌ No | Raw Gremlin, user controls filtering |
 

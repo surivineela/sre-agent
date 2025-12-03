@@ -52,8 +52,6 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
-using Agent.Runtime.Services.AzMonitorAlertInvestigation;
-using Agent.Runtime.Services.AzMonitorAlertInvestigationService;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailySummaryAgent;
@@ -572,16 +570,6 @@ public class Program
             .AddSingleton<CVEScanner>()
             .AddSingleton<FeedbackRCAScanner>()
             .AddSingleton<ILogQueryService, LogQueryService>()
-            .AddSingleton<IAzMonitorAlertInvestigationService, AzMonitorAlertInvestigationService>()
-            .AddSingleton<IInvestigationOrchestrator, InvestigationOrchestrator>()
-            .AddSingleton<IReflexionEvaluator, ReflexionEvaluator>()
-            .AddSingleton<IReasoningStep, ApplicationHealthStep>()
-            .AddSingleton<IReasoningStep, ActivityLogAnalysisStep>()
-            .AddSingleton<IReasoningStep, ConnectedComponentsAnalysisStep>()
-            .AddSingleton<IReasoningStep, LogQueryAnalysisStep>()
-            .AddSingleton<IReasoningStep, MetricsAnalysisStep>()
-            .AddSingleton<IReasoningStep, LogQueriesGenericAnalysisStep>()
-            .AddSingleton<IHypothesisGenerator, HypothesisGenerator>()
             .AddSingleton<PostToTeamsPluginDefinition>()
             .AddSingleton<DailyReportScanner>()
             .AddSingleton<AppServiceScanner>()

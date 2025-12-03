@@ -99,15 +99,6 @@ namespace Agent.Plugins.Interface
         Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
 
         /// <summary>
-        /// Retrieves the dashboard screenshot for a resource and uses an LLM to summarize the general health.
-        /// Analyzes metrics, trends, and anomalies to provide an overall health assessment.
-        /// </summary>
-        /// <param name="resourceName">The name of the Azure resource to analyze.</param>
-        /// <param name="resourceType">The type of the Azure resource (e.g., microsoft.app/containerapps).</param>
-        /// <returns>A text summary of the resource's health based on dashboard metrics.</returns>
-        Task<string> GetGeneralHealthAsync(string resourceName, string resourceType);
-
-        /// <summary>
         /// Searches for resources by a partial resource name and resource type.
         /// Helps locate specific resources in the Azure environment.
         /// </summary>
@@ -166,14 +157,6 @@ namespace Agent.Plugins.Interface
         /// </summary>
         Task<dynamic> GetManagedResourcesInfoAsync();
 
-        /// <summary>
-        /// Retrieves the application health information for a specific resource from the graph database.
-        /// This provides metrics like availability, CPU usage, memory usage, latency, and overall health state.
-        /// </summary>
-        /// <param name="resourceId">Azure Resource Id of the resource to get health information for.</param>
-        /// <returns>A AppHealthInfo object containing health metrics, or null if the resource doesn't have health data.</returns>
-        Task<string> GetApplicationHealthInfoAsync(string resourceId);
-
         string GetKnowledgeGraphResourceUsageDashboard();
 
         Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId);
@@ -183,8 +166,8 @@ namespace Agent.Plugins.Interface
         Task<string> GetResourceIdForResourceName(string resourceName, string resourceType);
 
         /// <summary>
-        /// Gets all properties for a resource from Azure Resource Graph in real-time as a fallback 
-        /// when the knowledge graph doesn't contain the needed information. Queries live Azure APIs 
+        /// Gets all properties for a resource from Azure Resource Graph in real-time as a fallback
+        /// when the knowledge graph doesn't contain the needed information. Queries live Azure APIs
         /// for the most current resource state and properties.
         /// </summary>
         /// <param name="resourceId">Azure Resource ID of the resource to query.</param>
