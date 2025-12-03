@@ -934,7 +934,10 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadIdStr = threadId.ToString();
 
         var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
-            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr)
+            .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr &&
+                (m.Text != null && m.Text != string.Empty || m.Approval != null || m.AzCliExecution != null ||
+                 m.KubectlExecution != null || m.PsqlExecution != null || m.AgentTaskInfo != null ||
+                 m.MemorySearchResult != null || m.TodoInfo != null))
             .OrderBy(m => m.TimeStamp);
 
         _logger.LogDebug("Query text before odata ApplyTo: {QueryText}", query.ToQueryDefinition().QueryText); // Log the query text
@@ -951,11 +954,6 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             foreach (var messageDoc in await iterator.ReadNextAsync())
             {
-                // skip empty messages
-                if (messageDoc.IsEmpty)
-                {
-                    continue;
-                }
 
                 var messageDocWithApproval = messageDoc;
                 // Replace the approval with the Approval doc in Cosmos

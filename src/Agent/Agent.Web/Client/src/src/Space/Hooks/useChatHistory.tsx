@@ -44,7 +44,9 @@ export const useChatHistory = (
             if (messagesResponse.isSuccessful) {
                 const page = messagesResponse.content || [];
 
-                if (page.length < MessageLoadingCounts.default) {
+                // Only stop loading when we receive 0 messages, not just fewer than expected
+                // This is more resilient to backend pagination issues where fewer messages might be returned
+                if (page.length === 0) {
                     hasPreviousPage.current = false;
                 }
 
