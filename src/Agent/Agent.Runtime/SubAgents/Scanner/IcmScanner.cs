@@ -70,7 +70,21 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     {
         var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.Icm);
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
-        lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found
+        lastScanTime = DateTime.UtcNow.AddDays(-30); // Default to 30 days ago
+
+        if (lastScanTimeDoc != null)
+        {
+            if(lastScanTimeDoc.LastScanTime == DateTime.MinValue)
+            {
+                logger.LogInternalWarning("[IcmScanner] Last scan time document has MinValue, ignoring and using default 30 days ago.");
+            }
+            else
+            {
+                lastScanTime = lastScanTimeDoc.LastScanTime;
+                logger.LogInternalInformation("[IcmScanner] Retrieved last scan time from document: {lastScanTime}", lastScanTime);
+            }
+        }
+
         while (!cancellationToken.IsCancellationRequested)
         {
             // Drain test queue (local dev) before normal scanning if enabled.
@@ -104,6 +118,12 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         // This ensures we don't miss incidents due to API lag or timing issues
                         lastScanTime = await UpdateLastScanTimeDocAsync(latestModifiedDateInScan.Value, IncidentManagementType.Icm);
                         logger.LogInternalInformation("[IcmScanner] Updated checkpoint to latest incident ModifiedDate: {lastScanTime}", lastScanTime);
+
+                        if(lastScanTime == DateTime.MinValue)
+                        {
+                            logger.LogInternalWarning($"[IcmScanner] Last scan time updated to MinValue, resetting to {latestModifiedDateInScan.Value}");
+                            lastScanTime = latestModifiedDateInScan.Value;
+                        }
                     }
                     else
                     {
