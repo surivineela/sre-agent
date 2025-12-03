@@ -13,6 +13,7 @@ import { PillSet } from '../Common/PillSet';
 import { useAgentCreateDialogStyles } from './AgentCreateDialog.Styles';
 import { AgentCreateFormValues, FormViewProps } from './Contracts';
 import { SuggestionsPanel } from './SuggestionsPanel';
+import { TestPanel } from './TestPanel';
 import { ToolsPanel } from './ToolsPanel';
 
 export const FormView: FC<FormViewProps> = ({
@@ -25,6 +26,7 @@ export const FormView: FC<FormViewProps> = ({
     openPanel,
     isEditScenario,
     isOverrideScenario,
+    testPanelProps,
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
@@ -211,6 +213,7 @@ export const FormView: FC<FormViewProps> = ({
                         handoffDescription={improvementsAndSuggestionsHook.suggestions?.handoffDescription}
                     />
                 )}
+                {openedPanel === 'test' && <TestPanel {...testPanelProps} />}
             </div>
         </div>
     );

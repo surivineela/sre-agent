@@ -5,31 +5,29 @@ import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPo
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
+import { Guid } from '../../../../Common/Helpers/Guid';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
 import { AgentCreateFormValues, AgentCreateOrEditInfo } from '../Contracts';
 
 export const useAgentCreateDialog = (
-    onDismiss: () => void,
     onAgentCreated: (selectedAgent?: string) => void,
     agentCreateOrEditInfo: AgentCreateOrEditInfo | undefined
 ) => {
     const intl = useIntl();
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [existingAgentGuid, setExistingAgentGuid] = useState<string | undefined>(
+        agentCreateOrEditInfo?.mode === 'edit' ? Guid.newGuid() : undefined
+    );
     const azPortalContext = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
 
-    const isOverrideScenario = useMemo(() => {
-        return (
-            agentCreateOrEditInfo?.mode === 'createMetaAgent' ||
-            (agentCreateOrEditInfo?.mode === 'edit' && agentCreateOrEditInfo.agent?.name === 'meta_agent')
-        );
-    }, [agentCreateOrEditInfo]);
+    const isEditScenario = useMemo(() => !!existingAgentGuid, [existingAgentGuid]);
 
-    const isEditScenario = useMemo(() => {
-        return agentCreateOrEditInfo?.mode === 'edit';
-    }, [agentCreateOrEditInfo]);
+    const isOverrideScenario = useMemo(() => {
+        return agentCreateOrEditInfo?.mode === 'createMetaAgent' || (isEditScenario && agentCreateOrEditInfo?.agent?.name === 'meta_agent');
+    }, [agentCreateOrEditInfo, isEditScenario]);
 
     const excludedHandoffAgent = useMemo(() => {
         return agentCreateOrEditInfo?.mode === 'createTarget' ? agentCreateOrEditInfo?.agent?.name : undefined;
@@ -93,7 +91,6 @@ export const useAgentCreateDialog = (
                     });
                     azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                     setIsSubmitting(false);
-                    onDismiss();
                     return;
                 }
             } catch (error) {
@@ -103,14 +100,15 @@ export const useAgentCreateDialog = (
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                 setIsSubmitting(false);
-                onDismiss();
                 return;
             }
 
+            onAgentCreated(selectCreatedAgent ? values.agentName : undefined);
+            setInitialValues({ ...values });
+            setExistingAgentGuid(Guid.newGuid());
+
             if (!sourceAgent) {
                 setIsSubmitting(false);
-                onDismiss();
-                onAgentCreated(selectCreatedAgent ? values.agentName : undefined);
                 return;
             }
 
@@ -137,7 +135,6 @@ export const useAgentCreateDialog = (
                     });
                     azPortalContext.stopNotification(agentLinkNotificationId, true, message);
                     setIsSubmitting(false);
-                    onDismiss();
                     onAgentCreated(selectCreatedAgent ? values.agentName : undefined);
                 } else {
                     const message = intl.formatMessage(ExtendedAgentsGraphResources.addHandoffNotificationFailure, {
@@ -147,7 +144,6 @@ export const useAgentCreateDialog = (
                     });
                     azPortalContext.stopNotification(agentLinkNotificationId, false, message);
                     setIsSubmitting(false);
-                    onDismiss();
                 }
             } catch (error) {
                 const message = intl.formatMessage(ExtendedAgentsGraphResources.failedToCreateTool, {
@@ -155,10 +151,9 @@ export const useAgentCreateDialog = (
                 });
                 azPortalContext.stopNotification(agentLinkNotificationId, false, message);
                 setIsSubmitting(false);
-                onDismiss();
             }
         },
-        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources, onAgentCreated, onDismiss, isOverrideScenario]
+        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources, onAgentCreated, isOverrideScenario]
     );
 
     const onUpdate = useCallback(
@@ -193,8 +188,9 @@ export const useAgentCreateDialog = (
                     });
                     azPortalContext.stopNotification(agentCreateNotificationId, true, message);
                     setIsSubmitting(false);
-                    onDismiss();
                     onAgentCreated();
+                    setInitialValues({ ...values });
+                    setExistingAgentGuid(Guid.newGuid());
                     return;
                 } else {
                     const message = intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationFailure, {
@@ -203,7 +199,6 @@ export const useAgentCreateDialog = (
                     });
                     azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                     setIsSubmitting(false);
-                    onDismiss();
                     return;
                 }
             } catch (error) {
@@ -213,16 +208,15 @@ export const useAgentCreateDialog = (
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                 setIsSubmitting(false);
-                onDismiss();
                 return;
             }
         },
-        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources, onDismiss]
+        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources]
     );
 
     const onSubmit = useCallback(
         (values: AgentCreateFormValues) => {
-            if (agentCreateOrEditInfo?.mode === 'edit') {
+            if (isEditScenario) {
                 onUpdate(values);
             } else if (agentCreateOrEditInfo?.mode === 'createTarget') {
                 onCreate(values, agentCreateOrEditInfo.agent, false);
@@ -232,12 +226,12 @@ export const useAgentCreateDialog = (
                 onCreate(values, undefined, shouldSelectCreatedAgent);
             }
         },
-        [onCreate, onUpdate, agentCreateOrEditInfo]
+        [onCreate, onUpdate, agentCreateOrEditInfo, isEditScenario]
     );
 
     useEffect(() => {
         if (!agentCreateOrEditInfo) {
-            setInitialValues({ ...defaultInitialValues });
+            setExistingAgentGuid(undefined);
         } else if (agentCreateOrEditInfo.mode === 'edit') {
             const agentToEdit = agentCreateOrEditInfo.agent;
             setInitialValues({
@@ -250,6 +244,7 @@ export const useAgentCreateDialog = (
                 enableMemory: agentToEdit.enableMemory || agentToEdit.tools?.includes('SearchMemory') || false,
                 enableVanillaMode: agentToEdit.enableVanillaMode ?? false,
             });
+            setExistingAgentGuid(Guid.newGuid());
         } else if (agentCreateOrEditInfo.mode === 'createSource') {
             const sourceAgent = agentCreateOrEditInfo.agent;
             setInitialValues(prevValues => ({
@@ -267,6 +262,7 @@ export const useAgentCreateDialog = (
         isOpen: !!agentCreateOrEditInfo,
         isOverrideScenario,
         isEditScenario,
+        existingAgentGuid,
         initialValues,
         validationSchema,
         excludedHandoffAgent,

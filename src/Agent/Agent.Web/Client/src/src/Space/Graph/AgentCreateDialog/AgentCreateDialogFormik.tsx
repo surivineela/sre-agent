@@ -1,5 +1,5 @@
-import { Button, DialogBody, DialogSurface, mergeClasses, Tab, TabList, ToolbarButton } from '@fluentui/react-components';
-import { Dismiss24Regular } from '@fluentui/react-icons';
+import { Button, DialogBody, DialogSurface, mergeClasses, Tab, TabList, ToolbarButton, Tooltip } from '@fluentui/react-components';
+import { Beaker20Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -18,6 +18,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
     excludedHandoffAgent,
     additionalHandoffAgents,
     isEditScenario,
+    existingAgentGuid,
     isOverrideScenario,
 }) => {
     const intl = useIntl();
@@ -37,6 +38,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
         discardDisabled,
         onSubmit,
         onDiscard,
+        testPanelProps,
     } = useAgentCreateDialogFormik(
         agents,
         existingTools,
@@ -45,6 +47,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
         excludedHandoffAgent,
         additionalHandoffAgents,
         isEditScenario,
+        existingAgentGuid,
         isOverrideScenario
     );
 
@@ -81,6 +84,18 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                             </Tab>
                         </TabList>
                     </div>
+                    <Tooltip relationship="label" content={intl.formatMessage(ExtendedAgentsGraphResources.testLiveAgent)}>
+                        <ToolbarButton
+                            className={styles.dialogCloseButton}
+                            aria-label={intl.formatMessage(ExtendedAgentsGraphResources.testLiveAgent)}
+                            appearance="transparent"
+                            icon={<Beaker20Regular />}
+                            onClick={() => {
+                                setOpenedPanel('test');
+                            }}
+                            disabled={disableControls || openedPanel === 'test'}
+                        />
+                    </Tooltip>
                     <ToolbarButton
                         className={styles.dialogCloseButton}
                         aria-label={intl.formatMessage(SreAgentResources.close)}
@@ -99,9 +114,16 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                         closePanel={() => setOpenedPanel(undefined)}
                         isEditScenario={isEditScenario}
                         isOverrideScenario={isOverrideScenario}
+                        testPanelProps={testPanelProps}
                     />
                 ) : (
-                    <YamlView yamlContent={yamlContent} handleYamlChange={handleYamlChange} disabled={disableControls} />
+                    <YamlView
+                        yamlContent={yamlContent}
+                        handleYamlChange={handleYamlChange}
+                        disabled={disableControls}
+                        openedPanel={openedPanel}
+                        testPanelProps={testPanelProps}
+                    />
                 )}
                 <div className={styles.buttonsContainer}>
                     <Button appearance="primary" onClick={onSubmit} disabled={saveDisabled}>
@@ -113,7 +135,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                         </Button>
                     )}
                     <Button appearance="secondary" onClick={onDismiss}>
-                        {intl.formatMessage(SreAgentResources.cancel)}
+                        {intl.formatMessage(SreAgentResources.close)}
                     </Button>
                 </div>
             </DialogBody>

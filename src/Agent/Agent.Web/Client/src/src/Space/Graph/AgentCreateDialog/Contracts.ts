@@ -16,7 +16,7 @@ export interface AgentCreateFormValues {
     enableVanillaMode?: boolean;
 }
 
-export type PanelType = 'tools' | 'suggestions' | undefined;
+export type PanelType = 'tools' | 'suggestions' | 'test' | undefined;
 
 interface AgentCreateInfoWithHandoff {
     mode: 'createSource' | 'createTarget';
@@ -54,6 +54,7 @@ export interface AgentCreateDialogFormikProps {
     excludedHandoffAgent?: string;
     additionalHandoffAgents?: string[];
     isEditScenario?: boolean;
+    existingAgentGuid?: string;
     isOverrideScenario?: boolean;
 }
 
@@ -67,12 +68,26 @@ export interface FormViewProps {
     closePanel: () => void;
     isEditScenario?: boolean;
     isOverrideScenario?: boolean;
+    testPanelProps: TestPanelProps;
 }
-
 export interface YamlViewProps {
     yamlContent: string;
     handleYamlChange: (value: string | undefined) => void;
     disabled: boolean;
+
+    openedPanel: PanelType;
+    testPanelProps: TestPanelProps;
+}
+
+export interface TestPanelProps {
+    agentName: string | undefined;
+    threadId: string | undefined;
+    restartTest: () => void;
+    threadAutoTerminated: boolean;
+    testStarted: boolean;
+    addThread: (threadId: string) => void;
+    chatKey: string | undefined;
+    onClose: () => void;
 }
 
 export interface SuggestionsPanelProps {

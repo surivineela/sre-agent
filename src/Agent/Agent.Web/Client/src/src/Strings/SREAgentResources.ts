@@ -4389,7 +4389,20 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'sHc8w5',
     },
     quickCreateAgentSuccessLink: { defaultMessage: 'Go to Incident management', id: '7Cy5xk' },
-    testAgentButton: { defaultMessage: 'Test Agent', id: '05Rzkx' },
+    testAgentButton: { defaultMessage: 'Test agent', id: 'sYCfrb' },
+    testLiveAgent: { defaultMessage: 'Test live agent', id: '8J3eYt' },
+    testLiveAgentTooltip: {
+        defaultMessage:
+            'This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version.',
+        id: 'fZP/Ln',
+    },
+    restartTestButton: { defaultMessage: 'Restart test', id: 'cM9da4' },
+    resumeTestThread: {
+        defaultMessage: 'Test restarted with your latest agent changes. Send a message to continue testing.',
+        id: 'jqM7Pr',
+    },
+    startTestThread: { defaultMessage: 'Send a message to start testing your agent.', id: '6lHI9u' },
+    testThreadNoAgent: { defaultMessage: 'Create your agent first to enable testing.', id: '1/xsyG' },
 
     // Prompt Improvement
     improveInstructionsButton: { defaultMessage: 'Improve with AI', id: 'f0LQra' },

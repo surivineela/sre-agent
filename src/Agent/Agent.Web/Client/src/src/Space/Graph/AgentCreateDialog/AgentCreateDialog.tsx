@@ -11,13 +11,14 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
     const {
         isOpen,
         isEditScenario,
+        existingAgentGuid,
         isOverrideScenario,
         initialValues,
         validationSchema,
         onSubmit,
         excludedHandoffAgent,
         additionalHandoffAgents,
-    } = useAgentCreateDialog(onDismiss, refresh, agentCreateOrEditInfo);
+    } = useAgentCreateDialog(refresh, agentCreateOrEditInfo);
 
     return (
         <Dialog
@@ -45,6 +46,7 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
                     excludedHandoffAgent={excludedHandoffAgent}
                     additionalHandoffAgents={additionalHandoffAgents}
                     isEditScenario={isEditScenario}
+                    existingAgentGuid={existingAgentGuid}
                     isOverrideScenario={isOverrideScenario}
                 />
             </Formik>

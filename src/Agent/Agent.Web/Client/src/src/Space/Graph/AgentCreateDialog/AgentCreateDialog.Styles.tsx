@@ -67,6 +67,12 @@ export const useAgentCreateDialogStyles = makeStyles({
             width: 'unset',
         },
     },
+    chatBoxWrapper: {
+        paddingBottom: '0px',
+        '@media (width < 1000px)': {
+            height: '100%',
+        },
+    },
     formControl: {
         maxWidth: '700px',
     },
@@ -118,7 +124,12 @@ export const useAgentCreateDialogStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         flex: '1 1 auto',
-        height: '0%',
+        height: '100%',
+        width: '50%',
+        '@media (width < 1000px)': {
+            overflowY: 'visible',
+            width: 'unset',
+        },
     },
     yamlEditor: {
         flex: 1,
