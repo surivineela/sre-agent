@@ -321,6 +321,13 @@ Example structure:
 
         var incidents = await _icmApiClient.SearchIncidentsAsync(searchString);
 
+        incidents = incidents.Select(i => (i, timestamp: new[] { i.LastModifiedDate, i.CreatedDate, i.ModifiedTime }.Max()))
+                             .Where(t => t.timestamp >= DateTimeOffset.UtcNow.AddDays(-lookbackPeriodInDays))
+                             .OrderByDescending(t => t.timestamp)
+                             .Take(resultCountLimit)
+                             .Select(t => t.i)
+                             .ToList();
+
         return JsonConvert.SerializeObject(incidents);
     }
 
