@@ -2,16 +2,18 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useCreationDialogStyles = makeStyles({
     dialogSurface: {
-        maxWidth: '800px',
-        width: '90vw',
-        minHeight: '600px',
+        maxWidth: '1000px',
+        width: '95vw',
+        minHeight: '700px',
+        maxHeight: '90vh',
         display: 'flex',
         flexDirection: 'column',
     },
     dialogSurfaceWithTester: {
-        maxWidth: '1400px',
+        maxWidth: '95vw',
         width: '95vw',
-        minHeight: '600px',
+        minHeight: '90vh',
+        maxHeight: '90vh',
         display: 'flex',
         flexDirection: 'column',
     },
@@ -21,6 +23,8 @@ export const useCreationDialogStyles = makeStyles({
         flexDirection: 'column',
         gap: '24px',
         paddingTop: '24px',
+        minHeight: 0, // Allow flex children to shrink
+        overflow: 'hidden',
     },
     dialogBodyWithTester: {
         flex: 1,
@@ -1315,5 +1319,25 @@ export const useCreationDialogStyles = makeStyles({
         marginTop: '24px',
         paddingTop: '16px',
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+
+    // Python tool takes the full dialog body height with its own split layout
+    pythonToolContainer: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        overflow: 'hidden',
+    },
+
+    // DialogContent override to fill available space for Python tool
+    dialogContentFullHeight: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        overflow: 'hidden',
+        // Remove default padding to give Python tool full control
+        padding: 0,
     },
 });

@@ -65,6 +65,8 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
 
     const shouldAccent = isSelectedNode || isHovered;
 
+    const isPythonTool = toolType === 'PythonFunctionTool';
+
     const cardStyles = mergeClasses(
         toolCard,
         shouldAccent && toolType === 'KustoTool' ? kustoToolCard : undefined,
@@ -73,6 +75,9 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
         isHovered ? cardHovered : undefined,
         isSelectedNode ? cardSelected : undefined
     );
+
+    // Determine icon type based on tool type
+    const iconType = isSystemTool ? 'tool' : isPythonTool ? 'pythonTool' : 'toolWithGear';
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
@@ -86,7 +91,7 @@ export const ToolCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) => {
             >
                 <div className={cardContent}>
                     <div className={titleRow}>
-                        <EntityIcon type={isSystemTool ? 'tool' : 'toolWithGear'} iconStyle={{ height: '24px', width: '24px' }} />
+                        <EntityIcon type={iconType} iconStyle={{ height: '24px', width: '24px' }} />
                         <div className={nameBlock}>
                             <Text className={nameText}>{data?.name}</Text>
                         </div>

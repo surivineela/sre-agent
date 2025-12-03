@@ -367,6 +367,31 @@ export const ExtendedAgentInfoPanel = memo(
                             </div>
                         )}
 
+                        {tool.type === 'PythonFunctionTool' && tool.functionCode && (
+                            <div className={styles.paddingBottom10}>
+                                <div className={styles.subSection}>
+                                    <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCodeSectionTitle)}
+                                    </Text>
+                                    <pre
+                                        className={styles.subText}
+                                        style={{
+                                            fontFamily: 'Consolas, Monaco, monospace',
+                                            fontSize: '12px',
+                                            whiteSpace: 'pre-wrap',
+                                            backgroundColor: tokens.colorNeutralBackground3,
+                                            padding: '8px',
+                                            borderRadius: '4px',
+                                            overflow: 'auto',
+                                            maxHeight: '200px',
+                                        }}
+                                    >
+                                        {tool.functionCode}
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+
                         {tool.type !== 'mcp' && (
                             <div className={styles.subSection}>
                                 <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
@@ -708,7 +733,9 @@ export const ExtendedAgentInfoPanel = memo(
         }, [onOpenPlayground, playgroundTarget]);
 
         const headerIconType = useMemo(() => {
-            if (selectedTool) return 'toolWithGear';
+            if (selectedTool) {
+                return selectedTool.type === 'PythonFunctionTool' ? 'pythonTool' : 'toolWithGear';
+            }
             if (selectedConnector) return 'connector';
             if (selectedTrigger) return selectedTrigger.type === 'incident' ? 'incidentTrigger' : 'scheduledTask';
             if (selectedSystemTool) return 'tool';
@@ -827,7 +854,7 @@ export const ExtendedAgentInfoPanel = memo(
                                         const tool = toolMap.get(name);
                                         const systemTool = systemToolMap.get(name);
 
-                                        let iconType: 'tool' | 'toolWithGear' = 'tool';
+                                        let iconType: 'tool' | 'toolWithGear' | 'pythonTool' = 'tool';
                                         let description = tool?.description || EMPTY_DISPLAY;
 
                                         if (systemTool) {
@@ -835,6 +862,8 @@ export const ExtendedAgentInfoPanel = memo(
                                             description =
                                                 systemTool.description ||
                                                 intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback);
+                                        } else if (tool?.type === 'PythonFunctionTool') {
+                                            iconType = 'pythonTool';
                                         } else if (tool?.type === 'KustoTool') {
                                             iconType = 'toolWithGear';
                                         }
@@ -912,6 +941,12 @@ export const ExtendedAgentInfoPanel = memo(
                                                 return tool?.type === 'KustoTool';
                                             })?.length ?? 0;
 
+                                        const pythonToolCount =
+                                            handoffAgent?.tools?.filter(toolName => {
+                                                const tool = toolMap.get(toolName);
+                                                return tool?.type === 'PythonFunctionTool';
+                                            })?.length ?? 0;
+
                                         return (
                                             <TableRow key={handoffAgentName}>
                                                 <TableCell className={styles.tableCellTruncate}>
@@ -923,7 +958,7 @@ export const ExtendedAgentInfoPanel = memo(
                                                 </TableCell>
                                                 <TableCell className={styles.tableCellTruncate}>
                                                     <div className={styles.flexRowCenter8}>
-                                                        {systemToolCount === 0 && kustoToolCount === 0 ? (
+                                                        {systemToolCount === 0 && kustoToolCount === 0 && pythonToolCount === 0 ? (
                                                             <Text title={EMPTY_DISPLAY} className={styles.tableCellTextTruncate}>
                                                                 {EMPTY_DISPLAY}
                                                             </Text>
@@ -963,6 +998,25 @@ export const ExtendedAgentInfoPanel = memo(
                                                                             className={styles.tableCellTextTruncate}
                                                                         >
                                                                             {kustoToolCount}
+                                                                        </Text>
+                                                                    </div>
+                                                                )}
+
+                                                                {pythonToolCount > 0 && (
+                                                                    <div className={styles.flexRowCenter4}>
+                                                                        <EntityIcon
+                                                                            type="pythonTool"
+                                                                            shorthandStyle={{
+                                                                                wrapperSize: 20,
+                                                                                iconSize: 16,
+                                                                                borderRadius: 3,
+                                                                            }}
+                                                                        />
+                                                                        <Text
+                                                                            title={pythonToolCount.toString()}
+                                                                            className={styles.tableCellTextTruncate}
+                                                                        >
+                                                                            {pythonToolCount}
                                                                         </Text>
                                                                     </div>
                                                                 )}

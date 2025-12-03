@@ -37,6 +37,7 @@ using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Python.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
 using Agent.Plugins.Tools;
@@ -239,6 +240,10 @@ public class Program
         // Configure Extended Agents Graph settings
         builder.Services.Configure<ExtendedAgentsGraphSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ExtendedAgentsGraph"));
+
+        // Configure Python Tool settings
+        builder.Services.Configure<PythonToolSettings>(
+            builder.Configuration.GetSection("AppSettings:Core:Azure:PythonTool"));
 
         // Configure MCP settings
         builder.Services.Configure<MCPSettings>(
@@ -501,6 +506,7 @@ public class Program
             .AddSingleton<DynamicKqlToolsPlugin>()
             .AddTransient<KustoToolType>()
             .AddTransient<LinkToolType>()
+            .AddTransient<PythonFunctionToolType>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()

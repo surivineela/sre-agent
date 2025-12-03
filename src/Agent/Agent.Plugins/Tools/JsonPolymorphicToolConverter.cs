@@ -11,6 +11,7 @@ namespace Agent.Plugins.Tools
         private static readonly Dictionary<string, Type> _typeMap = new(StringComparer.OrdinalIgnoreCase)
         {
             ["KustoTool"] = typeof(KustoToolDefinition),
+            ["PythonFunctionTool"] = typeof(PythonFunctionToolDefinition),
             // ["LinkTool"]= typeof(LinkToolDefinition),  // Note: This is not a valid tool type right now, commenting out for now
             // Add other supported types when ready
         };

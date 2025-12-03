@@ -138,20 +138,55 @@ export const buildToolListYaml = (tool: Partial<ExtendedTool>): string => {
     }
 
     const extendedTool = tool as Record<string, unknown>;
+    const isPythonTool = tool.type === 'PythonFunctionTool';
 
     const toolRecord: Record<string, unknown> = {
         name: tool.name,
         type: tool.type,
     };
 
-    assignIfDefined(toolRecord, 'connector', tool.connector);
-    assignIfDefined(toolRecord, 'tool_mode', extendedTool['tool_mode'] ?? extendedTool['toolMode'] ?? tool.toolMode);
-    assignIfDefined(toolRecord, 'mode', extendedTool['mode'] ?? tool.mode);
+    // Kusto-specific fields (only for non-Python tools)
+    if (!isPythonTool) {
+        assignIfDefined(toolRecord, 'connector', tool.connector);
+        assignIfDefined(toolRecord, 'tool_mode', extendedTool['tool_mode'] ?? extendedTool['toolMode'] ?? tool.toolMode);
+        assignIfDefined(toolRecord, 'mode', extendedTool['mode'] ?? tool.mode);
+        assignIfDefined(toolRecord, 'query', tool.query ?? extendedTool['query']);
+    }
+
+    // Common fields
     assignIfDefined(toolRecord, 'description', tool.description);
-    assignIfDefined(toolRecord, 'query', tool.query ?? extendedTool['query']);
+
+    // Python tool-specific fields
+    if (isPythonTool) {
+        assignIfDefined(toolRecord, 'function_code', tool.functionCode ?? extendedTool['functionCode'] ?? extendedTool['function_code']);
+        assignIfDefined(
+            toolRecord,
+            'timeout_seconds',
+            tool.timeoutSeconds ?? extendedTool['timeoutSeconds'] ?? extendedTool['timeout_seconds']
+        );
+        const dependencies = tool.dependencies ?? extendedTool['dependencies'];
+        if (dependencies && Array.isArray(dependencies) && dependencies.length > 0) {
+            toolRecord.dependencies = dependencies;
+        }
+    }
 
     if (tool.parameters && tool.parameters.length > 0) {
         toolRecord.parameters = tool.parameters.map(parameter => {
+            // For Python tools, use simpler parameter format
+            if (isPythonTool) {
+                const parameterRecord: Record<string, unknown> = {
+                    name: parameter.name,
+                    type: parameter.type,
+                    required: parameter.required,
+                    description: parameter.description,
+                };
+                // For Python tools, map_to and target should be empty or 'direct'
+                assignIfDefined(parameterRecord, 'map_to', '');
+                assignIfDefined(parameterRecord, 'target', 'direct');
+                return sanitizeRecord(parameterRecord);
+            }
+
+            // Kusto tool parameter format
             const mapTo = parameter.mapTo ?? 'args';
             const target = parameter.target ?? 'dictionary:args:string';
             const parameterRecord: Record<string, unknown> = {
@@ -181,16 +216,19 @@ export const buildToolListYaml = (tool: Partial<ExtendedTool>): string => {
         toolRecord.metadata = sanitizeRecord(tool.metadata);
     }
 
-    assignIfDefined(toolRecord, 'function', extendedTool['function'] ?? tool.function);
-    assignIfDefined(toolRecord, 'file', tool.file ?? extendedTool['file']);
-    assignIfDefined(toolRecord, 'database', tool.database ?? extendedTool['database']);
-    assignIfDefined(toolRecord, 'cluster_uri', tool.clusterUri ?? extendedTool['clusterUri']);
-    assignIfDefined(toolRecord, 'cluster_hint', extendedTool['clusterHint']);
-    assignIfDefined(toolRecord, 'template', tool.template ?? extendedTool['template']);
+    // Kusto-specific fields (database, cluster, etc.) - only for non-Python tools
+    if (!isPythonTool) {
+        assignIfDefined(toolRecord, 'function', extendedTool['function'] ?? tool.function);
+        assignIfDefined(toolRecord, 'file', tool.file ?? extendedTool['file']);
+        assignIfDefined(toolRecord, 'database', tool.database ?? extendedTool['database']);
+        assignIfDefined(toolRecord, 'cluster_uri', tool.clusterUri ?? extendedTool['clusterUri']);
+        assignIfDefined(toolRecord, 'cluster_hint', extendedTool['clusterHint']);
+        assignIfDefined(toolRecord, 'template', tool.template ?? extendedTool['template']);
 
-    const regionalClusterGroups = (extendedTool['regionalClusterGroups'] ?? tool.regionalClusterGroups) as unknown;
-    if (regionalClusterGroups) {
-        toolRecord.regional_cluster_groups = sanitizeRecord(regionalClusterGroups);
+        const regionalClusterGroups = (extendedTool['regionalClusterGroups'] ?? tool.regionalClusterGroups) as unknown;
+        if (regionalClusterGroups) {
+            toolRecord.regional_cluster_groups = sanitizeRecord(regionalClusterGroups);
+        }
     }
 
     const rawDisplayOptions =

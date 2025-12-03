@@ -66,6 +66,10 @@ export type ExtendedTool = {
     displayOptions?: KustoDisplayOptions;
     // Link tool specific
     template?: string;
+    // Python function tool specific
+    functionCode?: string;
+    timeoutSeconds?: number;
+    dependencies?: string[];
 };
 
 export type ToolParameter = {

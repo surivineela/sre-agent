@@ -7,6 +7,7 @@ interface FeatureFlags {
     agentMemory: boolean;
     extendedAgentsGraph: boolean;
     sessionInsights: boolean;
+    pythonTool: boolean;
 }
 
 interface FeatureStatusResponse {
@@ -19,6 +20,7 @@ export const useFeatureFlags = () => {
         agentMemory: false,
         extendedAgentsGraph: false,
         sessionInsights: false,
+        pythonTool: false,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -49,6 +51,7 @@ export const useFeatureFlags = () => {
                     agentMemory: false,
                     extendedAgentsGraph: false,
                     sessionInsights: false,
+                    pythonTool: false,
                 });
             } finally {
                 setLoading(false);

@@ -5,13 +5,18 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Validation;
+using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Framework.Skills;
+using Agent.Plugins.Connector;
+using Agent.Plugins.Kusto;
+using Agent.Plugins.Python.Tools;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
@@ -22,6 +27,7 @@ using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
+using Agent.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using YamlDotNet.Serialization;
@@ -545,6 +551,375 @@ public class ExtendedAgentController : ControllerBase
             _logger.LogInternalError(ex, "Error in TestKustoQuery");
             return StatusCode(500, new ExtendedAgentErrorResponse { ErrorCode = "INTERNAL_ERROR", Message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Test a Python function tool with provided parameters
+    /// </summary>
+    [HttpPost("tools/python/test")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
+    [ProducesResponseType(typeof(PythonToolTestResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PythonToolTestResponse>> TestPythonTool([FromBody] PythonToolTestRequest request)
+    {
+        try
+        {
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.FunctionCode))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_REQUEST",
+                    Message = "FunctionCode is required"
+                });
+            }
+
+            if (!request.FunctionCode.Contains("def main"))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_FUNCTION",
+                    Message = "FunctionCode must contain a 'def main' function"
+                });
+            }
+
+            if (request.TimeoutSeconds < 5 || request.TimeoutSeconds > 900)
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_TIMEOUT",
+                    Message = "TimeoutSeconds must be between 5 and 900"
+                });
+            }
+
+            // Create tool definition
+            var toolDefinition = new PythonFunctionToolDefinition
+            {
+                Name = "test-python-tool",
+                Type = "PythonFunctionTool",
+                Description = "Test execution",
+                FunctionCode = request.FunctionCode,
+                TimeoutSeconds = request.TimeoutSeconds,
+                Parameters = request.ParameterDefinitions ?? PythonSignatureParser.ExtractParameters(request.FunctionCode)
+            };
+
+            toolDefinition.Validate();
+
+            // Execute the tool
+            var sessionPoolService = HttpContext.RequestServices.GetRequiredService<ISessionPoolService>();
+            var pythonTool = new PythonFunctionToolType(sessionPoolService);
+            pythonTool.SetToolDefinition(toolDefinition);
+
+            var startTime = DateTime.UtcNow;
+            var resultJson = await pythonTool.Run(request.Parameters ?? new Dictionary<string, string>());
+            var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            if (string.IsNullOrEmpty(resultJson))
+            {
+                throw new InvalidOperationException("Python tool execution returned null or empty result.");
+            }
+
+            var runResult = JsonSerializer.Deserialize<PythonToolExecutionEnvelope>(
+                resultJson,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? throw new InvalidOperationException("Unable to parse python tool execution result.");
+
+            var success = runResult.Success ?? false;
+            var response = new PythonToolTestResponse
+            {
+                Success = success,
+                ExecutionTimeMs = executionTime,
+                ExitCode = runResult.ExitCode ?? (success ? 0 : -1),
+                Stdout = runResult.Stdout,
+                Stderr = runResult.Stderr,
+                Files = ParseFiles(runResult.Files),
+                ErrorMessage = success ? null : (runResult.Message ?? ParseError(runResult.Error)),
+                ErrorType = success ? null : (runResult.ErrorType ?? runResult.Type)
+            };
+
+            if (runResult.Result.HasValue && runResult.Result.Value.ValueKind != JsonValueKind.Null)
+            {
+                response.Result = JsonSerializer.Deserialize<object>(runResult.Result.Value.GetRawText());
+            }
+
+            return Ok(response);
+        }
+        catch (ArgumentException validationEx)
+        {
+            return BadRequest(new ExtendedAgentErrorResponse
+            {
+                ErrorCode = "VALIDATION_FAILED",
+                Message = validationEx.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in TestPythonTool");
+            return Ok(new PythonToolTestResponse
+            {
+                Success = false,
+                ExecutionTimeMs = 0,
+                ExitCode = -1,
+                ErrorMessage = ex.Message,
+                ErrorType = ex.GetType().Name
+            });
+        }
+
+        static List<string>? ParseFiles(JsonElement? filesElement)
+        {
+            if (!filesElement.HasValue || filesElement.Value.ValueKind == JsonValueKind.Null)
+                return null;
+
+            return filesElement.Value.ValueKind switch
+            {
+                JsonValueKind.Array => JsonSerializer.Deserialize<List<string>>(filesElement.Value.GetRawText()),
+                JsonValueKind.String when !string.IsNullOrWhiteSpace(filesElement.Value.GetString()) =>
+                    new List<string> { filesElement.Value.GetString()! },
+                _ => null
+            };
+        }
+
+        static string? ParseError(JsonElement? errorElement)
+        {
+            if (!errorElement.HasValue)
+                return null;
+
+            return errorElement.Value.ValueKind switch
+            {
+                JsonValueKind.Null or JsonValueKind.Undefined or JsonValueKind.False => null,
+                JsonValueKind.String => errorElement.Value.GetString(),
+                JsonValueKind.True => "Python execution failed.",
+                _ => errorElement.Value.GetRawText()
+            };
+        }
+    }
+
+    /// <summary>
+    /// Generate a Python function tool from natural language intent using LLM
+    /// </summary>
+    [HttpPost("generate-python-tool")]
+    [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentWriteActionId)]
+    [ProducesResponseType(typeof(GeneratePythonToolResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ExtendedAgentErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<GeneratePythonToolResponse>> GeneratePythonTool([FromBody] GeneratePythonToolRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Intent))
+            {
+                return BadRequest(new ExtendedAgentErrorResponse
+                {
+                    ErrorCode = "INVALID_REQUEST",
+                    Message = "Intent is required"
+                });
+            }
+
+            var systemPrompt = """
+You are an expert Python developer creating function tools for an AI AGENT system.
+
+IMPORTANT CONTEXT: This tool will be called by an AI agent (LLM), NOT directly by humans.
+The AI agent will read the tool's description and parameter descriptions to decide when and how to use it.
+
+Your task: Generate a Python function from the user's intent description.
+
+CRITICAL REQUIREMENTS:
+1. Function MUST be named 'main' with CLEAR type hints
+   Example: def main(url: str, timeout: int = 30, enabled: bool = True) -> dict:
+2. ALWAYS return the result - the function MUST end with a return statement returning JSON-serializable data
+3. Return JSON-serializable data (dict, list, str, int, bool, None)
+4. You can use network libraries (requests, urllib, httpx, aiohttp, etc.) for API calls
+5. You can use subprocess and os operations when needed
+6. You can perform file operations as needed
+7. Use standard library or popular packages (requests, json, re, datetime, subprocess, os, etc.)
+8. Include docstring explaining what the function does
+9. Keep it focused on the specific task
+
+PARAMETER NAMING (CRITICAL FOR AI AGENT):
+- Use clear, unambiguous parameter names that the AI agent will understand
+- Parameter names become the keys the AI agent uses when calling the tool
+- Common patterns:
+  * For URLs: use 'url' or 'endpoint' (not 'target', 'address', etc.)
+  * For hostnames: use 'hostname' or 'host'
+  * For timeouts: use 'timeout' or 'timeout_seconds'
+  * For counts: use 'count', 'limit', 'max_results'
+- The AI agent will pass parameters by name, so names must be intuitive
+
+DESCRIPTION (CRITICAL FOR AI AGENT):
+- The description tells the AI agent WHEN to use this tool
+- Write it as: "Use this tool to [action] when you need to [goal]"
+- Include key capabilities and what it returns
+- Example: "Use this tool to fetch SSL certificate details when you need to inspect HTTPS security, check certificate expiration, or verify certificate chain validity. Returns certificate metadata including subject, issuer, expiration, and trust status."
+
+PARAMETER DESCRIPTIONS (CRITICAL FOR AI AGENT):
+- Each parameter needs a clear description that helps the AI agent understand what value to provide
+- Descriptions should explain: what the parameter is for, expected format, and any constraints
+- Example descriptions:
+  * "The URL of the endpoint to query (must be a valid HTTP/HTTPS URL)"
+  * "Maximum time in seconds to wait for a response"
+  * "Whether to include detailed metadata in the response"
+
+Return ONLY valid JSON with this exact shape:
+{
+    "name": "snake_case_tool_name",
+    "description": "Use this tool to [action] when you need to [specific use case]. Returns [what it returns].",
+    "function_code": "def main(param1: str, param2: int = 10) -> dict:\n    \"\"\"Docstring here\"\"\"\n    import json\n    # implementation\n    return {'result': value}",
+    "parameters": [
+        {"name": "param1", "type": "string", "required": true, "description": "Clear description of what this parameter is for and what value the AI agent should provide"},
+        {"name": "param2", "type": "int", "required": false, "description": "Clear description with default value mentioned"}
+    ],
+    "timeout_seconds": 60,
+    "test_cases": [
+        {
+            "description": "Test case 1 description",
+            "parameters": {"param1": "test", "param2": "5"},
+            "expected_output": "Brief description of expected result"
+        }
+    ]
+}
+
+IMPORTANT:
+- Parameters MUST match the function signature - include "parameters" array with descriptions for each parameter
+- Parameter types: "string", "int", "double", "bool", "object", "array"
+- Test case parameters: ALL values must be strings (will be auto-converted based on type hints)
+  Example: {"timeout": "30", "retries": "3", "enabled": "true"}
+- Generate 2-3 realistic test cases
+- Timeout should be 30-120 seconds based on complexity
+- The function MUST return a result - never leave results unreturned
+
+User Intent (between <<< and >>>):
+<<<
+""";
+
+            var prompt = systemPrompt + request.Intent + "\n>>>";
+
+            var chatOptions = new ChatOptions { Temperature = 0.7f };
+            var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+            var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
+
+            _logger.LogInternalInformation("Generated Python tool raw content: {Content}", content);
+
+            // Extract JSON from response (handle markdown code blocks)
+            var jsonContent = ExtractJsonFromResponse(content);
+
+            // Parse the LLM response - use case-insensitive matching without naming policy
+            // since we have explicit [JsonPropertyName] attributes on the model
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var generatedTool = JsonSerializer.Deserialize<GeneratePythonToolResponse>(jsonContent, jsonOptions);
+            if (generatedTool == null)
+            {
+                _logger.LogInternalWarning("Failed to parse LLM response as GeneratePythonToolResponse");
+                return Ok(new GeneratePythonToolResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Failed to parse LLM response"
+                });
+            }
+
+            // Apply user preferences
+            if (!string.IsNullOrWhiteSpace(request.SuggestedName))
+            {
+                generatedTool.Name = request.SuggestedName;
+            }
+
+            if (request.TimeoutSeconds.HasValue)
+            {
+                generatedTool.TimeoutSeconds = Math.Clamp(request.TimeoutSeconds.Value, 5, 900);
+            }
+
+            // Merge extracted parameters with LLM-generated descriptions
+            // The function signature is the source of truth for names, types, and required status
+            // But the LLM provides better descriptions for the AI agent
+            var extractedParams = Utils.PythonSignatureParser.ExtractParameters(generatedTool.FunctionCode);
+            if (extractedParams.Count > 0)
+            {
+                // Create a lookup of LLM-generated descriptions by parameter name
+                var llmDescriptions = generatedTool.Parameters
+                    .ToDictionary(p => p.Name, p => p.Description, StringComparer.OrdinalIgnoreCase);
+
+                // Merge: use extracted params but keep LLM descriptions if available
+                foreach (var param in extractedParams)
+                {
+                    if (llmDescriptions.TryGetValue(param.Name, out var llmDescription) && !string.IsNullOrWhiteSpace(llmDescription))
+                    {
+                        param.Description = llmDescription;
+                    }
+                }
+
+                generatedTool.Parameters = extractedParams;
+            }
+
+            // Validate the generated code
+            try
+            {
+                var tempDef = new PythonFunctionToolDefinition
+                {
+                    Name = generatedTool.Name,
+                    Type = "PythonFunctionTool",
+                    FunctionCode = generatedTool.FunctionCode,
+                    TimeoutSeconds = generatedTool.TimeoutSeconds
+                };
+                tempDef.Validate();
+            }
+            catch (ArgumentException validationEx)
+            {
+                return Ok(new GeneratePythonToolResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Generated code validation failed: {validationEx.Message}"
+                });
+            }
+
+            generatedTool.Success = true;
+            return Ok(generatedTool);
+        }
+        catch (JsonException jsonEx)
+        {
+            _logger.LogInternalError(jsonEx, "Failed to parse LLM JSON response");
+            return Ok(new GeneratePythonToolResponse
+            {
+                Success = false,
+                ErrorMessage = $"Invalid JSON from LLM: {jsonEx.Message}"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error in GeneratePythonTool");
+            return Ok(new GeneratePythonToolResponse
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Extract JSON from LLM response, handling markdown code blocks
+    /// </summary>
+    private string ExtractJsonFromResponse(string content)
+    {
+        // Remove markdown code blocks if present
+        var trimmed = content.Trim();
+
+        if (trimmed.StartsWith("```json"))
+        {
+            trimmed = trimmed.Substring(7);
+        }
+        else if (trimmed.StartsWith("```"))
+        {
+            trimmed = trimmed.Substring(3);
+        }
+
+        if (trimmed.EndsWith("```"))
+        {
+            trimmed = trimmed.Substring(0, trimmed.Length - 3);
+        }
+
+        return trimmed.Trim();
     }
 
     /// <summary>
@@ -1694,5 +2069,41 @@ If ANY diff fails validation, REWRITE it before returning the response. Do not s
     {
         var error = ErrorMap.InternalServerError.CreateErrorEntity();
         return StatusCode(StatusCodes.Status500InternalServerError, error);
+    }
+
+    private sealed class PythonToolExecutionEnvelope
+    {
+        [JsonPropertyName("success")]
+        public bool? Success { get; set; }
+
+        [JsonPropertyName("result")]
+        public JsonElement? Result { get; set; }
+
+        [JsonPropertyName("exit_code")]
+        public int? ExitCode { get; set; }
+
+        [JsonPropertyName("stdout")]
+        public string? Stdout { get; set; }
+
+        [JsonPropertyName("stderr")]
+        public string? Stderr { get; set; }
+
+        [JsonPropertyName("files")]
+        public JsonElement? Files { get; set; }
+
+        [JsonPropertyName("error")]
+        public JsonElement? Error { get; set; }
+
+        [JsonPropertyName("error_type")]
+        public string? ErrorType { get; set; }
+
+        [JsonPropertyName("message")]
+        public string? Message { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        [JsonPropertyName("raw_output")]
+        public bool? RawOutput { get; set; }
     }
 }

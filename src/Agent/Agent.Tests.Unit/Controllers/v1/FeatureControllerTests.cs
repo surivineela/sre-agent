@@ -17,6 +17,7 @@ namespace Agent.Tests.Unit.Controllers.v1
         private readonly Mock<IOptions<ScheduledTaskSettings>> _mockScheduledTaskSettings;
         private readonly Mock<IOptions<AgentMemorySettings>> _mockAgentMemorySettings;
         private readonly Mock<IOptions<ExtendedAgentsGraphSettings>> _mockExtendedAgentsGraphSettings;
+        private readonly Mock<IOptions<PythonToolSettings>> _mockPythonToolSettings;
         private readonly Mock<ILogger<FeatureController>> _mockLogger;
         private readonly FeatureController _controller;
 
@@ -25,12 +26,17 @@ namespace Agent.Tests.Unit.Controllers.v1
             _mockScheduledTaskSettings = new Mock<IOptions<ScheduledTaskSettings>>();
             _mockAgentMemorySettings = new Mock<IOptions<AgentMemorySettings>>();
             _mockExtendedAgentsGraphSettings = new Mock<IOptions<ExtendedAgentsGraphSettings>>();
+            _mockPythonToolSettings = new Mock<IOptions<PythonToolSettings>>();
             _mockLogger = new Mock<ILogger<FeatureController>>();
+
+            // Set default value for PythonToolSettings
+            _mockPythonToolSettings.Setup(x => x.Value).Returns(new PythonToolSettings { Enabled = false });
 
             _controller = new FeatureController(
                 _mockScheduledTaskSettings.Object,
                 _mockAgentMemorySettings.Object,
                 _mockExtendedAgentsGraphSettings.Object,
+                _mockPythonToolSettings.Object,
                 _mockLogger.Object);
         }
 
@@ -43,10 +49,12 @@ namespace Agent.Tests.Unit.Controllers.v1
             var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = true };
             var agentMemorySettings = new AgentMemorySettings { Enabled = true, EnableInsightPosting = true };
             var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = true };
+            var pythonToolSettings = new PythonToolSettings { Enabled = true };
 
             _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
             _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
             _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+            _mockPythonToolSettings.Setup(x => x.Value).Returns(pythonToolSettings);
 
             // Act
             var result = _controller.GetFeatureStatus();
@@ -59,7 +67,8 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.True(response.Features["agentMemory"]);
             Assert.True(response.Features["extendedAgentsGraph"]);
             Assert.True(response.Features["sessionInsights"]);
-            Assert.Equal(4, response.Features.Count);
+            Assert.True(response.Features["pythonTool"]);
+            Assert.Equal(5, response.Features.Count);
         }
 
         [Fact]
@@ -85,7 +94,8 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.False(response.Features["agentMemory"]);
             Assert.False(response.Features["extendedAgentsGraph"]);
             Assert.False(response.Features["sessionInsights"]);
-            Assert.Equal(4, response.Features.Count);
+            Assert.False(response.Features["pythonTool"]);
+            Assert.Equal(5, response.Features.Count);
         }
 
         [Fact]
@@ -111,7 +121,7 @@ namespace Agent.Tests.Unit.Controllers.v1
             Assert.False(response.Features["agentMemory"]);
             Assert.True(response.Features["extendedAgentsGraph"]);
             Assert.False(response.Features["sessionInsights"]);
-            Assert.Equal(4, response.Features.Count);
+            Assert.Equal(5, response.Features.Count);
         }
 
         [Fact]
@@ -337,6 +347,40 @@ namespace Agent.Tests.Unit.Controllers.v1
 
             Assert.False(response.Features["agentMemory"]);
             Assert.True(response.Features["sessionInsights"]);
+        }
+
+        [Theory]
+        [InlineData("pythontool", true)]
+        [InlineData("pythonTool", true)]
+        [InlineData("PYTHONTOOL", true)]
+        public void GetFeatureStatusByName_PythonToolEnabled_ReturnsOkWithEnabled(string featureName, bool enabled)
+        {
+            // Arrange
+            var scheduledTaskSettings = new ScheduledTaskSettings { Enabled = false };
+            var agentMemorySettings = new AgentMemorySettings { Enabled = false };
+            var extendedAgentsGraphSettings = new ExtendedAgentsGraphSettings { Enabled = false };
+            var pythonToolSettings = new PythonToolSettings { Enabled = enabled };
+
+            _mockScheduledTaskSettings.Setup(x => x.Value).Returns(scheduledTaskSettings);
+            _mockAgentMemorySettings.Setup(x => x.Value).Returns(agentMemorySettings);
+            _mockExtendedAgentsGraphSettings.Setup(x => x.Value).Returns(extendedAgentsGraphSettings);
+            _mockPythonToolSettings.Setup(x => x.Value).Returns(pythonToolSettings);
+
+            // Act
+            var result = _controller.GetFeatureStatus(featureName);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
+            var response = okResult.Value;
+
+            var featureProperty = response.GetType().GetProperty("feature");
+            var enabledProperty = response.GetType().GetProperty("enabled");
+
+            Assert.NotNull(featureProperty);
+            Assert.NotNull(enabledProperty);
+            Assert.Equal(featureName, featureProperty.GetValue(response));
+            Assert.Equal(enabled, enabledProperty.GetValue(response));
         }
 
         [Fact]

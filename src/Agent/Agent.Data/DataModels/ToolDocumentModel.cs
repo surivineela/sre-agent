@@ -16,6 +16,7 @@ namespace Agent.Data.DataModels;
 [CustomizedJsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [CustomizedJsonDerivedType(typeof(KustoToolDocumentModel), KustoToolType)]
 [CustomizedJsonDerivedType(typeof(LinkToolDocumentModel), LinkToolType)]
+[CustomizedJsonDerivedType(typeof(PythonToolDocumentModel), PythonToolType)]
 public record ToolDocumentModel(
     ResourceMetadata Metadata,
     ToolSpec Spec
@@ -23,6 +24,7 @@ public record ToolDocumentModel(
 {
     public const string KustoToolType = "KustoTool";
     public const string LinkToolType = "LinkTool";
+    public const string PythonToolType = "PythonFunctionTool";
     public string Id => Metadata.Id ?? Spec.Name;
     public string DocumentType => "ExtendedAgentTool";
     public string PartitionKey => Spec.Name;
@@ -40,6 +42,7 @@ public record ToolDocumentModel(
     {
         KustoToolDocumentModel k => k.ToYamlToolDefinition(),
         LinkToolDocumentModel l => l.ToYamlToolDefinition(),
+        PythonToolDocumentModel p => p.ToYamlToolDefinition(),
         _ => throw new NotSupportedException($"Unknown tool document type: {Type}")
     };
     #endregion

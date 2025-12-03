@@ -64,6 +64,29 @@ public static class ApiToRuntimeMapper
                 Template = link.Template,
                 ToolMode = link.ToolMode
             }),
+        PythonToolApiModel py => new PythonToolDocumentModel(
+            new ResourceMetadata
+            {
+                Id = $"tool_{py.Name}",
+                OperationId = operationId,
+                Owner = py.Metadata?.Owner,
+                Version = py.Metadata?.Version,
+                Tags = py.Metadata?.Tags,
+                UpdatedAt = py.Metadata?.UpdatedAt,
+                CreatedAt = py.Metadata?.CreatedAt
+            },
+            new PythonToolSpec
+            {
+                Name = py.Name,
+                Type = "PythonFunctionTool",
+                Description = py.Description,
+                Parameters = py.Parameters,
+                Attributes = py.Attributes,
+                FunctionCode = py.FunctionCode,
+                TimeoutSeconds = py.TimeoutSeconds,
+                Dependencies = py.Dependencies,
+                ToolMode = py.ToolMode
+            }),
         _ => throw new NotSupportedException($"Unknown tool type for document model: {tool.Type}")
     };
 
@@ -187,6 +210,19 @@ public static class ApiToRuntimeMapper
             Metadata = linkToolDefinition.Metadata,
             ToolMode = linkToolDefinition.ToolMode,
             Template = linkToolDefinition.Template,
+        },
+        PythonFunctionToolDefinition py => new PythonToolApiModel
+        {
+            Name = py.Name,
+            Type = py.Type,
+            Description = py.Description,
+            Parameters = py.Parameters,
+            Attributes = py.Attributes,
+            Metadata = py.Metadata,
+            ToolMode = py.ToolMode,
+            FunctionCode = py.FunctionCode,
+            TimeoutSeconds = py.TimeoutSeconds,
+            Dependencies = py.Dependencies,
         },
         _ => throw new NotSupportedException($"Unknown tool document type: {tool.Type}")
     };

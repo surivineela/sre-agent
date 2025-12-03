@@ -303,6 +303,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
     existingIncidentHandlers = [],
     existingScheduledTasks = [],
     initialEntityType,
+    initialToolType,
     initialTriggerAgentName,
     contextNotice,
     linkContext,
@@ -346,14 +347,15 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         if (initialEntityType === 'agent') {
             state.agent = { name: '', instructions: '', tools: [], agentType: 'Autonomous' };
         } else if (initialEntityType === 'tool') {
-            state.tool = { name: '', type: 'KustoTool', description: '', mode: 'query' };
+            const toolType = initialToolType ?? 'KustoTool';
+            state.tool = { name: '', type: toolType, description: '', mode: 'query' };
             state.toolTest = { status: 'idle' };
         } else if (initialEntityType === 'connector') {
             state.connector = { name: '', type: 'Kusto', enabled: true };
         }
 
         return state;
-    }, [initialEntityType, linkContext]);
+    }, [initialEntityType, initialToolType, linkContext]);
 
     const [state, setState] = useState<CreationState>(() => buildInitialState());
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -377,8 +379,10 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
 
     // Tool tester logic
     const currentToolFingerprint = useMemo(() => getKustoTestFingerprint(state.tool), [state.tool]);
-    const isKustoToolSelected = state.entityType === 'tool' && (state.tool?.type?.trim() ?? 'KustoTool') === 'KustoTool';
-    const shouldShowTester = state.step === 2 && isKustoToolSelected;
+    const toolType = state.tool?.type?.trim() ?? 'KustoTool';
+    const isKustoToolSelected = state.entityType === 'tool' && toolType === 'KustoTool';
+    const isPythonToolSelected = state.entityType === 'tool' && toolType === 'PythonFunctionTool';
+    const shouldShowTester = state.step === 2 && (isKustoToolSelected || isPythonToolSelected);
 
     const resetTrigger = triggerController.reset;
 
@@ -528,7 +532,8 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
         }
 
         const toolType = state.tool?.type?.trim() ?? 'KustoTool';
-        if (toolType !== 'KustoTool') {
+        // Only Kusto and Python tools require testing
+        if (toolType !== 'KustoTool' && toolType !== 'PythonFunctionTool') {
             return true;
         }
 
@@ -554,6 +559,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                 case 'tool': {
                     const toolType = state.tool?.type?.trim() ?? 'KustoTool';
                     const isKustoTool = toolType === 'KustoTool';
+                    const isPythonTool = toolType === 'PythonFunctionTool';
 
                     if (isKustoTool) {
                         return !!(
@@ -562,6 +568,16 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                             state.tool?.connector &&
                             state.tool?.database &&
                             state.tool?.query &&
+                            isToolTestSatisfied
+                        );
+                    }
+
+                    if (isPythonTool) {
+                        return !!(
+                            state.tool?.name &&
+                            state.tool?.description &&
+                            state.tool?.functionCode &&
+                            state.tool?.functionCode.includes('def main') &&
                             isToolTestSatisfied
                         );
                     }
@@ -699,6 +715,9 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                         query: state.tool?.query,
                         mode: state.tool?.mode || 'query',
                         parameters: state.tool?.parameters || [],
+                        functionCode: state.tool?.functionCode,
+                        timeoutSeconds: state.tool?.timeoutSeconds || 120,
+                        dependencies: state.tool?.dependencies || [],
                     };
                     break;
                 case 'connector':
@@ -777,7 +796,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                             </MessageBar>
                         )}
 
-                        <DialogContent>
+                        <DialogContent className={isPythonToolSelected && state.step === 2 ? styles.dialogContentFullHeight : ''}>
                             {isQuickAgentFlow ? (
                                 <AgentDetailsStep
                                     agent={state.agent || { agentType: 'Autonomous' }}
@@ -825,29 +844,46 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                         />
                                     )}
 
-                                    {state.step === 2 && state.entityType === 'tool' && (
-                                        <div className={shouldShowTester ? styles.dialogBodyWithTester : undefined}>
-                                            <div className={styles.formColumn}>
+                                    {state.step === 2 &&
+                                        state.entityType === 'tool' &&
+                                        (isPythonToolSelected ? (
+                                            // Python tool has its own full-height split layout
+                                            <div className={styles.pythonToolContainer}>
                                                 <ToolDetailsStep
                                                     tool={state.tool || {}}
                                                     onChange={handleToolChange}
                                                     existingConnectors={existingConnectors}
                                                     intl={intl}
+                                                    onTestStatusChange={handleToolTestStatusChange}
+                                                    fingerprint={currentToolFingerprint}
                                                 />
                                             </div>
-                                            {shouldShowTester && (
-                                                <div className={styles.testerColumn}>
-                                                    <KustoQueryTesterPanel
+                                        ) : (
+                                            // Kusto and other tools use the standard layout with tester panel
+                                            <div className={shouldShowTester ? styles.dialogBodyWithTester : undefined}>
+                                                <div className={styles.formColumn}>
+                                                    <ToolDetailsStep
                                                         tool={state.tool || {}}
+                                                        onChange={handleToolChange}
+                                                        existingConnectors={existingConnectors}
                                                         intl={intl}
-                                                        toolTest={state.toolTest}
-                                                        fingerprint={currentToolFingerprint}
                                                         onTestStatusChange={handleToolTestStatusChange}
+                                                        fingerprint={currentToolFingerprint}
                                                     />
                                                 </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                {shouldShowTester && isKustoToolSelected && (
+                                                    <div className={styles.testerColumn}>
+                                                        <KustoQueryTesterPanel
+                                                            tool={state.tool || {}}
+                                                            intl={intl}
+                                                            toolTest={state.toolTest}
+                                                            fingerprint={currentToolFingerprint}
+                                                            onTestStatusChange={handleToolTestStatusChange}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
 
                                     {state.step === 2 && state.entityType === 'connector' && (
                                         <ConnectorDetailsStep
@@ -920,6 +956,8 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                                 </MessageBar>
                             </div>
                         )}
+
+                        {/* Python tool validation is handled inline by PythonToolCreator component */}
 
                         <DialogActions>
                             {showWizard && state.step > 1 && (

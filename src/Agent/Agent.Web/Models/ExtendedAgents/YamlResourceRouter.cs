@@ -16,7 +16,7 @@ public class YamlResourceRouter
         {
             ["KustoTool"] = typeof(KustoToolApiModel),
             ["LinkTool"] = typeof(LinkToolApiModel),
-
+            ["PythonFunctionTool"] = typeof(PythonToolApiModel),
         };
 
         var connectorTypeMappings = new Dictionary<string, Type>

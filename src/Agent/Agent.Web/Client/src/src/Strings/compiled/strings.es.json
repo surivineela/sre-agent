@@ -36,7 +36,7 @@
   "+6/51l": [
     {
       "type": 0,
-      "value": "Creating meta agent"
+      "value": "Creando metaagente"
     }
   ],
   "+7PjfV": [
@@ -54,7 +54,7 @@
   "+ASm/B": [
     {
       "type": 0,
-      "value": "Submit Feedback"
+      "value": "Enviar comentario"
     }
   ],
   "+Aon83": [
@@ -90,13 +90,19 @@
   "+Kcoxv": [
     {
       "type": 0,
-      "value": "Related incidents"
+      "value": "Incidentes relacionados"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
       "value": "Elegir una herramienta"
+    }
+  ],
+  "+OMfjA": [
+    {
+      "type": 0,
+      "value": "Give access to knowledge base"
     }
   ],
   "+Pmftr": [
@@ -139,16 +145,22 @@
       "value": "Tipo"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+XtuWl": [
     {
       "type": 0,
-      "value": "This insight needs improvement"
+      "value": "Esta conclusión necesita mejoras"
     }
   ],
   "+Y8m6A": [
     {
       "type": 0,
-      "value": "Added handoff from "
+      "value": "Se ha agregado la entrega de "
     },
     {
       "type": 1,
@@ -156,7 +168,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " al subagente "
     },
     {
       "type": 1,
@@ -226,7 +238,7 @@
   "+nnQeH": [
     {
       "type": 0,
-      "value": "Created meta agent"
+      "value": "Metaagente creado"
     }
   ],
   "+nt4l9": [
@@ -256,7 +268,7 @@
   "/+WtRc": [
     {
       "type": 0,
-      "value": "Enter handoff instructions"
+      "value": "Introduzca las instrucciones de entrega"
     }
   ],
   "//Zb9l": [
@@ -280,7 +292,7 @@
   "/3OCn6": [
     {
       "type": 0,
-      "value": "Insights have not been generated for this thread yet."
+      "value": "Aún no se han generado conclusiones para este subproceso."
     }
   ],
   "/4tOwT": [
@@ -298,13 +310,51 @@
   "/7GPtw": [
     {
       "type": 0,
-      "value": "Go to Incidents"
+      "value": "Ir a incidentes"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
       "value": "Administrar instancias administradas de SQL."
+    }
+  ],
+  "/8swfk": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "/9FZdx": [
@@ -333,12 +383,6 @@
     {
       "type": 0,
       "value": "Borrar"
-    }
-  ],
-  "/ImSqA": [
-    {
-      "type": 0,
-      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -450,7 +494,7 @@
   "/qCaiZ": [
     {
       "type": 0,
-      "value": "Incident trigger name"
+      "value": "Nombre de desencadenador de incidentes"
     }
   ],
   "/rNkXe": [
@@ -516,7 +560,7 @@
   "03qRza": [
     {
       "type": 0,
-      "value": "View AI suggestions"
+      "value": "Ver sugerencias de IA"
     }
   ],
   "05Rzkx": [
@@ -554,7 +598,7 @@
   "0DUgkZ": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "El agente de SRE "
     },
     {
       "type": 1,
@@ -562,7 +606,7 @@
     },
     {
       "type": 0,
-      "value": " stopped successfully"
+      "value": " se detuvo correctamente"
     }
   ],
   "0Dhe75": [
@@ -612,7 +656,7 @@
   "0Qocmw": [
     {
       "type": 0,
-      "value": "All tools"
+      "value": "Todas las herramientas"
     }
   ],
   "0R+Pet": [
@@ -654,7 +698,7 @@
   "0VVX+G": [
     {
       "type": 0,
-      "value": "Connected as"
+      "value": "Conectado como"
     }
   ],
   "0VuGey": [
@@ -698,7 +742,7 @@
   "0hpRE4": [
     {
       "type": 0,
-      "value": "Enter the parameter name"
+      "value": "Especifique el nombre del parámetro"
     }
   ],
   "0i3Qrd": [
@@ -832,7 +876,7 @@
   "0zGfOk": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "Para obtener un rendimiento óptimo del agente para diagnósticos, métricas, conocimientos y mucho más, use grupos de recursos que incluyan uno o varios de estos servicios de proceso de Azure: Azure Kubernetes Service, Functions, Container Apps o Web Apps."
     }
   ],
   "12GY0h": [
@@ -845,6 +889,16 @@
     {
       "type": 0,
       "value": "Usos (desencadenador)"
+    }
+  ],
+  "13KTIN": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
     }
   ],
   "15GWkT": [
@@ -874,7 +928,7 @@
   "19xydZ": [
     {
       "type": 0,
-      "value": "You do not have permission to generate insights for this thread."
+      "value": "No tiene permiso para generar información para este subproceso."
     }
   ],
   "1CcjQj": [
@@ -915,18 +969,10 @@
       "value": "Todavía no se ha cargado ningún documento"
     }
   ],
-  "1O47t6": [
+  "1LBny5": [
     {
       "type": 0,
-      "value": "El agente de SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " se eliminó correctamente"
+      "value": "Stopped"
     }
   ],
   "1OorZL": [
@@ -1045,6 +1091,12 @@
       "value": "%"
     }
   ],
+  "1m4VPF": [
+    {
+      "type": 0,
+      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+    }
+  ],
   "1o9eJ6": [
     {
       "offset": 0,
@@ -1092,6 +1144,12 @@
     {
       "type": 0,
       "value": "Plan de respuesta"
+    }
+  ],
+  "1xTayQ": [
+    {
+      "type": 0,
+      "value": "Enter endpoint"
     }
   ],
   "1xZjpU": [
@@ -1287,7 +1345,7 @@
   "2l5w5P": [
     {
       "type": 0,
-      "value": "Go to Support + Troubleshooting"
+      "value": "Ir a Soporte técnico y solución de problemas"
     }
   ],
   "2m6oj5": [
@@ -1317,7 +1375,7 @@
   "2reUcp": [
     {
       "type": 0,
-      "value": "Subagent name"
+      "value": "Nombre del subagente"
     }
   ],
   "2tOWr2": [
@@ -1398,6 +1456,12 @@
       "value": "Aún no hay agentes disponibles"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1476,6 +1540,50 @@
       "value": "Add MCP server"
     }
   ],
+  "3h7ZKg": [
+    {
+      "type": 0,
+      "value": "Review + add"
+    }
+  ],
+  "3hmrCJ": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
@@ -1500,10 +1608,32 @@
       "value": "Lector"
     }
   ],
+  "3rvQhx": [
+    {
+      "type": 0,
+      "value": "You can manage up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. Your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups."
+    }
+  ],
   "3sNyAo": [
     {
       "type": 0,
-      "value": "The url must be in the format: "
+      "value": "La dirección de URL debe tener el formato: "
     },
     {
       "type": 1,
@@ -1614,6 +1744,12 @@
       "value": "No hay herramientas comunes configuradas."
     }
   ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "451B6Z": [
     {
       "type": 0,
@@ -1673,7 +1809,7 @@
   "4CcHuj": [
     {
       "type": 0,
-      "value": "Share your thoughts about this insight... (optional)"
+      "value": "Comparta sus ideas sobre esta información... (opcional)"
     }
   ],
   "4Ez7HI": [
@@ -1686,6 +1822,12 @@
     {
       "type": 0,
       "value": "Alerta creada"
+    }
+  ],
+  "4IAjnN": [
+    {
+      "type": 0,
+      "value": "Turn on deep investigation?"
     }
   ],
   "4MeTpL": [
@@ -1733,7 +1875,7 @@
   "4RwjwU": [
     {
       "type": 0,
-      "value": "Add handoff from existing agent"
+      "value": "Agregar entrega desde agente existente"
     }
   ],
   "4TnjxL": [
@@ -1751,7 +1893,7 @@
   "4Xep39": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "No se pudo iniciar el agente de SRE "
     },
     {
       "type": 1,
@@ -1809,7 +1951,7 @@
   "4lv5gO": [
     {
       "type": 0,
-      "value": "Create subagent "
+      "value": "Crear subagente "
     },
     {
       "type": 1,
@@ -1860,12 +2002,6 @@
     {
       "type": 0,
       "value": ", necesito un diagnóstico para picos intermitentes de latencia en los clústeres AKS de eastus y westeurope."
-    }
-  ],
-  "53O1/Z": [
-    {
-      "type": 0,
-      "value": "Cobertura de incidentes"
     }
   ],
   "53qjcm": [
@@ -1948,6 +2084,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "5NZIbS": [
+    {
+      "type": 0,
+      "value": "Open in Azure Portal"
     }
   ],
   "5POweM": [
@@ -2065,13 +2207,73 @@
   "5fVEet": [
     {
       "type": 0,
-      "value": "Add tools"
+      "value": "Agregar herramientas"
     }
   ],
   "5gEh2M": [
     {
       "type": 0,
       "value": "Incidentes que requieren atención"
+    }
+  ],
+  "5iE4cZ": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "5j5HnL": [
@@ -2210,6 +2412,16 @@
       "value": "El grupo de recursos administrados se agregó correctamente"
     }
   ],
+  "6+mbvY": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": " sec"
+    }
+  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -2259,7 +2471,7 @@
   "6BTCPo": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+      "value": "Use ##ParamName## en su consulta para definir marcadores de posición de parámetros. Ejemplo: where SubscriptionId == \"##SubscriptionId##\". Estos se reemplazarán por valores reales en runtime."
     }
   ],
   "6CrAJC": [
@@ -2304,12 +2516,6 @@
       "value": "recomendaciones"
     }
   ],
-  "6OBtew": [
-    {
-      "type": 0,
-      "value": "Eliminando el agente de SRE"
-    }
-  ],
   "6PgVSe": [
     {
       "type": 0,
@@ -2319,7 +2525,7 @@
   "6RNwei": [
     {
       "type": 0,
-      "value": "Update subagent "
+      "value": "Actualizar subagente "
     },
     {
       "type": 1,
@@ -2419,7 +2625,7 @@
   "6gD0ie": [
     {
       "type": 0,
-      "value": "Generate Session Insights"
+      "value": "Generar conclusiones de sesión"
     }
   ],
   "6m5Ba0": [
@@ -2428,16 +2634,10 @@
       "value": "Regla de recopilación de datos"
     }
   ],
-  "6tlKgy": [
-    {
-      "type": 0,
-      "value": "Puede elegir un máximo de 20 grupos de recursos que el agente administrará."
-    }
-  ],
   "6tzuXg": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "No se pudo iniciar el agente de SRE "
     },
     {
       "type": 1,
@@ -2529,7 +2729,7 @@
   "751M54": [
     {
       "type": 0,
-      "value": "Generating insights..."
+      "value": "Generando información..."
     }
   ],
   "75lAeu": [
@@ -2547,7 +2747,7 @@
   "79kwlH": [
     {
       "type": 0,
-      "value": "No agents available for handoff"
+      "value": "No hay agentes disponibles para la entrega"
     }
   ],
   "7C0xai": [
@@ -2566,6 +2766,48 @@
     {
       "type": 0,
       "value": "Modo de revisión"
+    }
+  ],
+  "7K6W8s": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7M8VZy": [
@@ -2589,7 +2831,7 @@
   "7Or82y": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "La calidad del agente es "
     },
     {
       "type": 1,
@@ -2597,7 +2839,7 @@
     },
     {
       "type": 0,
-      "value": "/100 with "
+      "value": "/100 con "
     },
     {
       "offset": 0,
@@ -2609,7 +2851,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix ready"
+              "value": " corrección rápida lista"
             }
           ]
         },
@@ -2620,7 +2862,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes ready"
+              "value": " correcciones rápidas listas"
             }
           ]
         }
@@ -2686,6 +2928,12 @@
     {
       "type": 0,
       "value": "Detalles del proyecto"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -2852,6 +3100,12 @@
       "value": "Estos se reemplazarán por valores reales en runtime."
     }
   ],
+  "8MoJEj": [
+    {
+      "type": 0,
+      "value": "Message grouping:"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2946,7 +3200,7 @@
   "8SCDv/": [
     {
       "type": 0,
-      "value": "Enter the query for the tool to run"
+      "value": "Introduzca la consulta que debe ejecutar la herramienta"
     }
   ],
   "8Vd2Kv": [
@@ -2964,7 +3218,7 @@
   "8Zl3PA": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "No se pudo iniciar el agente de SRE "
     },
     {
       "type": 1,
@@ -3044,7 +3298,7 @@
   "8fw5Cz": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all connectors."
+      "value": "Pruebe con otros términos de búsqueda o borre la búsqueda para ver todos los conectores."
     }
   ],
   "8lCjAM": [
@@ -3086,7 +3340,13 @@
   "8u2W0L": [
     {
       "type": 0,
-      "value": "Handoff instructions"
+      "value": "Instrucciones de entrega"
+    }
+  ],
+  "8urALB": [
+    {
+      "type": 0,
+      "value": "Delete connector"
     }
   ],
   "8v0Pyn": [
@@ -3103,6 +3363,48 @@
     {
       "type": 0,
       "value": "Cerrar planes pendientes"
+    }
+  ],
+  "8yfUKp": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8yyU6n": [
@@ -3179,6 +3481,12 @@
       "value": "No hay coincidencias"
     }
   ],
+  "96TDsd": [
+    {
+      "type": 0,
+      "value": "Learn more about subagents"
+    }
+  ],
   "98A08r": [
     {
       "type": 0,
@@ -3246,7 +3554,7 @@
   "9WBhPZ": [
     {
       "type": 0,
-      "value": "Session Insights"
+      "value": "Conclusiones de sesión"
     }
   ],
   "9WRlF4": [
@@ -3325,6 +3633,12 @@
       "value": "La edición de YAML estará disponible próximamente para esta entidad."
     }
   ],
+  "A+4geD": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue with SRE agent team"
+    }
+  ],
   "A/xTHO": [
     {
       "type": 0,
@@ -3364,7 +3678,7 @@
   "A9cgAa": [
     {
       "type": 0,
-      "value": "No insight selected"
+      "value": "No se ha seleccionado ninguna conclusión"
     }
   ],
   "AA/tRJ": [
@@ -3399,6 +3713,48 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "AEgxqN": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "AHQdRU": [
@@ -3447,6 +3803,12 @@
     {
       "type": 0,
       "value": "Creada a las"
+    }
+  ],
+  "Abi/u/": [
+    {
+      "type": 0,
+      "value": "Expand panel"
     }
   ],
   "AbleKr": [
@@ -3555,6 +3917,12 @@
       "value": "."
     }
   ],
+  "B/qM5p": [
+    {
+      "type": 0,
+      "value": "Enter Teams channel link"
+    }
+  ],
   "B3Q5mz": [
     {
       "type": 0,
@@ -3573,10 +3941,16 @@
       "value": "Calidad del agente"
     }
   ],
+  "BBT3jd": [
+    {
+      "type": 0,
+      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+    }
+  ],
   "BD+V8L": [
     {
       "type": 0,
-      "value": "This insight was helpful"
+      "value": "Esta información ha sido útil"
     }
   ],
   "BEck3n": [
@@ -3678,23 +4052,13 @@
   "BakoFg": [
     {
       "type": 0,
-      "value": "Select tool"
+      "value": "Seleccionar herramienta"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
       "value": "Usando los últimos cambios de YAML"
-    }
-  ],
-  "BcEbxp": [
-    {
-      "type": 1,
-      "value": "seconds"
-    },
-    {
-      "type": 0,
-      "value": "s"
     }
   ],
   "Bcgdb7": [
@@ -3756,7 +4120,7 @@
   "Bn/txo": [
     {
       "type": 0,
-      "value": "Failed to create subagent "
+      "value": "No se pudo crear el subagente "
     },
     {
       "type": 1,
@@ -3798,7 +4162,7 @@
   "C6Jt4c": [
     {
       "type": 0,
-      "value": "Scheduled task name"
+      "value": "Nombre de tarea programada"
     }
   ],
   "CBHDb1": [
@@ -3834,11 +4198,15 @@
   "CIAL+k": [
     {
       "type": 0,
-      "value": "Created subagent "
+      "value": "Subagente "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " creado"
     }
   ],
   "CJ6tzL": [
@@ -3886,7 +4254,7 @@
   "CQ0CLu": [
     {
       "type": 0,
-      "value": "Session insights"
+      "value": "Conclusiones de sesión"
     }
   ],
   "CQisjK": [
@@ -3946,7 +4314,7 @@
   "Cfvmd0": [
     {
       "type": 0,
-      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+      "value": "El agente ha usado el 90 % de las UAA de flujo activas. Si se alcanza el límite, el agente solo funcionará en el flujo siempre activo y no estará disponible para chat ni acciones."
     }
   ],
   "ChQQJ0": [
@@ -4019,28 +4387,6 @@
       "value": "Azure DevOps"
     }
   ],
-  "D473QI": [
-    {
-      "type": 0,
-      "value": "Elija un máximo de "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " grupos de recursos en los que tenga permisos. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " grupos de recursos seleccionados."
-    }
-  ],
   "D4T2Px": [
     {
       "type": 0,
@@ -4056,13 +4402,13 @@
   "D97db3": [
     {
       "type": 0,
-      "value": "Select a response subagent"
+      "value": "Seleccione un subagente de respuesta"
     }
   ],
   "DD2Wjk": [
     {
       "type": 0,
-      "value": "Incidents preview"
+      "value": "Vista previa de incidentes"
     }
   ],
   "DDSwQB": [
@@ -4110,13 +4456,13 @@
   "DFfvL6": [
     {
       "type": 0,
-      "value": "Temporarily stop the agent from all activities."
+      "value": "Detener temporalmente al agente de todas las actividades."
     }
   ],
   "DIZgr3": [
     {
       "type": 0,
-      "value": "Boolean"
+      "value": "Booleano"
     }
   ],
   "DJN+DZ": [
@@ -4149,6 +4495,12 @@
     {
       "type": 0,
       "value": "Forma parte de"
+    }
+  ],
+  "DP0m/y": [
+    {
+      "type": 0,
+      "value": "Updating Kusto Tool"
     }
   ],
   "DPnEXy": [
@@ -4185,10 +4537,20 @@
       "value": "Incidentes seleccionados"
     }
   ],
+  "DXm10s": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " repository URL"
+    }
+  ],
   "DYp/nK": [
     {
       "type": 0,
-      "value": "Session Insight"
+      "value": "Información de la sesión"
     }
   ],
   "Da55kZ": [
@@ -4201,6 +4563,12 @@
     {
       "type": 0,
       "value": "Este grupo de recursos se recomienda para obtener un rendimiento óptimo del agente. Incluye uno o varios de estos servicios de proceso de Azure: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, máquinas virtuales o cuentas de almacenamiento."
+    }
+  ],
+  "DcEKTG": [
+    {
+      "type": 0,
+      "value": "Failed to run test"
     }
   ],
   "DeP+ZM": [
@@ -4284,7 +4652,7 @@
   "Dvly6A": [
     {
       "type": 0,
-      "value": "Failed to create tool"
+      "value": "Error al crear la herramienta"
     }
   ],
   "Dw2xIY": [
@@ -4326,7 +4694,7 @@
   "E9CWuE": [
     {
       "type": 0,
-      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+      "value": "Ejemplo: where SubscriptionId == \"##SubscriptionId##\""
     }
   ],
   "EAO/K+": [
@@ -4356,7 +4724,7 @@
   "EHy/sj": [
     {
       "type": 0,
-      "value": "Enter a number"
+      "value": "Escribir un número"
     }
   ],
   "EI/cfO": [
@@ -4406,7 +4774,7 @@
   "EQa6dK": [
     {
       "type": 0,
-      "value": "Built-in Tool"
+      "value": "Herramienta integradas"
     }
   ],
   "ESChST": [
@@ -4418,7 +4786,27 @@
   "ETRyBL": [
     {
       "type": 0,
-      "value": "Rating"
+      "value": "Clasificación"
+    }
+  ],
+  "EVA81S": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "entity"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
+  "EVXYDU": [
+    {
+      "type": 0,
+      "value": "Learn more about creating subagents."
     }
   ],
   "EWrExf": [
@@ -4448,7 +4836,7 @@
   "Ebd6gR": [
     {
       "type": 0,
-      "value": "The agent sends email messages."
+      "value": "El agente envía mensajes de correo electrónico."
     }
   ],
   "Ec1M0J": [
@@ -4488,7 +4876,7 @@
   "Ejhdi4": [
     {
       "type": 0,
-      "value": "Feedback"
+      "value": "Comentarios"
     }
   ],
   "ElI1gd": [
@@ -4530,7 +4918,7 @@
   "Eu772h": [
     {
       "type": 0,
-      "value": "Built-in Tools"
+      "value": "Herramientas integradas"
     }
   ],
   "Euy+fB": [
@@ -4576,7 +4964,7 @@
   "F8v2Mz": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "El agente de SRE "
     },
     {
       "type": 1,
@@ -4584,7 +4972,7 @@
     },
     {
       "type": 0,
-      "value": " started successfully"
+      "value": " se inició correctamente"
     }
   ],
   "F8xMoD": [
@@ -4670,7 +5058,7 @@
   "FS0tWa": [
     {
       "type": 0,
-      "value": "No source agent specified"
+      "value": "No se especificó ningún agente de origen"
     }
   ],
   "FSYccN": [
@@ -4710,7 +5098,7 @@
   "FWou/7": [
     {
       "type": 0,
-      "value": "Select tool "
+      "value": "Seleccionar la herramienta "
     },
     {
       "type": 1,
@@ -4720,7 +5108,7 @@
   "FZeQlc": [
     {
       "type": 0,
-      "value": "Disconnected"
+      "value": "Desconectado"
     }
   ],
   "FZwBv0": [
@@ -4762,7 +5150,7 @@
   "FpUGgx": [
     {
       "type": 0,
-      "value": "Starting SRE Agent "
+      "value": "El inicio del agente de SRE "
     },
     {
       "type": 1,
@@ -4770,7 +5158,7 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " está en curso"
     }
   ],
   "Fr5LyM": [
@@ -4782,7 +5170,7 @@
   "FsIud6": [
     {
       "type": 0,
-      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+      "value": "La base de conocimiento está habilitada para este agente. La herramienta SearchMemory y las indicaciones de la base de conocimiento se incluirán automáticamente."
     }
   ],
   "Fv1ZSz": [
@@ -4831,6 +5219,76 @@
     {
       "type": 0,
       "value": "Quitar"
+    }
+  ],
+  "G4gaOn": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "G4mray": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
     }
   ],
   "G5JMSn": [
@@ -4942,19 +5400,13 @@
   "GGr/yS": [
     {
       "type": 0,
-      "value": "Feedback submitted on threads will appear here"
+      "value": "Los comentarios enviados sobre subprocesos aparecerán aquí"
     }
   ],
   "GMhzu1": [
     {
       "type": 0,
-      "value": "Response subagent"
-    }
-  ],
-  "GP/BbQ": [
-    {
-      "type": 0,
-      "value": "Enable Knowledge Base"
+      "value": "Subagente de respuesta"
     }
   ],
   "GSCabm": [
@@ -5002,13 +5454,13 @@
   "GnWmca": [
     {
       "type": 0,
-      "value": "Triggers"
+      "value": "Desencadenantes"
     }
   ],
   "Gnbr9F": [
     {
       "type": 0,
-      "value": "Select a connector"
+      "value": "Seleccionar un conector"
     }
   ],
   "GoSIa4": [
@@ -5020,7 +5472,7 @@
   "GpHWFC": [
     {
       "type": 0,
-      "value": "Choose a connector"
+      "value": "Elegir un conector"
     }
   ],
   "GpZr9J": [
@@ -5040,7 +5492,7 @@
   "GpcNV2": [
     {
       "type": 0,
-      "value": "Failed to update subagent "
+      "value": "No se pudo actualizar el subagente "
     },
     {
       "type": 1,
@@ -5146,7 +5598,7 @@
   "HNBpJ4": [
     {
       "type": 0,
-      "value": "Metrics"
+      "value": "Métricas"
     }
   ],
   "HNECLT": [
@@ -5170,7 +5622,7 @@
   "HQc/Lf": [
     {
       "type": 0,
-      "value": "Create incident trigger"
+      "value": "Crear desencadenador de incidente"
     }
   ],
   "HQhDfV": [
@@ -5200,7 +5652,7 @@
   "HZQtAg": [
     {
       "type": 0,
-      "value": "Test values"
+      "value": "Valores de prueba"
     }
   ],
   "HbTFJf": [
@@ -5255,6 +5707,44 @@
       "value": "Cargando informes diarios"
     }
   ],
+  "HtVpjg": [
+    {
+      "type": 0,
+      "value": "You can select up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups for this agent. Agents can manage a total of "
+    },
+    {
+      "type": 1,
+      "value": "totalMax"
+    },
+    {
+      "type": 0,
+      "value": " resource groups, and your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "current"
+    },
+    {
+      "type": 0,
+      "value": ". You've selected "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -5300,13 +5790,13 @@
   "I3MA83": [
     {
       "type": 0,
-      "value": "String"
+      "value": "Cadena"
     }
   ],
   "I4PbZq": [
     {
       "type": 0,
-      "value": "Create a subagent"
+      "value": "Crear un subagente"
     }
   ],
   "I5k4g/": [
@@ -5382,7 +5872,7 @@
   "IIfj4G": [
     {
       "type": 0,
-      "value": "Microsoft Teams"
+      "value": "Microsoft Teams"
     }
   ],
   "IJX2gV": [
@@ -5479,6 +5969,12 @@
       "value": "Zona horaria"
     }
   ],
+  "Icfr5t": [
+    {
+      "type": 0,
+      "value": "Search by incident trigger"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 1,
@@ -5487,6 +5983,12 @@
     {
       "type": 0,
       "value": " canceló la acción."
+    }
+  ],
+  "Ij0ity": [
+    {
+      "type": 0,
+      "value": "Search by tool"
     }
   ],
   "InWqys": [
@@ -5565,6 +6067,12 @@
       "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
+  "J2Lcsz": [
+    {
+      "type": 0,
+      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+    }
+  ],
   "J3Y8Sm": [
     {
       "type": 0,
@@ -5593,6 +6101,18 @@
       "value": "Última modificación"
     }
   ],
+  "J8uEym": [
+    {
+      "type": 0,
+      "value": "Search by scheduled task"
+    }
+  ],
+  "JA/VO+": [
+    {
+      "type": 0,
+      "value": "Starts a task at a defined time or interval."
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
@@ -5603,16 +6123,6 @@
     {
       "type": 0,
       "value": "Nombre de usuario"
-    }
-  ],
-  "JCjxSH": [
-    {
-      "type": 0,
-      "value": "No se pudo eliminar el agente de SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "JEsxDw": [
@@ -5630,7 +6140,7 @@
   "JKFypr": [
     {
       "type": 0,
-      "value": "Stop agent"
+      "value": "Detener agente"
     }
   ],
   "JMdyE9": [
@@ -5648,7 +6158,7 @@
   "JSW9Xw": [
     {
       "type": 0,
-      "value": "Starting SRE Agent"
+      "value": "Iniciando el agente de SRE"
     }
   ],
   "JT7be1": [
@@ -5832,7 +6342,7 @@
   "JnDKv3": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "No se pudo detener el agente de SRE "
     },
     {
       "type": 1,
@@ -5905,6 +6415,12 @@
     {
       "type": 0,
       "value": "Mostrar"
+    }
+  ],
+  "K7tsik": [
+    {
+      "type": 0,
+      "value": "Scheduled task ran successfully"
     }
   ],
   "K9q4Xw": [
@@ -6014,7 +6530,41 @@
   "Kfaepo": [
     {
       "type": 0,
-      "value": "Learn more about connectors"
+      "value": "Más información sobre los conectores"
+    }
+  ],
+  "Kfr1WB": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agent"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "KgcF6B": [
@@ -6039,6 +6589,12 @@
     {
       "type": 0,
       "value": "Asignar a argumento"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KoJ1C+": [
@@ -6109,24 +6665,16 @@
       "value": "Sugerencias de IA descartadas"
     }
   ],
+  "L/ct40": [
+    {
+      "type": 0,
+      "value": "Open in visual view"
+    }
+  ],
   "L/i6dy": [
     {
       "type": 0,
       "value": "Marcamos este agente como autónomo automáticamente para que pueda funcionar por sí mismo."
-    }
-  ],
-  "L0KVkI": [
-    {
-      "type": 0,
-      "value": "La eliminación del agente de SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " está en curso"
     }
   ],
   "L7EoQf": [
@@ -6231,6 +6779,12 @@
       "value": "Permite ver todos los recursos, pero no realizar ningún cambio."
     }
   ],
+  "LSqcaU": [
+    {
+      "type": 0,
+      "value": "Maximum 200,000 AAUs"
+    }
+  ],
   "LTDPn/": [
     {
       "type": 0,
@@ -6262,7 +6816,7 @@
   "LaIt/v": [
     {
       "type": 0,
-      "value": "Creating Kusto Tool"
+      "value": "Creando herramienta Kusto"
     }
   ],
   "LbkJp1": [
@@ -6414,6 +6968,12 @@
       "value": "Agregar filtro"
     }
   ],
+  "M0ay1D": [
+    {
+      "type": 0,
+      "value": "Running scheduled task(s)"
+    }
+  ],
   "M3159R": [
     {
       "type": 0,
@@ -6442,6 +7002,72 @@
     {
       "type": 0,
       "value": "Id. de incidente"
+    }
+  ],
+  "MCLPMF": [
+    {
+      "type": 0,
+      "value": "Scale your agent’s capabilities with subagents"
+    }
+  ],
+  "MGZggN": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "MHkWzD": [
@@ -6627,7 +7253,7 @@
   "N/CtWu": [
     {
       "type": 0,
-      "value": "Unselected"
+      "value": "No seleccionado"
     }
   ],
   "N0d5pM": [
@@ -6656,6 +7282,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "N2IrpM": [
+    {
+      "type": 0,
+      "value": "Confirm"
     }
   ],
   "N7cqYp": [
@@ -6731,7 +7363,7 @@
   "NN4zut": [
     {
       "type": 0,
-      "value": "Support + troubleshooting"
+      "value": "Soporte técnico y solución de problemas"
     }
   ],
   "NOMbLF": [
@@ -6792,6 +7424,12 @@
     {
       "type": 0,
       "value": "Agente filtrado"
+    }
+  ],
+  "NmQwIl": [
+    {
+      "type": 0,
+      "value": "Schedule:"
     }
   ],
   "Nrc9ba": [
@@ -6863,7 +7501,7 @@
   "O+srpo": [
     {
       "type": 0,
-      "value": "Review "
+      "value": "Revisar "
     },
     {
       "offset": 0,
@@ -6872,7 +7510,7 @@
           "value": [
             {
               "type": 0,
-              "value": "findings"
+              "value": "hallazgos"
             }
           ]
         },
@@ -6883,7 +7521,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix"
+              "value": " corrección rápida"
             }
           ]
         },
@@ -6894,7 +7532,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes"
+              "value": " correcciones rápidas"
             }
           ]
         }
@@ -6907,7 +7545,7 @@
   "O/gthC": [
     {
       "type": 0,
-      "value": "Go to Scheduled Task"
+      "value": "Ir a tarea programada"
     }
   ],
   "O0JI8M": [
@@ -6937,7 +7575,7 @@
   "O9C6j/": [
     {
       "type": 0,
-      "value": "Create subagent"
+      "value": "Crear subagente"
     }
   ],
   "OBoUb6": [
@@ -6993,7 +7631,7 @@
   "ONbwY2": [
     {
       "type": 0,
-      "value": "Custom Tool"
+      "value": "Herramienta personalizada"
     }
   ],
   "OO5Y94": [
@@ -7127,13 +7765,13 @@
   "OoxcFC": [
     {
       "type": 0,
-      "value": "Select the input type"
+      "value": "Seleccionar el tipo de entrada"
     }
   ],
   "OpUvSu": [
     {
       "type": 0,
-      "value": "Create Kusto Tool"
+      "value": "Crear herramienta Kusto"
     }
   ],
   "OrQ4EY": [
@@ -7217,15 +7855,11 @@
   "PBKSeP": [
     {
       "type": 0,
-      "value": "Set up "
+      "value": "Configurar conector de "
     },
     {
       "type": 1,
       "value": "service"
-    },
-    {
-      "type": 0,
-      "value": " connector"
     }
   ],
   "PCrXDG": [
@@ -7237,7 +7871,7 @@
   "PF15hb": [
     {
       "type": 0,
-      "value": "Input value"
+      "value": "Valor de entrada"
     }
   ],
   "PFUTWt": [
@@ -7273,7 +7907,7 @@
   "PKvAvF": [
     {
       "type": 0,
-      "value": "Extend your agent’s capabilities with connectors"
+      "value": "Amplíe las capacidades de su agente con conectores"
     }
   ],
   "PPrKNq": [
@@ -7321,13 +7955,13 @@
   "PXJ+oX": [
     {
       "type": 0,
-      "value": "To view incidents triggered, go to Incidents"
+      "value": "Para ver los incidentes desencadenados, vaya a Incidentes"
     }
   ],
   "PXJi2R": [
     {
       "type": 0,
-      "value": "No target agent specified"
+      "value": "No se especificó ningún agente de destino"
     }
   ],
   "PXYq8b": [
@@ -7367,7 +8001,7 @@
   "PbaaPs": [
     {
       "type": 0,
-      "value": "Add subagent"
+      "value": "Agregar subagente"
     }
   ],
   "Pc+tM3": [
@@ -7412,6 +8046,12 @@
     {
       "type": 0,
       "value": "Azure Monitor está conectado"
+    }
+  ],
+  "PpdTYy": [
+    {
+      "type": 0,
+      "value": "Failed to update tool"
     }
   ],
   "PrFU82": [
@@ -7533,7 +8173,7 @@
   "Q6Lw7i": [
     {
       "type": 0,
-      "value": "To learn more about permissions, click here."
+      "value": "Para obtener más información sobre los permisos, haga clic aquí."
     }
   ],
   "Q7/1w4": [
@@ -7546,6 +8186,16 @@
     {
       "type": 0,
       "value": "Descripción"
+    }
+  ],
+  "Q9IHxV": [
+    {
+      "type": 0,
+      "value": "Running scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -7591,7 +8241,7 @@
   "QDa8Q+": [
     {
       "type": 0,
-      "value": "Add connector"
+      "value": "Agregar conector"
     }
   ],
   "QEhO+z": [
@@ -7615,7 +8265,7 @@
   "QK0vxq": [
     {
       "type": 0,
-      "value": "Go to Connectors"
+      "value": "Ir a conectores"
     }
   ],
   "QOSRgI": [
@@ -7627,11 +8277,15 @@
   "QP91Js": [
     {
       "type": 0,
-      "value": "Updated subagent "
+      "value": "Subagente "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " actualizado"
     }
   ],
   "QQX4Pv": [
@@ -7649,7 +8303,7 @@
   "QW+Q5N": [
     {
       "type": 0,
-      "value": "Clear all"
+      "value": "Borrar todo"
     }
   ],
   "QWEHW2": [
@@ -7746,12 +8400,6 @@
       "value": "No se requieren correcciones rápidas."
     }
   ],
-  "Qn8Bok": [
-    {
-      "type": 0,
-      "value": "Devolución"
-    }
-  ],
   "QomX1y": [
     {
       "type": 0,
@@ -7813,19 +8461,13 @@
   "R3eMOe": [
     {
       "type": 0,
-      "value": "Outlook account"
-    }
-  ],
-  "R3mMmc": [
-    {
-      "type": 0,
-      "value": "Control deslizante del límite mensual de UAA"
+      "value": "Cuenta de Outlook"
     }
   ],
   "R4Blzb": [
     {
       "type": 0,
-      "value": "No Feedback Yet"
+      "value": "Aún no hay comentarios"
     }
   ],
   "R7DP3y": [
@@ -7855,7 +8497,7 @@
   "REOGTJ": [
     {
       "type": 0,
-      "value": "Add a connector to give the agent additional tools for automating incident handling."
+      "value": "Agregue un conector para ofrecer al agente herramientas adicionales que automaticen la gestión de incidentes."
     }
   ],
   "RH8rNM": [
@@ -7893,7 +8535,7 @@
   "RMD0Mj": [
     {
       "type": 0,
-      "value": "Failed to add handoff from "
+      "value": "No se pudo agregar la entrega de "
     },
     {
       "type": 1,
@@ -7901,7 +8543,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " al subagente "
     },
     {
       "type": 1,
@@ -8056,20 +8698,6 @@
       "value": "Últimas 12 horas"
     }
   ],
-  "S2jxf1": [
-    {
-      "type": 0,
-      "value": "No "
-    },
-    {
-      "type": 1,
-      "value": "activeTab"
-    },
-    {
-      "type": 0,
-      "value": " found"
-    }
-  ],
   "S2z35W": [
     {
       "type": 0,
@@ -8092,6 +8720,12 @@
       "value": "Modo de área de juegos"
     }
   ],
+  "S6we8v": [
+    {
+      "type": 0,
+      "value": "Edit incident trigger"
+    }
+  ],
   "S8/4ZI": [
     {
       "type": 0,
@@ -8107,7 +8741,7 @@
   "SB7SRx": [
     {
       "type": 0,
-      "value": "Creating subagent "
+      "value": "Creando el subagente "
     },
     {
       "type": 1,
@@ -8123,7 +8757,7 @@
   "SDsdCi": [
     {
       "type": 0,
-      "value": "Add existing tools"
+      "value": "Agregar herramientas existentes"
     }
   ],
   "SFUZOQ": [
@@ -8135,7 +8769,7 @@
   "SIW6OB": [
     {
       "type": 0,
-      "value": "Threads with Insights ("
+      "value": "Subprocesos con Insights ("
     },
     {
       "type": 1,
@@ -8240,6 +8874,12 @@
       "value": "Nivel de autonomía"
     }
   ],
+  "SeZ8eZ": [
+    {
+      "type": 0,
+      "value": "AAU consumption reminder"
+    }
+  ],
   "Seanpx": [
     {
       "type": 0,
@@ -8268,6 +8908,12 @@
     {
       "type": 0,
       "value": "El borrador aún no se ha sincronizado"
+    }
+  ],
+  "SoBWeV": [
+    {
+      "type": 0,
+      "value": "Monthly active flow AAUs"
     }
   ],
   "Sr4IbA": [
@@ -8339,7 +8985,7 @@
   "T/nqbo": [
     {
       "type": 0,
-      "value": "Feedback ID"
+      "value": "Id. de comentarios"
     }
   ],
   "T0/eoE": [
@@ -8351,7 +8997,7 @@
   "T0e6Lh": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "Eliminar "
     },
     {
       "type": 1,
@@ -8424,6 +9070,40 @@
       "value": "Dejar vacío para ejecuciones ilimitadas"
     }
   ],
+  "TGc4Lh": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident trigger"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "THFIRB": [
     {
       "type": 0,
@@ -8468,6 +9148,12 @@
     {
       "type": 0,
       "value": "La facturación del Azure SRE Agent se mide en unidades de agente de Azure (UAA). La facturación mensual de UAA refleja tanto el flujo siempre activo fijo como el uso variable del flujo activo. Puede aumentar o reducir la asignación de UAA del flujo activo en cualquier momento."
+    }
+  ],
+  "TP/cMX": [
+    {
+      "type": 0,
+      "value": "Ended"
     }
   ],
   "TQ0n+a": [
@@ -8515,13 +9201,13 @@
   "TdvJVw": [
     {
       "type": 0,
-      "value": "Suggested improvements"
+      "value": "Mejoras sugeridas"
     }
   ],
   "TexFnY": [
     {
       "type": 0,
-      "value": "This insight does not have markdown content."
+      "value": "Esta conclusión no contiene contenido de Markdown."
     }
   ],
   "Tg4Q8g": [
@@ -8563,7 +9249,7 @@
   "TrnqJG": [
     {
       "type": 0,
-      "value": "Input type"
+      "value": "Tipo de entrada"
     }
   ],
   "TwMqIK": [
@@ -8593,7 +9279,7 @@
   "UBbDNy": [
     {
       "type": 0,
-      "value": "No documents in knowledge base. Add some?"
+      "value": "No hay documentos en la base de conocimientos. ¿Quiere agregar alguno?"
     }
   ],
   "UCYFxr": [
@@ -8621,7 +9307,7 @@
   "UNQfKX": [
     {
       "type": 0,
-      "value": "Enter a descriptive name"
+      "value": "Introduzca un nombre descriptivo."
     }
   ],
   "UNXega": [
@@ -8753,7 +9439,7 @@
   "V9GGMu": [
     {
       "type": 0,
-      "value": "No threads with session insights found."
+      "value": "No se encontraron subprocesos con información de sesión."
     }
   ],
   "VA/Z1S": [
@@ -8777,7 +9463,7 @@
   "VBAOA8": [
     {
       "type": 0,
-      "value": "Select subagents for handoff"
+      "value": "Seleccionar subagentes para entrega"
     }
   ],
   "VIYXlx": [
@@ -8786,22 +9472,10 @@
       "value": "Versión preliminar del chat"
     }
   ],
-  "VIcJZp": [
-    {
-      "type": 0,
-      "value": "Vista de lista"
-    }
-  ],
   "VIgoaE": [
     {
       "type": 0,
       "value": "No hay subagentes configurados"
-    }
-  ],
-  "VIn2J0": [
-    {
-      "type": 0,
-      "value": "Subagentes"
     }
   ],
   "VKbBsK": [
@@ -8847,7 +9521,7 @@
   "VU4BBu": [
     {
       "type": 0,
-      "value": "Parameter"
+      "value": "Parámetro"
     }
   ],
   "VUHkVQ": [
@@ -8880,6 +9554,12 @@
       "value": "Escribir id. de monitor"
     }
   ],
+  "Vaj9nj": [
+    {
+      "type": 0,
+      "value": "Don't show this message again"
+    }
+  ],
   "Vb+qQ4": [
     {
       "type": 0,
@@ -8895,7 +9575,7 @@
   "Vipo+I": [
     {
       "type": 0,
-      "value": "No parameters configured"
+      "value": "No hay parámetros configurados"
     }
   ],
   "VlBNux": [
@@ -8933,7 +9613,7 @@
   "Vs/db/": [
     {
       "type": 0,
-      "value": "Adding handoff from "
+      "value": "Se ha agregado la entrega de "
     },
     {
       "type": 1,
@@ -8941,7 +9621,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " al subagente "
     },
     {
       "type": 1,
@@ -9005,7 +9685,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "Ejecuciones"
     }
   ],
   "W2JBdp": [
@@ -9065,7 +9745,13 @@
   "WJj+TP": [
     {
       "type": 0,
-      "value": "You do not have permission to check incident management connection."
+      "value": "No tiene permiso para comprobar la conexión de la administración del incidente."
+    }
+  ],
+  "WK8csJ": [
+    {
+      "type": 0,
+      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -9206,7 +9892,7 @@
   "WjqsyE": [
     {
       "type": 0,
-      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
+      "value": "Cuando está activada, la herramienta SearchMemory y las indicaciones de la base de conocimiento se agregarán automáticamente"
     }
   ],
   "Wkup5T": [
@@ -9249,6 +9935,40 @@
     {
       "type": 0,
       "value": "El nombre debe comenzar con una letra, terminar con una letra o un número y contener solo letras, números y guiones. Debe tener entre 2 y 23 caracteres."
+    }
+  ],
+  "WuyjCf": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled task"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "WygVDv": [
@@ -9360,7 +10080,7 @@
   "XDcbqQ": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent"
+      "value": "Deteniendo el agente de SRE"
     }
   ],
   "XEB3Fn": [
@@ -9486,7 +10206,7 @@
   "XS8hWM": [
     {
       "type": 0,
-      "value": "Enter a boolean"
+      "value": "Introduzca un booleano"
     }
   ],
   "XV8dOu": [
@@ -9498,7 +10218,7 @@
   "XYIeUc": [
     {
       "type": 0,
-      "value": "Agent permissions are determined by its assigned RBAC roles."
+      "value": "Los permisos del agente se determinan por los roles RBAC asignados."
     }
   ],
   "XYSJsS": [
@@ -9546,7 +10266,7 @@
   "XfAFyQ": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "Eliminando "
     },
     {
       "type": 1,
@@ -9554,7 +10274,7 @@
     },
     {
       "type": 0,
-      "value": " connectors..."
+      "value": " conectores..."
     }
   ],
   "Xkdnen": [
@@ -9584,7 +10304,7 @@
   "Xup5P8": [
     {
       "type": 0,
-      "value": "What happened"
+      "value": "Qué ha pasado"
     }
   ],
   "XvrDTb": [
@@ -9596,7 +10316,7 @@
   "XyUQa7": [
     {
       "type": 0,
-      "value": "Improved instructions"
+      "value": "Instrucciones mejoradas"
     }
   ],
   "Y0BC+F": [
@@ -9634,17 +10354,17 @@
   "Y47Dwm": [
     {
       "type": 0,
-      "value": "Kusto tools"
+      "value": "Herramientas Kusto"
     }
   ],
   "Y5IFiT": [
     {
-      "type": 1,
-      "value": "service"
+      "type": 0,
+      "value": "Cuenta "
     },
     {
-      "type": 0,
-      "value": " account"
+      "type": 1,
+      "value": "service"
     }
   ],
   "Y7Lbpf": [
@@ -9668,7 +10388,7 @@
   "YBHvOV": [
     {
       "type": 0,
-      "value": "Updating subagent "
+      "value": "Actualizando el subagente "
     },
     {
       "type": 1,
@@ -9714,7 +10434,7 @@
   "YKwGp6": [
     {
       "type": 0,
-      "value": "Added tools to "
+      "value": "Herramientas agregadas a "
     },
     {
       "type": 1,
@@ -9983,12 +10703,6 @@
       "value": "Inicio el"
     }
   ],
-  "ZOdb7N": [
-    {
-      "type": 0,
-      "value": "Vista visual"
-    }
-  ],
   "ZPP6n7": [
     {
       "type": 0,
@@ -10177,7 +10891,7 @@
   "a8fWCd": [
     {
       "type": 0,
-      "value": "Enter a datetime"
+      "value": "Escriba una fecha y hora"
     }
   ],
   "a8l/yJ": [
@@ -10226,12 +10940,6 @@
     {
       "type": 0,
       "value": "Tiene acceso a las funciones de lectura y prueba en LUIS."
-    }
-  ],
-  "aH3ak4": [
-    {
-      "type": 0,
-      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -10337,12 +11045,6 @@
       "value": "Aumente el conocimiento del agente sobre su infraestructura"
     }
   ],
-  "aTyEZH": [
-    {
-      "type": 0,
-      "value": "Buscar planes de respuesta"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -10445,6 +11147,12 @@
       "value": "Comprobación de auditoría"
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b2PyOl": [
     {
       "type": 0,
@@ -10505,10 +11213,16 @@
       "value": "URI del clúster"
     }
   ],
+  "bDbbX7": [
+    {
+      "type": 0,
+      "value": "Edit Kusto tool"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
-      "value": "Thread Feedback"
+      "value": "Comentarios del subproceso"
     }
   ],
   "bK0VQe": [
@@ -10571,6 +11285,44 @@
     {
       "type": 0,
       "value": "Estable: recibe actualizaciones una vez al mes"
+    }
+  ],
+  "bjDKAe": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "bjLeN1": [
@@ -10698,7 +11450,7 @@
   "byP6IC": [
     {
       "type": 0,
-      "value": "Selected"
+      "value": "Seleccionado"
     }
   ],
   "c/8Uhj": [
@@ -10752,7 +11504,7 @@
   "c5hwBU": [
     {
       "type": 0,
-      "value": "The agent will resume all activities."
+      "value": "El agente reanudará todas las actividades."
     }
   ],
   "c8Doeq": [
@@ -10796,7 +11548,7 @@
   "cHKA8f": [
     {
       "type": 0,
-      "value": "No insight content available"
+      "value": "No hay contenido de conclusiones disponible"
     }
   ],
   "cJGGY4": [
@@ -10814,7 +11566,7 @@
   "cLHCHE": [
     {
       "type": 0,
-      "value": "Connector status"
+      "value": "Estado del conector"
     }
   ],
   "cRTR/A": [
@@ -10835,6 +11587,12 @@
       "value": "Colaborador de la cuenta de almacenamiento"
     }
   ],
+  "cXAlMR": [
+    {
+      "type": 0,
+      "value": "Scheduled"
+    }
+  ],
   "cYwv8P": [
     {
       "type": 0,
@@ -10850,7 +11608,7 @@
   "cesI6Z": [
     {
       "type": 0,
-      "value": "No feedback selected"
+      "value": "No se ha seleccionado ningún comentario"
     }
   ],
   "cfbpDd": [
@@ -10866,7 +11624,7 @@
   "cg54iX": [
     {
       "type": 0,
-      "value": "Kusto tool name"
+      "value": "Nombre de la herramienta Kusto"
     }
   ],
   "ciB+oy": [
@@ -11005,6 +11763,12 @@
       "value": "fieldName"
     }
   ],
+  "dF2h2y": [
+    {
+      "type": 0,
+      "value": "Filter by incident id or title"
+    }
+  ],
   "dG8VrM": [
     {
       "type": 0,
@@ -11045,6 +11809,12 @@
     {
       "type": 0,
       "value": "Permite el acceso de lectura completo a las propiedades del plano de datos del servicio de aprovisionamiento de dispositivos."
+    }
+  ],
+  "dQJz2m": [
+    {
+      "type": 0,
+      "value": "This feature isn't available in this portal yet."
     }
   ],
   "dQKATf": [
@@ -11189,6 +11959,12 @@
       "value": "Calificar la calidad del agente"
     }
   ],
+  "dzy0ND": [
+    {
+      "type": 0,
+      "value": "Run scheduled task"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -11246,7 +12022,7 @@
   "eRwVws": [
     {
       "type": 0,
-      "value": "You need an incident platform to add an incident trigger."
+      "value": "Necesita una plataforma de incidentes para añadir un desencadenador de incidentes."
     }
   ],
   "eUEjcm": [
@@ -11322,7 +12098,7 @@
   "ekSxhn": [
     {
       "type": 0,
-      "value": "Connectors give the agent more tools to take action."
+      "value": "Los conectores ofrecen al agente más herramientas para actuar."
     }
   ],
   "emW/QQ": [
@@ -11340,7 +12116,7 @@
   "eq57j2": [
     {
       "type": 0,
-      "value": "Add incident trigger"
+      "value": "Agregar desencadenador de incidentes"
     }
   ],
   "eqYdSS": [
@@ -11398,7 +12174,7 @@
   "f04POI": [
     {
       "type": 0,
-      "value": "Tool created successfully"
+      "value": "Herramienta creada correctamente"
     }
   ],
   "f0LQra": [
@@ -11452,7 +12228,7 @@
   "fCiXKq": [
     {
       "type": 0,
-      "value": "Add scheduled task"
+      "value": "Agregar tarea programada"
     }
   ],
   "fE5E6W": [
@@ -11552,7 +12328,7 @@
   "fiLH5L": [
     {
       "type": 0,
-      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+      "value": "Para crear una herramienta Kusto, primero añada un conector de Azure Data Explorer."
     }
   ],
   "fio5op": [
@@ -11622,13 +12398,19 @@
   "fuHqFL": [
     {
       "type": 0,
-      "value": "No session insights found."
+      "value": "No se encontraron conclusiones de sesión."
     }
   ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Todos los estados"
+    }
+  ],
+  "fvSiRs": [
+    {
+      "type": 0,
+      "value": "Tool updated successfully"
     }
   ],
   "fyaE5g": [
@@ -11742,7 +12524,7 @@
   "gclDgn": [
     {
       "type": 0,
-      "value": "Create a Kusto tool"
+      "value": "Crear una herramienta Kusto"
     }
   ],
   "gct+2s": [
@@ -11766,7 +12548,7 @@
   "ghwElt": [
     {
       "type": 0,
-      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
+      "value": "Visite Soporte técnico y solución de problemas para acceder a recursos de soporte y resolver incidencias relacionadas con su agente de SRE."
     }
   ],
   "gj6Qc6": [
@@ -11796,7 +12578,7 @@
   "gox4oK": [
     {
       "type": 0,
-      "value": "Enter the database name"
+      "value": "Escriba el nombre de la base de datos."
     }
   ],
   "grgDhd": [
@@ -11890,7 +12672,7 @@
   "h/OQTK": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders."
+      "value": "Use ##ParamName## en su consulta para definir marcadores de posición de parámetros."
     }
   ],
   "h0W8DM": [
@@ -11938,7 +12720,7 @@
   "hF/2EL": [
     {
       "type": 0,
-      "value": "Handoff Instructions"
+      "value": "Instrucciones de entrega"
     }
   ],
   "hF5T80": [
@@ -11957,6 +12739,12 @@
     {
       "type": 0,
       "value": "Programar"
+    }
+  ],
+  "hGnjdE": [
+    {
+      "type": 0,
+      "value": "Learn more about AAU consumption and cost"
     }
   ],
   "hHz/bk": [
@@ -12031,6 +12819,12 @@
       "value": "Las herramientas del sistema son de solo lectura. Vea el YAML como referencia."
     }
   ],
+  "hdfKe+": [
+    {
+      "type": 0,
+      "value": "Automatically starts a subagent in response to an incident or alert."
+    }
+  ],
   "heMr0D": [
     {
       "type": 0,
@@ -12067,6 +12861,12 @@
       "value": "Obtenga una vista previa de las recomendaciones de IA sin cambiar las instrucciones"
     }
   ],
+  "hjtyTg": [
+    {
+      "type": 0,
+      "value": "End date must be after start date."
+    }
+  ],
   "hkgUC5": [
     {
       "type": 0,
@@ -12088,13 +12888,13 @@
   "hoHnYn": [
     {
       "type": 0,
-      "value": "Improved handoff instructions"
+      "value": "Instrucciones de entrega mejoradas"
     }
   ],
   "hqWr3L": [
     {
       "type": 0,
-      "value": "RCA category"
+      "value": "Categoría RCA"
     }
   ],
   "hrdmcd": [
@@ -12121,6 +12921,12 @@
       "value": "Panel"
     }
   ],
+  "i3P6ZD": [
+    {
+      "type": 0,
+      "value": "Created at:"
+    }
+  ],
   "i5OUQE": [
     {
       "type": 0,
@@ -12137,6 +12943,12 @@
     {
       "type": 0,
       "value": "Realizar tareas de ciencia de datos en Azure Machine Learning."
+    }
+  ],
+  "i6x7bU": [
+    {
+      "type": 0,
+      "value": "The agent is stopped"
     }
   ],
   "iDPKM0": [
@@ -12172,7 +12984,7 @@
   "iMaY2Q": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent "
+      "value": "Detención del agente de SRE "
     },
     {
       "type": 1,
@@ -12180,13 +12992,19 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " en curso"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
       "value": "Seleccionar un filtro"
+    }
+  ],
+  "iPhHGC": [
+    {
+      "type": 0,
+      "value": "Learn more about scheduled tasks"
     }
   ],
   "iV7LUx": [
@@ -12204,7 +13022,13 @@
   "iY7P1k": [
     {
       "type": 0,
-      "value": "Agent Autonomy"
+      "value": "Autonomía del agente"
+    }
+  ],
+  "iYJ/Ha": [
+    {
+      "type": 0,
+      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -12246,7 +13070,7 @@
   "ifdupA": [
     {
       "type": 0,
-      "value": "To view runs, go to Agent Runs"
+      "value": "Para ver las ejecuciones, vaya a Ejecuciones del agente"
     }
   ],
   "iihhVc": [
@@ -12267,6 +13091,12 @@
     {
       "type": 0,
       "value": ". Enlace para reintentar."
+    }
+  ],
+  "ioRcwS": [
+    {
+      "type": 0,
+      "value": "Scheduled task trigger"
     }
   ],
   "ipsqxO": [
@@ -12361,6 +13191,18 @@
       "value": "."
     }
   ],
+  "j0Ifob": [
+    {
+      "type": 0,
+      "value": "Do you want to proceed?"
+    }
+  ],
+  "j0bMX6": [
+    {
+      "type": 0,
+      "value": "No incident metrics to report"
+    }
+  ],
   "j1FyDL": [
     {
       "type": 0,
@@ -12370,7 +13212,7 @@
   "j1pB0w": [
     {
       "type": 0,
-      "value": "Go to Agent Consumption"
+      "value": "Ir al consumo del agente"
     }
   ],
   "j3bwJQ": [
@@ -12413,6 +13255,50 @@
     {
       "type": 0,
       "value": "Ningún resultado"
+    }
+  ],
+  "jIcHPc": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "jJ7kNS": [
+    {
+      "type": 0,
+      "value": "Try selecting a different date range."
     }
   ],
   "jJE3xY": [
@@ -12499,6 +13385,16 @@
       "value": "Introduzca el nombre del subagente"
     }
   ],
+  "jX6uvW": [
+    {
+      "type": 0,
+      "value": "Failed to run task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -12508,7 +13404,7 @@
   "ja85pV": [
     {
       "type": 0,
-      "value": "Add Documents"
+      "value": "Agregar documentos"
     }
   ],
   "jabB4C": [
@@ -12626,7 +13522,7 @@
   "kFkPWB": [
     {
       "type": 0,
-      "value": "Number"
+      "value": "Número"
     }
   ],
   "kG0ZtT": [
@@ -12696,13 +13592,13 @@
   "ketkP5": [
     {
       "type": 0,
-      "value": "Knowledge Base Enabled"
+      "value": "Base de conocimiento habilitada"
     }
   ],
   "khI1mJ": [
     {
       "type": 0,
-      "value": "Edit subagent"
+      "value": "Editar subagente"
     }
   ],
   "khOzXi": [
@@ -12782,35 +13678,13 @@
   "kxokJj": [
     {
       "type": 0,
-      "value": "Agent datagrid"
+      "value": "Cuadrícula de datos del agente"
     }
   ],
   "l+e8nZ": [
     {
       "type": 0,
       "value": "¿Está seguro de que quiere eliminar las tareas programadas seleccionadas? Esta acción no se puede deshacer."
-    }
-  ],
-  "l0TtPi": [
-    {
-      "type": 0,
-      "value": "Elija un máximo de "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " grupos de recursos en los que tenga permisos. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " grupo de recursos seleccionado."
     }
   ],
   "l0UKyP": [
@@ -12822,7 +13696,7 @@
   "l0VCdV": [
     {
       "type": 0,
-      "value": "Create tool"
+      "value": "Crear herramienta"
     }
   ],
   "l2Ni9H": [
@@ -12841,6 +13715,12 @@
     {
       "type": 0,
       "value": "Científico de datos de AzureML"
+    }
+  ],
+  "l8IRTD": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) ran successfully"
     }
   ],
   "lCsNuL": [
@@ -12881,6 +13761,12 @@
     {
       "type": 0,
       "value": "Recursos afectados"
+    }
+  ],
+  "lQmkhq": [
+    {
+      "type": 0,
+      "value": "Subagents"
     }
   ],
   "lUAfdH": [
@@ -12963,6 +13849,12 @@
       "value": "Usado recientemente"
     }
   ],
+  "m/B8a5": [
+    {
+      "type": 0,
+      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "m0kcbz": [
     {
       "type": 0,
@@ -12978,7 +13870,7 @@
   "m4vqJl": [
     {
       "type": 0,
-      "value": "Files"
+      "value": "Archivos"
     }
   ],
   "m57OnF": [
@@ -13132,7 +14024,7 @@
   "mVB9Bd": [
     {
       "type": 0,
-      "value": "Add handoff from "
+      "value": "Se ha agregado la entrega de "
     },
     {
       "type": 1,
@@ -13140,7 +14032,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " al subagente "
     },
     {
       "type": 1,
@@ -13189,6 +14081,12 @@
       "value": "Nivel máximo alcanzado: siga refinando para mantenerse a la vanguardia."
     }
   ],
+  "mg8UeB": [
+    {
+      "type": 0,
+      "value": "Filter by response plan name"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -13199,12 +14097,6 @@
     {
       "type": 0,
       "value": "No hay herramientas configuradas."
-    }
-  ],
-  "mgtFKh": [
-    {
-      "type": 0,
-      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13295,6 +14187,12 @@
       "value": "Esto eliminará permanentemente la conexión a ServiceNow. El agente ya no podrá administrar vales. ¿Está seguro de que desea desconectarse?"
     }
   ],
+  "n25S4d": [
+    {
+      "type": 0,
+      "value": "Update Kusto Tool"
+    }
+  ],
   "n2h/5e": [
     {
       "type": 0,
@@ -13356,7 +14254,7 @@
   "nL/Owh": [
     {
       "type": 0,
-      "value": "Send notification"
+      "value": "Enviar notificación"
     }
   ],
   "nNwFuy": [
@@ -13574,7 +14472,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Iniciar sesión con una cuenta diferente"
     }
   ],
   "oIm1Fb": [
@@ -13628,7 +14526,7 @@
   "oTxjU2": [
     {
       "type": 0,
-      "value": "Handoff subagents"
+      "value": "Subagentes de entrega"
     }
   ],
   "oUWADl": [
@@ -13667,6 +14565,12 @@
       "value": "Para cambiar la plataforma de incidentes, debe desconectarse de Azure Monitor. El agente ya no recibirá notificaciones de Azure Monitor. ¿Está seguro de que desea desconectarse?"
     }
   ],
+  "ocQGCd": [
+    {
+      "type": 0,
+      "value": "Allow subagent capabilities to override the SRE Agent."
+    }
+  ],
   "ocQXDt": [
     {
       "type": 0,
@@ -13687,12 +14591,6 @@
     {
       "type": 0,
       "value": "Proporcionar comentarios de respuesta"
-    }
-  ],
-  "ongAz6": [
-    {
-      "type": 0,
-      "value": "Buscar incidentes"
     }
   ],
   "ooDMAp": [
@@ -13852,7 +14750,7 @@
   "pPwNx4": [
     {
       "type": 0,
-      "value": "Office 365 Outlook"
+      "value": "Office 365 Outlook"
     }
   ],
   "pRvgsc": [
@@ -13928,7 +14826,7 @@
   "pgIRcn": [
     {
       "type": 0,
-      "value": "Enter a string"
+      "value": "Escriba una cadena"
     }
   ],
   "piCpTn": [
@@ -13937,16 +14835,10 @@
       "value": "Una vez que se aprovisiona y vincula un panel de Grafana, puede tardar un tiempo en que los recursos rellenen el panel."
     }
   ],
-  "plun1b": [
-    {
-      "type": 0,
-      "value": "Hand-off"
-    }
-  ],
   "pndXMi": [
     {
       "type": 0,
-      "value": "Enter a value"
+      "value": "Escribir un valor"
     }
   ],
   "pnlHOZ": [
@@ -13992,7 +14884,7 @@
   "pqedsA": [
     {
       "type": 0,
-      "value": "Mute all warnings"
+      "value": "Silenciar todas las advertencias"
     }
   ],
   "pqgzm0": [
@@ -14022,7 +14914,7 @@
   "pw1ueF": [
     {
       "type": 0,
-      "value": "Failed to create meta agent. Error: "
+      "value": "No se pudo crear el metaagente. Error: "
     },
     {
       "type": 1,
@@ -14068,13 +14960,13 @@
   "qB4s5L": [
     {
       "type": 0,
-      "value": "Add parameter"
+      "value": "Agregar parámetro"
     }
   ],
   "qDwvZ4": [
     {
       "type": 0,
-      "value": "Unknown error"
+      "value": "Error desconocido"
     }
   ],
   "qQh4Xu": [
@@ -14164,7 +15056,7 @@
   "qrs+1B": [
     {
       "type": 0,
-      "value": "Create meta agent"
+      "value": "Crear metaagente"
     }
   ],
   "qs5hhk": [
@@ -14328,6 +15220,48 @@
       "value": "Incidentes con síntomas similares"
     }
   ],
+  "rIbCjV": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "rKdPkY": [
     {
       "type": 0,
@@ -14431,19 +15365,13 @@
   "raexxM": [
     {
       "type": 0,
-      "value": "Submitted"
+      "value": "Enviada"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
       "value": "Cerrar"
-    }
-  ],
-  "rd+inb": [
-    {
-      "type": 0,
-      "value": "Crea agentes de IA con herramientas personalizadas y conectores. Visualice cómo trabajan juntos en un gráfico interactivo. Comience creando su primer agente, herramienta o conector."
     }
   ],
   "rd6YZk": [
@@ -14455,7 +15383,7 @@
   "rdsirP": [
     {
       "type": 0,
-      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+      "value": "El agente ha alcanzado el límite de UAA de flujo activo. Ahora solo funciona en el flujo siempre activo y no está disponible para chat ni acciones."
     }
   ],
   "rhSI1/": [
@@ -14467,7 +15395,7 @@
   "ri3YXY": [
     {
       "type": 0,
-      "value": "Add a connector"
+      "value": "Agregar un conector"
     }
   ],
   "riEsC7": [
@@ -14583,7 +15511,7 @@
   "rzC0Xo": [
     {
       "type": 0,
-      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+      "value": "El agente publica notificaciones en la fuente de actividad que vinculan a un chat o equipo."
     }
   ],
   "s00xPm": [
@@ -14652,6 +15580,12 @@
     {
       "type": 0,
       "value": "Seleccionar suscripción"
+    }
+  ],
+  "sCRBH3": [
+    {
+      "type": 0,
+      "value": "Search by subagent"
     }
   ],
   "sH0O5v": [
@@ -14805,7 +15739,7 @@
   "sZIoMy": [
     {
       "type": 0,
-      "value": "Send email"
+      "value": "Enviar correo electrónico"
     }
   ],
   "sd1Vy+": [
@@ -14877,7 +15811,7 @@
   "spEwRf": [
     {
       "type": 0,
-      "value": "You have warnings regarding your agent."
+      "value": "Tiene advertencias relacionadas con su agente."
     }
   ],
   "sqGM6w": [
@@ -14904,6 +15838,12 @@
       "value": "Herramientas de servidores del protocolo de contexto de modelo (MCP). Estas herramientas se agrupan por conexión y se cargan desde servidores conectados."
     }
   ],
+  "stbbGt": [
+    {
+      "type": 0,
+      "value": "Performs specialized tasks on behalf of the SRE Agent."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -14925,7 +15865,7 @@
   "swe9tO": [
     {
       "type": 0,
-      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+      "value": "Ejecute primero una prueba para validar la consulta y asegurarse de que el agente puede acceder a Azure Data Explorer."
     }
   ],
   "sy7vzf": [
@@ -15010,6 +15950,12 @@
       "value": "Pausar"
     }
   ],
+  "tFoDh3": [
+    {
+      "type": 0,
+      "value": "Yes, turn on deep investigation"
+    }
+  ],
   "tGHG7q": [
     {
       "type": 0,
@@ -15032,12 +15978,6 @@
     {
       "type": 0,
       "value": "Base de conocimiento"
-    }
-  ],
-  "tLaLqo": [
-    {
-      "type": 0,
-      "value": "Esta es su investigación en profundidad:"
     }
   ],
   "tOxzip": [
@@ -15183,7 +16123,7 @@
   "trhBLG": [
     {
       "type": 0,
-      "value": "No insights available"
+      "value": "Sin información disponible"
     }
   ],
   "ts7YvN": [
@@ -15201,7 +16141,7 @@
   "ttWUo6": [
     {
       "type": 0,
-      "value": "Click to view session analysis and insights"
+      "value": "Haga clic para ver el análisis y las conclusiones de la sesión"
     }
   ],
   "tthToS": [
@@ -15213,7 +16153,7 @@
   "tu6JYo": [
     {
       "type": 0,
-      "value": "Start agent"
+      "value": "Iniciar agente"
     }
   ],
   "tujypD": [
@@ -15322,10 +16262,22 @@
       "value": "Todos los niveles de autonomía"
     }
   ],
+  "uIXQiw": [
+    {
+      "type": 0,
+      "value": "Establishing connection ..."
+    }
+  ],
+  "uKwm6S": [
+    {
+      "type": 0,
+      "value": "Canvas view"
+    }
+  ],
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "Las UAA de flujo activas se restablecen en "
     },
     {
       "offset": 0,
@@ -15334,7 +16286,7 @@
           "value": [
             {
               "type": 0,
-              "value": "today"
+              "value": "hoy"
             }
           ]
         },
@@ -15345,7 +16297,7 @@
             },
             {
               "type": 0,
-              "value": " day"
+              "value": " día"
             }
           ]
         },
@@ -15356,7 +16308,7 @@
             },
             {
               "type": 0,
-              "value": " days"
+              "value": " días"
             }
           ]
         }
@@ -15492,7 +16444,13 @@
   "ueVpay": [
     {
       "type": 0,
-      "value": "Refining..."
+      "value": "Refinación..."
+    }
+  ],
+  "ufzv1A": [
+    {
+      "type": 0,
+      "value": "Table view"
     }
   ],
   "ug01Mk": [
@@ -15534,7 +16492,7 @@
   "urxxsP": [
     {
       "type": 0,
-      "value": "Agent Performance"
+      "value": "Rendimiento del agente"
     }
   ],
   "us/IXr": [
@@ -15600,7 +16558,7 @@
   "v6cujo": [
     {
       "type": 0,
-      "value": "Kusto tool"
+      "value": "Herramienta Kusto"
     }
   ],
   "v8cTK0": [
@@ -15678,7 +16636,7 @@
   "vS6Lmt": [
     {
       "type": 0,
-      "value": "Incident triggers"
+      "value": "Desencadenadores de incidentes"
     }
   ],
   "vSW3OF": [
@@ -15729,6 +16687,12 @@
     {
       "type": 0,
       "value": "Esta guía ayuda a generar la lista de herramientas y el aviso final que el agente usa durante el control de incidentes."
+    }
+  ],
+  "vb6deF": [
+    {
+      "type": 0,
+      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
     }
   ],
   "vbdOl/": [
@@ -15786,7 +16750,7 @@
   "vzH0q5": [
     {
       "type": 0,
-      "value": "Choose tools"
+      "value": "Elegir herramientas"
     }
   ],
   "w+XRP2": [
@@ -15805,6 +16769,12 @@
     {
       "type": 0,
       "value": "Borrar descripción"
+    }
+  ],
+  "w4Nqlr": [
+    {
+      "type": 0,
+      "value": "Run scheduled task(s)"
     }
   ],
   "w5FDGY": [
@@ -15846,7 +16816,7 @@
   "wBh+z3": [
     {
       "type": 0,
-      "value": "No additional comments provided"
+      "value": "No se proporcionaron comentarios adicionales"
     }
   ],
   "wEQDC6": [
@@ -15899,6 +16869,12 @@
       "value": "format"
     }
   ],
+  "wO9wb5": [
+    {
+      "type": 0,
+      "value": "GitHub"
+    }
+  ],
   "wOHH3J": [
     {
       "type": 0,
@@ -15913,10 +16889,22 @@
       "value": " debe hacer cada vez que se ejecute."
     }
   ],
+  "wPF0jY": [
+    {
+      "type": 0,
+      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
       "value": "Crear un nuevo agente de entrega"
+    }
+  ],
+  "wSLRfB": [
+    {
+      "type": 0,
+      "value": "Unknown status"
     }
   ],
   "wSZR47": [
@@ -15928,7 +16916,7 @@
   "wUnPMf": [
     {
       "type": 0,
-      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+      "value": "Los usuarios que no tengan uno de los roles de control de acceso basado en roles (RBAC) de Azure necesarios no tendrán acceso al Azure SRE Agent."
     }
   ],
   "wVpXzO": [
@@ -16084,7 +17072,7 @@
   "xEjqoV": [
     {
       "type": 0,
-      "value": "Click here to learn more"
+      "value": "Haga clic aquí para obtener más información"
     }
   ],
   "xGPsyJ": [
@@ -16114,7 +17102,7 @@
   "xLrAFR": [
     {
       "type": 0,
-      "value": "Parameter name"
+      "value": "Nombre del parámetro"
     }
   ],
   "xNC5hG": [
@@ -16123,10 +17111,16 @@
       "value": "Diccionario (agrupar en argumentos)"
     }
   ],
+  "xP3hmB": [
+    {
+      "type": 0,
+      "value": "Start:"
+    }
+  ],
   "xPuGYM": [
     {
       "type": 0,
-      "value": "No connectors match your search"
+      "value": "Ningún conector coincide con su búsqueda"
     }
   ],
   "xSsto+": [
@@ -16212,7 +17206,7 @@
   "xet2Cv": [
     {
       "type": 0,
-      "value": "Query parameters"
+      "value": "Parámetros de consulta"
     }
   ],
   "xf9BKi": [
@@ -16291,6 +17285,12 @@
       "value": "Eliminando plan de respuesta a incidentes personalizado"
     }
   ],
+  "y/m6Ep": [
+    {
+      "type": 0,
+      "value": "GitHub MCP server"
+    }
+  ],
   "y0KXuM": [
     {
       "type": 0,
@@ -16320,7 +17320,7 @@
   "y79eIb": [
     {
       "type": 0,
-      "value": "Assign yourself the SRE Agent Admin role."
+      "value": "Asígnese el rol de administrador del agente de SRE."
     }
   ],
   "y87pob": [
@@ -16340,7 +17340,7 @@
   "yBnHns": [
     {
       "type": 0,
-      "value": "Sign in to "
+      "value": "Iniciar sesión en "
     },
     {
       "type": 1,
@@ -16362,7 +17362,7 @@
   "yJJ/jv": [
     {
       "type": 0,
-      "value": "Mute this warning"
+      "value": "Silenciar esta advertencia"
     }
   ],
   "yJSwfQ": [
@@ -16383,6 +17383,12 @@
       "value": "El incidente se eliminó correctamente"
     }
   ],
+  "yRKsn1": [
+    {
+      "type": 0,
+      "value": "Learn more about deep investigations"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -16392,7 +17398,7 @@
   "yVe+kY": [
     {
       "type": 0,
-      "value": "Set up connector"
+      "value": "Configurar el conector"
     }
   ],
   "yX3QcY": [
@@ -16497,6 +17503,66 @@
       "value": "Tipo de grupo de aplicaciones principal"
     }
   ],
+  "yrDI3f": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "ysBuRt": [
     {
       "type": 0,
@@ -16528,7 +17594,7 @@
   "z43sTn": [
     {
       "type": 0,
-      "value": "View Knowledge Base"
+      "value": "Ver base de conocimiento"
     }
   ],
   "z5cF/O": [
@@ -16591,6 +17657,12 @@
       "value": "Analizando la configuración para recomendaciones de mejora."
     }
   ],
+  "zJFez9": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Tasks"
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -16638,7 +17710,7 @@
   "zWkvNO": [
     {
       "type": 0,
-      "value": "Timeline"
+      "value": "Línea de tiempo"
     }
   ],
   "zZsxcQ": [
@@ -16695,6 +17767,40 @@
     {
       "type": 0,
       "value": "Configuración avanzada"
+    }
+  ],
+  "zpENeF": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tool"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "zpkKsD": [

@@ -1,15 +1,4 @@
-import {
-    Card,
-    InputOnChangeData,
-    Link,
-    mergeClasses,
-    SearchBox,
-    SearchBoxChangeEvent,
-    Subtitle2,
-    Text,
-} from '@fluentui/react-components';
-import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
-import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
+import { Card, InputOnChangeData, Link, mergeClasses, SearchBox, SearchBoxChangeEvent, Subtitle2, Text } from '@fluentui/react-components';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import debounce from 'lodash/debounce';
@@ -19,6 +8,8 @@ import { useAzPortalContext } from '../../../../Common/AzPortalProxy/Providers/A
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../../../Common/Clients/ThreadClient';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
+import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
+import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
 import { Thread } from '../../../../Common/Contracts/DataPlane/Thread';
 import { formatDateTimeWithShortYear } from '../../../../Common/Helpers/Date';
 import { getLocalizedMitigatedBy } from '../../../../Common/Helpers/IncidentManagement';
@@ -74,8 +65,6 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
             { label: intl.formatMessage(SreAgentResources.inProgress), key: 'inProgress' },
         ];
     }, [intl]);
-
-
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -300,7 +289,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
                     label={intl.formatMessage(IncidentManagementResources.severityLevel)}
                     options={severityLevelFilterOptions}
                     selectedKeys={severityLevelFilters}
-                    onApply={(keys) => setSeverityLevelFilters(keys)}
+                    onApply={keys => setSeverityLevelFilters(keys)}
                     disabled={disabled}
                     multiSelect
                     addAllOption
@@ -310,7 +299,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
                     label={intl.formatMessage(IncidentManagementResources.mitigatedBy)}
                     options={mitigatedByFilterOptions}
                     selectedKeys={mitigatedByFilters}
-                    onApply={(keys) => setMitigatedByFilters(keys)}
+                    onApply={keys => setMitigatedByFilters(keys)}
                     disabled={disabled}
                     multiSelect
                     addAllOption

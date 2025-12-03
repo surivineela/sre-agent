@@ -36,7 +36,7 @@
   "+6/51l": [
     {
       "type": 0,
-      "value": "Creating meta agent"
+      "value": "Meta aracı oluşturuluyor"
     }
   ],
   "+7PjfV": [
@@ -54,7 +54,7 @@
   "+ASm/B": [
     {
       "type": 0,
-      "value": "Submit Feedback"
+      "value": "Geri Bildirim Gönder"
     }
   ],
   "+Aon83": [
@@ -90,13 +90,19 @@
   "+Kcoxv": [
     {
       "type": 0,
-      "value": "Related incidents"
+      "value": "İlgili olaylar"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
       "value": "Bir araç seçin"
+    }
+  ],
+  "+OMfjA": [
+    {
+      "type": 0,
+      "value": "Give access to knowledge base"
     }
   ],
   "+Pmftr": [
@@ -139,28 +145,34 @@
       "value": "Tür"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+XtuWl": [
     {
       "type": 0,
-      "value": "This insight needs improvement"
+      "value": "Bu içgörünün iyileştirilmesi gerekiyor"
     }
   ],
   "+Y8m6A": [
-    {
-      "type": 0,
-      "value": "Added handoff from "
-    },
     {
       "type": 1,
       "value": "sourceAgent"
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " aracısından "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısına devretme işlemi eklendi"
     }
   ],
   "+ZdOJt": [
@@ -226,7 +238,7 @@
   "+nnQeH": [
     {
       "type": 0,
-      "value": "Created meta agent"
+      "value": "Meta aracı oluşturuldu"
     }
   ],
   "+nt4l9": [
@@ -256,7 +268,7 @@
   "/+WtRc": [
     {
       "type": 0,
-      "value": "Enter handoff instructions"
+      "value": "Devretme yönergelerini girin"
     }
   ],
   "//Zb9l": [
@@ -280,7 +292,7 @@
   "/3OCn6": [
     {
       "type": 0,
-      "value": "Insights have not been generated for this thread yet."
+      "value": "Bu iş parçacığı için içgörüler henüz oluşturulmadı."
     }
   ],
   "/4tOwT": [
@@ -292,19 +304,49 @@
   "/5UY6N": [
     {
       "type": 0,
-      "value": "The maximum AAU limit is 200,000"
+      "value": "AAU üst sınırı 200.000’dir"
     }
   ],
   "/7GPtw": [
     {
       "type": 0,
-      "value": "Go to Incidents"
+      "value": "Olaylar bölümüne gidin"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
       "value": "SQL Yönetilen Örneklerini yönetin."
+    }
+  ],
+  "/8swfk": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "/9FZdx": [
@@ -333,12 +375,6 @@
     {
       "type": 0,
       "value": "Temizle"
-    }
-  ],
-  "/ImSqA": [
-    {
-      "type": 0,
-      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -450,7 +486,7 @@
   "/qCaiZ": [
     {
       "type": 0,
-      "value": "Incident trigger name"
+      "value": "Olay tetikleyicisi adı"
     }
   ],
   "/rNkXe": [
@@ -516,7 +552,7 @@
   "03qRza": [
     {
       "type": 0,
-      "value": "View AI suggestions"
+      "value": "Yapay zeka önerilerini görüntüleyin"
     }
   ],
   "05Rzkx": [
@@ -553,16 +589,12 @@
   ],
   "0DUgkZ": [
     {
-      "type": 0,
-      "value": "SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " stopped successfully"
+      "value": " SRE Aracısı başarıyla durduruldu"
     }
   ],
   "0Dhe75": [
@@ -612,7 +644,7 @@
   "0Qocmw": [
     {
       "type": 0,
-      "value": "All tools"
+      "value": "Tüm araçlar"
     }
   ],
   "0R+Pet": [
@@ -650,7 +682,7 @@
   "0VVX+G": [
     {
       "type": 0,
-      "value": "Connected as"
+      "value": "Bağlantı biçimi:"
     }
   ],
   "0VuGey": [
@@ -698,7 +730,7 @@
   "0hpRE4": [
     {
       "type": 0,
-      "value": "Enter the parameter name"
+      "value": "Parametre adını girin"
     }
   ],
   "0i3Qrd": [
@@ -820,7 +852,7 @@
   "0zGfOk": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "Tanılama, ölçümler, bilgi ve daha fazlası için en iyi aracı performansını elde etmek için şu Azure işlem hizmetlerinden birini veya daha fazlasını içeren kaynak gruplarını kullanın: Azure Kubernetes Service, İşlevler, Container Apps veya Web Apps."
     }
   ],
   "12GY0h": [
@@ -833,6 +865,16 @@
     {
       "type": 0,
       "value": "Kullanımlar (Tetikleyici)"
+    }
+  ],
+  "13KTIN": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
     }
   ],
   "15GWkT": [
@@ -862,7 +904,7 @@
   "19xydZ": [
     {
       "type": 0,
-      "value": "You do not have permission to generate insights for this thread."
+      "value": "Bu iş parçacığı için içgörü oluşturma izniniz yok."
     }
   ],
   "1CcjQj": [
@@ -903,14 +945,10 @@
       "value": "Henüz karşıya yüklenen belge yok"
     }
   ],
-  "1O47t6": [
-    {
-      "type": 1,
-      "value": "name"
-    },
+  "1LBny5": [
     {
       "type": 0,
-      "value": " SRE Aracısı başarıyla silindi"
+      "value": "Stopped"
     }
   ],
   "1OorZL": [
@@ -1025,6 +1063,12 @@
       "value": "score"
     }
   ],
+  "1m4VPF": [
+    {
+      "type": 0,
+      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+    }
+  ],
   "1o9eJ6": [
     {
       "offset": 0,
@@ -1061,6 +1105,12 @@
     {
       "type": 0,
       "value": "Yanıt planı"
+    }
+  ],
+  "1xTayQ": [
+    {
+      "type": 0,
+      "value": "Enter endpoint"
     }
   ],
   "1xZjpU": [
@@ -1164,7 +1214,7 @@
   "2Mm/ie": [
     {
       "type": 0,
-      "value": "Failed to save response plan"
+      "value": "Yanıt planı kaydedilemedi"
     }
   ],
   "2OQ6yB": [
@@ -1260,7 +1310,7 @@
   "2l5w5P": [
     {
       "type": 0,
-      "value": "Go to Support + Troubleshooting"
+      "value": "Destek ve Sorun Giderme bölümüne gidin"
     }
   ],
   "2m6oj5": [
@@ -1290,7 +1340,7 @@
   "2reUcp": [
     {
       "type": 0,
-      "value": "Subagent name"
+      "value": "Alt aracı adı"
     }
   ],
   "2tOWr2": [
@@ -1371,6 +1421,12 @@
       "value": "Henüz kullanılabilir aracı yok"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1416,7 +1472,7 @@
   "3SVI5p": [
     {
       "type": 0,
-      "value": "Warning"
+      "value": "Uyarı"
     }
   ],
   "3SsYXO": [
@@ -1449,6 +1505,42 @@
       "value": "Add MCP server"
     }
   ],
+  "3h7ZKg": [
+    {
+      "type": 0,
+      "value": "Review + add"
+    }
+  ],
+  "3hmrCJ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
@@ -1473,14 +1565,40 @@
       "value": "Okuyucu"
     }
   ],
+  "3rvQhx": [
+    {
+      "type": 0,
+      "value": "You can manage up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. Your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups."
+    }
+  ],
   "3sNyAo": [
     {
       "type": 0,
-      "value": "The url must be in the format: "
+      "value": "URL'nizin "
     },
     {
       "type": 1,
       "value": "format"
+    },
+    {
+      "type": 0,
+      "value": " biçiminde olması gerekir"
     }
   ],
   "3sQV42": [
@@ -1583,6 +1701,12 @@
       "value": "Ortak araç yapılandırılmamış."
     }
   ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "451B6Z": [
     {
       "type": 0,
@@ -1638,7 +1762,7 @@
   "4CcHuj": [
     {
       "type": 0,
-      "value": "Share your thoughts about this insight... (optional)"
+      "value": "Bu içgörü hakkındaki düşüncelerinizi paylaşın... (isteğe bağlı)"
     }
   ],
   "4Ez7HI": [
@@ -1651,6 +1775,12 @@
     {
       "type": 0,
       "value": "Uyarı oluşturuldu"
+    }
+  ],
+  "4IAjnN": [
+    {
+      "type": 0,
+      "value": "Turn on deep investigation?"
     }
   ],
   "4MeTpL": [
@@ -1698,7 +1828,7 @@
   "4RwjwU": [
     {
       "type": 0,
-      "value": "Add handoff from existing agent"
+      "value": "Mevcut aracıdan devretme işlemi ekle"
     }
   ],
   "4TnjxL": [
@@ -1715,12 +1845,12 @@
   ],
   "4Xep39": [
     {
-      "type": 0,
-      "value": "Failed to stop SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " SRE Aracısı durdurulamadı"
     }
   ],
   "4ZoIgV": [
@@ -1773,12 +1903,12 @@
   ],
   "4lv5gO": [
     {
-      "type": 0,
-      "value": "Create subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısını oluşturun"
     }
   ],
   "4oK1Me": [
@@ -1825,12 +1955,6 @@
     {
       "type": 0,
       "value": ", eastus ve westeurope AKS kümelerinde aralıklı gecikme süresi artışları için tanılamaya ihtiyacım var."
-    }
-  ],
-  "53O1/Z": [
-    {
-      "type": 0,
-      "value": "Olay kapsamı"
     }
   ],
   "53qjcm": [
@@ -1909,6 +2033,12 @@
     {
       "type": 0,
       "value": " için devir olarak eklenecek."
+    }
+  ],
+  "5NZIbS": [
+    {
+      "type": 0,
+      "value": "Open in Azure Portal"
     }
   ],
   "5POweM": [
@@ -2030,13 +2160,65 @@
   "5fVEet": [
     {
       "type": 0,
-      "value": "Add tools"
+      "value": "Araç ekleyin"
     }
   ],
   "5gEh2M": [
     {
       "type": 0,
       "value": "İlgilenilmesi gereken olaylar"
+    }
+  ],
+  "5iE4cZ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "5j5HnL": [
@@ -2175,6 +2357,16 @@
       "value": "Yönetilen kaynak grupları başarıyla eklendi"
     }
   ],
+  "6+mbvY": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": " sec"
+    }
+  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -2224,7 +2416,7 @@
   "6BTCPo": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+      "value": "Sorgunuzda parametre yer tutucularını tanımlamak için ##ParamName## kullanın. Örnek: where SubscriptionId == \"##SubscriptionId##\" Bunlar çalışma zamanında gerçek değerlerle değiştirilir."
     }
   ],
   "6CrAJC": [
@@ -2269,12 +2461,6 @@
       "value": "öneriler"
     }
   ],
-  "6OBtew": [
-    {
-      "type": 0,
-      "value": "SRE Aracısı siliniyor"
-    }
-  ],
   "6PgVSe": [
     {
       "type": 0,
@@ -2283,12 +2469,12 @@
   ],
   "6RNwei": [
     {
-      "type": 0,
-      "value": "Update subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısını güncelleyin"
     }
   ],
   "6S2zmX": [
@@ -2384,7 +2570,7 @@
   "6gD0ie": [
     {
       "type": 0,
-      "value": "Generate Session Insights"
+      "value": "Oturum İçgörüleri Oluştur"
     }
   ],
   "6m5Ba0": [
@@ -2393,24 +2579,14 @@
       "value": "Veri Toplama Kuralı"
     }
   ],
-  "6tlKgy": [
-    {
-      "type": 0,
-      "value": "Aracının yöneteceği en fazla 20 kaynak grubu seçebilirsiniz."
-    }
-  ],
   "6tzuXg": [
-    {
-      "type": 0,
-      "value": "Failed to start SRE Agent "
-    },
     {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " SRE Aracısı başlatılamadı: "
     },
     {
       "type": 1,
@@ -2498,7 +2674,7 @@
   "751M54": [
     {
       "type": 0,
-      "value": "Generating insights..."
+      "value": "İçgörüler oluşturuluyor..."
     }
   ],
   "75lAeu": [
@@ -2516,7 +2692,7 @@
   "79kwlH": [
     {
       "type": 0,
-      "value": "No agents available for handoff"
+      "value": "Devretme için kullanılabilir aracı yok"
     }
   ],
   "7C0xai": [
@@ -2535,6 +2711,40 @@
     {
       "type": 0,
       "value": "Gözden geçirme modu"
+    }
+  ],
+  "7K6W8s": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7M8VZy": [
@@ -2558,7 +2768,7 @@
   "7Or82y": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "Aracı kalitesi "
     },
     {
       "type": 1,
@@ -2566,7 +2776,7 @@
     },
     {
       "type": 0,
-      "value": "/100 with "
+      "value": "/100 ve "
     },
     {
       "offset": 0,
@@ -2578,7 +2788,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix ready"
+              "value": " hızlı düzeltme hazır"
             }
           ]
         },
@@ -2589,7 +2799,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes ready"
+              "value": " hızlı düzeltme hazır"
             }
           ]
         }
@@ -2600,7 +2810,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " mevcut."
     }
   ],
   "7Rnjmx": [
@@ -2655,6 +2865,12 @@
     {
       "type": 0,
       "value": "Proje ayrıntıları"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -2805,6 +3021,12 @@
       "value": "Bunlar çalışma zamanında gerçek değerlerle değiştirilecek."
     }
   ],
+  "8MoJEj": [
+    {
+      "type": 0,
+      "value": "Message grouping:"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2876,7 +3098,7 @@
   "8SCDv/": [
     {
       "type": 0,
-      "value": "Enter the query for the tool to run"
+      "value": "Aracın çalıştıracağı sorguyu girin"
     }
   ],
   "8Vd2Kv": [
@@ -2893,12 +3115,12 @@
   ],
   "8Zl3PA": [
     {
-      "type": 0,
-      "value": "Failed to start SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " SRE Aracısı başlatılamadı"
     }
   ],
   "8aHHLj": [
@@ -2974,7 +3196,7 @@
   "8fw5Cz": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all connectors."
+      "value": "Farklı arama terimlerini deneyin veya tüm bağlayıcıları görmek için aramanızı temizleyin."
     }
   ],
   "8lCjAM": [
@@ -3016,7 +3238,13 @@
   "8u2W0L": [
     {
       "type": 0,
-      "value": "Handoff instructions"
+      "value": "Devretme yönergeleri"
+    }
+  ],
+  "8urALB": [
+    {
+      "type": 0,
+      "value": "Delete connector"
     }
   ],
   "8v0Pyn": [
@@ -3033,6 +3261,40 @@
     {
       "type": 0,
       "value": "Yapılacaklar Planlarını Kapat"
+    }
+  ],
+  "8yfUKp": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8yyU6n": [
@@ -3109,6 +3371,12 @@
       "value": "Eşleşme yok"
     }
   ],
+  "96TDsd": [
+    {
+      "type": 0,
+      "value": "Learn more about subagents"
+    }
+  ],
   "98A08r": [
     {
       "type": 0,
@@ -3176,7 +3444,7 @@
   "9WBhPZ": [
     {
       "type": 0,
-      "value": "Session Insights"
+      "value": "Oturum İçgörüleri"
     }
   ],
   "9WRlF4": [
@@ -3255,6 +3523,12 @@
       "value": "Bu varlık için YAML düzenlemesi yakında kullanımda olacak."
     }
   ],
+  "A+4geD": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue with SRE agent team"
+    }
+  ],
   "A/xTHO": [
     {
       "type": 0,
@@ -3294,7 +3568,7 @@
   "A9cgAa": [
     {
       "type": 0,
-      "value": "No insight selected"
+      "value": "İçgörü seçilmedi"
     }
   ],
   "AA/tRJ": [
@@ -3329,6 +3603,40 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "AEgxqN": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "AHQdRU": [
@@ -3377,6 +3685,12 @@
     {
       "type": 0,
       "value": "Oluşturma zamanı"
+    }
+  ],
+  "Abi/u/": [
+    {
+      "type": 0,
+      "value": "Expand panel"
     }
   ],
   "AbleKr": [
@@ -3481,6 +3795,12 @@
       "value": " YAML'sinin tamamını gözden geçirip düzenleyin."
     }
   ],
+  "B/qM5p": [
+    {
+      "type": 0,
+      "value": "Enter Teams channel link"
+    }
+  ],
   "B3Q5mz": [
     {
       "type": 0,
@@ -3499,10 +3819,16 @@
       "value": "Aracı Kalitesi"
     }
   ],
+  "BBT3jd": [
+    {
+      "type": 0,
+      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+    }
+  ],
   "BD+V8L": [
     {
       "type": 0,
-      "value": "This insight was helpful"
+      "value": "Bu içgörü faydalıydı"
     }
   ],
   "BEck3n": [
@@ -3600,23 +3926,13 @@
   "BakoFg": [
     {
       "type": 0,
-      "value": "Select tool"
+      "value": "Araç seçin"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
       "value": "En son YAML değişikliklerini kullanıyor"
-    }
-  ],
-  "BcEbxp": [
-    {
-      "type": 1,
-      "value": "seconds"
-    },
-    {
-      "type": 0,
-      "value": " sn"
     }
   ],
   "Bcgdb7": [
@@ -3669,16 +3985,12 @@
   ],
   "Bn/txo": [
     {
-      "type": 0,
-      "value": "Failed to create subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alt aracısı oluşturulamadı. Hata: "
     },
     {
       "type": 1,
@@ -3712,13 +4024,13 @@
   "C6Jt4c": [
     {
       "type": 0,
-      "value": "Scheduled task name"
+      "value": "Zamanlanmış görev adı"
     }
   ],
   "CBHDb1": [
     {
       "type": 0,
-      "value": "Task status"
+      "value": "Görev durumu"
     }
   ],
   "CEdEmD": [
@@ -3747,12 +4059,12 @@
   ],
   "CIAL+k": [
     {
-      "type": 0,
-      "value": "Created subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısı oluşturuldu"
     }
   ],
   "CJ6tzL": [
@@ -3800,7 +4112,7 @@
   "CQ0CLu": [
     {
       "type": 0,
-      "value": "Session insights"
+      "value": "Oturum içgörüleri"
     }
   ],
   "CQisjK": [
@@ -3860,7 +4172,7 @@
   "Cfvmd0": [
     {
       "type": 0,
-      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+      "value": "Aracı, etkin akış AAU'larının %90'ını kullandı. Sınıra ulaşıldığında, araç yalnızca her zaman açık olan akışta çalışır ve sohbet ile eylemler için kullanılamaz."
     }
   ],
   "ChQQJ0": [
@@ -3933,28 +4245,6 @@
       "value": "Azure DevOps"
     }
   ],
-  "D473QI": [
-    {
-      "type": 0,
-      "value": "İzinlerinizin olduğu en fazla "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " kaynak grubunu seçin. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " kaynak grubu seçildi."
-    }
-  ],
   "D4T2Px": [
     {
       "type": 0,
@@ -3970,13 +4260,13 @@
   "D97db3": [
     {
       "type": 0,
-      "value": "Select a response subagent"
+      "value": "Yanıt alt aracısını seç"
     }
   ],
   "DD2Wjk": [
     {
       "type": 0,
-      "value": "Incidents preview"
+      "value": "Olaylar önizlemesi"
     }
   ],
   "DDSwQB": [
@@ -4020,13 +4310,13 @@
   "DFfvL6": [
     {
       "type": 0,
-      "value": "Temporarily stop the agent from all activities."
+      "value": "Aracıyı tüm etkinliklerde geçici olarak durdurun."
     }
   ],
   "DIZgr3": [
     {
       "type": 0,
-      "value": "Boolean"
+      "value": "Boole"
     }
   ],
   "DJN+DZ": [
@@ -4059,6 +4349,12 @@
     {
       "type": 0,
       "value": "Şunun parçası"
+    }
+  ],
+  "DP0m/y": [
+    {
+      "type": 0,
+      "value": "Updating Kusto Tool"
     }
   ],
   "DPnEXy": [
@@ -4095,10 +4391,20 @@
       "value": "Seçili olaylar"
     }
   ],
+  "DXm10s": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " repository URL"
+    }
+  ],
   "DYp/nK": [
     {
       "type": 0,
-      "value": "Session Insight"
+      "value": "Oturum İçgörüsü"
     }
   ],
   "Da55kZ": [
@@ -4111,6 +4417,12 @@
     {
       "type": 0,
       "value": "Bu kaynak grubu, en iyi aracı performansı için önerilir. Bu Azure işlem hizmetlerinden birini veya daha fazlasını içerir: Azure Kubernetes Service, İşlevler, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Sanal makineler veya Depolama hesapları."
+    }
+  ],
+  "DcEKTG": [
+    {
+      "type": 0,
+      "value": "Failed to run test"
     }
   ],
   "DeP+ZM": [
@@ -4194,7 +4506,7 @@
   "Dvly6A": [
     {
       "type": 0,
-      "value": "Failed to create tool"
+      "value": "Araç oluşturulamadı"
     }
   ],
   "Dw2xIY": [
@@ -4236,7 +4548,7 @@
   "E9CWuE": [
     {
       "type": 0,
-      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+      "value": "Örnek: where SubscriptionId == \"##SubscriptionId##\""
     }
   ],
   "EAO/K+": [
@@ -4266,7 +4578,7 @@
   "EHy/sj": [
     {
       "type": 0,
-      "value": "Enter a number"
+      "value": "Bir sayı girin"
     }
   ],
   "EI/cfO": [
@@ -4316,7 +4628,7 @@
   "EQa6dK": [
     {
       "type": 0,
-      "value": "Built-in Tool"
+      "value": "Yerleşik Araç"
     }
   ],
   "ESChST": [
@@ -4328,7 +4640,27 @@
   "ETRyBL": [
     {
       "type": 0,
-      "value": "Rating"
+      "value": "Değerlendirme"
+    }
+  ],
+  "EVA81S": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "entity"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
+  "EVXYDU": [
+    {
+      "type": 0,
+      "value": "Learn more about creating subagents."
     }
   ],
   "EWrExf": [
@@ -4358,7 +4690,7 @@
   "Ebd6gR": [
     {
       "type": 0,
-      "value": "The agent sends email messages."
+      "value": "Aracı e-posta iletileri gönderir."
     }
   ],
   "Ec1M0J": [
@@ -4398,7 +4730,7 @@
   "Ejhdi4": [
     {
       "type": 0,
-      "value": "Feedback"
+      "value": "Geri bildirim"
     }
   ],
   "ElI1gd": [
@@ -4440,7 +4772,7 @@
   "Eu772h": [
     {
       "type": 0,
-      "value": "Built-in Tools"
+      "value": "Yerleşik Araçlar"
     }
   ],
   "Euy+fB": [
@@ -4489,16 +4821,12 @@
   ],
   "F8v2Mz": [
     {
-      "type": 0,
-      "value": "SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " started successfully"
+      "value": " SRE Aracısı başarıyla başlatıldı"
     }
   ],
   "F8xMoD": [
@@ -4584,7 +4912,7 @@
   "FS0tWa": [
     {
       "type": 0,
-      "value": "No source agent specified"
+      "value": "Kaynak aracı belirtilmedi"
     }
   ],
   "FSYccN": [
@@ -4623,18 +4951,18 @@
   ],
   "FWou/7": [
     {
-      "type": 0,
-      "value": "Select tool "
-    },
-    {
       "type": 1,
       "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " aracını seçin"
     }
   ],
   "FZeQlc": [
     {
       "type": 0,
-      "value": "Disconnected"
+      "value": "Bağlantısı kesildi"
     }
   ],
   "FZwBv0": [
@@ -4675,16 +5003,12 @@
   ],
   "FpUGgx": [
     {
-      "type": 0,
-      "value": "Starting SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " SRE Aracısını başlatma işlemi devam ediyor"
     }
   ],
   "Fr5LyM": [
@@ -4696,7 +5020,7 @@
   "FsIud6": [
     {
       "type": 0,
-      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+      "value": "Bu aracı için bilgi bankası etkinleştirildi. SearchMemory aracı ve bilgi bankası istemleri otomatik olarak eklenecek."
     }
   ],
   "Fv1ZSz": [
@@ -4745,6 +5069,68 @@
     {
       "type": 0,
       "value": "Kaldır"
+    }
+  ],
+  "G4gaOn": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "G4mray": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
     }
   ],
   "G5JMSn": [
@@ -4852,19 +5238,13 @@
   "GGr/yS": [
     {
       "type": 0,
-      "value": "Feedback submitted on threads will appear here"
+      "value": "İş parçacıklarında gönderilen geri bildirimler burada görünür"
     }
   ],
   "GMhzu1": [
     {
       "type": 0,
-      "value": "Response subagent"
-    }
-  ],
-  "GP/BbQ": [
-    {
-      "type": 0,
-      "value": "Enable Knowledge Base"
+      "value": "Yanıt alt aracısı"
     }
   ],
   "GSCabm": [
@@ -4912,13 +5292,13 @@
   "GnWmca": [
     {
       "type": 0,
-      "value": "Triggers"
+      "value": "Tetikleyiciler"
     }
   ],
   "Gnbr9F": [
     {
       "type": 0,
-      "value": "Select a connector"
+      "value": "Bağlayıcı seçin"
     }
   ],
   "GoSIa4": [
@@ -4930,7 +5310,7 @@
   "GpHWFC": [
     {
       "type": 0,
-      "value": "Choose a connector"
+      "value": "Bağlayıcı seç"
     }
   ],
   "GpZr9J": [
@@ -4949,16 +5329,12 @@
   ],
   "GpcNV2": [
     {
-      "type": 0,
-      "value": "Failed to update subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alt aracısı güncelleştirilemedi. Hata: "
     },
     {
       "type": 1,
@@ -5056,7 +5432,7 @@
   "HNBpJ4": [
     {
       "type": 0,
-      "value": "Metrics"
+      "value": "Ölçümler"
     }
   ],
   "HNECLT": [
@@ -5080,7 +5456,7 @@
   "HQc/Lf": [
     {
       "type": 0,
-      "value": "Create incident trigger"
+      "value": "Olay tetikleyicisi oluştur"
     }
   ],
   "HQhDfV": [
@@ -5110,7 +5486,7 @@
   "HZQtAg": [
     {
       "type": 0,
-      "value": "Test values"
+      "value": "Test değerleri"
     }
   ],
   "HbTFJf": [
@@ -5165,6 +5541,44 @@
       "value": "Günlük raporlar yükleniyor"
     }
   ],
+  "HtVpjg": [
+    {
+      "type": 0,
+      "value": "You can select up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups for this agent. Agents can manage a total of "
+    },
+    {
+      "type": 1,
+      "value": "totalMax"
+    },
+    {
+      "type": 0,
+      "value": " resource groups, and your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "current"
+    },
+    {
+      "type": 0,
+      "value": ". You've selected "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -5210,13 +5624,13 @@
   "I3MA83": [
     {
       "type": 0,
-      "value": "String"
+      "value": "Dize"
     }
   ],
   "I4PbZq": [
     {
       "type": 0,
-      "value": "Create a subagent"
+      "value": "Alt aracı oluşturun"
     }
   ],
   "I5k4g/": [
@@ -5246,7 +5660,7 @@
   "I9W7ey": [
     {
       "type": 0,
-      "value": "Completed runs"
+      "value": "Tamamlanan çalıştırmalar"
     }
   ],
   "IAwPyV": [
@@ -5385,6 +5799,12 @@
       "value": "Saat dilimi"
     }
   ],
+  "Icfr5t": [
+    {
+      "type": 0,
+      "value": "Search by incident trigger"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 0,
@@ -5397,6 +5817,12 @@
     {
       "type": 0,
       "value": " tarafından iptal edildi."
+    }
+  ],
+  "Ij0ity": [
+    {
+      "type": 0,
+      "value": "Search by tool"
     }
   ],
   "InWqys": [
@@ -5475,6 +5901,12 @@
       "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
+  "J2Lcsz": [
+    {
+      "type": 0,
+      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+    }
+  ],
   "J3Y8Sm": [
     {
       "type": 0,
@@ -5503,6 +5935,18 @@
       "value": "Son Değişiklik"
     }
   ],
+  "J8uEym": [
+    {
+      "type": 0,
+      "value": "Search by scheduled task"
+    }
+  ],
+  "JA/VO+": [
+    {
+      "type": 0,
+      "value": "Starts a task at a defined time or interval."
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
@@ -5513,16 +5957,6 @@
     {
       "type": 0,
       "value": "Kullanıcı adı"
-    }
-  ],
-  "JCjxSH": [
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " SRE Aracısı silinemedi"
     }
   ],
   "JEsxDw": [
@@ -5540,7 +5974,7 @@
   "JKFypr": [
     {
       "type": 0,
-      "value": "Stop agent"
+      "value": "Aracıyı durdur"
     }
   ],
   "JMdyE9": [
@@ -5558,7 +5992,7 @@
   "JSW9Xw": [
     {
       "type": 0,
-      "value": "Starting SRE Agent"
+      "value": "SRE Aracısı başlatılıyor"
     }
   ],
   "JT7be1": [
@@ -5698,7 +6132,7 @@
   "JkS37H": [
     {
       "type": 0,
-      "value": "Undo"
+      "value": "Geri Al"
     }
   ],
   "JkbJ/T": [
@@ -5729,16 +6163,12 @@
   ],
   "JnDKv3": [
     {
-      "type": 0,
-      "value": "Failed to stop SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " SRE Aracısı durdurulamadı: "
     },
     {
       "type": 1,
@@ -5803,6 +6233,12 @@
     {
       "type": 0,
       "value": "Göster"
+    }
+  ],
+  "K7tsik": [
+    {
+      "type": 0,
+      "value": "Scheduled task ran successfully"
     }
   ],
   "K9q4Xw": [
@@ -5912,7 +6348,33 @@
   "Kfaepo": [
     {
       "type": 0,
-      "value": "Learn more about connectors"
+      "value": "Bağlayıcılar hakkında daha fazla bilgi edinin"
+    }
+  ],
+  "Kfr1WB": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agent"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "KgcF6B": [
@@ -5937,6 +6399,12 @@
     {
       "type": 0,
       "value": "Bağımsız değişkene eşleştir"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KoJ1C+": [
@@ -6007,20 +6475,16 @@
       "value": "Yapay zeka önerileri dikkate alınmadı"
     }
   ],
+  "L/ct40": [
+    {
+      "type": 0,
+      "value": "Open in visual view"
+    }
+  ],
   "L/i6dy": [
     {
       "type": 0,
       "value": "Bu aracı otomatik olarak Otonom olarak işaretlenecek, böylece kendi başına çalışabilecek."
-    }
-  ],
-  "L0KVkI": [
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " SRE Aracısını silme işlemi devam ediyor"
     }
   ],
   "L7EoQf": [
@@ -6125,6 +6589,12 @@
       "value": "Tüm kaynakları görüntüler ancak herhangi bir değişiklik yapmanıza izin vermez."
     }
   ],
+  "LSqcaU": [
+    {
+      "type": 0,
+      "value": "Maximum 200,000 AAUs"
+    }
+  ],
   "LTDPn/": [
     {
       "type": 0,
@@ -6160,7 +6630,7 @@
   "LaIt/v": [
     {
       "type": 0,
-      "value": "Creating Kusto Tool"
+      "value": "Kusto Aracı Oluşturma"
     }
   ],
   "LbkJp1": [
@@ -6289,6 +6759,12 @@
       "value": "Filtre ekle"
     }
   ],
+  "M0ay1D": [
+    {
+      "type": 0,
+      "value": "Running scheduled task(s)"
+    }
+  ],
   "M3159R": [
     {
       "type": 0,
@@ -6317,6 +6793,64 @@
     {
       "type": 0,
       "value": "Olay Kimliği"
+    }
+  ],
+  "MCLPMF": [
+    {
+      "type": 0,
+      "value": "Scale your agent’s capabilities with subagents"
+    }
+  ],
+  "MGZggN": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "MHkWzD": [
@@ -6444,7 +6978,7 @@
   "MnpUD7": [
     {
       "type": 0,
-      "value": "View details"
+      "value": "Ayrıntıları görüntüle"
     }
   ],
   "Mnvpbx": [
@@ -6502,7 +7036,7 @@
   "N/CtWu": [
     {
       "type": 0,
-      "value": "Unselected"
+      "value": "Seçim kaldırıldı"
     }
   ],
   "N0d5pM": [
@@ -6527,6 +7061,12 @@
     {
       "type": 0,
       "value": " ile bağlandı."
+    }
+  ],
+  "N2IrpM": [
+    {
+      "type": 0,
+      "value": "Confirm"
     }
   ],
   "N7cqYp": [
@@ -6602,7 +7142,7 @@
   "NN4zut": [
     {
       "type": 0,
-      "value": "Support + troubleshooting"
+      "value": "Destek ve sorun giderme"
     }
   ],
   "NOMbLF": [
@@ -6665,6 +7205,12 @@
       "value": "Filtrelenmiş aracı"
     }
   ],
+  "NmQwIl": [
+    {
+      "type": 0,
+      "value": "Schedule:"
+    }
+  ],
   "Nrc9ba": [
     {
       "type": 0,
@@ -6717,17 +7263,13 @@
   ],
   "O+srpo": [
     {
-      "type": 0,
-      "value": "Review "
-    },
-    {
       "offset": 0,
       "options": {
         "=0": {
           "value": [
             {
               "type": 0,
-              "value": "findings"
+              "value": "bulguyu"
             }
           ]
         },
@@ -6738,7 +7280,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix"
+              "value": " hızlı düzeltmeyi"
             }
           ]
         },
@@ -6749,7 +7291,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes"
+              "value": " hızlı düzeltmeyi"
             }
           ]
         }
@@ -6757,12 +7299,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " gözden geçirin"
     }
   ],
   "O/gthC": [
     {
       "type": 0,
-      "value": "Go to Scheduled Task"
+      "value": "Zamanlanmış Görev bölümüne gidin"
     }
   ],
   "O0JI8M": [
@@ -6792,7 +7338,7 @@
   "O9C6j/": [
     {
       "type": 0,
-      "value": "Create subagent"
+      "value": "Alt aracı oluşturun"
     }
   ],
   "OBoUb6": [
@@ -6848,7 +7394,7 @@
   "ONbwY2": [
     {
       "type": 0,
-      "value": "Custom Tool"
+      "value": "Özel Araç"
     }
   ],
   "OO5Y94": [
@@ -6978,13 +7524,13 @@
   "OoxcFC": [
     {
       "type": 0,
-      "value": "Select the input type"
+      "value": "Giriş türünü seçin"
     }
   ],
   "OpUvSu": [
     {
       "type": 0,
-      "value": "Create Kusto Tool"
+      "value": "Kusto Aracı Oluştur"
     }
   ],
   "OrQ4EY": [
@@ -7067,16 +7613,12 @@
   ],
   "PBKSeP": [
     {
-      "type": 0,
-      "value": "Set up "
-    },
-    {
       "type": 1,
       "value": "service"
     },
     {
       "type": 0,
-      "value": " connector"
+      "value": " bağlayıcısını ayarla"
     }
   ],
   "PCrXDG": [
@@ -7088,7 +7630,7 @@
   "PF15hb": [
     {
       "type": 0,
-      "value": "Input value"
+      "value": "Giriş değeri"
     }
   ],
   "PFUTWt": [
@@ -7124,7 +7666,7 @@
   "PKvAvF": [
     {
       "type": 0,
-      "value": "Extend your agent’s capabilities with connectors"
+      "value": "Aracınızın özelliklerini bağlayıcılarla artırın"
     }
   ],
   "PPrKNq": [
@@ -7172,13 +7714,13 @@
   "PXJ+oX": [
     {
       "type": 0,
-      "value": "To view incidents triggered, go to Incidents"
+      "value": "Tetiklenen olayları görmek için Olaylar bölümüne gidin"
     }
   ],
   "PXJi2R": [
     {
       "type": 0,
-      "value": "No target agent specified"
+      "value": "Hedef aracı belirtilmedi"
     }
   ],
   "PXYq8b": [
@@ -7218,7 +7760,7 @@
   "PbaaPs": [
     {
       "type": 0,
-      "value": "Add subagent"
+      "value": "Alt aracı ekleyin"
     }
   ],
   "Pc+tM3": [
@@ -7265,6 +7807,12 @@
       "value": "Azure İzleyici bağlı"
     }
   ],
+  "PpdTYy": [
+    {
+      "type": 0,
+      "value": "Failed to update tool"
+    }
+  ],
   "PrFU82": [
     {
       "type": 0,
@@ -7298,7 +7846,7 @@
   "Px6I1N": [
     {
       "type": 0,
-      "value": "Total tasks"
+      "value": "Toplam görev sayısı"
     }
   ],
   "PxsPJt": [
@@ -7384,7 +7932,7 @@
   "Q6Lw7i": [
     {
       "type": 0,
-      "value": "To learn more about permissions, click here."
+      "value": "İzinler hakkında daha fazla bilgi edinmek için buraya tıklayın."
     }
   ],
   "Q7/1w4": [
@@ -7397,6 +7945,16 @@
     {
       "type": 0,
       "value": "Açıklama"
+    }
+  ],
+  "Q9IHxV": [
+    {
+      "type": 0,
+      "value": "Running scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -7442,7 +8000,7 @@
   "QDa8Q+": [
     {
       "type": 0,
-      "value": "Add connector"
+      "value": "Bağlayıcı ekle"
     }
   ],
   "QEhO+z": [
@@ -7466,7 +8024,7 @@
   "QK0vxq": [
     {
       "type": 0,
-      "value": "Go to Connectors"
+      "value": "Bağlayıcılar bölümüne gidin"
     }
   ],
   "QOSRgI": [
@@ -7477,12 +8035,12 @@
   ],
   "QP91Js": [
     {
-      "type": 0,
-      "value": "Updated subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısı güncelleştirildi"
     }
   ],
   "QQX4Pv": [
@@ -7500,7 +8058,7 @@
   "QW+Q5N": [
     {
       "type": 0,
-      "value": "Clear all"
+      "value": "Tümünü temizle"
     }
   ],
   "QWEHW2": [
@@ -7593,12 +8151,6 @@
       "value": "Hızlı düzeltme gerekmiyor."
     }
   ],
-  "Qn8Bok": [
-    {
-      "type": 0,
-      "value": "Geri verme"
-    }
-  ],
   "QomX1y": [
     {
       "type": 0,
@@ -7660,19 +8212,13 @@
   "R3eMOe": [
     {
       "type": 0,
-      "value": "Outlook account"
-    }
-  ],
-  "R3mMmc": [
-    {
-      "type": 0,
-      "value": "Aylık AAU sınırı kaydırıcısı"
+      "value": "Outlook hesabı"
     }
   ],
   "R4Blzb": [
     {
       "type": 0,
-      "value": "No Feedback Yet"
+      "value": "Henüz geri bildirim yok"
     }
   ],
   "R7DP3y": [
@@ -7702,7 +8248,7 @@
   "REOGTJ": [
     {
       "type": 0,
-      "value": "Add a connector to give the agent additional tools for automating incident handling."
+      "value": "Aracıya olay yönetimini otomatikleştireceği ek araçlar sağlamak için bir bağlayıcı ekleyin."
     }
   ],
   "RH8rNM": [
@@ -7735,16 +8281,12 @@
   ],
   "RMD0Mj": [
     {
-      "type": 0,
-      "value": "Failed to add handoff from "
-    },
-    {
       "type": 1,
       "value": "sourceAgent"
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " aracısından "
     },
     {
       "type": 1,
@@ -7752,7 +8294,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alt aracısına devretme işlemi eklenemedi. Hata: "
     },
     {
       "type": 1,
@@ -7887,20 +8429,6 @@
       "value": "Son 12 saat"
     }
   ],
-  "S2jxf1": [
-    {
-      "type": 0,
-      "value": "No "
-    },
-    {
-      "type": 1,
-      "value": "activeTab"
-    },
-    {
-      "type": 0,
-      "value": " found"
-    }
-  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7923,6 +8451,12 @@
       "value": "Deneme alanı modu"
     }
   ],
+  "S6we8v": [
+    {
+      "type": 0,
+      "value": "Edit incident trigger"
+    }
+  ],
   "S8/4ZI": [
     {
       "type": 0,
@@ -7937,12 +8471,12 @@
   ],
   "SB7SRx": [
     {
-      "type": 0,
-      "value": "Creating subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısı oluşturuluyor"
     }
   ],
   "SCjiXP": [
@@ -7954,7 +8488,7 @@
   "SDsdCi": [
     {
       "type": 0,
-      "value": "Add existing tools"
+      "value": "Mevcut araçları ekle"
     }
   ],
   "SFUZOQ": [
@@ -7966,7 +8500,7 @@
   "SIW6OB": [
     {
       "type": 0,
-      "value": "Threads with Insights ("
+      "value": "İçgörüler içeren iş parçacıkları ("
     },
     {
       "type": 1,
@@ -8071,6 +8605,12 @@
       "value": "Otonom düzeyi"
     }
   ],
+  "SeZ8eZ": [
+    {
+      "type": 0,
+      "value": "AAU consumption reminder"
+    }
+  ],
   "Seanpx": [
     {
       "type": 0,
@@ -8099,6 +8639,12 @@
     {
       "type": 0,
       "value": "Taslak henüz eşitlenmedi"
+    }
+  ],
+  "SoBWeV": [
+    {
+      "type": 0,
+      "value": "Monthly active flow AAUs"
     }
   ],
   "Sr4IbA": [
@@ -8162,7 +8708,7 @@
   "T/nqbo": [
     {
       "type": 0,
-      "value": "Feedback ID"
+      "value": "Geri Bildirim Kimliği"
     }
   ],
   "T0/eoE": [
@@ -8173,12 +8719,12 @@
   ],
   "T0e6Lh": [
     {
-      "type": 0,
-      "value": "Remove "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " öğesini kaldırın"
     }
   ],
   "T5+AEf": [
@@ -8247,6 +8793,32 @@
       "value": "Sınırsız yürütme için boş bırakın"
     }
   ],
+  "TGc4Lh": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident trigger"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "THFIRB": [
     {
       "type": 0,
@@ -8291,6 +8863,12 @@
     {
       "type": 0,
       "value": "Azure SRE Aracısı faturalaması Azure aracı birimleri (AAU) cinsinden ölçülür. Aylık AAU faturalaması, sabit her zaman açık akış ile etkin akıştan gelen değişken kullanımı yansıtır. Etkin akış için ayrılan AAU kapasitesini istediğiniz zaman artırabilir ya da azaltabilirsiniz."
+    }
+  ],
+  "TP/cMX": [
+    {
+      "type": 0,
+      "value": "Ended"
     }
   ],
   "TQ0n+a": [
@@ -8338,13 +8916,13 @@
   "TdvJVw": [
     {
       "type": 0,
-      "value": "Suggested improvements"
+      "value": "Önerilen geliştirmeler"
     }
   ],
   "TexFnY": [
     {
       "type": 0,
-      "value": "This insight does not have markdown content."
+      "value": "Bu içgörüde markdown içeriği yok."
     }
   ],
   "Tg4Q8g": [
@@ -8386,7 +8964,7 @@
   "TrnqJG": [
     {
       "type": 0,
-      "value": "Input type"
+      "value": "Giriş türü"
     }
   ],
   "TwMqIK": [
@@ -8416,7 +8994,7 @@
   "UBbDNy": [
     {
       "type": 0,
-      "value": "No documents in knowledge base. Add some?"
+      "value": "Bilgi bankasında belge yok. Eklemek ister misiniz?"
     }
   ],
   "UCYFxr": [
@@ -8448,7 +9026,7 @@
   "UNQfKX": [
     {
       "type": 0,
-      "value": "Enter a descriptive name"
+      "value": "Açıklayıcı bir ad girin"
     }
   ],
   "UNXega": [
@@ -8580,7 +9158,7 @@
   "V9GGMu": [
     {
       "type": 0,
-      "value": "No threads with session insights found."
+      "value": "Oturum içgörüleri olan iş parçacığı bulunamadı."
     }
   ],
   "VA/Z1S": [
@@ -8604,7 +9182,7 @@
   "VBAOA8": [
     {
       "type": 0,
-      "value": "Select subagents for handoff"
+      "value": "Devretme için alt aracıları seçin"
     }
   ],
   "VIYXlx": [
@@ -8613,22 +9191,10 @@
       "value": "Sohbet önizlemesi"
     }
   ],
-  "VIcJZp": [
-    {
-      "type": 0,
-      "value": "Liste Görünümü"
-    }
-  ],
   "VIgoaE": [
     {
       "type": 0,
       "value": "Alt aracı yapılandırılmadı"
-    }
-  ],
-  "VIn2J0": [
-    {
-      "type": 0,
-      "value": "Alt aracılar"
     }
   ],
   "VKbBsK": [
@@ -8674,7 +9240,7 @@
   "VU4BBu": [
     {
       "type": 0,
-      "value": "Parameter"
+      "value": "Parametre"
     }
   ],
   "VUHkVQ": [
@@ -8707,6 +9273,12 @@
       "value": "İzleyici kimliğini girin"
     }
   ],
+  "Vaj9nj": [
+    {
+      "type": 0,
+      "value": "Don't show this message again"
+    }
+  ],
   "Vb+qQ4": [
     {
       "type": 0,
@@ -8722,7 +9294,7 @@
   "Vipo+I": [
     {
       "type": 0,
-      "value": "No parameters configured"
+      "value": "Parametre yapılandırılmadı"
     }
   ],
   "VlBNux": [
@@ -8759,20 +9331,20 @@
   ],
   "Vs/db/": [
     {
-      "type": 0,
-      "value": "Adding handoff from "
-    },
-    {
       "type": 1,
       "value": "sourceAgent"
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " aracısından "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısına devretme işlemi ekleniyor"
     }
   ],
   "Vs3jMi": [
@@ -8832,7 +9404,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "Çalıştırmalar"
     }
   ],
   "W2JBdp": [
@@ -8892,7 +9464,13 @@
   "WJj+TP": [
     {
       "type": 0,
-      "value": "You do not have permission to check incident management connection."
+      "value": "Olay yönetimi bağlantısını kontrol etme izniniz yok."
+    }
+  ],
+  "WK8csJ": [
+    {
+      "type": 0,
+      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -9029,7 +9607,7 @@
   "WjqsyE": [
     {
       "type": 0,
-      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
+      "value": "Etkinleştirildiğinde, SearchMemory aracı ve bilgi bankası istemleri otomatik olarak eklenir"
     }
   ],
   "Wkup5T": [
@@ -9072,6 +9650,32 @@
     {
       "type": 0,
       "value": "Ad bir harfle başlamalı, harf veya rakamla bitmelidir ve yalnızca harf, rakam ve kısa çizgi içermelidir. 2-23 karakter uzunluğunda olmalıdır."
+    }
+  ],
+  "WuyjCf": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled task"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "WygVDv": [
@@ -9183,7 +9787,7 @@
   "XDcbqQ": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent"
+      "value": "SRE Aracısı durduruluyor"
     }
   ],
   "XEB3Fn": [
@@ -9305,7 +9909,7 @@
   "XS8hWM": [
     {
       "type": 0,
-      "value": "Enter a boolean"
+      "value": "Boole girin"
     }
   ],
   "XV8dOu": [
@@ -9317,7 +9921,7 @@
   "XYIeUc": [
     {
       "type": 0,
-      "value": "Agent permissions are determined by its assigned RBAC roles."
+      "value": "Aracının izinleri, atandığı RBAC rolleriyle belirlenir."
     }
   ],
   "XYSJsS": [
@@ -9364,16 +9968,12 @@
   ],
   "XfAFyQ": [
     {
-      "type": 0,
-      "value": "Deleting "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " connectors..."
+      "value": " bağlayıcı siliniyor..."
     }
   ],
   "Xkdnen": [
@@ -9403,7 +10003,7 @@
   "Xup5P8": [
     {
       "type": 0,
-      "value": "What happened"
+      "value": "Ne oldu?"
     }
   ],
   "XvrDTb": [
@@ -9415,7 +10015,7 @@
   "XyUQa7": [
     {
       "type": 0,
-      "value": "Improved instructions"
+      "value": "Yönergeler iyileştirildi"
     }
   ],
   "Y0BC+F": [
@@ -9453,7 +10053,7 @@
   "Y47Dwm": [
     {
       "type": 0,
-      "value": "Kusto tools"
+      "value": "Kusto araçları"
     }
   ],
   "Y5IFiT": [
@@ -9463,7 +10063,7 @@
     },
     {
       "type": 0,
-      "value": " account"
+      "value": " hesabı"
     }
   ],
   "Y7Lbpf": [
@@ -9486,12 +10086,12 @@
   ],
   "YBHvOV": [
     {
-      "type": 0,
-      "value": "Updating subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısı güncelleştiriliyor"
     }
   ],
   "YBXVNU": [
@@ -9533,7 +10133,7 @@
   "YKwGp6": [
     {
       "type": 0,
-      "value": "Added tools to "
+      "value": "Araçlar "
     },
     {
       "type": 1,
@@ -9541,7 +10141,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " aracısına eklendi."
     }
   ],
   "YMjUWP": [
@@ -9802,12 +10402,6 @@
       "value": "Başlangıç:"
     }
   ],
-  "ZOdb7N": [
-    {
-      "type": 0,
-      "value": "Görsel Görünüm"
-    }
-  ],
   "ZPP6n7": [
     {
       "type": 0,
@@ -9988,7 +10582,7 @@
   "a8fWCd": [
     {
       "type": 0,
-      "value": "Enter a datetime"
+      "value": "Tarih ve saat bilgilerini girin"
     }
   ],
   "a8l/yJ": [
@@ -10037,12 +10631,6 @@
     {
       "type": 0,
       "value": "LUIS altındaki Okuma ve Test işlevlerine erişimi var."
-    }
-  ],
-  "aH3ak4": [
-    {
-      "type": 0,
-      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -10123,12 +10711,6 @@
     {
       "type": 0,
       "value": "Aracının altyapınız hakkındaki bilgisini artırın."
-    }
-  ],
-  "aTyEZH": [
-    {
-      "type": 0,
-      "value": "Yanıt planlarını ara"
     }
   ],
   "aWpBzj": [
@@ -10233,6 +10815,12 @@
       "value": "Denetimi kontrol et"
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b2PyOl": [
     {
       "type": 1,
@@ -10289,10 +10877,16 @@
       "value": "Küme URI’si"
     }
   ],
+  "bDbbX7": [
+    {
+      "type": 0,
+      "value": "Edit Kusto tool"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
-      "value": "Thread Feedback"
+      "value": "İş Parçacığı Geri Bildirimi"
     }
   ],
   "bK0VQe": [
@@ -10355,6 +10949,36 @@
     {
       "type": 0,
       "value": "Kararlı - Güncelleştirmeleri ayda bir alır"
+    }
+  ],
+  "bjDKAe": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "bjLeN1": [
@@ -10482,7 +11106,7 @@
   "byP6IC": [
     {
       "type": 0,
-      "value": "Selected"
+      "value": "Seçili"
     }
   ],
   "c/8Uhj": [
@@ -10536,7 +11160,7 @@
   "c5hwBU": [
     {
       "type": 0,
-      "value": "The agent will resume all activities."
+      "value": "Aracı tüm etkinliklere devam edecek."
     }
   ],
   "c8Doeq": [
@@ -10580,7 +11204,7 @@
   "cHKA8f": [
     {
       "type": 0,
-      "value": "No insight content available"
+      "value": "İçgörü içeriği yok"
     }
   ],
   "cJGGY4": [
@@ -10598,7 +11222,7 @@
   "cLHCHE": [
     {
       "type": 0,
-      "value": "Connector status"
+      "value": "Bağlayıcı durumu"
     }
   ],
   "cRTR/A": [
@@ -10619,6 +11243,12 @@
       "value": "Depolama Hesabına Katkıda Bulunan"
     }
   ],
+  "cXAlMR": [
+    {
+      "type": 0,
+      "value": "Scheduled"
+    }
+  ],
   "cYwv8P": [
     {
       "type": 0,
@@ -10634,7 +11264,7 @@
   "cesI6Z": [
     {
       "type": 0,
-      "value": "No feedback selected"
+      "value": "Geri bildirim seçilmedi"
     }
   ],
   "cfbpDd": [
@@ -10650,7 +11280,7 @@
   "cg54iX": [
     {
       "type": 0,
-      "value": "Kusto tool name"
+      "value": "Kusto araç adı"
     }
   ],
   "ciB+oy": [
@@ -10752,7 +11382,7 @@
   "d2czNd": [
     {
       "type": 0,
-      "value": "Datetime"
+      "value": "Tarih/Saat"
     }
   ],
   "d3MtwZ": [
@@ -10787,6 +11417,12 @@
     {
       "type": 0,
       "value": " seçenekleri"
+    }
+  ],
+  "dF2h2y": [
+    {
+      "type": 0,
+      "value": "Filter by incident id or title"
     }
   ],
   "dG8VrM": [
@@ -10829,6 +11465,12 @@
     {
       "type": 0,
       "value": "Cihaz Sağlama Hizmeti veri düzlemi özelliklerine tam okuma erişimi sağlar."
+    }
+  ],
+  "dQJz2m": [
+    {
+      "type": 0,
+      "value": "This feature isn't available in this portal yet."
     }
   ],
   "dQKATf": [
@@ -10973,6 +11615,12 @@
       "value": "Aracı kalitesini puanla"
     }
   ],
+  "dzy0ND": [
+    {
+      "type": 0,
+      "value": "Run scheduled task"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -11030,7 +11678,7 @@
   "eRwVws": [
     {
       "type": 0,
-      "value": "You need an incident platform to add an incident trigger."
+      "value": "Olay tetikleyicisi eklemek için olay platformu gereklidir."
     }
   ],
   "eUEjcm": [
@@ -11110,7 +11758,7 @@
   "ekSxhn": [
     {
       "type": 0,
-      "value": "Connectors give the agent more tools to take action."
+      "value": "Bağlayıcılar aracıya işlem yapabileceği daha fazla araç sunar."
     }
   ],
   "emW/QQ": [
@@ -11128,7 +11776,7 @@
   "eq57j2": [
     {
       "type": 0,
-      "value": "Add incident trigger"
+      "value": "Olay tetikleyicisi ekle"
     }
   ],
   "eqYdSS": [
@@ -11186,7 +11834,7 @@
   "f04POI": [
     {
       "type": 0,
-      "value": "Tool created successfully"
+      "value": "Araç başarıyla oluşturuldu"
     }
   ],
   "f0LQra": [
@@ -11240,7 +11888,7 @@
   "fCiXKq": [
     {
       "type": 0,
-      "value": "Add scheduled task"
+      "value": "Zamanlanmış görev ekleyin"
     }
   ],
   "fE5E6W": [
@@ -11340,7 +11988,7 @@
   "fiLH5L": [
     {
       "type": 0,
-      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+      "value": "Kusto aracı oluşturmak için önce bir Azure Veri Gezgini bağlayıcısı ekleyin."
     }
   ],
   "fio5op": [
@@ -11410,13 +12058,19 @@
   "fuHqFL": [
     {
       "type": 0,
-      "value": "No session insights found."
+      "value": "Oturum içgörüsü bulunamadı."
     }
   ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Tüm durumlar"
+    }
+  ],
+  "fvSiRs": [
+    {
+      "type": 0,
+      "value": "Tool updated successfully"
     }
   ],
   "fyaE5g": [
@@ -11440,7 +12094,7 @@
   "g4Dsk6": [
     {
       "type": 0,
-      "value": "Total runs"
+      "value": "Toplam çalıştırma sayısı"
     }
   ],
   "g4II+z": [
@@ -11530,7 +12184,7 @@
   "gclDgn": [
     {
       "type": 0,
-      "value": "Create a Kusto tool"
+      "value": "Kusto aracı oluşturun"
     }
   ],
   "gct+2s": [
@@ -11554,7 +12208,7 @@
   "ghwElt": [
     {
       "type": 0,
-      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
+      "value": "Destek kaynaklarına erişmek ve SRE Aracınızla ilgili sorunları gidermek için Destek ve Sorun Giderme bölümünü ziyaret edin."
     }
   ],
   "gj6Qc6": [
@@ -11584,7 +12238,7 @@
   "gox4oK": [
     {
       "type": 0,
-      "value": "Enter the database name"
+      "value": "Veritabanı adını girin"
     }
   ],
   "grgDhd": [
@@ -11670,7 +12324,7 @@
   "h/OQTK": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders."
+      "value": "Sorgunuzda parametre yer tutucularını tanımlamak için ##ParamName## kullanın."
     }
   ],
   "h0W8DM": [
@@ -11718,7 +12372,7 @@
   "hF/2EL": [
     {
       "type": 0,
-      "value": "Handoff Instructions"
+      "value": "Devretme Yönergeleri"
     }
   ],
   "hF5T80": [
@@ -11737,6 +12391,12 @@
     {
       "type": 0,
       "value": "Zamanlama"
+    }
+  ],
+  "hGnjdE": [
+    {
+      "type": 0,
+      "value": "Learn more about AAU consumption and cost"
     }
   ],
   "hHz/bk": [
@@ -11811,6 +12471,12 @@
       "value": "Sistem araçları salt okunurdur. Başvuru için YAML'yi görüntüleyin."
     }
   ],
+  "hdfKe+": [
+    {
+      "type": 0,
+      "value": "Automatically starts a subagent in response to an incident or alert."
+    }
+  ],
   "heMr0D": [
     {
       "type": 0,
@@ -11847,6 +12513,12 @@
       "value": "Yönergelerinizi değiştirmeden yapay zeka önerilerinin önizlemesini görüntüleyin."
     }
   ],
+  "hjtyTg": [
+    {
+      "type": 0,
+      "value": "End date must be after start date."
+    }
+  ],
   "hkgUC5": [
     {
       "type": 0,
@@ -11868,13 +12540,13 @@
   "hoHnYn": [
     {
       "type": 0,
-      "value": "Improved handoff instructions"
+      "value": "Devretme yönergeleri geliştirildi"
     }
   ],
   "hqWr3L": [
     {
       "type": 0,
-      "value": "RCA category"
+      "value": "RCA kategorisi"
     }
   ],
   "hrdmcd": [
@@ -11901,6 +12573,12 @@
       "value": "Pano"
     }
   ],
+  "i3P6ZD": [
+    {
+      "type": 0,
+      "value": "Created at:"
+    }
+  ],
   "i5OUQE": [
     {
       "type": 0,
@@ -11917,6 +12595,12 @@
     {
       "type": 0,
       "value": "Azure Machine Learning'de veri bilimi görevlerini gerçekleştirin."
+    }
+  ],
+  "i6x7bU": [
+    {
+      "type": 0,
+      "value": "The agent is stopped"
     }
   ],
   "iDPKM0": [
@@ -11951,22 +12635,24 @@
   ],
   "iMaY2Q": [
     {
-      "type": 0,
-      "value": "Stopping SRE Agent "
-    },
-    {
       "type": 1,
       "value": "name"
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " SRE Aracısını durdurma işlemi devam ediyor"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
       "value": "Bir filtre seçin"
+    }
+  ],
+  "iPhHGC": [
+    {
+      "type": 0,
+      "value": "Learn more about scheduled tasks"
     }
   ],
   "iV7LUx": [
@@ -11984,7 +12670,13 @@
   "iY7P1k": [
     {
       "type": 0,
-      "value": "Agent Autonomy"
+      "value": "Aracı Otonomisi"
+    }
+  ],
+  "iYJ/Ha": [
+    {
+      "type": 0,
+      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -12026,7 +12718,7 @@
   "ifdupA": [
     {
       "type": 0,
-      "value": "To view runs, go to Agent Runs"
+      "value": "Çalıştırmaları görüntülemek için Aracı Çalıştırmaları bölümüne gidin"
     }
   ],
   "iihhVc": [
@@ -12047,6 +12739,12 @@
     {
       "type": 0,
       "value": " ile bağlantı kurulamadı. Bağlantıyı yeniden deneyin."
+    }
+  ],
+  "ioRcwS": [
+    {
+      "type": 0,
+      "value": "Scheduled task trigger"
     }
   ],
   "ipsqxO": [
@@ -12137,6 +12835,18 @@
       "value": " için bir devir oluşturur."
     }
   ],
+  "j0Ifob": [
+    {
+      "type": 0,
+      "value": "Do you want to proceed?"
+    }
+  ],
+  "j0bMX6": [
+    {
+      "type": 0,
+      "value": "No incident metrics to report"
+    }
+  ],
   "j1FyDL": [
     {
       "type": 0,
@@ -12146,7 +12856,7 @@
   "j1pB0w": [
     {
       "type": 0,
-      "value": "Go to Agent Consumption"
+      "value": "Aracı Tüketimi bölümüne gidin"
     }
   ],
   "j3bwJQ": [
@@ -12189,6 +12899,42 @@
     {
       "type": 0,
       "value": "Sonuç yok"
+    }
+  ],
+  "jIcHPc": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "jJ7kNS": [
+    {
+      "type": 0,
+      "value": "Try selecting a different date range."
     }
   ],
   "jJE3xY": [
@@ -12275,6 +13021,16 @@
       "value": "Alt aracı adını girin"
     }
   ],
+  "jX6uvW": [
+    {
+      "type": 0,
+      "value": "Failed to run task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -12284,7 +13040,7 @@
   "ja85pV": [
     {
       "type": 0,
-      "value": "Add Documents"
+      "value": "Belge Ekle"
     }
   ],
   "jabB4C": [
@@ -12410,7 +13166,7 @@
   "kFkPWB": [
     {
       "type": 0,
-      "value": "Number"
+      "value": "Sayı"
     }
   ],
   "kG0ZtT": [
@@ -12480,13 +13236,13 @@
   "ketkP5": [
     {
       "type": 0,
-      "value": "Knowledge Base Enabled"
+      "value": "Bil Bankası Etkin"
     }
   ],
   "khI1mJ": [
     {
       "type": 0,
-      "value": "Edit subagent"
+      "value": "Alt aracıyı düzenleyin"
     }
   ],
   "khOzXi": [
@@ -12560,13 +13316,13 @@
   "kvKWEJ": [
     {
       "type": 0,
-      "value": "Response plan saved successfully"
+      "value": "Yanıt planı başarıyla kaydedildi"
     }
   ],
   "kxokJj": [
     {
       "type": 0,
-      "value": "Agent datagrid"
+      "value": "Aracı veri tablosu"
     }
   ],
   "l+e8nZ": [
@@ -12575,38 +13331,16 @@
       "value": "Seçili zamanlanmış görevleri silmek istediğinizden emin misiniz? Bu eylem geri alınamaz."
     }
   ],
-  "l0TtPi": [
-    {
-      "type": 0,
-      "value": "İzinlerinizin olduğu en fazla "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " kaynak grubunu seçin. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " kaynak grubu seçildi."
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
-      "value": "Azure Data Explorer"
+      "value": "Azure Veri Gezgini"
     }
   ],
   "l0VCdV": [
     {
       "type": 0,
-      "value": "Create tool"
+      "value": "Araç oluştur"
     }
   ],
   "l2Ni9H": [
@@ -12625,6 +13359,12 @@
     {
       "type": 0,
       "value": "AzureML Veri Bilimcisi"
+    }
+  ],
+  "l8IRTD": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) ran successfully"
     }
   ],
   "lCsNuL": [
@@ -12665,6 +13405,12 @@
     {
       "type": 0,
       "value": "Etkilenen kaynaklar"
+    }
+  ],
+  "lQmkhq": [
+    {
+      "type": 0,
+      "value": "Subagents"
     }
   ],
   "lUAfdH": [
@@ -12747,6 +13493,12 @@
       "value": "Son kullanılanlar"
     }
   ],
+  "m/B8a5": [
+    {
+      "type": 0,
+      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "m0kcbz": [
     {
       "type": 0,
@@ -12762,7 +13514,7 @@
   "m4vqJl": [
     {
       "type": 0,
-      "value": "Files"
+      "value": "Dosyalar"
     }
   ],
   "m57OnF": [
@@ -12915,20 +13667,20 @@
   ],
   "mVB9Bd": [
     {
-      "type": 0,
-      "value": "Add handoff from "
-    },
-    {
       "type": 1,
       "value": "sourceAgent"
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " aracısından "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alt aracısına devretme işlemi ekleyin"
     }
   ],
   "mVkTZZ": [
@@ -12973,6 +13725,12 @@
       "value": "En üst düzey katmana ulaşıldı. Önde kalmak için geliştirmeye devam edin."
     }
   ],
+  "mg8UeB": [
+    {
+      "type": 0,
+      "value": "Filter by response plan name"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -12983,12 +13741,6 @@
     {
       "type": 0,
       "value": "Yapılandırılmış araç yok."
-    }
-  ],
-  "mgtFKh": [
-    {
-      "type": 0,
-      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13075,6 +13827,12 @@
       "value": "Bu işlem ServiceNow bağlantısını kalıcı olarak siler. Aracı artık biletleri yönetemeyecek. Bağlantıyı kesmek istediğinizden emin misiniz?"
     }
   ],
+  "n25S4d": [
+    {
+      "type": 0,
+      "value": "Update Kusto Tool"
+    }
+  ],
   "n2h/5e": [
     {
       "type": 0,
@@ -13136,7 +13894,7 @@
   "nL/Owh": [
     {
       "type": 0,
-      "value": "Send notification"
+      "value": "Bildirim gönder"
     }
   ],
   "nNwFuy": [
@@ -13346,7 +14104,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Farklı hesapla oturum aç"
     }
   ],
   "oIm1Fb": [
@@ -13400,7 +14158,7 @@
   "oTxjU2": [
     {
       "type": 0,
-      "value": "Handoff subagents"
+      "value": "Devretme alt aracıları"
     }
   ],
   "oUWADl": [
@@ -13439,6 +14197,12 @@
       "value": "Olay platformunu değiştirmek için Azure İzleyici bağlantısını kesmeniz gerekir. Aracı artık Azure İzleyici bildirimlerini almayacak. Bağlantıyı kesmek istediğinizden emin misiniz?"
     }
   ],
+  "ocQGCd": [
+    {
+      "type": 0,
+      "value": "Allow subagent capabilities to override the SRE Agent."
+    }
+  ],
   "ocQXDt": [
     {
       "type": 0,
@@ -13459,12 +14223,6 @@
     {
       "type": 0,
       "value": "Yanıt geri bildirimi sağlayın"
-    }
-  ],
-  "ongAz6": [
-    {
-      "type": 0,
-      "value": "Olayları ara"
     }
   ],
   "ooDMAp": [
@@ -13554,7 +14312,7 @@
   "p7xkho": [
     {
       "type": 0,
-      "value": "Agent consumption"
+      "value": "Aracı tüketimi"
     }
   ],
   "p8Ubox": [
@@ -13700,7 +14458,7 @@
   "pgIRcn": [
     {
       "type": 0,
-      "value": "Enter a string"
+      "value": "Dize girin"
     }
   ],
   "piCpTn": [
@@ -13709,16 +14467,10 @@
       "value": "Bir Grafana panosu sağlandıktan ve bağlandıktan sonra kaynakların panoyu tam olarak doldurması biraz zaman alabilir."
     }
   ],
-  "plun1b": [
-    {
-      "type": 0,
-      "value": "Hand-off"
-    }
-  ],
   "pndXMi": [
     {
       "type": 0,
-      "value": "Enter a value"
+      "value": "Değer girin"
     }
   ],
   "pnlHOZ": [
@@ -13760,7 +14512,7 @@
   "pqedsA": [
     {
       "type": 0,
-      "value": "Mute all warnings"
+      "value": "Tüm uyarıları sessize alın"
     }
   ],
   "pqgzm0": [
@@ -13790,7 +14542,7 @@
   "pw1ueF": [
     {
       "type": 0,
-      "value": "Failed to create meta agent. Error: "
+      "value": "Meta aracı oluşturulamadı. Hata: "
     },
     {
       "type": 1,
@@ -13836,13 +14588,13 @@
   "qB4s5L": [
     {
       "type": 0,
-      "value": "Add parameter"
+      "value": "Parametre ekleyin"
     }
   ],
   "qDwvZ4": [
     {
       "type": 0,
-      "value": "Unknown error"
+      "value": "Bilinmeyen hata"
     }
   ],
   "qQh4Xu": [
@@ -13932,7 +14684,7 @@
   "qrs+1B": [
     {
       "type": 0,
-      "value": "Create meta agent"
+      "value": "Meta aracı oluşturun"
     }
   ],
   "qs5hhk": [
@@ -14081,6 +14833,40 @@
       "value": "Benzer Belirti Olayları"
     }
   ],
+  "rIbCjV": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "rKdPkY": [
     {
       "type": 0,
@@ -14184,19 +14970,13 @@
   "raexxM": [
     {
       "type": 0,
-      "value": "Submitted"
+      "value": "Gönderildi"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
       "value": "Kapat"
-    }
-  ],
-  "rd+inb": [
-    {
-      "type": 0,
-      "value": "Özel araçlar ve bağlayıcılarla yapay zeka aracıları oluşturun. Bir etkileşimli grafikte birlikte nasıl çalıştıklarını görselleştirin. İlk aracı, araç ve bağlayıcı tanımlarınızı oluşturarak kullanmaya başlayın."
     }
   ],
   "rd6YZk": [
@@ -14208,7 +14988,7 @@
   "rdsirP": [
     {
       "type": 0,
-      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+      "value": "Aracı etkin akış AAU sınırına ulaştı. Artık yalnızca her zaman açık akışta çalışıyor ve sohbet ile eylemler için kullanılamıyor."
     }
   ],
   "rhSI1/": [
@@ -14220,7 +15000,7 @@
   "ri3YXY": [
     {
       "type": 0,
-      "value": "Add a connector"
+      "value": "Bağlayıcı ekle"
     }
   ],
   "riEsC7": [
@@ -14336,7 +15116,7 @@
   "rzC0Xo": [
     {
       "type": 0,
-      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+      "value": "Aracı, bildirimleri etkinlik akışına göndererek bir sohbete veya ekibe bağlantı sağlar."
     }
   ],
   "s00xPm": [
@@ -14405,6 +15185,12 @@
     {
       "type": 0,
       "value": "Abonelik seçin"
+    }
+  ],
+  "sCRBH3": [
+    {
+      "type": 0,
+      "value": "Search by subagent"
     }
   ],
   "sH0O5v": [
@@ -14554,7 +15340,7 @@
   "sZIoMy": [
     {
       "type": 0,
-      "value": "Send email"
+      "value": "E-posta gönder"
     }
   ],
   "sd1Vy+": [
@@ -14626,7 +15412,7 @@
   "spEwRf": [
     {
       "type": 0,
-      "value": "You have warnings regarding your agent."
+      "value": "Aracınızla ilgili uyarılarınız var."
     }
   ],
   "sqGM6w": [
@@ -14653,6 +15439,12 @@
       "value": "Model Bağlam Protokolü (MCP) sunucularından gelen araçlar. Bu araçlar bağlantıya göre gruplanır ve bağlı sunuculardan yüklenir."
     }
   ],
+  "stbbGt": [
+    {
+      "type": 0,
+      "value": "Performs specialized tasks on behalf of the SRE Agent."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -14674,7 +15466,7 @@
   "swe9tO": [
     {
       "type": 0,
-      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+      "value": "Sorguyu doğrulamak ve aracının Azure Veri Gezgini'ne erişebildiğinden emin olmak için önce bir test çalıştırın."
     }
   ],
   "sy7vzf": [
@@ -14759,6 +15551,12 @@
       "value": "Duraklat"
     }
   ],
+  "tFoDh3": [
+    {
+      "type": 0,
+      "value": "Yes, turn on deep investigation"
+    }
+  ],
   "tGHG7q": [
     {
       "type": 0,
@@ -14781,12 +15579,6 @@
     {
       "type": 0,
       "value": "Bilgi bankası"
-    }
-  ],
-  "tLaLqo": [
-    {
-      "type": 0,
-      "value": "İşte ayrıntılı araştırmanız:"
     }
   ],
   "tOxzip": [
@@ -14932,7 +15724,7 @@
   "trhBLG": [
     {
       "type": 0,
-      "value": "No insights available"
+      "value": "İçgörü yok"
     }
   ],
   "ts7YvN": [
@@ -14950,7 +15742,7 @@
   "ttWUo6": [
     {
       "type": 0,
-      "value": "Click to view session analysis and insights"
+      "value": "Oturum analizi ve içgörüleri görüntülemek için tıklayın"
     }
   ],
   "tthToS": [
@@ -14962,7 +15754,7 @@
   "tu6JYo": [
     {
       "type": 0,
-      "value": "Start agent"
+      "value": "Aracıyı başlatın"
     }
   ],
   "tujypD": [
@@ -15002,7 +15794,7 @@
   "u04DEJ": [
     {
       "type": 0,
-      "value": "There was an error loading the usage data. Please try again later."
+      "value": "Kullanım verileri yüklenirken bir hata oluştu. Lütfen daha sonra yeniden deneyin."
     }
   ],
   "u0xiAh": [
@@ -15071,10 +15863,22 @@
       "value": "Tüm otonom düzeyleri"
     }
   ],
+  "uIXQiw": [
+    {
+      "type": 0,
+      "value": "Establishing connection ..."
+    }
+  ],
+  "uKwm6S": [
+    {
+      "type": 0,
+      "value": "Canvas view"
+    }
+  ],
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "Etkin akış AAU'ları "
     },
     {
       "offset": 0,
@@ -15083,7 +15887,7 @@
           "value": [
             {
               "type": 0,
-              "value": "today"
+              "value": "bugün"
             }
           ]
         },
@@ -15094,7 +15898,7 @@
             },
             {
               "type": 0,
-              "value": " day"
+              "value": " gün"
             }
           ]
         },
@@ -15105,7 +15909,7 @@
             },
             {
               "type": 0,
-              "value": " days"
+              "value": " gün"
             }
           ]
         }
@@ -15113,6 +15917,10 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "days"
+    },
+    {
+      "type": 0,
+      "value": " içinde sıfırlandı"
     }
   ],
   "uMF+CT": [
@@ -15222,7 +16030,13 @@
   "ueVpay": [
     {
       "type": 0,
-      "value": "Refining..."
+      "value": "Geliştiriliyor..."
+    }
+  ],
+  "ufzv1A": [
+    {
+      "type": 0,
+      "value": "Table view"
     }
   ],
   "ug01Mk": [
@@ -15264,7 +16078,7 @@
   "urxxsP": [
     {
       "type": 0,
-      "value": "Agent Performance"
+      "value": "Aracı Performansı"
     }
   ],
   "us/IXr": [
@@ -15330,7 +16144,7 @@
   "v6cujo": [
     {
       "type": 0,
-      "value": "Kusto tool"
+      "value": "Kusto aracı"
     }
   ],
   "v8cTK0": [
@@ -15408,7 +16222,7 @@
   "vS6Lmt": [
     {
       "type": 0,
-      "value": "Incident triggers"
+      "value": "Olay tetikleyicileri"
     }
   ],
   "vSW3OF": [
@@ -15459,6 +16273,12 @@
     {
       "type": 0,
       "value": "Bu kılavuz, aracının olay yönetimi sırasında kullandığı araç listesini ve son istemi oluşturmanıza yardımcı olur."
+    }
+  ],
+  "vb6deF": [
+    {
+      "type": 0,
+      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
     }
   ],
   "vbdOl/": [
@@ -15516,7 +16336,7 @@
   "vzH0q5": [
     {
       "type": 0,
-      "value": "Choose tools"
+      "value": "Araçları seçin"
     }
   ],
   "w+XRP2": [
@@ -15535,6 +16355,12 @@
     {
       "type": 0,
       "value": "Açıklamayı temizle"
+    }
+  ],
+  "w4Nqlr": [
+    {
+      "type": 0,
+      "value": "Run scheduled task(s)"
     }
   ],
   "w5FDGY": [
@@ -15576,7 +16402,7 @@
   "wBh+z3": [
     {
       "type": 0,
-      "value": "No additional comments provided"
+      "value": "Ek açıklama sağlanmadı"
     }
   ],
   "wEQDC6": [
@@ -15604,7 +16430,7 @@
   "wGcWbo": [
     {
       "type": 0,
-      "value": "Active tasks"
+      "value": "Etkin görevler"
     }
   ],
   "wI+r41": [
@@ -15629,6 +16455,12 @@
       "value": "format"
     }
   ],
+  "wO9wb5": [
+    {
+      "type": 0,
+      "value": "GitHub"
+    }
+  ],
   "wOHH3J": [
     {
       "type": 1,
@@ -15639,10 +16471,22 @@
       "value": " her çalıştığında ne yapması gerektiğini açıklayın."
     }
   ],
+  "wPF0jY": [
+    {
+      "type": 0,
+      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
       "value": "Yeni bir devir aracısı oluştur"
+    }
+  ],
+  "wSLRfB": [
+    {
+      "type": 0,
+      "value": "Unknown status"
     }
   ],
   "wSZR47": [
@@ -15654,7 +16498,7 @@
   "wUnPMf": [
     {
       "type": 0,
-      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+      "value": "Gerekli Azure rol tabanlı erişim denetimi (RBAC) rollerinden birine sahip olmayan kullanıcılar Azure SRE Aracısı'na erişimi kaybedecek."
     }
   ],
   "wVpXzO": [
@@ -15810,7 +16654,7 @@
   "xEjqoV": [
     {
       "type": 0,
-      "value": "Click here to learn more"
+      "value": "Daha fazla bilgi almak için buraya tıklayın"
     }
   ],
   "xGPsyJ": [
@@ -15840,7 +16684,7 @@
   "xLrAFR": [
     {
       "type": 0,
-      "value": "Parameter name"
+      "value": "Parametre adı"
     }
   ],
   "xNC5hG": [
@@ -15849,10 +16693,16 @@
       "value": "Sözlük (bağımsız değişkenlere grupla)"
     }
   ],
+  "xP3hmB": [
+    {
+      "type": 0,
+      "value": "Start:"
+    }
+  ],
   "xPuGYM": [
     {
       "type": 0,
-      "value": "No connectors match your search"
+      "value": "Aramanızla eşleşen bağlayıcı yok"
     }
   ],
   "xSsto+": [
@@ -15938,7 +16788,7 @@
   "xet2Cv": [
     {
       "type": 0,
-      "value": "Query parameters"
+      "value": "Sorgu parametreleri"
     }
   ],
   "xf9BKi": [
@@ -16017,6 +16867,12 @@
       "value": "Özel olay yanıt planı siliniyor"
     }
   ],
+  "y/m6Ep": [
+    {
+      "type": 0,
+      "value": "GitHub MCP server"
+    }
+  ],
   "y0KXuM": [
     {
       "type": 0,
@@ -16042,7 +16898,7 @@
   "y79eIb": [
     {
       "type": 0,
-      "value": "Assign yourself the SRE Agent Admin role."
+      "value": "Kendinize SRE Aracısı Yöneticisi rolü atayın."
     }
   ],
   "y87pob": [
@@ -16057,12 +16913,12 @@
   ],
   "yBnHns": [
     {
-      "type": 0,
-      "value": "Sign in to "
-    },
-    {
       "type": 1,
       "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " hizmetinde oturum açın"
     }
   ],
   "yDh8i7": [
@@ -16080,7 +16936,7 @@
   "yJJ/jv": [
     {
       "type": 0,
-      "value": "Mute this warning"
+      "value": "Bu uyarıyı sessize alın"
     }
   ],
   "yJSwfQ": [
@@ -16101,6 +16957,12 @@
       "value": "Olay başarıyla silindi"
     }
   ],
+  "yRKsn1": [
+    {
+      "type": 0,
+      "value": "Learn more about deep investigations"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -16110,7 +16972,7 @@
   "yVe+kY": [
     {
       "type": 0,
-      "value": "Set up connector"
+      "value": "Bağlayıcıyı ayarla"
     }
   ],
   "yX3QcY": [
@@ -16215,6 +17077,58 @@
       "value": "Çekirdek uygulama grubu türü"
     }
   ],
+  "yrDI3f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "ysBuRt": [
     {
       "type": 0,
@@ -16246,7 +17160,7 @@
   "z43sTn": [
     {
       "type": 0,
-      "value": "View Knowledge Base"
+      "value": "Bilgi Bankasını Görüntüle"
     }
   ],
   "z5cF/O": [
@@ -16309,6 +17223,12 @@
       "value": "Geliştirme önerileri için yapılandırma analiz ediliyor."
     }
   ],
+  "zJFez9": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Tasks"
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -16356,7 +17276,7 @@
   "zWkvNO": [
     {
       "type": 0,
-      "value": "Timeline"
+      "value": "Zaman çizelgesi"
     }
   ],
   "zZsxcQ": [
@@ -16409,6 +17329,32 @@
     {
       "type": 0,
       "value": "Gelişmiş ayarlar"
+    }
+  ],
+  "zpENeF": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tool"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "zpkKsD": [

@@ -10,6 +10,7 @@ namespace Agent.Web.Models.ExtendedAgents;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(KustoToolApiModel), "KustoTool")]
 [JsonDerivedType(typeof(LinkToolApiModel), "LinkTool")]
+[JsonDerivedType(typeof(PythonToolApiModel), "PythonFunctionTool")]
 public abstract class ExtendedAgentToolApiModel
 {
     public string Name { get; set; } = string.Empty;

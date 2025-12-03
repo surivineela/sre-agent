@@ -186,6 +186,295 @@ export const SreAgentResources = defineMessages({
         id: 'BSQQkf',
         defaultMessage: 'Query returned no results',
     },
+    pythonFunctionTool: {
+        id: 'Hnv6Ej',
+        defaultMessage: 'Python Function',
+    },
+    pythonToolTesterTitle: {
+        id: 'uDXk7F',
+        defaultMessage: 'Python Function Tester',
+    },
+    pythonToolTesterSubtitle: {
+        id: 'EAGAAs',
+        defaultMessage: 'Test your Python function before saving',
+    },
+    pythonToolTesterCodeLabel: {
+        id: 'xgD8Kv',
+        defaultMessage: 'Python Function Code',
+    },
+    pythonToolTesterParameterValuesLabel: {
+        id: 'KryvVM',
+        defaultMessage: 'Parameter values (for testing)',
+    },
+    pythonToolTesterTestPending: {
+        id: '2myhph',
+        defaultMessage: 'Test the function to continue.',
+    },
+    pythonToolTesterTestRunning: {
+        id: 'Jdy/E7',
+        defaultMessage: 'Testing function…',
+    },
+    pythonToolTesterTestSuccess: {
+        id: 'kjUC48',
+        defaultMessage: 'Function test succeeded.',
+    },
+    pythonToolTesterTestError: {
+        id: 'fn9+0+',
+        defaultMessage: 'Function test failed: {message}',
+    },
+    pythonToolTesterTestMissingParams: {
+        id: '++2B26',
+        defaultMessage: 'Provide values for: {parameters}',
+    },
+    pythonToolTesterResultsLabel: {
+        id: 'm2KQqp',
+        defaultMessage: 'Execution Result',
+    },
+    pythonToolTesterExecutionTime: {
+        id: 'piGAtN',
+        defaultMessage: 'Executed in {milliseconds}ms',
+    },
+    pythonToolTesterExitCode: {
+        id: 'I3ymC9',
+        defaultMessage: 'Exit code: {code}',
+    },
+    pythonToolTesterStdout: {
+        id: 'BP5nk0',
+        defaultMessage: 'Standard Output',
+    },
+    pythonToolTesterStderr: {
+        id: 'wPfhmg',
+        defaultMessage: 'Standard Error',
+    },
+    pythonToolTesterNoCode: {
+        id: 'wGM2T+',
+        defaultMessage: 'Please provide Python function code',
+    },
+    pythonToolTesterGenerateCodeButton: {
+        id: '6fPJcm',
+        defaultMessage: 'Generate Code with AI',
+    },
+    pythonToolTesterGeneratingCode: {
+        id: 'l1+Ilp',
+        defaultMessage: 'Generating code…',
+    },
+    pythonToolTesterGeneratePromptLabel: {
+        id: 'uGPikn',
+        defaultMessage: 'Describe what the function should do',
+    },
+    pythonToolTesterGeneratePromptPlaceholder: {
+        id: 'wm4GRX',
+        defaultMessage: 'Example: Parse JSON logs and extract error messages',
+    },
+    pythonToolTesterGenerateSuccess: {
+        id: 'HHP8Nh',
+        defaultMessage: 'Code generated successfully!',
+    },
+    pythonToolTesterGenerateError: {
+        id: 'Lq6q6U',
+        defaultMessage: 'Failed to generate code: {message}',
+    },
+    // Python Tool Creator - Unified AI-First Experience
+    pythonToolAiPromptTitle: {
+        id: '25DrlN',
+        defaultMessage: 'What should this function do?',
+    },
+    pythonToolAiPromptPlaceholder: {
+        id: 'Qg+chS',
+        defaultMessage: 'Describe in plain English, e.g., "Parse JSON logs and count errors by severity"',
+    },
+    pythonToolAiGenerateButton: {
+        id: 'L/BdWN',
+        defaultMessage: 'Generate with AI ✨',
+    },
+    pythonToolAiGenerating: {
+        id: 'gd7vV5',
+        defaultMessage: 'Creating your function…',
+    },
+    pythonToolAiRegenerateButton: {
+        id: '6PgVSe',
+        defaultMessage: 'Regenerate',
+    },
+    pythonToolManualModeLink: {
+        id: 'ZSbKr/',
+        defaultMessage: 'Write code manually instead',
+    },
+    pythonToolAiModeLink: {
+        id: '5kCFXN',
+        defaultMessage: 'Generate with AI instead',
+    },
+    pythonToolCodeSectionTitle: {
+        id: 'uFDB/3',
+        defaultMessage: 'Function Code',
+    },
+    pythonToolTestSectionTitle: {
+        id: 'wTA9dx',
+        defaultMessage: 'Test Your Function',
+    },
+    pythonToolTestButton: {
+        id: 'fU7I5j',
+        defaultMessage: 'Run Test',
+    },
+    pythonToolTestRunning: {
+        id: 'ORcS+j',
+        defaultMessage: 'Testing…',
+    },
+    pythonToolTestSuccess: {
+        id: 'zcksw4',
+        defaultMessage: '✓ Test passed',
+    },
+    pythonToolTestFailed: {
+        id: 'uC4R7m',
+        defaultMessage: 'Test failed: {message}',
+    },
+    pythonToolParamsAutoDetected: {
+        id: 'qQRG87',
+        defaultMessage: 'Parameters auto-detected from code',
+    },
+    pythonToolEditCodeHint: {
+        id: 'NzhSBf',
+        defaultMessage: 'Edit the code below or regenerate with different instructions',
+    },
+    pythonToolBuilderTitle: {
+        id: '0eQHdW',
+        defaultMessage: 'Create Python Tool',
+    },
+    pythonToolBuilderIntentLabel: {
+        id: 'QTVz4e',
+        defaultMessage: 'Describe what your tool should do',
+    },
+    pythonToolBuilderIntentPlaceholder: {
+        id: 'wm4GRX',
+        defaultMessage: 'Example: Parse JSON logs and extract error messages',
+    },
+    pythonToolBuilderExamplePrefix: {
+        id: 'xRpMXP',
+        defaultMessage: 'Try:',
+    },
+    pythonToolBuilderExample1: {
+        id: 'fmrYkd',
+        defaultMessage: 'Parse JSON and extract error messages',
+    },
+    pythonToolBuilderExample2: {
+        id: 'sjq9sr',
+        defaultMessage: 'Validate email addresses',
+    },
+    pythonToolBuilderExample3: {
+        id: 'gLbYRM',
+        defaultMessage: 'Calculate percentage from two numbers',
+    },
+    pythonToolBuilderGenerateButton: {
+        id: '9DqDnP',
+        defaultMessage: 'Generate Tool',
+    },
+    pythonToolBuilderGenerating: {
+        id: 'nxBEvY',
+        defaultMessage: 'Creating your Python function…',
+    },
+    pythonToolBuilderGeneratingStep1: {
+        id: '6LKCR/',
+        defaultMessage: 'Analyzing intent',
+    },
+    pythonToolBuilderGeneratingStep2: {
+        id: 'IoxJ74',
+        defaultMessage: 'Writing function code',
+    },
+    pythonToolBuilderGeneratingStep3: {
+        id: 'uYv0At',
+        defaultMessage: 'Extracting parameters',
+    },
+    pythonToolBuilderGeneratingStep4: {
+        id: '6GLyN3',
+        defaultMessage: 'Generating test cases',
+    },
+    pythonToolBuilderCodeLabel: {
+        id: 'Hnv6Ej',
+        defaultMessage: 'Python Function',
+    },
+    pythonToolBuilderTestLabel: {
+        id: 'xu6eM8',
+        defaultMessage: 'Test',
+    },
+    pythonToolBuilderRunTest: {
+        id: 'fU7I5j',
+        defaultMessage: 'Run Test',
+    },
+    pythonToolBuilderRunTestShortcut: {
+        id: 'efl/SK',
+        defaultMessage: 'Run Test (Cmd+Enter)',
+    },
+    pythonToolBuilderTestRunning: {
+        id: 'ORcS+j',
+        defaultMessage: 'Testing…',
+    },
+    pythonToolBuilderEditCode: {
+        id: 'i/pRlX',
+        defaultMessage: 'Click to edit code',
+    },
+    pythonToolBuilderSaveButton: {
+        id: 'FuPxOh',
+        defaultMessage: 'Save & Use Tool',
+    },
+    pythonToolBuilderCancelButton: {
+        id: '47FYwb',
+        defaultMessage: 'Cancel',
+    },
+    pythonToolBuilderTestCases: {
+        id: 'UcVdDd',
+        defaultMessage: '{count} test cases available',
+    },
+    pythonToolBuilderAdvancedSettings: {
+        id: 'zhoVUT',
+        defaultMessage: 'Advanced settings',
+    },
+    pythonToolBuilderNameLabel: {
+        id: 'INiSE2',
+        defaultMessage: 'Tool Name',
+    },
+    pythonToolBuilderDescriptionLabel: {
+        id: 'Q8Qw5B',
+        defaultMessage: 'Description',
+    },
+    pythonToolBuilderTimeoutLabel: {
+        id: 'g6WtKF',
+        defaultMessage: 'Timeout (seconds)',
+    },
+    pythonToolBuilderGenerationFailed: {
+        id: 'lOaomi',
+        defaultMessage: 'Generation failed: {error}',
+    },
+    pythonToolBuilderTestSuccess: {
+        id: 'psccqt',
+        defaultMessage: 'Executed in {ms}ms',
+    },
+    pythonToolBuilderTestFailed: {
+        id: 'ITzzTV',
+        defaultMessage: 'Test failed',
+    },
+    pythonToolBuilderSaving: {
+        id: 'hCNgyf',
+        defaultMessage: 'Saving tool…',
+    },
+    pythonToolBuilderSaveSuccess: {
+        id: 'FGN2ax',
+        defaultMessage: 'Tool saved successfully!',
+    },
+    pythonToolBuilderSaveFailed: {
+        id: '/jp8iL',
+        defaultMessage: 'Failed to save tool: {error}',
+    },
+    pythonToolBuilderUnsavedChanges: {
+        id: 'gFrqQf',
+        defaultMessage: 'You have unsaved changes. Are you sure you want to close?',
+    },
+    pythonToolBuilderEditName: {
+        id: 'Sn2nYC',
+        defaultMessage: 'Edit Name',
+    },
+    pythonToolBuilderResultLabel: {
+        id: 'ZpQ6us',
+        defaultMessage: 'Result',
+    },
     deleteToolTitle: {
         id: 'bn84V+',
         defaultMessage: 'Delete tool',
@@ -4277,6 +4566,30 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Query tool the subagent uses to collect data from Azure Data Explorer.',
         id: 'iYJ/Ha',
     },
+    pythonToolCreateMenuLabel: { defaultMessage: 'Python tool', id: 'rFU0oo' },
+    pythonToolCreateMenuDescription: {
+        defaultMessage: 'Custom Python function to extend agent capabilities with AI-assisted code generation.',
+        id: 'oyf+bG',
+    },
+    // Python Tool Terminal strings
+    pythonToolTestPlayground: { defaultMessage: 'Test Playground', id: 'qzMeS2' },
+    pythonToolReady: { defaultMessage: 'Ready', id: 'IZFEUg' },
+    pythonToolRunning: { defaultMessage: 'Running...', id: 'oyZN19' },
+    pythonToolRun: { defaultMessage: 'Run', id: 'KiXNvz' },
+    pythonToolParameters: { defaultMessage: 'Parameters:', id: 'qTWwGw' },
+    pythonToolRequired: { defaultMessage: '*required', id: 'pXPlXr' },
+    pythonToolOptional: { defaultMessage: 'optional', id: 'V4KNjk' },
+    pythonToolNoParametersRequired: { defaultMessage: 'No parameters required', id: 'iJcrHj' },
+    pythonToolTestPassed: { defaultMessage: 'Test Passed', id: 'xpMDZO' },
+    pythonToolWantToImprove: { defaultMessage: 'Want to improve it?', id: 'kGmr6n' },
+    pythonToolFillInParameters: { defaultMessage: 'Fill in parameters and click Run to test', id: 'kVOq9V' },
+    pythonToolCtrlEnter: { defaultMessage: 'Ctrl+Enter', id: 'bO7sKf' },
+    pythonToolTimeoutTitle: { defaultMessage: 'Timeout in seconds (5-900)', id: 'lBZfVb' },
+    // Python Tool PromptView strings
+    pythonToolPreviousTestFailed: { defaultMessage: 'Previous test failed:', id: 'EPi9lK' },
+    pythonToolKeepCurrentCode: { defaultMessage: 'Keep Current Code', id: 'kopJ66' },
+    // Python Tool Info Panel strings
+    pythonToolCodeSectionTitle: { defaultMessage: 'Python Code', id: 'VfjG62' },
 });
 
 export const PlaygroundResources = defineMessages({

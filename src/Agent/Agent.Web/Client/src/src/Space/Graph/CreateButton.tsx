@@ -3,6 +3,7 @@ import { AddRegular } from '@fluentui/react-icons';
 import { memo, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
+import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
@@ -24,6 +25,7 @@ export interface CreateButtonProps {
 
 const CreateButton = memo(({ handleCreateItemStandalone, disableCreateMetaAgent, disabled }: CreateButtonProps) => {
     const allowMetaAgentOverride = useConfigSetting(SettingNames.AllowMetaAgentOverride);
+    const { features } = useFeatureFlags();
     const { menuItemWithIcon, menuItemContent } = useExtendedAgentGraphStyles();
     const intl = useIntl();
     const createButtonRef = useRef<HTMLButtonElement>(null);
@@ -36,6 +38,17 @@ const CreateButton = memo(({ handleCreateItemStandalone, disableCreateMetaAgent,
                       icon: <EntityIcon type="metaAgent" iconStyle={{ height: 24, width: 24 }} />,
                       entityType: 'metaAgent' as EntityTypeExt,
                       disabled: disableCreateMetaAgent,
+                  },
+              ]
+            : [];
+
+        const pythonToolOption = features.pythonTool
+            ? [
+                  {
+                      label: intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuLabel),
+                      description: intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuDescription),
+                      icon: <EntityIcon type="pythonTool" />,
+                      entityType: 'pythonTool' as EntityTypeExt,
                   },
               ]
             : [];
@@ -66,8 +79,9 @@ const CreateButton = memo(({ handleCreateItemStandalone, disableCreateMetaAgent,
                 icon: <EntityIcon type="toolWithGear" />,
                 entityType: 'tool' as EntityTypeExt,
             },
+            ...pythonToolOption,
         ];
-    }, [intl, disableCreateMetaAgent, allowMetaAgentOverride]);
+    }, [intl, disableCreateMetaAgent, allowMetaAgentOverride, features.pythonTool]);
 
     return (
         <Menu positioning={{ target: createButtonRef.current, position: 'below', align: 'start' }}>

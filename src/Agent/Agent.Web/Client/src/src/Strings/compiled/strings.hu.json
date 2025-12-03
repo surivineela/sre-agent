@@ -36,7 +36,7 @@
   "+6/51l": [
     {
       "type": 0,
-      "value": "Creating meta agent"
+      "value": "Metaügynök létrehozása folyamatban"
     }
   ],
   "+7PjfV": [
@@ -54,7 +54,7 @@
   "+ASm/B": [
     {
       "type": 0,
-      "value": "Submit Feedback"
+      "value": "Visszajelzés elküldése"
     }
   ],
   "+Aon83": [
@@ -90,13 +90,19 @@
   "+Kcoxv": [
     {
       "type": 0,
-      "value": "Related incidents"
+      "value": "Kapcsolódó incidensek"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
       "value": "Eszköz kiválasztása"
+    }
+  ],
+  "+OMfjA": [
+    {
+      "type": 0,
+      "value": "Give access to knowledge base"
     }
   ],
   "+Pmftr": [
@@ -143,28 +149,34 @@
       "value": "Típus"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+XtuWl": [
     {
       "type": 0,
-      "value": "This insight needs improvement"
+      "value": "Ez a betekintés fejlesztést igényel"
     }
   ],
   "+Y8m6A": [
-    {
-      "type": 0,
-      "value": "Added handoff from "
-    },
     {
       "type": 1,
       "value": "sourceAgent"
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " átadása hozzáadva a(z) "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alkiszolgálóhoz"
     }
   ],
   "+ZdOJt": [
@@ -230,7 +242,7 @@
   "+nnQeH": [
     {
       "type": 0,
-      "value": "Created meta agent"
+      "value": "Metaügynök létrehozva"
     }
   ],
   "+nt4l9": [
@@ -260,7 +272,7 @@
   "/+WtRc": [
     {
       "type": 0,
-      "value": "Enter handoff instructions"
+      "value": "Adja meg az átadási utasításokat"
     }
   ],
   "//Zb9l": [
@@ -284,7 +296,7 @@
   "/3OCn6": [
     {
       "type": 0,
-      "value": "Insights have not been generated for this thread yet."
+      "value": "Ehhez a hozzászóláslánchoz még nem hoztak létre betekintéseket."
     }
   ],
   "/4tOwT": [
@@ -302,13 +314,43 @@
   "/7GPtw": [
     {
       "type": 0,
-      "value": "Go to Incidents"
+      "value": "Ugrás az incidensekre"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
       "value": "Felügyelt Azure SQL-példányok kezelése."
+    }
+  ],
+  "/8swfk": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "/9FZdx": [
@@ -341,12 +383,6 @@
     {
       "type": 0,
       "value": "Törlés"
-    }
-  ],
-  "/ImSqA": [
-    {
-      "type": 0,
-      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -458,7 +494,7 @@
   "/qCaiZ": [
     {
       "type": 0,
-      "value": "Incident trigger name"
+      "value": "Incidenstrigger neve"
     }
   ],
   "/rNkXe": [
@@ -528,7 +564,7 @@
   "03qRza": [
     {
       "type": 0,
-      "value": "View AI suggestions"
+      "value": "AI-javaslatok megtekintése"
     }
   ],
   "05Rzkx": [
@@ -566,7 +602,7 @@
   "0DUgkZ": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -574,7 +610,7 @@
     },
     {
       "type": 0,
-      "value": " stopped successfully"
+      "value": " SRE-ügynök leállítása sikerült"
     }
   ],
   "0Dhe75": [
@@ -624,7 +660,7 @@
   "0Qocmw": [
     {
       "type": 0,
-      "value": "All tools"
+      "value": "Minden eszköz"
     }
   ],
   "0R+Pet": [
@@ -662,7 +698,11 @@
   "0VVX+G": [
     {
       "type": 0,
-      "value": "Connected as"
+      "value": "Csatlakozva mint "
+    },
+    {
+      "type": 1,
+      "value": "0"
     }
   ],
   "0VuGey": [
@@ -706,7 +746,7 @@
   "0hpRE4": [
     {
       "type": 0,
-      "value": "Enter the parameter name"
+      "value": "Adja meg a paraméter nevét"
     }
   ],
   "0i3Qrd": [
@@ -828,7 +868,7 @@
   "0zGfOk": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "A diagnosztika, metrikák, tudás és egyebek optimális ügynökteljesítménye érdekében olyan erőforráscsoportokat használjon, amelyek tartalmazzák a következő Azure Compute-szolgáltatások legalább egyikét: Azure Kubernetes Service, Functions, Container Apps vagy Web Apps."
     }
   ],
   "12GY0h": [
@@ -841,6 +881,16 @@
     {
       "type": 0,
       "value": "Felhasználás (trigger)"
+    }
+  ],
+  "13KTIN": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
     }
   ],
   "15GWkT": [
@@ -870,7 +920,7 @@
   "19xydZ": [
     {
       "type": 0,
-      "value": "You do not have permission to generate insights for this thread."
+      "value": "Nincs engedélye betekintések létrehozására ehhez a hozzászóláslánchoz."
     }
   ],
   "1CcjQj": [
@@ -911,18 +961,10 @@
       "value": "Még nincsenek feltöltve dokumentumok"
     }
   ],
-  "1O47t6": [
+  "1LBny5": [
     {
       "type": 0,
-      "value": "A(z) "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " SRE-ügynök törlése sikerült"
+      "value": "Stopped"
     }
   ],
   "1OorZL": [
@@ -1041,6 +1083,12 @@
       "value": "%"
     }
   ],
+  "1m4VPF": [
+    {
+      "type": 0,
+      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+    }
+  ],
   "1o9eJ6": [
     {
       "offset": 0,
@@ -1077,6 +1125,12 @@
     {
       "type": 0,
       "value": "Elhárítási terv"
+    }
+  ],
+  "1xTayQ": [
+    {
+      "type": 0,
+      "value": "Enter endpoint"
     }
   ],
   "1xZjpU": [
@@ -1272,7 +1326,7 @@
   "2l5w5P": [
     {
       "type": 0,
-      "value": "Go to Support + Troubleshooting"
+      "value": "Ugrás a Támogatás és Hibaelhárítás részhez"
     }
   ],
   "2m6oj5": [
@@ -1302,7 +1356,7 @@
   "2reUcp": [
     {
       "type": 0,
-      "value": "Subagent name"
+      "value": "Alügynök neve"
     }
   ],
   "2tOWr2": [
@@ -1383,6 +1437,12 @@
       "value": "Még nincsenek elérhető ügynökök"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1461,6 +1521,42 @@
       "value": "Add MCP server"
     }
   ],
+  "3h7ZKg": [
+    {
+      "type": 0,
+      "value": "Review + add"
+    }
+  ],
+  "3hmrCJ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
@@ -1485,10 +1581,32 @@
       "value": "Olvasó"
     }
   ],
+  "3rvQhx": [
+    {
+      "type": 0,
+      "value": "You can manage up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. Your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups."
+    }
+  ],
   "3sNyAo": [
     {
       "type": 0,
-      "value": "The url must be in the format: "
+      "value": "Az URL-cím formátumának a következőnek kell lennie: "
     },
     {
       "type": 1,
@@ -1599,6 +1717,12 @@
       "value": "Nincsenek konfigurált közös eszközök."
     }
   ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "451B6Z": [
     {
       "type": 0,
@@ -1658,7 +1782,7 @@
   "4CcHuj": [
     {
       "type": 0,
-      "value": "Share your thoughts about this insight... (optional)"
+      "value": "Ossza meg gondolatait ezzel a betekintéssel kapcsolatban... (nem kötelező)"
     }
   ],
   "4Ez7HI": [
@@ -1671,6 +1795,12 @@
     {
       "type": 0,
       "value": "Riasztás létrehozva"
+    }
+  ],
+  "4IAjnN": [
+    {
+      "type": 0,
+      "value": "Turn on deep investigation?"
     }
   ],
   "4MeTpL": [
@@ -1718,7 +1848,7 @@
   "4RwjwU": [
     {
       "type": 0,
-      "value": "Add handoff from existing agent"
+      "value": "Átadás hozzáadása meglévő ügynöktől"
     }
   ],
   "4TnjxL": [
@@ -1736,11 +1866,15 @@
   "4Xep39": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "Nem sikerült leállítani a(z) "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " SRE-ügynököt"
     }
   ],
   "4ZoIgV": [
@@ -1793,12 +1927,12 @@
   ],
   "4lv5gO": [
     {
-      "type": 0,
-      "value": "Create subagent "
-    },
-    {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök létrehozása"
     }
   ],
   "4oK1Me": [
@@ -1845,12 +1979,6 @@
     {
       "type": 0,
       "value": ", diagnosztikára van szükségem az eastus és westeurope AKS-fürtök közötti időszakos késési kiugrásokkal kapcsolatban."
-    }
-  ],
-  "53O1/Z": [
-    {
-      "type": 0,
-      "value": "Incidens lefedettsége"
     }
   ],
   "53qjcm": [
@@ -1933,6 +2061,12 @@
     {
       "type": 0,
       "value": " ügynök átadásaként lesz hozzáadva."
+    }
+  ],
+  "5NZIbS": [
+    {
+      "type": 0,
+      "value": "Open in Azure Portal"
     }
   ],
   "5POweM": [
@@ -2050,13 +2184,65 @@
   "5fVEet": [
     {
       "type": 0,
-      "value": "Add tools"
+      "value": "Eszközök hozzáadása"
     }
   ],
   "5gEh2M": [
     {
       "type": 0,
       "value": "Beavatkozást igénylő incidensek"
+    }
+  ],
+  "5iE4cZ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "5j5HnL": [
@@ -2199,6 +2385,16 @@
       "value": "A felügyelt erőforráscsoport hozzáadása sikerült"
     }
   ],
+  "6+mbvY": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": " sec"
+    }
+  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -2248,7 +2444,7 @@
   "6BTCPo": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+      "value": "Paraméter-helyőrzők definiálásához használja a ##ParamName## kifejezést a lekérdezésében. Példa: where SubscriptionId == \"##SubscriptionId##\" Ezeket futásidőben a tényleges értékekre cseréli a rendszer."
     }
   ],
   "6CrAJC": [
@@ -2293,12 +2489,6 @@
       "value": "javaslatok"
     }
   ],
-  "6OBtew": [
-    {
-      "type": 0,
-      "value": "SRE-ügynök törlése"
-    }
-  ],
   "6PgVSe": [
     {
       "type": 0,
@@ -2308,11 +2498,15 @@
   "6RNwei": [
     {
       "type": 0,
-      "value": "Update subagent "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök frissítése"
     }
   ],
   "6S2zmX": [
@@ -2408,7 +2602,7 @@
   "6gD0ie": [
     {
       "type": 0,
-      "value": "Generate Session Insights"
+      "value": "Munkamenet-betekintések létrehozása"
     }
   ],
   "6m5Ba0": [
@@ -2417,16 +2611,10 @@
       "value": "Adatgyűjtési szabály"
     }
   ],
-  "6tlKgy": [
-    {
-      "type": 0,
-      "value": "Legfeljebb 20 erőforráscsoportot választhat ki, amelyeket az ügynök kezelni fog."
-    }
-  ],
   "6tzuXg": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "Nem sikerült elindítani a(z) "
     },
     {
       "type": 1,
@@ -2434,7 +2622,7 @@
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " SRE-ügynököt: "
     },
     {
       "type": 1,
@@ -2518,7 +2706,7 @@
   "751M54": [
     {
       "type": 0,
-      "value": "Generating insights..."
+      "value": "Betekintések létrehozása..."
     }
   ],
   "75lAeu": [
@@ -2536,7 +2724,7 @@
   "79kwlH": [
     {
       "type": 0,
-      "value": "No agents available for handoff"
+      "value": "Nincs elérhető ügynök az átadáshoz"
     }
   ],
   "7C0xai": [
@@ -2555,6 +2743,40 @@
     {
       "type": 0,
       "value": "Áttekintő mód"
+    }
+  ],
+  "7K6W8s": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7M8VZy": [
@@ -2578,7 +2800,7 @@
   "7Or82y": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "Az ügynök minősége "
     },
     {
       "type": 1,
@@ -2586,7 +2808,7 @@
     },
     {
       "type": 0,
-      "value": "/100 with "
+      "value": "/100, "
     },
     {
       "offset": 0,
@@ -2598,7 +2820,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix ready"
+              "value": " kész gyorsjavítással"
             }
           ]
         },
@@ -2609,7 +2831,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes ready"
+              "value": " kész gyorsjavítással"
             }
           ]
         }
@@ -2675,6 +2897,12 @@
     {
       "type": 0,
       "value": "Projektadatok"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -2829,6 +3057,12 @@
       "value": "Ezeket a futásidő alatt a tényleges értékekre cseréli a rendszer."
     }
   ],
+  "8MoJEj": [
+    {
+      "type": 0,
+      "value": "Message grouping:"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2900,7 +3134,7 @@
   "8SCDv/": [
     {
       "type": 0,
-      "value": "Enter the query for the tool to run"
+      "value": "Adja meg a futtatni kívánt eszköz lekérdezését"
     }
   ],
   "8Vd2Kv": [
@@ -2918,11 +3152,15 @@
   "8Zl3PA": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "Nem sikerült elindítani a(z) "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " SRE-ügynököt"
     }
   ],
   "8aHHLj": [
@@ -2998,7 +3236,7 @@
   "8fw5Cz": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all connectors."
+      "value": "Próbálkozzon más keresési kifejezésekkel, vagy törölje a keresést az összes összekötő megtekintéséhez."
     }
   ],
   "8lCjAM": [
@@ -3040,7 +3278,13 @@
   "8u2W0L": [
     {
       "type": 0,
-      "value": "Handoff instructions"
+      "value": "Átadási utasítások"
+    }
+  ],
+  "8urALB": [
+    {
+      "type": 0,
+      "value": "Delete connector"
     }
   ],
   "8v0Pyn": [
@@ -3061,6 +3305,40 @@
     {
       "type": 0,
       "value": "Teendőtervek bezárása"
+    }
+  ],
+  "8yfUKp": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8yyU6n": [
@@ -3137,6 +3415,12 @@
       "value": "Nincs találat"
     }
   ],
+  "96TDsd": [
+    {
+      "type": 0,
+      "value": "Learn more about subagents"
+    }
+  ],
   "98A08r": [
     {
       "type": 0,
@@ -3204,7 +3488,7 @@
   "9WBhPZ": [
     {
       "type": 0,
-      "value": "Session Insights"
+      "value": "Munkamenet-betekintések"
     }
   ],
   "9WRlF4": [
@@ -3283,6 +3567,12 @@
       "value": "A YAML-szerkesztés hamarosan elérhetővé válik ehhez az entitáshoz."
     }
   ],
+  "A+4geD": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue with SRE agent team"
+    }
+  ],
   "A/xTHO": [
     {
       "type": 0,
@@ -3322,7 +3612,7 @@
   "A9cgAa": [
     {
       "type": 0,
-      "value": "No insight selected"
+      "value": "Nincs kiválasztva betekintés"
     }
   ],
   "AA/tRJ": [
@@ -3357,6 +3647,40 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "AEgxqN": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident trigger "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "AHQdRU": [
@@ -3405,6 +3729,12 @@
     {
       "type": 0,
       "value": "Létrehozás időpontja"
+    }
+  ],
+  "Abi/u/": [
+    {
+      "type": 0,
+      "value": "Expand panel"
     }
   ],
   "AbleKr": [
@@ -3513,6 +3843,12 @@
       "value": " YAML-t."
     }
   ],
+  "B/qM5p": [
+    {
+      "type": 0,
+      "value": "Enter Teams channel link"
+    }
+  ],
   "B3Q5mz": [
     {
       "type": 0,
@@ -3531,10 +3867,16 @@
       "value": "Ügynök minősége"
     }
   ],
+  "BBT3jd": [
+    {
+      "type": 0,
+      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+    }
+  ],
   "BD+V8L": [
     {
       "type": 0,
-      "value": "This insight was helpful"
+      "value": "Ez a betekintés hasznos volt"
     }
   ],
   "BEck3n": [
@@ -3632,23 +3974,13 @@
   "BakoFg": [
     {
       "type": 0,
-      "value": "Select tool"
+      "value": "Kijelölés eszköz"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
       "value": "A legújabb YAML-módosítások használata"
-    }
-  ],
-  "BcEbxp": [
-    {
-      "type": 1,
-      "value": "seconds"
-    },
-    {
-      "type": 0,
-      "value": " mp"
     }
   ],
   "Bcgdb7": [
@@ -3702,7 +4034,7 @@
   "Bn/txo": [
     {
       "type": 0,
-      "value": "Failed to create subagent "
+      "value": "Nem sikerült létrehozni a(z) "
     },
     {
       "type": 1,
@@ -3710,7 +4042,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alügynököt. Hiba: "
     },
     {
       "type": 1,
@@ -3744,7 +4076,7 @@
   "C6Jt4c": [
     {
       "type": 0,
-      "value": "Scheduled task name"
+      "value": "Ütemezett feladat neve"
     }
   ],
   "CBHDb1": [
@@ -3780,11 +4112,15 @@
   "CIAL+k": [
     {
       "type": 0,
-      "value": "Created subagent "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök létrehozva"
     }
   ],
   "CJ6tzL": [
@@ -3832,7 +4168,7 @@
   "CQ0CLu": [
     {
       "type": 0,
-      "value": "Session insights"
+      "value": "Munkamenet-betekintések"
     }
   ],
   "CQisjK": [
@@ -3892,7 +4228,7 @@
   "Cfvmd0": [
     {
       "type": 0,
-      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+      "value": "Az ügynök az aktív folyamat AAU-jainak 90%-át felhasználta. Ha eléri a korlátot, az ügynök csak az állandó folyamatban fog futni, és nem lesz elérhető csevegéshez és műveletekhez."
     }
   ],
   "ChQQJ0": [
@@ -3965,28 +4301,6 @@
       "value": "Azure DevOps"
     }
   ],
-  "D473QI": [
-    {
-      "type": 0,
-      "value": "Válasszon ki legfeljebb "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " olyan erőforráscsoportot, amelyekhez engedélye van. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " erőforráscsoport kijelölve."
-    }
-  ],
   "D4T2Px": [
     {
       "type": 0,
@@ -4002,13 +4316,13 @@
   "D97db3": [
     {
       "type": 0,
-      "value": "Select a response subagent"
+      "value": "Válasszon válaszadó alügynököt"
     }
   ],
   "DD2Wjk": [
     {
       "type": 0,
-      "value": "Incidents preview"
+      "value": "Incidensek előnézete"
     }
   ],
   "DDSwQB": [
@@ -4052,13 +4366,13 @@
   "DFfvL6": [
     {
       "type": 0,
-      "value": "Temporarily stop the agent from all activities."
+      "value": "Ideiglenesen állítsa le az ügynököt az összes tevékenységből."
     }
   ],
   "DIZgr3": [
     {
       "type": 0,
-      "value": "Boolean"
+      "value": "Logikai érték"
     }
   ],
   "DJN+DZ": [
@@ -4091,6 +4405,12 @@
     {
       "type": 0,
       "value": "Része"
+    }
+  ],
+  "DP0m/y": [
+    {
+      "type": 0,
+      "value": "Updating Kusto Tool"
     }
   ],
   "DPnEXy": [
@@ -4127,10 +4447,20 @@
       "value": "Kijelölt incidensek"
     }
   ],
+  "DXm10s": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " repository URL"
+    }
+  ],
   "DYp/nK": [
     {
       "type": 0,
-      "value": "Session Insight"
+      "value": "Munkamenet-betekintés"
     }
   ],
   "Da55kZ": [
@@ -4143,6 +4473,12 @@
     {
       "type": 0,
       "value": "Ez az erőforráscsoport az optimális ügynökteljesítmény érdekében ajánlott. A következők közül egy vagy több Azure Compute-szolgáltatást tartalmaz: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, virtuális gépek vagy tárfiókok."
+    }
+  ],
+  "DcEKTG": [
+    {
+      "type": 0,
+      "value": "Failed to run test"
     }
   ],
   "DeP+ZM": [
@@ -4226,7 +4562,7 @@
   "Dvly6A": [
     {
       "type": 0,
-      "value": "Failed to create tool"
+      "value": "Nem sikerült létrehozni az eszközt"
     }
   ],
   "Dw2xIY": [
@@ -4268,7 +4604,7 @@
   "E9CWuE": [
     {
       "type": 0,
-      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+      "value": "Példa: where SubscriptionId == \"##SubscriptionId##\""
     }
   ],
   "EAO/K+": [
@@ -4298,7 +4634,7 @@
   "EHy/sj": [
     {
       "type": 0,
-      "value": "Enter a number"
+      "value": "Írjon be egy számot"
     }
   ],
   "EI/cfO": [
@@ -4348,7 +4684,7 @@
   "EQa6dK": [
     {
       "type": 0,
-      "value": "Built-in Tool"
+      "value": "Beépített eszköz"
     }
   ],
   "ESChST": [
@@ -4360,7 +4696,27 @@
   "ETRyBL": [
     {
       "type": 0,
-      "value": "Rating"
+      "value": "Minősítés"
+    }
+  ],
+  "EVA81S": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "entity"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
+  "EVXYDU": [
+    {
+      "type": 0,
+      "value": "Learn more about creating subagents."
     }
   ],
   "EWrExf": [
@@ -4390,7 +4746,7 @@
   "Ebd6gR": [
     {
       "type": 0,
-      "value": "The agent sends email messages."
+      "value": "Az ügynök e-mail-üzeneteket küld."
     }
   ],
   "Ec1M0J": [
@@ -4430,7 +4786,7 @@
   "Ejhdi4": [
     {
       "type": 0,
-      "value": "Feedback"
+      "value": "Visszajelzés"
     }
   ],
   "ElI1gd": [
@@ -4472,7 +4828,7 @@
   "Eu772h": [
     {
       "type": 0,
-      "value": "Built-in Tools"
+      "value": "Beépített eszközök"
     }
   ],
   "Euy+fB": [
@@ -4518,7 +4874,7 @@
   "F8v2Mz": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -4526,7 +4882,7 @@
     },
     {
       "type": 0,
-      "value": " started successfully"
+      "value": " SRE-ügynök sikeresen elindult"
     }
   ],
   "F8xMoD": [
@@ -4612,7 +4968,7 @@
   "FS0tWa": [
     {
       "type": 0,
-      "value": "No source agent specified"
+      "value": "Nincs megadva forrásügynök"
     }
   ],
   "FSYccN": [
@@ -4656,17 +5012,21 @@
   "FWou/7": [
     {
       "type": 0,
-      "value": "Select tool "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "toolName"
+    },
+    {
+      "type": 0,
+      "value": " eszköz kiválasztása"
     }
   ],
   "FZeQlc": [
     {
       "type": 0,
-      "value": "Disconnected"
+      "value": "Leválasztva"
     }
   ],
   "FZwBv0": [
@@ -4708,7 +5068,7 @@
   "FpUGgx": [
     {
       "type": 0,
-      "value": "Starting SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -4716,7 +5076,7 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " SRE-ügynök indítása folyamatban van"
     }
   ],
   "Fr5LyM": [
@@ -4728,7 +5088,7 @@
   "FsIud6": [
     {
       "type": 0,
-      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+      "value": "A tudásbázis engedélyezve van ehhez az ügynökhöz. A SearchMemory eszköz és a tudásbázis parancssorai automatikusan megjelennek."
     }
   ],
   "Fv1ZSz": [
@@ -4777,6 +5137,68 @@
     {
       "type": 0,
       "value": "Eltávolítás"
+    }
+  ],
+  "G4gaOn": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "G4mray": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
     }
   ],
   "G5JMSn": [
@@ -4884,19 +5306,13 @@
   "GGr/yS": [
     {
       "type": 0,
-      "value": "Feedback submitted on threads will appear here"
+      "value": "Itt jelennek meg a hozzászólásláncokra küldött visszajelzések"
     }
   ],
   "GMhzu1": [
     {
       "type": 0,
-      "value": "Response subagent"
-    }
-  ],
-  "GP/BbQ": [
-    {
-      "type": 0,
-      "value": "Enable Knowledge Base"
+      "value": "Válaszadó alügynök"
     }
   ],
   "GSCabm": [
@@ -4944,13 +5360,13 @@
   "GnWmca": [
     {
       "type": 0,
-      "value": "Triggers"
+      "value": "Eseményindítók"
     }
   ],
   "Gnbr9F": [
     {
       "type": 0,
-      "value": "Select a connector"
+      "value": "Összekötő kiválasztása"
     }
   ],
   "GoSIa4": [
@@ -4962,7 +5378,7 @@
   "GpHWFC": [
     {
       "type": 0,
-      "value": "Choose a connector"
+      "value": "Összekötő kiválasztása"
     }
   ],
   "GpZr9J": [
@@ -4982,7 +5398,7 @@
   "GpcNV2": [
     {
       "type": 0,
-      "value": "Failed to update subagent "
+      "value": "Nem sikerült frissíteni a(z) "
     },
     {
       "type": 1,
@@ -4990,7 +5406,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alügynököt. Hiba: "
     },
     {
       "type": 1,
@@ -5096,7 +5512,7 @@
   "HNBpJ4": [
     {
       "type": 0,
-      "value": "Metrics"
+      "value": "Metrikák"
     }
   ],
   "HNECLT": [
@@ -5120,7 +5536,7 @@
   "HQc/Lf": [
     {
       "type": 0,
-      "value": "Create incident trigger"
+      "value": "Incidenstrigger létrehozása"
     }
   ],
   "HQhDfV": [
@@ -5150,7 +5566,7 @@
   "HZQtAg": [
     {
       "type": 0,
-      "value": "Test values"
+      "value": "Tesztértékek"
     }
   ],
   "HbTFJf": [
@@ -5205,6 +5621,44 @@
       "value": "Napi jelentések betöltése"
     }
   ],
+  "HtVpjg": [
+    {
+      "type": 0,
+      "value": "You can select up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups for this agent. Agents can manage a total of "
+    },
+    {
+      "type": 1,
+      "value": "totalMax"
+    },
+    {
+      "type": 0,
+      "value": " resource groups, and your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "current"
+    },
+    {
+      "type": 0,
+      "value": ". You've selected "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -5250,13 +5704,13 @@
   "I3MA83": [
     {
       "type": 0,
-      "value": "String"
+      "value": "Sztring"
     }
   ],
   "I4PbZq": [
     {
       "type": 0,
-      "value": "Create a subagent"
+      "value": "Alügynök létrehozása"
     }
   ],
   "I5k4g/": [
@@ -5429,6 +5883,12 @@
       "value": "Időzóna"
     }
   ],
+  "Icfr5t": [
+    {
+      "type": 0,
+      "value": "Search by incident trigger"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 1,
@@ -5437,6 +5897,12 @@
     {
       "type": 0,
       "value": " megszakította a műveletet."
+    }
+  ],
+  "Ij0ity": [
+    {
+      "type": 0,
+      "value": "Search by tool"
     }
   ],
   "InWqys": [
@@ -5515,6 +5981,12 @@
       "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
+  "J2Lcsz": [
+    {
+      "type": 0,
+      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+    }
+  ],
   "J3Y8Sm": [
     {
       "type": 0,
@@ -5547,6 +6019,18 @@
       "value": "Utoljára módosítva"
     }
   ],
+  "J8uEym": [
+    {
+      "type": 0,
+      "value": "Search by scheduled task"
+    }
+  ],
+  "JA/VO+": [
+    {
+      "type": 0,
+      "value": "Starts a task at a defined time or interval."
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
@@ -5557,20 +6041,6 @@
     {
       "type": 0,
       "value": "Felhasználónév"
-    }
-  ],
-  "JCjxSH": [
-    {
-      "type": 0,
-      "value": "Nem sikerült törölni a(z) "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " SRE-ügynököt"
     }
   ],
   "JEsxDw": [
@@ -5588,7 +6058,7 @@
   "JKFypr": [
     {
       "type": 0,
-      "value": "Stop agent"
+      "value": "Ügynök leállítása"
     }
   ],
   "JMdyE9": [
@@ -5606,7 +6076,7 @@
   "JSW9Xw": [
     {
       "type": 0,
-      "value": "Starting SRE Agent"
+      "value": "SRE-ügynök indítása folyamatban"
     }
   ],
   "JT7be1": [
@@ -5778,7 +6248,7 @@
   "JnDKv3": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "Nem sikerült leállítani a(z) "
     },
     {
       "type": 1,
@@ -5786,7 +6256,7 @@
     },
     {
       "type": 0,
-      "value": ": "
+      "value": " SRE-ügynököt: "
     },
     {
       "type": 1,
@@ -5851,6 +6321,12 @@
     {
       "type": 0,
       "value": "Megjelenítés"
+    }
+  ],
+  "K7tsik": [
+    {
+      "type": 0,
+      "value": "Scheduled task ran successfully"
     }
   ],
   "K9q4Xw": [
@@ -5960,7 +6436,33 @@
   "Kfaepo": [
     {
       "type": 0,
-      "value": "Learn more about connectors"
+      "value": "További információ az összekötőkről"
+    }
+  ],
+  "Kfr1WB": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agent"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "KgcF6B": [
@@ -5985,6 +6487,12 @@
     {
       "type": 0,
       "value": "Leképezés argumentumra"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KoJ1C+": [
@@ -6055,24 +6563,16 @@
       "value": "AI-javaslatok elvetve"
     }
   ],
+  "L/ct40": [
+    {
+      "type": 0,
+      "value": "Open in visual view"
+    }
+  ],
   "L/i6dy": [
     {
       "type": 0,
       "value": "Ezt az ügynököt automatikusan autonómként jelöljük meg, hogy önállóan fusson."
-    }
-  ],
-  "L0KVkI": [
-    {
-      "type": 0,
-      "value": "Folyamatban van a(z) "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " SRE-ügynök törlése"
     }
   ],
   "L7EoQf": [
@@ -6173,6 +6673,12 @@
       "value": "Megtekintheti az összes erőforrást, de nem végezhet módosításokat."
     }
   ],
+  "LSqcaU": [
+    {
+      "type": 0,
+      "value": "Maximum 200,000 AAUs"
+    }
+  ],
   "LTDPn/": [
     {
       "type": 0,
@@ -6208,7 +6714,7 @@
   "LaIt/v": [
     {
       "type": 0,
-      "value": "Creating Kusto Tool"
+      "value": "Kusto-eszköz létrehozása folyamatban"
     }
   ],
   "LbkJp1": [
@@ -6337,6 +6843,12 @@
       "value": "Szűrő hozzáadása"
     }
   ],
+  "M0ay1D": [
+    {
+      "type": 0,
+      "value": "Running scheduled task(s)"
+    }
+  ],
   "M3159R": [
     {
       "type": 0,
@@ -6365,6 +6877,64 @@
     {
       "type": 0,
       "value": "Incidensazonosító"
+    }
+  ],
+  "MCLPMF": [
+    {
+      "type": 0,
+      "value": "Scale your agent’s capabilities with subagents"
+    }
+  ],
+  "MGZggN": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "MHkWzD": [
@@ -6550,7 +7120,7 @@
   "N/CtWu": [
     {
       "type": 0,
-      "value": "Unselected"
+      "value": "Nincs kijelölve"
     }
   ],
   "N0d5pM": [
@@ -6579,6 +7149,12 @@
     {
       "type": 0,
       "value": " ügynökhöz."
+    }
+  ],
+  "N2IrpM": [
+    {
+      "type": 0,
+      "value": "Confirm"
     }
   ],
   "N7cqYp": [
@@ -6658,7 +7234,7 @@
   "NN4zut": [
     {
       "type": 0,
-      "value": "Support + troubleshooting"
+      "value": "Támogatás és hibaelhárítás"
     }
   ],
   "NOMbLF": [
@@ -6721,6 +7297,12 @@
       "value": "Szűrt ügynök"
     }
   ],
+  "NmQwIl": [
+    {
+      "type": 0,
+      "value": "Schedule:"
+    }
+  ],
   "Nrc9ba": [
     {
       "type": 0,
@@ -6773,17 +7355,13 @@
   ],
   "O+srpo": [
     {
-      "type": 0,
-      "value": "Review "
-    },
-    {
       "offset": 0,
       "options": {
         "=0": {
           "value": [
             {
               "type": 0,
-              "value": "findings"
+              "value": "eredmény"
             }
           ]
         },
@@ -6794,7 +7372,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix"
+              "value": " gyorsjavítás"
             }
           ]
         },
@@ -6805,7 +7383,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes"
+              "value": " gyorsjavítás"
             }
           ]
         }
@@ -6813,12 +7391,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " áttekintése"
     }
   ],
   "O/gthC": [
     {
       "type": 0,
-      "value": "Go to Scheduled Task"
+      "value": "Ugrás az ütemezett feladatra"
     }
   ],
   "O0JI8M": [
@@ -6848,7 +7430,7 @@
   "O9C6j/": [
     {
       "type": 0,
-      "value": "Create subagent"
+      "value": "Alügynök létrehozása"
     }
   ],
   "OBoUb6": [
@@ -6904,7 +7486,7 @@
   "ONbwY2": [
     {
       "type": 0,
-      "value": "Custom Tool"
+      "value": "Egyéni eszköz"
     }
   ],
   "OO5Y94": [
@@ -7038,13 +7620,13 @@
   "OoxcFC": [
     {
       "type": 0,
-      "value": "Select the input type"
+      "value": "Bemenettípus kiválasztása"
     }
   ],
   "OpUvSu": [
     {
       "type": 0,
-      "value": "Create Kusto Tool"
+      "value": "Kusto-eszköz létrehozása"
     }
   ],
   "OrQ4EY": [
@@ -7127,16 +7709,12 @@
   ],
   "PBKSeP": [
     {
-      "type": 0,
-      "value": "Set up "
-    },
-    {
       "type": 1,
       "value": "service"
     },
     {
       "type": 0,
-      "value": " connector"
+      "value": "-összekötő beállítása"
     }
   ],
   "PCrXDG": [
@@ -7148,7 +7726,7 @@
   "PF15hb": [
     {
       "type": 0,
-      "value": "Input value"
+      "value": "Bemeneti érték"
     }
   ],
   "PFUTWt": [
@@ -7184,7 +7762,7 @@
   "PKvAvF": [
     {
       "type": 0,
-      "value": "Extend your agent’s capabilities with connectors"
+      "value": "Az ügynök képességeinek bővítése összekötőkkel"
     }
   ],
   "PPrKNq": [
@@ -7232,13 +7810,13 @@
   "PXJ+oX": [
     {
       "type": 0,
-      "value": "To view incidents triggered, go to Incidents"
+      "value": "Az aktivált incidensek megtekintéséhez lépjen az Incidensek elemre"
     }
   ],
   "PXJi2R": [
     {
       "type": 0,
-      "value": "No target agent specified"
+      "value": "Nincs megadva célügynök"
     }
   ],
   "PXYq8b": [
@@ -7278,7 +7856,7 @@
   "PbaaPs": [
     {
       "type": 0,
-      "value": "Add subagent"
+      "value": "Alügynök hozzáadása"
     }
   ],
   "Pc+tM3": [
@@ -7323,6 +7901,12 @@
     {
       "type": 0,
       "value": "Azure Monitor csatlakoztatva"
+    }
+  ],
+  "PpdTYy": [
+    {
+      "type": 0,
+      "value": "Failed to update tool"
     }
   ],
   "PrFU82": [
@@ -7444,7 +8028,7 @@
   "Q6Lw7i": [
     {
       "type": 0,
-      "value": "To learn more about permissions, click here."
+      "value": "Az engedélyekkel kapcsolatos további információért kattintson ide."
     }
   ],
   "Q7/1w4": [
@@ -7457,6 +8041,16 @@
     {
       "type": 0,
       "value": "Leírás"
+    }
+  ],
+  "Q9IHxV": [
+    {
+      "type": 0,
+      "value": "Running scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -7502,7 +8096,7 @@
   "QDa8Q+": [
     {
       "type": 0,
-      "value": "Add connector"
+      "value": "Összekötő hozzáadása"
     }
   ],
   "QEhO+z": [
@@ -7526,7 +8120,7 @@
   "QK0vxq": [
     {
       "type": 0,
-      "value": "Go to Connectors"
+      "value": "Ugrás az összekötőkre"
     }
   ],
   "QOSRgI": [
@@ -7538,11 +8132,15 @@
   "QP91Js": [
     {
       "type": 0,
-      "value": "Updated subagent "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök frissítve"
     }
   ],
   "QQX4Pv": [
@@ -7560,7 +8158,7 @@
   "QW+Q5N": [
     {
       "type": 0,
-      "value": "Clear all"
+      "value": "Az összes törlése"
     }
   ],
   "QWEHW2": [
@@ -7653,12 +8251,6 @@
       "value": "Nincs szükség gyorsjavításra."
     }
   ],
-  "Qn8Bok": [
-    {
-      "type": 0,
-      "value": "Visszaadás"
-    }
-  ],
   "QomX1y": [
     {
       "type": 0,
@@ -7720,19 +8312,13 @@
   "R3eMOe": [
     {
       "type": 0,
-      "value": "Outlook account"
-    }
-  ],
-  "R3mMmc": [
-    {
-      "type": 0,
-      "value": "Havi AAU-korlát csúszkája"
+      "value": "Outlook-fiók"
     }
   ],
   "R4Blzb": [
     {
       "type": 0,
-      "value": "No Feedback Yet"
+      "value": "Még nincs visszajelzés"
     }
   ],
   "R7DP3y": [
@@ -7762,7 +8348,7 @@
   "REOGTJ": [
     {
       "type": 0,
-      "value": "Add a connector to give the agent additional tools for automating incident handling."
+      "value": "Adjon hozzá egy összekötőt, hogy az ügynök további eszközöket kapjon az incidenskezelés automatizálásához."
     }
   ],
   "RH8rNM": [
@@ -7800,7 +8386,7 @@
   "RMD0Mj": [
     {
       "type": 0,
-      "value": "Failed to add handoff from "
+      "value": "Nem sikerült hozzáadni az átadást a(z) "
     },
     {
       "type": 1,
@@ -7808,7 +8394,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ügynökből a(z) "
     },
     {
       "type": 1,
@@ -7816,7 +8402,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " alügynökhöz. Hiba: "
     },
     {
       "type": 1,
@@ -7951,20 +8537,6 @@
       "value": "Az elmúlt 12 óra"
     }
   ],
-  "S2jxf1": [
-    {
-      "type": 0,
-      "value": "No "
-    },
-    {
-      "type": 1,
-      "value": "activeTab"
-    },
-    {
-      "type": 0,
-      "value": " found"
-    }
-  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7987,6 +8559,12 @@
       "value": "Demókörnyezeti mód"
     }
   ],
+  "S6we8v": [
+    {
+      "type": 0,
+      "value": "Edit incident trigger"
+    }
+  ],
   "S8/4ZI": [
     {
       "type": 0,
@@ -8002,11 +8580,15 @@
   "SB7SRx": [
     {
       "type": 0,
-      "value": "Creating subagent "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök létrehozása folyamatban"
     }
   ],
   "SCjiXP": [
@@ -8018,7 +8600,7 @@
   "SDsdCi": [
     {
       "type": 0,
-      "value": "Add existing tools"
+      "value": "Meglévő eszközök hozzáadása"
     }
   ],
   "SFUZOQ": [
@@ -8030,7 +8612,7 @@
   "SIW6OB": [
     {
       "type": 0,
-      "value": "Threads with Insights ("
+      "value": "Betekintésekkel rendelkező hozzászólásláncok ("
     },
     {
       "type": 1,
@@ -8135,6 +8717,12 @@
       "value": "Autonómia szintje"
     }
   ],
+  "SeZ8eZ": [
+    {
+      "type": 0,
+      "value": "AAU consumption reminder"
+    }
+  ],
   "Seanpx": [
     {
       "type": 0,
@@ -8163,6 +8751,12 @@
     {
       "type": 0,
       "value": "A vázlat még nincs szinkronizálva"
+    }
+  ],
+  "SoBWeV": [
+    {
+      "type": 0,
+      "value": "Monthly active flow AAUs"
     }
   ],
   "Sr4IbA": [
@@ -8234,7 +8828,7 @@
   "T/nqbo": [
     {
       "type": 0,
-      "value": "Feedback ID"
+      "value": "Visszajelzés-azonosító"
     }
   ],
   "T0/eoE": [
@@ -8246,11 +8840,15 @@
   "T0e6Lh": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " eltávolítása"
     }
   ],
   "T5+AEf": [
@@ -8319,6 +8917,32 @@
       "value": "Korlátlan végrehajtás esetén hagyja üresen"
     }
   ],
+  "TGc4Lh": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident trigger"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "THFIRB": [
     {
       "type": 0,
@@ -8367,6 +8991,12 @@
     {
       "type": 0,
       "value": "Az Azure SRE Agent számlázásának mérése Azure-ügynökegységekben (AAU) történik. A havi AAU-számlázás tükrözi az állandó, mindig aktív folyamatot és az aktív folyamat változó használatát is. Az aktív folyamat AAU-foglalását bármikor növelheti vagy csökkentheti."
+    }
+  ],
+  "TP/cMX": [
+    {
+      "type": 0,
+      "value": "Ended"
     }
   ],
   "TQ0n+a": [
@@ -8418,13 +9048,13 @@
   "TdvJVw": [
     {
       "type": 0,
-      "value": "Suggested improvements"
+      "value": "Javasolt fejlesztések"
     }
   ],
   "TexFnY": [
     {
       "type": 0,
-      "value": "This insight does not have markdown content."
+      "value": "Ez a betekintés nem rendelkezik Markdown-tartalommal."
     }
   ],
   "Tg4Q8g": [
@@ -8466,7 +9096,7 @@
   "TrnqJG": [
     {
       "type": 0,
-      "value": "Input type"
+      "value": "Bemenet típusa"
     }
   ],
   "TwMqIK": [
@@ -8496,7 +9126,7 @@
   "UBbDNy": [
     {
       "type": 0,
-      "value": "No documents in knowledge base. Add some?"
+      "value": "Nincsenek dokumentumok a tudásbázisban. Hozzáad néhányat?"
     }
   ],
   "UCYFxr": [
@@ -8528,7 +9158,7 @@
   "UNQfKX": [
     {
       "type": 0,
-      "value": "Enter a descriptive name"
+      "value": "Adjon meg egy leíró nevet"
     }
   ],
   "UNXega": [
@@ -8664,7 +9294,7 @@
   "V9GGMu": [
     {
       "type": 0,
-      "value": "No threads with session insights found."
+      "value": "Nem találhatók munkamenet-betekintéseket tartalmazó hozzászólásláncok."
     }
   ],
   "VA/Z1S": [
@@ -8688,7 +9318,7 @@
   "VBAOA8": [
     {
       "type": 0,
-      "value": "Select subagents for handoff"
+      "value": "Alügynökök kiválasztása az átadáshoz"
     }
   ],
   "VIYXlx": [
@@ -8697,22 +9327,10 @@
       "value": "Csevegés előnézete"
     }
   ],
-  "VIcJZp": [
-    {
-      "type": 0,
-      "value": "Listanézet"
-    }
-  ],
   "VIgoaE": [
     {
       "type": 0,
       "value": "Nincsenek alügynökök konfigurálva"
-    }
-  ],
-  "VIn2J0": [
-    {
-      "type": 0,
-      "value": "Alügynökök"
     }
   ],
   "VKbBsK": [
@@ -8762,7 +9380,7 @@
   "VU4BBu": [
     {
       "type": 0,
-      "value": "Parameter"
+      "value": "Paraméter"
     }
   ],
   "VUHkVQ": [
@@ -8795,6 +9413,12 @@
       "value": "Figyelőazonosító megadása"
     }
   ],
+  "Vaj9nj": [
+    {
+      "type": 0,
+      "value": "Don't show this message again"
+    }
+  ],
   "Vb+qQ4": [
     {
       "type": 0,
@@ -8810,7 +9434,7 @@
   "Vipo+I": [
     {
       "type": 0,
-      "value": "No parameters configured"
+      "value": "Nincsenek konfigurálva paraméterek"
     }
   ],
   "VlBNux": [
@@ -8848,7 +9472,7 @@
   "Vs/db/": [
     {
       "type": 0,
-      "value": "Adding handoff from "
+      "value": "Átadás hozzáadása a(z) "
     },
     {
       "type": 1,
@@ -8856,11 +9480,15 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " forrásból a(z) "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alkiszolgálóhoz"
     }
   ],
   "Vs3jMi": [
@@ -8920,7 +9548,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "Futtatások"
     }
   ],
   "W2JBdp": [
@@ -8980,7 +9608,13 @@
   "WJj+TP": [
     {
       "type": 0,
-      "value": "You do not have permission to check incident management connection."
+      "value": "Nincs engedélye az incidenskezelési kapcsolat ellenőrzésére."
+    }
+  ],
+  "WK8csJ": [
+    {
+      "type": 0,
+      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -9121,7 +9755,7 @@
   "WjqsyE": [
     {
       "type": 0,
-      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
+      "value": "Ha engedélyezve van, a rendszer automatikusan hozzáadja a SearchMemory eszközt és a tudásbázis parancssorait"
     }
   ],
   "Wkup5T": [
@@ -9164,6 +9798,32 @@
     {
       "type": 0,
       "value": "A névnek betűvel kell kezdődnie, betűvel vagy számmal kell végződnie, és a név csak betűket, számokat és kötőjeleket tartalmazhat. Legfeljebb 2–23 karakter hosszú lehet."
+    }
+  ],
+  "WuyjCf": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled task"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "WygVDv": [
@@ -9279,7 +9939,7 @@
   "XDcbqQ": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent"
+      "value": "SRE-ügynök leállítása folyamatban"
     }
   ],
   "XEB3Fn": [
@@ -9409,7 +10069,7 @@
   "XS8hWM": [
     {
       "type": 0,
-      "value": "Enter a boolean"
+      "value": "Adjon meg egy logikai értéket"
     }
   ],
   "XV8dOu": [
@@ -9421,7 +10081,7 @@
   "XYIeUc": [
     {
       "type": 0,
-      "value": "Agent permissions are determined by its assigned RBAC roles."
+      "value": "Az ügynök engedélyeit a hozzárendelt RBAC-szerepkörök határozzák meg."
     }
   ],
   "XYSJsS": [
@@ -9468,16 +10128,12 @@
   ],
   "XfAFyQ": [
     {
-      "type": 0,
-      "value": "Deleting "
-    },
-    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " connectors..."
+      "value": " összekötő törlése..."
     }
   ],
   "Xkdnen": [
@@ -9507,7 +10163,7 @@
   "Xup5P8": [
     {
       "type": 0,
-      "value": "What happened"
+      "value": "Ez történt"
     }
   ],
   "XvrDTb": [
@@ -9519,7 +10175,7 @@
   "XyUQa7": [
     {
       "type": 0,
-      "value": "Improved instructions"
+      "value": "Továbbfejlesztett utasítások"
     }
   ],
   "Y0BC+F": [
@@ -9561,7 +10217,7 @@
   "Y47Dwm": [
     {
       "type": 0,
-      "value": "Kusto tools"
+      "value": "Kusto-eszközök"
     }
   ],
   "Y5IFiT": [
@@ -9571,7 +10227,7 @@
     },
     {
       "type": 0,
-      "value": " account"
+      "value": " fiók"
     }
   ],
   "Y7Lbpf": [
@@ -9595,11 +10251,15 @@
   "YBHvOV": [
     {
       "type": 0,
-      "value": "Updating subagent "
+      "value": "A(z) "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " alügynök frissítése folyamatban"
     }
   ],
   "YBXVNU": [
@@ -9641,7 +10301,7 @@
   "YKwGp6": [
     {
       "type": 0,
-      "value": "Added tools to "
+      "value": "Eszközök hozzáadva a(z) "
     },
     {
       "type": 1,
@@ -9649,7 +10309,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " ügynökhöz."
     }
   ],
   "YMjUWP": [
@@ -9914,12 +10574,6 @@
       "value": "Kezdés:"
     }
   ],
-  "ZOdb7N": [
-    {
-      "type": 0,
-      "value": "Vizuális nézet"
-    }
-  ],
   "ZPP6n7": [
     {
       "type": 0,
@@ -10108,7 +10762,7 @@
   "a8fWCd": [
     {
       "type": 0,
-      "value": "Enter a datetime"
+      "value": "Adjon meg dátum/idő típusú értéket"
     }
   ],
   "a8l/yJ": [
@@ -10157,12 +10811,6 @@
     {
       "type": 0,
       "value": "Eléréssel rendelkezik a LUIS olvasási és tesztelési funkcióihoz."
-    }
-  ],
-  "aH3ak4": [
-    {
-      "type": 0,
-      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -10243,12 +10891,6 @@
     {
       "type": 0,
       "value": "Az ügynök infrastruktúra-ismeretének növelése"
-    }
-  ],
-  "aTyEZH": [
-    {
-      "type": 0,
-      "value": "Keresési válaszcsomagok"
     }
   ],
   "aWpBzj": [
@@ -10353,6 +10995,12 @@
       "value": "Auditálási ellenőrzés"
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b2PyOl": [
     {
       "type": 0,
@@ -10413,10 +11061,16 @@
       "value": "Fürt URI-azonosítója"
     }
   ],
+  "bDbbX7": [
+    {
+      "type": 0,
+      "value": "Edit Kusto tool"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
-      "value": "Thread Feedback"
+      "value": "Hozzászóláslánc visszajelzése"
     }
   ],
   "bK0VQe": [
@@ -10479,6 +11133,36 @@
     {
       "type": 0,
       "value": "Stabil – Havonta egyszer kapja meg a frissítéseket"
+    }
+  ],
+  "bjDKAe": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "bjLeN1": [
@@ -10610,7 +11294,7 @@
   "byP6IC": [
     {
       "type": 0,
-      "value": "Selected"
+      "value": "Kiválasztva"
     }
   ],
   "c/8Uhj": [
@@ -10664,7 +11348,7 @@
   "c5hwBU": [
     {
       "type": 0,
-      "value": "The agent will resume all activities."
+      "value": "Az ügynök folytatni fogja az összes tevékenységet."
     }
   ],
   "c8Doeq": [
@@ -10708,7 +11392,7 @@
   "cHKA8f": [
     {
       "type": 0,
-      "value": "No insight content available"
+      "value": "Nincs elérhető betekintési tartalom"
     }
   ],
   "cJGGY4": [
@@ -10726,7 +11410,7 @@
   "cLHCHE": [
     {
       "type": 0,
-      "value": "Connector status"
+      "value": "Összekötő állapota"
     }
   ],
   "cRTR/A": [
@@ -10747,6 +11431,12 @@
       "value": "Tárfiók-közreműködő"
     }
   ],
+  "cXAlMR": [
+    {
+      "type": 0,
+      "value": "Scheduled"
+    }
+  ],
   "cYwv8P": [
     {
       "type": 0,
@@ -10762,7 +11452,7 @@
   "cesI6Z": [
     {
       "type": 0,
-      "value": "No feedback selected"
+      "value": "Nincs kiválasztva visszajelzés"
     }
   ],
   "cfbpDd": [
@@ -10778,7 +11468,7 @@
   "cg54iX": [
     {
       "type": 0,
-      "value": "Kusto tool name"
+      "value": "Kusto-eszköz neve"
     }
   ],
   "ciB+oy": [
@@ -10884,7 +11574,7 @@
   "d2czNd": [
     {
       "type": 0,
-      "value": "Datetime"
+      "value": "Dátum és idő"
     }
   ],
   "d3MtwZ": [
@@ -10919,6 +11609,12 @@
     {
       "type": 0,
       "value": " beállításai"
+    }
+  ],
+  "dF2h2y": [
+    {
+      "type": 0,
+      "value": "Filter by incident id or title"
     }
   ],
   "dG8VrM": [
@@ -10961,6 +11657,12 @@
     {
       "type": 0,
       "value": "Teljes olvasási hozzáférést biztosít a Device Provisioning Service adatsík-tulajdonságaihoz."
+    }
+  ],
+  "dQJz2m": [
+    {
+      "type": 0,
+      "value": "This feature isn't available in this portal yet."
     }
   ],
   "dQKATf": [
@@ -11113,6 +11815,12 @@
       "value": "Ügynökminőség pontozása"
     }
   ],
+  "dzy0ND": [
+    {
+      "type": 0,
+      "value": "Run scheduled task"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -11170,7 +11878,7 @@
   "eRwVws": [
     {
       "type": 0,
-      "value": "You need an incident platform to add an incident trigger."
+      "value": "Incidenstrigger hozzáadásához incidenskezelő platform szükséges."
     }
   ],
   "eUEjcm": [
@@ -11246,7 +11954,7 @@
   "ekSxhn": [
     {
       "type": 0,
-      "value": "Connectors give the agent more tools to take action."
+      "value": "Az összekötők további eszközöket biztosítanak az ügynöknek a műveletek végrehajtásához."
     }
   ],
   "emW/QQ": [
@@ -11264,7 +11972,7 @@
   "eq57j2": [
     {
       "type": 0,
-      "value": "Add incident trigger"
+      "value": "Incidenstrigger hozzáadása"
     }
   ],
   "eqYdSS": [
@@ -11322,7 +12030,7 @@
   "f04POI": [
     {
       "type": 0,
-      "value": "Tool created successfully"
+      "value": "Az eszköz sikeresen létrehozva"
     }
   ],
   "f0LQra": [
@@ -11376,7 +12084,7 @@
   "fCiXKq": [
     {
       "type": 0,
-      "value": "Add scheduled task"
+      "value": "Ütemezett feladat hozzáadása"
     }
   ],
   "fE5E6W": [
@@ -11476,7 +12184,7 @@
   "fiLH5L": [
     {
       "type": 0,
-      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+      "value": "Kusto-eszköz létrehozásához először adjon hozzá egy Azure Data Explorer-összekötőt."
     }
   ],
   "fio5op": [
@@ -11546,13 +12254,19 @@
   "fuHqFL": [
     {
       "type": 0,
-      "value": "No session insights found."
+      "value": "Nem találhatók munkamenet-betekintések."
     }
   ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Minden állapot"
+    }
+  ],
+  "fvSiRs": [
+    {
+      "type": 0,
+      "value": "Tool updated successfully"
     }
   ],
   "fyaE5g": [
@@ -11666,7 +12380,7 @@
   "gclDgn": [
     {
       "type": 0,
-      "value": "Create a Kusto tool"
+      "value": "Kusto-eszköz létrehozása"
     }
   ],
   "gct+2s": [
@@ -11690,7 +12404,7 @@
   "ghwElt": [
     {
       "type": 0,
-      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
+      "value": "A támogatási erőforrások eléréséhez és az SRE-ügynökkel kapcsolatos problémák elhárításához keresse fel a Támogatás és hibaelhárítás részt."
     }
   ],
   "gj6Qc6": [
@@ -11720,7 +12434,7 @@
   "gox4oK": [
     {
       "type": 0,
-      "value": "Enter the database name"
+      "value": "Adja meg az adatbázis nevét"
     }
   ],
   "grgDhd": [
@@ -11806,7 +12520,7 @@
   "h/OQTK": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders."
+      "value": "Paraméter-helyőrzők definiálásához használja a ##ParamName## kifejezést a lekérdezésében."
     }
   ],
   "h0W8DM": [
@@ -11854,7 +12568,7 @@
   "hF/2EL": [
     {
       "type": 0,
-      "value": "Handoff Instructions"
+      "value": "Átadási utasítások"
     }
   ],
   "hF5T80": [
@@ -11873,6 +12587,12 @@
     {
       "type": 0,
       "value": "Ütemezés"
+    }
+  ],
+  "hGnjdE": [
+    {
+      "type": 0,
+      "value": "Learn more about AAU consumption and cost"
     }
   ],
   "hHz/bk": [
@@ -11947,6 +12667,12 @@
       "value": "A rendszereszközök írásvédettek. A YAML-t referenciaként tekintheti meg."
     }
   ],
+  "hdfKe+": [
+    {
+      "type": 0,
+      "value": "Automatically starts a subagent in response to an incident or alert."
+    }
+  ],
   "heMr0D": [
     {
       "type": 0,
@@ -11983,6 +12709,12 @@
       "value": "Tekintse meg az AI-javaslatokat anélkül, hogy módosítaná az utasításokat"
     }
   ],
+  "hjtyTg": [
+    {
+      "type": 0,
+      "value": "End date must be after start date."
+    }
+  ],
   "hkgUC5": [
     {
       "type": 0,
@@ -12004,13 +12736,13 @@
   "hoHnYn": [
     {
       "type": 0,
-      "value": "Improved handoff instructions"
+      "value": "Továbbfejlesztett átadási utasítások"
     }
   ],
   "hqWr3L": [
     {
       "type": 0,
-      "value": "RCA category"
+      "value": "RCA-kategória"
     }
   ],
   "hrdmcd": [
@@ -12037,6 +12769,12 @@
       "value": "Irányítópult"
     }
   ],
+  "i3P6ZD": [
+    {
+      "type": 0,
+      "value": "Created at:"
+    }
+  ],
   "i5OUQE": [
     {
       "type": 0,
@@ -12053,6 +12791,12 @@
     {
       "type": 0,
       "value": "Adatelemzési feladatok végrehajtása az Azure Machine Learningben."
+    }
+  ],
+  "i6x7bU": [
+    {
+      "type": 0,
+      "value": "The agent is stopped"
     }
   ],
   "iDPKM0": [
@@ -12088,7 +12832,7 @@
   "iMaY2Q": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent "
+      "value": "A(z) "
     },
     {
       "type": 1,
@@ -12096,13 +12840,19 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " SRE-ügynök leállítása folyamatban van"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
       "value": "Válasszon szűrőt"
+    }
+  ],
+  "iPhHGC": [
+    {
+      "type": 0,
+      "value": "Learn more about scheduled tasks"
     }
   ],
   "iV7LUx": [
@@ -12120,7 +12870,13 @@
   "iY7P1k": [
     {
       "type": 0,
-      "value": "Agent Autonomy"
+      "value": "Ügynöki autonómia"
+    }
+  ],
+  "iYJ/Ha": [
+    {
+      "type": 0,
+      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -12162,7 +12918,7 @@
   "ifdupA": [
     {
       "type": 0,
-      "value": "To view runs, go to Agent Runs"
+      "value": "A futtatások megtekintéséhez nyissa meg az Ügynökfuttatások elemet"
     }
   ],
   "iihhVc": [
@@ -12183,6 +12939,12 @@
     {
       "type": 0,
       "value": " csatolása sikertelen volt. Újrapróbálkozási hivatkozás."
+    }
+  ],
+  "ioRcwS": [
+    {
+      "type": 0,
+      "value": "Scheduled task trigger"
     }
   ],
   "ipsqxO": [
@@ -12277,6 +13039,18 @@
       "value": " számára."
     }
   ],
+  "j0Ifob": [
+    {
+      "type": 0,
+      "value": "Do you want to proceed?"
+    }
+  ],
+  "j0bMX6": [
+    {
+      "type": 0,
+      "value": "No incident metrics to report"
+    }
+  ],
   "j1FyDL": [
     {
       "type": 0,
@@ -12286,7 +13060,7 @@
   "j1pB0w": [
     {
       "type": 0,
-      "value": "Go to Agent Consumption"
+      "value": "Ugrás az ügynökhasználathoz"
     }
   ],
   "j3bwJQ": [
@@ -12329,6 +13103,42 @@
     {
       "type": 0,
       "value": "Nincs eredmény"
+    }
+  ],
+  "jIcHPc": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agent "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "jJ7kNS": [
+    {
+      "type": 0,
+      "value": "Try selecting a different date range."
     }
   ],
   "jJE3xY": [
@@ -12415,6 +13225,16 @@
       "value": "Adja meg az alügynök nevét"
     }
   ],
+  "jX6uvW": [
+    {
+      "type": 0,
+      "value": "Failed to run task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -12424,7 +13244,7 @@
   "ja85pV": [
     {
       "type": 0,
-      "value": "Add Documents"
+      "value": "Dokumentumok felvétele"
     }
   ],
   "jabB4C": [
@@ -12562,7 +13382,7 @@
   "kFkPWB": [
     {
       "type": 0,
-      "value": "Number"
+      "value": "Szám"
     }
   ],
   "kG0ZtT": [
@@ -12632,13 +13452,13 @@
   "ketkP5": [
     {
       "type": 0,
-      "value": "Knowledge Base Enabled"
+      "value": "Tudásbázis engedélyezve"
     }
   ],
   "khI1mJ": [
     {
       "type": 0,
-      "value": "Edit subagent"
+      "value": "Alügynök szerkesztése"
     }
   ],
   "khOzXi": [
@@ -12718,35 +13538,13 @@
   "kxokJj": [
     {
       "type": 0,
-      "value": "Agent datagrid"
+      "value": "Ügynök adatrácsa"
     }
   ],
   "l+e8nZ": [
     {
       "type": 0,
       "value": "Biztos, hogy törli a kijelölt ütemezett feladato(ka)t? Ez a művelet nem vonható vissza."
-    }
-  ],
-  "l0TtPi": [
-    {
-      "type": 0,
-      "value": "Válasszon ki legfeljebb "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " olyan erőforráscsoportot, amelyekhez engedélye van. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " erőforráscsoport kiválasztva."
     }
   ],
   "l0UKyP": [
@@ -12758,7 +13556,7 @@
   "l0VCdV": [
     {
       "type": 0,
-      "value": "Create tool"
+      "value": "Eszköz létrehozása"
     }
   ],
   "l2Ni9H": [
@@ -12777,6 +13575,12 @@
     {
       "type": 0,
       "value": "AzureML adattudós"
+    }
+  ],
+  "l8IRTD": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) ran successfully"
     }
   ],
   "lCsNuL": [
@@ -12817,6 +13621,12 @@
     {
       "type": 0,
       "value": "Érintett erőforrások"
+    }
+  ],
+  "lQmkhq": [
+    {
+      "type": 0,
+      "value": "Subagents"
     }
   ],
   "lUAfdH": [
@@ -12899,6 +13709,12 @@
       "value": "Legutóbb használt"
     }
   ],
+  "m/B8a5": [
+    {
+      "type": 0,
+      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "m0kcbz": [
     {
       "type": 0,
@@ -12914,7 +13730,7 @@
   "m4vqJl": [
     {
       "type": 0,
-      "value": "Files"
+      "value": "Fájlok"
     }
   ],
   "m57OnF": [
@@ -13068,7 +13884,7 @@
   "mVB9Bd": [
     {
       "type": 0,
-      "value": "Add handoff from "
+      "value": "Átadás hozzáadása a(z) "
     },
     {
       "type": 1,
@@ -13076,11 +13892,15 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ügynökből a(z) "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " alügynökhöz"
     }
   ],
   "mVkTZZ": [
@@ -13125,6 +13945,12 @@
       "value": "Elérte a maximális szintet – folytassa a finomítást, hogy az élen maradjon."
     }
   ],
+  "mg8UeB": [
+    {
+      "type": 0,
+      "value": "Filter by response plan name"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -13135,12 +13961,6 @@
     {
       "type": 0,
       "value": "Nincsenek eszközök konfigurálva."
-    }
-  ],
-  "mgtFKh": [
-    {
-      "type": 0,
-      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13231,6 +14051,12 @@
       "value": "Ezzel véglegesen törli a ServiceNow-kapcsolatot. Az ügynök a továbbiakban nem fogja tudni kezelni a jegyeket. Biztosan bontja a kapcsolatot?"
     }
   ],
+  "n25S4d": [
+    {
+      "type": 0,
+      "value": "Update Kusto Tool"
+    }
+  ],
   "n2h/5e": [
     {
       "type": 0,
@@ -13292,7 +14118,7 @@
   "nL/Owh": [
     {
       "type": 0,
-      "value": "Send notification"
+      "value": "Értesítés küldése"
     }
   ],
   "nNwFuy": [
@@ -13510,7 +14336,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Bejelentkezés másik fiókkal"
     }
   ],
   "oIm1Fb": [
@@ -13564,7 +14390,7 @@
   "oTxjU2": [
     {
       "type": 0,
-      "value": "Handoff subagents"
+      "value": "Átadási alügynökök"
     }
   ],
   "oUWADl": [
@@ -13603,6 +14429,12 @@
       "value": "Az incidensplatform módosításához le kell választani az Azure Monitort. Az ügynök ezután nem kap Azure Monitor-értesítéseket. Biztosan bontja a kapcsolatot?"
     }
   ],
+  "ocQGCd": [
+    {
+      "type": 0,
+      "value": "Allow subagent capabilities to override the SRE Agent."
+    }
+  ],
   "ocQXDt": [
     {
       "type": 0,
@@ -13623,12 +14455,6 @@
     {
       "type": 0,
       "value": "Válasz-visszajelzés küldése"
-    }
-  ],
-  "ongAz6": [
-    {
-      "type": 0,
-      "value": "Incidensek keresése"
     }
   ],
   "ooDMAp": [
@@ -13864,7 +14690,7 @@
   "pgIRcn": [
     {
       "type": 0,
-      "value": "Enter a string"
+      "value": "Adjon meg egy sztringet"
     }
   ],
   "piCpTn": [
@@ -13873,16 +14699,10 @@
       "value": "A Grafana-irányítópult kiépítése és összekapcsolása után eltarthat egy ideig, amíg az erőforrások teljesen feltöltik az irányítópultot."
     }
   ],
-  "plun1b": [
-    {
-      "type": 0,
-      "value": "Hand-off"
-    }
-  ],
   "pndXMi": [
     {
       "type": 0,
-      "value": "Enter a value"
+      "value": "Adjon meg egy értéket"
     }
   ],
   "pnlHOZ": [
@@ -13928,7 +14748,7 @@
   "pqedsA": [
     {
       "type": 0,
-      "value": "Mute all warnings"
+      "value": "Az összes figyelmeztetés elnémítása"
     }
   ],
   "pqgzm0": [
@@ -13958,7 +14778,7 @@
   "pw1ueF": [
     {
       "type": 0,
-      "value": "Failed to create meta agent. Error: "
+      "value": "Nem sikerült létrehozni a metaügynököt. Hiba: "
     },
     {
       "type": 1,
@@ -14004,13 +14824,13 @@
   "qB4s5L": [
     {
       "type": 0,
-      "value": "Add parameter"
+      "value": "Paraméter hozzáadása"
     }
   ],
   "qDwvZ4": [
     {
       "type": 0,
-      "value": "Unknown error"
+      "value": "Ismeretlen hiba"
     }
   ],
   "qQh4Xu": [
@@ -14100,7 +14920,7 @@
   "qrs+1B": [
     {
       "type": 0,
-      "value": "Create meta agent"
+      "value": "Metaügynök létrehozása"
     }
   ],
   "qs5hhk": [
@@ -14249,6 +15069,40 @@
       "value": "Hasonló tüneteket mutató incidensek"
     }
   ],
+  "rIbCjV": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled task "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": " deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "rKdPkY": [
     {
       "type": 0,
@@ -14352,19 +15206,13 @@
   "raexxM": [
     {
       "type": 0,
-      "value": "Submitted"
+      "value": "Beküldve"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
       "value": "Bezárás"
-    }
-  ],
-  "rd+inb": [
-    {
-      "type": 0,
-      "value": "Hozzon létre AI-ügynököket egyéni eszközökkel és összekötőkkel. Interaktív grafikonon jelenítse meg, hogyan működnek együtt. Első lépésként hozza létre az első ügynökét, eszközét vagy összekötőjét."
     }
   ],
   "rd6YZk": [
@@ -14376,7 +15224,7 @@
   "rdsirP": [
     {
       "type": 0,
-      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+      "value": "Az ügynök elérte folyamat aktív AAU-korlátját. Mostantól csak az állandó folyamatban fut, és nem érhető el csevegéshez és műveletekhez."
     }
   ],
   "rhSI1/": [
@@ -14388,7 +15236,7 @@
   "ri3YXY": [
     {
       "type": 0,
-      "value": "Add a connector"
+      "value": "Összekötő hozzáadása"
     }
   ],
   "riEsC7": [
@@ -14504,7 +15352,7 @@
   "rzC0Xo": [
     {
       "type": 0,
-      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+      "value": "Az ügynök olyan értesítéseket tesz közzé a tevékenységcsatornán, amelyek egy csevegésre vagy csapatra mutatnak."
     }
   ],
   "s00xPm": [
@@ -14573,6 +15421,12 @@
     {
       "type": 0,
       "value": "Előfizetés kiválasztása"
+    }
+  ],
+  "sCRBH3": [
+    {
+      "type": 0,
+      "value": "Search by subagent"
     }
   ],
   "sH0O5v": [
@@ -14730,7 +15584,7 @@
   "sZIoMy": [
     {
       "type": 0,
-      "value": "Send email"
+      "value": "E-mail küldése"
     }
   ],
   "sd1Vy+": [
@@ -14802,7 +15656,7 @@
   "spEwRf": [
     {
       "type": 0,
-      "value": "You have warnings regarding your agent."
+      "value": "Figyelmeztetései vannak az ügynökkel kapcsolatban."
     }
   ],
   "sqGM6w": [
@@ -14829,6 +15683,12 @@
       "value": "A Model Context Protocol (MCP) kiszolgálók eszközei. Ezek az eszközök kapcsolat szerint vannak csoportosítva, és például csatlakoztatott kiszolgálókról tölthetők be."
     }
   ],
+  "stbbGt": [
+    {
+      "type": 0,
+      "value": "Performs specialized tasks on behalf of the SRE Agent."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -14850,7 +15710,7 @@
   "swe9tO": [
     {
       "type": 0,
-      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+      "value": "Először futtasson tesztet a lekérdezés érvényesítéséhez, és győződjön meg arról, hogy az ügynök hozzáfér az Azure Data Explorerhez."
     }
   ],
   "sy7vzf": [
@@ -14935,6 +15795,12 @@
       "value": "Szüneteltetés"
     }
   ],
+  "tFoDh3": [
+    {
+      "type": 0,
+      "value": "Yes, turn on deep investigation"
+    }
+  ],
   "tGHG7q": [
     {
       "type": 0,
@@ -14957,12 +15823,6 @@
     {
       "type": 0,
       "value": "Tudásbázis"
-    }
-  ],
-  "tLaLqo": [
-    {
-      "type": 0,
-      "value": "Íme a részletes vizsgálat:"
     }
   ],
   "tOxzip": [
@@ -15112,7 +15972,7 @@
   "trhBLG": [
     {
       "type": 0,
-      "value": "No insights available"
+      "value": "Nincsenek elérhető betekintések"
     }
   ],
   "ts7YvN": [
@@ -15130,7 +15990,7 @@
   "ttWUo6": [
     {
       "type": 0,
-      "value": "Click to view session analysis and insights"
+      "value": "Kattintson ide a munkamenet elemzéseinek és betekintéseinek megtekintéséhez"
     }
   ],
   "tthToS": [
@@ -15142,7 +16002,7 @@
   "tu6JYo": [
     {
       "type": 0,
-      "value": "Start agent"
+      "value": "Ügynök elindítása"
     }
   ],
   "tujypD": [
@@ -15251,10 +16111,22 @@
       "value": "Minden autonómiaszint"
     }
   ],
+  "uIXQiw": [
+    {
+      "type": 0,
+      "value": "Establishing connection ..."
+    }
+  ],
+  "uKwm6S": [
+    {
+      "type": 0,
+      "value": "Canvas view"
+    }
+  ],
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "Folyamatban lévő AAU-k alaphelyzetbe állítása "
     },
     {
       "offset": 0,
@@ -15263,7 +16135,7 @@
           "value": [
             {
               "type": 0,
-              "value": "today"
+              "value": "ma"
             }
           ]
         },
@@ -15274,7 +16146,7 @@
             },
             {
               "type": 0,
-              "value": " day"
+              "value": " napon belül"
             }
           ]
         },
@@ -15285,7 +16157,7 @@
             },
             {
               "type": 0,
-              "value": " days"
+              "value": " napon belül"
             }
           ]
         }
@@ -15402,7 +16274,13 @@
   "ueVpay": [
     {
       "type": 0,
-      "value": "Refining..."
+      "value": "Finomítás..."
+    }
+  ],
+  "ufzv1A": [
+    {
+      "type": 0,
+      "value": "Table view"
     }
   ],
   "ug01Mk": [
@@ -15444,7 +16322,7 @@
   "urxxsP": [
     {
       "type": 0,
-      "value": "Agent Performance"
+      "value": "Ügynök teljesítménye"
     }
   ],
   "us/IXr": [
@@ -15510,7 +16388,7 @@
   "v6cujo": [
     {
       "type": 0,
-      "value": "Kusto tool"
+      "value": "Kusto-eszköz"
     }
   ],
   "v8cTK0": [
@@ -15588,7 +16466,7 @@
   "vS6Lmt": [
     {
       "type": 0,
-      "value": "Incident triggers"
+      "value": "Incidenstriggerek"
     }
   ],
   "vSW3OF": [
@@ -15639,6 +16517,12 @@
     {
       "type": 0,
       "value": "Ez az útmutató segít létrehozni az eszközök listáját, valamint az ügynök által az incidenskezelés során használt végső kérdést."
+    }
+  ],
+  "vb6deF": [
+    {
+      "type": 0,
+      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
     }
   ],
   "vbdOl/": [
@@ -15696,7 +16580,7 @@
   "vzH0q5": [
     {
       "type": 0,
-      "value": "Choose tools"
+      "value": "Eszközök kiválasztása"
     }
   ],
   "w+XRP2": [
@@ -15715,6 +16599,12 @@
     {
       "type": 0,
       "value": "Leírás törlése"
+    }
+  ],
+  "w4Nqlr": [
+    {
+      "type": 0,
+      "value": "Run scheduled task(s)"
     }
   ],
   "w5FDGY": [
@@ -15756,7 +16646,7 @@
   "wBh+z3": [
     {
       "type": 0,
-      "value": "No additional comments provided"
+      "value": "Nincsenek további megjegyzések megadva"
     }
   ],
   "wEQDC6": [
@@ -15809,6 +16699,12 @@
       "value": "format"
     }
   ],
+  "wO9wb5": [
+    {
+      "type": 0,
+      "value": "GitHub"
+    }
+  ],
   "wOHH3J": [
     {
       "type": 0,
@@ -15823,10 +16719,22 @@
       "value": " ügynöknek minden futtatáskor."
     }
   ],
+  "wPF0jY": [
+    {
+      "type": 0,
+      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
       "value": "Új átadási ügynök létrehozása"
+    }
+  ],
+  "wSLRfB": [
+    {
+      "type": 0,
+      "value": "Unknown status"
     }
   ],
   "wSZR47": [
@@ -15838,7 +16746,7 @@
   "wUnPMf": [
     {
       "type": 0,
-      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+      "value": "A szükséges Azure szerepköralapú hozzáférés-vezérlési (RBAC) szerepkörrel nem rendelkező felhasználók nem férhetnek hozzá az Azure SRE-ügynökhöz."
     }
   ],
   "wVpXzO": [
@@ -15998,7 +16906,7 @@
   "xEjqoV": [
     {
       "type": 0,
-      "value": "Click here to learn more"
+      "value": "Kattintson ide a további tudnivalók"
     }
   ],
   "xGPsyJ": [
@@ -16028,7 +16936,7 @@
   "xLrAFR": [
     {
       "type": 0,
-      "value": "Parameter name"
+      "value": "Paraméternév"
     }
   ],
   "xNC5hG": [
@@ -16037,10 +16945,16 @@
       "value": "Szótár (csoportosítás argumentumokba)"
     }
   ],
+  "xP3hmB": [
+    {
+      "type": 0,
+      "value": "Start:"
+    }
+  ],
   "xPuGYM": [
     {
       "type": 0,
-      "value": "No connectors match your search"
+      "value": "Egyetlen összekötő sem felel meg a keresésnek"
     }
   ],
   "xSsto+": [
@@ -16126,7 +17040,7 @@
   "xet2Cv": [
     {
       "type": 0,
-      "value": "Query parameters"
+      "value": "Lekérdezési paraméterek"
     }
   ],
   "xf9BKi": [
@@ -16205,6 +17119,12 @@
       "value": "Egyéni incidenselhárítási terv törlése"
     }
   ],
+  "y/m6Ep": [
+    {
+      "type": 0,
+      "value": "GitHub MCP server"
+    }
+  ],
   "y0KXuM": [
     {
       "type": 0,
@@ -16234,7 +17154,7 @@
   "y79eIb": [
     {
       "type": 0,
-      "value": "Assign yourself the SRE Agent Admin role."
+      "value": "Rendelje saját magához az SRE-ügynök rendszergazdai szerepkörét."
     }
   ],
   "y87pob": [
@@ -16254,11 +17174,15 @@
   "yBnHns": [
     {
       "type": 0,
-      "value": "Sign in to "
+      "value": "Bejelentkezés a(z) "
     },
     {
       "type": 1,
       "value": "service"
+    },
+    {
+      "type": 0,
+      "value": " szolgáltatásba"
     }
   ],
   "yDh8i7": [
@@ -16276,7 +17200,7 @@
   "yJJ/jv": [
     {
       "type": 0,
-      "value": "Mute this warning"
+      "value": "Figyelmeztetés elnémítása"
     }
   ],
   "yJSwfQ": [
@@ -16297,6 +17221,12 @@
       "value": "Az incidens törlése sikerült"
     }
   ],
+  "yRKsn1": [
+    {
+      "type": 0,
+      "value": "Learn more about deep investigations"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -16306,7 +17236,7 @@
   "yVe+kY": [
     {
       "type": 0,
-      "value": "Set up connector"
+      "value": "Összekötő beállítása"
     }
   ],
   "yX3QcY": [
@@ -16411,6 +17341,58 @@
       "value": "Alapvető alkalmazáscsoport típusa"
     }
   ],
+  "yrDI3f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tool "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "ysBuRt": [
     {
       "type": 0,
@@ -16442,7 +17424,7 @@
   "z43sTn": [
     {
       "type": 0,
-      "value": "View Knowledge Base"
+      "value": "Tudásbázis megtekintése"
     }
   ],
   "z5cF/O": [
@@ -16505,6 +17487,12 @@
       "value": "A fejlesztési javaslatok konfigurációjának elemzése."
     }
   ],
+  "zJFez9": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Tasks"
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -16552,7 +17540,7 @@
   "zWkvNO": [
     {
       "type": 0,
-      "value": "Timeline"
+      "value": "Idővonal"
     }
   ],
   "zZsxcQ": [
@@ -16605,6 +17593,32 @@
     {
       "type": 0,
       "value": "Speciális beállítások"
+    }
+  ],
+  "zpENeF": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tool"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "zpkKsD": [

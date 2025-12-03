@@ -184,6 +184,9 @@ const ExtendedAgentGraphContent = memo(() => {
         { entityType: 'agent' | 'tool' | 'connector'; entityName: string; sourceAgentName?: string } | undefined
     >(undefined);
     const [creationDialogInitialTypeOverride, setCreationDialogInitialTypeOverride] = useState<EntityType | undefined>(undefined);
+    const [creationDialogInitialToolType, setCreationDialogInitialToolType] = useState<'KustoTool' | 'PythonFunctionTool' | undefined>(
+        undefined
+    );
     const [creationDialogTriggerAgentName, setCreationDialogTriggerAgentName] = useState<string | undefined>(undefined);
     const [pendingEntitySelection, setPendingEntitySelection] = useState<ExtendedAgentAnchorEntity | undefined>(undefined);
     const [linkRetryContext, setLinkRetryContext] = useState<LinkRetryContext | undefined>(undefined);
@@ -1383,10 +1386,17 @@ const ExtendedAgentGraphContent = memo(() => {
             if (!open) {
                 setCreationDialogContext(undefined);
                 setCreationDialogInitialTypeOverride(undefined);
+                setCreationDialogInitialToolType(undefined);
                 setCreationDialogTriggerAgentName(undefined);
             }
         },
-        [setIsCreationDialogOpen, setCreationDialogContext, setCreationDialogInitialTypeOverride, setCreationDialogTriggerAgentName]
+        [
+            setIsCreationDialogOpen,
+            setCreationDialogContext,
+            setCreationDialogInitialTypeOverride,
+            setCreationDialogInitialToolType,
+            setCreationDialogTriggerAgentName,
+        ]
     );
 
     const handleDismissCreationSuccess = useCallback(() => {
@@ -1669,6 +1679,16 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'pythonTool') {
+                setCreationDialogContext(undefined);
+                setCreationDialogInitialTypeOverride('tool');
+                setCreationDialogInitialToolType('PythonFunctionTool');
+                setCreationDialogTriggerAgentName(undefined);
+                setCreationSuccess(undefined);
+                setIsCreationDialogOpen(true);
+                return;
+            }
+
             if (itemType === 'agent') {
                 setAgentCreateOrEditInfo({
                     agent: undefined,
@@ -1904,6 +1924,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         onOpenChange={handleCreationDialogOpenChange}
                         onSubmit={creationDialogContext?.kind === 'linkFromAgent' ? handleCreateAndLinkEntity : handleCreateEntity}
                         initialEntityType={creationDialogInitialType}
+                        initialToolType={creationDialogInitialToolType}
                         initialTriggerAgentName={creationDialogTriggerAgentName}
                         contextNotice={creationDialogNotice ? { intent: 'info', message: creationDialogNotice } : undefined}
                         linkContext={creationDialogLinkContext}

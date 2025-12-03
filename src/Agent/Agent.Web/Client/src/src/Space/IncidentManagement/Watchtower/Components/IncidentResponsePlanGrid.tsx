@@ -9,14 +9,14 @@ import {
     Subtitle2,
     Text,
 } from '@fluentui/react-components';
-import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
-import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
 import { ConstrainMode, DetailsListLayoutMode, IColumn, SelectionMode } from '@fluentui/react/lib/DetailsList';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import debounce from 'lodash/debounce';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ISortedDetailsListColumn } from '../../../../Common/Components/DetailsList/Constants';
+import { LabelKeyPair } from '../../../../Common/Components/PillFilter/ListWithSearch';
+import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
 import { AgentMode } from '../../../../Common/Contracts/Azure/SreAgent';
 import { getLocalizedAgentMode } from '../../../../Common/Helpers/AgentMode';
 import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
@@ -67,8 +67,6 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
             { label: intl.formatMessage(SreAgentResources.no), key: 'no' },
         ];
     }, [intl]);
-
-
 
     const handleColumnClick = useCallback(
         (column: IColumn) => {
@@ -289,9 +287,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
         if (customPlanFilters.length > 0 && customPlanFilters.length < 2) {
             // Only filter if not both selected (which equals "all")
             const showYes = customPlanFilters.includes('yes');
-            filteredGridItems = filteredGridItems.filter(item =>
-                showYes ? item.planType === 'True' : item.planType === 'False'
-            );
+            filteredGridItems = filteredGridItems.filter(item => (showYes ? item.planType === 'True' : item.planType === 'False'));
         }
 
         return filteredGridItems;
@@ -328,7 +324,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
                     label={intl.formatMessage(IncidentManagementResources.autonomyLevel)}
                     options={autonomyLevelFilterOptions}
                     selectedKeys={autonomyLevelFilters}
-                    onApply={(keys) => setAutonomyLevelFilters(keys)}
+                    onApply={keys => setAutonomyLevelFilters(keys)}
                     disabled={disabled}
                     multiSelect
                     addAllOption
@@ -338,7 +334,7 @@ export const IncidentResponsePlanGrid = ({ responsePlans, setOpenedResponsePlan,
                     label={intl.formatMessage(IncidentManagementResources.customPlan)}
                     options={customPlanFilterOptions}
                     selectedKeys={customPlanFilters}
-                    onApply={(keys) => setCustomPlanFilters(keys)}
+                    onApply={keys => setCustomPlanFilters(keys)}
                     disabled={disabled}
                     multiSelect
                     addAllOption

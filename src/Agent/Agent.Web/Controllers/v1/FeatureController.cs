@@ -20,6 +20,7 @@ namespace Agent.Web.Controllers.v1
         IOptions<ScheduledTaskSettings> scheduledTaskSettings,
         IOptions<AgentMemorySettings> agentMemorySettings,
         IOptions<ExtendedAgentsGraphSettings> extendedAgentsGraphSettings,
+        IOptions<PythonToolSettings> pythonToolSettings,
         ILogger<FeatureController> logger) : ControllerBase
     {
         [HttpGet("status")]
@@ -36,7 +37,8 @@ namespace Agent.Web.Controllers.v1
                     ["scheduledTasks"] = scheduledTaskSettings.Value.Enabled,
                     ["agentMemory"] = agentMemorySettings.Value.Enabled,
                     ["extendedAgentsGraph"] = extendedAgentsGraphSettings.Value.Enabled,
-                    ["sessionInsights"] = sessionInsightsEnabled
+                    ["sessionInsights"] = sessionInsightsEnabled,
+                    ["pythonTool"] = pythonToolSettings.Value.Enabled
                 };
 
                 var response = new FeatureStatusResponse(Features: features);
@@ -63,6 +65,7 @@ namespace Agent.Web.Controllers.v1
                     "extendedagentsgraph" => extendedAgentsGraphSettings.Value.Enabled,
                     // Session Insights is enabled if AgentMemory is enabled OR EnableInsightPosting is enabled
                     "sessioninsights" => agentMemorySettings.Value.Enabled || agentMemorySettings.Value.EnableInsightPosting,
+                    "pythontool" => pythonToolSettings.Value.Enabled,
                     _ => null
                 };
 

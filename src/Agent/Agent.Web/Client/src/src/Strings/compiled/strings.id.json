@@ -36,7 +36,7 @@
   "+6/51l": [
     {
       "type": 0,
-      "value": "Creating meta agent"
+      "value": "Membuat agen meta"
     }
   ],
   "+7PjfV": [
@@ -54,7 +54,7 @@
   "+ASm/B": [
     {
       "type": 0,
-      "value": "Submit Feedback"
+      "value": "Kirim Umpan Balik"
     }
   ],
   "+Aon83": [
@@ -90,13 +90,19 @@
   "+Kcoxv": [
     {
       "type": 0,
-      "value": "Related incidents"
+      "value": "Insiden terkait"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
       "value": "Pilih alat"
+    }
+  ],
+  "+OMfjA": [
+    {
+      "type": 0,
+      "value": "Give access to knowledge base"
     }
   ],
   "+Pmftr": [
@@ -139,16 +145,22 @@
       "value": "Tipe"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+XtuWl": [
     {
       "type": 0,
-      "value": "This insight needs improvement"
+      "value": "Wawasan ini memerlukan peningkatan"
     }
   ],
   "+Y8m6A": [
     {
       "type": 0,
-      "value": "Added handoff from "
+      "value": "Serah terima ditambahkan dari "
     },
     {
       "type": 1,
@@ -156,7 +168,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ke subagen "
     },
     {
       "type": 1,
@@ -226,7 +238,7 @@
   "+nnQeH": [
     {
       "type": 0,
-      "value": "Created meta agent"
+      "value": "Agen meta dibuat"
     }
   ],
   "+nt4l9": [
@@ -256,7 +268,7 @@
   "/+WtRc": [
     {
       "type": 0,
-      "value": "Enter handoff instructions"
+      "value": "Masukkan instruksi serah terima"
     }
   ],
   "//Zb9l": [
@@ -280,7 +292,7 @@
   "/3OCn6": [
     {
       "type": 0,
-      "value": "Insights have not been generated for this thread yet."
+      "value": "Wawasan belum dibuat untuk utas ini."
     }
   ],
   "/4tOwT": [
@@ -298,13 +310,31 @@
   "/7GPtw": [
     {
       "type": 0,
-      "value": "Go to Incidents"
+      "value": "Buka Insiden"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
       "value": "Kelola SQL Managed Instance."
+    }
+  ],
+  "/8swfk": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "/9FZdx": [
@@ -333,12 +363,6 @@
     {
       "type": 0,
       "value": "Bersihkan"
-    }
-  ],
-  "/ImSqA": [
-    {
-      "type": 0,
-      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -450,7 +474,7 @@
   "/qCaiZ": [
     {
       "type": 0,
-      "value": "Incident trigger name"
+      "value": "Nama pemicu insiden"
     }
   ],
   "/rNkXe": [
@@ -516,7 +540,7 @@
   "03qRza": [
     {
       "type": 0,
-      "value": "View AI suggestions"
+      "value": "Lihat saran AI"
     }
   ],
   "05Rzkx": [
@@ -554,7 +578,7 @@
   "0DUgkZ": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "Agen SRE "
     },
     {
       "type": 1,
@@ -562,7 +586,7 @@
     },
     {
       "type": 0,
-      "value": " stopped successfully"
+      "value": " berhasil dihentikan"
     }
   ],
   "0Dhe75": [
@@ -612,7 +636,7 @@
   "0Qocmw": [
     {
       "type": 0,
-      "value": "All tools"
+      "value": "Semua alat"
     }
   ],
   "0R+Pet": [
@@ -654,7 +678,7 @@
   "0VVX+G": [
     {
       "type": 0,
-      "value": "Connected as"
+      "value": "Tersambung sebagai"
     }
   ],
   "0VuGey": [
@@ -698,7 +722,7 @@
   "0hpRE4": [
     {
       "type": 0,
-      "value": "Enter the parameter name"
+      "value": "Masukkan nama parameter"
     }
   ],
   "0i3Qrd": [
@@ -812,7 +836,7 @@
   "0zGfOk": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "Untuk mendapatkan performa agen yang optimal untuk diagnostik, metrik, pengetahuan, dan lainnya, gunakan grup sumber daya yang menyertakan satu atau beberapa layanan komputasi Azure ini: Azure Kubernetes Service, Functions, Container Apps, atau Web Apps."
     }
   ],
   "12GY0h": [
@@ -825,6 +849,16 @@
     {
       "type": 0,
       "value": "Menggunakan (Pemicu)"
+    }
+  ],
+  "13KTIN": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
     }
   ],
   "15GWkT": [
@@ -854,7 +888,7 @@
   "19xydZ": [
     {
       "type": 0,
-      "value": "You do not have permission to generate insights for this thread."
+      "value": "Anda tidak memiliki izin untuk membuat wawasan untuk utas ini."
     }
   ],
   "1CcjQj": [
@@ -895,18 +929,10 @@
       "value": "Belum ada dokumen yang diunggah"
     }
   ],
-  "1O47t6": [
+  "1LBny5": [
     {
       "type": 0,
-      "value": "Agen SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " berhasil dihapus"
+      "value": "Stopped"
     }
   ],
   "1OorZL": [
@@ -1025,6 +1051,12 @@
       "value": "%"
     }
   ],
+  "1m4VPF": [
+    {
+      "type": 0,
+      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+    }
+  ],
   "1o9eJ6": [
     {
       "offset": 0,
@@ -1050,6 +1082,12 @@
     {
       "type": 0,
       "value": "Rencana respons"
+    }
+  ],
+  "1xTayQ": [
+    {
+      "type": 0,
+      "value": "Enter endpoint"
     }
   ],
   "1xZjpU": [
@@ -1245,7 +1283,7 @@
   "2l5w5P": [
     {
       "type": 0,
-      "value": "Go to Support + Troubleshooting"
+      "value": "Buka Dukungan + Pemecahan Masalah"
     }
   ],
   "2m6oj5": [
@@ -1275,7 +1313,7 @@
   "2reUcp": [
     {
       "type": 0,
-      "value": "Subagent name"
+      "value": "Nama subagen"
     }
   ],
   "2tOWr2": [
@@ -1356,6 +1394,12 @@
       "value": "Belum ada agen yang tersedia"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1434,6 +1478,30 @@
       "value": "Add MCP server"
     }
   ],
+  "3h7ZKg": [
+    {
+      "type": 0,
+      "value": "Review + add"
+    }
+  ],
+  "3hmrCJ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
@@ -1458,10 +1526,32 @@
       "value": "Pembaca"
     }
   ],
+  "3rvQhx": [
+    {
+      "type": 0,
+      "value": "You can manage up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. Your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups."
+    }
+  ],
   "3sNyAo": [
     {
       "type": 0,
-      "value": "The url must be in the format: "
+      "value": "URL Anda harus dalam format: "
     },
     {
       "type": 1,
@@ -1572,6 +1662,12 @@
       "value": "Tidak ada alat umum yang dikonfigurasi."
     }
   ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "451B6Z": [
     {
       "type": 0,
@@ -1631,7 +1727,7 @@
   "4CcHuj": [
     {
       "type": 0,
-      "value": "Share your thoughts about this insight... (optional)"
+      "value": "Bagikan pendapat Anda tentang wawasan ini... (opsional)"
     }
   ],
   "4Ez7HI": [
@@ -1644,6 +1740,12 @@
     {
       "type": 0,
       "value": "Peringatan telah dibuat"
+    }
+  ],
+  "4IAjnN": [
+    {
+      "type": 0,
+      "value": "Turn on deep investigation?"
     }
   ],
   "4MeTpL": [
@@ -1691,7 +1793,7 @@
   "4RwjwU": [
     {
       "type": 0,
-      "value": "Add handoff from existing agent"
+      "value": "Tambahkan serah terima dari agen yang ada"
     }
   ],
   "4TnjxL": [
@@ -1709,7 +1811,7 @@
   "4Xep39": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "Gagal menghentikan Agen SRE "
     },
     {
       "type": 1,
@@ -1767,7 +1869,7 @@
   "4lv5gO": [
     {
       "type": 0,
-      "value": "Create subagent "
+      "value": "Buat subagen "
     },
     {
       "type": 1,
@@ -1818,12 +1920,6 @@
     {
       "type": 0,
       "value": ", saya memerlukan diagnostik untuk lonjakan latensi terputus-putus pada kluster AKS di wilayah eastus dan westeurope."
-    }
-  ],
-  "53O1/Z": [
-    {
-      "type": 0,
-      "value": "Cakupan insiden"
     }
   ],
   "53qjcm": [
@@ -1906,6 +2002,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "5NZIbS": [
+    {
+      "type": 0,
+      "value": "Open in Azure Portal"
     }
   ],
   "5POweM": [
@@ -2023,13 +2125,53 @@
   "5fVEet": [
     {
       "type": 0,
-      "value": "Add tools"
+      "value": "Tambahkan alat"
     }
   ],
   "5gEh2M": [
     {
       "type": 0,
       "value": "Insiden yang memerlukan perhatian"
+    }
+  ],
+  "5iE4cZ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "5j5HnL": [
@@ -2168,6 +2310,16 @@
       "value": "Grup sumber daya terkelola berhasil ditambahkan"
     }
   ],
+  "6+mbvY": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": " sec"
+    }
+  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -2217,7 +2369,7 @@
   "6BTCPo": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+      "value": "Gunakan ##ParamName## dalam kueri Anda untuk menentukan tempat penampung parameter. Contoh: dengan SubscriptionId == \"##SubscriptionId##\" Ini akan diganti dengan nilai aktual pada runtime."
     }
   ],
   "6CrAJC": [
@@ -2262,12 +2414,6 @@
       "value": "rekomendasi"
     }
   ],
-  "6OBtew": [
-    {
-      "type": 0,
-      "value": "Menghapus Agen SRE"
-    }
-  ],
   "6PgVSe": [
     {
       "type": 0,
@@ -2277,7 +2423,7 @@
   "6RNwei": [
     {
       "type": 0,
-      "value": "Update subagent "
+      "value": "Perbarui subagen "
     },
     {
       "type": 1,
@@ -2377,7 +2523,7 @@
   "6gD0ie": [
     {
       "type": 0,
-      "value": "Generate Session Insights"
+      "value": "Buat Wawasan Sesi"
     }
   ],
   "6m5Ba0": [
@@ -2386,16 +2532,10 @@
       "value": "Aturan Pengumpulan Data"
     }
   ],
-  "6tlKgy": [
-    {
-      "type": 0,
-      "value": "Anda dapat memilih maksimum 20 grup sumber daya yang akan dikelola agen."
-    }
-  ],
   "6tzuXg": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "Gagal memulai Agen SRE "
     },
     {
       "type": 1,
@@ -2487,7 +2627,7 @@
   "751M54": [
     {
       "type": 0,
-      "value": "Generating insights..."
+      "value": "Membuat wawasan..."
     }
   ],
   "75lAeu": [
@@ -2505,7 +2645,7 @@
   "79kwlH": [
     {
       "type": 0,
-      "value": "No agents available for handoff"
+      "value": "Tidak ada agen yang tersedia untuk serah terima"
     }
   ],
   "7C0xai": [
@@ -2524,6 +2664,24 @@
     {
       "type": 0,
       "value": "Mode peninjauan"
+    }
+  ],
+  "7K6W8s": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7M8VZy": [
@@ -2547,7 +2705,7 @@
   "7Or82y": [
     {
       "type": 0,
-      "value": "Agent quality is "
+      "value": "Kualitas agen mencapai "
     },
     {
       "type": 1,
@@ -2555,7 +2713,7 @@
     },
     {
       "type": 0,
-      "value": "/100 with "
+      "value": "/100 dengan "
     },
     {
       "offset": 0,
@@ -2567,7 +2725,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix ready"
+              "value": " perbaikan cepat tersedia"
             }
           ]
         },
@@ -2578,7 +2736,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes ready"
+              "value": " perbaikan cepat tersedia"
             }
           ]
         }
@@ -2644,6 +2802,12 @@
     {
       "type": 0,
       "value": "Detail proyek"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -2790,6 +2954,12 @@
       "value": "Nilai ini akan diganti dengan nilai sebenarnya saat runtime."
     }
   ],
+  "8MoJEj": [
+    {
+      "type": 0,
+      "value": "Message grouping:"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2850,7 +3020,7 @@
   "8SCDv/": [
     {
       "type": 0,
-      "value": "Enter the query for the tool to run"
+      "value": "Masukkan kueri untuk menjalankan alat"
     }
   ],
   "8Vd2Kv": [
@@ -2868,7 +3038,7 @@
   "8Zl3PA": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "Gagal memulai Agen SRE "
     },
     {
       "type": 1,
@@ -2948,7 +3118,7 @@
   "8fw5Cz": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all connectors."
+      "value": "Coba istilah pencarian lain atau bersihkan pencarian Anda untuk melihat semua konektor."
     }
   ],
   "8lCjAM": [
@@ -2990,7 +3160,13 @@
   "8u2W0L": [
     {
       "type": 0,
-      "value": "Handoff instructions"
+      "value": "Instruksi serah terima"
+    }
+  ],
+  "8urALB": [
+    {
+      "type": 0,
+      "value": "Delete connector"
     }
   ],
   "8v0Pyn": [
@@ -3007,6 +3183,24 @@
     {
       "type": 0,
       "value": "Tutup Rencana Tugas"
+    }
+  ],
+  "8yfUKp": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8yyU6n": [
@@ -3083,6 +3277,12 @@
       "value": "Tidak ada kecocokan"
     }
   ],
+  "96TDsd": [
+    {
+      "type": 0,
+      "value": "Learn more about subagents"
+    }
+  ],
   "98A08r": [
     {
       "type": 0,
@@ -3150,7 +3350,7 @@
   "9WBhPZ": [
     {
       "type": 0,
-      "value": "Session Insights"
+      "value": "Wawasan Sesi"
     }
   ],
   "9WRlF4": [
@@ -3229,6 +3429,12 @@
       "value": "Pengeditan YAML akan segera hadir untuk entitas ini."
     }
   ],
+  "A+4geD": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue with SRE agent team"
+    }
+  ],
   "A/xTHO": [
     {
       "type": 0,
@@ -3268,7 +3474,7 @@
   "A9cgAa": [
     {
       "type": 0,
-      "value": "No insight selected"
+      "value": "Tidak ada wawasan yang dipilih"
     }
   ],
   "AA/tRJ": [
@@ -3303,6 +3509,24 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "AEgxqN": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "AHQdRU": [
@@ -3351,6 +3575,12 @@
     {
       "type": 0,
       "value": "Dibuat pada"
+    }
+  ],
+  "Abi/u/": [
+    {
+      "type": 0,
+      "value": "Expand panel"
     }
   ],
   "AbleKr": [
@@ -3459,6 +3689,12 @@
       "value": " lengkap."
     }
   ],
+  "B/qM5p": [
+    {
+      "type": 0,
+      "value": "Enter Teams channel link"
+    }
+  ],
   "B3Q5mz": [
     {
       "type": 0,
@@ -3477,10 +3713,16 @@
       "value": "Kualitas Agen"
     }
   ],
+  "BBT3jd": [
+    {
+      "type": 0,
+      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+    }
+  ],
   "BD+V8L": [
     {
       "type": 0,
-      "value": "This insight was helpful"
+      "value": "Wawasan ini bermanfaat"
     }
   ],
   "BEck3n": [
@@ -3578,23 +3820,13 @@
   "BakoFg": [
     {
       "type": 0,
-      "value": "Select tool"
+      "value": "Pilih alat"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
       "value": "Menggunakan perubahan YAML terbaru"
-    }
-  ],
-  "BcEbxp": [
-    {
-      "type": 1,
-      "value": "seconds"
-    },
-    {
-      "type": 0,
-      "value": " d"
     }
   ],
   "Bcgdb7": [
@@ -3656,7 +3888,7 @@
   "Bn/txo": [
     {
       "type": 0,
-      "value": "Failed to create subagent "
+      "value": "Gagal membuat subagen "
     },
     {
       "type": 1,
@@ -3664,7 +3896,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": ". Kesalahan: "
     },
     {
       "type": 1,
@@ -3698,7 +3930,7 @@
   "C6Jt4c": [
     {
       "type": 0,
-      "value": "Scheduled task name"
+      "value": "Nama tugas terjadwal"
     }
   ],
   "CBHDb1": [
@@ -3734,11 +3966,15 @@
   "CIAL+k": [
     {
       "type": 0,
-      "value": "Created subagent "
+      "value": "Subagen "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " dibuat"
     }
   ],
   "CJ6tzL": [
@@ -3786,7 +4022,7 @@
   "CQ0CLu": [
     {
       "type": 0,
-      "value": "Session insights"
+      "value": "Wawasan sesi"
     }
   ],
   "CQisjK": [
@@ -3846,7 +4082,7 @@
   "Cfvmd0": [
     {
       "type": 0,
-      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+      "value": "Agen telah menggunakan 90% AAU alur aktif. Jika batas tercapai, agen hanya akan berjalan dalam alur yang selalu aktif dan tidak tersedia untuk obrolan dan tindakan."
     }
   ],
   "ChQQJ0": [
@@ -3919,28 +4155,6 @@
       "value": "Azure DevOps"
     }
   ],
-  "D473QI": [
-    {
-      "type": 0,
-      "value": "Pilih maksimal "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " grup sumber daya yang Anda miliki izinnya. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " grup sumber daya dipilih."
-    }
-  ],
   "D4T2Px": [
     {
       "type": 0,
@@ -3956,13 +4170,13 @@
   "D97db3": [
     {
       "type": 0,
-      "value": "Select a response subagent"
+      "value": "Pilih subagen respons"
     }
   ],
   "DD2Wjk": [
     {
       "type": 0,
-      "value": "Incidents preview"
+      "value": "Pratinjau insiden"
     }
   ],
   "DDSwQB": [
@@ -4006,7 +4220,7 @@
   "DFfvL6": [
     {
       "type": 0,
-      "value": "Temporarily stop the agent from all activities."
+      "value": "Hentikan sementara agen dari semua aktivitas."
     }
   ],
   "DIZgr3": [
@@ -4047,6 +4261,12 @@
       "value": "Adalah bagian dari"
     }
   ],
+  "DP0m/y": [
+    {
+      "type": 0,
+      "value": "Updating Kusto Tool"
+    }
+  ],
   "DPnEXy": [
     {
       "type": 0,
@@ -4081,10 +4301,20 @@
       "value": "Insiden yang dipilih"
     }
   ],
+  "DXm10s": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " repository URL"
+    }
+  ],
   "DYp/nK": [
     {
       "type": 0,
-      "value": "Session Insight"
+      "value": "Wawasan Sesi"
     }
   ],
   "Da55kZ": [
@@ -4097,6 +4327,12 @@
     {
       "type": 0,
       "value": "Grup sumber daya ini direkomendasikan untuk mendapatkan kinerja agen yang optimal. Grup ini mencakup satu atau beberapa layanan komputasi Azure berikut: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, atau akun Storage."
+    }
+  ],
+  "DcEKTG": [
+    {
+      "type": 0,
+      "value": "Failed to run test"
     }
   ],
   "DeP+ZM": [
@@ -4180,7 +4416,7 @@
   "Dvly6A": [
     {
       "type": 0,
-      "value": "Failed to create tool"
+      "value": "Gagal membuat alat"
     }
   ],
   "Dw2xIY": [
@@ -4222,7 +4458,7 @@
   "E9CWuE": [
     {
       "type": 0,
-      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+      "value": "Contoh: dengan SubscriptionId == \"##SubscriptionId##\""
     }
   ],
   "EAO/K+": [
@@ -4252,7 +4488,7 @@
   "EHy/sj": [
     {
       "type": 0,
-      "value": "Enter a number"
+      "value": "Masukkan angka"
     }
   ],
   "EI/cfO": [
@@ -4302,7 +4538,7 @@
   "EQa6dK": [
     {
       "type": 0,
-      "value": "Built-in Tool"
+      "value": "Alat Bawaan"
     }
   ],
   "ESChST": [
@@ -4314,7 +4550,27 @@
   "ETRyBL": [
     {
       "type": 0,
-      "value": "Rating"
+      "value": "Peringkat"
+    }
+  ],
+  "EVA81S": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "entity"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
+  "EVXYDU": [
+    {
+      "type": 0,
+      "value": "Learn more about creating subagents."
     }
   ],
   "EWrExf": [
@@ -4344,7 +4600,7 @@
   "Ebd6gR": [
     {
       "type": 0,
-      "value": "The agent sends email messages."
+      "value": "Agen mengirim pesan email."
     }
   ],
   "Ec1M0J": [
@@ -4384,7 +4640,7 @@
   "Ejhdi4": [
     {
       "type": 0,
-      "value": "Feedback"
+      "value": "Umpan balik"
     }
   ],
   "ElI1gd": [
@@ -4426,7 +4682,7 @@
   "Eu772h": [
     {
       "type": 0,
-      "value": "Built-in Tools"
+      "value": "Alat Bawaan"
     }
   ],
   "Euy+fB": [
@@ -4472,7 +4728,7 @@
   "F8v2Mz": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "Agen SRE "
     },
     {
       "type": 1,
@@ -4480,7 +4736,7 @@
     },
     {
       "type": 0,
-      "value": " started successfully"
+      "value": " berhasil dimulai"
     }
   ],
   "F8xMoD": [
@@ -4566,7 +4822,7 @@
   "FS0tWa": [
     {
       "type": 0,
-      "value": "No source agent specified"
+      "value": "Tidak ada agen sumber yang ditentukan"
     }
   ],
   "FSYccN": [
@@ -4606,7 +4862,7 @@
   "FWou/7": [
     {
       "type": 0,
-      "value": "Select tool "
+      "value": "Pilih alat "
     },
     {
       "type": 1,
@@ -4616,7 +4872,7 @@
   "FZeQlc": [
     {
       "type": 0,
-      "value": "Disconnected"
+      "value": "Terputus"
     }
   ],
   "FZwBv0": [
@@ -4658,7 +4914,7 @@
   "FpUGgx": [
     {
       "type": 0,
-      "value": "Starting SRE Agent "
+      "value": "Proses memulai Agen SRE "
     },
     {
       "type": 1,
@@ -4666,7 +4922,7 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " sedang dalam proses"
     }
   ],
   "Fr5LyM": [
@@ -4678,7 +4934,7 @@
   "FsIud6": [
     {
       "type": 0,
-      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+      "value": "Basis pengetahuan diaktifkan untuk agen ini. Alat SearchMemory dan perintah basis pengetahuan akan disertakan secara otomatis."
     }
   ],
   "Fv1ZSz": [
@@ -4727,6 +4983,56 @@
     {
       "type": 0,
       "value": "Hapus"
+    }
+  ],
+  "G4gaOn": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "G4mray": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
     }
   ],
   "G5JMSn": [
@@ -4834,19 +5140,13 @@
   "GGr/yS": [
     {
       "type": 0,
-      "value": "Feedback submitted on threads will appear here"
+      "value": "Umpan balik yang dikirimkan pada utas akan muncul di sini"
     }
   ],
   "GMhzu1": [
     {
       "type": 0,
-      "value": "Response subagent"
-    }
-  ],
-  "GP/BbQ": [
-    {
-      "type": 0,
-      "value": "Enable Knowledge Base"
+      "value": "Subagen respons"
     }
   ],
   "GSCabm": [
@@ -4894,13 +5194,13 @@
   "GnWmca": [
     {
       "type": 0,
-      "value": "Triggers"
+      "value": "Pemicu"
     }
   ],
   "Gnbr9F": [
     {
       "type": 0,
-      "value": "Select a connector"
+      "value": "Pilih konektor"
     }
   ],
   "GoSIa4": [
@@ -4912,7 +5212,7 @@
   "GpHWFC": [
     {
       "type": 0,
-      "value": "Choose a connector"
+      "value": "Pilih konektor"
     }
   ],
   "GpZr9J": [
@@ -4932,7 +5232,7 @@
   "GpcNV2": [
     {
       "type": 0,
-      "value": "Failed to update subagent "
+      "value": "Gagal memperbarui subagen "
     },
     {
       "type": 1,
@@ -4940,7 +5240,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": ". Kesalahan: "
     },
     {
       "type": 1,
@@ -5038,7 +5338,7 @@
   "HNBpJ4": [
     {
       "type": 0,
-      "value": "Metrics"
+      "value": "Metrik"
     }
   ],
   "HNECLT": [
@@ -5062,7 +5362,7 @@
   "HQc/Lf": [
     {
       "type": 0,
-      "value": "Create incident trigger"
+      "value": "Buat pemicu insiden"
     }
   ],
   "HQhDfV": [
@@ -5092,7 +5392,7 @@
   "HZQtAg": [
     {
       "type": 0,
-      "value": "Test values"
+      "value": "Nilai pengujian"
     }
   ],
   "HbTFJf": [
@@ -5147,6 +5447,44 @@
       "value": "Memuat laporan harian"
     }
   ],
+  "HtVpjg": [
+    {
+      "type": 0,
+      "value": "You can select up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups for this agent. Agents can manage a total of "
+    },
+    {
+      "type": 1,
+      "value": "totalMax"
+    },
+    {
+      "type": 0,
+      "value": " resource groups, and your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "current"
+    },
+    {
+      "type": 0,
+      "value": ". You've selected "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -5198,7 +5536,7 @@
   "I4PbZq": [
     {
       "type": 0,
-      "value": "Create a subagent"
+      "value": "Buat subagen"
     }
   ],
   "I5k4g/": [
@@ -5371,6 +5709,12 @@
       "value": "Zona waktu"
     }
   ],
+  "Icfr5t": [
+    {
+      "type": 0,
+      "value": "Search by incident trigger"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 0,
@@ -5383,6 +5727,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "Ij0ity": [
+    {
+      "type": 0,
+      "value": "Search by tool"
     }
   ],
   "InWqys": [
@@ -5461,6 +5811,12 @@
       "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
+  "J2Lcsz": [
+    {
+      "type": 0,
+      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+    }
+  ],
   "J3Y8Sm": [
     {
       "type": 0,
@@ -5493,6 +5849,18 @@
       "value": "Terakhir Diubah"
     }
   ],
+  "J8uEym": [
+    {
+      "type": 0,
+      "value": "Search by scheduled task"
+    }
+  ],
+  "JA/VO+": [
+    {
+      "type": 0,
+      "value": "Starts a task at a defined time or interval."
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
@@ -5503,16 +5871,6 @@
     {
       "type": 0,
       "value": "Nama pengguna"
-    }
-  ],
-  "JCjxSH": [
-    {
-      "type": 0,
-      "value": "Gagal menghapus Agen SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "JEsxDw": [
@@ -5530,7 +5888,7 @@
   "JKFypr": [
     {
       "type": 0,
-      "value": "Stop agent"
+      "value": "Hentikan agen"
     }
   ],
   "JMdyE9": [
@@ -5548,7 +5906,7 @@
   "JSW9Xw": [
     {
       "type": 0,
-      "value": "Starting SRE Agent"
+      "value": "Memulai Agen SRE"
     }
   ],
   "JT7be1": [
@@ -5712,7 +6070,7 @@
   "JnDKv3": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "Gagal menghentikan Agen SRE "
     },
     {
       "type": 1,
@@ -5785,6 +6143,12 @@
     {
       "type": 0,
       "value": "Tampilkan"
+    }
+  ],
+  "K7tsik": [
+    {
+      "type": 0,
+      "value": "Scheduled task ran successfully"
     }
   ],
   "K9q4Xw": [
@@ -5894,7 +6258,25 @@
   "Kfaepo": [
     {
       "type": 0,
-      "value": "Learn more about connectors"
+      "value": "Pelajari selengkapnya tentang konektor"
+    }
+  ],
+  "Kfr1WB": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "KgcF6B": [
@@ -5919,6 +6301,12 @@
     {
       "type": 0,
       "value": "Petakan ke argumen"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KoJ1C+": [
@@ -5989,24 +6377,16 @@
       "value": "Saran AI dibuang"
     }
   ],
+  "L/ct40": [
+    {
+      "type": 0,
+      "value": "Open in visual view"
+    }
+  ],
   "L/i6dy": [
     {
       "type": 0,
       "value": "Agen ini akan ditandai sebagai Otonom secara otomatis agar dapat berjalan sendiri."
-    }
-  ],
-  "L0KVkI": [
-    {
-      "type": 0,
-      "value": "Penghapusan Agen SRE "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " sedang dikerjakan"
     }
   ],
   "L7EoQf": [
@@ -6107,6 +6487,12 @@
       "value": "Melihat semua sumber daya, namun tidak mengizinkan Anda untuk melakukan perubahan apa pun."
     }
   ],
+  "LSqcaU": [
+    {
+      "type": 0,
+      "value": "Maximum 200,000 AAUs"
+    }
+  ],
   "LTDPn/": [
     {
       "type": 0,
@@ -6142,7 +6528,7 @@
   "LaIt/v": [
     {
       "type": 0,
-      "value": "Creating Kusto Tool"
+      "value": "Membuat Alat Kusto"
     }
   ],
   "LbkJp1": [
@@ -6260,6 +6646,12 @@
       "value": "Tambahkan filter"
     }
   ],
+  "M0ay1D": [
+    {
+      "type": 0,
+      "value": "Running scheduled task(s)"
+    }
+  ],
   "M3159R": [
     {
       "type": 0,
@@ -6288,6 +6680,52 @@
     {
       "type": 0,
       "value": "ID Insiden"
+    }
+  ],
+  "MCLPMF": [
+    {
+      "type": 0,
+      "value": "Scale your agent’s capabilities with subagents"
+    }
+  ],
+  "MGZggN": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "MHkWzD": [
@@ -6473,7 +6911,7 @@
   "N/CtWu": [
     {
       "type": 0,
-      "value": "Unselected"
+      "value": "Batal dipilih"
     }
   ],
   "N0d5pM": [
@@ -6498,6 +6936,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "N2IrpM": [
+    {
+      "type": 0,
+      "value": "Confirm"
     }
   ],
   "N7cqYp": [
@@ -6573,7 +7017,7 @@
   "NN4zut": [
     {
       "type": 0,
-      "value": "Support + troubleshooting"
+      "value": "Dukungan + pemecahan masalah"
     }
   ],
   "NOMbLF": [
@@ -6636,6 +7080,12 @@
       "value": "Agen yang difilter"
     }
   ],
+  "NmQwIl": [
+    {
+      "type": 0,
+      "value": "Schedule:"
+    }
+  ],
   "Nrc9ba": [
     {
       "type": 0,
@@ -6681,7 +7131,7 @@
   "O+srpo": [
     {
       "type": 0,
-      "value": "Review "
+      "value": "Tinjau "
     },
     {
       "offset": 0,
@@ -6690,7 +7140,7 @@
           "value": [
             {
               "type": 0,
-              "value": "findings"
+              "value": "temuan"
             }
           ]
         },
@@ -6701,7 +7151,7 @@
             },
             {
               "type": 0,
-              "value": " quick fix"
+              "value": " perbaikan cepat"
             }
           ]
         },
@@ -6712,7 +7162,7 @@
             },
             {
               "type": 0,
-              "value": " quick fixes"
+              "value": " perbaikan cepat"
             }
           ]
         }
@@ -6725,7 +7175,7 @@
   "O/gthC": [
     {
       "type": 0,
-      "value": "Go to Scheduled Task"
+      "value": "Buka Tugas Terjadwal"
     }
   ],
   "O0JI8M": [
@@ -6755,7 +7205,7 @@
   "O9C6j/": [
     {
       "type": 0,
-      "value": "Create subagent"
+      "value": "Buat subagen"
     }
   ],
   "OBoUb6": [
@@ -6811,7 +7261,7 @@
   "ONbwY2": [
     {
       "type": 0,
-      "value": "Custom Tool"
+      "value": "Alat Kustom"
     }
   ],
   "OO5Y94": [
@@ -6945,13 +7395,13 @@
   "OoxcFC": [
     {
       "type": 0,
-      "value": "Select the input type"
+      "value": "Pilih jenis input"
     }
   ],
   "OpUvSu": [
     {
       "type": 0,
-      "value": "Create Kusto Tool"
+      "value": "Buat Alat Kusto"
     }
   ],
   "OrQ4EY": [
@@ -7035,15 +7485,11 @@
   "PBKSeP": [
     {
       "type": 0,
-      "value": "Set up "
+      "value": "Siapkan konektor "
     },
     {
       "type": 1,
       "value": "service"
-    },
-    {
-      "type": 0,
-      "value": " connector"
     }
   ],
   "PCrXDG": [
@@ -7055,7 +7501,7 @@
   "PF15hb": [
     {
       "type": 0,
-      "value": "Input value"
+      "value": "Nilai input"
     }
   ],
   "PFUTWt": [
@@ -7091,7 +7537,7 @@
   "PKvAvF": [
     {
       "type": 0,
-      "value": "Extend your agent’s capabilities with connectors"
+      "value": "Perluas kemampuan agen Anda dengan konektor"
     }
   ],
   "PPrKNq": [
@@ -7139,13 +7585,13 @@
   "PXJ+oX": [
     {
       "type": 0,
-      "value": "To view incidents triggered, go to Incidents"
+      "value": "Untuk melihat insiden yang dipicu, buka Insiden"
     }
   ],
   "PXJi2R": [
     {
       "type": 0,
-      "value": "No target agent specified"
+      "value": "Tidak ada agen target yang ditentukan"
     }
   ],
   "PXYq8b": [
@@ -7185,7 +7631,7 @@
   "PbaaPs": [
     {
       "type": 0,
-      "value": "Add subagent"
+      "value": "Tambahkan subagen"
     }
   ],
   "Pc+tM3": [
@@ -7230,6 +7676,12 @@
     {
       "type": 0,
       "value": "Azure Monitor tersambung"
+    }
+  ],
+  "PpdTYy": [
+    {
+      "type": 0,
+      "value": "Failed to update tool"
     }
   ],
   "PrFU82": [
@@ -7351,7 +7803,7 @@
   "Q6Lw7i": [
     {
       "type": 0,
-      "value": "To learn more about permissions, click here."
+      "value": "Untuk mempelajari selengkapnya tentang izin, klik di sini."
     }
   ],
   "Q7/1w4": [
@@ -7364,6 +7816,16 @@
     {
       "type": 0,
       "value": "Deskripsi"
+    }
+  ],
+  "Q9IHxV": [
+    {
+      "type": 0,
+      "value": "Running scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -7409,7 +7871,7 @@
   "QDa8Q+": [
     {
       "type": 0,
-      "value": "Add connector"
+      "value": "Tambahkan konektor"
     }
   ],
   "QEhO+z": [
@@ -7433,7 +7895,7 @@
   "QK0vxq": [
     {
       "type": 0,
-      "value": "Go to Connectors"
+      "value": "Buka Konektor"
     }
   ],
   "QOSRgI": [
@@ -7445,11 +7907,15 @@
   "QP91Js": [
     {
       "type": 0,
-      "value": "Updated subagent "
+      "value": "Subagen "
     },
     {
       "type": 1,
       "value": "agentName"
+    },
+    {
+      "type": 0,
+      "value": " diperbarui"
     }
   ],
   "QQX4Pv": [
@@ -7467,7 +7933,7 @@
   "QW+Q5N": [
     {
       "type": 0,
-      "value": "Clear all"
+      "value": "Hapus semua"
     }
   ],
   "QWEHW2": [
@@ -7564,12 +8030,6 @@
       "value": "Tidak diperlukan perbaikan cepat."
     }
   ],
-  "Qn8Bok": [
-    {
-      "type": 0,
-      "value": "Penyerahan kembali"
-    }
-  ],
   "QomX1y": [
     {
       "type": 0,
@@ -7631,19 +8091,13 @@
   "R3eMOe": [
     {
       "type": 0,
-      "value": "Outlook account"
-    }
-  ],
-  "R3mMmc": [
-    {
-      "type": 0,
-      "value": "Penggeser batas AAU bulanan"
+      "value": "Akun Outlook"
     }
   ],
   "R4Blzb": [
     {
       "type": 0,
-      "value": "No Feedback Yet"
+      "value": "Belum Ada Umpan Balik"
     }
   ],
   "R7DP3y": [
@@ -7673,7 +8127,7 @@
   "REOGTJ": [
     {
       "type": 0,
-      "value": "Add a connector to give the agent additional tools for automating incident handling."
+      "value": "Tambahkan konektor untuk memberikan agen alat tambahan untuk mengotomatiskan penanganan insiden."
     }
   ],
   "RH8rNM": [
@@ -7711,7 +8165,7 @@
   "RMD0Mj": [
     {
       "type": 0,
-      "value": "Failed to add handoff from "
+      "value": "Gagal menambahkan serah terima dari "
     },
     {
       "type": 1,
@@ -7719,7 +8173,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ke subagen "
     },
     {
       "type": 1,
@@ -7727,7 +8181,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": ". Kesalahan: "
     },
     {
       "type": 1,
@@ -7854,20 +8308,6 @@
       "value": "12 jam terakhir"
     }
   ],
-  "S2jxf1": [
-    {
-      "type": 0,
-      "value": "No "
-    },
-    {
-      "type": 1,
-      "value": "activeTab"
-    },
-    {
-      "type": 0,
-      "value": " found"
-    }
-  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7890,6 +8330,12 @@
       "value": "Mode playground"
     }
   ],
+  "S6we8v": [
+    {
+      "type": 0,
+      "value": "Edit incident trigger"
+    }
+  ],
   "S8/4ZI": [
     {
       "type": 0,
@@ -7905,7 +8351,7 @@
   "SB7SRx": [
     {
       "type": 0,
-      "value": "Creating subagent "
+      "value": "Membuat subagen "
     },
     {
       "type": 1,
@@ -7921,7 +8367,7 @@
   "SDsdCi": [
     {
       "type": 0,
-      "value": "Add existing tools"
+      "value": "Tambahkan alat yang sudah ada"
     }
   ],
   "SFUZOQ": [
@@ -7933,7 +8379,7 @@
   "SIW6OB": [
     {
       "type": 0,
-      "value": "Threads with Insights ("
+      "value": "Utas dengan Wawasan ("
     },
     {
       "type": 1,
@@ -8038,6 +8484,12 @@
       "value": "Tingkat otonomi"
     }
   ],
+  "SeZ8eZ": [
+    {
+      "type": 0,
+      "value": "AAU consumption reminder"
+    }
+  ],
   "Seanpx": [
     {
       "type": 0,
@@ -8066,6 +8518,12 @@
     {
       "type": 0,
       "value": "Draf belum sinkron"
+    }
+  ],
+  "SoBWeV": [
+    {
+      "type": 0,
+      "value": "Monthly active flow AAUs"
     }
   ],
   "Sr4IbA": [
@@ -8133,7 +8591,7 @@
   "T/nqbo": [
     {
       "type": 0,
-      "value": "Feedback ID"
+      "value": "ID Umpan Balik"
     }
   ],
   "T0/eoE": [
@@ -8145,7 +8603,7 @@
   "T0e6Lh": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "Hapus "
     },
     {
       "type": 1,
@@ -8218,6 +8676,24 @@
       "value": "Biarkan kosong untuk eksekusi tak terbatas"
     }
   ],
+  "TGc4Lh": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "THFIRB": [
     {
       "type": 0,
@@ -8262,6 +8738,12 @@
     {
       "type": 0,
       "value": "Penagihan Azure SRE Agent diukur dalam unit agen Azure (AAU). Tagihan AAU bulanan memperhitungkan penggunaan tetap dari alur always-on dan penggunaan yang dinamis dari alur aktif. Anda dapat meningkatkan atau menurunkan alokasi AAU alur aktif kapan saja."
+    }
+  ],
+  "TP/cMX": [
+    {
+      "type": 0,
+      "value": "Ended"
     }
   ],
   "TQ0n+a": [
@@ -8309,13 +8791,13 @@
   "TdvJVw": [
     {
       "type": 0,
-      "value": "Suggested improvements"
+      "value": "Peningkatan yang disarankan"
     }
   ],
   "TexFnY": [
     {
       "type": 0,
-      "value": "This insight does not have markdown content."
+      "value": "Wawasan ini tidak memiliki konten markdown."
     }
   ],
   "Tg4Q8g": [
@@ -8357,7 +8839,7 @@
   "TrnqJG": [
     {
       "type": 0,
-      "value": "Input type"
+      "value": "Tipe input"
     }
   ],
   "TwMqIK": [
@@ -8387,7 +8869,7 @@
   "UBbDNy": [
     {
       "type": 0,
-      "value": "No documents in knowledge base. Add some?"
+      "value": "Tidak ada dokumen dalam basis pengetahuan. Tambahkan beberapa?"
     }
   ],
   "UCYFxr": [
@@ -8415,7 +8897,7 @@
   "UNQfKX": [
     {
       "type": 0,
-      "value": "Enter a descriptive name"
+      "value": "Masukkan nama deskriptif"
     }
   ],
   "UNXega": [
@@ -8547,7 +9029,7 @@
   "V9GGMu": [
     {
       "type": 0,
-      "value": "No threads with session insights found."
+      "value": "Tidak ditemukan utas dengan wawasan sesi."
     }
   ],
   "VA/Z1S": [
@@ -8571,7 +9053,7 @@
   "VBAOA8": [
     {
       "type": 0,
-      "value": "Select subagents for handoff"
+      "value": "Pilih subagen untuk serah terima"
     }
   ],
   "VIYXlx": [
@@ -8580,22 +9062,10 @@
       "value": "Pratinjau obrolan"
     }
   ],
-  "VIcJZp": [
-    {
-      "type": 0,
-      "value": "Tampilan Daftar"
-    }
-  ],
   "VIgoaE": [
     {
       "type": 0,
       "value": "Tidak ada sub-agen yang dikonfigurasi"
-    }
-  ],
-  "VIn2J0": [
-    {
-      "type": 0,
-      "value": "Sub-agen"
     }
   ],
   "VKbBsK": [
@@ -8674,6 +9144,12 @@
       "value": "Masukkan ID monitor"
     }
   ],
+  "Vaj9nj": [
+    {
+      "type": 0,
+      "value": "Don't show this message again"
+    }
+  ],
   "Vb+qQ4": [
     {
       "type": 0,
@@ -8689,7 +9165,7 @@
   "Vipo+I": [
     {
       "type": 0,
-      "value": "No parameters configured"
+      "value": "Tidak ada parameter yang dikonfigurasi"
     }
   ],
   "VlBNux": [
@@ -8723,7 +9199,7 @@
   "Vs/db/": [
     {
       "type": 0,
-      "value": "Adding handoff from "
+      "value": "Menambahkan serah terima dari "
     },
     {
       "type": 1,
@@ -8731,7 +9207,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ke subagen "
     },
     {
       "type": 1,
@@ -8795,7 +9271,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "Eksekusi"
     }
   ],
   "W2JBdp": [
@@ -8855,7 +9331,13 @@
   "WJj+TP": [
     {
       "type": 0,
-      "value": "You do not have permission to check incident management connection."
+      "value": "Anda tidak memiliki izin untuk memeriksa koneksi manajemen insiden."
+    }
+  ],
+  "WK8csJ": [
+    {
+      "type": 0,
+      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -8992,7 +9474,7 @@
   "WjqsyE": [
     {
       "type": 0,
-      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
+      "value": "Jika diaktifkan, alat SearchMemory dan perintah basis pengetahuan akan ditambahkan secara otomatis"
     }
   ],
   "Wkup5T": [
@@ -9035,6 +9517,24 @@
     {
       "type": 0,
       "value": "Nama harus diawali dengan huruf, diakhiri dengan huruf atau angka, dan hanya berisi huruf, angka, dan tanda hubung. Harus berisi 2 sampai 23 karakter."
+    }
+  ],
+  "WuyjCf": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "WygVDv": [
@@ -9146,7 +9646,7 @@
   "XDcbqQ": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent"
+      "value": "Menghentikan Agen SRE"
     }
   ],
   "XEB3Fn": [
@@ -9272,7 +9772,7 @@
   "XS8hWM": [
     {
       "type": 0,
-      "value": "Enter a boolean"
+      "value": "Masukkan boolean"
     }
   ],
   "XV8dOu": [
@@ -9284,7 +9784,7 @@
   "XYIeUc": [
     {
       "type": 0,
-      "value": "Agent permissions are determined by its assigned RBAC roles."
+      "value": "Izin agen ditentukan oleh peran RBAC yang ditetapkan."
     }
   ],
   "XYSJsS": [
@@ -9332,7 +9832,7 @@
   "XfAFyQ": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "Menghapus "
     },
     {
       "type": 1,
@@ -9340,7 +9840,7 @@
     },
     {
       "type": 0,
-      "value": " connectors..."
+      "value": " konektor..."
     }
   ],
   "Xkdnen": [
@@ -9370,7 +9870,7 @@
   "Xup5P8": [
     {
       "type": 0,
-      "value": "What happened"
+      "value": "Apa yang terjadi"
     }
   ],
   "XvrDTb": [
@@ -9382,7 +9882,7 @@
   "XyUQa7": [
     {
       "type": 0,
-      "value": "Improved instructions"
+      "value": "Instruksi yang ditingkatkan"
     }
   ],
   "Y0BC+F": [
@@ -9420,17 +9920,17 @@
   "Y47Dwm": [
     {
       "type": 0,
-      "value": "Kusto tools"
+      "value": "Alat Kusto"
     }
   ],
   "Y5IFiT": [
     {
-      "type": 1,
-      "value": "service"
+      "type": 0,
+      "value": "Akun "
     },
     {
-      "type": 0,
-      "value": " account"
+      "type": 1,
+      "value": "service"
     }
   ],
   "Y7Lbpf": [
@@ -9454,7 +9954,7 @@
   "YBHvOV": [
     {
       "type": 0,
-      "value": "Updating subagent "
+      "value": "Memperbarui subagen "
     },
     {
       "type": 1,
@@ -9500,7 +10000,7 @@
   "YKwGp6": [
     {
       "type": 0,
-      "value": "Added tools to "
+      "value": "Menambahkan alat ke "
     },
     {
       "type": 1,
@@ -9769,12 +10269,6 @@
       "value": "Mulai pada"
     }
   ],
-  "ZOdb7N": [
-    {
-      "type": 0,
-      "value": "Tampilan Visual"
-    }
-  ],
   "ZPP6n7": [
     {
       "type": 0,
@@ -9963,7 +10457,7 @@
   "a8fWCd": [
     {
       "type": 0,
-      "value": "Enter a datetime"
+      "value": "Masukkan tanggalwaktu"
     }
   ],
   "a8l/yJ": [
@@ -10012,12 +10506,6 @@
     {
       "type": 0,
       "value": "Memiliki akses ke fungsi Baca dan Uji di bawah LUIS."
-    }
-  ],
-  "aH3ak4": [
-    {
-      "type": 0,
-      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -10087,12 +10575,6 @@
     {
       "type": 0,
       "value": "Tingkatkan pengetahuan agen tentang infrastruktur Anda"
-    }
-  ],
-  "aTyEZH": [
-    {
-      "type": 0,
-      "value": "Cari rencana respons"
     }
   ],
   "aWpBzj": [
@@ -10197,6 +10679,12 @@
       "value": "Pemeriksaan audit"
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b2PyOl": [
     {
       "type": 0,
@@ -10257,10 +10745,16 @@
       "value": "URI kluster"
     }
   ],
+  "bDbbX7": [
+    {
+      "type": 0,
+      "value": "Edit Kusto tool"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
-      "value": "Thread Feedback"
+      "value": "Umpan Balik Utas"
     }
   ],
   "bK0VQe": [
@@ -10323,6 +10817,24 @@
     {
       "type": 0,
       "value": "Stabil - Menerima pembaruan sebulan sekali"
+    }
+  ],
+  "bjDKAe": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "bjLeN1": [
@@ -10450,7 +10962,7 @@
   "byP6IC": [
     {
       "type": 0,
-      "value": "Selected"
+      "value": "Dipilih"
     }
   ],
   "c/8Uhj": [
@@ -10504,7 +11016,7 @@
   "c5hwBU": [
     {
       "type": 0,
-      "value": "The agent will resume all activities."
+      "value": "Agen akan melanjutkan semua aktivitas."
     }
   ],
   "c8Doeq": [
@@ -10548,7 +11060,7 @@
   "cHKA8f": [
     {
       "type": 0,
-      "value": "No insight content available"
+      "value": "Tidak ada konten wawasan yang tersedia"
     }
   ],
   "cJGGY4": [
@@ -10566,7 +11078,7 @@
   "cLHCHE": [
     {
       "type": 0,
-      "value": "Connector status"
+      "value": "Status konektor"
     }
   ],
   "cRTR/A": [
@@ -10587,6 +11099,12 @@
       "value": "Kontributor Akun Penyimpanan"
     }
   ],
+  "cXAlMR": [
+    {
+      "type": 0,
+      "value": "Scheduled"
+    }
+  ],
   "cYwv8P": [
     {
       "type": 0,
@@ -10602,7 +11120,7 @@
   "cesI6Z": [
     {
       "type": 0,
-      "value": "No feedback selected"
+      "value": "Tidak ada umpan balik yang dipilih"
     }
   ],
   "cfbpDd": [
@@ -10618,7 +11136,7 @@
   "cg54iX": [
     {
       "type": 0,
-      "value": "Kusto tool name"
+      "value": "Nama alat Kusto"
     }
   ],
   "ciB+oy": [
@@ -10724,7 +11242,7 @@
   "d2czNd": [
     {
       "type": 0,
-      "value": "Datetime"
+      "value": "Tanggalwaktu"
     }
   ],
   "d3MtwZ": [
@@ -10759,6 +11277,12 @@
     {
       "type": 1,
       "value": "fieldName"
+    }
+  ],
+  "dF2h2y": [
+    {
+      "type": 0,
+      "value": "Filter by incident id or title"
     }
   ],
   "dG8VrM": [
@@ -10801,6 +11325,12 @@
     {
       "type": 0,
       "value": "Mengizinkan akses baca penuh ke properti bidang data Layanan Pengadaan Perangkat."
+    }
+  ],
+  "dQJz2m": [
+    {
+      "type": 0,
+      "value": "This feature isn't available in this portal yet."
     }
   ],
   "dQKATf": [
@@ -10945,6 +11475,12 @@
       "value": "Beri skor kualitas agen"
     }
   ],
+  "dzy0ND": [
+    {
+      "type": 0,
+      "value": "Run scheduled task"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -11002,7 +11538,7 @@
   "eRwVws": [
     {
       "type": 0,
-      "value": "You need an incident platform to add an incident trigger."
+      "value": "Anda memerlukan platform insiden untuk menambahkan pemicu insiden."
     }
   ],
   "eUEjcm": [
@@ -11082,7 +11618,7 @@
   "ekSxhn": [
     {
       "type": 0,
-      "value": "Connectors give the agent more tools to take action."
+      "value": "Konektor memberi agen lebih banyak alat untuk melakukan tindakan."
     }
   ],
   "emW/QQ": [
@@ -11100,7 +11636,7 @@
   "eq57j2": [
     {
       "type": 0,
-      "value": "Add incident trigger"
+      "value": "Tambahkan pemicu insiden"
     }
   ],
   "eqYdSS": [
@@ -11158,7 +11694,7 @@
   "f04POI": [
     {
       "type": 0,
-      "value": "Tool created successfully"
+      "value": "Alat berhasil dibuat"
     }
   ],
   "f0LQra": [
@@ -11212,7 +11748,7 @@
   "fCiXKq": [
     {
       "type": 0,
-      "value": "Add scheduled task"
+      "value": "Tambahkan tugas terjadwal"
     }
   ],
   "fE5E6W": [
@@ -11312,7 +11848,7 @@
   "fiLH5L": [
     {
       "type": 0,
-      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+      "value": "Untuk membuat alat Kusto, tambahkan konektor Azure Data Explorer terlebih dahulu."
     }
   ],
   "fio5op": [
@@ -11382,13 +11918,19 @@
   "fuHqFL": [
     {
       "type": 0,
-      "value": "No session insights found."
+      "value": "Tidak ditemukan wawasan sesi."
     }
   ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "Semua status"
+    }
+  ],
+  "fvSiRs": [
+    {
+      "type": 0,
+      "value": "Tool updated successfully"
     }
   ],
   "fyaE5g": [
@@ -11502,7 +12044,7 @@
   "gclDgn": [
     {
       "type": 0,
-      "value": "Create a Kusto tool"
+      "value": "Buat alat Kusto"
     }
   ],
   "gct+2s": [
@@ -11526,7 +12068,7 @@
   "ghwElt": [
     {
       "type": 0,
-      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
+      "value": "Buka Dukungan + Pemecahan Masalah untuk mengakses sumber daya dukungan dan memecahkan masalah yang terkait dengan Agen SRE Anda."
     }
   ],
   "gj6Qc6": [
@@ -11556,7 +12098,7 @@
   "gox4oK": [
     {
       "type": 0,
-      "value": "Enter the database name"
+      "value": "Masukkan nama database"
     }
   ],
   "grgDhd": [
@@ -11642,7 +12184,7 @@
   "h/OQTK": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders."
+      "value": "Gunakan ##ParamName## dalam kueri Anda untuk menentukan tempat penampung parameter."
     }
   ],
   "h0W8DM": [
@@ -11690,7 +12232,7 @@
   "hF/2EL": [
     {
       "type": 0,
-      "value": "Handoff Instructions"
+      "value": "Instruksi serah terima"
     }
   ],
   "hF5T80": [
@@ -11709,6 +12251,12 @@
     {
       "type": 0,
       "value": "Jadwal"
+    }
+  ],
+  "hGnjdE": [
+    {
+      "type": 0,
+      "value": "Learn more about AAU consumption and cost"
     }
   ],
   "hHz/bk": [
@@ -11783,6 +12331,12 @@
       "value": "Alat sistem bersifat baca-saja. Tampilkan YAML sebagai referensi."
     }
   ],
+  "hdfKe+": [
+    {
+      "type": 0,
+      "value": "Automatically starts a subagent in response to an incident or alert."
+    }
+  ],
   "heMr0D": [
     {
       "type": 0,
@@ -11819,6 +12373,12 @@
       "value": "Pratinjau rekomendasi AI tanpa mengubah instruksi Anda"
     }
   ],
+  "hjtyTg": [
+    {
+      "type": 0,
+      "value": "End date must be after start date."
+    }
+  ],
   "hkgUC5": [
     {
       "type": 0,
@@ -11840,13 +12400,13 @@
   "hoHnYn": [
     {
       "type": 0,
-      "value": "Improved handoff instructions"
+      "value": "Instruksi serah terima yang ditingkatkan"
     }
   ],
   "hqWr3L": [
     {
       "type": 0,
-      "value": "RCA category"
+      "value": "Kategori RCA"
     }
   ],
   "hrdmcd": [
@@ -11873,6 +12433,12 @@
       "value": "Dasbor"
     }
   ],
+  "i3P6ZD": [
+    {
+      "type": 0,
+      "value": "Created at:"
+    }
+  ],
   "i5OUQE": [
     {
       "type": 0,
@@ -11889,6 +12455,12 @@
     {
       "type": 0,
       "value": "Lakukan tugas ilmu data di Azure Machine Learning."
+    }
+  ],
+  "i6x7bU": [
+    {
+      "type": 0,
+      "value": "The agent is stopped"
     }
   ],
   "iDPKM0": [
@@ -11924,7 +12496,7 @@
   "iMaY2Q": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent "
+      "value": "Penghentian Agen SRE "
     },
     {
       "type": 1,
@@ -11932,13 +12504,19 @@
     },
     {
       "type": 0,
-      "value": " in progress"
+      "value": " sedang dalam proses"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
       "value": "Pilih filter"
+    }
+  ],
+  "iPhHGC": [
+    {
+      "type": 0,
+      "value": "Learn more about scheduled tasks"
     }
   ],
   "iV7LUx": [
@@ -11956,7 +12534,13 @@
   "iY7P1k": [
     {
       "type": 0,
-      "value": "Agent Autonomy"
+      "value": "Otonomi Agen"
+    }
+  ],
+  "iYJ/Ha": [
+    {
+      "type": 0,
+      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -11998,7 +12582,7 @@
   "ifdupA": [
     {
       "type": 0,
-      "value": "To view runs, go to Agent Runs"
+      "value": "Untuk melihat eksekusi, buka Agen Eksekusi"
     }
   ],
   "iihhVc": [
@@ -12019,6 +12603,12 @@
     {
       "type": 0,
       "value": " gagal. Coba tautkan lagi."
+    }
+  ],
+  "ioRcwS": [
+    {
+      "type": 0,
+      "value": "Scheduled task trigger"
     }
   ],
   "ipsqxO": [
@@ -12113,6 +12703,18 @@
       "value": "."
     }
   ],
+  "j0Ifob": [
+    {
+      "type": 0,
+      "value": "Do you want to proceed?"
+    }
+  ],
+  "j0bMX6": [
+    {
+      "type": 0,
+      "value": "No incident metrics to report"
+    }
+  ],
   "j1FyDL": [
     {
       "type": 0,
@@ -12122,7 +12724,7 @@
   "j1pB0w": [
     {
       "type": 0,
-      "value": "Go to Agent Consumption"
+      "value": "Buka Konsumsi Agen"
     }
   ],
   "j3bwJQ": [
@@ -12165,6 +12767,30 @@
     {
       "type": 0,
       "value": "Tidak ada hasil"
+    }
+  ],
+  "jIcHPc": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "jJ7kNS": [
+    {
+      "type": 0,
+      "value": "Try selecting a different date range."
     }
   ],
   "jJE3xY": [
@@ -12251,6 +12877,16 @@
       "value": "Masukkan nama sub-agen"
     }
   ],
+  "jX6uvW": [
+    {
+      "type": 0,
+      "value": "Failed to run task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -12260,7 +12896,7 @@
   "ja85pV": [
     {
       "type": 0,
-      "value": "Add Documents"
+      "value": "Tambahkan Dokumen"
     }
   ],
   "jabB4C": [
@@ -12386,7 +13022,7 @@
   "kFkPWB": [
     {
       "type": 0,
-      "value": "Number"
+      "value": "Angka"
     }
   ],
   "kG0ZtT": [
@@ -12456,13 +13092,13 @@
   "ketkP5": [
     {
       "type": 0,
-      "value": "Knowledge Base Enabled"
+      "value": "Basis Pengetahuan Diaktifkan"
     }
   ],
   "khI1mJ": [
     {
       "type": 0,
-      "value": "Edit subagent"
+      "value": "Edit subagen"
     }
   ],
   "khOzXi": [
@@ -12542,35 +13178,13 @@
   "kxokJj": [
     {
       "type": 0,
-      "value": "Agent datagrid"
+      "value": "Datagrid agen"
     }
   ],
   "l+e8nZ": [
     {
       "type": 0,
       "value": "Yakin ingin menghapus tugas terjadwal yang dipilih? Tindakan ini tidak dapat dibatalkan."
-    }
-  ],
-  "l0TtPi": [
-    {
-      "type": 0,
-      "value": "Pilih maksimal "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " grup sumber daya yang Anda miliki izinnya. "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " grup sumber daya dipilih."
     }
   ],
   "l0UKyP": [
@@ -12582,7 +13196,7 @@
   "l0VCdV": [
     {
       "type": 0,
-      "value": "Create tool"
+      "value": "Buat alat"
     }
   ],
   "l2Ni9H": [
@@ -12601,6 +13215,12 @@
     {
       "type": 0,
       "value": "Ilmuwan Data AzureML"
+    }
+  ],
+  "l8IRTD": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) ran successfully"
     }
   ],
   "lCsNuL": [
@@ -12641,6 +13261,12 @@
     {
       "type": 0,
       "value": "Sumber daya yang terpengaruh"
+    }
+  ],
+  "lQmkhq": [
+    {
+      "type": 0,
+      "value": "Subagents"
     }
   ],
   "lUAfdH": [
@@ -12723,6 +13349,12 @@
       "value": "Terakhir digunakan"
     }
   ],
+  "m/B8a5": [
+    {
+      "type": 0,
+      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "m0kcbz": [
     {
       "type": 0,
@@ -12738,7 +13370,7 @@
   "m4vqJl": [
     {
       "type": 0,
-      "value": "Files"
+      "value": "File"
     }
   ],
   "m57OnF": [
@@ -12892,7 +13524,7 @@
   "mVB9Bd": [
     {
       "type": 0,
-      "value": "Add handoff from "
+      "value": "Tambahkan serah terima dari "
     },
     {
       "type": 1,
@@ -12900,7 +13532,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " ke subagen "
     },
     {
       "type": 1,
@@ -12949,6 +13581,12 @@
       "value": "Tingkat maksimal telah tercapai—terus sempurnakan agar tetap unggul."
     }
   ],
+  "mg8UeB": [
+    {
+      "type": 0,
+      "value": "Filter by response plan name"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -12959,12 +13597,6 @@
     {
       "type": 0,
       "value": "Tidak ada alat yang dikonfigurasi."
-    }
-  ],
-  "mgtFKh": [
-    {
-      "type": 0,
-      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13051,6 +13683,12 @@
       "value": "Tindakan ini akan menghapus koneksi ke ServiceNow secara permanen. Agen tidak lagi dapat mengelola tiket. Yakin ingin memutuskan sambungan?"
     }
   ],
+  "n25S4d": [
+    {
+      "type": 0,
+      "value": "Update Kusto Tool"
+    }
+  ],
   "n2h/5e": [
     {
       "type": 0,
@@ -13112,7 +13750,7 @@
   "nL/Owh": [
     {
       "type": 0,
-      "value": "Send notification"
+      "value": "Kirim pemberitahuan"
     }
   ],
   "nNwFuy": [
@@ -13330,7 +13968,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "Masuk dengan akun yang berbeda"
     }
   ],
   "oIm1Fb": [
@@ -13384,7 +14022,7 @@
   "oTxjU2": [
     {
       "type": 0,
-      "value": "Handoff subagents"
+      "value": "Subagen serah terima"
     }
   ],
   "oUWADl": [
@@ -13423,6 +14061,12 @@
       "value": "Untuk mengubah platform insiden, Anda harus memutuskan sambungan dari Azure Monitor. Agen tidak akan lagi menerima pemberitahuan Azure Monitor. Yakin ingin memutuskan sambungan?"
     }
   ],
+  "ocQGCd": [
+    {
+      "type": 0,
+      "value": "Allow subagent capabilities to override the SRE Agent."
+    }
+  ],
   "ocQXDt": [
     {
       "type": 0,
@@ -13443,12 +14087,6 @@
     {
       "type": 0,
       "value": "Berikan umpan balik respons"
-    }
-  ],
-  "ongAz6": [
-    {
-      "type": 0,
-      "value": "Cari insiden"
     }
   ],
   "ooDMAp": [
@@ -13684,7 +14322,7 @@
   "pgIRcn": [
     {
       "type": 0,
-      "value": "Enter a string"
+      "value": "Masukkan string"
     }
   ],
   "piCpTn": [
@@ -13693,16 +14331,10 @@
       "value": "Setelah dasbor Grafana disediakan dan ditautkan, mungkin diperlukan beberapa saat hingga sumber daya dapat sepenuhnya mengisi dasbor."
     }
   ],
-  "plun1b": [
-    {
-      "type": 0,
-      "value": "Hand-off"
-    }
-  ],
   "pndXMi": [
     {
       "type": 0,
-      "value": "Enter a value"
+      "value": "Masukkan nilai"
     }
   ],
   "pnlHOZ": [
@@ -13748,7 +14380,7 @@
   "pqedsA": [
     {
       "type": 0,
-      "value": "Mute all warnings"
+      "value": "Nonaktifkan pemberitahuan semua peringatan"
     }
   ],
   "pqgzm0": [
@@ -13778,7 +14410,7 @@
   "pw1ueF": [
     {
       "type": 0,
-      "value": "Failed to create meta agent. Error: "
+      "value": "Gagal membuat agen meta. Kesalahan: "
     },
     {
       "type": 1,
@@ -13824,13 +14456,13 @@
   "qB4s5L": [
     {
       "type": 0,
-      "value": "Add parameter"
+      "value": "Tambahkan parameter"
     }
   ],
   "qDwvZ4": [
     {
       "type": 0,
-      "value": "Unknown error"
+      "value": "Kesalahan tidak diketahui"
     }
   ],
   "qQh4Xu": [
@@ -13920,7 +14552,7 @@
   "qrs+1B": [
     {
       "type": 0,
-      "value": "Create meta agent"
+      "value": "Buat agen meta"
     }
   ],
   "qs5hhk": [
@@ -14062,6 +14694,24 @@
       "value": "Insiden Gejala Serupa"
     }
   ],
+  "rIbCjV": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "rKdPkY": [
     {
       "type": 0,
@@ -14165,19 +14815,13 @@
   "raexxM": [
     {
       "type": 0,
-      "value": "Submitted"
+      "value": "Dikirim"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
       "value": "Tutup"
-    }
-  ],
-  "rd+inb": [
-    {
-      "type": 0,
-      "value": "Buat agen AI dengan alat dan konektor kustom. Visualkan cara mereka bekerja sama dalam grafik interaktif. Mulai dengan membuat agen, alat, atau konektor pertama Anda."
     }
   ],
   "rd6YZk": [
@@ -14189,7 +14833,7 @@
   "rdsirP": [
     {
       "type": 0,
-      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+      "value": "Agen telah mencapai batas AAU alur aktif. Agen kini hanya berjalan dalam alur yang selalu aktif dan tidak tersedia untuk obrolan dan tindakan."
     }
   ],
   "rhSI1/": [
@@ -14201,7 +14845,7 @@
   "ri3YXY": [
     {
       "type": 0,
-      "value": "Add a connector"
+      "value": "Tambahkan konektor"
     }
   ],
   "riEsC7": [
@@ -14317,7 +14961,7 @@
   "rzC0Xo": [
     {
       "type": 0,
-      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+      "value": "Agen memposting pemberitahuan ke umpan aktivitas yang terhubung ke obrolan atau tim."
     }
   ],
   "s00xPm": [
@@ -14386,6 +15030,12 @@
     {
       "type": 0,
       "value": "Pilih langganan"
+    }
+  ],
+  "sCRBH3": [
+    {
+      "type": 0,
+      "value": "Search by subagent"
     }
   ],
   "sH0O5v": [
@@ -14535,7 +15185,7 @@
   "sZIoMy": [
     {
       "type": 0,
-      "value": "Send email"
+      "value": "Kirim email"
     }
   ],
   "sd1Vy+": [
@@ -14607,7 +15257,7 @@
   "spEwRf": [
     {
       "type": 0,
-      "value": "You have warnings regarding your agent."
+      "value": "Anda memiliki peringatan terkait agen."
     }
   ],
   "sqGM6w": [
@@ -14634,6 +15284,12 @@
       "value": "Alat dari server Model Context Protocol (MCP). Alat ini dikelompokkan berdasarkan koneksi dan dimuat dari server yang tersambung."
     }
   ],
+  "stbbGt": [
+    {
+      "type": 0,
+      "value": "Performs specialized tasks on behalf of the SRE Agent."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -14655,7 +15311,7 @@
   "swe9tO": [
     {
       "type": 0,
-      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+      "value": "Jalankan pengujian terlebih dahulu untuk memvalidasi kueri dan memastikan agen dapat mengakses Azure Data Explorer."
     }
   ],
   "sy7vzf": [
@@ -14740,6 +15396,12 @@
       "value": "Jeda"
     }
   ],
+  "tFoDh3": [
+    {
+      "type": 0,
+      "value": "Yes, turn on deep investigation"
+    }
+  ],
   "tGHG7q": [
     {
       "type": 0,
@@ -14762,12 +15424,6 @@
     {
       "type": 0,
       "value": "Basis pengetahuan"
-    }
-  ],
-  "tLaLqo": [
-    {
-      "type": 0,
-      "value": "Berikut adalah penyelidikan mendalam Anda:"
     }
   ],
   "tOxzip": [
@@ -14909,7 +15565,7 @@
   "trhBLG": [
     {
       "type": 0,
-      "value": "No insights available"
+      "value": "Tidak ada wawasan yang tersedia"
     }
   ],
   "ts7YvN": [
@@ -14927,7 +15583,7 @@
   "ttWUo6": [
     {
       "type": 0,
-      "value": "Click to view session analysis and insights"
+      "value": "Klik untuk melihat analisis dan wawasan sesi"
     }
   ],
   "tthToS": [
@@ -14939,7 +15595,7 @@
   "tu6JYo": [
     {
       "type": 0,
-      "value": "Start agent"
+      "value": "Mulai agen"
     }
   ],
   "tujypD": [
@@ -15048,10 +15704,22 @@
       "value": "Semua tingkat otonomi"
     }
   ],
+  "uIXQiw": [
+    {
+      "type": 0,
+      "value": "Establishing connection ..."
+    }
+  ],
+  "uKwm6S": [
+    {
+      "type": 0,
+      "value": "Canvas view"
+    }
+  ],
   "uLmZLS": [
     {
       "type": 0,
-      "value": "Active flow AAUs reset in "
+      "value": "AAU alur aktif akan diatur ulang "
     },
     {
       "offset": 0,
@@ -15060,29 +15728,37 @@
           "value": [
             {
               "type": 0,
-              "value": "today"
+              "value": "hari ini"
             }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 0,
+              "value": "dalam "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " day"
+              "value": " hari"
             }
           ]
         },
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "dalam "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " days"
+              "value": " hari"
             }
           ]
         }
@@ -15180,7 +15856,13 @@
   "ueVpay": [
     {
       "type": 0,
-      "value": "Refining..."
+      "value": "Menyempurnakan..."
+    }
+  ],
+  "ufzv1A": [
+    {
+      "type": 0,
+      "value": "Table view"
     }
   ],
   "ug01Mk": [
@@ -15222,7 +15904,7 @@
   "urxxsP": [
     {
       "type": 0,
-      "value": "Agent Performance"
+      "value": "Performa Agen"
     }
   ],
   "us/IXr": [
@@ -15288,7 +15970,7 @@
   "v6cujo": [
     {
       "type": 0,
-      "value": "Kusto tool"
+      "value": "Alat Kusto"
     }
   ],
   "v8cTK0": [
@@ -15366,7 +16048,7 @@
   "vS6Lmt": [
     {
       "type": 0,
-      "value": "Incident triggers"
+      "value": "Pemicu insiden"
     }
   ],
   "vSW3OF": [
@@ -15417,6 +16099,12 @@
     {
       "type": 0,
       "value": "Panduan ini membantu membuat daftar alat dan perintah akhir yang digunakan agen selama penanganan insiden."
+    }
+  ],
+  "vb6deF": [
+    {
+      "type": 0,
+      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
     }
   ],
   "vbdOl/": [
@@ -15474,7 +16162,7 @@
   "vzH0q5": [
     {
       "type": 0,
-      "value": "Choose tools"
+      "value": "Pilih alat"
     }
   ],
   "w+XRP2": [
@@ -15493,6 +16181,12 @@
     {
       "type": 0,
       "value": "Bersihkan deskripsi"
+    }
+  ],
+  "w4Nqlr": [
+    {
+      "type": 0,
+      "value": "Run scheduled task(s)"
     }
   ],
   "w5FDGY": [
@@ -15534,7 +16228,7 @@
   "wBh+z3": [
     {
       "type": 0,
-      "value": "No additional comments provided"
+      "value": "Tidak ada komentar tambahan yang diberikan"
     }
   ],
   "wEQDC6": [
@@ -15587,6 +16281,12 @@
       "value": "format"
     }
   ],
+  "wO9wb5": [
+    {
+      "type": 0,
+      "value": "GitHub"
+    }
+  ],
   "wOHH3J": [
     {
       "type": 0,
@@ -15601,10 +16301,22 @@
       "value": " setiap kali dijalankan."
     }
   ],
+  "wPF0jY": [
+    {
+      "type": 0,
+      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
       "value": "Buat agen penyerahan baru"
+    }
+  ],
+  "wSLRfB": [
+    {
+      "type": 0,
+      "value": "Unknown status"
     }
   ],
   "wSZR47": [
@@ -15616,7 +16328,7 @@
   "wUnPMf": [
     {
       "type": 0,
-      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+      "value": "Pengguna tanpa salah satu peran kontrol akses berbasis peran (RBAC) Azure yang diperlukan tidak akan memiliki akses ke Azure SRE Agent."
     }
   ],
   "wVpXzO": [
@@ -15772,7 +16484,7 @@
   "xEjqoV": [
     {
       "type": 0,
-      "value": "Click here to learn more"
+      "value": "Klik di sini untuk mempelajari selengkapnya"
     }
   ],
   "xGPsyJ": [
@@ -15802,7 +16514,7 @@
   "xLrAFR": [
     {
       "type": 0,
-      "value": "Parameter name"
+      "value": "Nama parameter"
     }
   ],
   "xNC5hG": [
@@ -15811,10 +16523,16 @@
       "value": "Kamus (dikelompokkan ke dalam argumen)"
     }
   ],
+  "xP3hmB": [
+    {
+      "type": 0,
+      "value": "Start:"
+    }
+  ],
   "xPuGYM": [
     {
       "type": 0,
-      "value": "No connectors match your search"
+      "value": "Tidak ada konektor yang cocok dengan pencarian Anda"
     }
   ],
   "xSsto+": [
@@ -15900,7 +16618,7 @@
   "xet2Cv": [
     {
       "type": 0,
-      "value": "Query parameters"
+      "value": "Parameter kueri"
     }
   ],
   "xf9BKi": [
@@ -15979,6 +16697,12 @@
       "value": "Menghapus rencana respons insiden kustom"
     }
   ],
+  "y/m6Ep": [
+    {
+      "type": 0,
+      "value": "GitHub MCP server"
+    }
+  ],
   "y0KXuM": [
     {
       "type": 0,
@@ -16008,7 +16732,7 @@
   "y79eIb": [
     {
       "type": 0,
-      "value": "Assign yourself the SRE Agent Admin role."
+      "value": "Tetapkan peran Admin Agen SRE untuk diri Anda sendiri."
     }
   ],
   "y87pob": [
@@ -16028,7 +16752,7 @@
   "yBnHns": [
     {
       "type": 0,
-      "value": "Sign in to "
+      "value": "Masuk ke "
     },
     {
       "type": 1,
@@ -16050,7 +16774,7 @@
   "yJJ/jv": [
     {
       "type": 0,
-      "value": "Mute this warning"
+      "value": "Nonaktifkan pemberitahuan peringatan ini"
     }
   ],
   "yJSwfQ": [
@@ -16071,6 +16795,12 @@
       "value": "Insiden berhasil dihapus"
     }
   ],
+  "yRKsn1": [
+    {
+      "type": 0,
+      "value": "Learn more about deep investigations"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -16080,7 +16810,7 @@
   "yVe+kY": [
     {
       "type": 0,
-      "value": "Set up connector"
+      "value": "Siapkan konektor"
     }
   ],
   "yX3QcY": [
@@ -16185,6 +16915,46 @@
       "value": "Tipe grup aplikasi inti"
     }
   ],
+  "yrDI3f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "ysBuRt": [
     {
       "type": 0,
@@ -16216,7 +16986,7 @@
   "z43sTn": [
     {
       "type": 0,
-      "value": "View Knowledge Base"
+      "value": "Lihat Basis Pengetahuan"
     }
   ],
   "z5cF/O": [
@@ -16279,6 +17049,12 @@
       "value": "Menganalisis konfigurasi untuk rekomendasi peningkatan."
     }
   ],
+  "zJFez9": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Tasks"
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -16326,7 +17102,7 @@
   "zWkvNO": [
     {
       "type": 0,
-      "value": "Timeline"
+      "value": "Garis waktu"
     }
   ],
   "zZsxcQ": [
@@ -16383,6 +17159,24 @@
     {
       "type": 0,
       "value": "Pengaturan tingkat lanjut"
+    }
+  ],
+  "zpENeF": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "zpkKsD": [

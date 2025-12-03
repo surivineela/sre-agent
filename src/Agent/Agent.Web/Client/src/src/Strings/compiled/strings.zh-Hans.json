@@ -40,7 +40,7 @@
   "+6/51l": [
     {
       "type": 0,
-      "value": "Creating meta agent"
+      "value": "正在创建元智能体"
     }
   ],
   "+7PjfV": [
@@ -58,7 +58,7 @@
   "+ASm/B": [
     {
       "type": 0,
-      "value": "Submit Feedback"
+      "value": "提交反馈"
     }
   ],
   "+Aon83": [
@@ -94,13 +94,19 @@
   "+Kcoxv": [
     {
       "type": 0,
-      "value": "Related incidents"
+      "value": "相关事件"
     }
   ],
   "+KyrhG": [
     {
       "type": 0,
       "value": "选择工具"
+    }
+  ],
+  "+OMfjA": [
+    {
+      "type": 0,
+      "value": "Give access to knowledge base"
     }
   ],
   "+Pmftr": [
@@ -143,16 +149,22 @@
       "value": "类型"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+XtuWl": [
     {
       "type": 0,
-      "value": "This insight needs improvement"
+      "value": "此见解需要改进"
     }
   ],
   "+Y8m6A": [
     {
       "type": 0,
-      "value": "Added handoff from "
+      "value": "已添加从 "
     },
     {
       "type": 1,
@@ -160,11 +172,15 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " 到子智能体 "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " 的转接"
     }
   ],
   "+ZdOJt": [
@@ -230,7 +246,7 @@
   "+nnQeH": [
     {
       "type": 0,
-      "value": "Created meta agent"
+      "value": "已创建元智能体"
     }
   ],
   "+nt4l9": [
@@ -260,7 +276,7 @@
   "/+WtRc": [
     {
       "type": 0,
-      "value": "Enter handoff instructions"
+      "value": "输入转接说明"
     }
   ],
   "//Zb9l": [
@@ -284,7 +300,7 @@
   "/3OCn6": [
     {
       "type": 0,
-      "value": "Insights have not been generated for this thread yet."
+      "value": "尚未为此线程生成见解。"
     }
   ],
   "/4tOwT": [
@@ -302,13 +318,31 @@
   "/7GPtw": [
     {
       "type": 0,
-      "value": "Go to Incidents"
+      "value": "转到“事件”"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
       "value": "管理 SQL 托管实例。"
+    }
+  ],
+  "/8swfk": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "/9FZdx": [
@@ -337,12 +371,6 @@
     {
       "type": 0,
       "value": "清除"
-    }
-  ],
-  "/ImSqA": [
-    {
-      "type": 0,
-      "value": "Review and create"
     }
   ],
   "/N0Usl": [
@@ -454,7 +482,7 @@
   "/qCaiZ": [
     {
       "type": 0,
-      "value": "Incident trigger name"
+      "value": "事件触发器名称"
     }
   ],
   "/rNkXe": [
@@ -524,7 +552,7 @@
   "03qRza": [
     {
       "type": 0,
-      "value": "View AI suggestions"
+      "value": "查看 AI 建议"
     }
   ],
   "05Rzkx": [
@@ -562,15 +590,11 @@
   "0DUgkZ": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "已成功停止 SRE 智能体 "
     },
     {
       "type": 1,
       "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " stopped successfully"
     }
   ],
   "0Dhe75": [
@@ -620,7 +644,7 @@
   "0Qocmw": [
     {
       "type": 0,
-      "value": "All tools"
+      "value": "所有工具"
     }
   ],
   "0R+Pet": [
@@ -662,7 +686,7 @@
   "0VVX+G": [
     {
       "type": 0,
-      "value": "Connected as"
+      "value": "已连接为"
     }
   ],
   "0VuGey": [
@@ -706,7 +730,7 @@
   "0hpRE4": [
     {
       "type": 0,
-      "value": "Enter the parameter name"
+      "value": "输入参数名称"
     }
   ],
   "0i3Qrd": [
@@ -820,7 +844,7 @@
   "0zGfOk": [
     {
       "type": 0,
-      "value": "To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps."
+      "value": "要获得智能体在诊断、指标、知识等方面的最佳性能，请使用资源组，这些资源组包含以下一个或多个 Azure 计算服务: Azure Kubernetes 服务、Functions、容器应用或 Web 应用。"
     }
   ],
   "12GY0h": [
@@ -833,6 +857,16 @@
     {
       "type": 0,
       "value": "使用(触发器)"
+    }
+  ],
+  "13KTIN": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource group selected."
     }
   ],
   "15GWkT": [
@@ -862,7 +896,7 @@
   "19xydZ": [
     {
       "type": 0,
-      "value": "You do not have permission to generate insights for this thread."
+      "value": "你无权针对此线程生成见解。"
     }
   ],
   "1CcjQj": [
@@ -903,18 +937,10 @@
       "value": "尚未上传任何文档"
     }
   ],
-  "1O47t6": [
+  "1LBny5": [
     {
       "type": 0,
-      "value": "已成功删除 SRE 代理“"
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "”"
+      "value": "Stopped"
     }
   ],
   "1OorZL": [
@@ -1033,6 +1059,12 @@
       "value": "%"
     }
   ],
+  "1m4VPF": [
+    {
+      "type": 0,
+      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+    }
+  ],
   "1o9eJ6": [
     {
       "offset": 0,
@@ -1062,6 +1094,12 @@
     {
       "type": 0,
       "value": "响应计划"
+    }
+  ],
+  "1xTayQ": [
+    {
+      "type": 0,
+      "value": "Enter endpoint"
     }
   ],
   "1xZjpU": [
@@ -1257,7 +1295,7 @@
   "2l5w5P": [
     {
       "type": 0,
-      "value": "Go to Support + Troubleshooting"
+      "value": "转到“支持 + 疑难解答”"
     }
   ],
   "2m6oj5": [
@@ -1287,7 +1325,7 @@
   "2reUcp": [
     {
       "type": 0,
-      "value": "Subagent name"
+      "value": "子智能体名称"
     }
   ],
   "2tOWr2": [
@@ -1368,6 +1406,12 @@
       "value": "尚无智能体可用"
     }
   ],
+  "3IKub9": [
+    {
+      "type": 0,
+      "value": "An unexpected error occurred"
+    }
+  ],
   "3JVa6k": [
     {
       "type": 0,
@@ -1446,6 +1490,30 @@
       "value": "Add MCP server"
     }
   ],
+  "3h7ZKg": [
+    {
+      "type": 0,
+      "value": "Review + add"
+    }
+  ],
+  "3hmrCJ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "3jPMQI": [
     {
       "type": 0,
@@ -1470,10 +1538,32 @@
       "value": "读取者"
     }
   ],
+  "3rvQhx": [
+    {
+      "type": 0,
+      "value": "You can manage up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups you have permissions on. Your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups."
+    }
+  ],
   "3sNyAo": [
     {
       "type": 0,
-      "value": "The url must be in the format: "
+      "value": "URL 必须采用格式: "
     },
     {
       "type": 1,
@@ -1584,6 +1674,12 @@
       "value": "未配置任何常用工具。"
     }
   ],
+  "450Fty": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "451B6Z": [
     {
       "type": 0,
@@ -1643,7 +1739,7 @@
   "4CcHuj": [
     {
       "type": 0,
-      "value": "Share your thoughts about this insight... (optional)"
+      "value": "分享你对此见解的看法...(可选)"
     }
   ],
   "4Ez7HI": [
@@ -1656,6 +1752,12 @@
     {
       "type": 0,
       "value": "已创建警报"
+    }
+  ],
+  "4IAjnN": [
+    {
+      "type": 0,
+      "value": "Turn on deep investigation?"
     }
   ],
   "4MeTpL": [
@@ -1703,7 +1805,7 @@
   "4RwjwU": [
     {
       "type": 0,
-      "value": "Add handoff from existing agent"
+      "value": "添加从现有智能体开始的转接"
     }
   ],
   "4TnjxL": [
@@ -1721,7 +1823,7 @@
   "4Xep39": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "未能停止 SRE 智能体 "
     },
     {
       "type": 1,
@@ -1779,7 +1881,7 @@
   "4lv5gO": [
     {
       "type": 0,
-      "value": "Create subagent "
+      "value": "创建子智能体 "
     },
     {
       "type": 1,
@@ -1830,12 +1932,6 @@
     {
       "type": 0,
       "value": "，我需要针对美国东部和西欧 AKS 群集中出现的间歇性延迟峰值进行诊断。"
-    }
-  ],
-  "53O1/Z": [
-    {
-      "type": 0,
-      "value": "事件覆盖率"
     }
   ],
   "53qjcm": [
@@ -1918,6 +2014,12 @@
     {
       "type": 0,
       "value": "。"
+    }
+  ],
+  "5NZIbS": [
+    {
+      "type": 0,
+      "value": "Open in Azure Portal"
     }
   ],
   "5POweM": [
@@ -2035,13 +2137,53 @@
   "5fVEet": [
     {
       "type": 0,
-      "value": "Add tools"
+      "value": "添加工具"
     }
   ],
   "5gEh2M": [
     {
       "type": 0,
       "value": "需要关注的事件"
+    }
+  ],
+  "5iE4cZ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "5j5HnL": [
@@ -2184,6 +2326,16 @@
       "value": "已成功添加受管理资源组"
     }
   ],
+  "6+mbvY": [
+    {
+      "type": 1,
+      "value": "seconds"
+    },
+    {
+      "type": 0,
+      "value": " sec"
+    }
+  ],
   "61e5yQ": [
     {
       "type": 0,
@@ -2233,7 +2385,7 @@
   "6BTCPo": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders. Example: where SubscriptionId == \"##SubscriptionId##\" These will be replaced with actual values at runtime."
+      "value": "在查询中使用 ##ParamName## 定义参数占位符。示例: where SubscriptionId == \"##SubscriptionId##\" 这些将在运行时替换为实际值。"
     }
   ],
   "6CrAJC": [
@@ -2278,12 +2430,6 @@
       "value": "建议"
     }
   ],
-  "6OBtew": [
-    {
-      "type": 0,
-      "value": "删除 SRE 代理"
-    }
-  ],
   "6PgVSe": [
     {
       "type": 0,
@@ -2293,7 +2439,7 @@
   "6RNwei": [
     {
       "type": 0,
-      "value": "Update subagent "
+      "value": "更新子智能体 "
     },
     {
       "type": 1,
@@ -2393,7 +2539,7 @@
   "6gD0ie": [
     {
       "type": 0,
-      "value": "Generate Session Insights"
+      "value": "生成会话见解"
     }
   ],
   "6m5Ba0": [
@@ -2402,16 +2548,10 @@
       "value": "数据收集规则"
     }
   ],
-  "6tlKgy": [
-    {
-      "type": 0,
-      "value": "最多可以选择 20 个资源组供代理管理。"
-    }
-  ],
   "6tzuXg": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "未能启动 SRE 智能体 "
     },
     {
       "type": 1,
@@ -2503,7 +2643,7 @@
   "751M54": [
     {
       "type": 0,
-      "value": "Generating insights..."
+      "value": "正在生成见解..."
     }
   ],
   "75lAeu": [
@@ -2521,7 +2661,7 @@
   "79kwlH": [
     {
       "type": 0,
-      "value": "No agents available for handoff"
+      "value": "没有可用于转接的智能体"
     }
   ],
   "7C0xai": [
@@ -2540,6 +2680,24 @@
     {
       "type": 0,
       "value": "审阅模式"
+    }
+  ],
+  "7K6W8s": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Kusto tools deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7M8VZy": [
@@ -2660,6 +2818,12 @@
     {
       "type": 0,
       "value": "项目详细信息"
+    }
+  ],
+  "7kPmO3": [
+    {
+      "type": 0,
+      "value": "Edit connector"
     }
   ],
   "7nUCu9": [
@@ -2806,6 +2970,12 @@
       "value": "这些值将在运行时替换为实际值。"
     }
   ],
+  "8MoJEj": [
+    {
+      "type": 0,
+      "value": "Message grouping:"
+    }
+  ],
   "8NHZQV": [
     {
       "type": 0,
@@ -2866,7 +3036,7 @@
   "8SCDv/": [
     {
       "type": 0,
-      "value": "Enter the query for the tool to run"
+      "value": "输入工具要运行的查询"
     }
   ],
   "8Vd2Kv": [
@@ -2884,7 +3054,7 @@
   "8Zl3PA": [
     {
       "type": 0,
-      "value": "Failed to start SRE Agent "
+      "value": "未能启动 SRE 智能体 "
     },
     {
       "type": 1,
@@ -2964,7 +3134,7 @@
   "8fw5Cz": [
     {
       "type": 0,
-      "value": "Try different search terms or clear your search to see all connectors."
+      "value": "请尝试其他搜索词，或者清除搜索以查看所有连接器。"
     }
   ],
   "8lCjAM": [
@@ -3006,7 +3176,13 @@
   "8u2W0L": [
     {
       "type": 0,
-      "value": "Handoff instructions"
+      "value": "转接说明"
+    }
+  ],
+  "8urALB": [
+    {
+      "type": 0,
+      "value": "Delete connector"
     }
   ],
   "8v0Pyn": [
@@ -3023,6 +3199,24 @@
     {
       "type": 0,
       "value": "关闭待办事项计划"
+    }
+  ],
+  "8yfUKp": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "SRE Agents deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "8yyU6n": [
@@ -3099,6 +3293,12 @@
       "value": "无匹配项"
     }
   ],
+  "96TDsd": [
+    {
+      "type": 0,
+      "value": "Learn more about subagents"
+    }
+  ],
   "98A08r": [
     {
       "type": 0,
@@ -3166,7 +3366,7 @@
   "9WBhPZ": [
     {
       "type": 0,
-      "value": "Session Insights"
+      "value": "会话见解"
     }
   ],
   "9WRlF4": [
@@ -3253,6 +3453,12 @@
       "value": "即将向此实体推出 YAML 编辑功能。"
     }
   ],
+  "A+4geD": [
+    {
+      "type": 0,
+      "value": "Create GitHub issue with SRE agent team"
+    }
+  ],
   "A/xTHO": [
     {
       "type": 0,
@@ -3292,7 +3498,7 @@
   "A9cgAa": [
     {
       "type": 0,
-      "value": "No insight selected"
+      "value": "未选择任何见解"
     }
   ],
   "AA/tRJ": [
@@ -3327,6 +3533,24 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "AEgxqN": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Incident triggers deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "AHQdRU": [
@@ -3375,6 +3599,12 @@
     {
       "type": 0,
       "value": "创建时间"
+    }
+  ],
+  "Abi/u/": [
+    {
+      "type": 0,
+      "value": "Expand panel"
     }
   ],
   "AbleKr": [
@@ -3483,6 +3713,12 @@
       "value": " YAML。"
     }
   ],
+  "B/qM5p": [
+    {
+      "type": 0,
+      "value": "Enter Teams channel link"
+    }
+  ],
   "B3Q5mz": [
     {
       "type": 0,
@@ -3501,10 +3737,16 @@
       "value": "智能体质量"
     }
   ],
+  "BBT3jd": [
+    {
+      "type": 0,
+      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+    }
+  ],
   "BD+V8L": [
     {
       "type": 0,
-      "value": "This insight was helpful"
+      "value": "此见解很有用"
     }
   ],
   "BEck3n": [
@@ -3602,23 +3844,13 @@
   "BakoFg": [
     {
       "type": 0,
-      "value": "Select tool"
+      "value": "选择工具"
     }
   ],
   "BbTpTJ": [
     {
       "type": 0,
       "value": "正在使用最新的 YAML 更改"
-    }
-  ],
-  "BcEbxp": [
-    {
-      "type": 1,
-      "value": "seconds"
-    },
-    {
-      "type": 0,
-      "value": " 秒"
     }
   ],
   "Bcgdb7": [
@@ -3680,7 +3912,7 @@
   "Bn/txo": [
     {
       "type": 0,
-      "value": "Failed to create subagent "
+      "value": "未能创建子智能体 "
     },
     {
       "type": 1,
@@ -3688,7 +3920,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": "。错误: "
     },
     {
       "type": 1,
@@ -3722,7 +3954,7 @@
   "C6Jt4c": [
     {
       "type": 0,
-      "value": "Scheduled task name"
+      "value": "计划任务名称"
     }
   ],
   "CBHDb1": [
@@ -3758,7 +3990,7 @@
   "CIAL+k": [
     {
       "type": 0,
-      "value": "Created subagent "
+      "value": "已创建子智能体 "
     },
     {
       "type": 1,
@@ -3810,7 +4042,7 @@
   "CQ0CLu": [
     {
       "type": 0,
-      "value": "Session insights"
+      "value": "会话见解"
     }
   ],
   "CQisjK": [
@@ -3870,7 +4102,7 @@
   "Cfvmd0": [
     {
       "type": 0,
-      "value": "The agent has used 90% of the active flow AAUs. If the limit is reached, the agent will run only in always-on flow and be unavailable for chat and actions."
+      "value": "智能体已使用活动流 AAU 的 90%。如果达到限制，智能体将仅在始终可用的流中运行，且无法用于聊天和操作。"
     }
   ],
   "ChQQJ0": [
@@ -3943,28 +4175,6 @@
       "value": "Azure DevOps"
     }
   ],
-  "D473QI": [
-    {
-      "type": 0,
-      "value": "最多选择你对其具有权限的 "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " 个资源组。已选择 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 个资源组。"
-    }
-  ],
   "D4T2Px": [
     {
       "type": 0,
@@ -3980,13 +4190,13 @@
   "D97db3": [
     {
       "type": 0,
-      "value": "Select a response subagent"
+      "value": "选择响应子智能体"
     }
   ],
   "DD2Wjk": [
     {
       "type": 0,
-      "value": "Incidents preview"
+      "value": "事件预览"
     }
   ],
   "DDSwQB": [
@@ -4030,13 +4240,13 @@
   "DFfvL6": [
     {
       "type": 0,
-      "value": "Temporarily stop the agent from all activities."
+      "value": "暂时停止智能体的所有活动。"
     }
   ],
   "DIZgr3": [
     {
       "type": 0,
-      "value": "Boolean"
+      "value": "布尔"
     }
   ],
   "DJN+DZ": [
@@ -4069,6 +4279,12 @@
     {
       "type": 0,
       "value": "属于"
+    }
+  ],
+  "DP0m/y": [
+    {
+      "type": 0,
+      "value": "Updating Kusto Tool"
     }
   ],
   "DPnEXy": [
@@ -4105,10 +4321,20 @@
       "value": "所选事件"
     }
   ],
+  "DXm10s": [
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " repository URL"
+    }
+  ],
   "DYp/nK": [
     {
       "type": 0,
-      "value": "Session Insight"
+      "value": "会话见解"
     }
   ],
   "Da55kZ": [
@@ -4121,6 +4347,12 @@
     {
       "type": 0,
       "value": "建议使用此资源组以实现最佳智能体性能。它包括以下一项或多项 Azure 计算服务: Azure Kubernetes 服务、Functions、容器应用、Web 应用、Redis、Postgres SQL、CosmosDB、虚拟机或存储帐户。"
+    }
+  ],
+  "DcEKTG": [
+    {
+      "type": 0,
+      "value": "Failed to run test"
     }
   ],
   "DeP+ZM": [
@@ -4204,7 +4436,7 @@
   "Dvly6A": [
     {
       "type": 0,
-      "value": "Failed to create tool"
+      "value": "未能创建工具"
     }
   ],
   "Dw2xIY": [
@@ -4246,7 +4478,7 @@
   "E9CWuE": [
     {
       "type": 0,
-      "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+      "value": "示例: where SubscriptionId == \"##SubscriptionId##\""
     }
   ],
   "EAO/K+": [
@@ -4276,7 +4508,7 @@
   "EHy/sj": [
     {
       "type": 0,
-      "value": "Enter a number"
+      "value": "输入数字"
     }
   ],
   "EI/cfO": [
@@ -4326,7 +4558,7 @@
   "EQa6dK": [
     {
       "type": 0,
-      "value": "Built-in Tool"
+      "value": "内置工具"
     }
   ],
   "ESChST": [
@@ -4338,7 +4570,27 @@
   "ETRyBL": [
     {
       "type": 0,
-      "value": "Rating"
+      "value": "评分"
+    }
+  ],
+  "EVA81S": [
+    {
+      "type": 0,
+      "value": "No "
+    },
+    {
+      "type": 1,
+      "value": "entity"
+    },
+    {
+      "type": 0,
+      "value": " found"
+    }
+  ],
+  "EVXYDU": [
+    {
+      "type": 0,
+      "value": "Learn more about creating subagents."
     }
   ],
   "EWrExf": [
@@ -4368,7 +4620,7 @@
   "Ebd6gR": [
     {
       "type": 0,
-      "value": "The agent sends email messages."
+      "value": "智能体发送电子邮件。"
     }
   ],
   "Ec1M0J": [
@@ -4408,7 +4660,7 @@
   "Ejhdi4": [
     {
       "type": 0,
-      "value": "Feedback"
+      "value": "反馈"
     }
   ],
   "ElI1gd": [
@@ -4450,7 +4702,7 @@
   "Eu772h": [
     {
       "type": 0,
-      "value": "Built-in Tools"
+      "value": "内置工具"
     }
   ],
   "Euy+fB": [
@@ -4496,15 +4748,11 @@
   "F8v2Mz": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "已成功启动 SRE 智能体 "
     },
     {
       "type": 1,
       "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " started successfully"
     }
   ],
   "F8xMoD": [
@@ -4590,7 +4838,7 @@
   "FS0tWa": [
     {
       "type": 0,
-      "value": "No source agent specified"
+      "value": "未指定源智能体"
     }
   ],
   "FSYccN": [
@@ -4630,7 +4878,7 @@
   "FWou/7": [
     {
       "type": 0,
-      "value": "Select tool "
+      "value": "选择工具 "
     },
     {
       "type": 1,
@@ -4640,7 +4888,7 @@
   "FZeQlc": [
     {
       "type": 0,
-      "value": "Disconnected"
+      "value": "已断开连接"
     }
   ],
   "FZwBv0": [
@@ -4682,15 +4930,11 @@
   "FpUGgx": [
     {
       "type": 0,
-      "value": "Starting SRE Agent "
+      "value": "正在启动 SRE 智能体 "
     },
     {
       "type": 1,
       "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " in progress"
     }
   ],
   "Fr5LyM": [
@@ -4702,7 +4946,7 @@
   "FsIud6": [
     {
       "type": 0,
-      "value": "Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included."
+      "value": "已为此智能体启用知识库。将自动包含 SearchMemory 工具和知识库提示。"
     }
   ],
   "Fv1ZSz": [
@@ -4751,6 +4995,56 @@
     {
       "type": 0,
       "value": "移除"
+    }
+  ],
+  "G4gaOn": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "G4mray": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " resource groups selected."
     }
   ],
   "G5JMSn": [
@@ -4866,19 +5160,13 @@
   "GGr/yS": [
     {
       "type": 0,
-      "value": "Feedback submitted on threads will appear here"
+      "value": "已提交的线程反馈将显示在此处"
     }
   ],
   "GMhzu1": [
     {
       "type": 0,
-      "value": "Response subagent"
-    }
-  ],
-  "GP/BbQ": [
-    {
-      "type": 0,
-      "value": "Enable Knowledge Base"
+      "value": "响应子智能体"
     }
   ],
   "GSCabm": [
@@ -4926,13 +5214,13 @@
   "GnWmca": [
     {
       "type": 0,
-      "value": "Triggers"
+      "value": "触发器"
     }
   ],
   "Gnbr9F": [
     {
       "type": 0,
-      "value": "Select a connector"
+      "value": "选择连接器"
     }
   ],
   "GoSIa4": [
@@ -4944,7 +5232,7 @@
   "GpHWFC": [
     {
       "type": 0,
-      "value": "Choose a connector"
+      "value": "选择连接器"
     }
   ],
   "GpZr9J": [
@@ -4964,7 +5252,7 @@
   "GpcNV2": [
     {
       "type": 0,
-      "value": "Failed to update subagent "
+      "value": "未能更新子智能体 "
     },
     {
       "type": 1,
@@ -4972,7 +5260,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": "。错误: "
     },
     {
       "type": 1,
@@ -5074,7 +5362,7 @@
   "HNBpJ4": [
     {
       "type": 0,
-      "value": "Metrics"
+      "value": "指标"
     }
   ],
   "HNECLT": [
@@ -5098,7 +5386,7 @@
   "HQc/Lf": [
     {
       "type": 0,
-      "value": "Create incident trigger"
+      "value": "创建事件触发器"
     }
   ],
   "HQhDfV": [
@@ -5128,7 +5416,7 @@
   "HZQtAg": [
     {
       "type": 0,
-      "value": "Test values"
+      "value": "测试值"
     }
   ],
   "HbTFJf": [
@@ -5183,6 +5471,44 @@
       "value": "正在加载每日报告"
     }
   ],
+  "HtVpjg": [
+    {
+      "type": 0,
+      "value": "You can select up to "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " resource groups for this agent. Agents can manage a total of "
+    },
+    {
+      "type": 1,
+      "value": "totalMax"
+    },
+    {
+      "type": 0,
+      "value": " resource groups, and your agent currently manages "
+    },
+    {
+      "type": 1,
+      "value": "current"
+    },
+    {
+      "type": 0,
+      "value": ". You've selected "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "HtpD+z": [
     {
       "type": 0,
@@ -5228,13 +5554,13 @@
   "I3MA83": [
     {
       "type": 0,
-      "value": "String"
+      "value": "字符串"
     }
   ],
   "I4PbZq": [
     {
       "type": 0,
-      "value": "Create a subagent"
+      "value": "创建子智能体"
     }
   ],
   "I5k4g/": [
@@ -5407,6 +5733,12 @@
       "value": "时区"
     }
   ],
+  "Icfr5t": [
+    {
+      "type": 0,
+      "value": "Search by incident trigger"
+    }
+  ],
   "IiNwpr": [
     {
       "type": 1,
@@ -5415,6 +5747,12 @@
     {
       "type": 0,
       "value": " 已取消操作。"
+    }
+  ],
+  "Ij0ity": [
+    {
+      "type": 0,
+      "value": "Search by tool"
     }
   ],
   "InWqys": [
@@ -5497,6 +5835,12 @@
       "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
+  "J2Lcsz": [
+    {
+      "type": 0,
+      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+    }
+  ],
   "J3Y8Sm": [
     {
       "type": 0,
@@ -5529,6 +5873,18 @@
       "value": "上次修改时间"
     }
   ],
+  "J8uEym": [
+    {
+      "type": 0,
+      "value": "Search by scheduled task"
+    }
+  ],
+  "JA/VO+": [
+    {
+      "type": 0,
+      "value": "Starts a task at a defined time or interval."
+    }
+  ],
   "JAtEuU": [
     {
       "type": 0,
@@ -5539,20 +5895,6 @@
     {
       "type": 0,
       "value": "用户名"
-    }
-  ],
-  "JCjxSH": [
-    {
-      "type": 0,
-      "value": "未能删除 SRE 代理“"
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "”"
     }
   ],
   "JEsxDw": [
@@ -5570,7 +5912,7 @@
   "JKFypr": [
     {
       "type": 0,
-      "value": "Stop agent"
+      "value": "停止智能体"
     }
   ],
   "JMdyE9": [
@@ -5588,7 +5930,7 @@
   "JSW9Xw": [
     {
       "type": 0,
-      "value": "Starting SRE Agent"
+      "value": "正在启动 SRE 智能体"
     }
   ],
   "JT7be1": [
@@ -5756,7 +6098,7 @@
   "JnDKv3": [
     {
       "type": 0,
-      "value": "Failed to stop SRE Agent "
+      "value": "未能停止 SRE 智能体 "
     },
     {
       "type": 1,
@@ -5829,6 +6171,12 @@
     {
       "type": 0,
       "value": "显示"
+    }
+  ],
+  "K7tsik": [
+    {
+      "type": 0,
+      "value": "Scheduled task ran successfully"
     }
   ],
   "K9q4Xw": [
@@ -5934,7 +6282,25 @@
   "Kfaepo": [
     {
       "type": 0,
-      "value": "Learn more about connectors"
+      "value": "详细了解连接器"
+    }
+  ],
+  "Kfr1WB": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "KgcF6B": [
@@ -5959,6 +6325,12 @@
     {
       "type": 0,
       "value": "映射到参数"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KoJ1C+": [
@@ -6029,24 +6401,16 @@
       "value": "已放弃 AI 建议"
     }
   ],
+  "L/ct40": [
+    {
+      "type": 0,
+      "value": "Open in visual view"
+    }
+  ],
   "L/i6dy": [
     {
       "type": 0,
       "value": "我们将自动将此智能体标记为“自主”，以便它可以自行运行。"
-    }
-  ],
-  "L0KVkI": [
-    {
-      "type": 0,
-      "value": "正在删除 SRE 代理“"
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "”"
     }
   ],
   "L7EoQf": [
@@ -6151,6 +6515,12 @@
       "value": "查看所有资源，但不允许进行任何更改。"
     }
   ],
+  "LSqcaU": [
+    {
+      "type": 0,
+      "value": "Maximum 200,000 AAUs"
+    }
+  ],
   "LTDPn/": [
     {
       "type": 0,
@@ -6182,7 +6552,7 @@
   "LaIt/v": [
     {
       "type": 0,
-      "value": "Creating Kusto Tool"
+      "value": "正在创建 Kusto 工具"
     }
   ],
   "LbkJp1": [
@@ -6300,6 +6670,12 @@
       "value": "添加筛选器"
     }
   ],
+  "M0ay1D": [
+    {
+      "type": 0,
+      "value": "Running scheduled task(s)"
+    }
+  ],
   "M3159R": [
     {
       "type": 0,
@@ -6328,6 +6704,52 @@
     {
       "type": 0,
       "value": "事件 ID"
+    }
+  ],
+  "MCLPMF": [
+    {
+      "type": 0,
+      "value": "Scale your agent’s capabilities with subagents"
+    }
+  ],
+  "MGZggN": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "MHkWzD": [
@@ -6517,7 +6939,7 @@
   "N/CtWu": [
     {
       "type": 0,
-      "value": "Unselected"
+      "value": "已取消选择"
     }
   ],
   "N0d5pM": [
@@ -6546,6 +6968,12 @@
     {
       "type": 0,
       "value": "。"
+    }
+  ],
+  "N2IrpM": [
+    {
+      "type": 0,
+      "value": "Confirm"
     }
   ],
   "N7cqYp": [
@@ -6621,7 +7049,7 @@
   "NN4zut": [
     {
       "type": 0,
-      "value": "Support + troubleshooting"
+      "value": "支持 + 疑难解答"
     }
   ],
   "NOMbLF": [
@@ -6682,6 +7110,12 @@
     {
       "type": 0,
       "value": "已筛选智能体"
+    }
+  ],
+  "NmQwIl": [
+    {
+      "type": 0,
+      "value": "Schedule:"
     }
   ],
   "Nrc9ba": [
@@ -6777,7 +7211,7 @@
   "O/gthC": [
     {
       "type": 0,
-      "value": "Go to Scheduled Task"
+      "value": "转到“计划任务”"
     }
   ],
   "O0JI8M": [
@@ -6807,7 +7241,7 @@
   "O9C6j/": [
     {
       "type": 0,
-      "value": "Create subagent"
+      "value": "创建子智能体"
     }
   ],
   "OBoUb6": [
@@ -6863,7 +7297,7 @@
   "ONbwY2": [
     {
       "type": 0,
-      "value": "Custom Tool"
+      "value": "自定义工具"
     }
   ],
   "OO5Y94": [
@@ -6997,13 +7431,13 @@
   "OoxcFC": [
     {
       "type": 0,
-      "value": "Select the input type"
+      "value": "选择输入类型"
     }
   ],
   "OpUvSu": [
     {
       "type": 0,
-      "value": "Create Kusto Tool"
+      "value": "创建 Kusto 工具"
     }
   ],
   "OrQ4EY": [
@@ -7087,7 +7521,7 @@
   "PBKSeP": [
     {
       "type": 0,
-      "value": "Set up "
+      "value": "设置 "
     },
     {
       "type": 1,
@@ -7095,7 +7529,7 @@
     },
     {
       "type": 0,
-      "value": " connector"
+      "value": " 连接器"
     }
   ],
   "PCrXDG": [
@@ -7107,7 +7541,7 @@
   "PF15hb": [
     {
       "type": 0,
-      "value": "Input value"
+      "value": "输入值"
     }
   ],
   "PFUTWt": [
@@ -7143,7 +7577,7 @@
   "PKvAvF": [
     {
       "type": 0,
-      "value": "Extend your agent’s capabilities with connectors"
+      "value": "使用连接器扩展智能体的功能"
     }
   ],
   "PPrKNq": [
@@ -7191,13 +7625,13 @@
   "PXJ+oX": [
     {
       "type": 0,
-      "value": "To view incidents triggered, go to Incidents"
+      "value": "若要查看触发的事件，请转到“事件”"
     }
   ],
   "PXJi2R": [
     {
       "type": 0,
-      "value": "No target agent specified"
+      "value": "未指定目标智能体"
     }
   ],
   "PXYq8b": [
@@ -7237,7 +7671,7 @@
   "PbaaPs": [
     {
       "type": 0,
-      "value": "Add subagent"
+      "value": "添加子智能体"
     }
   ],
   "Pc+tM3": [
@@ -7282,6 +7716,12 @@
     {
       "type": 0,
       "value": "Azure Monitor 已连接"
+    }
+  ],
+  "PpdTYy": [
+    {
+      "type": 0,
+      "value": "Failed to update tool"
     }
   ],
   "PrFU82": [
@@ -7403,7 +7843,7 @@
   "Q6Lw7i": [
     {
       "type": 0,
-      "value": "To learn more about permissions, click here."
+      "value": "若要了解权限的详细信息，请单击此处。"
     }
   ],
   "Q7/1w4": [
@@ -7416,6 +7856,16 @@
     {
       "type": 0,
       "value": "说明"
+    }
+  ],
+  "Q9IHxV": [
+    {
+      "type": 0,
+      "value": "Running scheduled task "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -7461,7 +7911,7 @@
   "QDa8Q+": [
     {
       "type": 0,
-      "value": "Add connector"
+      "value": "添加连接器"
     }
   ],
   "QEhO+z": [
@@ -7485,7 +7935,7 @@
   "QK0vxq": [
     {
       "type": 0,
-      "value": "Go to Connectors"
+      "value": "转到“连接器”"
     }
   ],
   "QOSRgI": [
@@ -7497,7 +7947,7 @@
   "QP91Js": [
     {
       "type": 0,
-      "value": "Updated subagent "
+      "value": "已更新子智能体 "
     },
     {
       "type": 1,
@@ -7519,7 +7969,7 @@
   "QW+Q5N": [
     {
       "type": 0,
-      "value": "Clear all"
+      "value": "全部清除"
     }
   ],
   "QWEHW2": [
@@ -7616,12 +8066,6 @@
       "value": "无需快速修复。"
     }
   ],
-  "Qn8Bok": [
-    {
-      "type": 0,
-      "value": "返还"
-    }
-  ],
   "QomX1y": [
     {
       "type": 0,
@@ -7683,19 +8127,13 @@
   "R3eMOe": [
     {
       "type": 0,
-      "value": "Outlook account"
-    }
-  ],
-  "R3mMmc": [
-    {
-      "type": 0,
-      "value": "每月 AAU 限制滑块"
+      "value": "Outlook 帐户"
     }
   ],
   "R4Blzb": [
     {
       "type": 0,
-      "value": "No Feedback Yet"
+      "value": "尚无反馈"
     }
   ],
   "R7DP3y": [
@@ -7725,7 +8163,7 @@
   "REOGTJ": [
     {
       "type": 0,
-      "value": "Add a connector to give the agent additional tools for automating incident handling."
+      "value": "添加连接器，为智能体提供更多自动处理事件的工具。"
     }
   ],
   "RH8rNM": [
@@ -7763,7 +8201,7 @@
   "RMD0Mj": [
     {
       "type": 0,
-      "value": "Failed to add handoff from "
+      "value": "未能添加从 "
     },
     {
       "type": 1,
@@ -7771,7 +8209,7 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " 到子智能体 "
     },
     {
       "type": 1,
@@ -7779,7 +8217,7 @@
     },
     {
       "type": 0,
-      "value": ". Error: "
+      "value": " 的转接。错误: "
     },
     {
       "type": 1,
@@ -7906,20 +8344,6 @@
       "value": "过去 12 小时"
     }
   ],
-  "S2jxf1": [
-    {
-      "type": 0,
-      "value": "No "
-    },
-    {
-      "type": 1,
-      "value": "activeTab"
-    },
-    {
-      "type": 0,
-      "value": " found"
-    }
-  ],
   "S2z35W": [
     {
       "type": 0,
@@ -7942,6 +8366,12 @@
       "value": "操场模式"
     }
   ],
+  "S6we8v": [
+    {
+      "type": 0,
+      "value": "Edit incident trigger"
+    }
+  ],
   "S8/4ZI": [
     {
       "type": 0,
@@ -7957,7 +8387,7 @@
   "SB7SRx": [
     {
       "type": 0,
-      "value": "Creating subagent "
+      "value": "正在创建子智能体 "
     },
     {
       "type": 1,
@@ -7973,7 +8403,7 @@
   "SDsdCi": [
     {
       "type": 0,
-      "value": "Add existing tools"
+      "value": "添加已有工具"
     }
   ],
   "SFUZOQ": [
@@ -7985,7 +8415,7 @@
   "SIW6OB": [
     {
       "type": 0,
-      "value": "Threads with Insights ("
+      "value": "具有见解的线程("
     },
     {
       "type": 1,
@@ -8090,6 +8520,12 @@
       "value": "自治级别"
     }
   ],
+  "SeZ8eZ": [
+    {
+      "type": 0,
+      "value": "AAU consumption reminder"
+    }
+  ],
   "Seanpx": [
     {
       "type": 0,
@@ -8118,6 +8554,12 @@
     {
       "type": 0,
       "value": "草稿尚未同步"
+    }
+  ],
+  "SoBWeV": [
+    {
+      "type": 0,
+      "value": "Monthly active flow AAUs"
     }
   ],
   "Sr4IbA": [
@@ -8189,7 +8631,7 @@
   "T/nqbo": [
     {
       "type": 0,
-      "value": "Feedback ID"
+      "value": "反馈 ID"
     }
   ],
   "T0/eoE": [
@@ -8201,7 +8643,7 @@
   "T0e6Lh": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "移除 "
     },
     {
       "type": 1,
@@ -8274,6 +8716,24 @@
       "value": "留空表示无限执行次数"
     }
   ],
+  "TGc4Lh": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete incident triggers"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "THFIRB": [
     {
       "type": 0,
@@ -8324,6 +8784,12 @@
       "value": "Azure SRE 智能体按 Azure 智能体单位(AAU)进行计费。每月 AAU 计费既反映了固定的始终可用流，又反映了活动流产生的可变使用量。可随时增加或减少活动流 AAU 配额。"
     }
   ],
+  "TP/cMX": [
+    {
+      "type": 0,
+      "value": "Ended"
+    }
+  ],
   "TQ0n+a": [
     {
       "type": 1,
@@ -8369,13 +8835,13 @@
   "TdvJVw": [
     {
       "type": 0,
-      "value": "Suggested improvements"
+      "value": "建议的改进"
     }
   ],
   "TexFnY": [
     {
       "type": 0,
-      "value": "This insight does not have markdown content."
+      "value": "此见解没有 Markdown 内容。"
     }
   ],
   "Tg4Q8g": [
@@ -8417,7 +8883,7 @@
   "TrnqJG": [
     {
       "type": 0,
-      "value": "Input type"
+      "value": "输入类型"
     }
   ],
   "TwMqIK": [
@@ -8447,7 +8913,7 @@
   "UBbDNy": [
     {
       "type": 0,
-      "value": "No documents in knowledge base. Add some?"
+      "value": "知识库中没有文档。要添加一些吗?"
     }
   ],
   "UCYFxr": [
@@ -8479,7 +8945,7 @@
   "UNQfKX": [
     {
       "type": 0,
-      "value": "Enter a descriptive name"
+      "value": "输入描述性名称"
     }
   ],
   "UNXega": [
@@ -8611,7 +9077,7 @@
   "V9GGMu": [
     {
       "type": 0,
-      "value": "No threads with session insights found."
+      "value": "找不到具有会话见解的线程。"
     }
   ],
   "VA/Z1S": [
@@ -8635,7 +9101,7 @@
   "VBAOA8": [
     {
       "type": 0,
-      "value": "Select subagents for handoff"
+      "value": "选择转接的子智能体"
     }
   ],
   "VIYXlx": [
@@ -8644,22 +9110,10 @@
       "value": "聊天预览"
     }
   ],
-  "VIcJZp": [
-    {
-      "type": 0,
-      "value": "列表视图"
-    }
-  ],
   "VIgoaE": [
     {
       "type": 0,
       "value": "未配置子智能体"
-    }
-  ],
-  "VIn2J0": [
-    {
-      "type": 0,
-      "value": "子智能体"
     }
   ],
   "VKbBsK": [
@@ -8709,7 +9163,7 @@
   "VU4BBu": [
     {
       "type": 0,
-      "value": "Parameter"
+      "value": "参数"
     }
   ],
   "VUHkVQ": [
@@ -8742,6 +9196,12 @@
       "value": "输入监视器 ID"
     }
   ],
+  "Vaj9nj": [
+    {
+      "type": 0,
+      "value": "Don't show this message again"
+    }
+  ],
   "Vb+qQ4": [
     {
       "type": 0,
@@ -8757,7 +9217,7 @@
   "Vipo+I": [
     {
       "type": 0,
-      "value": "No parameters configured"
+      "value": "未配置参数"
     }
   ],
   "VlBNux": [
@@ -8791,7 +9251,7 @@
   "Vs/db/": [
     {
       "type": 0,
-      "value": "Adding handoff from "
+      "value": "正在添加从 "
     },
     {
       "type": 1,
@@ -8799,11 +9259,15 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " 到子智能体 "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " 的转接"
     }
   ],
   "Vs3jMi": [
@@ -8863,7 +9327,7 @@
   "W1Qs5O": [
     {
       "type": 0,
-      "value": "Runs"
+      "value": "运行"
     }
   ],
   "W2JBdp": [
@@ -8923,7 +9387,13 @@
   "WJj+TP": [
     {
       "type": 0,
-      "value": "You do not have permission to check incident management connection."
+      "value": "你无权检查事件管理连接。"
+    }
+  ],
+  "WK8csJ": [
+    {
+      "type": 0,
+      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -9064,7 +9534,7 @@
   "WjqsyE": [
     {
       "type": 0,
-      "value": "When enabled, the SearchMemory tool and knowledge base prompts will be automatically added"
+      "value": "启用后，将自动添加 SearchMemory 工具和知识库提示"
     }
   ],
   "Wkup5T": [
@@ -9107,6 +9577,24 @@
     {
       "type": 0,
       "value": "名称必须以字母开头，以字母或数字结尾，并且只能包含字母、数字或连字符。长度必须为 2 到 23 个字符。"
+    }
+  ],
+  "WuyjCf": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "WygVDv": [
@@ -9218,7 +9706,7 @@
   "XDcbqQ": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent"
+      "value": "正在停止 SRE 智能体"
     }
   ],
   "XEB3Fn": [
@@ -9344,7 +9832,7 @@
   "XS8hWM": [
     {
       "type": 0,
-      "value": "Enter a boolean"
+      "value": "输入布尔值"
     }
   ],
   "XV8dOu": [
@@ -9356,7 +9844,7 @@
   "XYIeUc": [
     {
       "type": 0,
-      "value": "Agent permissions are determined by its assigned RBAC roles."
+      "value": "智能体权限由其分配的 RBAC 角色决定。"
     }
   ],
   "XYSJsS": [
@@ -9404,7 +9892,7 @@
   "XfAFyQ": [
     {
       "type": 0,
-      "value": "Deleting "
+      "value": "正在删除 "
     },
     {
       "type": 1,
@@ -9412,7 +9900,7 @@
     },
     {
       "type": 0,
-      "value": " connectors..."
+      "value": " 个连接器..."
     }
   ],
   "Xkdnen": [
@@ -9442,7 +9930,7 @@
   "Xup5P8": [
     {
       "type": 0,
-      "value": "What happened"
+      "value": "发生的情况"
     }
   ],
   "XvrDTb": [
@@ -9454,7 +9942,7 @@
   "XyUQa7": [
     {
       "type": 0,
-      "value": "Improved instructions"
+      "value": "改进的说明"
     }
   ],
   "Y0BC+F": [
@@ -9492,7 +9980,7 @@
   "Y47Dwm": [
     {
       "type": 0,
-      "value": "Kusto tools"
+      "value": "Kusto 工具"
     }
   ],
   "Y5IFiT": [
@@ -9502,7 +9990,7 @@
     },
     {
       "type": 0,
-      "value": " account"
+      "value": " 帐户"
     }
   ],
   "Y7Lbpf": [
@@ -9526,7 +10014,7 @@
   "YBHvOV": [
     {
       "type": 0,
-      "value": "Updating subagent "
+      "value": "正在更新子智能体 "
     },
     {
       "type": 1,
@@ -9572,7 +10060,7 @@
   "YKwGp6": [
     {
       "type": 0,
-      "value": "Added tools to "
+      "value": "已向 "
     },
     {
       "type": 1,
@@ -9580,7 +10068,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 添加工具。"
     }
   ],
   "YMjUWP": [
@@ -9841,12 +10329,6 @@
       "value": "开始时间"
     }
   ],
-  "ZOdb7N": [
-    {
-      "type": 0,
-      "value": "可视化视图"
-    }
-  ],
   "ZPP6n7": [
     {
       "type": 0,
@@ -10035,7 +10517,7 @@
   "a8fWCd": [
     {
       "type": 0,
-      "value": "Enter a datetime"
+      "value": "输入日期时间"
     }
   ],
   "a8l/yJ": [
@@ -10084,12 +10566,6 @@
     {
       "type": 0,
       "value": "有权访问 LUIS 下的读取和测试功能。"
-    }
-  ],
-  "aH3ak4": [
-    {
-      "type": 0,
-      "value": "Build subagent workflows"
     }
   ],
   "aH4De2": [
@@ -10159,12 +10635,6 @@
     {
       "type": 0,
       "value": "提升智能体对你的基础结构的了解程度"
-    }
-  ],
-  "aTyEZH": [
-    {
-      "type": 0,
-      "value": "搜索响应计划"
     }
   ],
   "aWpBzj": [
@@ -10269,6 +10739,12 @@
       "value": "审核检查"
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b2PyOl": [
     {
       "type": 0,
@@ -10329,10 +10805,16 @@
       "value": "群集 URI"
     }
   ],
+  "bDbbX7": [
+    {
+      "type": 0,
+      "value": "Edit Kusto tool"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
-      "value": "Thread Feedback"
+      "value": "线程反馈"
     }
   ],
   "bK0VQe": [
@@ -10395,6 +10877,24 @@
     {
       "type": 0,
       "value": "稳定 - 每月接收一次更新"
+    }
+  ],
+  "bjDKAe": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting scheduled tasks"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "bjLeN1": [
@@ -10526,7 +11026,7 @@
   "byP6IC": [
     {
       "type": 0,
-      "value": "Selected"
+      "value": "已选择"
     }
   ],
   "c/8Uhj": [
@@ -10580,7 +11080,7 @@
   "c5hwBU": [
     {
       "type": 0,
-      "value": "The agent will resume all activities."
+      "value": "智能体将恢复所有活动。"
     }
   ],
   "c8Doeq": [
@@ -10624,7 +11124,7 @@
   "cHKA8f": [
     {
       "type": 0,
-      "value": "No insight content available"
+      "value": "无可用见解内容"
     }
   ],
   "cJGGY4": [
@@ -10642,7 +11142,7 @@
   "cLHCHE": [
     {
       "type": 0,
-      "value": "Connector status"
+      "value": "连接器状态"
     }
   ],
   "cRTR/A": [
@@ -10663,6 +11163,12 @@
       "value": "存储帐户参与者"
     }
   ],
+  "cXAlMR": [
+    {
+      "type": 0,
+      "value": "Scheduled"
+    }
+  ],
   "cYwv8P": [
     {
       "type": 0,
@@ -10678,7 +11184,7 @@
   "cesI6Z": [
     {
       "type": 0,
-      "value": "No feedback selected"
+      "value": "未选择反馈"
     }
   ],
   "cfbpDd": [
@@ -10694,7 +11200,7 @@
   "cg54iX": [
     {
       "type": 0,
-      "value": "Kusto tool name"
+      "value": "Kusto 工具名称"
     }
   ],
   "ciB+oy": [
@@ -10796,7 +11302,7 @@
   "d2czNd": [
     {
       "type": 0,
-      "value": "Datetime"
+      "value": "日期时间"
     }
   ],
   "d3MtwZ": [
@@ -10831,6 +11337,12 @@
     {
       "type": 0,
       "value": " 选项"
+    }
+  ],
+  "dF2h2y": [
+    {
+      "type": 0,
+      "value": "Filter by incident id or title"
     }
   ],
   "dG8VrM": [
@@ -10873,6 +11385,12 @@
     {
       "type": 0,
       "value": "允许对设备预配服务数据平面属性进行完全读取访问。"
+    }
+  ],
+  "dQJz2m": [
+    {
+      "type": 0,
+      "value": "This feature isn't available in this portal yet."
     }
   ],
   "dQKATf": [
@@ -11021,6 +11539,12 @@
       "value": "进行智能体质量评分"
     }
   ],
+  "dzy0ND": [
+    {
+      "type": 0,
+      "value": "Run scheduled task"
+    }
+  ],
   "e0a3XV": [
     {
       "type": 0,
@@ -11078,7 +11602,7 @@
   "eRwVws": [
     {
       "type": 0,
-      "value": "You need an incident platform to add an incident trigger."
+      "value": "需要一个事件平台才能添加事件触发器。"
     }
   ],
   "eUEjcm": [
@@ -11154,7 +11678,7 @@
   "ekSxhn": [
     {
       "type": 0,
-      "value": "Connectors give the agent more tools to take action."
+      "value": "连接器为智能体提供更多工具来执行操作。"
     }
   ],
   "emW/QQ": [
@@ -11172,7 +11696,7 @@
   "eq57j2": [
     {
       "type": 0,
-      "value": "Add incident trigger"
+      "value": "添加事件触发器"
     }
   ],
   "eqYdSS": [
@@ -11230,7 +11754,7 @@
   "f04POI": [
     {
       "type": 0,
-      "value": "Tool created successfully"
+      "value": "工具创建成功"
     }
   ],
   "f0LQra": [
@@ -11284,7 +11808,7 @@
   "fCiXKq": [
     {
       "type": 0,
-      "value": "Add scheduled task"
+      "value": "添加计划任务"
     }
   ],
   "fE5E6W": [
@@ -11384,7 +11908,7 @@
   "fiLH5L": [
     {
       "type": 0,
-      "value": "To create a Kusto tool, first add an Azure Data Explorer connector."
+      "value": "若要创建 Kusto 工具，请先添加 Azure 数据资源管理器连接器。"
     }
   ],
   "fio5op": [
@@ -11454,13 +11978,19 @@
   "fuHqFL": [
     {
       "type": 0,
-      "value": "No session insights found."
+      "value": "找不到会话见解。"
     }
   ],
   "fvK8Qi": [
     {
       "type": 0,
       "value": "所有状态"
+    }
+  ],
+  "fvSiRs": [
+    {
+      "type": 0,
+      "value": "Tool updated successfully"
     }
   ],
   "fyaE5g": [
@@ -11574,7 +12104,7 @@
   "gclDgn": [
     {
       "type": 0,
-      "value": "Create a Kusto tool"
+      "value": "创建 Kusto 工具"
     }
   ],
   "gct+2s": [
@@ -11598,7 +12128,7 @@
   "ghwElt": [
     {
       "type": 0,
-      "value": "Visit Support + Troubleshooting to access support resources and troubleshoot issues related to your SRE Agent."
+      "value": "请访问“支持 + 疑难解答”以获取支持资源并排查与 SRE 智能体相关的问题。"
     }
   ],
   "gj6Qc6": [
@@ -11628,7 +12158,7 @@
   "gox4oK": [
     {
       "type": 0,
-      "value": "Enter the database name"
+      "value": "输入数据库名称"
     }
   ],
   "grgDhd": [
@@ -11714,7 +12244,7 @@
   "h/OQTK": [
     {
       "type": 0,
-      "value": "Use ##ParamName## in your query to define parameter placeholders."
+      "value": "在查询中使用 ##ParamName## 定义参数占位符。"
     }
   ],
   "h0W8DM": [
@@ -11762,7 +12292,7 @@
   "hF/2EL": [
     {
       "type": 0,
-      "value": "Handoff Instructions"
+      "value": "转接说明"
     }
   ],
   "hF5T80": [
@@ -11781,6 +12311,12 @@
     {
       "type": 0,
       "value": "计划"
+    }
+  ],
+  "hGnjdE": [
+    {
+      "type": 0,
+      "value": "Learn more about AAU consumption and cost"
     }
   ],
   "hHz/bk": [
@@ -11855,6 +12391,12 @@
       "value": "系统工具是只读的。查看 YAML 以供参考。"
     }
   ],
+  "hdfKe+": [
+    {
+      "type": 0,
+      "value": "Automatically starts a subagent in response to an incident or alert."
+    }
+  ],
   "heMr0D": [
     {
       "type": 0,
@@ -11891,6 +12433,12 @@
       "value": "预览 AI 建议，而不更改指令"
     }
   ],
+  "hjtyTg": [
+    {
+      "type": 0,
+      "value": "End date must be after start date."
+    }
+  ],
   "hkgUC5": [
     {
       "type": 0,
@@ -11912,13 +12460,13 @@
   "hoHnYn": [
     {
       "type": 0,
-      "value": "Improved handoff instructions"
+      "value": "改进的转接说明"
     }
   ],
   "hqWr3L": [
     {
       "type": 0,
-      "value": "RCA category"
+      "value": "RCA 类别"
     }
   ],
   "hrdmcd": [
@@ -11945,6 +12493,12 @@
       "value": "仪表板"
     }
   ],
+  "i3P6ZD": [
+    {
+      "type": 0,
+      "value": "Created at:"
+    }
+  ],
   "i5OUQE": [
     {
       "type": 0,
@@ -11961,6 +12515,12 @@
     {
       "type": 0,
       "value": "在 Azure 机器学习中执行数据科学任务。"
+    }
+  ],
+  "i6x7bU": [
+    {
+      "type": 0,
+      "value": "The agent is stopped"
     }
   ],
   "iDPKM0": [
@@ -11996,21 +12556,23 @@
   "iMaY2Q": [
     {
       "type": 0,
-      "value": "Stopping SRE Agent "
+      "value": "正在停止 SRE 智能体 "
     },
     {
       "type": 1,
       "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " in progress"
     }
   ],
   "iNgloh": [
     {
       "type": 0,
       "value": "选择筛选器"
+    }
+  ],
+  "iPhHGC": [
+    {
+      "type": 0,
+      "value": "Learn more about scheduled tasks"
     }
   ],
   "iV7LUx": [
@@ -12028,7 +12590,13 @@
   "iY7P1k": [
     {
       "type": 0,
-      "value": "Agent Autonomy"
+      "value": "智能体自治"
+    }
+  ],
+  "iYJ/Ha": [
+    {
+      "type": 0,
+      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -12070,7 +12638,7 @@
   "ifdupA": [
     {
       "type": 0,
-      "value": "To view runs, go to Agent Runs"
+      "value": "查看运行，请转到“智能体运行”"
     }
   ],
   "iihhVc": [
@@ -12091,6 +12659,12 @@
     {
       "type": 0,
       "value": " 失败。重试链接。"
+    }
+  ],
+  "ioRcwS": [
+    {
+      "type": 0,
+      "value": "Scheduled task trigger"
     }
   ],
   "ipsqxO": [
@@ -12185,6 +12759,18 @@
       "value": " 创建转接。"
     }
   ],
+  "j0Ifob": [
+    {
+      "type": 0,
+      "value": "Do you want to proceed?"
+    }
+  ],
+  "j0bMX6": [
+    {
+      "type": 0,
+      "value": "No incident metrics to report"
+    }
+  ],
   "j1FyDL": [
     {
       "type": 0,
@@ -12194,7 +12780,7 @@
   "j1pB0w": [
     {
       "type": 0,
-      "value": "Go to Agent Consumption"
+      "value": "转到“智能体消耗”"
     }
   ],
   "j3bwJQ": [
@@ -12237,6 +12823,30 @@
     {
       "type": 0,
       "value": "无结果"
+    }
+  ],
+  "jIcHPc": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting SRE Agents"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "jJ7kNS": [
+    {
+      "type": 0,
+      "value": "Try selecting a different date range."
     }
   ],
   "jJE3xY": [
@@ -12323,6 +12933,16 @@
       "value": "输入子智能体名称"
     }
   ],
+  "jX6uvW": [
+    {
+      "type": 0,
+      "value": "Failed to run task: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -12332,7 +12952,7 @@
   "ja85pV": [
     {
       "type": 0,
-      "value": "Add Documents"
+      "value": "添加文档"
     }
   ],
   "jabB4C": [
@@ -12454,7 +13074,7 @@
   "kFkPWB": [
     {
       "type": 0,
-      "value": "Number"
+      "value": "数字"
     }
   ],
   "kG0ZtT": [
@@ -12524,13 +13144,13 @@
   "ketkP5": [
     {
       "type": 0,
-      "value": "Knowledge Base Enabled"
+      "value": "已启用知识库"
     }
   ],
   "khI1mJ": [
     {
       "type": 0,
-      "value": "Edit subagent"
+      "value": "编辑子智能体"
     }
   ],
   "khOzXi": [
@@ -12610,7 +13230,7 @@
   "kxokJj": [
     {
       "type": 0,
-      "value": "Agent datagrid"
+      "value": "智能体数据网格"
     }
   ],
   "l+e8nZ": [
@@ -12619,38 +13239,16 @@
       "value": "是否确定要删除所选的计划任务?此操作无法撤消。"
     }
   ],
-  "l0TtPi": [
-    {
-      "type": 0,
-      "value": "最多选择你对其具有权限的 "
-    },
-    {
-      "type": 1,
-      "value": "max"
-    },
-    {
-      "type": 0,
-      "value": " 个资源组。已选择 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 个资源组。"
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
-      "value": "Azure Data Explorer"
+      "value": "Azure 数据资源管理器"
     }
   ],
   "l0VCdV": [
     {
       "type": 0,
-      "value": "Create tool"
+      "value": "创建工具"
     }
   ],
   "l2Ni9H": [
@@ -12669,6 +13267,12 @@
     {
       "type": 0,
       "value": "AzureML 数据科学家"
+    }
+  ],
+  "l8IRTD": [
+    {
+      "type": 0,
+      "value": "Scheduled task(s) ran successfully"
     }
   ],
   "lCsNuL": [
@@ -12709,6 +13313,12 @@
     {
       "type": 0,
       "value": "受影响的资源"
+    }
+  ],
+  "lQmkhq": [
+    {
+      "type": 0,
+      "value": "Subagents"
     }
   ],
   "lUAfdH": [
@@ -12791,6 +13401,12 @@
       "value": "最近使用"
     }
   ],
+  "m/B8a5": [
+    {
+      "type": 0,
+      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "m0kcbz": [
     {
       "type": 0,
@@ -12806,7 +13422,7 @@
   "m4vqJl": [
     {
       "type": 0,
-      "value": "Files"
+      "value": "文件"
     }
   ],
   "m57OnF": [
@@ -12960,7 +13576,7 @@
   "mVB9Bd": [
     {
       "type": 0,
-      "value": "Add handoff from "
+      "value": "添加从 "
     },
     {
       "type": 1,
@@ -12968,11 +13584,15 @@
     },
     {
       "type": 0,
-      "value": " to subagent "
+      "value": " 到子智能体 "
     },
     {
       "type": 1,
       "value": "targetAgent"
+    },
+    {
+      "type": 0,
+      "value": " 的转接"
     }
   ],
   "mVkTZZ": [
@@ -13017,6 +13637,12 @@
       "value": "已达到最大层级 - 继续优化以保持领先。"
     }
   ],
+  "mg8UeB": [
+    {
+      "type": 0,
+      "value": "Filter by response plan name"
+    }
+  ],
   "mgYBYo": [
     {
       "type": 0,
@@ -13027,12 +13653,6 @@
     {
       "type": 0,
       "value": "未配置任何工具。"
-    }
-  ],
-  "mgtFKh": [
-    {
-      "type": 0,
-      "value": "Create GitHub issue"
     }
   ],
   "mhKk7c": [
@@ -13123,6 +13743,12 @@
       "value": "此操作将永久删除与 ServiceNow 的连接。该智能体将无法再管理票证。是否确实要断开连接?"
     }
   ],
+  "n25S4d": [
+    {
+      "type": 0,
+      "value": "Update Kusto Tool"
+    }
+  ],
   "n2h/5e": [
     {
       "type": 0,
@@ -13184,7 +13810,7 @@
   "nL/Owh": [
     {
       "type": 0,
-      "value": "Send notification"
+      "value": "发送通知"
     }
   ],
   "nNwFuy": [
@@ -13402,7 +14028,7 @@
   "oHGFwy": [
     {
       "type": 0,
-      "value": "Sign in with a different account"
+      "value": "使用其他帐户登录"
     }
   ],
   "oIm1Fb": [
@@ -13456,7 +14082,7 @@
   "oTxjU2": [
     {
       "type": 0,
-      "value": "Handoff subagents"
+      "value": "转接子智能体"
     }
   ],
   "oUWADl": [
@@ -13495,6 +14121,12 @@
       "value": "要更改事件平台，需要与 Azure Monitor 断开连接。智能体将不再接收 Azure Monitor 通知。是否确实要断开连接?"
     }
   ],
+  "ocQGCd": [
+    {
+      "type": 0,
+      "value": "Allow subagent capabilities to override the SRE Agent."
+    }
+  ],
   "ocQXDt": [
     {
       "type": 0,
@@ -13515,12 +14147,6 @@
     {
       "type": 0,
       "value": "提供响应反馈"
-    }
-  ],
-  "ongAz6": [
-    {
-      "type": 0,
-      "value": "搜索事件"
     }
   ],
   "ooDMAp": [
@@ -13760,7 +14386,7 @@
   "pgIRcn": [
     {
       "type": 0,
-      "value": "Enter a string"
+      "value": "输入字符串"
     }
   ],
   "piCpTn": [
@@ -13769,16 +14395,10 @@
       "value": "预配并链接 Grafana 仪表板后，资源可能需要一段时间才能完全填充仪表板。"
     }
   ],
-  "plun1b": [
-    {
-      "type": 0,
-      "value": "Hand-off"
-    }
-  ],
   "pndXMi": [
     {
       "type": 0,
-      "value": "Enter a value"
+      "value": "输入值"
     }
   ],
   "pnlHOZ": [
@@ -13824,7 +14444,7 @@
   "pqedsA": [
     {
       "type": 0,
-      "value": "Mute all warnings"
+      "value": "将所有警告静音"
     }
   ],
   "pqgzm0": [
@@ -13854,7 +14474,7 @@
   "pw1ueF": [
     {
       "type": 0,
-      "value": "Failed to create meta agent. Error: "
+      "value": "未能创建元智能体。错误: "
     },
     {
       "type": 1,
@@ -13900,13 +14520,13 @@
   "qB4s5L": [
     {
       "type": 0,
-      "value": "Add parameter"
+      "value": "添加参数"
     }
   ],
   "qDwvZ4": [
     {
       "type": 0,
-      "value": "Unknown error"
+      "value": "未知错误"
     }
   ],
   "qQh4Xu": [
@@ -13996,7 +14616,7 @@
   "qrs+1B": [
     {
       "type": 0,
-      "value": "Create meta agent"
+      "value": "创建元智能体"
     }
   ],
   "qs5hhk": [
@@ -14142,6 +14762,24 @@
       "value": "类似症状事件"
     }
   ],
+  "rIbCjV": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Scheduled tasks deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "rKdPkY": [
     {
       "type": 0,
@@ -14245,19 +14883,13 @@
   "raexxM": [
     {
       "type": 0,
-      "value": "Submitted"
+      "value": "已提交"
     }
   ],
   "rbrahO": [
     {
       "type": 0,
       "value": "关闭"
-    }
-  ],
-  "rd+inb": [
-    {
-      "type": 0,
-      "value": "使用自定义工具和连接器创建 AI 智能体。使用交互式图表可视化它们的协同工作方式。从创建第一个智能体、工具或连接器入手。"
     }
   ],
   "rd6YZk": [
@@ -14269,7 +14901,7 @@
   "rdsirP": [
     {
       "type": 0,
-      "value": "The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions."
+      "value": "智能体已达到活动流 AAU 限制。它现在仅在始终可用的流中运行，无法用于聊天和操作。"
     }
   ],
   "rhSI1/": [
@@ -14281,7 +14913,7 @@
   "ri3YXY": [
     {
       "type": 0,
-      "value": "Add a connector"
+      "value": "添加连接器"
     }
   ],
   "riEsC7": [
@@ -14397,7 +15029,7 @@
   "rzC0Xo": [
     {
       "type": 0,
-      "value": "The agent posts notifications to the activity feed linking to a chat or team."
+      "value": "智能体将通知发布至链接到聊天或团队的活动源。"
     }
   ],
   "s00xPm": [
@@ -14466,6 +15098,12 @@
     {
       "type": 0,
       "value": "选择订阅"
+    }
+  ],
+  "sCRBH3": [
+    {
+      "type": 0,
+      "value": "Search by subagent"
     }
   ],
   "sH0O5v": [
@@ -14619,7 +15257,7 @@
   "sZIoMy": [
     {
       "type": 0,
-      "value": "Send email"
+      "value": "发送电子邮件"
     }
   ],
   "sd1Vy+": [
@@ -14691,7 +15329,7 @@
   "spEwRf": [
     {
       "type": 0,
-      "value": "You have warnings regarding your agent."
+      "value": "你的智能体存在警告。"
     }
   ],
   "sqGM6w": [
@@ -14718,6 +15356,12 @@
       "value": "来自模型上下文协议(MCP)服务器的工具。这些工具按连接分组，并从连接的服务器加载。"
     }
   ],
+  "stbbGt": [
+    {
+      "type": 0,
+      "value": "Performs specialized tasks on behalf of the SRE Agent."
+    }
+  ],
   "strvmG": [
     {
       "type": 0,
@@ -14739,7 +15383,7 @@
   "swe9tO": [
     {
       "type": 0,
-      "value": "Run a test first to validate the query and ensure the agent can access Azure Data Explorer."
+      "value": "请先运行测试以验证查询，并确保智能体可以访问 Azure 数据资源管理器。"
     }
   ],
   "sy7vzf": [
@@ -14824,6 +15468,12 @@
       "value": "暂停"
     }
   ],
+  "tFoDh3": [
+    {
+      "type": 0,
+      "value": "Yes, turn on deep investigation"
+    }
+  ],
   "tGHG7q": [
     {
       "type": 0,
@@ -14846,12 +15496,6 @@
     {
       "type": 0,
       "value": "知识库"
-    }
-  ],
-  "tLaLqo": [
-    {
-      "type": 0,
-      "value": "以下是你的深入调查:"
     }
   ],
   "tOxzip": [
@@ -15001,7 +15645,7 @@
   "trhBLG": [
     {
       "type": 0,
-      "value": "No insights available"
+      "value": "没有可用的见解"
     }
   ],
   "ts7YvN": [
@@ -15019,7 +15663,7 @@
   "ttWUo6": [
     {
       "type": 0,
-      "value": "Click to view session analysis and insights"
+      "value": "单击查看会话分析和见解"
     }
   ],
   "tthToS": [
@@ -15031,7 +15675,7 @@
   "tu6JYo": [
     {
       "type": 0,
-      "value": "Start agent"
+      "value": "启动智能体"
     }
   ],
   "tujypD": [
@@ -15142,6 +15786,18 @@
     {
       "type": 0,
       "value": "所有自治级别"
+    }
+  ],
+  "uIXQiw": [
+    {
+      "type": 0,
+      "value": "Establishing connection ..."
+    }
+  ],
+  "uKwm6S": [
+    {
+      "type": 0,
+      "value": "Canvas view"
     }
   ],
   "uLmZLS": [
@@ -15284,7 +15940,13 @@
   "ueVpay": [
     {
       "type": 0,
-      "value": "Refining..."
+      "value": "正在优化..."
+    }
+  ],
+  "ufzv1A": [
+    {
+      "type": 0,
+      "value": "Table view"
     }
   ],
   "ug01Mk": [
@@ -15326,7 +15988,7 @@
   "urxxsP": [
     {
       "type": 0,
-      "value": "Agent Performance"
+      "value": "智能体性能"
     }
   ],
   "us/IXr": [
@@ -15392,7 +16054,7 @@
   "v6cujo": [
     {
       "type": 0,
-      "value": "Kusto tool"
+      "value": "Kusto 工具"
     }
   ],
   "v8cTK0": [
@@ -15470,7 +16132,7 @@
   "vS6Lmt": [
     {
       "type": 0,
-      "value": "Incident triggers"
+      "value": "事件触发器"
     }
   ],
   "vSW3OF": [
@@ -15521,6 +16183,12 @@
     {
       "type": 0,
       "value": "本指南有助于生成工具列表以及智能体在事件处理期间使用的最终提示。"
+    }
+  ],
+  "vb6deF": [
+    {
+      "type": 0,
+      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
     }
   ],
   "vbdOl/": [
@@ -15578,7 +16246,7 @@
   "vzH0q5": [
     {
       "type": 0,
-      "value": "Choose tools"
+      "value": "选择工具"
     }
   ],
   "w+XRP2": [
@@ -15597,6 +16265,12 @@
     {
       "type": 0,
       "value": "清除说明"
+    }
+  ],
+  "w4Nqlr": [
+    {
+      "type": 0,
+      "value": "Run scheduled task(s)"
     }
   ],
   "w5FDGY": [
@@ -15638,7 +16312,7 @@
   "wBh+z3": [
     {
       "type": 0,
-      "value": "No additional comments provided"
+      "value": "未提供额外评论"
     }
   ],
   "wEQDC6": [
@@ -15691,6 +16365,12 @@
       "value": "format"
     }
   ],
+  "wO9wb5": [
+    {
+      "type": 0,
+      "value": "GitHub"
+    }
+  ],
   "wOHH3J": [
     {
       "type": 0,
@@ -15705,10 +16385,22 @@
       "value": " 每次运行时应执行的操作。"
     }
   ],
+  "wPF0jY": [
+    {
+      "type": 0,
+      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
       "value": "创建新的转接智能体"
+    }
+  ],
+  "wSLRfB": [
+    {
+      "type": 0,
+      "value": "Unknown status"
     }
   ],
   "wSZR47": [
@@ -15720,7 +16412,7 @@
   "wUnPMf": [
     {
       "type": 0,
-      "value": "Users without one of the required Azure role-based access control (RBAC) roles will not have access to Azure SRE Agent."
+      "value": "无所需的 Azure 基于角色的访问控制(RBAC)角色的用户将无法获取 Azure SRE 智能体。"
     }
   ],
   "wVpXzO": [
@@ -15876,7 +16568,7 @@
   "xEjqoV": [
     {
       "type": 0,
-      "value": "Click here to learn more"
+      "value": "单击此处了解更多信息"
     }
   ],
   "xGPsyJ": [
@@ -15906,7 +16598,7 @@
   "xLrAFR": [
     {
       "type": 0,
-      "value": "Parameter name"
+      "value": "参数名称"
     }
   ],
   "xNC5hG": [
@@ -15915,10 +16607,16 @@
       "value": "字典(分组为参数)"
     }
   ],
+  "xP3hmB": [
+    {
+      "type": 0,
+      "value": "Start:"
+    }
+  ],
   "xPuGYM": [
     {
       "type": 0,
-      "value": "No connectors match your search"
+      "value": "没有连接器与你的搜索匹配"
     }
   ],
   "xSsto+": [
@@ -16008,7 +16706,7 @@
   "xet2Cv": [
     {
       "type": 0,
-      "value": "Query parameters"
+      "value": "查询参数"
     }
   ],
   "xf9BKi": [
@@ -16087,6 +16785,12 @@
       "value": "正在删除自定义事件响应计划"
     }
   ],
+  "y/m6Ep": [
+    {
+      "type": 0,
+      "value": "GitHub MCP server"
+    }
+  ],
   "y0KXuM": [
     {
       "type": 0,
@@ -16116,7 +16820,7 @@
   "y79eIb": [
     {
       "type": 0,
-      "value": "Assign yourself the SRE Agent Admin role."
+      "value": "为自己分配 SRE 智能体管理员角色。"
     }
   ],
   "y87pob": [
@@ -16136,7 +16840,7 @@
   "yBnHns": [
     {
       "type": 0,
-      "value": "Sign in to "
+      "value": "登录 "
     },
     {
       "type": 1,
@@ -16158,7 +16862,7 @@
   "yJJ/jv": [
     {
       "type": 0,
-      "value": "Mute this warning"
+      "value": "将此警告静音"
     }
   ],
   "yJSwfQ": [
@@ -16179,6 +16883,12 @@
       "value": "事件已成功删除"
     }
   ],
+  "yRKsn1": [
+    {
+      "type": 0,
+      "value": "Learn more about deep investigations"
+    }
+  ],
   "yVc78v": [
     {
       "type": 0,
@@ -16188,7 +16898,7 @@
   "yVe+kY": [
     {
       "type": 0,
-      "value": "Set up connector"
+      "value": "设置连接器"
     }
   ],
   "yX3QcY": [
@@ -16293,6 +17003,46 @@
       "value": "核心应用程序组类型"
     }
   ],
+  "yrDI3f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Failed to delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": ": "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "ysBuRt": [
     {
       "type": 0,
@@ -16324,7 +17074,7 @@
   "z43sTn": [
     {
       "type": 0,
-      "value": "View Knowledge Base"
+      "value": "查看知识库"
     }
   ],
   "z5cF/O": [
@@ -16387,6 +17137,12 @@
       "value": "正在分析配置以提出改进建议。"
     }
   ],
+  "zJFez9": [
+    {
+      "type": 0,
+      "value": "Go to Scheduled Tasks"
+    }
+  ],
   "zMX3td": [
     {
       "type": 0,
@@ -16434,7 +17190,7 @@
   "zWkvNO": [
     {
       "type": 0,
-      "value": "Timeline"
+      "value": "时间线"
     }
   ],
   "zZsxcQ": [
@@ -16491,6 +17247,24 @@
     {
       "type": 0,
       "value": "高级设置"
+    }
+  ],
+  "zpENeF": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Delete Kusto tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "zpkKsD": [
