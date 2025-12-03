@@ -1,117 +1,72 @@
-import { createTableColumn, TableCellLayout, TableColumnDefinition } from '@fluentui/react-components';
+import { Field, Radio, RadioGroup, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import DropdownFormik from '../../../../../Common/Components/Dropdown/DropdownFormik';
-import { OptionType } from '../../../../../Common/Components/Dropdown/DropdownNoFormik';
-import EditableGridFormik from '../../../../../Common/Components/EditableGrid/EditableGridFormik';
-import InputFormik from '../../../../../Common/Components/Input/InputFormik';
+import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { ConnectorsResources } from '../../../../../Strings/SREAgentResources';
 import { ConnectorType } from '../Common/ConnectorType';
 import { NameInput } from '../Common/NameInput';
-import { UrlInput } from '../Common/UrlInput';
-import { AuthType, ConnectorFormProps, CustomHeader } from '../ConnectorWizardFormik';
+import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
+import { ConnectorFormProps, McpConnectionType } from '../ConnectorWizardFormik';
+import { LocalMcpServerForm } from './LocalMcpServerForm';
+import { RemoteMcpServerForm } from './RemoteMcpServerForm';
 
 interface McpServerFormProps {
     isEditMode?: boolean;
+    userAssignedIdentities?: { id: string; name: string }[];
+    agentIdentity?: MsiIdentity;
+    refreshAgent: () => void;
 }
 
 export const McpServerForm: React.FC<McpServerFormProps> = props => {
-    const { isEditMode = false } = props;
+    const { isEditMode = false, userAssignedIdentities = [], agentIdentity, refreshAgent } = props;
 
     const intl = useIntl();
+    const styles = useConnectorWizardStyles();
 
-    const { values } = useFormikContext<ConnectorFormProps>();
+    const { values, setFieldValue } = useFormikContext<ConnectorFormProps>();
 
     const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
-
-    const authOptions = [
-        {
-            id: AuthType.BearerToken,
-            text: intl.formatMessage(ConnectorsResources.bearerToken),
-            type: OptionType.Option,
-        },
-        {
-            id: AuthType.CustomHeaders,
-            text: intl.formatMessage(ConnectorsResources.customHeaders),
-            type: OptionType.Option,
-        },
-    ];
-
-    const editableGridColumns: TableColumnDefinition<CustomHeader>[] = useMemo(() => {
-        return [
-            createTableColumn<CustomHeader>({
-                columnId: 'key',
-                compare: (a, b) => a.key.localeCompare(b.key),
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.key),
-                renderCell: (item: CustomHeader) => {
-                    const itemIndex = values.customHeaders?.indexOf(item) ?? -1;
-                    return (
-                        <TableCellLayout>
-                            <InputFormik
-                                name={`customHeaders[${itemIndex}].key`}
-                                placeholder={intl.formatMessage(ConnectorsResources.customHeadersKeyPlaceholder)}
-                            />
-                        </TableCellLayout>
-                    );
-                },
-            }),
-            createTableColumn<CustomHeader>({
-                columnId: 'value',
-                compare: (a, b) => a.value.localeCompare(b.value),
-                renderHeaderCell: () => intl.formatMessage(ConnectorsResources.value),
-                renderCell: item => {
-                    const itemIndex = values.customHeaders?.indexOf(item) ?? -1;
-                    return (
-                        <TableCellLayout>
-                            <InputFormik
-                                name={`customHeaders[${itemIndex}].value`}
-                                placeholder={intl.formatMessage(ConnectorsResources.customHeadersValuePlaceholder)}
-                            />
-                        </TableCellLayout>
-                    );
-                },
-            }),
-        ];
-    }, [intl, values.customHeaders]);
 
     return (
         <>
             <NameInput disabled={isEditMode} />
-            <UrlInput />
-            <DropdownFormik
-                name="authType"
-                label={intl.formatMessage(ConnectorsResources.authenticationMethod)}
-                required
-                orientation="vertical"
-                options={authOptions}
-                value={
-                    !values.authType
-                        ? undefined
-                        : values.authType === AuthType.BearerToken
-                          ? intl.formatMessage(ConnectorsResources.bearerToken)
-                          : intl.formatMessage(ConnectorsResources.customHeaders)
-                }
-                placeholder={intl.formatMessage(ConnectorsResources.authenticationMethodPlaceholder)}
-                disabled={connectorType === ConnectorType.GitHub}
-            />
-            {values.authType === AuthType.BearerToken && (
-                <InputFormik
-                    name="patOrApiKey"
-                    label={intl.formatMessage(ConnectorsResources.patOrApiKey)}
-                    required
-                    orientation="vertical"
-                    type="password"
-                    placeholder={intl.formatMessage(ConnectorsResources.patOrApiKeyPlaceholder)}
-                />
-            )}
-            {values.authType === AuthType.CustomHeaders && (
-                <EditableGridFormik<CustomHeader>
-                    name={'customHeaders'}
-                    as="table"
-                    columns={editableGridColumns}
-                    columnSizingOptions={{ key: { defaultWidth: 192, idealWidth: 192 }, value: { defaultWidth: 192, idealWidth: 192 } }}
-                    emptyRow={{ key: '', value: '' }}
+
+            <Field label={intl.formatMessage(ConnectorsResources.connectionType)} required orientation="vertical">
+                <RadioGroup
+                    layout="horizontal"
+                    name="mcpConnectionType"
+                    value={values.mcpConnectionType || McpConnectionType.Remote}
+                    onChange={(_, data) => setFieldValue('mcpConnectionType', data.value)}
+                >
+                    <Radio
+                        value={McpConnectionType.Remote}
+                        label={
+                            <div className={styles.accountText}>
+                                <Text weight="semibold">{intl.formatMessage(ConnectorsResources.remoteSse)}</Text>
+                                <Text size={200}>{intl.formatMessage(ConnectorsResources.connectViaUrlEndpoint)}</Text>
+                            </div>
+                        }
+                    />
+                    <Radio
+                        value={McpConnectionType.Local}
+                        label={
+                            <div className={styles.accountText}>
+                                <Text weight="semibold">{intl.formatMessage(ConnectorsResources.localProcess)}</Text>
+                                <Text size={200}>{intl.formatMessage(ConnectorsResources.runLocalExecutable)}</Text>
+                            </div>
+                        }
+                    />
+                </RadioGroup>
+            </Field>
+
+            {values.mcpConnectionType === McpConnectionType.Remote && <RemoteMcpServerForm connectorType={connectorType} />}
+
+            {values.mcpConnectionType === McpConnectionType.Local && (
+                <LocalMcpServerForm
+                    userAssignedIdentities={userAssignedIdentities}
+                    agentIdentity={agentIdentity}
+                    refreshAgent={refreshAgent}
                 />
             )}
         </>

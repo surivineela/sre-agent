@@ -23,7 +23,12 @@ export enum AuthType {
     CustomHeaders = 'CustomHeaders',
 }
 
-export interface CustomHeader {
+export enum McpConnectionType {
+    Remote = 'Remote',
+    Local = 'Local',
+}
+
+export interface KeyValuePair {
     key: string;
     value: string;
 }
@@ -39,7 +44,11 @@ export interface ConnectorFormProps {
     teamsGroupId?: string;
     authType?: AuthType;
     patOrApiKey?: string;
-    customHeaders?: CustomHeader[];
+    customHeaders?: KeyValuePair[];
+    mcpConnectionType?: McpConnectionType;
+    command?: string;
+    args?: { value: string }[];
+    env?: KeyValuePair[];
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {
@@ -62,6 +71,9 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
             authType: undefined,
             patOrApiKey: '',
             customHeaders: [{ key: '', value: '' }],
+            mcpConnectionType: McpConnectionType.Remote,
+            args: [{ value: '' }],
+            env: [{ key: '', value: '' }],
         };
     }, []);
 

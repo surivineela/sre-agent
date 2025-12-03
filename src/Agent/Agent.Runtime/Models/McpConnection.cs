@@ -179,6 +179,7 @@ public class McpConnection
 
     /// <summary>
     /// Marks the connection as failed with an error message.
+    /// This should only be used for initialization failures.
     /// Connection remains in the active connections list but tools will throw exceptions when invoked.
     /// </summary>
     /// <param name="errorMessage">The error message describing why the connection failed</param>
@@ -190,8 +191,20 @@ public class McpConnection
     }
 
     /// <summary>
+    /// Marks the connection as disconnected with an error message.
+    /// This is used when verification (ping) fails but the connection can potentially be reconnected.
+    /// </summary>
+    /// <param name="errorMessage">The error message describing why the connection was disconnected</param>
+    public void MarkAsDisconnected(string errorMessage)
+    {
+        Status = DataConnectorStatus.Disconnected;
+        ErrorMessage = errorMessage;
+        ConsecutivePingFailures++;
+    }
+
+    /// <summary>
     /// Marks the connection as healthy/connected and clears any error message.
-    /// This is used to restore a previously failed connection.
+    /// This is used to restore a previously failed or disconnected connection.
     /// </summary>
     public void MarkAsConnected()
     {

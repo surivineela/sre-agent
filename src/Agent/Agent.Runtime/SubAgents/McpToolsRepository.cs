@@ -22,8 +22,8 @@ public class McpToolsRepository : IMcpConnectable
     private readonly MCPSettings _mcpSettings;
     private readonly IServiceProvider _serviceProvider;
 
-    private readonly Dictionary<string, AIFunction> _aiFunctions = new();
-    private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
+    private readonly ConcurrentDictionary<string, AIFunction> _aiFunctions = new();
+    private readonly ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
 
     public McpToolsRepository(
         ILogger<McpToolsRepository> logger,
@@ -114,7 +114,7 @@ public class McpToolsRepository : IMcpConnectable
         {
             foreach (string sig in toolSignatures)
             {
-                _aiFunctions.Remove(sig);
+                _aiFunctions.TryRemove(sig, out _);
             }
         }
     }

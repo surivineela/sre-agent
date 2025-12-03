@@ -58,7 +58,9 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         McpAuthenticationConfig? authConfig = null,
         Dictionary<string, string>? headers = null,
         string? description = null,
-        string? serviceType = null)
+        string? serviceType = null,
+        Dictionary<string, string>? envVars = null,
+        string? identity = null)
     {
         _logger.LogInternalInformation("Creating MCP connection '{Name}' of type '{Type}'", name, type);
 
@@ -86,13 +88,16 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 Name = _unsafeToolNameChars.Replace(name, string.Empty),
                 Command = command,
                 Arguments = arguments ?? Array.Empty<string>(),
-                WorkingDirectory = workingDirectory
+                WorkingDirectory = workingDirectory,
+                EnvironmentVariables = envVars!
             }),
             // run local MCP servers via session pool proxy
             McpTransportType.Stdio when !string.IsNullOrEmpty(command) && _mcpSettings.UseSessionForStdio => _sessionTransportFactory.CreateSessionTransport(
                 _unsafeToolNameChars.Replace(name, string.Empty),
                 command,
-                arguments ?? Array.Empty<string>()),
+                arguments ?? Array.Empty<string>(),
+                envVars,
+                identity),
             _ => throw new ArgumentException($"Invalid connection type '{type}' or missing required parameters")
         };
 
@@ -311,26 +316,41 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                     return;
                 }
 
+                if (connection.Status != DataConnectorStatus.Connected)
+                {
+                    _logger.LogInternalInformation(
+                        "Connection '{ConnectionId}' is not in Connected state (current: '{Status}'), skipping ping",
+                        connection.Id,
+                        connection.Status);
+                    return;
+                }
+
                 // Attempt to ping the connection
                 var completed = false;
-                var pingTask = connection.Client.PingAsync().ContinueWith(t => completed = !t.IsFaulted);
 
-                // Wait for ping or timeout
-                await Task.WhenAny(pingTask, Task.Delay(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds)));
+                try
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds));
+                    await connection.Client.PingAsync(cts.Token).ContinueWith(t => completed = t.IsCompletedSuccessfully);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Exception during ping for '{ConnectionId}'", connection.Id);
+                }
 
                 if (!completed)
                 {
-                    _logger.LogInternalWarning("Ping timed out for '{ConnectionId}', marking as unhealthy (connection kept alive)", connection.Id);
+                    _logger.LogInternalWarning("Ping timed out for '{ConnectionId}', marking as disconnected", connection.Id);
                     connection.IncrementPingFailures();
-                    connection.MarkAsFailed($"Ping timeout after {_mcpSettings.PingTimeoutInSeconds} seconds");
+                    connection.MarkAsDisconnected($"Ping timeout after {_mcpSettings.PingTimeoutInSeconds} seconds");
                 }
                 else
                 {
                     _logger.LogInternalInformation("Successfully pinged '{ConnectionId}'", connection.Id);
                     connection.UpdateHeartbeat();
                     connection.ResetPingFailures();
-                    // If connection was previously failed due to ping issues, mark it as healthy again
-                    if (connection.Status == DataConnectorStatus.Failed)
+                    // If connection was previously disconnected due to ping issues, mark it as healthy again
+                    if (connection.Status == DataConnectorStatus.Disconnected)
                     {
                         connection.MarkAsConnected();
                     }
@@ -338,9 +358,9 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             }
             catch (Exception ex)
             {
-                _logger.LogInternalWarning(ex, "Ping failed for '{ConnectionId}', marking as unhealthy (connection kept alive)", connection.Id);
+                _logger.LogInternalWarning(ex, "Ping failed for '{ConnectionId}', marking as disconnected", connection.Id);
                 connection.IncrementPingFailures();
-                connection.MarkAsFailed($"Ping failed: {ex.Message}");
+                connection.MarkAsDisconnected($"Ping failed: {ex.Message}");
             }
         });
 

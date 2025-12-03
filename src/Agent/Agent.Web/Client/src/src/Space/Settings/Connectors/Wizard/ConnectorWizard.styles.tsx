@@ -164,4 +164,18 @@ export const useConnectorWizardStyles = makeStyles({
         alignItems: 'flex-end',
         gap: '12px',
     },
+    mcpConnectionTypeCard: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: tokens.spacingHorizontalM,
+        padding: tokens.spacingVerticalM,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderRadius: tokens.borderRadiusMedium,
+        cursor: 'pointer',
+        flex: '1',
+    },
+    mcpConnectionTypeCardSelected: {
+        border: `1px solid ${tokens.colorBrandStroke1}`,
+        backgroundColor: tokens.colorBrandBackground2,
+    },
 });

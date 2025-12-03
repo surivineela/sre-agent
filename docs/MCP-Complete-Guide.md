@@ -808,25 +808,25 @@ When a connection fails verification:
 
 #### Tool Execution Health Checks
 
-**NEW**: Before executing any MCP tool, the system validates connection health:
+**NEW**: Before executing any MCP tool, the system validates connection health and attempts automatic reconnection:
 
 ```csharp
-public void ValidateConnectionHealth(McpConnection connection, string toolName)
+public async Task ValidateConnectionHealthAsync(McpConnection connection, string toolName)
 {
-    // Check if connection is in failed state
-    if (connection.Status == McpConnectionStatus.Failed)
+    // Check if connection is in failed state (initialization failure - cannot reconnect)
+    if (connection.Status == DataConnectorStatus.Failed)
     {
         throw new InvalidOperationException(
-            $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' is unhealthy - {connection.ErrorMessage}");
+            $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' failed to initialize - {connection.ErrorMessage}");
     }
-    
-    // Check if connection is disconnected
-    if (connection.Status == McpConnectionStatus.Disconnected)
+
+    // Check if connection is disconnected - attempt to reconnect
+    if (connection.Status == DataConnectorStatus.Disconnected)
     {
-        throw new InvalidOperationException(
-            $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' is disconnected");
+        // Automatically attempt to refresh/reconnect the connection
+        await _connectionManager.RefreshConnectionAsync(connection.Id);
     }
-    
+
     // Check if client is null
     if (connection.Client == null)
     {
@@ -836,9 +836,14 @@ public void ValidateConnectionHealth(McpConnection connection, string toolName)
 }
 ```
 
+**Connection Status Behavior:**
+- **Failed**: Initialization failed - connection cannot be automatically reconnected
+- **Disconnected**: Verification (ping) failed - connection will attempt automatic reconnection before tool execution
+- **Connected**: Connection is healthy and ready for tool execution
+
 **Error Messages Examples:**
-- `"Cannot execute MCP tool 'github_mcp_search_code': Connection 'github_mcp' is unhealthy - Ping timeout after 10 seconds"`
-- `"Cannot execute MCP tool 'dynatrace_mcp_execute_dql': Connection 'dynatrace_mcp' is disconnected"`
+- `"Cannot execute MCP tool 'github_mcp_search_code': Connection 'github_mcp' failed to initialize - HTTP 401 Unauthorized"`
+- `"Cannot execute MCP tool 'dynatrace_mcp_execute_dql': Connection 'dynatrace_mcp' is disconnected and reconnection failed - Network error"`
 - `"Cannot execute MCP tool 'custom_mcp_process_data': Connection 'custom_mcp' has no active client"`
 
 ### Heartbeat Flow Diagram

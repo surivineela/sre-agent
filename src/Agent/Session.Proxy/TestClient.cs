@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Models.Session;
 using Azure.Core;
 using Azure.Identity;
 
@@ -25,13 +26,29 @@ public static class TestClient
             return;
         }
 
-        // Parse --session flag
+        // Parse --session flag and --env flags
         bool useSession = false;
+        var envVars = new Dictionary<string, string>();
         var argsList = args.ToList();
-        if (argsList.Contains("--session"))
+
+        for (int i = argsList.Count - 1; i >= 0; i--)
         {
-            useSession = true;
-            argsList.Remove("--session");
+            if (argsList[i] == "--session")
+            {
+                useSession = true;
+                argsList.RemoveAt(i);
+            }
+            else if (argsList[i] == "--env" && i + 1 < argsList.Count)
+            {
+                var envValue = argsList[i + 1];
+                var parts = envValue.Split('=', 2);
+                if (parts.Length == 2)
+                {
+                    envVars[parts[0]] = parts[1];
+                    argsList.RemoveAt(i + 1);
+                    argsList.RemoveAt(i);
+                }
+            }
         }
 
         if (argsList.Count < 2)
@@ -48,11 +65,15 @@ public static class TestClient
         Console.WriteLine($"Command: {command}");
         Console.WriteLine($"Args: {string.Join(" ", commandArgs)}");
         Console.WriteLine($"Session mode: {useSession}");
+        if (envVars.Count > 0)
+        {
+            Console.WriteLine($"Environment variables: {string.Join(", ", envVars.Select(kv => $"{kv.Key}={kv.Value}"))}");
+        }
         Console.WriteLine();
 
         try
         {
-            await ConnectAndProxy(serverUrl, command, commandArgs, useSession);
+            await ConnectAndProxy(serverUrl, command, commandArgs, envVars, useSession);
         }
         catch (Exception ex)
         {
@@ -64,17 +85,19 @@ public static class TestClient
     private static void PrintUsage()
     {
         Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run TestClient [--session] <server-url> <command> [args...]");
+        Console.WriteLine("  dotnet run TestClient [--session] [--env KEY=VALUE ...] <server-url> <command> [args...]");
         Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  --session    Use Azure session mode (gets token and adds identifier)");
+        Console.WriteLine("  --session         Use Azure session mode (gets token and adds identifier)");
+        Console.WriteLine("  --env KEY=VALUE   Set environment variable (can be specified multiple times)");
         Console.WriteLine();
         Console.WriteLine("Examples:");
-        Console.WriteLine("  dotnet run TestClient ws://localhost:5000/run npx -y @modelcontextprotocol/server-everything");
-        Console.WriteLine("  dotnet run TestClient --session wss://<session-pool-hostname>/run npx -y @modelcontextprotocol/server-everything");
+        Console.WriteLine("  dotnet run TestClient ws://localhost:5000/mcp/run npx -y @modelcontextprotocol/server-everything");
+        Console.WriteLine("  dotnet run TestClient --session wss://<session-pool-hostname>/mcp/run npx -y @modelcontextprotocol/server-everything");
+        Console.WriteLine("  dotnet run TestClient --env API_KEY=secret --env DEBUG=true ws://localhost:5000/mcp/run node server.js");
     }
 
-    private static async Task ConnectAndProxy(string serverUrl, string command, string[] commandArgs, bool useSession)
+    private static async Task ConnectAndProxy(string serverUrl, string command, string[] commandArgs, Dictionary<string, string> envVars, bool useSession)
     {
         // Get Azure token if session mode is enabled
         string? token = null;
@@ -89,23 +112,20 @@ public static class TestClient
             Console.WriteLine();
         }
 
-        // Build the WebSocket URL with query parameters
-        var argsJson = JsonSerializer.Serialize(commandArgs);
-        var encodedArgs = Uri.EscapeDataString(argsJson);
-        var encodedCmd = Uri.EscapeDataString(command);
-        var fullUrl = $"{serverUrl}?cmd={encodedCmd}&args={encodedArgs}";
+        // Build the WebSocket URL (no query parameters for connection request)
+        var fullUrl = serverUrl;
 
         using var ws = new ClientWebSocket();
         ws.Options.CollectHttpResponseDetails = true;
 
         using var cts = new CancellationTokenSource();
 
-        // Add authorization header if session mode is enabled
+        // Add authorization header and session identifier if session mode is enabled
         if (useSession && token != null)
         {
             ws.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             var identifier = Guid.NewGuid().ToString();
-            fullUrl += $"&identifier={identifier}";
+            fullUrl += $"?identifier={identifier}";
         }
 
         Console.WriteLine($"Connecting to: {fullUrl}");
@@ -134,6 +154,18 @@ public static class TestClient
             }
 
             Console.WriteLine("Connected!");
+
+            // Send connection request as the first message
+            var connectionRequest = new McpConnectionRequest
+            {
+                Command = command,
+                Arguments = commandArgs,
+                EnvironmentVariables = envVars.Count > 0 ? envVars : null
+            };
+
+            var requestJson = JsonSerializer.Serialize(connectionRequest);
+            Console.WriteLine($"Sending connection request: {requestJson}");
+            await SendMessage(ws, requestJson, cts.Token);
 
             // Read the first message (should be "ok" or error)
             var firstMessage = await ReceiveMessage(ws, cts.Token);

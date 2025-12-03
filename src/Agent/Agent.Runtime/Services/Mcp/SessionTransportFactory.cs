@@ -3,10 +3,13 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Framework;
 using Agent.Runtime.Interfaces;
+using Azure.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
@@ -41,29 +44,62 @@ public class SessionTransportFactory : ISessionTransportFactory
     }
 
     /// <inheritdoc/>
-    public IClientTransport CreateSessionTransport(string name, string command, string[] arguments)
+    public IClientTransport CreateSessionTransport(string name, string command, string[] arguments, Dictionary<string, string>? envVars = null, string? identity = null)
     {
         var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
-        var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
         var sanitizedName = _unsafeToolNameChars.Replace(name, string.Empty);
 
-        var serverUrl = _sessionPoolSettings.PoolManagementEndpoint.Replace("https://", "wss://") + "/mcp/run";
-        var sessionId = _sessionPoolService.BuildSessionIdentifier(agentName, threadId, true);
-        var credential = _authService.GetSessionPoolCredential();
+        var serverUrl = _sessionPoolSettings.PoolManagementEndpoint.Replace("https://", "wss://").Replace("http://", "ws://").TrimEnd('/') + "/mcp/run";
+        var sessionId = _sessionPoolService.BuildSessionIdentifier(agentName, null, false);
+
+        // Get session pool credential for WebSocket authentication
+        var sessionPoolCredential = _authService.GetSessionPoolCredential();
+
+        // Define token scopes for Azure authentication (same as Azure CLI)
+        var tokenScopes = new List<string>
+        {
+            Constants.ArmOboTokenScope,
+            Constants.AzureDevopsTokenScope,
+            Constants.Ev2ProdTokenScope,
+        };
+
+        // Get data connector credential for acquiring action tokens (same as data connectors)
+        TokenCredential? dataConnectorCredential = null;
+        if (_hostEnvironment.IsDevelopment())
+        {
+            dataConnectorCredential = (TokenCredential?)_authService.GetDataConnectorCredential(new ConnectorAuthSettings
+            {
+                AuthenticationType = ConnectorAuthType.User
+            });
+        }
+        else if (!string.IsNullOrEmpty(identity))
+        {
+            dataConnectorCredential = (TokenCredential?)_authService.GetDataConnectorCredential(new ConnectorAuthSettings
+            {
+                AuthenticationType = ConnectorAuthType.UAMI,
+                ManagedIdentityResourceId = identity
+            });
+            tokenScopes.Add(Constants.FederatedIdentityTokenScope);
+        }
 
         _logger.LogInternalDebug(
-            "Creating session transport for '{Name}' with command '{Command}' via session pool",
+            "Creating session transport for '{Name}' with command '{Command}' via session pool. Identity: {Identity}, Token scopes: {Scopes}",
             sanitizedName,
-            command);
+            command,
+            identity ?? "(default)",
+            string.Join(", ", tokenScopes));
 
         return new SessionWebsocketClientTransport(new SessionWebsocketClientOptions
         {
             ServerUrl = serverUrl,
             SessionId = sessionId,
-            Credential = credential,
+            Credential = sessionPoolCredential,
             Name = sanitizedName,
             Command = command,
             Arguments = arguments,
+            EnvVars = envVars,
+            TokenScopes = tokenScopes.ToArray(),
+            DataConnectorCredential = dataConnectorCredential,
         }, _logger);
     }
 }

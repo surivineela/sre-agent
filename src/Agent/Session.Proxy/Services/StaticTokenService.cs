@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using Session.Proxy.Models;
 
@@ -7,13 +8,13 @@ namespace Session.Proxy.Services;
 public class StaticTokenService : ITokenService
 {
     private readonly ILogger<StaticTokenService> _logger;
-    private readonly IDictionary<string, Token> _tokens;
+    private readonly ConcurrentDictionary<string, Token> _tokens;
 
     public StaticTokenService(ILogger<StaticTokenService> logger)
     {
         _logger = logger;
 
-        _tokens = new Dictionary<string, Token>(StringComparer.OrdinalIgnoreCase);
+        _tokens = new ConcurrentDictionary<string, Token>(StringComparer.OrdinalIgnoreCase);
     }
 
     public Task<Token?> GetTokenAsync(string resource)

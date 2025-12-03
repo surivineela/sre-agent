@@ -18,10 +18,11 @@ interface ManagedIdentityDropdownWithValidationProps {
     userAssignedIdentities: { id: string; name: string }[];
     agentIdentity: MsiIdentity | undefined;
     refreshAgent: () => void;
+    required?: boolean;
 }
 
 export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDropdownWithValidationProps> = props => {
-    const { userAssignedIdentities, agentIdentity, refreshAgent } = props;
+    const { userAssignedIdentities, agentIdentity, refreshAgent, required = true } = props;
 
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
@@ -36,6 +37,12 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
 
     const identityOptions = useMemo(() => {
         const options: DropdownOptionBase[] = [];
+
+        // Add "None" option if not required
+        if (!required) {
+            options.push({ id: '', text: intl.formatMessage(SreAgentResources.none), type: OptionType.Option });
+        }
+
         if (isSystemAssignedIdentityEnabled) {
             options.push({ id: IdentityKeys.system, text: intl.formatMessage(SreAgentResources.systemAssigned), type: OptionType.Option });
         }
@@ -55,7 +62,7 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
         }
 
         return options;
-    }, [intl, isSystemAssignedIdentityEnabled, userAssignedIdentities]);
+    }, [intl, isSystemAssignedIdentityEnabled, userAssignedIdentities, required]);
 
     useEffect(() => {
         // Auto-select the first identity if there's only one option and no current selection
@@ -93,11 +100,13 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
         <DropdownFormik
             name="identity"
             label={intl.formatMessage(ConnectorsResources.managedIdentity)}
-            required
+            required={required}
             value={
-                values.identity === IdentityKeys.system
-                    ? intl.formatMessage(SreAgentResources.systemAssigned)
-                    : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''
+                !values.identity
+                    ? intl.formatMessage(SreAgentResources.none)
+                    : values.identity === IdentityKeys.system
+                      ? intl.formatMessage(SreAgentResources.systemAssigned)
+                      : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''
             }
             orientation="vertical"
             options={identityOptions}

@@ -37,9 +37,10 @@ public class SessionWebsocketClientOptions
     public int ReceiveBufferSize { get; set; } = 65536;
 
     /// <summary>
-    /// Connection timeout in milliseconds (default: 30 seconds).
+    /// Connection timeout in milliseconds (default: 120 seconds).
+    /// Setup connection could be slow since it will acquire several AAD tokens.
     /// </summary>
-    public int ConnectionTimeoutMs { get; set; } = 30000;
+    public int ConnectionTimeoutMs { get; set; } = 120000;
 
     /// <summary>
     /// Optional Azure credential for authentication to session pool.
@@ -50,4 +51,23 @@ public class SessionWebsocketClientOptions
     /// Session Identifier
     /// </summary>
     public string? SessionId { get; set; }
+
+    /// <summary>
+    /// Environment variables to pass to the MCP server process.
+    /// </summary>
+    public Dictionary<string, string>? EnvVars { get; set; }
+
+    /// <summary>
+    /// Token scopes required by some Microsoft-provided MCP servers.
+    /// These scopes will be used to acquire tokens that are made available to the MCP server via MSI endpoint.
+    /// </summary>
+    public string[]? TokenScopes { get; set; }
+
+    /// <summary>
+    /// Optional Azure credential for agent identity to acquire action tokens.
+    /// This is separate from the session pool credential and represents the agent's identity
+    /// for accessing Azure resources (same as data connector credentials).
+    /// Only used for stdio MCP servers, not HTTP servers.
+    /// </summary>
+    public TokenCredential? DataConnectorCredential { get; set; }
 }

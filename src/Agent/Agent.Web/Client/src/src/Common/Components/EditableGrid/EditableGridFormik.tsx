@@ -116,9 +116,12 @@ const EditableGrid = <T,>(props: EditableGridProps<T>) => {
                     columnId: 'delete',
                     renderHeaderCell: () => intl.formatMessage(SreAgentResources.delete),
                     renderCell: item => {
-                        if (values.length <= 1) return null;
-
                         const itemIndex = values.indexOf(item);
+
+                        // Don't show delete button if there's only 1 row and canDeleteLastItem is false
+                        if (values.length <= 1 && !canDeleteLastItem) return null;
+
+                        // Don't show delete button for the last row if canDeleteLastItem is false
                         if (!canDeleteLastItem && itemIndex >= values.length - 1) return null;
 
                         return (
@@ -187,7 +190,7 @@ const EditableGrid = <T,>(props: EditableGridProps<T>) => {
                         push({ ...emptyRow });
                     }}
                 >
-                    {SreAgentResources.add}
+                    {intl.formatMessage(SreAgentResources.add)}
                 </Button>
             )}
             <DataGrid

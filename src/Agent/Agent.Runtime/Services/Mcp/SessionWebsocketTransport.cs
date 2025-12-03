@@ -73,7 +73,10 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
     /// <param name="cancellationToken">Token to cancel the send operation</param>
     public async Task SendMessageAsync(JsonRpcMessage message, CancellationToken cancellationToken = default)
     {
-        var json = JsonSerializer.Serialize(message);
+        var json = JsonSerializer.Serialize(message, new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        });
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {

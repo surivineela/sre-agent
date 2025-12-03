@@ -5,10 +5,9 @@ import { useIntl } from 'react-intl';
 import { ConnectorsResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { IdentityKeys } from '../../../Contracts/Identity';
 import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Common/ConnectorType';
-import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './Common/CustomConnectorHelper';
 import { parseTeamsChannelLink } from './Common/TeamsConnectorHelper';
 import { useConnectorWizardStyles } from './ConnectorWizard.styles';
-import { AuthType, ConnectorFormProps } from './ConnectorWizardFormik';
+import { AuthType, ConnectorFormProps, McpConnectionType } from './ConnectorWizardFormik';
 
 export interface ReviewAndAddProps {
     userAssignedIdentities: { id: string; name: string }[];
@@ -24,24 +23,53 @@ export const ReviewAndAdd: React.FC<ReviewAndAddProps> = ({ userAssignedIdentiti
     const contentList = useMemo(() => {
         const labelValuePairs: { label: string; value: string }[] = [];
         if (selectedConnector === ConnectorType.McpServer || selectedConnector === ConnectorType.GitHub) {
-            if (values.authType === AuthType.BearerToken) {
+            if (values.mcpConnectionType === McpConnectionType.Local) {
                 labelValuePairs.push({
-                    label: intl.formatMessage(ConnectorsResources.authenticationMethod),
-                    value: intl.formatMessage(ConnectorsResources.bearerToken),
+                    label: intl.formatMessage(ConnectorsResources.connectionType),
+                    value: intl.formatMessage(ConnectorsResources.localProcess),
                 });
                 labelValuePairs.push({
-                    label: intl.formatMessage(ConnectorsResources.compiledConnectionString),
-                    value: getBearerTokenConnectionString(values.url, values.patOrApiKey || ''),
+                    label: intl.formatMessage(ConnectorsResources.command),
+                    value: values.command || '',
                 });
+
+                const args = values.args?.map(a => a.value).filter(v => !!v) || [];
+                if (args.length > 0) {
+                    labelValuePairs.push({
+                        label: intl.formatMessage(ConnectorsResources.arguments),
+                        value: args.join(', '),
+                    });
+                }
+
+                const env = values.env?.filter(e => !!e.key && !!e.value) || [];
+                if (env.length > 0) {
+                    labelValuePairs.push({
+                        label: intl.formatMessage(ConnectorsResources.environmentVariables),
+                        value: env.map(e => `${e.key}=${e.value}`).join(', '),
+                    });
+                }
+
+                if (values.identity) {
+                    labelValuePairs.push({
+                        label: intl.formatMessage(ConnectorsResources.managedIdentity),
+                        value:
+                            values.identity === IdentityKeys.system
+                                ? intl.formatMessage(SreAgentResources.systemAssigned)
+                                : userAssignedIdentities.find(option => option.id === values.identity)?.name || '',
+                    });
+                }
             } else {
-                labelValuePairs.push({
-                    label: intl.formatMessage(ConnectorsResources.authenticationMethod),
-                    value: intl.formatMessage(ConnectorsResources.customHeaders),
-                });
-                labelValuePairs.push({
-                    label: intl.formatMessage(ConnectorsResources.compiledConnectionString),
-                    value: getCustomHeadersConnectionString(values.url, values.customHeaders || []),
-                });
+                if (values.authType === AuthType.BearerToken) {
+                    labelValuePairs.push({
+                        label: intl.formatMessage(ConnectorsResources.authenticationMethod),
+                        value: intl.formatMessage(ConnectorsResources.bearerToken),
+                    });
+                } else {
+                    labelValuePairs.push({
+                        label: intl.formatMessage(ConnectorsResources.authenticationMethod),
+                        value: intl.formatMessage(ConnectorsResources.customHeaders),
+                    });
+                }
             }
         } else {
             if (values.email) {

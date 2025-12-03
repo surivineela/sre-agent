@@ -34,7 +34,8 @@ public partial class McpDataConnector : IDataConnector
         string Command,
         string[]? Arguments,
         string? Description,
-        string? ServiceType) : McpConnectionSettings(McpTransportType.Stdio, Description, ServiceType);
+        string? ServiceType,
+        Dictionary<string, string>? EnvVars) : McpConnectionSettings(McpTransportType.Stdio, Description, ServiceType);
 
     public string Endpoint { get; private set; } = string.Empty;
     public McpAuthenticationConfig? AuthenticationConfig { get; private set; }
@@ -94,7 +95,9 @@ public partial class McpDataConnector : IDataConnector
                     command: stdioSettings.Command,
                     arguments: stdioSettings.Arguments,
                     description: stdioSettings.Description,
-                    serviceType: stdioSettings.ServiceType),
+                    serviceType: stdioSettings.ServiceType,
+                    envVars: stdioSettings.EnvVars,
+                    identity: instanceSettings.Identity),
 
                 _ => throw new InvalidOperationException($"Unsupported connection settings type: {parsedSettings.GetType().Name}")
             };
@@ -209,6 +212,20 @@ public partial class McpDataConnector : IDataConnector
             throw new NotSupportedException($"Transport Type '{typeString}' is not supported by the MCP data connector.");
         }
 
+        // Parse environment variables if provided
+        Dictionary<string, string>? envVars = null;
+        if (values.TryGetValue("EnvJson", out string? envJson) && !string.IsNullOrWhiteSpace(envJson))
+        {
+            try
+            {
+                envVars = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(envJson);
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                throw new ArgumentException("EnvJson value is not a valid JSON dictionary of strings.", nameof(dataSource), ex);
+            }
+        }
+
         if (type == McpTransportType.Http)
         {
             if (!values.TryGetValue("Endpoint", out string? endpoint) || string.IsNullOrWhiteSpace(endpoint))
@@ -252,7 +269,8 @@ public partial class McpDataConnector : IDataConnector
                 Command: command,
                 Arguments: arguments,
                 Description: "Mcp Tool",
-                ServiceType: connectionName);
+                ServiceType: connectionName,
+                EnvVars: envVars);
         }
         else
         {

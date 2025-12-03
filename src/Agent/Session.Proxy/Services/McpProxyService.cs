@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace Session.Proxy.Services;
 
@@ -10,11 +12,21 @@ namespace Session.Proxy.Services;
 public class McpProxyService
 {
     private readonly ILogger<McpProxyService> _logger;
+    private readonly IServer _server;
+    private readonly ITokenService _tokenService;
+    private readonly string _msiEndpoint;
     private static readonly UTF8Encoding NoBomUtf8 = new(encoderShouldEmitUTF8Identifier: false);
 
-    public McpProxyService(ILogger<McpProxyService> logger)
+    public McpProxyService(ILogger<McpProxyService> logger, IServer server, ITokenService tokenService, IConfiguration configuration)
     {
         _logger = logger;
+        _server = server;
+        _tokenService = tokenService;
+
+        // Get the MSI endpoint from configuration or use default
+        var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
+        var httpAddress = addressesFeature?.Addresses.FirstOrDefault() ?? throw new InvalidOperationException("No HTTP address found");
+        _msiEndpoint = $"http://localhost:{new Uri(httpAddress).Port}/msi/token";
     }
 
     /// <summary>
@@ -24,17 +36,38 @@ public class McpProxyService
         WebSocket webSocket,
         string command,
         string[] args,
+        Dictionary<string, string>? envVars,
+        Dictionary<string, string>? actionTokens,
         CancellationToken cancellationToken)
     {
         var connectionId = Guid.NewGuid().ToString("N")[..8];
         _logger.LogInformation("Connection {ConnectionId}: Starting MCP proxy for command: {Command} {Args}",
             connectionId, command, string.Join(" ", args));
 
+        if (envVars != null && envVars.Count > 0)
+        {
+            _logger.LogInformation("Connection {ConnectionId}: Environment variables provided: {Count}",
+                connectionId, envVars.Count);
+        }
+
+        if (actionTokens != null && actionTokens.Count > 0)
+        {
+            _logger.LogInformation("Connection {ConnectionId}: Action tokens provided. Token scopes: {Scopes}",
+                connectionId, string.Join(", ", actionTokens.Keys));
+        }
+
         Process? process = null;
         try
         {
+            // Add action tokens to the token service if provided
+            if (actionTokens != null && actionTokens.Count > 0)
+            {
+                await _tokenService.AddTokensAsync(actionTokens);
+                _logger.LogInformation("Connection {ConnectionId}: Action tokens added to token service", connectionId);
+            }
+
             // Launch the MCP server process
-            process = LaunchMcpProcess(command, args, connectionId);
+            process = LaunchMcpProcess(command, args, envVars, connectionId);
 
             // Send "ok" message to indicate successful initialization
             await SendWebSocketMessage(webSocket, "ok", cancellationToken);
@@ -67,7 +100,7 @@ public class McpProxyService
     /// <summary>
     /// Launches the MCP server process with stdio redirection.
     /// </summary>
-    private Process LaunchMcpProcess(string command, string[] args, string connectionId)
+    private Process LaunchMcpProcess(string command, string[] args, Dictionary<string, string>? envVars, string connectionId)
     {
         try
         {
@@ -83,6 +116,23 @@ public class McpProxyService
                 StandardOutputEncoding = NoBomUtf8,
                 StandardErrorEncoding = NoBomUtf8
             };
+
+            // Add MSI endpoint environment variables if action tokens are provided
+            startInfo.Environment["IDENTITY_ENDPOINT"] = _msiEndpoint;
+            startInfo.Environment["IDENTITY_HEADER"] = connectionId;
+            _logger.LogInformation("Connection {ConnectionId}: Setting MSI endpoint environment variables. IDENTITY_ENDPOINT={Endpoint}",
+                connectionId, _msiEndpoint);
+
+            // Add environment variables if provided
+            if (envVars != null)
+            {
+                foreach (var kvp in envVars)
+                {
+                    startInfo.Environment[kvp.Key] = kvp.Value;
+                    _logger.LogDebug("Connection {ConnectionId}: Setting environment variable: {Key}",
+                        connectionId, kvp.Key);
+                }
+            }
 
             // On Windows, wrap commands with cmd.exe to ensure proper PATH resolution
             // This matches the behavior of StdioClientTransport in the official SDK

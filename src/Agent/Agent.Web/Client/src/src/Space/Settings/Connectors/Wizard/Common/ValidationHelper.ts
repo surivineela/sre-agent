@@ -2,7 +2,7 @@ import { array, object, string } from 'yup';
 import { Connector } from '../../../../../Common/Contracts/Azure/SreAgent';
 import { AntUxStringComparison, equals } from '../../../../../Common/Helpers/Strings';
 import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
-import { AuthType } from '../ConnectorWizardFormik';
+import { AuthType, McpConnectionType } from '../ConnectorWizardFormik';
 import { ConnectorType } from './ConnectorType';
 import { kustoDataSourceExample } from './UrlInput';
 
@@ -33,7 +33,12 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
             }),
         url: string()
             .ensure()
-            .required(intl.formatMessage(SreAgentResources.fieldRequired))
+            .when(['connectorType', 'mcpConnectionType'], {
+                is: (connectorType: string, mcpConnectionType: string) =>
+                    connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Local,
+                then: schema => schema.notRequired(),
+                otherwise: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+            })
             .when('connectorType', {
                 is: (connectorType: string) =>
                     connectorType === ConnectorType.AzureDataExplorerQuery || connectorType === ConnectorType.AzureDataExplorerIndexing,
@@ -121,15 +126,19 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
             }),
         authType: string()
             .ensure()
-            .when('connectorType', {
-                is: (connectorType: string) => connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub,
+            .when(['connectorType', 'mcpConnectionType'], {
+                is: (connectorType: string, mcpConnectionType: string) =>
+                    (connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Remote) ||
+                    connectorType === ConnectorType.GitHub,
                 then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 otherwise: schema => schema.notRequired(),
             }),
         patOrApiKey: string()
             .ensure()
-            .when('connectorType', {
-                is: (connectorType: string) => connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub,
+            .when(['connectorType', 'mcpConnectionType'], {
+                is: (connectorType: string, mcpConnectionType: string) =>
+                    (connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Remote) ||
+                    connectorType === ConnectorType.GitHub,
                 then: schema =>
                     schema.when('authType', {
                         is: (authType: string) => authType === AuthType.BearerToken,
@@ -140,8 +149,9 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
             }),
         customHeaders: array()
             .ensure()
-            .when('connectorType', {
-                is: (connectorType: string) => connectorType === ConnectorType.McpServer,
+            .when(['connectorType', 'mcpConnectionType'], {
+                is: (connectorType: string, mcpConnectionType: string) =>
+                    connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Remote,
                 then: schema =>
                     schema.when('authType', {
                         is: (authType: string) => authType === AuthType.CustomHeaders,
@@ -154,6 +164,14 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
             .ensure()
             .when('connectorType', {
                 is: (connectorType: string) => connectorType !== ConnectorType.McpServer && connectorType !== ConnectorType.GitHub,
+                then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                otherwise: schema => schema.notRequired(),
+            }),
+        command: string()
+            .ensure()
+            .when(['connectorType', 'mcpConnectionType'], {
+                is: (connectorType: string, mcpConnectionType: string) =>
+                    connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Local,
                 then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 otherwise: schema => schema.notRequired(),
             }),

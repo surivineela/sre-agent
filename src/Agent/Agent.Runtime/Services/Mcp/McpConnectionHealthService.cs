@@ -24,37 +24,57 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
         _logger = logger;
     }
 
-    public void ValidateConnectionHealth(McpConnection connection, string toolName)
+    public async Task ValidateConnectionHealthAsync(McpConnection connection, string toolName)
     {
         if (connection == null)
         {
             throw new InvalidOperationException($"Cannot execute MCP tool '{toolName}': Connection not found");
         }
 
-        // Check if connection is in a failed state
+        // Check if connection is in a failed state (initialization failure - cannot reconnect)
         if (connection.Status == DataConnectorStatus.Failed)
         {
             var errorMessage = connection.ErrorMessage ?? "Connection failed";
             _logger.LogInternalWarning(
-                "Rejecting tool invocation for '{ToolName}' - Connection '{ConnectionId}' is unhealthy: {Error}",
+                "Rejecting tool invocation for '{ToolName}' - Connection '{ConnectionId}' is in failed state: {Error}",
                 toolName,
                 connection.Id,
                 errorMessage);
 
             throw new InvalidOperationException(
-                $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' is unhealthy - {errorMessage}");
+                $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' failed to initialize - {errorMessage}");
         }
 
-        // Check if connection is disconnected
+        // Check if connection is disconnected - attempt to reconnect
         if (connection.Status == DataConnectorStatus.Disconnected)
         {
-            _logger.LogInternalWarning(
-                "Rejecting tool invocation for '{ToolName}' - Connection '{ConnectionId}' is disconnected",
-                toolName,
-                connection.Id);
+            _logger.LogInternalInformation(
+                "Connection '{ConnectionId}' is disconnected, attempting to reconnect before executing tool '{ToolName}'",
+                connection.Id,
+                toolName);
 
-            throw new InvalidOperationException(
-                $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' is disconnected");
+            try
+            {
+                // Attempt to refresh/reconnect the connection
+                await _connectionManager.RefreshConnectionAsync(connection.Id);
+
+                _logger.LogInternalInformation(
+                    "Successfully reconnected connection '{ConnectionId}' for tool '{ToolName}'",
+                    connection.Id,
+                    toolName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(
+                    ex,
+                    "Failed to reconnect connection '{ConnectionId}' for tool '{ToolName}'",
+                    connection.Id,
+                    toolName);
+
+                throw new InvalidOperationException(
+                    $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' is disconnected and reconnection failed - {ex.Message}",
+                    ex);
+            }
         }
 
         // Check if client is null

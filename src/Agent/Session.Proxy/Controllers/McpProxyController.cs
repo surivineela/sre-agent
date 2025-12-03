@@ -1,4 +1,7 @@
+using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
+using Agent.Core.Models.Session;
 using Microsoft.AspNetCore.Mvc;
 using Session.Proxy.Services;
 
@@ -22,16 +25,14 @@ public class McpProxyController : ControllerBase
 
     /// <summary>
     /// Handles WebSocket connections for MCP proxy.
+    /// After accepting the WebSocket connection, the client must send a JSON message
+    /// with the connection parameters (command, arguments, environment variables, etc.).
+    /// The server will validate the parameters and respond with "ok" or an error message.
     /// </summary>
-    /// <param name="cmd">The command to execute (e.g., npx)</param>
-    /// <param name="args">JSON-encoded array of command arguments</param>
     /// <param name="cancellationToken">Cancellation token</param>
     [HttpGet]
     [Route("run")]
-    public async Task HandleWebSocketConnection(
-        [FromQuery] string cmd,
-        [FromQuery] string? args,
-        CancellationToken cancellationToken)
+    public async Task HandleWebSocketConnection(CancellationToken cancellationToken)
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
@@ -40,29 +41,129 @@ public class McpProxyController : ControllerBase
             return;
         }
 
-        if (string.IsNullOrEmpty(cmd))
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await HttpContext.Response.WriteAsync("Missing 'cmd' query parameter");
-            return;
-        }
+        var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        string[] commandArgs = Array.Empty<string>();
-        if (!string.IsNullOrEmpty(args))
+        try
         {
-            try
+            // Receive the first message containing connection parameters
+            var connectionRequest = await ReceiveConnectionRequestAsync(webSocket, cancellationToken);
+
+            if (connectionRequest == null)
             {
-                commandArgs = JsonSerializer.Deserialize<string[]>(args) ?? Array.Empty<string>();
-            }
-            catch (JsonException)
-            {
-                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-                await HttpContext.Response.WriteAsync("Invalid 'args' query parameter - must be a JSON array");
+                await SendErrorAndCloseAsync(webSocket, "Connection closed before receiving initialization message", cancellationToken);
                 return;
             }
+
+            // Validate the connection request
+            var validationError = ValidateConnectionRequest(connectionRequest);
+            if (validationError != null)
+            {
+                await SendErrorAndCloseAsync(webSocket, validationError, cancellationToken);
+                return;
+            }
+
+            // Parameters are valid, proceed with the connection
+            await _proxyService.HandleWebSocketConnection(
+                webSocket,
+                connectionRequest.Command,
+                connectionRequest.Arguments,
+                connectionRequest.EnvironmentVariables,
+                connectionRequest.ActionTokens,
+                cancellationToken);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON in connection request");
+            await SendErrorAndCloseAsync(webSocket, $"Invalid JSON format: {ex.Message}", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling WebSocket connection");
+            await SendErrorAndCloseAsync(webSocket, $"Error: {ex.Message}", cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Receives and deserializes the connection request from the WebSocket.
+    /// </summary>
+    private async Task<McpConnectionRequest?> ReceiveConnectionRequestAsync(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+    {
+        var buffer = new byte[8192];
+        using var ms = new MemoryStream();
+
+        WebSocketReceiveResult result;
+        do
+        {
+            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                return null;
+            }
+
+            ms.Write(buffer, 0, result.Count);
+        }
+        while (!result.EndOfMessage);
+
+        ms.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(ms, Encoding.UTF8);
+        var json = await reader.ReadToEndAsync(cancellationToken);
+
+        _logger.LogDebug("Received connection request: {Json}", json);
+
+        return JsonSerializer.Deserialize<McpConnectionRequest>(json);
+    }
+
+    /// <summary>
+    /// Validates the connection request and returns an error message if invalid.
+    /// </summary>
+    private string? ValidateConnectionRequest(McpConnectionRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Command))
+        {
+            return "Missing 'cmd' field in connection request";
         }
 
-        var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-        await _proxyService.HandleWebSocketConnection(webSocket, cmd, commandArgs, cancellationToken);
+        if (request.Arguments == null)
+        {
+            return "Missing 'args' field in connection request";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Sends an error message to the client and closes the WebSocket connection.
+    /// </summary>
+    private async Task SendErrorAndCloseAsync(
+        WebSocket webSocket,
+        string errorMessage,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogWarning("Sending error to client: {Error}", errorMessage);
+
+        try
+        {
+            var bytes = Encoding.UTF8.GetBytes(errorMessage);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(bytes),
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken);
+
+            if (webSocket.State == WebSocketState.Open)
+            {
+                await webSocket.CloseAsync(
+                    WebSocketCloseStatus.PolicyViolation,
+                    "Invalid connection request",
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending error message to client");
+        }
     }
 }

@@ -5575,4 +5575,18 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'Deleted {successCount} data connectors. Failed to delete {failedCount}: {failedItems}',
         id: 'LQ2AtR',
     },
+    connectionType: { defaultMessage: 'Connection type', id: 'ySdJIx' },
+    remoteSse: { defaultMessage: 'SSE', id: 'DtmRJJ' },
+    localProcess: { defaultMessage: 'Stdio', id: 'mE7Cg1' },
+    command: { defaultMessage: 'Command', id: '9WyylR' },
+    commandPlaceholder: { defaultMessage: 'Enter command (e.g. npx, python)', id: 'WJ+tyY' },
+    arguments: { defaultMessage: 'Arguments', id: 'nc7Brw' },
+    argumentPlaceholder: { defaultMessage: 'Enter argument', id: '3DC7Da' },
+    environmentVariables: { defaultMessage: 'Environment variables', id: 'jvB4W9' },
+    connectViaUrlEndpoint: { defaultMessage: 'Connect via URL endpoint', id: 'GDCPLv' },
+    runLocalExecutable: { defaultMessage: 'Run local command or executable', id: 'ESqLtC' },
+    commandHelperText: {
+        defaultMessage: 'The executable command to start the MCP server. Must be in your system PATH or an absolute path.',
+        id: 'cgh0+/',
+    },
 });

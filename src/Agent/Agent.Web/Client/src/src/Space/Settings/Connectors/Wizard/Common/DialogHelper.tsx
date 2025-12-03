@@ -1,12 +1,13 @@
 import { FormikHelpers } from 'formik';
 import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../../../Common/Contracts/Azure/SreAgent';
-import { AuthType, ConnectorFormProps } from '../ConnectorWizardFormik';
+import { AuthType, ConnectorFormProps, McpConnectionType } from '../ConnectorWizardFormik';
 import { AzureConnectorForm } from '../SetupForm/AzureConnectorForm';
 import { McpServerForm } from '../SetupForm/McpServerForm';
 import { OutlookTeamsConnectorForm } from '../SetupForm/OutlookTeamsConnectorForm';
 import { ConnectorType } from './ConnectorType';
 import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './CustomConnectorHelper';
+import { createMcpLocalDataSource } from './McpDataSourceHelper';
 import { parseTeamsChannelLink } from './TeamsConnectorHelper';
 
 /**
@@ -77,7 +78,14 @@ export const renderConnectorForm = (options: RenderFormOptions): React.ReactNode
             );
         case ConnectorType.McpServer:
         case ConnectorType.GitHub:
-            return <McpServerForm isEditMode={isEditMode} />;
+            return (
+                <McpServerForm
+                    isEditMode={isEditMode}
+                    userAssignedIdentities={userAssignedIdentityOptions}
+                    agentIdentity={agentIdentity}
+                    refreshAgent={refreshAgent}
+                />
+            );
         default:
             return null;
     }
@@ -111,10 +119,26 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
             dataSource = values.url;
         }
     } else {
-        if (values.authType === AuthType.BearerToken) {
-            dataSource = getBearerTokenConnectionString(values.url, values.patOrApiKey || '');
+        if (values.mcpConnectionType === McpConnectionType.Local) {
+            const args = values.args?.map(a => a.value).filter(v => v.trim() !== '') || [];
+            const env =
+                values.env?.reduce(
+                    (acc, curr) => {
+                        if (curr.key.trim() !== '') {
+                            acc[curr.key] = curr.value;
+                        }
+                        return acc;
+                    },
+                    {} as Record<string, string>
+                ) || {};
+
+            dataSource = createMcpLocalDataSource(values.command || '', args, env);
         } else {
-            dataSource = getCustomHeadersConnectionString(values.url, values.customHeaders || []);
+            if (values.authType === AuthType.BearerToken) {
+                dataSource = getBearerTokenConnectionString(values.url, values.patOrApiKey || '');
+            } else {
+                dataSource = getCustomHeadersConnectionString(values.url, values.customHeaders || []);
+            }
         }
     }
 

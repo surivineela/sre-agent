@@ -34,7 +34,9 @@ public interface IMcpConnectionEventManager
         McpAuthenticationConfig? authConfig = null,
         Dictionary<string, string>? headers = null,
         string? description = null,
-        string? serviceType = null);
+        string? serviceType = null,
+        Dictionary<string, string>? envVars = null,
+        string? identity = null);
 
     /// <summary>
     /// Removes an existing MCP connection by ID.

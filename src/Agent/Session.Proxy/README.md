@@ -36,21 +36,52 @@ The MCP protocol uses line-based JSON-RPC communication:
 
 ### WebSocket Endpoint: `/mcp/run` (MCP Proxy)
 
-**Query Parameters:**
-- `cmd` (required): The command to execute (e.g., `npx`)
-- `args` (required): JSON-encoded array of arguments (e.g., `["-y", "@azure-devops/mcp@next", "msazure"]`)
-
 **Protocol:**
-1. Client connects to WebSocket endpoint with query parameters
-2. Server launches the MCP server process
-3. Server sends first message: `"ok"` on success, or an error message on failure
-4. If error, connection is closed immediately
-5. If success, bidirectional proxying begins between WebSocket and MCP server stdio
-6. Connection remains open until client disconnects or MCP server exits
+1. Client connects to WebSocket endpoint (no query parameters required)
+2. Client sends a JSON message with connection parameters:
+   ```json
+   {
+     "cmd": "npx",
+     "args": ["-y", "@modelcontextprotocol/server-everything"],
+     "envVars": {
+       "API_KEY": "secret",
+       "DEBUG": "true"
+     }
+   }
+   ```
+3. Server validates the connection request
+4. Server sends first message: `"ok"` on success, or an error message on failure
+5. If error, connection is closed immediately
+6. If success, server launches the MCP server process with the specified environment variables
+7. Bidirectional proxying begins between WebSocket and MCP server stdio
+8. Connection remains open until client disconnects or MCP server exits
 
-**Example URL:**
+**Connection Request Format:**
+- `cmd` (required, string): The command to execute (e.g., `npx`, `node`, `uvx`)
+- `args` (required, array): Array of command arguments
+- `envVars` (optional, object): Dictionary of environment variables to set for the MCP server process
+- `actionTokens` (optional, object): Dictionary of action tokens (scope -> token mapping) for managed identity authentication
+
+**Example Connection Request:**
+
+Basic usage:
+```json
+{
+  "cmd": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-everything"]
+}
 ```
-ws://localhost:5000/mcp/run?cmd=npx&args=%5B%22-y%22%2C%22%40azure-devops%2Fmcp%40next%22%2C%22msazure%22%5D
+
+With environment variables:
+```json
+{
+  "cmd": "node",
+  "args": ["server.js"],
+  "envVars": {
+    "API_KEY": "secret",
+    "DEBUG": "true"
+  }
+}
 ```
 
 ### HTTP Endpoints: `/shellexecute` (CLI Execution)
@@ -78,17 +109,30 @@ The server will start on `http://localhost:5000` by default.
 
 A simple test client is included in the project. Run it with:
 
+**Basic usage:**
 ```bash
 cd src/Agent/Session.Proxy
 dotnet run -c Release -- TestClient ws://localhost:5000/mcp/run npx -y @modelcontextprotocol/server-everything
 ```
 
-and then send the initialization message:
-```json
-{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{"roots":{"listChanged":true},"sampling":{},"elicitation":{}},"clientInfo":{"name":"ExampleClient","title":"Example Client Display Name","version":"1.0.0","icons":[{"src":"https://example.com/icon.png","mimeType":"image/png","sizes":["48x48"]}],"websiteUrl":"https://example.com"}}}
+**With environment variables:**
+```bash
+cd src/Agent/Session.Proxy
+dotnet run -c Release -- TestClient --env API_KEY=secret --env DEBUG=true ws://localhost:5000/mcp/run node server.js
 ```
 
-if everything is set up correctly, you should see responses from the MCP server like the following:
+**With Azure session mode:**
+```bash
+cd src/Agent/Session.Proxy
+dotnet run -c Release -- TestClient --session wss://<session-pool-hostname>/mcp/run npx -y @modelcontextprotocol/server-everything
+```
+
+After connecting, send the initialization message:
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{"roots":{"listChanged":true},"sampling":{},"elicitation":{}},"clientInfo":{"name":"ExampleClient","title":"Example Client Display Name","version":"1.0.0"}}}
+```
+
+If everything is set up correctly, you should see responses from the MCP server like the following:
 ```json
 {"result":{"protocolVersion":"2024-11-05","capabilities":{"prompts":{},"resources":{"subscribe":true},"tools":{},"logging":{},"completions":{}},"serverInfo":{"name":"example-servers/everything","title":"Everything Example Server","version":"1.0.0"},"instructions":"Testing and demonstration server for MCP protocol features..."},"jsonrpc":"2.0","id":1}
 ```

@@ -5,6 +5,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Models.Session;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
@@ -72,20 +73,26 @@ public class SessionWebsocketClientTransport : IClientTransport
                 _logger.LogInternalDebug("Azure token acquired successfully");
             }
 
-            // Build the WebSocket URL with query parameters
-            var argsJson = JsonSerializer.Serialize(_options.Arguments);
-            var encodedArgs = Uri.EscapeDataString(argsJson);
-            var encodedCmd = Uri.EscapeDataString(_options.Command);
-            var fullUrl = $"{_options.ServerUrl}?cmd={encodedCmd}&args={encodedArgs}";
+            // Build the WebSocket URL (no query parameters for connection request)
+            var fullUrl = _options.ServerUrl;
+
+            // Acquire action tokens if scopes and data connector credential are provided
+            Dictionary<string, string>? actionTokens = null;
+            if (_options.TokenScopes != null && _options.TokenScopes.Length > 0 && _options.DataConnectorCredential != null)
+            {
+                _logger.LogInternalDebug("Acquiring tokens for {Count} scopes using data connector credential", _options.TokenScopes.Length);
+                actionTokens = await AcquireActionTokensAsync(_options.DataConnectorCredential, _options.TokenScopes, linkedCts.Token);
+                _logger.LogInternalDebug("Acquired action tokens. Token scopes: {Scopes}", string.Join(", ", actionTokens.Keys));
+            }
 
             webSocket = new ClientWebSocket();
             webSocket.Options.CollectHttpResponseDetails = true;
 
-            // Add authorization header if token is available
+            // Add authorization header and session identifier if token is available
             if (token != null && _options.SessionId != null)
             {
                 webSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
-                fullUrl += $"&identifier={_options.SessionId}";
+                fullUrl += $"?identifier={_options.SessionId}";
                 _logger.LogInternalDebug("Added session identifier: {Identifier}", _options.SessionId);
             }
 
@@ -100,11 +107,30 @@ public class SessionWebsocketClientTransport : IClientTransport
             }
             _logger.LogInternalInformation("WebSocket connected successfully");
 
+            // Send connection request as the first message
+            var connectionRequest = new McpConnectionRequest
+            {
+                Command = _options.Command,
+                Arguments = _options.Arguments,
+                EnvironmentVariables = _options.EnvVars,
+                ActionTokens = actionTokens
+            };
+
+            var requestJson = JsonSerializer.Serialize(connectionRequest);
+            var requestBytes = Encoding.UTF8.GetBytes(requestJson);
+
+            _logger.LogInternalDebug("Sending connection request");
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(requestBytes),
+                WebSocketMessageType.Text,
+                true,
+                linkedCts.Token);
+
             // Read the first message (should be "ok" or error)
             var firstMessage = await ReceiveHandshakeMessageAsync(webSocket, _options.ReceiveBufferSize, linkedCts.Token);
             if (firstMessage == null)
             {
-                throw new InvalidOperationException("Connection closed by server immediately after connecting.");
+                throw new InvalidOperationException("Connection closed by server immediately after sending connection request.");
             }
 
             _logger.LogInternalDebug("Server handshake response: {Response}", firstMessage);
@@ -172,5 +198,31 @@ public class SessionWebsocketClientTransport : IClientTransport
         ms.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(ms, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Acquires action tokens for the specified Azure scopes in parallel.
+    /// </summary>
+    private static async Task<Dictionary<string, string>> AcquireActionTokensAsync(
+        TokenCredential credential,
+        string[] scopes,
+        CancellationToken cancellationToken)
+    {
+        var actionTokens = new Dictionary<string, string>();
+
+        var tokenTasks = scopes.Select(scope =>
+            Task.Run(async () =>
+            {
+                var token = await credential.GetTokenAsync(new TokenRequestContext([scope]), cancellationToken);
+                lock (actionTokens)
+                {
+                    actionTokens[scope] = token.Token;
+                }
+            }, cancellationToken)
+        ).ToArray();
+
+        await Task.WhenAll(tokenTasks);
+
+        return actionTokens;
     }
 }
