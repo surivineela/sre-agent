@@ -18,449 +18,448 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
-namespace Agent.Web.Controllers.v1
+namespace Agent.Web.Controllers.v1;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class AzCliExecutionController : ControllerBase
 {
-    [ApiController]
-    [Route("api/v1/[controller]")]
-    public class AzCliExecutionController : ControllerBase
+    private const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
+    private const string ExchangedTokensHeader = "x-sreagent-exchanged-tokens";
+    private readonly IThreadRepository _threadRepository;
+    private readonly ArmHelper _armHelper;
+    private readonly ILogger<AzCliExecutionController> _logger;
+    private readonly CustomerLogger _customerLogger;
+    private readonly IReasoningLoopManager _reasoningLoopManager;
+    private readonly CoreSettings _coreSettings;
+    private readonly IHostEnvironment _hostEnvironment;
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+
+    public AzCliExecutionController(
+        IThreadRepository threadRepository,
+        ArmHelper armHelper,
+        IReasoningLoopManager reasoningLoopManager,
+        CoreSettings coreSettings,
+        ILogger<AzCliExecutionController> logger,
+        CustomerLogger customerLogger,
+        IHostEnvironment hostEnvironment,
+        IAgentOutboundCommunicationService agentOutboundCommunicationService
+    )
     {
-        private const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
-        private const string ExchangedTokensHeader = "x-sreagent-exchanged-tokens";
-        private readonly IThreadRepository _threadRepository;
-        private readonly ArmHelper _armHelper;
-        private readonly ILogger<AzCliExecutionController> _logger;
-        private readonly CustomerLogger _customerLogger;
-        private readonly IReasoningLoopManager _reasoningLoopManager;
-        private readonly CoreSettings _coreSettings;
-        private readonly IHostEnvironment _hostEnvironment;
-        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        _reasoningLoopManager = reasoningLoopManager;
+        _threadRepository = threadRepository;
+        _armHelper = armHelper;
+        _logger = logger;
+        _customerLogger = customerLogger;
+        _coreSettings = coreSettings;
+        _hostEnvironment = hostEnvironment;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
+    }
 
-        public AzCliExecutionController(
-            IThreadRepository threadRepository,
-            ArmHelper armHelper,
-            IReasoningLoopManager reasoningLoopManager,
-            CoreSettings coreSettings,
-            ILogger<AzCliExecutionController> logger,
-            CustomerLogger customerLogger,
-            IHostEnvironment hostEnvironment,
-            IAgentOutboundCommunicationService agentOutboundCommunicationService
-        )
+    /// <summary>
+    /// Execute or cancel an Azure CLI command
+    /// </summary>
+    [AuthorizeArmOperation(ArmOperations.AgentThreadApproveActionId)]
+    [HttpPost("{threadId}/{executionId}/action")]
+    public async Task<IActionResult> ExecuteAction(
+        string threadId,
+        string executionId,
+        [FromBody] ExecutionActionRequest request)
+    {
+        _logger.LogInternalInformation("Executing action {Action} for thread {ThreadId} execution {ExecutionId}",
+            request.Action, threadId, executionId);
+
+        var threadGuid = Guid.Parse(threadId);
+        var executionGuid = Guid.Parse(executionId);
+
+        // Get current execution
+        var execution = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+        if (execution == null)
         {
-            _reasoningLoopManager = reasoningLoopManager;
-            _threadRepository = threadRepository;
-            _armHelper = armHelper;
-            _logger = logger;
-            _customerLogger = customerLogger;
-            _coreSettings = coreSettings;
-            _hostEnvironment = hostEnvironment;
-            _agentOutboundCommunicationService = agentOutboundCommunicationService;
-        }
-
-        /// <summary>
-        /// Execute or cancel an Azure CLI command
-        /// </summary>
-        [AuthorizeArmOperation(ArmOperations.AgentThreadApproveActionId)]
-        [HttpPost("{threadId}/{executionId}/action")]
-        public async Task<IActionResult> ExecuteAction(
-            string threadId,
-            string executionId,
-            [FromBody] ExecutionActionRequest request)
-        {
-            _logger.LogInternalInformation("Executing action {Action} for thread {ThreadId} execution {ExecutionId}",
-                request.Action, threadId, executionId);
-
-            var threadGuid = Guid.Parse(threadId);
-            var executionGuid = Guid.Parse(executionId);
-
-            // Get current execution
-            var execution = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
-            if (execution == null)
-            {
-                _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI attempted execution not found: {executionId}");
-                _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
-                {
-                    { "ChatThreadId", threadId },
-                    { "ExecutionId", executionId },
-                    { "Action", request.Action },
-                    { "User", request.User ?? string.Empty },
-                    { "Error", "Attempted execution not found" }
-                });
-                _customerLogger.LogToolEvents("AzCliExecution", executionId, output: "Attempt execution not found", isExecutionFailed: true, properties: new Dictionary<string, string>
-                {
-                    { "ChatThreadId", threadId },
-                    { "ExecutionId", executionId },
-                    { "Action", request.Action },
-                    { "User", request.User ?? string.Empty },
-                    { "Error", "Attempted execution not found" }
-                });
-                return NotFound(new { error = "Execution not found" });
-            }
-
-            _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI execution action: {request.Action}");
+            _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI attempted execution not found: {executionId}");
             _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
             {
                 { "ChatThreadId", threadId },
                 { "ExecutionId", executionId },
                 { "Action", request.Action },
                 { "User", request.User ?? string.Empty },
-                { "Command", execution.Command ?? string.Empty },
-                { "Status", execution.Status.ToString() }
+                { "Error", "Attempted execution not found" }
             });
-            _customerLogger.LogToolEvents("AzCliExecution", new Dictionary<string, string>
+            _customerLogger.LogToolEvents("AzCliExecution", executionId, output: "Attempt execution not found", isExecutionFailed: true, properties: new Dictionary<string, string>
             {
                 { "ChatThreadId", threadId },
                 { "ExecutionId", executionId },
                 { "Action", request.Action },
                 { "User", request.User ?? string.Empty },
-                { "Command", execution.Command ?? string.Empty },
-                { "Status", execution.Status.ToString() }
+                { "Error", "Attempted execution not found" }
             });
-            if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
+            return NotFound(new { error = "Execution not found" });
+        }
+
+        _customerLogger.LogMessage($"[ChatThreadId {threadId}] AzCLI execution action: {request.Action}");
+        _customerLogger.LogCustomEvent("AzCliExecution", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId },
+            { "ExecutionId", executionId },
+            { "Action", request.Action },
+            { "User", request.User ?? string.Empty },
+            { "Command", execution.Command ?? string.Empty },
+            { "Status", execution.Status.ToString() }
+        });
+        _customerLogger.LogToolEvents("AzCliExecution", new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId },
+            { "ExecutionId", executionId },
+            { "Action", request.Action },
+            { "User", request.User ?? string.Empty },
+            { "Command", execution.Command ?? string.Empty },
+            { "Status", execution.Status.ToString() }
+        });
+        if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
+        {
+            return Conflict(new
             {
-                return Conflict(new
+                error = $"Cannot {request.Action} execution in {execution.Status} state",
+                currentStatus = execution.Status.ToString()
+            });
+        }
+
+        var authzHeader = Request.Headers["Authorization"].ToString();
+        var token = authzHeader.StartsWith("Bearer ") ? authzHeader.Substring("Bearer ".Length).Trim() : null;
+        if (string.IsNullOrEmpty(token) && !_hostEnvironment.IsDevelopment())
+        {
+            return Unauthorized();
+        }
+
+        var tokenScope = Constants.DefaultOboTokenScope;
+        var exchangedTokens = Request.Headers[ExchangedTokensHeader].ToString();
+        var exchangedTokenScopes = Request.Headers[ExchangedTokenScopesHeader].ToString();
+
+        if (!string.IsNullOrEmpty(exchangedTokens) && !string.IsNullOrEmpty(exchangedTokenScopes))
+        {
+            token = exchangedTokens;
+            tokenScope = exchangedTokenScopes;
+        }
+
+        // Get user info from token or use provided user
+        var userName = "Unknown User";
+        var userId = request.User ?? "sreagent-client"; // Use provided user or default
+        string? userEmail = null;
+
+        // Check if user is sreagent-client (frontend default)
+        if (userId == "sreagent-client")
+        {
+            userName = "SRE Agent Client";
+        }
+        else if (!string.IsNullOrEmpty(authzHeader) && authzHeader.StartsWith("Bearer "))
+        {
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(authzHeader.Substring("Bearer ".Length).Trim()) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+
+                if (jsonToken != null)
                 {
-                    error = $"Cannot {request.Action} execution in {execution.Status} state",
-                    currentStatus = execution.Status.ToString()
-                });
-            }
+                    userEmail = jsonToken.Claims.FirstOrDefault(c => c.Type == "upn")?.Value ?? jsonToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
+                    userId = jsonToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? userId;
+                    var givenName = jsonToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+                    var familyName = jsonToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
 
-            var authzHeader = Request.Headers["Authorization"].ToString();
-            var token = authzHeader.StartsWith("Bearer ") ? authzHeader.Substring("Bearer ".Length).Trim() : null;
-            if (string.IsNullOrEmpty(token) && !_hostEnvironment.IsDevelopment())
-            {
-                return Unauthorized();
-            }
-
-            var tokenScope = Constants.DefaultOboTokenScope;
-            var exchangedTokens = Request.Headers[ExchangedTokensHeader].ToString();
-            var exchangedTokenScopes = Request.Headers[ExchangedTokenScopesHeader].ToString();
-
-            if (!string.IsNullOrEmpty(exchangedTokens) && !string.IsNullOrEmpty(exchangedTokenScopes))
-            {
-                token = exchangedTokens;
-                tokenScope = exchangedTokenScopes;
-            }
-
-            // Get user info from token or use provided user
-            string userName = "Unknown User";
-            string userId = request.User ?? "sreagent-client"; // Use provided user or default
-            string? userEmail = null;
-
-            // Check if user is sreagent-client (frontend default)
-            if (userId == "sreagent-client")
-            {
-                userName = "SRE Agent Client";
-            }
-            else if (!string.IsNullOrEmpty(authzHeader) && authzHeader.StartsWith("Bearer "))
-            {
-                try
-                {
-                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    var jsonToken = handler.ReadToken(authzHeader.Substring("Bearer ".Length).Trim()) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
-
-                    if (jsonToken != null)
+                    if (!string.IsNullOrEmpty(givenName) && !string.IsNullOrEmpty(familyName))
                     {
-                        userEmail = jsonToken.Claims.FirstOrDefault(c => c.Type == "upn")?.Value ?? jsonToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
-                        userId = jsonToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value ?? userId;
-                        var givenName = jsonToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
-                        var familyName = jsonToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
+                        userName = $"{givenName} {familyName}";
+                    }
+                    else
+                    {
+                        userName = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? userName;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Failed to decode JWT token");
+            }
+        }
+        // Get messageId for streaming purposes for given execution
+        var dbExecutions = await _threadRepository.GetMessagesWithAzCliExecutionAsync(threadGuid);
+        Guid messageId = dbExecutions.FirstOrDefault(m => m.AzCliExecution?.Id == executionGuid)?.Id ?? default;
 
-                        if (!string.IsNullOrEmpty(givenName) && !string.IsNullOrEmpty(familyName))
+        switch (request.Action.ToLower())
+        {
+            case "run":
+                AzCliExecution? executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+
+                if (executionDoc == null || executionDoc.AgentContextId == null)
+                {
+                    return NotFound(new { error = "AgentContextId not set in the executionDoc" });
+                }
+
+                AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        CliExecutionResult result;
+                        if (execution.Status == AzCliExecutionStatus.Pending)
                         {
-                            userName = $"{givenName} {familyName}";
+                            execution = execution with
+                            {
+                                Status = AzCliExecutionStatus.Running,
+                                StartedTimestamp = DateTime.UtcNow,
+                                ExecutedBy = new Author(
+                                    DisplayName: "SRE Agent Client",
+                                    UserId: "sreagent-client",
+                                    Role: Role.SREAgent
+                                )
+                            };
+                            await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+
+                            _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
+                            // this is an approval (not authorization) action, use agent identitiy
+                            result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
+                            if (result.ErrorOccurred && (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError))
+                            {
+                                // trigger obo flow
+                                var updatedExecution = execution with
+                                {
+                                    Status = AzCliExecutionStatus.PendingAuthorization,
+                                    Description = $"{execution.Description}",
+                                    Output = null,
+                                    ExecutedBy = null,
+                                    Error = null,
+                                    StartedTimestamp = null,
+                                    CompletedTimestamp = null,
+                                };
+                                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, updatedExecution);
+                                await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, updatedExecution, messageId);
+                                return;
+                            }
                         }
                         else
                         {
-                            userName = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? userName;
+                            // this is an authorization action, use obo token
+                            execution = execution with
+                            {
+                                Status = AzCliExecutionStatus.Running,
+                                StartedTimestamp = DateTime.UtcNow,
+                                ExecutedBy = new Author(
+                                    DisplayName: $"{userName} <{userEmail}>",
+                                    UserId: userId,
+                                    Role: Role.User
+                                )
+                            };
+                            await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                            await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
+
+                            FunctionCallContent? functionCall = null;
+                            if (!string.IsNullOrEmpty(execution.OriginalFunctionCall))
+                            {
+                                functionCall = JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall);
+                            }
+                            var title = ApprovalHelper.GenerateUniqueApprovalTitle(
+                                            threadId,
+                                            agentContext?.Id.ToString() ?? string.Empty,
+                                            functionCall?.Name ?? string.Empty,
+                                            functionCall?.Arguments ?? new Dictionary<string, object?>());
+                            var approval = new Approval(
+                                                Id: Guid.NewGuid(),
+                                                ThreadId: threadId,
+                                                Title: title,
+                                                Description: $"Execute kubectl command {execution.Command}",
+                                                Status: ApprovalDecision.Authorized,
+                                                CreatedTimestamp: execution.CreatedTimestamp,
+                                                DecisionTimestamp: DateTime.UtcNow,
+                                                OrchestrationId: null,
+                                                AgentContextId: agentContext?.Id,
+                                                DecisionUser: execution.ExecutedBy,
+                                                OboToken: token,
+                                                OboTokenScope: tokenScope);
+
+                            await _threadRepository.CreateApprovalAsync(approval);
+
+                            var approvalContext = new ApprovalContext(
+                                ThreadId: threadGuid,
+                                ApprovalId: approval.Id,
+                                UseOboToken: true
+                            );
+                            ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+
+                            _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
+                            result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
+                        }
+
+                        execution = execution with
+                        {
+                            Status = result.ErrorOccurred ? AzCliExecutionStatus.Failed : AzCliExecutionStatus.Completed,
+                            Output = result.Output,
+                            CompletedTimestamp = DateTime.UtcNow
+                        };
+
+                        await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                        await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
+
+                        if (agentContext != null)
+                        {
+                            var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                            if (functionCall != null)
+                            {
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
+                                {
+                                    new(ChatRole.Assistant,
+                                        new List<AIContent>{ functionCall}),
+                                    new(ChatRole.Tool,
+                                    new List<AIContent>
+                                    {
+                                        new FunctionResultContent(functionCall.CallId, result.Output)
+                                    })
+                                });
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalError(ex, "Failed to execute command");
+
+                        // Update execution with failure
+                        execution = execution with
+                        {
+                            Status = AzCliExecutionStatus.Failed,
+                            Error = ex.Message,
+                            CompletedTimestamp = DateTime.UtcNow
+                        };
+
+                        if (agentContext != null)
+                        {
+                            var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
+                            if (functionCall != null)
+                            {
+                                await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
+                                {
+                                    new(ChatRole.Assistant,
+                                        new List<AIContent>{ functionCall}),
+                                    new(ChatRole.Tool,
+                                    new List<AIContent>
+                                    {
+                                        new FunctionResultContent(functionCall.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
+                                    })
+                                });
+                            }
+                        }
+                        await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                        await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
+                    }
+                });
+
+                return Ok(new
                 {
-                    _logger.LogInternalError(ex, "Failed to decode JWT token");
-                }
-            }
-            // Get messageId for streaming purposes for given execution
-            var dbExecutions = await _threadRepository.GetMessagesWithAzCliExecutionAsync(threadGuid);
-            Guid messageId = dbExecutions.FirstOrDefault(m => m.AzCliExecution?.Id == executionGuid)?.Id ?? default;
+                    status = "Running",
+                    executedBy = $"{userName} <{userEmail}>",
+                    executedById = userId,
+                    startedTimestamp = DateTime.UtcNow
+                });
 
-            switch (request.Action.ToLower())
-            {
-                case "run":
-                    AzCliExecution? executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+            case "cancel":
+                // Update status to cancelled
+                execution = execution with
+                {
+                    Status = AzCliExecutionStatus.Cancelled,
+                    CompletedTimestamp = DateTime.UtcNow,
+                    ExecutedBy = new Author(
+                        DisplayName: $"{userName} <{userEmail}>",
+                        UserId: userId,
+                        Role: Role.User
+                    )
+                };
+                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
+                await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
 
-                    if (executionDoc == null || executionDoc.AgentContextId == null)
-                    {
-                        return NotFound(new { error = "AgentContextId not set in the executionDoc" });
-                    }
+                return Ok(new
+                {
+                    status = "Cancelled",
+                    cancelledBy = $"{userName} <{userEmail}>",
+                    cancelledById = userId,
+                    cancelledTimestamp = DateTime.UtcNow
+                });
 
-                    AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            CliExecutionResult result;
-                            if (execution.Status == AzCliExecutionStatus.Pending)
-                            {
-                                execution = execution with
-                                {
-                                    Status = AzCliExecutionStatus.Running,
-                                    StartedTimestamp = DateTime.UtcNow,
-                                    ExecutedBy = new Author(
-                                        DisplayName: "SRE Agent Client",
-                                        UserId: "sreagent-client",
-                                        Role: Role.SREAgent
-                                    )
-                                };
-                                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
-
-                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with agent identity");
-                                // this is an approval (not authorization) action, use agent identitiy
-                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
-                                if (result.ErrorOccurred && (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError))
-                                {
-                                    // trigger obo flow
-                                    var updatedExecution = execution with
-                                    {
-                                        Status = AzCliExecutionStatus.PendingAuthorization,
-                                        Description = $"{execution.Description}",
-                                        Output = null,
-                                        ExecutedBy = null,
-                                        Error = null,
-                                        StartedTimestamp = null,
-                                        CompletedTimestamp = null,
-                                    };
-                                    await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, updatedExecution);
-                                    await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, updatedExecution, messageId);
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                // this is an authorization action, use obo token
-                                execution = execution with
-                                {
-                                    Status = AzCliExecutionStatus.Running,
-                                    StartedTimestamp = DateTime.UtcNow,
-                                    ExecutedBy = new Author(
-                                        DisplayName: $"{userName} <{userEmail}>",
-                                        UserId: userId,
-                                        Role: Role.User
-                                    )
-                                };
-                                await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
-                                await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
-
-                                FunctionCallContent? functionCall = null;
-                                if (!string.IsNullOrEmpty(execution.OriginalFunctionCall))
-                                {
-                                    functionCall = JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall);
-                                }
-                                var title = ApprovalHelper.GenerateUniqueApprovalTitle(
-                                                threadId,
-                                                agentContext?.Id.ToString() ?? string.Empty,
-                                                functionCall?.Name ?? string.Empty,
-                                                functionCall?.Arguments ?? new Dictionary<string, object?>());
-                                var approval = new Approval(
-                                                    Id: Guid.NewGuid(),
-                                                    ThreadId: threadId,
-                                                    Title: title,
-                                                    Description: $"Execute kubectl command {execution.Command}",
-                                                    Status: ApprovalDecision.Authorized,
-                                                    CreatedTimestamp: execution.CreatedTimestamp,
-                                                    DecisionTimestamp: DateTime.UtcNow,
-                                                    OrchestrationId: null,
-                                                    AgentContextId: agentContext?.Id,
-                                                    DecisionUser: execution.ExecutedBy,
-                                                    OboToken: token,
-                                                    OboTokenScope: tokenScope);
-
-                                await _threadRepository.CreateApprovalAsync(approval);
-
-                                var approvalContext = new ApprovalContext(
-                                    ThreadId: threadGuid,
-                                    ApprovalId: approval.Id,
-                                    UseOboToken: true
-                                );
-                                ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
-
-                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
-                            }
-
-                            execution = execution with
-                            {
-                                Status = result.ErrorOccurred ? AzCliExecutionStatus.Failed : AzCliExecutionStatus.Completed,
-                                Output = result.Output,
-                                CompletedTimestamp = DateTime.UtcNow
-                            };
-
-                            await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
-                            await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
-
-                            if (_coreSettings.UseAgentFramework && agentContext != null)
-                            {
-                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                if (functionCall != null)
-                                {
-                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
-                                    {
-                                        new(ChatRole.Assistant,
-                                            new List<AIContent>{ functionCall}),
-                                        new(ChatRole.Tool,
-                                        new List<AIContent>
-                                        {
-                                            new FunctionResultContent(functionCall.CallId, result.Output)
-                                        })
-                                    });
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogInternalError(ex, "Failed to execute command");
-
-                            // Update execution with failure
-                            execution = execution with
-                            {
-                                Status = AzCliExecutionStatus.Failed,
-                                Error = ex.Message,
-                                CompletedTimestamp = DateTime.UtcNow
-                            };
-
-                            if (_coreSettings.UseAgentFramework && agentContext != null)
-                            {
-                                var functionCall = !string.IsNullOrEmpty(execution.OriginalFunctionCall) ? JsonSerializer.Deserialize<FunctionCallContent>(execution.OriginalFunctionCall) : null;
-                                if (functionCall != null)
-                                {
-                                    await _reasoningLoopManager.AppendFunctionCallMessagesAsync(agentContext, new List<ChatMessage>
-                                    {
-                                        new(ChatRole.Assistant,
-                                            new List<AIContent>{ functionCall}),
-                                        new(ChatRole.Tool,
-                                        new List<AIContent>
-                                        {
-                                            new FunctionResultContent(functionCall.CallId, $"Execution Failed: {execution.Command}, Result: {ex.Message}. I would now continue to Notify the user about the results of the command")
-                                        })
-                                    });
-                                }
-                            }
-                            await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
-                            await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
-                        }
-                    });
-
-                    return Ok(new
-                    {
-                        status = "Running",
-                        executedBy = $"{userName} <{userEmail}>",
-                        executedById = userId,
-                        startedTimestamp = DateTime.UtcNow
-                    });
-
-                case "cancel":
-                    // Update status to cancelled
-                    execution = execution with
-                    {
-                        Status = AzCliExecutionStatus.Cancelled,
-                        CompletedTimestamp = DateTime.UtcNow,
-                        ExecutedBy = new Author(
-                            DisplayName: $"{userName} <{userEmail}>",
-                            UserId: userId,
-                            Role: Role.User
-                        )
-                    };
-                    await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, execution);
-                    await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, execution, messageId);
-
-                    return Ok(new
-                    {
-                        status = "Cancelled",
-                        cancelledBy = $"{userName} <{userEmail}>",
-                        cancelledById = userId,
-                        cancelledTimestamp = DateTime.UtcNow
-                    });
-
-                default:
-                    return BadRequest(new { error = $"Invalid action: {request.Action}" });
-            }
+            default:
+                return BadRequest(new { error = $"Invalid action: {request.Action}" });
         }
+    }
 
-        /// <summary>
-        /// Get execution status
-        /// </summary>
-        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
-        [HttpGet("{threadId}/{executionId}/status")]
-        public async Task<IActionResult> GetExecutionStatus(string threadId, string executionId)
+    /// <summary>
+    /// Get execution status
+    /// </summary>
+    [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+    [HttpGet("{threadId}/{executionId}/status")]
+    public async Task<IActionResult> GetExecutionStatus(string threadId, string executionId)
+    {
+        _logger.LogInternalInformation("Getting execution status for thread {ThreadId} execution {ExecutionId}",
+            threadId, executionId);
+
+        var execution = await _threadRepository.GetAzCliExecutionAsync(
+            Guid.Parse(threadId),
+            Guid.Parse(executionId)
+        );
+
+        if (execution == null)
         {
-            _logger.LogInternalInformation("Getting execution status for thread {ThreadId} execution {ExecutionId}",
-                threadId, executionId);
-
-            var execution = await _threadRepository.GetAzCliExecutionAsync(
-                Guid.Parse(threadId),
-                Guid.Parse(executionId)
-            );
-
-            if (execution == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(new
-            {
-                id = execution.Id,
-                status = execution.Status.ToString(),
-                output = execution.Output,
-                error = execution.Error,
-                startedTimestamp = execution.StartedTimestamp,
-                completedTimestamp = execution.CompletedTimestamp,
-                command = execution.Command,
-                description = execution.Description,
-                executedBy = execution.ExecutedBy
-            });
+            return NotFound();
         }
 
-        /// <summary>
-        /// Get execution output (non-streaming version)
-        /// </summary>
-        [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
-        [HttpGet("{threadId}/{executionId}/output")]
-        public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
+        return Ok(new
         {
-            _logger.LogInternalInformation("Getting execution output for thread {ThreadId} execution {ExecutionId}",
-                threadId, executionId);
+            id = execution.Id,
+            status = execution.Status.ToString(),
+            output = execution.Output,
+            error = execution.Error,
+            startedTimestamp = execution.StartedTimestamp,
+            completedTimestamp = execution.CompletedTimestamp,
+            command = execution.Command,
+            description = execution.Description,
+            executedBy = execution.ExecutedBy
+        });
+    }
 
-            var execution = await _threadRepository.GetAzCliExecutionAsync(
-                Guid.Parse(threadId),
-                Guid.Parse(executionId)
-            );
+    /// <summary>
+    /// Get execution output (non-streaming version)
+    /// </summary>
+    [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+    [HttpGet("{threadId}/{executionId}/output")]
+    public async Task<IActionResult> GetExecutionOutput(string threadId, string executionId)
+    {
+        _logger.LogInternalInformation("Getting execution output for thread {ThreadId} execution {ExecutionId}",
+            threadId, executionId);
 
-            if (execution == null)
-            {
-                return NotFound();
-            }
+        var execution = await _threadRepository.GetAzCliExecutionAsync(
+            Guid.Parse(threadId),
+            Guid.Parse(executionId)
+        );
 
-            // Return current state as JSON
-            return Ok(new
-            {
-                output = execution.Output ?? "",
-                status = execution.Status.ToString(),
-                error = execution.Error,
-                completed = execution.Status != AzCliExecutionStatus.Running &&
-                            execution.Status != AzCliExecutionStatus.Pending,
-                completedTimestamp = execution.CompletedTimestamp
-            });
-        }
-
-        /// <summary>
-        /// Model for execution action request
-        /// </summary>
-        public class ExecutionActionRequest
+        if (execution == null)
         {
-            [Required]
-            public required string Action { get; set; } // "run" or "cancel"
-
-            public required string User { get; set; }
+            return NotFound();
         }
+
+        // Return current state as JSON
+        return Ok(new
+        {
+            output = execution.Output ?? "",
+            status = execution.Status.ToString(),
+            error = execution.Error,
+            completed = execution.Status != AzCliExecutionStatus.Running &&
+                        execution.Status != AzCliExecutionStatus.Pending,
+            completedTimestamp = execution.CompletedTimestamp
+        });
+    }
+
+    /// <summary>
+    /// Model for execution action request
+    /// </summary>
+    public class ExecutionActionRequest
+    {
+        [Required]
+        public required string Action { get; set; } // "run" or "cancel"
+
+        public required string User { get; set; }
     }
 }

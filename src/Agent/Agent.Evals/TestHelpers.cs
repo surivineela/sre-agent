@@ -30,14 +30,10 @@ using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
-using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.MetaAgent;
-using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
-using Agent.Tests.Common.Mocks;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.AI;
@@ -292,7 +288,6 @@ public static class TestHelpers
         // Add mock IHostEnvironment
         builder.Services.AddSingleton(Mock.Of<IHostEnvironment>());
 
-        builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<ThreadManagementService>();
         builder.Services.AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>();
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();
@@ -302,7 +297,6 @@ public static class TestHelpers
                 .CreateLogger<MockStreamingService>();
             return new MockStreamingService(logger);
         });
-        builder.Services.AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>();
         builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
         builder.Services.AddSingleton<IChartPlugin>(sp =>
         {
@@ -310,7 +304,6 @@ public static class TestHelpers
             var outboundService = sp.GetRequiredService<IAgentOutboundCommunicationService>();
             return new ChartPlugin(logger, outboundService);
         });
-        builder.Services.AddTransient<IAgent, MetaAgent>();
         builder.Services.AddSingleton<ChartPluginDefinition>();
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
 
@@ -448,13 +441,6 @@ public static class TestHelpers
 
         builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
-        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
-        builder.Services.AddSingleton<IAgentsFactory>(sp =>
-        {
-            return MetaAgentMock.GetMockedThirdPartAgentsFactory(
-                graphDBPlugin: sp.GetRequiredService<GraphDBPlugin>());
-        });
-
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
 
         builder.Services.AddSingleton<JavaProfilerSettings>(new JavaProfilerSettings
@@ -477,10 +463,8 @@ public static class TestHelpers
         builder.Services.AddTransient<ILogicAppsPlugin, LogicAppsPlugin>();
 
         // Register DGrep plugin for tests
-        builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient>(sp => Mock.Of<Agent.Plugins.Interface.IDGrepPluginClient>());
-        builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();
-
-        // should be removed later - currently required because ThreadManagementService has code for handling UseAgentFramework=false
+        builder.Services.AddSingleton(sp => Mock.Of<IDGrepPluginClient>());
+        builder.Services.AddTransient<DGrepPluginDefinition>();
 
         // Runtime–modifier for agent-mode switching
         builder.Services.AddSingleton<IAgentRuntimeModifier<AgentContext>, AgentRuntimeModifier>();

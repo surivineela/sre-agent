@@ -48,10 +48,7 @@ using Agent.Runtime.Communication;
 using Agent.Runtime.Extensions;
 using Agent.Runtime.Heartbeat;
 using Agent.Runtime.Helpers;
-using Agent.Runtime.IncidentHandlerAgent;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.MetaAgent;
-using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.AzMonitorAlertInvestigation;
@@ -388,8 +385,6 @@ public class Program
 
         // Register plugins and their dependencies
         builder.Services
-            .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
-            .AddSingleton<IIncidentHandlerAgent, IncidentHandlerAgent>()
             .AddSingleton<IAppServicePlugin, AppServicePlugin>()
             .AddSingleton<AppServicePluginDefinition>()
             .AddSingleton<IFunctionAppsPlugin, FunctionAppsPlugin>()
@@ -763,7 +758,6 @@ public class Program
             builder.RegisterAcaFirstPartyApp();
         }
 
-        builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
         builder.Services.AddSingleton<ITitleGenerationService, TitleGenerationService>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
         builder.RegisterFunctionsFirstPartyTypes();
@@ -1504,7 +1498,7 @@ public class Program
 
         if (!string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri))
         {
-            CommonColumn commonColumn = CommonColumn.Build();
+            var commonColumn = CommonColumn.Build();
 
             var logger = new AzureDataExplorerLoggerProvider(
                 commonColumn: commonColumn,

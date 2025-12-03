@@ -11,7 +11,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Data.Repositories;
 using Agent.Framework;
-using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -48,24 +47,15 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     // Rate limiting for messages posted per poll cycle
     private const int MAX_MESSAGES_PER_POLL = 50;
 
-    string prompt = "You're assisting an SRE agent. Be professional. The SRE agent is fetching info to answer the user's question. Provide brief responses (under 20 words) to reassure the user that the agent is working on it, avoiding impatience. Do not say the agent is slow, use phrases like 'fetching information' or 'analyzing your input.' For simple greetings or general questions needing no extra info or long tasks, just reply single world 'SKIP' to avoid duplicate response with SRE agent.";
-    string welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
+    private const string _prompt = "You're assisting an SRE agent. Be professional. The SRE agent is fetching info to answer the user's question. Provide brief responses (under 20 words) to reassure the user that the agent is working on it, avoiding impatience. Do not say the agent is slow, use phrases like 'fetching information' or 'analyzing your input.' For simple greetings or general questions needing no extra info or long tasks, just reply single world 'SKIP' to avoid duplicate response with SRE agent.";
 
-    // Teams has strict limitation for activities per second: https://learn.microsoft.com/en-us/microsoftteams/platform/bots/how-to/rate-limit#per-bot-per-thread-limit
-    // Constants for optimization
-    private const int BATCH_SIZE = 16; // Process chunks in batches of 16
-    // TODO: we need to design a better client side ratelimiter to satisfy teams throttling policy while keep sending the message in a timely manner
-    // 7 per 1s
-    // 8 per 2s
-    // 60 per 30s
-    // 1800 per 3600s
-    private const int UPDATE_INTERVAL_MS = 300; // Send updates every 300ms,
+    private const string _welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
+
     public TeamsBot(
         ILogger<TeamsBot> logger,
         IBotFrameworkHttpAdapter teamsAdapter,
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
-        IAgentsFactory agentsFactory,
         IThreadRepository threadRepository,
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
@@ -90,7 +80,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
-        string? messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
+        var messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
         {
             _logger.LogInternalInformation("Received empty message from user");
@@ -115,7 +105,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
         // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
         var (threadId, isNewThread) = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
-        Guid chatIdGuid = Guid.Parse(threadId);
+        var chatIdGuid = Guid.Parse(threadId);
 
         // Send thread id message to Teams if a new thread was created
         if (isNewThread)
@@ -134,9 +124,9 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(chatIdGuid);
         var agentContext = agentContexts.First();
 
-        string conversationId = turnContext.Activity.Conversation.Id;
-        string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
-        string userId = turnContext.Activity.From?.Id ?? "teams-user";
+        var conversationId = turnContext.Activity.Conversation.Id;
+        var senderName = turnContext.Activity.From?.Name ?? "Unknown User";
+        var userId = turnContext.Activity.From?.Id ?? "teams-user";
         var firstMessage = new ThreadMessage(
                         ThreadId: chatIdGuid,
                         AgentContextId: agentContext.Id,
@@ -152,13 +142,13 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         if (messageText.ToLowerInvariant() == "hello")
         {
             // If the user says "hello", respond with a greeting quickly without using AI backend
-            await turnContext.SendActivityAsync(MessageFactory.Text(welcomeMessage), cancellationToken);
+            await turnContext.SendActivityAsync(MessageFactory.Text(_welcomeMessage), cancellationToken);
             return;
         }
         try
         {
             // Create tasks to run in parallel
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
 
             // Task 1: Generate quick response for Teams channel
             Task quickResponseTask;
@@ -170,8 +160,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 {
                     var _chats = new List<ChatMessage>
                     {
-                        new ChatMessage(ChatRole.System, prompt),
-                        new ChatMessage(ChatRole.User, messageText)
+                        new(ChatRole.System, _prompt),
+                        new(ChatRole.User, messageText)
                     };
                     var quickResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(_chats);
                     var text = quickResponse.GetMessage().Text;
@@ -216,7 +206,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         }
 
         var serviceUrl = mapping.ServiceUrl;
-        string channelId = mapping.ChannelId;
+        var channelId = mapping.ChannelId;
 
         if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
         {
@@ -295,12 +285,12 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             return (mapping.ThreadId, false); // Existing thread, not new
         }
 
-        string senderName = sender?.Name ?? "Unknown User";
-        string userId = sender?.Id ?? "teams-user";
+        var senderName = sender?.Name ?? "Unknown User";
+        var userId = sender?.Id ?? "teams-user";
 
-        string temporaryTitle = "Conversation title...";
+        var temporaryTitle = "Conversation title...";
 
-        Guid newThreadId = Guid.NewGuid();
+        var newThreadId = Guid.NewGuid();
         var message = new Message(
                 Id: startMessageId,
                 TimeStamp: DateTime.UtcNow,
@@ -387,7 +377,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         string text,
         ChannelData channelData)
     {
-        bool isStreamFinal = channelData.StreamType.ToString().Equals(StreamType.Final.ToString());
+        var isStreamFinal = channelData.StreamType.ToString().Equals(StreamType.Final.ToString());
         Activity streamingActivity = new()
         {
             Type = isStreamFinal ? ActivityTypes.Message : ActivityTypes.Typing,
@@ -407,7 +397,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         // Add to entities collection
         streamingActivity.Entities = new List<Entity>
         {
-            new Entity("streaminfo")
+            new("streaminfo")
             {
                 Properties = JObject.FromObject(streamingInfoProperties)
             }
@@ -420,13 +410,13 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     {
         try
         {
-            ResourceResponse streamingResponse = await turnContext.SendActivityAsync(streamingActivity, cancellationToken).ConfigureAwait(false);
+            var streamingResponse = await turnContext.SendActivityAsync(streamingActivity, cancellationToken).ConfigureAwait(false);
             return streamingResponse.Id;
         }
         catch (Exception ex)
         {
             var errorResponse = ex as Microsoft.Bot.Schema.ErrorResponseException;
-            string errorMessage = "Error while sending streaming activity: " + (errorResponse?.Body?.Error?.Message ?? ex.Message);
+            var errorMessage = "Error while sending streaming activity: " + (errorResponse?.Body?.Error?.Message ?? ex.Message);
             _logger.LogInternalError(ex, errorMessage);
 
             // Only send error message back to user if it's a critical error
@@ -446,16 +436,16 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         {
             if (member.Id != turnContext.Activity.Recipient.Id)
             {
-                await turnContext.SendActivityAsync(MessageFactory.Text(welcomeMessage), cancellationToken);
+                await turnContext.SendActivityAsync(MessageFactory.Text(_welcomeMessage), cancellationToken);
             }
         }
     }
 
     // This function can help us send the "typing" indicator to the user, it's not useful in streaming API which has the "processing" indicator, but it's useful in non-streaming API scenario such as teams channel or chat group.
-    public async override Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
+    public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug($"Sending typing indicator for conversation {turnContext.Activity.Conversation.Id}, channel {turnContext.Activity.ChannelId}, service URL: {turnContext.Activity.ServiceUrl}, channel data info: {turnContext.Activity.GetChannelData<TeamsChannelData>()?.Channel?.Id ?? "N/A"}");
-        ITypingActivity replyActivity = Activity.CreateTypingActivity();
+        var replyActivity = Activity.CreateTypingActivity();
         await turnContext.SendActivityAsync((Activity)replyActivity).ConfigureAwait(false);
         await base.OnTurnAsync(turnContext, cancellationToken);
     }
@@ -499,7 +489,9 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     public void StartMessagePolling()
     {
         if (_isPollingStarted)
+        {
             return;
+        }
 
         if (string.IsNullOrEmpty(_appId))
         {
@@ -532,7 +524,9 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     public void StopMessagePolling()
     {
         if (!_isPollingStarted)
+        {
             return;
+        }
 
         _logger.LogInternalInformation("Stopping Teams message polling");
         _pollingCancellationSource.Cancel();
@@ -554,9 +548,9 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                     continue;
                 }
 
-                string threadId = mapping.ThreadId;
+                var threadId = mapping.ThreadId;
 
-                if (!Guid.TryParse(threadId, out Guid threadGuid))
+                if (!Guid.TryParse(threadId, out var threadGuid))
                 {
                     _logger.LogInternalError($"Failed to poll Teams messages due to invalid thread ID format: {threadId}");
                     continue;
@@ -575,7 +569,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
                 // Filter to get only new messages that haven't been posted yet
                 // Now checking the Posted.Teams property directly instead of using PostedMessages collection
-                DateTime tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
+                var tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
                 var newMessages = messages
                     .Where(m => (m.Author.Role == Role.SREAgent || m.Author.Role == Role.User) &&
                            m.Posted != null && !m.Posted.Teams &&
@@ -630,7 +624,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             }
 
             // Track successfully posted messages to update the database
-            List<string> postedMessageIds = new List<string>();
+            var postedMessageIds = new List<string>();
 
             foreach (var message in messages)
             {
@@ -664,15 +658,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                             base64Content = match.Groups[3].Value;
 
                             // Use the alt text as the attachment name, or fall back to default if empty
-                            string attachmentName = !string.IsNullOrEmpty(altText)
+                            var attachmentName = !string.IsNullOrEmpty(altText)
                                 ? $"{altText}.{match.Groups[2].Value}"
                                 : $"image.{match.Groups[2].Value}";
 
                             // Create attachment with the extracted image
                             activity.Attachments = new List<Attachment>
                             {
-                                new Attachment
-                                {
+                                new() {
                                     ContentType = contentType,
                                     ContentUrl = $"data:{contentType};base64,{base64Content}",
                                     Name = attachmentName

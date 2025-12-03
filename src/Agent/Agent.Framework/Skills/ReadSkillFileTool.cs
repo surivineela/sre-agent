@@ -179,9 +179,7 @@ public class ReadSkillFileTool<TContext>(
     public const string ToolName = "read_skill_file";
 
     private static readonly JsonElement InputJsonSchema = AIJsonUtilities.CreateFunctionJsonSchema(
-        typeof(ReadSkillFileTool<TContext>).GetMethod(nameof(ReadSkillFile))!,
-        title: string.Empty,
-        description: string.Empty);
+        method: typeof(ReadSkillFileTool<TContext>).GetMethod(nameof(ReadSkillFile))!);
 
     #endregion
 

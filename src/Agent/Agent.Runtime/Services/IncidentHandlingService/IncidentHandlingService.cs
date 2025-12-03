@@ -37,7 +37,6 @@ public class IncidentHandlingRequestModelBase
 public class IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> : IncidentHandlingRequestModelBase
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
-
     public IncidentHandlerDocumentPayload? IncidentHandler { get; set; }
     public TIncidentFilterDocumentPayload? IncidentFilter { get; set; }
 }

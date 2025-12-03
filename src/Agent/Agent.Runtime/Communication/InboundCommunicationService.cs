@@ -8,10 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Interface;
-using Agent.Runtime.IncidentHandlerAgent;
-using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Reasoning;
-using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -19,47 +16,32 @@ namespace Agent.Runtime.Communication;
 
 public class InboundCommunicationService : IAgentInboundCommunicationService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IAgent _metaAgent;
-    private readonly IIncidentHandlerAgent _incidentHandlerAgent;
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
     private readonly CustomerLogger _customerLogger;
     private readonly SinkService _sinkService;
-    private readonly ThreadService _threadService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private readonly IReasoningLoopManager _reasoningLoopManager;
     private readonly ActionSettings _actionSettings;
-    private readonly bool _useAgentFramework;
 
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
     public InboundCommunicationService(
-        IAgent metaAgent,
-        IIncidentHandlerAgent incidentHandlerAgent,
         IThreadRepository repository,
         SinkService sinkService,
-        ThreadService threadService,
         IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger,
         CustomerLogger customerLogger,
-        IServiceProvider serviceProvider,
         IReasoningLoopManager reasoningLoopManager,
-        CoreSettings coreSettings,
         ActionSettings actionSettings,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
-        _metaAgent = metaAgent;
-        _incidentHandlerAgent = incidentHandlerAgent;
         _repository = repository;
         _sinkService = sinkService;
-        _threadService = threadService;
         _teamsPlugin = teamsPlugin;
         _logger = logger;
         _customerLogger = customerLogger;
-        _serviceProvider = serviceProvider;
         _reasoningLoopManager = reasoningLoopManager;
-        _useAgentFramework = coreSettings.UseAgentFramework;
         _actionSettings = actionSettings;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
@@ -239,74 +221,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             { "Message", threadMessage.Message }
         });
 
-        // TODO Remove this line
-        defaultHandler = true; // route to the path we want.
-        if (_useAgentFramework && defaultHandler)
-        {
-            try
-            {
-                var result = await ProcessMessageWithAgentFrameworkAsync(threadMessage);
-                customerActivity?.SetSuccess("Incident processed via agent framework");
-                return result;
-            }
-            catch (Exception ex)
-            {
-                customerActivity?.SetError("Failed to process incident via agent framework.", ex.GetType().Name);
-                throw;
-            }
-        }
-
         try
         {
-            var responseMessageId = Guid.Empty;
-
-            // Check if an orchestration already exists for this thread
-            var agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
-            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(threadMessage.AgentContextId);
-
-            // we don't need to sink user message if the message is the start message
-            var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
-            ReasoningMessage? reasoningMessage = null;
-            if (threadMessage.MessageId != thread?.StartMessage?.Id)
-            {
-                await _sinkService.SinkUserMessageAsync(threadMessage);
-                reasoningMessage = new ReasoningMessage(
-                    Id: Guid.NewGuid(),
-                    AgentContextId: threadMessage.AgentContextId,
-                    Role: ReasoningMessageRoleEnum.User,
-                    SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
-                await _repository.CreateReasoningMessageAsync(reasoningMessage);
-
-                if (agentChatHistory != null)
-                {
-                    await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
-                }
-            }
-
-            // No existing orchestration, create a new one
-            _logger.LogInternalInformation("ProcessIncidentMessageAsync: No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
-
-            var agentResponse = string.Empty;
-
-            if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident && agentChatHistory != null)
-            {
-                agentResponse = await _incidentHandlerAgent.ProcessIncidentAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
-            }
-            else if (agentContext != null && agentChatHistory != null)
-            {
-                // Process the message with MetaAgent
-                agentResponse = await _metaAgent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
-            }
-            else
-            {
-                throw new InvalidOperationException("Agent context is null for thread: " + threadMessage.ThreadId);
-            }
-
-            return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId);
+            var result = await ProcessMessageWithAgentFrameworkAsync(threadMessage);
+            customerActivity?.SetSuccess("Incident processed via agent framework");
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "ProcessIncidentMessageAsync: Error processing incident message for thread: {ThreadId}", threadMessage.ThreadId);
+            customerActivity?.SetError("Failed to process incident via agent framework.", ex.GetType().Name);
             throw;
         }
     }

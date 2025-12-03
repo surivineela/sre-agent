@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Linq;
 using System.Net;
 using System.Text.Json;
 using Agent.Core.Configuration;
@@ -51,13 +50,13 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 50;
-    private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private bool isScanSucceeded = true;
     private DateTime lastScanTime;
     private DateTime? latestModifiedDateInScan = null;
     //After offset > 5000, ICM endpoint will returning 400 bad request
     //Updating offset to 200, since now it will apply on every existing incident Filter
-    private readonly static int maxOffset = 200;
+    private static readonly int maxOffset = 200;
 
     // Automated RCA configuration
     private bool IsAutomatedRCAEnabled => incidentManagementSettings.AutomatedRCA.Enabled;
@@ -134,7 +133,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     logger.LogInternalWarning("[IcmScanner] IcM scanner failed to scan incidents, last scan time will not be updated.");
                 }
-
             }
             await Task.Delay(ScanInterval, cancellationToken);
         }
@@ -142,7 +140,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
     private async Task ScanAllIncidentsAsync(List<IcmIncidentFilterDocument> filters, CancellationToken cancellationToken)
     {
-
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -415,7 +412,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 };
 
                 // Once incident is mitigated or resolved, do AI analysis
-                string incidentStatus = incident.State.ToString();
+                var incidentStatus = incident.State.ToString();
                 if ((string.Equals(incidentStatus, IncidentStatus.Mitigated.ToString(), StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(incidentStatus, IncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase)) &&
                     (string.IsNullOrWhiteSpace(updatedDoc.AIRootCause) || string.IsNullOrWhiteSpace(updatedDoc.RootCauseDescription) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
@@ -434,7 +431,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 updatedDoc.DiscussionEntries = latestDiscussionEntries;
                 var newNotes = latestDiscussionEntries?
                         .Where(entry => entry.Date > lastScanTime.AddMinutes(-5)) // Add 5 minutes buffer to avoid missing notes due to time skew
-                        .Select(entry => new IncidentDiscussion($"{entry.DescriptionEntryId.ToString()}-{entry.Date.ToString()}", entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
+                        .Select(entry => new IncidentDiscussion($"{entry.DescriptionEntryId}-{entry.Date}", entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
                         .ToList() ?? new List<IncidentDiscussion>();
 
                 if (newNotes.Count > 0)
@@ -667,9 +664,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     logger.LogInternalInformation("[IcmScanner] No new notes found for incident {incidentId}", incidentDocument.Id);
                 }
-
             }
-
         }
         catch (Exception ex)
         {
@@ -681,7 +676,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     {
         var threads = container.GetItemLinqQueryable<ThreadDocument>()
             .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
-            .Where(doc => doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId || doc.IncidentId == incidentId)
+            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId) || doc.IncidentId == incidentId)
             .OrderBy(doc => doc.CreatedTimestamp)
             .ToFeedIterator();
 
@@ -746,7 +741,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalWarning("[IcmScanner] Could not retrieve incident details for {incidentId}", incidentDocument.Id);
                 return;
             }
-            string owningTeamId = filterDocument.OwningTeamId;
+            var owningTeamId = filterDocument.OwningTeamId;
             // New: Skip if team-specific Completed tag exists
             var teamCompletedTag = !string.IsNullOrWhiteSpace(owningTeamId) ? $"{owningTeamId}:Completed" : null;
             if (!string.IsNullOrWhiteSpace(teamCompletedTag) && incident.Tags?.Any(t => string.Equals(t, teamCompletedTag, StringComparison.OrdinalIgnoreCase)) == true)
@@ -754,7 +749,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalInformation("[IcmScanner] Incident {incidentId} already completed for owning team (tag: {tag})", incidentDocument.Id, teamCompletedTag);
                 return;
             }
-
 
             logger.LogInternalInformation("[IcmScanner] Incident {incidentId} qualifies for automated RCA execution via team filter", incidentDocument.Id);
 
@@ -891,11 +885,19 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     private async Task ProcessTestQueueAsync(CancellationToken cancellationToken)
     {
         var batch = IcmScannerTestQueueHelper.Drain();
-        if (batch.Count == 0) return;
+        if (batch.Count == 0)
+        {
+            return;
+        }
+
         logger.LogInternalInformation("[IcmScanner] Processing {count} test queue incident(s).", batch.Count);
         foreach (var item in batch)
         {
-            if (cancellationToken.IsCancellationRequested) return;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             try
             {
                 var icmIncident = await icmApiClient.GetIncidentAsync(item.IncidentId);

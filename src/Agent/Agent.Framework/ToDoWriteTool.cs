@@ -26,7 +26,7 @@ public class ToDoWriteTool<TContext> : AIToolFunction<ToDoWriteTool<TContext>, T
 
     public override MethodInfo? UnderlyingMethod => typeof(ToDoWriteTool<TContext>).GetMethod(nameof(ToDoWrite));
 
-    public override JsonElement JsonSchema { get; } = InputJsonScema;
+    public override JsonElement JsonSchema { get; } = InputJsonSchema;
 
     protected override ValueTask<object?> InvokeCoreAsync(
         AIFunctionArguments arguments,
@@ -254,10 +254,8 @@ public class ToDoWriteTool<TContext> : AIToolFunction<ToDoWriteTool<TContext>, T
     If you find yourself stuck and unable to proceed with your task list, consider requesting additional information from the user rather than cycling through task updates without advancement.
     """;
 
-    private static readonly JsonElement InputJsonScema = AIJsonUtilities.CreateFunctionJsonSchema(
-        typeof(ToDoWriteTool<TContext>).GetMethod(nameof(ToDoWrite))!,
-        title: ToolName,
-        description: ToolDescription);
+    private static readonly JsonElement InputJsonSchema = AIJsonUtilities.CreateFunctionJsonSchema(
+        method: typeof(ToDoWriteTool<TContext>).GetMethod(nameof(ToDoWrite))!);
 
     #endregion
 

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 using System.Text;
 using Agent.Core.Helpers;
@@ -7,7 +11,6 @@ using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
 using Microsoft.AzureAd.Icm.Types;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -38,18 +41,14 @@ public class ICMPlugin : IICMPlugin
     private const bool ProcessImages = true;
 
     //Use agent unique name  (agent name + unique suffix) since customer's may use the same name  under different subscription/resource group
-    private string AgentName = string.Empty;
+    private readonly string AgentName = string.Empty;
 
     public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
         AgentName = AgentNameHelper.GetAgentName(!hostEnvironment.IsDevelopment());
-
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         _chatCompletionService = chatClientProvider.GeneralPurposeModel.AsChatCompletionService();
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
     }
 
     public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(DateTime? issueFirstOccurrence, DateTime? issueLastOccurrence, DateTime? reportedIssueObservedOnTime)
@@ -62,11 +61,11 @@ public class ICMPlugin : IICMPlugin
         var now = DateTime.UtcNow;
 
         // If no endDate, set to now
-        DateTime endDate = (issueLastOccurrence != null && issueLastOccurrence != DateTime.MinValue) ? issueLastOccurrence.Value
+        var endDate = (issueLastOccurrence != null && issueLastOccurrence != DateTime.MinValue) ? issueLastOccurrence.Value
             : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(2) : now);
 
         // If no startDate, set to now-10d
-        DateTime startDate = (issueFirstOccurrence != null && issueFirstOccurrence != DateTime.MinValue) ? issueFirstOccurrence.Value
+        var startDate = (issueFirstOccurrence != null && issueFirstOccurrence != DateTime.MinValue) ? issueFirstOccurrence.Value
             : (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(-2) : now.AddDays(-10));
 
         // Ensure the start date is not after the end date
@@ -80,8 +79,6 @@ public class ICMPlugin : IICMPlugin
         {
             startDate = endDate.AddMonths(-1);
         }
-
-
 
         // Add a 1-hour buffer before and after the time window to capture events near the start and end of the investigation period.
         startDate = startDate.AddHours(-1);
@@ -358,7 +355,7 @@ Example structure:
 
     public string GetCurrentUtcDateTime()
     {
-        var returnValue = $"Current timestamp: {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")} UTC";
+        var returnValue = $"Current timestamp: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC";
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetCurrentUtcDateTime)}][{DateTime.UtcNow}] Invoked. Returned {returnValue}";
         _logger.LogInternalInformation(logMessage);
         return returnValue;
@@ -398,7 +395,6 @@ Example structure:
         return guidelines;
     }
 
-
     public async Task<DescriptionEntry?> GetAlertingDiscussionEntry(string incidentId)
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetAlertingDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
@@ -421,7 +417,6 @@ Example structure:
         }
         return null;
     }
-
 
     public async Task<List<DescriptionEntry>> GetDiscussionEntries(string incidentId)
     {
@@ -468,7 +463,6 @@ Example structure:
         await UpdateAgentStatus(incidentId, AgentStatus.Transferred);
         return result;
     }
-
 
     public async Task<string> MitigateIncident(string incidentId, string discussionEntry)
     {
@@ -543,7 +537,6 @@ Example structure:
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
     }
-
 
     public async Task<string> AddTagToIncident(string incidentId, string tag)
     {
@@ -738,7 +731,6 @@ Example structure:
         return result;
     }
 
-
     #endregion
 
     #region ParentIncident operation methods
@@ -766,7 +758,6 @@ Example structure:
         return result;
     }
     #endregion
-
 
     public async Task<List<string>> GetChildIncidentsInfo(long incidentId)
     {
@@ -834,8 +825,8 @@ Example structure:
             _logger.LogInternalInformation($"Reading file: {filePath} (Size: {fileInfo.Length} bytes)");
 
             // Read file and convert to base64
-            byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-            string base64Content = Convert.ToBase64String(fileBytes);
+            var fileBytes = await File.ReadAllBytesAsync(filePath);
+            var base64Content = Convert.ToBase64String(fileBytes);
 
             _logger.LogInternalInformation($"Successfully converted file to base64. Base64 length: {base64Content.Length} characters");
 
@@ -898,7 +889,7 @@ Example structure:
             }
 
             // Convert string content to bytes and check size
-            byte[] contentBytes = Encoding.UTF8.GetBytes(content);
+            var contentBytes = Encoding.UTF8.GetBytes(content);
 
             // Check content size (15MB limit as per ICM API documentation)
             const long maxFileSizeBytes = 15 * 1024 * 1024; // 15MB
@@ -910,7 +901,7 @@ Example structure:
             _logger.LogInternalInformation($"Converting content to base64 for file: {fileName} (Size: {contentBytes.Length} bytes)");
 
             // Convert content to base64
-            string base64Content = Convert.ToBase64String(contentBytes);
+            var base64Content = Convert.ToBase64String(contentBytes);
 
             _logger.LogInternalInformation($"Successfully converted content to base64. Base64 length: {base64Content.Length} characters");
 

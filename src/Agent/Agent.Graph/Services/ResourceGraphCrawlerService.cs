@@ -61,7 +61,8 @@ public class ResourceGraphCrawlerService : ICrawlerService, IDisposable
     private readonly ConcurrentDictionary<string, QueuedCrawlRequest> _queuedCrawlRequests = new(); // Queue for rate-limited crawl requests, keyed by resource ID
     private readonly Timer _queueProcessingTimer; // Timer to periodically process the queue
 
-    public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger,
+    public ResourceGraphCrawlerService(
+        ILogger<ResourceGraphCrawlerService> logger,
         CrawlerSettings crawlerSettings,
         ArmResourceCrawlerFactory factory,
         IGraphDatabaseClient graphDbClient,

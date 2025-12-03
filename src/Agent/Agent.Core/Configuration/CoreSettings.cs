@@ -30,9 +30,6 @@ public class CoreSettings
     public List<DataConnectorInstanceSettings> DataConnectors { get; init; } = [];
 
     [Required]
-    public bool UseAgentFramework { get; set; } = false;
-
-    [Required]
     public bool EnableReasoningOutput { get; set; } = false;
 
     [Required]

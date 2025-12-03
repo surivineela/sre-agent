@@ -2,13 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Runtime.MetaAgent.Interfaces;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
@@ -17,11 +13,9 @@ namespace Agent.Runtime.Services;
 public class ThreadManagementService(
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IAgentOutboundCommunicationService outboundCommunicationService,
-    IAgentsFactory agentsFactory,
     IThreadRepository repository,
     ITitleGenerationService titleGenerationService,
-    ILogger<ThreadManagementService> logger,
-    CoreSettings coreSettings)
+    ILogger<ThreadManagementService> logger)
 {
     public async Task<Thread> CreateUserInitiatedThread(CreateThreadRequest request, Guid? userDefinedThreadId = null)
     {
@@ -59,26 +53,6 @@ public class ThreadManagementService(
             );
 
         var reasoningMessages = new List<ReasoningMessage>();
-
-        // when using new Agent framework, the chat history is fully handled by reasoning loop
-        if (!coreSettings.UseAgentFramework)
-        {
-            var systemPromptReasoningMessage = new ReasoningMessage(
-            Id: Guid.NewGuid(),
-                AgentContextId: agentContext.Id,
-                Role: ReasoningMessageRoleEnum.System,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
-            );
-
-            var startReasoningMessage = new ReasoningMessage(
-                Id: Guid.NewGuid(),
-                AgentContextId: agentContext.Id,
-                Role: ReasoningMessageRoleEnum.User,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
-            );
-            reasoningMessages.Add(systemPromptReasoningMessage);
-            reasoningMessages.Add(startReasoningMessage);
-        }
 
         var agentChatHistory = new AgentChatHistory(
             AgentContextId: agentContext.Id,
