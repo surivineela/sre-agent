@@ -7,12 +7,13 @@ import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { Guid } from '../../../../Common/Helpers/Guid';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, Skill } from '../../../Contracts/ExtendedAgentGraph';
 import { AgentCreateFormValues, AgentCreateOrEditInfo } from '../Contracts';
 
 export const useAgentCreateDialog = (
     onAgentCreated: (selectedAgent?: string) => void,
-    agentCreateOrEditInfo: AgentCreateOrEditInfo | undefined
+    agentCreateOrEditInfo: AgentCreateOrEditInfo | undefined,
+    skills?: Skill[]
 ) => {
     const intl = useIntl();
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -71,6 +72,10 @@ export const useAgentCreateDialog = (
                 agentCreateBody.metadata = { name: 'meta_agent' };
                 agentCreateBody.commonPrompts = ['format_guidelines', 'guard_rail'];
                 agentCreateBody.outputType = 'MetaAgentOutput';
+                // Enable vanilla mode when skills exist
+                if (skills && skills.length > 0) {
+                    agentCreateBody.enableVanillaMode = true;
+                }
             }
 
             const agentCreateNotificationId = azPortalContext.startNotification(

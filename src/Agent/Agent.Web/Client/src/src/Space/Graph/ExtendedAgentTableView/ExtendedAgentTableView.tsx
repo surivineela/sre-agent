@@ -16,6 +16,7 @@ import {
     INFO_PANEL_DEFAULT_WIDTH,
     INFO_PANEL_MAX_WIDTH,
     INFO_PANEL_MIN_WIDTH,
+    Skill,
     SystemTool,
 } from '../../Contracts/ExtendedAgentGraph';
 import PlaygroundModal, { PlaygroundTarget } from '../../Playground/PlaygroundModal';
@@ -28,6 +29,7 @@ import { AgentTable } from './Tabs/AgentTable';
 import { IncidentTriggerTable } from './Tabs/IncidentTriggerTable';
 import { KustoToolTable } from './Tabs/KustoToolTable';
 import { ScheduledTaskTable } from './Tabs/ScheduledTaskTable';
+import { SkillTable } from './Tabs/SkillTable';
 
 interface ExtendedAgentTableViewProps {
     activeTab: TableViewTabValue;
@@ -36,11 +38,13 @@ interface ExtendedAgentTableViewProps {
     tools: ExtendedTool[];
     triggers: ExtendedTrigger[];
     connectors: ExtendedConnector[];
+    skills: Skill[];
     isLoading: boolean;
     onRefresh: () => void;
     lastUpdated?: string;
     systemTools?: SystemTool[];
     onEditKustoTool?: (tool: ExtendedTool) => void;
+    onEditSkill?: (skill: Skill) => void;
 }
 
 export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
@@ -51,9 +55,11 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     triggers,
     systemTools,
     connectors,
+    skills,
     isLoading,
     onRefresh,
     onEditKustoTool,
+    onEditSkill,
 }) => {
     const intl = useIntl();
     const styles = useListViewStyles();
@@ -138,12 +144,22 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         data: triggerData,
                     });
                 }
+            } else if (type === ExtendedAgentNodeType.Skill) {
+                const skillData = skills.find(skill => skill.name === id);
+                if (skillData) {
+                    setSelectedDrawerItem({
+                        id: `skill_${skillData.name}`,
+                        name: skillData.name,
+                        type: ExtendedAgentNodeType.Skill,
+                        data: skillData,
+                    });
+                }
             } else {
                 setSelectedDrawerItem(undefined);
                 setSelectedDrawerItemId(undefined);
             }
         }
-    }, [selectedDrawerItemId, agents, tools, triggers]);
+    }, [selectedDrawerItemId, agents, tools, triggers, skills]);
 
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -323,6 +339,16 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         isLoading={isLoading}
                     />
                 );
+            case 'skills':
+                return (
+                    <SkillTable
+                        skills={skills}
+                        openInfoPanel={handleOpenInfoPanel}
+                        refresh={onRefresh}
+                        lastUpdated={lastUpdated}
+                        isLoading={isLoading}
+                    />
+                );
             default:
                 return null;
         }
@@ -332,6 +358,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
         tools,
         triggers,
         systemTools,
+        skills,
         handleOpenInfoPanel,
         onRefresh,
         lastUpdated,
@@ -363,6 +390,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                     <EntityCard type="incidentTriggers" entityCount={allIncidentTriggers.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="scheduledTasks" entityCount={allScheduledTasks.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="kustoTools" entityCount={allKustoTools.length} handleCardClick={handleTabSelect} />
+                    <EntityCard type="skills" entityCount={skills.length} handleCardClick={handleTabSelect} />
                 </div>
 
                 <TabList
@@ -382,6 +410,9 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                     </Tab>
                     <Tab id="kustoTools" value="kustoTools">
                         {intl.formatMessage(ExtendedAgentsGraphResources.kustoTools)}
+                    </Tab>
+                    <Tab id="skills" value="skills">
+                        {intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel)}
                     </Tab>
                 </TabList>
 
@@ -421,6 +452,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         maxWidth={INFO_PANEL_MAX_WIDTH}
                         onOpenPlayground={handleOpenPlayground}
                         onEditKustoTool={onEditKustoTool}
+                        onEditSkill={onEditSkill}
                         onClose={handleCloseInfoPanel}
                     />
                 </div>

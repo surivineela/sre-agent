@@ -31,6 +31,7 @@ import {
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
+    Skill,
     SystemTool,
 } from '../../Contracts/ExtendedAgentGraph';
 import { PlaygroundTarget } from '../../Playground/PlaygroundModal';
@@ -40,6 +41,7 @@ import { ExtendedEntityYamlEditor } from '../ExtendedAgentYamlEditor';
 import { ExtendedEntityType } from '../ExtendedAgentYamlUtils';
 import { AgentDetails } from './AgentDetails';
 import { PanelHeader } from './PanelHeader';
+import { SkillDetails } from './SkillDetails';
 import { SystemToolDetails } from './SystemToolDetails';
 import { TriggerDetails } from './TriggerDetails';
 
@@ -59,6 +61,7 @@ type ExtendedAgentInfoPanelProps = {
     maxWidth?: number;
     onOpenPlayground?: (target: PlaygroundTarget) => void;
     onEditKustoTool?: (tool: ExtendedTool) => void;
+    onEditSkill?: (skill: Skill) => void;
     onClose?: () => void;
     collapsibleProps?: {
         isCollapsed: boolean;
@@ -72,8 +75,8 @@ type YamlEditorContext = {
 };
 
 type DeleteContext = {
-    type: 'agent' | 'tool';
-    entity: ExtendedAgent | ExtendedTool;
+    type: 'agent' | 'tool' | 'skill';
+    entity: ExtendedAgent | ExtendedTool | Skill;
 };
 
 const EMPTY_DISPLAY = '-' as const;
@@ -122,6 +125,7 @@ export const ExtendedAgentInfoPanel = memo(
         maxWidth,
         onOpenPlayground,
         onEditKustoTool,
+        onEditSkill,
         onClose,
         collapsibleProps,
     }: ExtendedAgentInfoPanelProps) => {
@@ -174,6 +178,14 @@ export const ExtendedAgentInfoPanel = memo(
         const selectedSystemTool = useMemo(() => {
             if (selectedNode?.type === ExtendedAgentNodeType.SystemTool) {
                 return selectedNode.data as SystemTool;
+            }
+
+            return undefined;
+        }, [selectedNode]);
+
+        const selectedSkill = useMemo(() => {
+            if (selectedNode?.type === ExtendedAgentNodeType.Skill) {
+                return selectedNode.data as Skill;
             }
 
             return undefined;
@@ -233,7 +245,10 @@ export const ExtendedAgentInfoPanel = memo(
         );
 
         const onEdit = useCallback(
-            (entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | undefined, type: ExtendedEntityType) => {
+            (
+                entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | Skill | undefined,
+                type: ExtendedEntityType | 'skill'
+            ) => {
                 if (!entity) return;
 
                 if (type === 'agent' && triggerAgentQuickAction) {
@@ -248,9 +263,13 @@ export const ExtendedAgentInfoPanel = memo(
                     onEditKustoTool(entity as ExtendedTool);
                     return;
                 }
-                handleOpenYamlEditor(entity, type);
+                if (type === 'skill' && onEditSkill) {
+                    onEditSkill(entity as Skill);
+                    return;
+                }
+                handleOpenYamlEditor(entity, type as ExtendedEntityType);
             },
-            [triggerAgentQuickAction, triggerTriggerQuickAction, onEditKustoTool, handleOpenYamlEditor]
+            [triggerAgentQuickAction, triggerTriggerQuickAction, onEditKustoTool, onEditSkill, handleOpenYamlEditor]
         );
 
         const renderToolDetails = useCallback(
@@ -428,7 +447,7 @@ export const ExtendedAgentInfoPanel = memo(
         );
 
         const handleDeleteClick = useCallback(
-            (type: 'agent' | 'tool', entity: ExtendedAgent | ExtendedTool | undefined) => {
+            (type: 'agent' | 'tool' | 'skill', entity: ExtendedAgent | ExtendedTool | Skill | undefined) => {
                 if (!entity || isDeleting) return;
                 setDeleteContext({ type, entity });
             },
@@ -442,11 +461,12 @@ export const ExtendedAgentInfoPanel = memo(
             const context = deleteContext;
             setDeleteContext(undefined);
 
-            const endpointSegment = context.type === 'agent' ? 'agents' : 'tools';
+            const endpointSegment = context.type === 'agent' ? 'agents' : context.type === 'tool' ? 'tools' : 'skills';
+            const apiVersion = context.type === 'skill' ? 'v2' : 'v1';
             const entityName = encodeURIComponent(context.entity.name);
 
             try {
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/${endpointSegment}/${entityName}`, {
+                const response = await fetch(`${sreAgentEndpoint}/api/${apiVersion}/extendedAgent/${endpointSegment}/${entityName}`, {
                     method: 'DELETE',
                     credentials: 'include',
                     headers: getAgentHeaders(),
@@ -459,10 +479,14 @@ export const ExtendedAgentInfoPanel = memo(
                 await onRefresh?.();
             } catch (error) {
                 console.error('Error deleting entity:', error);
-                const message =
-                    context.type === 'agent'
-                        ? intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { name: context.entity.name })
-                        : intl.formatMessage(SreAgentResources.deleteToolNotificationError, { name: context.entity.name });
+                let message: string;
+                if (context.type === 'agent') {
+                    message = intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { name: context.entity.name });
+                } else if (context.type === 'tool') {
+                    message = intl.formatMessage(SreAgentResources.deleteToolNotificationError, { name: context.entity.name });
+                } else {
+                    message = intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillNotificationError, { name: context.entity.name });
+                }
 
                 alert(message);
             } finally {
@@ -520,16 +544,17 @@ export const ExtendedAgentInfoPanel = memo(
             [connectorTypeInfo, intl, styles.metadataRow, styles.metadataKey, styles.flexRowCenter, styles.smallIcon]
         );
 
-        const isAgentContext = !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool;
+        const isAgentContext = !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool && !selectedSkill;
 
         const headerEditContext = useMemo(() => {
             if (selectedTool) return selectedTool.type === 'mcp' ? undefined : { entity: selectedTool, type: 'tool' as const };
             if (selectedConnector) return { entity: selectedConnector, type: 'connector' as const };
             if (selectedTrigger) return { entity: selectedTrigger, type: 'trigger' as const };
             if (selectedSystemTool) return undefined;
+            if (selectedSkill) return { entity: selectedSkill, type: 'skill' as const };
             if (selectedAgent) return { entity: selectedAgent, type: 'agent' as const };
             return undefined;
-        }, [selectedAgent, selectedConnector, selectedTool, selectedTrigger, selectedSystemTool]);
+        }, [selectedAgent, selectedConnector, selectedTool, selectedTrigger, selectedSystemTool, selectedSkill]);
 
         const playgroundTarget = useMemo<PlaygroundTarget | undefined>(() => {
             if (selectedTool) {
@@ -580,15 +605,17 @@ export const ExtendedAgentInfoPanel = memo(
             if (selectedConnector) return 'connector';
             if (selectedTrigger) return selectedTrigger.type === 'incident' ? 'incidentTrigger' : 'scheduledTask';
             if (selectedSystemTool) return 'tool';
+            if (selectedSkill) return 'skill';
             if (selectedAgent) return selectedAgent.name === 'meta_agent' ? 'metaAgent' : 'agent';
             return undefined;
-        }, [selectedTool, selectedConnector, selectedTrigger, selectedSystemTool, selectedAgent]);
+        }, [selectedTool, selectedConnector, selectedTrigger, selectedSystemTool, selectedSkill, selectedAgent]);
 
         const headerTitle =
             selectedTool?.name ??
             selectedConnector?.name ??
             selectedTrigger?.name ??
             selectedSystemTool?.name ??
+            selectedSkill?.name ??
             selectedAgent?.name ??
             intl.formatMessage(ExtendedAgentsGraphResources.agentSummaryTitle);
 
@@ -612,11 +639,14 @@ export const ExtendedAgentInfoPanel = memo(
                         : ExtendedAgentsGraphResources.triggerBadgeScheduled
                 );
             }
+            if (selectedSkill) {
+                return intl.formatMessage(ExtendedAgentsGraphResources.skill);
+            }
             if (selectedAgent && isAgentContext) {
                 return intl.formatMessage(ExtendedAgentsGraphResources.agent);
             }
             return '';
-        }, [selectedTool, selectedSystemTool, selectedConnector, selectedTrigger, selectedAgent, isAgentContext, intl]);
+        }, [selectedTool, selectedSystemTool, selectedConnector, selectedTrigger, selectedSkill, selectedAgent, isAgentContext, intl]);
 
         const agentDetails =
             selectedAgent && !selectedTool && !selectedConnector && !selectedTrigger && !selectedSystemTool ? (
@@ -634,6 +664,8 @@ export const ExtendedAgentInfoPanel = memo(
             ) : null;
 
         const systemToolDetails = selectedSystemTool ? <SystemToolDetails systemTool={selectedSystemTool} /> : null;
+
+        const skillDetails = selectedSkill ? <SkillDetails skill={selectedSkill} toolMap={toolMap} systemToolMap={systemToolMap} /> : null;
 
         const resizeHandleClassName = mergeClasses(styles.resizeHandle, isResizeHandleHovered ? styles.resizeHandleHovered : undefined);
         const resizeHandleGripClassName = mergeClasses(
@@ -675,6 +707,7 @@ export const ExtendedAgentInfoPanel = memo(
                                 selectedAgent={selectedAgent}
                                 selectedTool={selectedTool}
                                 selectedConnector={selectedConnector}
+                                selectedSkill={selectedSkill}
                                 isDeleting={isDeleting}
                                 onEdit={onEdit}
                                 onDeleteClick={handleDeleteClick}
@@ -694,6 +727,7 @@ export const ExtendedAgentInfoPanel = memo(
                                 )}
                                 {agentDetails}
                                 {systemToolDetails}
+                                {skillDetails}
                             </div>
                         </div>
                     </div>
@@ -741,13 +775,17 @@ export const ExtendedAgentInfoPanel = memo(
                             <DialogTitle>
                                 {deleteContext?.type === 'tool'
                                     ? intl.formatMessage(SreAgentResources.deleteToolTitle)
-                                    : intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
+                                    : deleteContext?.type === 'skill'
+                                      ? intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillTitle)
+                                      : intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
                             </DialogTitle>
                             <DialogContent>
                                 <Text>
                                     {deleteContext?.type === 'tool'
                                         ? intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedToolWarning)
-                                        : intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedAgentWarning)}
+                                        : deleteContext?.type === 'skill'
+                                          ? intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillWarning)
+                                          : intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedAgentWarning)}
                                 </Text>
                             </DialogContent>
                             <DialogActions>

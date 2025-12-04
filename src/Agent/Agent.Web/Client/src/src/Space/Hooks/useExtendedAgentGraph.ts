@@ -7,10 +7,12 @@ import {
     ExtendedAgentAnchorEntity,
     ExtendedAgentGraphEdge,
     ExtendedAgentGraphNode,
+    ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
     PaginatedResponse,
+    Skill,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
@@ -29,6 +31,8 @@ export const useExtendedAgentGraph = () => {
     const [triggersLoading, setTriggersLoading] = useState<boolean>(false);
     const [systemTools, setSystemTools] = useState<SystemTool[]>([]);
     const [mcpConnections, setMcpConnections] = useState<McpConnection[]>([]);
+    const [skills, setSkills] = useState<Skill[]>([]);
+    const [isSkillGroupExpanded, setIsSkillGroupExpanded] = useState<boolean>(false);
 
     const [nodes, setNodes] = useState<Node<ExtendedAgentGraphNode>[]>([]);
     const [edges, setEdges] = useState<Edge<ExtendedAgentGraphEdge>[]>([]);
@@ -48,8 +52,34 @@ export const useExtendedAgentGraph = () => {
     const incidentHandlersHook = useIncidentHandlers();
 
     const selectedNode = useMemo(() => {
-        return nodes.find(node => node.id === selectedNodeId);
-    }, [nodes, selectedNodeId]);
+        // First try to find a matching node in the graph
+        const node = nodes.find(node => node.id === selectedNodeId);
+        if (node) {
+            return node;
+        }
+
+        // When expanded, ExpandedSkillGroupCard renders SkillCardInner components internally
+        // (not as separate React Flow nodes). So when a skill is clicked, selectedNodeId is
+        // set to skill_<name> but no actual node exists. Create a virtual node for the info panel.
+        if (selectedNodeId?.startsWith('skill_')) {
+            const skillName = selectedNodeId.replace('skill_', '');
+            const skill = skills.find(s => s.name === skillName);
+            if (skill) {
+                return {
+                    id: selectedNodeId,
+                    position: { x: 0, y: 0 },
+                    data: {
+                        id: selectedNodeId,
+                        name: skill.name,
+                        type: ExtendedAgentNodeType.Skill,
+                        data: skill,
+                    },
+                } as Node<ExtendedAgentGraphNode>;
+            }
+        }
+
+        return undefined;
+    }, [nodes, selectedNodeId, skills]);
 
     const updateSelectedNodeId: React.Dispatch<React.SetStateAction<string | undefined>> = useCallback(
         (input: SetStateAction<string | undefined>) => {
@@ -310,40 +340,98 @@ export const useExtendedAgentGraph = () => {
         }
     }, [sreAgentEndpoint]);
 
+    // Fetch skills
+    const fetchSkills = useCallback(async () => {
+        try {
+            const response = await fetch(`${sreAgentEndpoint}/api/v2/extendedAgent/skills?limit=200`, {
+                headers: getAgentHeaders(),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch skills: ${response.status}`);
+            }
+
+            const data = await response.json();
+            // v2 API returns { value: [...] } format
+            const skills: Skill[] = (data.value ?? []).map((item: any) => ({
+                name: item.name,
+                description: item.properties?.description,
+                tools: item.properties?.tools,
+                skillMdContent: item.properties?.skillMdContent,
+                additionalFiles: item.properties?.additionalFiles,
+            }));
+            setSkills(skills);
+        } catch (err) {
+            console.error('Error fetching skills:', err);
+            setError('Failed to load skills');
+        }
+    }, [sreAgentEndpoint]);
+
     // Load all data
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
             setError(null);
 
-            await Promise.all([fetchAgents(), fetchTools(), fetchConnectors(), fetchTriggers(), fetchSystemTools(), fetchMcpConnections()]);
+            await Promise.all([
+                fetchAgents(),
+                fetchTools(),
+                fetchConnectors(),
+                fetchTriggers(),
+                fetchSystemTools(),
+                fetchMcpConnections(),
+                fetchSkills(),
+            ]);
 
             setLoading(false);
         };
 
         loadData();
-    }, [fetchAgents, fetchTools, fetchConnectors, fetchTriggers, fetchSystemTools, fetchMcpConnections]);
+    }, [fetchAgents, fetchTools, fetchConnectors, fetchTriggers, fetchSystemTools, fetchMcpConnections, fetchSkills]);
 
     // Build graph when data changes
     useEffect(() => {
-        if (agents.length === 0 && tools.length === 0 && connectors.length === 0 && triggers.length === 0 && systemTools.length === 0) {
+        if (
+            agents.length === 0 &&
+            tools.length === 0 &&
+            connectors.length === 0 &&
+            triggers.length === 0 &&
+            systemTools.length === 0 &&
+            skills.length === 0
+        ) {
             setNodes([]);
             setEdges([]);
             return;
         }
 
+        // Add skills count to meta_agent metadata
+        const agentsWithSkillsCount = agents.map(agent => {
+            if (agent.name === 'meta_agent') {
+                return {
+                    ...agent,
+                    metadata: {
+                        ...(agent.metadata || {}),
+                        skillsCount: skills.length,
+                    },
+                };
+            }
+            return agent;
+        });
+
         const { nodes: graphNodes, edges: graphEdges } = buildExtendedAgentGraph(
-            agents,
+            agentsWithSkillsCount,
             tools,
             connectors,
             triggers,
             systemTools,
-            mcpConnections
+            mcpConnections,
+            skills,
+            isSkillGroupExpanded
         );
 
         setNodes(graphNodes);
         setEdges(graphEdges);
-    }, [agents, tools, connectors, triggers, systemTools, mcpConnections]);
+    }, [agents, tools, connectors, triggers, systemTools, mcpConnections, skills, isSkillGroupExpanded]);
 
     // Apply filters
     const filteredGraph = useMemo(() => {
@@ -432,6 +520,10 @@ export const useExtendedAgentGraph = () => {
         setHoveredNodeId(undefined);
     }, []);
 
+    const toggleSkillGroupExpanded = useCallback(() => {
+        setIsSkillGroupExpanded(prev => !prev);
+    }, []);
+
     return {
         agents,
         tools,
@@ -442,6 +534,7 @@ export const useExtendedAgentGraph = () => {
         triggers,
         systemTools,
         mcpConnections,
+        skills,
         nodes: filteredGraph.nodes,
         edges: filteredGraph.edges,
         selectedNodeIdRef,
@@ -453,6 +546,8 @@ export const useExtendedAgentGraph = () => {
         unHoverNode,
         nodesToHighlight,
         edgesToHighlight,
+        isSkillGroupExpanded,
+        toggleSkillGroupExpanded,
         anchorEntity,
         setAnchorEntity,
         loading,
@@ -460,7 +555,7 @@ export const useExtendedAgentGraph = () => {
         refetch: async () => {
             setLoading(true);
             setError(null);
-            await Promise.all([fetchAgents(), fetchTools(), fetchConnectors(), fetchTriggers(), fetchSystemTools()]);
+            await Promise.all([fetchAgents(), fetchTools(), fetchConnectors(), fetchTriggers(), fetchSystemTools(), fetchSkills()]);
             setLoading(false);
         },
     };

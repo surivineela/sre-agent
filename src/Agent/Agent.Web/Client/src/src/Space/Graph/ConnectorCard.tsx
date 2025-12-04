@@ -1,11 +1,12 @@
 import { Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { Handle, Node, NodeProps, Position } from '@xyflow/react';
+import { Handle, Node, NodeProps } from '@xyflow/react';
 import { memo, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedConnector } from '../Contracts/ExtendedAgentGraph';
+import { HANDLE_POSITION_MAP, HANDLE_POSITIONS } from '../Contracts/Graph';
 import { Badge } from '../Foundry/common/components/src/Badge/Badge';
 import { McpConnectorStatus } from '../Settings/Connectors/Connectors';
 import { ConnectorType, getConnectorIcon, getConnectorName } from '../Settings/Connectors/Wizard/Common/ConnectorType';
@@ -13,24 +14,15 @@ import { useConnectorNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
 
-type HandlePosition = 'T' | 'B' | 'L' | 'R';
-
 const Handles = memo(() => {
     const { handle } = useConnectorNodeStyles();
-    const positions: HandlePosition[] = ['T', 'B', 'L', 'R'];
-    const positionMap: Record<HandlePosition, Position> = {
-        T: Position.Top,
-        B: Position.Bottom,
-        L: Position.Left,
-        R: Position.Right,
-    };
 
     return (
         <>
-            {positions.map(position => (
+            {HANDLE_POSITIONS.map(position => (
                 <div key={position}>
-                    <Handle className={handle} type="target" position={positionMap[position]} id={getHandleId(position, true)} />
-                    <Handle className={handle} type="source" position={positionMap[position]} id={getHandleId(position, false)} />
+                    <Handle className={handle} type="target" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, true)} />
+                    <Handle className={handle} type="source" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, false)} />
                 </div>
             ))}
         </>

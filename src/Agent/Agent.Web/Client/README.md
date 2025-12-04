@@ -9,7 +9,7 @@
 1. Make sure `docker` running -> run `./src/run-durable-emulator.ps1`
 1. Go to `./src/Agent/Agent.Web/Client`
     1. Run `npm run watch` to run a vite server to host the Agent site and start incremental builds. (NOTE: HTTP requests won't work yet until you run the ASP.Net backend)
-1. Open `./src/Agent/Agent.Web.sln` to open up Visual Studio
+1. Open `./src/Agent/Agent.sln` to open up Visual Studio
 1. On the debug button on the top of VS (it looks like a "play" button), choose the `react` profile. Then click on it to build and run.
     1. A browser window will automatically open pointing to the vite server and you should be good to go.
         - localhost:5173 for `npm run watch` UX server; localhost:7023 for `npm run build` UX and backend server

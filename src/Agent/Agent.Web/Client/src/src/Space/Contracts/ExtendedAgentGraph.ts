@@ -1,6 +1,26 @@
 import { createContext } from 'react';
 import { EntityType } from '../Graph/ExtendedAgentCreationDialog/types';
 
+// Skill Types
+export type SkillFile = {
+    fileName: string;
+    filePath: string;
+    content: string;
+};
+
+export type Skill = {
+    name: string;
+    description?: string;
+    tools?: string[];
+    skillMdContent?: string;
+    additionalFiles?: SkillFile[];
+};
+
+export type SkillGroupData = {
+    skillCount: number;
+    skills: Skill[];
+};
+
 // Extended Agent Types
 export type ExtendedAgent = {
     name: string;
@@ -149,6 +169,8 @@ export enum ExtendedAgentNodeType {
     SystemTool = 'SYSTEM_TOOL',
     Connector = 'CONNECTOR',
     Trigger = 'TRIGGER',
+    Skill = 'SKILL',
+    SkillGroup = 'SKILL_GROUP',
 }
 
 export type ExtendedAgentGraphNode = {
@@ -159,7 +181,8 @@ export type ExtendedAgentGraphNode = {
     toolType?: string;
     connectorType?: string;
     triggerType?: 'incident' | 'scheduled';
-    data?: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | SystemTool;
+    isLastInGroup?: boolean;
+    data?: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | SystemTool | Skill | SkillGroupData;
 };
 
 export type ExtendedAgentGraphEdge = {
@@ -204,6 +227,9 @@ interface ExtendedAgentGraphContextProps {
     triggerTriggerQuickAction: (triggerName: string, action: TriggerQuickAction) => void;
     onEntitySelect: (anchorEntity?: ExtendedAgentAnchorEntity | undefined) => void;
     onViewChange: (viewType: ExtendedAgentGraphView) => void;
+    hasSkills: boolean;
+    isSkillGroupExpanded?: boolean;
+    toggleSkillGroupExpanded?: () => void;
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
@@ -218,6 +244,9 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
     triggerTriggerQuickAction: () => {},
     onEntitySelect: () => {},
     onViewChange: () => {},
+    hasSkills: false,
+    isSkillGroupExpanded: false,
+    toggleSkillGroupExpanded: () => {},
 });
 
 // Node Size Configuration
@@ -230,6 +259,19 @@ export class ExtendedAgentNodeSize {
     static readonly connectorHeight = 118;
     static readonly triggerWidth = 320;
     static readonly triggerHeight = 118;
+    static readonly skillWidth = 320;
+    static readonly skillHeight = 40;
+    static readonly skillGroupWidth = 320;
+    static readonly skillGroupHeight = 80;
+
+    // Height calculation for expanded skill group: base padding + (skill height + gap) * count + collapse link
+    static getExpandedSkillGroupHeight(skillCount: number): number {
+        const basePadding = 24; // top/bottom padding
+        const skillCardHeight = 48; // skill card height
+        const gap = 8; // gap between cards
+        const collapseHeight = 32; // collapse link row
+        return basePadding + skillCount * skillCardHeight + (skillCount - 1) * gap + collapseHeight;
+    }
 }
 
 export type ExtendedAgentAnchorEntity = {

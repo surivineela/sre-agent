@@ -16,6 +16,7 @@ import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useSt
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
@@ -30,6 +31,7 @@ import {
     INFO_PANEL_DEFAULT_WIDTH,
     INFO_PANEL_MAX_WIDTH,
     INFO_PANEL_MIN_WIDTH,
+    Skill,
     TriggerQuickAction,
 } from '../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
@@ -56,13 +58,20 @@ import { ExtendedAgentEdge } from './ExtendedAgentEdge';
 import { ExtendedAgentEmptyState } from './ExtendedAgentEmptyState';
 import {
     CONNECTOR_CARD_TYPE,
+    EXPANDED_SKILL_GROUP_CARD_TYPE,
     EXTENDED_AGENT_CARD_TYPE,
     EXTENDED_AGENT_EDGE_TYPE,
+    SKILL_CARD_TYPE,
+    SKILL_GROUP_CARD_TYPE,
     TOOL_CARD_TYPE,
     TRIGGER_CARD_TYPE,
 } from './ExtendedAgentGraphUtility';
 import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel/ExtendedAgentInfoPanel';
 import { ExtendedAgentRelationshipDialog } from './ExtendedAgentRelationshipDialog';
+import { CreateSkillDialog } from './ExtendedAgents/Skills/CreateSkillDialog';
+import { ExpandedSkillGroup } from './ExtendedAgents/Skills/ExpandedSkillGroup';
+import { SkillCard } from './ExtendedAgents/Skills/SkillCard';
+import { SkillGroupCard } from './ExtendedAgents/Skills/SkillGroupCard';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import ExtendedAgentTableView from './ExtendedAgentTableView/ExtendedAgentTableView';
 import { TableViewTabValue } from './ExtendedAgentTableView/ExtendedAgentTableView.Contracts';
@@ -126,9 +135,12 @@ const ExtendedAgentGraphContent = memo(() => {
         incidentHandlersHook,
         scheduledTasksHook,
         systemTools,
+        skills,
         anchorEntity,
         setAnchorEntity,
         refetch,
+        isSkillGroupExpanded,
+        toggleSkillGroupExpanded,
     } = useExtendedAgentGraph();
 
     const { features } = useFeatureFlags();
@@ -198,6 +210,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
     const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
     const [isInfoPanelCollapsed, setIsInfoPanelCollapsed] = useState(true);
+    const [isSkillDialogOpen, setIsSkillDialogOpen] = useState(false);
+    const [editingSkill, setEditingSkill] = useState<Skill | undefined>(undefined);
 
     const layoutGraph = useExtendedAgentGraphLayout();
 
@@ -625,6 +639,32 @@ const ExtendedAgentGraphContent = memo(() => {
         setIsToolDialogOpen(true);
     }, []);
 
+    const handleSaveSkill = useCallback(
+        async (skill: Skill) => {
+            const client = ExtendedAgentClient.getInstance(sreAgentEndpoint);
+
+            // If meta_agent override exists and doesn't have vanilla_mode enabled, update it
+            const metaAgent = agents.find(a => a.name === 'meta_agent');
+            if (metaAgent && !metaAgent.enableVanillaMode) {
+                const updatedMetaAgent: ExtendedAgent = {
+                    ...metaAgent,
+                    enableVanillaMode: true,
+                };
+                await client.applyEntity(updatedMetaAgent, 'agent');
+            }
+
+            const response = await client.createOrUpdateSkill(skill);
+
+            if (response.isSuccessful) {
+                await refetch();
+                return { success: true };
+            } else {
+                return { success: false, error: String(response.error) };
+            }
+        },
+        [sreAgentEndpoint, refetch, agents]
+    );
+
     const incidentHandlersCount = useMemo(
         () => (incidentHandlersHook.incidentHandlersLoading ? null : (incidentHandlersHook.incidentHandlers?.length ?? 0)),
         [incidentHandlersHook]
@@ -809,10 +849,10 @@ const ExtendedAgentGraphContent = memo(() => {
     const handleCreateEntity = useCallback(
         async (
             data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
-            type: 'agent' | 'tool' | 'connector' | 'trigger'
+            type: 'agent' | 'tool' | 'connector' | 'trigger' | 'skill'
         ) => {
-            // Trigger type doesn't create entities in the graph
-            if (type === 'trigger') {
+            // Trigger and skill types don't create entities in the graph through this handler
+            if (type === 'trigger' || type === 'skill') {
                 return;
             }
 
@@ -1107,10 +1147,10 @@ const ExtendedAgentGraphContent = memo(() => {
     const handleCreateAndLinkEntity = useCallback(
         async (
             data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
-            type: 'agent' | 'tool' | 'connector' | 'trigger'
+            type: 'agent' | 'tool' | 'connector' | 'trigger' | 'skill'
         ) => {
-            // Trigger type is handled separately, just create without linking
-            if (type === 'trigger') {
+            // Trigger and skill types are handled separately, just create without linking
+            if (type === 'trigger' || type === 'skill') {
                 return;
             }
             if (!creationDialogContext || creationDialogContext.kind !== 'linkFromAgent') {
@@ -1524,13 +1564,16 @@ const ExtendedAgentGraphContent = memo(() => {
     ]);
 
     const isLoading = useMemo(() => loading || isLayouting, [loading, isLayouting]);
+    const hasSkills = useMemo(() => skills.length > 0, [skills.length]);
     const hasAgents = useMemo(() => agents.length > 0, [agents.length]);
+    // Check for subagents excluding the meta_agent override (for skill creation logic)
+    const hasSubagents = useMemo(() => agents.some(agent => agent.name !== 'meta_agent'), [agents]);
     const hasTools = useMemo(() => tools.length > 0, [tools.length]);
     const hasConnectors = useMemo(() => connectors.length > 0, [connectors.length]);
     const hasSystemTools = useMemo(() => systemTools.length > 0, [systemTools.length]);
     const hasAnyResources = useMemo(
-        () => hasAgents || hasTools || hasConnectors || hasSystemTools,
-        [hasAgents, hasTools, hasConnectors, hasSystemTools]
+        () => hasAgents || hasTools || hasConnectors || hasSystemTools || hasSkills,
+        [hasAgents, hasTools, hasConnectors, hasSystemTools, hasSkills]
     );
     const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
@@ -1562,7 +1605,9 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
-        if (!anchorEntity?.entityName) {
+        // Show prompt to select an agent only if there are agents to select from
+        // If only skills exist (no agents), skip this check and show the graph
+        if (!anchorEntity?.entityName && hasAgents) {
             return (
                 <div style={{ padding: '20px' }}>
                     <MessageBar intent="info">
@@ -1596,6 +1641,9 @@ const ExtendedAgentGraphContent = memo(() => {
                         [TOOL_CARD_TYPE]: ToolCard,
                         [CONNECTOR_CARD_TYPE]: ConnectorCard,
                         [TRIGGER_CARD_TYPE]: TriggerCard,
+                        [SKILL_CARD_TYPE]: SkillCard,
+                        [SKILL_GROUP_CARD_TYPE]: SkillGroupCard,
+                        [EXPANDED_SKILL_GROUP_CARD_TYPE]: ExpandedSkillGroup,
                     }}
                     edgeTypes={{ [EXTENDED_AGENT_EDGE_TYPE]: ExtendedAgentEdge }}
                     nodes={nodes}
@@ -1620,15 +1668,21 @@ const ExtendedAgentGraphContent = memo(() => {
                 systemTools={systemTools}
                 connectors={connectors}
                 triggers={triggers}
+                skills={skills}
                 isLoading={loading}
                 onRefresh={handleRefresh}
                 onEditKustoTool={handleEditKustoTool}
+                onEditSkill={skill => {
+                    setEditingSkill(skill);
+                    setIsSkillDialogOpen(true);
+                }}
             />
         );
     }, [
         isLoading,
         error,
         anchorEntity?.entityName,
+        hasAgents,
         hasData,
         currentView,
         currentTableViewTab,
@@ -1637,6 +1691,7 @@ const ExtendedAgentGraphContent = memo(() => {
         systemTools,
         connectors,
         triggers,
+        skills,
         loading,
         handleRefresh,
         handleEditKustoTool,
@@ -1649,7 +1704,7 @@ const ExtendedAgentGraphContent = memo(() => {
         theme.isInverted,
     ]);
 
-    const showEmptyState = useMemo(() => !isLoading && !hasAgents, [isLoading, hasAgents]);
+    const showEmptyState = useMemo(() => !isLoading && !hasAgents && !hasSkills, [isLoading, hasAgents, hasSkills]);
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityTypeExt) => {
@@ -1705,6 +1760,12 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'skill') {
+                setEditingSkill(undefined);
+                setIsSkillDialogOpen(true);
+                return;
+            }
+
             setCreationDialogContext(undefined);
             setCreationDialogInitialTypeOverride(itemType);
             setCreationDialogTriggerAgentName(undefined);
@@ -1743,6 +1804,9 @@ const ExtendedAgentGraphContent = memo(() => {
                 triggerTriggerQuickAction: handleTriggerQuickAction,
                 onViewChange: onChangeViewType,
                 onEntitySelect: handleEntitySelect,
+                hasSkills,
+                isSkillGroupExpanded,
+                toggleSkillGroupExpanded,
             }}
         >
             <ScheduledTasksContext.Provider
@@ -1768,6 +1832,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         <CreateButton
                             handleCreateItemStandalone={handleCreateItemStandalone}
                             disableCreateMetaAgent={hasMetaAgentOverride}
+                            disableCreateSubagent={hasSkills}
+                            disableCreateSkill={hasSubagents}
                             disabled={isLoading || !hasData}
                         />
                         <RadioGroup
@@ -1872,6 +1938,12 @@ const ExtendedAgentGraphContent = memo(() => {
                                 {showEmptyState ? (
                                     <ExtendedAgentEmptyState
                                         onCreateClick={() => setAgentCreateOrEditInfo({ agent: undefined, mode: 'create' })}
+                                        onCreateSkillClick={() => {
+                                            setEditingSkill(undefined);
+                                            setIsSkillDialogOpen(true);
+                                        }}
+                                        agents={agents}
+                                        skills={skills}
                                     />
                                 ) : (
                                     <>{renderGraphContent()}</>
@@ -1899,6 +1971,10 @@ const ExtendedAgentGraphContent = memo(() => {
                                         maxWidth={INFO_PANEL_MAX_WIDTH}
                                         onOpenPlayground={handleOpenPlayground}
                                         onEditKustoTool={handleEditKustoTool}
+                                        onEditSkill={skill => {
+                                            setEditingSkill(skill);
+                                            setIsSkillDialogOpen(true);
+                                        }}
                                         collapsibleProps={{ isCollapsed: isInfoPanelCollapsed, setCollapsed: setIsInfoPanelCollapsed }}
                                     />
                                 </div>
@@ -2013,6 +2089,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         existingTools={tools}
                         systemTools={systemTools}
                         mcpConnections={mcpConnections}
+                        skills={skills}
                         agentCreateOrEditInfo={agentCreateOrEditInfo}
                     />
 
@@ -2024,6 +2101,18 @@ const ExtendedAgentGraphContent = memo(() => {
                         connectors={connectors}
                         systemTools={systemTools}
                         onDismiss={handleDismissPlayground}
+                    />
+
+                    <CreateSkillDialog
+                        isOpen={isSkillDialogOpen}
+                        onDismiss={() => {
+                            setIsSkillDialogOpen(false);
+                            setEditingSkill(undefined);
+                        }}
+                        onSave={handleSaveSkill}
+                        existingSkill={editingSkill}
+                        existingTools={tools}
+                        systemTools={systemTools}
                     />
                 </div>
             </ScheduledTasksContext.Provider>

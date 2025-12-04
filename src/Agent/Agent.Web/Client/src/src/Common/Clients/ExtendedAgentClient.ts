@@ -5,6 +5,7 @@ import {
     ExtendedTool,
     PaginatedResponse,
     PromptImprovementResponse,
+    Skill,
 } from '../../Space/Contracts/ExtendedAgentGraph.ts';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from '../../Space/Graph/ExtendedAgentYamlUtils.ts';
 import { ConnectorStatus } from '../Contracts/Azure/SreAgent.ts';
@@ -161,6 +162,108 @@ export class ExtendedAgentClient extends DataPlaneClient {
             return {
                 isSuccessful: false,
                 error: errorMessage,
+            };
+        }
+    };
+
+    public getSkills = async (): Promise<Response<Skill[]>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl('/api/v2/extendedAgent/skills?limit=200'), {
+                headers: getAgentHeaders(),
+            });
+            // v2 API returns { value: [...] } format
+            const skills = (data.value ?? []).map((item: any) => ({
+                name: item.name,
+                description: item.properties?.description,
+                tools: item.properties?.tools,
+                skillMdContent: item.properties?.skillMdContent,
+                additionalFiles: item.properties?.additionalFiles,
+            }));
+            return {
+                isSuccessful: true,
+                content: skills,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public getSkill = async (skillName: string): Promise<Response<Skill>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl(`/api/v2/extendedAgent/skills/${encodeURIComponent(skillName)}`), {
+                headers: getAgentHeaders(),
+            });
+            // v2 API returns envelope format
+            const skill: Skill = {
+                name: data.name,
+                description: data.properties?.description,
+                tools: data.properties?.tools,
+                skillMdContent: data.properties?.skillMdContent,
+                additionalFiles: data.properties?.additionalFiles,
+            };
+            return {
+                isSuccessful: true,
+                content: skill,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public createOrUpdateSkill = async (skill: Skill): Promise<Response<Skill>> => {
+        try {
+            const requestBody = {
+                name: skill.name,
+                type: 'Skill',
+                properties: {
+                    description: skill.description,
+                    tools: skill.tools,
+                    skillMdContent: skill.skillMdContent,
+                    additionalFiles: skill.additionalFiles?.map(file => ({
+                        fileName: file.fileName,
+                        filePath: file.filePath || file.fileName,
+                        content: file.content,
+                    })),
+                },
+            };
+
+            await axios.put(this.getRequestUrl(`/api/v2/extendedAgent/skills/${encodeURIComponent(skill.name)}`), requestBody, {
+                headers: {
+                    ...getAgentHeaders(),
+                    'Content-Type': 'application/json',
+                },
+            });
+            return {
+                isSuccessful: true,
+                content: skill,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
+            };
+        }
+    };
+
+    public deleteSkill = async (skillName: string): Promise<Response<void>> => {
+        try {
+            await axios.delete(this.getRequestUrl(`/api/v2/extendedAgent/skills/${encodeURIComponent(skillName)}`), {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: undefined,
+            };
+        } catch (e) {
+            return {
+                isSuccessful: false,
+                error: e,
             };
         }
     };

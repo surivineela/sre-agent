@@ -64,7 +64,11 @@ public class SkillView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
+        envelope.Name.ApplyTo(name =>
+        {
+            result.Spec.Name = name!;
+            result.Metadata.Id = $"skill_{name}";
+        });
         envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>

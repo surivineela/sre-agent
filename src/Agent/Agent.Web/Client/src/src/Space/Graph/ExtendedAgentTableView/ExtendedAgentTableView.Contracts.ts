@@ -1,4 +1,4 @@
-import { ExtendedAgent, ExtendedAgentNodeType, ExtendedTool, ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedAgentNodeType, ExtendedTool, ExtendedTrigger, Skill } from '../../Contracts/ExtendedAgentGraph';
 
 export type AgentItem = {
     name: string;
@@ -40,7 +40,16 @@ export type KustoToolItem = {
     data: ExtendedTool;
 };
 
-export type TableViewTabValue = 'agents' | 'incidentTriggers' | 'scheduledTasks' | 'kustoTools';
+export type SkillItem = {
+    name: string;
+    description: string;
+    toolsCount: number;
+    hasContent: boolean;
+    filesCount: number;
+    data: Skill;
+};
+
+export type TableViewTabValue = 'agents' | 'incidentTriggers' | 'scheduledTasks' | 'kustoTools' | 'skills';
 
 export type BaseTableItem = {
     name: string;

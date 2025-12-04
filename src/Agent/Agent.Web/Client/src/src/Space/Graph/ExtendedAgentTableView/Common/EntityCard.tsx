@@ -26,6 +26,8 @@ export const EntityCard: FC<EntityCardProps> = ({ type, entityCount, handleCardC
                 return intl.formatMessage(ScheduledTasksResources.scheduledTasks);
             case 'kustoTools':
                 return intl.formatMessage(ExtendedAgentsGraphResources.kustoTools);
+            case 'skills':
+                return intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel);
             default:
                 return type;
         }
@@ -41,6 +43,8 @@ export const EntityCard: FC<EntityCardProps> = ({ type, entityCount, handleCardC
                 return 'scheduledTask';
             case 'kustoTools':
                 return 'toolWithGear';
+            case 'skills':
+                return 'skill';
             default:
                 return 'genericTrigger';
         }

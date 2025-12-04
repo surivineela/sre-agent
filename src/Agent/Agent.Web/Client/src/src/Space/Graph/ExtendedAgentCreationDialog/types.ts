@@ -3,8 +3,8 @@ import { IncidentHandler } from '../../../Common/Contracts/Azure/IncidentHandler
 import { ExtendedAgent, ExtendedConnector, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../../Contracts/ScheduledTasks';
 
-export type EntityType = 'agent' | 'tool' | 'connector' | 'trigger';
-export type EntityTypeExt = 'agent' | 'metaAgent' | 'tool' | 'pythonTool' | 'connector' | 'scheduledTask' | 'incidentTrigger';
+export type EntityType = 'agent' | 'tool' | 'connector' | 'trigger' | 'skill';
+export type EntityTypeExt = 'agent' | 'metaAgent' | 'tool' | 'pythonTool' | 'connector' | 'scheduledTask' | 'incidentTrigger' | 'skill';
 export type Step = 1 | 2 | 3;
 export type TriggerMode = 'incident' | 'scheduled';
 export type TriggerStrategy = 'quick' | 'existing';

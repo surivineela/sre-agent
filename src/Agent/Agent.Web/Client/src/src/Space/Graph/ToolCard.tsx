@@ -1,5 +1,5 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { Handle, Node, NodeProps, Position } from '@xyflow/react';
+import { Handle, Node, NodeProps } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { McpServerResources } from '../../Strings/SREAgentResources';
@@ -10,28 +10,20 @@ import {
     ExtendedTool,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
+import { HANDLE_POSITION_MAP, HANDLE_POSITIONS } from '../Contracts/Graph';
 import { useToolNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
 
-type HandlePosition = 'T' | 'B' | 'L' | 'R';
-
 const Handles = memo(() => {
     const { handle } = useToolNodeStyles();
-    const positions: HandlePosition[] = ['T', 'B', 'L', 'R'];
-    const positionMap: Record<HandlePosition, Position> = {
-        T: Position.Top,
-        B: Position.Bottom,
-        L: Position.Left,
-        R: Position.Right,
-    };
 
     return (
         <>
-            {positions.map(position => (
+            {HANDLE_POSITIONS.map(position => (
                 <div key={position}>
-                    <Handle className={handle} type="target" position={positionMap[position]} id={getHandleId(position, true)} />
-                    <Handle className={handle} type="source" position={positionMap[position]} id={getHandleId(position, false)} />
+                    <Handle className={handle} type="target" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, true)} />
+                    <Handle className={handle} type="source" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, false)} />
                 </div>
             ))}
         </>

@@ -7,6 +7,8 @@ import {
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
+    Skill,
+    SkillGroupData,
     SystemTool,
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from './ExtendedAgentCreationDialog/api/mcpConnectionsApi';
@@ -16,7 +18,12 @@ export const EXTENDED_AGENT_CARD_TYPE = 'ExtendedAgentCard';
 export const TOOL_CARD_TYPE = 'ToolCard';
 export const CONNECTOR_CARD_TYPE = 'ConnectorCard';
 export const TRIGGER_CARD_TYPE = 'TriggerCard';
+export const SKILL_CARD_TYPE = 'SkillCard';
+export const SKILL_GROUP_CARD_TYPE = 'SkillGroupCard';
+export const EXPANDED_SKILL_GROUP_CARD_TYPE = 'ExpandedSkillGroupCard';
 export const EXTENDED_AGENT_EDGE_TYPE = 'ExtendedAgentEdge';
+
+export const SKILL_GROUP_NODE_ID = 'skill_group';
 
 export const createAgentNode = (agent: ExtendedAgent): Node<ExtendedAgentGraphNode> => {
     return {
@@ -44,6 +51,57 @@ export const createToolNode = (tool: ExtendedTool): Node<ExtendedAgentGraphNode>
             type: ExtendedAgentNodeType.Tool,
             toolType: tool.type,
             data: tool,
+        },
+    };
+};
+
+export const createSkillNode = (skill: Skill, isLastInGroup: boolean = false): Node<ExtendedAgentGraphNode> => {
+    return {
+        id: `skill_${skill.name}`,
+        type: SKILL_CARD_TYPE,
+        position: { x: 0, y: 0 },
+        data: {
+            id: `skill_${skill.name}`,
+            name: skill.name,
+            type: ExtendedAgentNodeType.Skill,
+            isLastInGroup,
+            data: skill,
+        },
+    };
+};
+
+export const createSkillGroupNode = (skills: Skill[]): Node<ExtendedAgentGraphNode> => {
+    const skillGroupData: SkillGroupData = {
+        skillCount: skills.length,
+        skills,
+    };
+    return {
+        id: SKILL_GROUP_NODE_ID,
+        type: SKILL_GROUP_CARD_TYPE,
+        position: { x: 0, y: 0 },
+        data: {
+            id: SKILL_GROUP_NODE_ID,
+            name: 'Skills',
+            type: ExtendedAgentNodeType.SkillGroup,
+            data: skillGroupData,
+        },
+    };
+};
+
+export const createExpandedSkillGroupNode = (skills: Skill[]): Node<ExtendedAgentGraphNode> => {
+    const skillGroupData: SkillGroupData = {
+        skillCount: skills.length,
+        skills,
+    };
+    return {
+        id: SKILL_GROUP_NODE_ID,
+        type: EXPANDED_SKILL_GROUP_CARD_TYPE,
+        position: { x: 0, y: 0 },
+        data: {
+            id: SKILL_GROUP_NODE_ID,
+            name: 'Skills',
+            type: ExtendedAgentNodeType.SkillGroup,
+            data: skillGroupData,
         },
     };
 };
@@ -121,7 +179,9 @@ export const buildExtendedAgentGraph = (
     connectors: ExtendedConnector[],
     triggers: ExtendedTrigger[] = [],
     systemTools: SystemTool[] = [],
-    mcpConnections: McpConnection[] = []
+    mcpConnections: McpConnection[] = [],
+    skills: Skill[] = [],
+    isSkillGroupExpanded: boolean = false
 ): { nodes: Node<ExtendedAgentGraphNode>[]; edges: Edge<ExtendedAgentGraphEdge>[] } => {
     const nodes: Node<ExtendedAgentGraphNode>[] = [];
     const edges: Edge<ExtendedAgentGraphEdge>[] = [];
@@ -314,6 +374,30 @@ export const buildExtendedAgentGraph = (
             }
         }
     });
+
+    // Create skill nodes based on expanded state
+    const metaAgent = agents.find(agent => agent.name === 'meta_agent');
+    if (skills.length > 0) {
+        if (isSkillGroupExpanded) {
+            // When expanded, show the expanded skill group container
+            const expandedGroupNode = createExpandedSkillGroupNode(skills);
+            nodes.push(expandedGroupNode);
+            // Edge from meta_agent to expanded skill group
+            if (metaAgent) {
+                const edge = createExtendedAgentEdge(`agent_meta_agent`, SKILL_GROUP_NODE_ID, 'agent', 'skill');
+                edges.push(edge);
+            }
+        } else {
+            // When collapsed, show single group node
+            const skillGroupNode = createSkillGroupNode(skills);
+            nodes.push(skillGroupNode);
+            // Edge from meta_agent to skill group
+            if (metaAgent) {
+                const edge = createExtendedAgentEdge(`agent_meta_agent`, SKILL_GROUP_NODE_ID, 'agent', 'skill');
+                edges.push(edge);
+            }
+        }
+    }
 
     // Create connections from overridden meta agent to all extended agents
     const overriddenMetaAgent = agents.find(agent => agent.name === 'meta-agent' && (agent as any).metaAgentOverride === true);

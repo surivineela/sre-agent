@@ -1,3 +1,4 @@
+import { Position } from '@xyflow/react';
 import { createContext } from 'react';
 
 export type Subscription = {
@@ -138,6 +139,15 @@ export interface ResourceSearchPagniation<T> {
 }
 
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';
+
+export const HANDLE_POSITIONS: HandlePosition[] = ['T', 'B', 'L', 'R'];
+
+export const HANDLE_POSITION_MAP: Record<HandlePosition, Position> = {
+    T: Position.Top,
+    B: Position.Bottom,
+    L: Position.Left,
+    R: Position.Right,
+};
 
 export const GRAPH_CARD_TYPE = 'GraphCard';
 export const CUSTOM_EDGE_TYPE = 'CustomEdge';

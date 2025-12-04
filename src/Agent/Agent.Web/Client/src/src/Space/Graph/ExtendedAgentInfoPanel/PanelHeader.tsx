@@ -10,7 +10,7 @@ import {
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, PlaygroundResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { ExtendedAgent, ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedConnector, ExtendedTool, ExtendedTrigger, Skill } from '../../Contracts/ExtendedAgentGraph';
 import { PlaygroundTarget } from '../../Playground/PlaygroundModal';
 import { ConnectorType, getConnectorIcon, getConnectorName } from '../../Settings/Connectors/Wizard/Common/ConnectorType';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
@@ -18,8 +18,8 @@ import { EntityIcon, EntityIconType } from '../EntityIcon';
 import { ExtendedEntityType } from '../ExtendedAgentYamlUtils';
 
 type HeaderEditContext = {
-    entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger;
-    type: ExtendedEntityType;
+    entity: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | Skill;
+    type: ExtendedEntityType | 'skill';
 };
 
 type PanelHeaderProps = {
@@ -33,9 +33,13 @@ type PanelHeaderProps = {
     selectedAgent?: ExtendedAgent;
     selectedTool?: ExtendedTool;
     selectedConnector?: ExtendedConnector;
+    selectedSkill?: Skill;
     isDeleting: boolean;
-    onEdit: (entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | undefined, type: ExtendedEntityType) => void;
-    onDeleteClick: (type: 'agent' | 'tool', entity: ExtendedAgent | ExtendedTool | undefined) => void;
+    onEdit: (
+        entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | Skill | undefined,
+        type: ExtendedEntityType | 'skill'
+    ) => void;
+    onDeleteClick: (type: 'agent' | 'tool' | 'skill', entity: ExtendedAgent | ExtendedTool | Skill | undefined) => void;
     onOpenPlaygroundClick: () => void;
     onClose?: () => void;
     onDragHandlePointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
@@ -57,6 +61,7 @@ export const PanelHeader = memo(
         selectedAgent,
         selectedTool,
         selectedConnector,
+        selectedSkill,
         isDeleting,
         onEdit,
         onDeleteClick,
@@ -111,7 +116,8 @@ export const PanelHeader = memo(
                     )}
                     {((playgroundTarget && showAgentBuilderPlayground) ||
                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
-                        (headerEditContext?.type === 'tool' && selectedTool)) && (
+                        (headerEditContext?.type === 'tool' && selectedTool) ||
+                        (headerEditContext?.type === 'skill' && selectedSkill)) && (
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <MenuButton appearance="subtle" size="small" icon={<MoreHorizontal20Regular />} />
@@ -139,6 +145,15 @@ export const PanelHeader = memo(
                                             disabled={isDeleting}
                                         >
                                             {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                        </MenuItem>
+                                    )}
+                                    {headerEditContext?.type === 'skill' && selectedSkill && (
+                                        <MenuItem
+                                            icon={<Delete20Regular />}
+                                            onClick={() => onDeleteClick('skill', selectedSkill)}
+                                            disabled={isDeleting}
+                                        >
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillTitle)}
                                         </MenuItem>
                                     )}
                                 </MenuList>

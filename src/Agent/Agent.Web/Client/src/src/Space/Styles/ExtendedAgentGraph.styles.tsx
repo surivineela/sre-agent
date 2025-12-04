@@ -122,6 +122,9 @@ export const useExtendedAgentGraphStyles = makeStyles({
         letterSpacing: '0%',
         verticalAlign: 'middle',
     },
+    menuIconDisabled: {
+        opacity: 0.4,
+    },
 });
 
 // Agent Node Styles

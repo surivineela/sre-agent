@@ -760,6 +760,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             var skillDocumentModel = new SkillDocumentModel(
                 Metadata: new ResourceMetadata
                 {
+                    Id = $"skill_{skill.Name}",
                     CreatedAt = DateTime.UtcNow,
                     Version = "v2",
                 },

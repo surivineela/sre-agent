@@ -554,15 +554,31 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         {
             var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
 
-            await container.DeleteItemAsync<SkillDocumentModel>(
-                $"skill_{name}",
-                new PartitionKey(name));
+            // Try with skill_ prefix first (v1 API format)
+            try
+            {
+                await container.DeleteItemAsync<SkillDocumentModel>(
+                    $"skill_{name}",
+                    new PartitionKey(name));
+                return true;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Fall through to try without prefix
+            }
 
-            return true;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
+            // Try without prefix (legacy v2 API format)
+            try
+            {
+                await container.DeleteItemAsync<SkillDocumentModel>(
+                    name,
+                    new PartitionKey(name));
+                return true;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
         }
         catch (CosmosException ex)
         {
@@ -576,14 +592,32 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         try
         {
             var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
-            var response = await container.ReadItemAsync<SkillDocumentModel>(
-                $"skill_{name}",
-                new PartitionKey(name));
-            return response.Resource;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
+
+            // Try with skill_ prefix first (v1 API format)
+            try
+            {
+                var response = await container.ReadItemAsync<SkillDocumentModel>(
+                    $"skill_{name}",
+                    new PartitionKey(name));
+                return response.Resource;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Fall through to try without prefix
+            }
+
+            // Try without prefix (legacy v2 API format)
+            try
+            {
+                var response = await container.ReadItemAsync<SkillDocumentModel>(
+                    name,
+                    new PartitionKey(name));
+                return response.Resource;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
         catch (CosmosException ex)
         {

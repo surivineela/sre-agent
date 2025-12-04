@@ -1,33 +1,25 @@
 import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
-import { Handle, Node, NodeProps, Position } from '@xyflow/react';
+import { Handle, Node, NodeProps } from '@xyflow/react';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedAgentGraphContext, ExtendedAgentGraphNode } from '../Contracts/ExtendedAgentGraph';
+import { HANDLE_POSITION_MAP, HANDLE_POSITIONS } from '../Contracts/Graph';
 import { useExtendedAgentNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
 import { AgentLeftQuickActionButton } from './AgentLeftQuickActionButton';
 import { AgentRightQuickActionButton } from './AgentRightQuickActionButton';
 import { EntityIcon } from './EntityIcon';
 import { getHandleId } from './Utility';
 
-type HandlePosition = 'T' | 'B' | 'L' | 'R';
-
 const Handles = memo(() => {
     const { handle } = useExtendedAgentNodeStyles();
-    const positions: HandlePosition[] = ['T', 'B', 'L', 'R'];
-    const positionMap: Record<HandlePosition, Position> = {
-        T: Position.Top,
-        B: Position.Bottom,
-        L: Position.Left,
-        R: Position.Right,
-    };
 
     return (
         <>
-            {positions.map(position => (
+            {HANDLE_POSITIONS.map(position => (
                 <div key={position}>
-                    <Handle className={handle} type="target" position={positionMap[position]} id={getHandleId(position, true)} />
-                    <Handle className={handle} type="source" position={positionMap[position]} id={getHandleId(position, false)} />
+                    <Handle className={handle} type="target" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, true)} />
+                    <Handle className={handle} type="source" position={HANDLE_POSITION_MAP[position]} id={getHandleId(position, false)} />
                 </div>
             ))}
         </>
@@ -80,6 +72,11 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
 
     const toolCount = (agent?.tools?.length || 0) + (agent?.mcpTools?.length || 0);
 
+    // Check if this is meta_agent and has skills metadata (skills count will be added by useExtendedAgentGraph)
+    const isMetaAgent = agent?.name === 'meta_agent';
+    const skillsCount = (agent?.metadata?.skillsCount as number) || 0;
+    const skillsEnabled = isMetaAgent && skillsCount > 0;
+
     return (
         <div className={cardWrapper}>
             {agent?.name && <AgentLeftQuickActionButton agent={agent} />}
@@ -118,6 +115,11 @@ export const ExtendedAgentCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>
                             {memoryEnabled && (
                                 <Badge appearance="outline" size="small" className={badge}>
                                     {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
+                                </Badge>
+                            )}
+                            {skillsEnabled && (
+                                <Badge appearance="outline" size="small" className={badge}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.skillsEnabledBadge)}
                                 </Badge>
                             )}
                         </div>

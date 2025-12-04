@@ -6,7 +6,9 @@ import {
     ExtendedAgentGraphNode,
     ExtendedAgentNodeSize,
     ExtendedAgentNodeType,
+    SkillGroupData,
 } from '../Contracts/ExtendedAgentGraph';
+import { EXPANDED_SKILL_GROUP_CARD_TYPE } from '../Graph/ExtendedAgentGraphUtility';
 import { getSourceAndTargetHandleId } from '../Graph/Utility';
 
 export const useExtendedAgentGraphLayout = () => {
@@ -17,11 +19,25 @@ export const useExtendedAgentGraphLayout = () => {
             case ExtendedAgentNodeType.Agent:
                 return { width: ExtendedAgentNodeSize.agentWidth, height: ExtendedAgentNodeSize.agentHeight };
             case ExtendedAgentNodeType.Tool:
+            case ExtendedAgentNodeType.SystemTool:
                 return { width: ExtendedAgentNodeSize.toolWidth, height: ExtendedAgentNodeSize.toolHeight };
             case ExtendedAgentNodeType.Connector:
                 return { width: ExtendedAgentNodeSize.connectorWidth, height: ExtendedAgentNodeSize.connectorHeight };
             case ExtendedAgentNodeType.Trigger:
                 return { width: ExtendedAgentNodeSize.triggerWidth, height: ExtendedAgentNodeSize.triggerHeight };
+            case ExtendedAgentNodeType.Skill:
+                return { width: ExtendedAgentNodeSize.skillWidth, height: ExtendedAgentNodeSize.skillHeight };
+            case ExtendedAgentNodeType.SkillGroup:
+                // Check if this is an expanded skill group and calculate dynamic height
+                if (node.type === EXPANDED_SKILL_GROUP_CARD_TYPE) {
+                    const skillGroupData = node.data?.data as SkillGroupData | undefined;
+                    const skillCount = skillGroupData?.skillCount ?? 1;
+                    return {
+                        width: ExtendedAgentNodeSize.skillGroupWidth,
+                        height: ExtendedAgentNodeSize.getExpandedSkillGroupHeight(skillCount),
+                    };
+                }
+                return { width: ExtendedAgentNodeSize.skillGroupWidth, height: ExtendedAgentNodeSize.skillGroupHeight };
             default:
                 return { width: ExtendedAgentNodeSize.agentWidth, height: ExtendedAgentNodeSize.agentHeight };
         }

@@ -1,4 +1,4 @@
-import { Button, Card, CardHeader, makeStyles, tokens } from '@fluentui/react-components';
+import { Button, Card, CardHeader, makeStyles, tokens, Tooltip } from '@fluentui/react-components';
 import { Add20Regular, Agents20Regular, Warning20Regular, Wrench20Regular, WrenchSettings20Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
@@ -6,6 +6,7 @@ import ArrowsSvg from '../../../assets/Arrows.svg';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgent, Skill } from '../Contracts/ExtendedAgentGraph';
 
 const useEmptyStateStyles = makeStyles({
     container: {
@@ -38,6 +39,11 @@ const useEmptyStateStyles = makeStyles({
     createButton: {
         marginBottom: '0',
         borderRadius: tokens.borderRadiusXLarge,
+    },
+    buttonRow: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'center',
     },
     diagramContainer: {
         position: 'relative',
@@ -114,6 +120,9 @@ const useEmptyStateStyles = makeStyles({
 
 interface ExtendedAgentEmptyStateProps {
     onCreateClick: () => void;
+    onCreateSkillClick?: () => void;
+    agents?: ExtendedAgent[];
+    skills?: Skill[];
 }
 
 interface NodeCardProps {
@@ -141,9 +150,15 @@ const NodeCard: FC<NodeCardProps> = ({ icon, label, backgroundColor }) => {
     );
 };
 
-export const ExtendedAgentEmptyState: FC<ExtendedAgentEmptyStateProps> = ({ onCreateClick }) => {
+export const ExtendedAgentEmptyState: FC<ExtendedAgentEmptyStateProps> = ({ onCreateClick, onCreateSkillClick, agents, skills }) => {
     const styles = useEmptyStateStyles();
     const intl = useIntl();
+
+    // Check for mutual exclusion: subagents (non-meta_agent agents) vs skills
+    const hasSubagents = (agents || []).some(a => a.name !== 'meta_agent');
+    const hasSkills = (skills || []).length > 0;
+    const disableSubagents = hasSkills;
+    const disableSkills = hasSubagents;
 
     return (
         <div className={styles.container}>
@@ -195,9 +210,40 @@ export const ExtendedAgentEmptyState: FC<ExtendedAgentEmptyStateProps> = ({ onCr
                 />
             </p>
 
-            <Button appearance="primary" size="large" icon={<Add20Regular />} onClick={onCreateClick} className={styles.createButton}>
-                {intl.formatMessage(ExtendedAgentsGraphResources.createSubagent)}
-            </Button>
+            <div className={styles.buttonRow}>
+                <Tooltip
+                    content={disableSubagents ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSubagentWithSkills) : ''}
+                    relationship="description"
+                >
+                    <Button
+                        appearance="primary"
+                        size="large"
+                        icon={<Add20Regular />}
+                        onClick={onCreateClick}
+                        disabled={disableSubagents}
+                        className={styles.createButton}
+                    >
+                        {intl.formatMessage(ExtendedAgentsGraphResources.createSubagent)}
+                    </Button>
+                </Tooltip>
+                {onCreateSkillClick && (
+                    <Tooltip
+                        content={disableSkills ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSkillWithSubagents) : ''}
+                        relationship="description"
+                    >
+                        <Button
+                            appearance="primary"
+                            size="large"
+                            icon={<Add20Regular />}
+                            onClick={onCreateSkillClick}
+                            disabled={disableSkills}
+                            className={styles.createButton}
+                        >
+                            {intl.formatMessage(ExtendedAgentsGraphResources.createSkill)}
+                        </Button>
+                    </Tooltip>
+                )}
+            </div>
         </div>
     );
 };

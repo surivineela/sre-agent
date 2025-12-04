@@ -1,7 +1,9 @@
 import { Image, tokens } from '@fluentui/react-components';
 import {
     AgentsRegular,
+    BookRegular,
     CodeRegular,
+    DocumentTextRegular,
     PlayRegular,
     PlugConnectedRegular,
     TimerRegular,
@@ -22,9 +24,11 @@ export type EntityIconType =
     | 'genericTrigger'
     | 'tool'
     | 'toolWithGear'
+    | 'skill'
     | 'windowWrenchRegular'
     | 'pythonTool'
-    | 'connector';
+    | 'connector'
+    | 'file';
 
 export interface EntityIconProps {
     type: EntityIconType;
@@ -100,6 +104,18 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                     backgroundColor: tokens.colorPaletteGoldBackground2,
                     foregroundColor: tokens.colorPaletteGoldForeground2,
                     Icon: PlugConnectedRegular,
+                };
+            case 'skill':
+                return {
+                    backgroundColor: tokens.colorPaletteBerryBackground2,
+                    foregroundColor: tokens.colorPaletteBerryForeground2,
+                    Icon: BookRegular,
+                };
+            case 'file':
+                return {
+                    backgroundColor: tokens.colorPaletteAnchorBackground2,
+                    foregroundColor: tokens.colorPaletteAnchorForeground2,
+                    Icon: DocumentTextRegular,
                 };
             case 'windowWrenchRegular':
                 return {

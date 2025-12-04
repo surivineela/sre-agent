@@ -1,4 +1,4 @@
-import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { ExtendedAgent, ExtendedTool, Skill, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { ToolsPickerProps } from '../Common/ToolsPicker/ToolsPicker';
 import { UseToolsPickerReturn } from '../Common/ToolsPicker/useToolsPicker';
 import { McpConnection } from '../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
@@ -51,6 +51,7 @@ export interface AgentCreateDialogFormikProps {
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
     mcpConnections?: McpConnection[];
+    skills?: Skill[];
     excludedHandoffAgent?: string;
     additionalHandoffAgents?: string[];
     isEditScenario?: boolean;
