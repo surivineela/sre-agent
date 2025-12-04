@@ -8,6 +8,20 @@ export interface Connector {
     source?: string;
 }
 
+export interface ConnectorStatus {
+    name: string;
+    type: string;
+    healthy: boolean;
+    message: string;
+    status: string;
+    executionTimeMs: number;
+    details?: {
+        error: string | null;
+        tools?: number;
+        lastHeartbeat?: string;
+    };
+}
+
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;

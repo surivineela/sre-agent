@@ -7,6 +7,7 @@ import {
     PromptImprovementResponse,
 } from '../../Space/Contracts/ExtendedAgentGraph.ts';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from '../../Space/Graph/ExtendedAgentYamlUtils.ts';
+import { ConnectorStatus } from '../Contracts/Azure/SreAgent.ts';
 import { getAgentHeaders } from '../Helpers/headers';
 import { DataPlaneClient, Response } from './DataPlaneClient.ts';
 
@@ -164,9 +165,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
-    public getConnectorStatus = async (
-        connectorName: string
-    ): Promise<Response<{ state?: string; status?: string; connectionState?: string }>> => {
+    public getConnectorStatus = async (connectorName: string): Promise<Response<ConnectorStatus>> => {
         const { data } = await axios.get(
             this.getRequestUrl(`/api/v2/extendedAgent/connectors/${encodeURIComponent(connectorName)}/status`),
             {
@@ -174,7 +173,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
             }
         );
         return {
-            isSuccessful: true,
+            isSuccessful: !!data,
             content: data,
         };
     };

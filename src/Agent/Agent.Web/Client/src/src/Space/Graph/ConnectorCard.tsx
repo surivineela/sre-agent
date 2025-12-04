@@ -85,8 +85,7 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
 
         extendedAgentClient.getConnectorStatus(connector.name).then(response => {
             if (response.isSuccessful && response.content) {
-                const state = (response.content.state || response.content.status || response.content.connectionState || '') as string;
-                setMcpStatus(state);
+                setMcpStatus(response.content.status);
             }
         });
     }, [isMcpConnector, sreAgentEndpoint, connector?.name]);

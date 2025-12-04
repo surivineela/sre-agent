@@ -8,6 +8,7 @@ import {
     DataGridHeaderCell,
     DataGridProps,
     DataGridRow,
+    Link,
     Menu,
     MenuItem,
     MenuList,
@@ -22,9 +23,11 @@ import {
 import { Delete16Regular, Edit16Regular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
+import { Connector, ConnectorStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useConnectorsStyles } from './Connectors.styles';
+import { ConnectorStatusDialog } from './ConnectorStatusDialog';
+import { getStatusIcon } from './ConnectorStatusUtils';
 import EmptyState, { EmptyStateType } from './EmptyState';
 import { ConnectorType, getConnectorIcon, getConnectorName, getConnectorService } from './Wizard/Common/ConnectorType';
 
@@ -41,7 +44,8 @@ export interface ConnectorsDataGridProps {
     addNewConnector: () => void;
     onEditConnector: (connector: Connector) => void;
     onDeleteConnector: (connectorName: string) => void;
-    connectionMap: Record<string, string>;
+    connectionMap: Record<string, ConnectorStatus>;
+    isStatusLoading: boolean;
 }
 
 export const ConnectorsDataGrid = ({
@@ -56,9 +60,13 @@ export const ConnectorsDataGrid = ({
     onDeleteConnector,
     setSelectedKeys,
     connectionMap,
+    isStatusLoading,
 }: ConnectorsDataGridProps) => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
+
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState<ConnectorStatus | null>(null);
 
     const [sortState, setSortState] = useState<{
         sortColumn: string;
@@ -119,6 +127,36 @@ export const ConnectorsDataGrid = ({
         [createShimmerCell]
     );
 
+    const handleStatusClick = useCallback((connectorStatus: ConnectorStatus) => {
+        setSelectedStatus(connectorStatus);
+        setIsStatusDialogOpen(true);
+    }, []);
+
+    const renderStatusIcon = useCallback(
+        (status: string, onClick?: () => void) => {
+            const { icon } = getStatusIcon(status);
+
+            return (
+                <div className={styles.iconAndTextContainer}>
+                    {icon}
+                    {onClick ? (
+                        <Link
+                            onClick={e => {
+                                e.stopPropagation();
+                                onClick();
+                            }}
+                        >
+                            <Text>{status}</Text>
+                        </Link>
+                    ) : (
+                        <Text>{status}</Text>
+                    )}
+                </div>
+            );
+        },
+        [styles.iconAndTextContainer]
+    );
+
     const columns: TableColumnDefinition<ConnectorWithService>[] = useMemo(
         () => [
             createTableColumn<ConnectorWithService>({
@@ -172,17 +210,31 @@ export const ConnectorsDataGrid = ({
             createTableColumn<ConnectorWithService>({
                 columnId: 'status',
                 compare: (a, b) => {
-                    const statusA = connectionMap[a.name] || '-';
-                    const statusB = connectionMap[b.name] || '-';
+                    const statusA = connectionMap[a.name]?.status || '-';
+                    const statusB = connectionMap[b.name]?.status || '-';
                     return statusA.localeCompare(statusB);
                 },
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.status)}</Text>,
                 renderCell: item =>
-                    renderCellWithShimmer(item, [{ width: '90px', height: '16px' }], item => {
-                        const status = connectionMap[item.name] || '-';
+                    renderCellWithShimmer(item, [{ width: '120px', height: '20px' }], item => {
+                        if (isStatusLoading) {
+                            return (
+                                <TableCellLayout>
+                                    <Skeleton>
+                                        <SkeletonItem style={{ width: '120px', height: '20px' }} />
+                                    </Skeleton>
+                                </TableCellLayout>
+                            );
+                        }
+                        const connectorStatus = connectionMap[item.name];
+                        const status = connectorStatus?.status || '-';
                         return (
                             <TableCellLayout>
-                                <Text>{status}</Text>
+                                {status !== '-' ? (
+                                    renderStatusIcon(status, () => handleStatusClick(connectorStatus))
+                                ) : (
+                                    <Text>{status}</Text>
+                                )}
                             </TableCellLayout>
                         );
                     }),
@@ -196,10 +248,13 @@ export const ConnectorsDataGrid = ({
         ],
         [
             connectionMap,
+            handleStatusClick,
             intl,
+            isStatusLoading,
             onDeleteConnector,
             onEditConnector,
             renderCellWithShimmer,
+            renderStatusIcon,
             styles.connectorIcon,
             styles.iconAndTextContainer,
             styles.nameCellContainer,
@@ -307,6 +362,7 @@ export const ConnectorsDataGrid = ({
                     />
                 </div>
             )}
+            <ConnectorStatusDialog isOpen={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen} connectorStatus={selectedStatus} />
         </>
     );
 };

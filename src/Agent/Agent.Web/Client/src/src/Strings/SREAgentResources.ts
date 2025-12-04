@@ -5591,4 +5591,7 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'The executable command to start the MCP server. Must be in your system PATH or an absolute path.',
         id: 'cgh0+/',
     },
+    toolCount: { defaultMessage: 'Tools: {count}', id: 'tpD3Ax' },
+    lastHeartbeat: { defaultMessage: 'Last heartbeat: {time}', id: 'qdxZys' },
+    error: { defaultMessage: 'Error', id: 'KN7zKn' },
 });
