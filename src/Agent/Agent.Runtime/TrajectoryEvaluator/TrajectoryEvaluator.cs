@@ -220,6 +220,8 @@ public class TrajectoryEvaluator
                 chatClient: _chatClientProvider.GeneralPurposeModel,
                 chatMessages: chatMessages,
                 startAgent: startAgent,
+                autoHandOffToStartEnabled: thread.FeatureConfig?.AutoHandoffEnabled ?? false,
+                logger: _logger,
                 cancellationToken: cancellationToken);
 
             var trajectory = trajectoryInfo.Trajectory;
@@ -344,7 +346,7 @@ public class TrajectoryEvaluator
         // 2. It's an incident trajectory, OR
         // 3. Thread has more than 3 messages AND conversation contains valuable infrastructure/architecture knowledge worth remembering
         // Note: We filter out ScheduledTask threads as they generate insights on every run
-        bool shouldGenerateInsights = thread.Source != ThreadSource.ScheduledTask
+        var shouldGenerateInsights = thread.Source != ThreadSource.ScheduledTask
             && (isUserRequested
                 || thread.Source == ThreadSource.Incident
                 || (messageCount > 3 && await ContainsValuableInfrastructureKnowledgeAsync(chatTranscript, cancellationToken)));
@@ -386,7 +388,10 @@ public class TrajectoryEvaluator
        string promptHash,
        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(trajectory)) return;
+        if (string.IsNullOrWhiteSpace(trajectory))
+        {
+            return;
+        }
 
         try
         {

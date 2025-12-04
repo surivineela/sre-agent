@@ -236,7 +236,7 @@ public partial class ThreadEvaluator
             }
 
             // Calculate SAT Score as the average of all dimensions, rounded up to an integer
-            var satScore = Math.Ceiling((double)(llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
+            var satScore = Math.Ceiling((llmEvaluation.Resolved + llmEvaluation.Satisfied + llmEvaluation.Automatic + llmEvaluation.Smooth + llmEvaluation.Concise + llmEvaluation.Adherence) / 6.0);
 
             await EvaluateHandoffsWithLLM(thread, cancellationToken); // Calculate handoff score
             await EvaluateTasksWithLLM(thread, cancellationToken);
@@ -345,7 +345,7 @@ public partial class ThreadEvaluator
                                call.Name == EvaluationHelper.GetToolCallName(nameof(ArmPluginDefinition.RunAzCliWriteCommandsAsync)))
                             {
                                 metrics.AzCliCalls++;
-                                string output = result.Result?.ToString() ?? string.Empty;
+                                var output = result.Result?.ToString() ?? string.Empty;
                                 if (!output.Contains(ExternalProcessCommand.ProcessFailureMessage))
                                 {
                                     metrics.AzCliSuccesses++;
@@ -356,7 +356,7 @@ public partial class ThreadEvaluator
                                      call.Name == EvaluationHelper.GetToolCallName(nameof(KubePluginDefinition.RunKubectlWriteCommandAsync)))
                             {
                                 metrics.KubectlCalls++;
-                                string output = result.Result?.ToString() ?? string.Empty;
+                                var output = result.Result?.ToString() ?? string.Empty;
                                 if (!output.Contains(ExternalProcessCommand.ProcessFailureMessage))
                                 {
                                     metrics.KubectlSuccesses++;
@@ -365,7 +365,7 @@ public partial class ThreadEvaluator
                             }
                             else
                             {
-                                string output = result.Result?.ToString() ?? string.Empty;
+                                var output = result.Result?.ToString() ?? string.Empty;
                                 if (!output.ToLower().Contains("error") &&
                                        !output.ToLower().Contains("failed"))
                                 {
@@ -743,7 +743,8 @@ public partial class ThreadEvaluator
                     defaultStartAgent: startAgent,
                     autoHandoffEnabled: autoHandoffEnabled,
                     previousChatMessages: chatContext,
-                    handoffMessages: handoffContext);
+                    handoffMessages: handoffContext,
+                    logger: _logger);
 
                 evaluations.Add(evaluation);
 
@@ -773,7 +774,8 @@ public partial class ThreadEvaluator
                     defaultStartAgent: startAgent,
                     autoHandoffEnabled: false,
                     previousChatMessages: chatContext,
-                    handoffMessages: handoffContext);
+                    handoffMessages: handoffContext,
+                    logger: _logger);
 
                 evaluations.Add(evaluation);
 
@@ -803,7 +805,8 @@ public partial class ThreadEvaluator
         string defaultStartAgent,
         bool autoHandoffEnabled,
         IReadOnlyList<ChatMessage> previousChatMessages,
-        IReadOnlyList<ChatMessage> handoffMessages)
+        IReadOnlyList<ChatMessage> handoffMessages,
+        ILogger logger)
     {
         var handoffChat = "Failed to extract handoff chat";
         try
@@ -814,7 +817,8 @@ public partial class ThreadEvaluator
                 defaultStartAgent,
                 autoHandoffEnabled,
                 previousChatMessages,
-                handoffMessages);
+                handoffMessages,
+                logger);
             handoffChat = prompts.HandoffChat;
 
             var chatMessages = new List<ChatMessage>
@@ -885,7 +889,8 @@ public partial class ThreadEvaluator
         string defaultStartAgent,
         bool autoHandoffEnabled,
         IReadOnlyList<ChatMessage> previousChatMessages,
-        IReadOnlyList<ChatMessage> handoffMessages)
+        IReadOnlyList<ChatMessage> handoffMessages,
+        ILogger logger)
     {
         var systemPromptBuilder = new StringBuilder();
 
@@ -933,7 +938,7 @@ public partial class ThreadEvaluator
         {
             systemPromptBuilder.AppendLine("**PREVIOUS CHAT CONTEXT:**\n<previousChat>");
 
-            var previousChatTraj = new AgentTrajectory(defaultStartAgent, autoHandoffEnabled);
+            var previousChatTraj = new AgentTrajectory(defaultStartAgent, autoHandoffEnabled, logger);
             foreach (var message in previousChatMessages)
             {
                 previousChatTraj.Append(message);
@@ -970,7 +975,7 @@ public partial class ThreadEvaluator
         userPromptBuilder.AppendLine("Please analyze the following multi-agent conversation thread to identify potential handoff errors.");
         userPromptBuilder.AppendLine();
         userPromptBuilder.AppendLine("**CONVERSATION FLOW:**\n<handoffChat>");
-        var handoffChatTraj = new AgentTrajectory(handoffStartStack, autoHandoffEnabled);
+        var handoffChatTraj = new AgentTrajectory(handoffStartStack, autoHandoffEnabled, logger);
         foreach (var message in handoffMessages)
         {
             handoffChatTraj.Append(message);
@@ -1124,7 +1129,6 @@ public partial class ThreadEvaluator
 
         return Task.FromResult(sb.ToString());
     }
-
 
     internal class ToolCallMetrics
     {

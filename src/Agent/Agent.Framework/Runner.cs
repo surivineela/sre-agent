@@ -352,7 +352,8 @@ public static class Runner
                         contextWrapper,
                         currentAgent.GetChatClient(config),
                         activeSkills,
-                        hooks);
+                        hooks,
+                        logger);
 
                     await hooks.OnAgentEnd(contextWrapper, currentAgent, turnResult.NextStep.Output);
 
@@ -386,7 +387,8 @@ public static class Runner
                         contextWrapper,
                         currentAgent.GetChatClient(config),
                         activeSkills,
-                        hooks);
+                        hooks,
+                        logger);
 
                     // we should not reset the trajectory, as it may contain important information for critic as handoff is very cheap frequent behavior.
                 }
@@ -1453,8 +1455,9 @@ public static class Runner
         RunContextWrapper<TContext> contextWrapper,
         IChatClient chatClient,
         SkillList activeSkills,
-        RunHooks<TContext>? hooks = null,
-        string? additionalInstructions = null,
+        RunHooks<TContext> hooks,
+        ILogger logger,
+        string additionalInstructions = "",
         bool autoHandOffEnabled = false)
         where TContext : class
     {
@@ -1472,11 +1475,12 @@ public static class Runner
 
             // Use Summarizer to compact
             var compacted = await Summarizer.CompactChatHistoryAsync(
-                additionalInstructions ?? string.Empty,
+                additionalInstructions,
                 chatHistory,
                 startingAgent.Name,
                 autoHandOffEnabled,
-                chatClient);
+                chatClient,
+                logger);
 
             // Append compacted summary as a new user message
             generatedMessages.Add(new ChatMessage(ChatRole.User, compacted));

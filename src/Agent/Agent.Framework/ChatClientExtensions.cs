@@ -329,10 +329,6 @@ public static partial class ChatClientExtensions
                         {
                             throw new ClientResultException(responseErrorUpdate.Message);
                         }
-                        else if (update.RawRepresentation is OpenAI.Responses.StreamingResponseFailedUpdate responseFailedUpdate)
-                        {
-                            throw new ClientResultException(responseFailedUpdate.Response.Error.Message);
-                        }
                     }
                 }
 

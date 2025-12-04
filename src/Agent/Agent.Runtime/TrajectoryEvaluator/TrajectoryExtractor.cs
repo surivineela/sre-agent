@@ -8,6 +8,7 @@ using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using ChatClientExtensions = Agent.Framework.ChatClientExtensions;
 
 namespace Agent.Runtime.TrajectoryEvaluator;
@@ -36,11 +37,12 @@ public static class TrajectoryExtractor
     public static async Task<TrajectoryGenerationResult> GenerateTrajectoryAsync_v3(
         IChatClient chatClient,
         IEnumerable<ChatMessage> chatMessages,
-        string startAgent = "meta_agent",
-        bool autoHandOffToStartEnabled = false,
+        string startAgent,
+        bool autoHandOffToStartEnabled,
+        ILogger logger,
         CancellationToken cancellationToken = default)
     {
-        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOffToStartEnabled);
+        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOffToStartEnabled, logger);
         foreach (var msg in chatMessages)
         {
             chatTrajectory.Append(msg);

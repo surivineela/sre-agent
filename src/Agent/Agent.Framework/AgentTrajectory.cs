@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Framework;
 
@@ -25,6 +26,27 @@ public class AgentTextTrajectoryItem : TrajectoryItem
         var sb = new StringBuilder();
         sb.AppendLine($"Role: {RoleDisplayName}");
         sb.AppendLine(Text);
+        sb.AppendLine();
+        return sb.ToString();
+    }
+}
+
+public class AgentReasoningTrajectoryItem : TrajectoryItem
+{
+    public string RoleDisplayName { get; }
+    public string ReasoningText { get; }
+
+    public AgentReasoningTrajectoryItem(string roleDisplayName, string text)
+    {
+        RoleDisplayName = roleDisplayName;
+        ReasoningText = text;
+    }
+
+    public override string ToString(bool filterResults)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Role: {RoleDisplayName}");
+        sb.AppendLine($"Internal Reasoning: {ReasoningText}");
         sb.AppendLine();
         return sb.ToString();
     }
@@ -54,7 +76,6 @@ public class AgentFunctionCallTrajectoryItem : TrajectoryItem
     }
 }
 
-
 public sealed class AgentTrajectory
 {
     private const string TransferToolStart = "transfer_to_";
@@ -62,12 +83,13 @@ public sealed class AgentTrajectory
 
     private readonly bool _autoHandoffEnabled;
     private readonly string _startingAgent;
+    private readonly ILogger _logger;
 
     private List<string> _agentStack;
     private string _activeHandoff = string.Empty;
 
     // Track critic count per agent name instead of globally
-    private readonly Dictionary<string, int> _agentCriticCounts = new();
+    private readonly Dictionary<string, int> _agentCriticCounts = [];
 
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -76,20 +98,22 @@ public sealed class AgentTrajectory
 
     private const int MaxResultWords = 200;
 
-    private readonly List<TrajectoryItem> _trajectoryItems = new();
+    private readonly List<TrajectoryItem> _trajectoryItems = [];
 
-    public AgentTrajectory(string startingAgent, bool autoHandOffToStartEnabled)
+    public AgentTrajectory(string startingAgent, bool autoHandOffToStartEnabled, ILogger logger)
     {
         _startingAgent = startingAgent;
         _agentStack = [startingAgent];
         _autoHandoffEnabled = autoHandOffToStartEnabled;
+        _logger = logger;
     }
 
-    public AgentTrajectory(IReadOnlyList<string> initialAgentStack, bool autoHandOffToStartEnabled)
+    public AgentTrajectory(IReadOnlyList<string> initialAgentStack, bool autoHandOffToStartEnabled, ILogger logger)
     {
         _startingAgent = initialAgentStack[0];
         _agentStack = [.. initialAgentStack];
         _autoHandoffEnabled = autoHandOffToStartEnabled;
+        _logger = logger;
     }
 
     public IReadOnlyList<string> AgentStack => _agentStack;
@@ -203,9 +227,15 @@ public sealed class AgentTrajectory
                     }
                 }
             }
+            else if (content is TextReasoningContent textReasoningContent)
+            {
+                var activeAgent = _agentStack[^1];
+                var reasoningText = textReasoningContent.Text;
+                _trajectoryItems.Add(new AgentReasoningTrajectoryItem(activeAgent, reasoningText));
+            }
             else
             {
-                throw new Exception($"Unknown content type: {content.GetType()}");
+                _logger.LogInternalError($"Unknown content type in trajectory: {content.GetType()}");
             }
         }
     }

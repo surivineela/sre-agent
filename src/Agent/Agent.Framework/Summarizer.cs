@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Framework;
 
@@ -91,7 +92,8 @@ public static class Summarizer
         IEnumerable<ChatMessage> chatHistory,
         string startingAgent,
         bool autoHandOffEnabled,
-        IChatClient chatClient)
+        IChatClient chatClient,
+        ILogger logger)
     {
         // build compaction system prompt
         var compactPrompt = TrajectoryCompactionPrompt;
@@ -106,7 +108,7 @@ public static class Summarizer
         }
 
         // build chat trajectory
-        var chatTrajectory = new AgentTrajectory(startingAgent, autoHandOffEnabled);
+        var chatTrajectory = new AgentTrajectory(startingAgent, autoHandOffEnabled, logger);
         foreach (var msg in chatHistory)
         {
             chatTrajectory.Append(msg);
@@ -123,11 +125,10 @@ public static class Summarizer
         var summarizerChatOptions = new ChatOptions
         {
             ToolMode = ChatToolMode.None,
-            Temperature = 0,
             ResponseFormat = ChatResponseFormat.Text,
-            AdditionalProperties = new AdditionalPropertiesDictionary
+            AdditionalProperties = new()
             {
-                { "reasoning_effort", "low" }
+                { FrameworkConstants.ReasoningEffortKey, ReasoningConstants.LowReasoningEffort }
             }
         };
 

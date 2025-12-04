@@ -804,7 +804,7 @@ public class ReasoningLoop : IDisposable
             {
                 _logger.LogInternalInformation("[{threadId}]Processing {toolCallCount} manual tool calls: {tools}", _context.ThreadId, runResult.ManualToolCalls.Count, string.Join(", ", runResult.ManualToolCalls.Select(tc => tc.Tool.Name)));
 
-                Guid toolCallMessageId = Guid.NewGuid();
+                var toolCallMessageId = Guid.NewGuid();
 
                 await _outboundCommunicationService.AppendAgentManualToolCallMessage(
                     _context.ThreadId,
@@ -1849,7 +1849,7 @@ public class ReasoningLoop : IDisposable
     {
         // Set the cancellation token for plugins to use
         Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = cancellationToken;
-        Guid toolCallMessageId = Guid.NewGuid();
+        var toolCallMessageId = Guid.NewGuid();
 
         // Create a span for this tool execution
         var toolSpan = _tracer.StartActiveSpan($"tool.{aiTool.Name}", SpanKind.Internal, _currentAgentSpan);
@@ -2438,7 +2438,8 @@ public class ReasoningLoop : IDisposable
                 chatHistory: _chatHistory!,
                 startingAgent: _defaultStartingAgent.Name,
                 autoHandOffEnabled: _autoHandOffEnabled,
-                chatClient: _chatClientProvider.GeneralPurposeModel);
+                chatClient: _chatClientProvider.GeneralPurposeModel,
+                logger: _logger);
 
             // modify chat history
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
@@ -2853,7 +2854,7 @@ public class ReasoningLoop : IDisposable
                     List<ManualToolCallResult> toolResults = [];
 
                     var toolCall = runResult.ManualToolCalls.Single(); // Should only be one tool call at a time
-                    Guid toolCallMessageId = Guid.NewGuid();
+                    var toolCallMessageId = Guid.NewGuid();
 
                     await _outboundCommunicationService.AppendAgentManualToolCallMessage(
                         _context.ThreadId,
@@ -3024,7 +3025,7 @@ public class ReasoningLoop : IDisposable
                 );
 
                 var todoInfoJson = JsonSerializer.Serialize(todoInfo, options);
-                ChatMessage message = new ChatMessage(ChatRole.User, todoInfoJson);
+                var message = new ChatMessage(ChatRole.User, todoInfoJson);
 
                 _logger.LogInternalInformation("Creating TodoInfo message card for thread {ThreadId}, messageId {MessageId}", threadId, todoPlan.TriggerMessageId);
 

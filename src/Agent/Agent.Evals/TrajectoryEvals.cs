@@ -1,7 +1,12 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Framework;
 using Agent.Runtime.TrajectoryEvaluator;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Evals;
 
@@ -61,6 +66,9 @@ public class TrajectoryEvals
     [DynamicData(nameof(PromptTrajectoryQualityTestCases))]
     public async Task PromptQuality_EvaluateResponses(string inputFile, ModelGenerationContent content)
     {
+        var testHost = await GetTestHostAsync();
+        var logger = testHost.RunConfig.LoggerFactory.CreateLogger<TrajectoryEvals>();
+
         // 1. Build the conversation that the model originally saw
         var conversationMessages = content.ModelInput
             .Concat(content.ModelOutput)
@@ -71,7 +79,7 @@ public class TrajectoryEvals
         var startAgent = inputFile.Equals("output-icm-redacted", StringComparison.OrdinalIgnoreCase)
             ? "rca_meta_agent"
             : "meta_agent";
-        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOff);
+        var chatTrajectory = new AgentTrajectory(startAgent, autoHandOff, logger);
         foreach (var msg in conversationMessages)
         {
             chatTrajectory.Append(msg);
@@ -86,10 +94,11 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            (await GetTestHostAsync()).RunConfig.ChatClient,
+            testHost.RunConfig.ChatClient,
             conversationMessages,
             startAgent,
-            autoHandOff);
+            autoHandOff,
+            logger);
 
         // should be marked as investigation.
         Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
@@ -105,13 +114,16 @@ public class TrajectoryEvals
     [DynamicData(nameof(PromptTrajectoryRelevanceTestCases))]
     public async Task PromptRelevance_EvaluateResponses(string inputFile, ModelGenerationContent content)
     {
+        var testHost = await GetTestHostAsync();
+        var logger = testHost.RunConfig.LoggerFactory.CreateLogger<TrajectoryEvals>();
+
         // 1. Build the conversation that the model originally saw
         var conversationMessages = content.ModelInput
             .Concat(content.ModelOutput)
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Save processed chat
-        var chatTrajectory = new AgentTrajectory("meta_agent", false);
+        var chatTrajectory = new AgentTrajectory("meta_agent", false, logger);
         foreach (var msg in conversationMessages)
         {
             chatTrajectory.Append(msg);
@@ -126,8 +138,11 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            (await GetTestHostAsync()).RunConfig.ChatClient,
-            conversationMessages);
+            testHost.RunConfig.ChatClient,
+            conversationMessages,
+            startAgent: "meta_agent",
+            autoHandOffToStartEnabled: false,
+            logger: logger);
 
         // should not be marked as investigation.
         Assert.IsFalse(extractedTrajectory.IsInvestigationThread);
@@ -141,13 +156,16 @@ public class TrajectoryEvals
     [DynamicData(nameof(DebugTraceQualityTestCases))]
     public async Task DebugTraceQuality_EvaluateResponses(string inputFile, ModelGenerationContent content)
     {
+        var testHost = await GetTestHostAsync();
+        var logger = testHost.RunConfig.LoggerFactory.CreateLogger<TrajectoryEvals>();
+
         // 1. Build the conversation that the model originally saw
         var conversationMessages = content.ModelInput
             .Concat(content.ModelOutput)
             .Where(m => m.Role != ChatRole.System);
 
         // 2. Save processed chat
-        var chatTrajectory = new AgentTrajectory("meta_agent", false);
+        var chatTrajectory = new AgentTrajectory("meta_agent", false, logger);
         foreach (var msg in conversationMessages)
         {
             chatTrajectory.Append(msg);
@@ -160,8 +178,11 @@ public class TrajectoryEvals
 
         // 3. Extract the trajectory
         (var extractedTrajectory, var _, var _) = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-            (await GetTestHostAsync()).RunConfig.ChatClient,
-            conversationMessages);
+            testHost.RunConfig.ChatClient,
+            conversationMessages,
+            startAgent: "meta_agent",
+            autoHandOffToStartEnabled: false,
+            logger: logger);
 
         // should be marked as investigation.
         Assert.IsTrue(extractedTrajectory.IsInvestigationThread);
