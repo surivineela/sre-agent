@@ -2112,7 +2112,7 @@ public class ReasoningLoop : IDisposable
 
     private async Task HandleToolExecutionUnauthorized(ToolExecutionUnauthorizedException ex, AIFunction aiTool, FunctionCallContent functionCall)
     {
-        OboContextAttribute attr = aiTool.UnderlyingMethod?.GetCustomAttribute<OboContextAttribute>() ?? new OboContextAttribute();
+        var attr = aiTool.UnderlyingMethod?.GetCustomAttribute<OboContextAttribute>() ?? new OboContextAttribute();
         if (attr.DisableObo)
         {
             _logger.LogInternalInformation($"Tool {aiTool.Name} does not support obo flow. Throw original exception.");
@@ -2535,7 +2535,7 @@ public class ReasoningLoop : IDisposable
             "- Always wait for user confirmation before proceeding\n" +
             "- Only proceed with next steps if user explicitly tells you the actions have been taken.";
 
-            prompt += $"\nThe suggestion is to call Function '{toolCall.FunctionCall.Name}' with arguments: {System.Text.Json.JsonSerializer.Serialize(toolCall.FunctionCall.Arguments)}. " +
+            prompt += $"\nThe suggestion is to call Function '{toolCall.FunctionCall.Name}' with arguments: {toolCall.FunctionCall.GetSerializedArguments()}. " +
                         "Please format this as a clear, actionable instruction to user" +
                         "Before providing suggestions, think through:\n" +
                         "1. Context Analysis: What is the user trying to achieve? What's the current state?\n" +
@@ -3071,9 +3071,9 @@ public class ReasoningLoop : IDisposable
         public Core.Models.Api.v1.KubectlExecution? KubectlExecution { get; set; }
         public Core.Models.Api.v1.PsqlExecution? PsqlExecution { get; set; }
 
-        public bool IsPending => (ToolType == CliToolType.AzCli && AzCliExecution != null && AzCliExecution.Status == AzCliExecutionStatus.Pending) ||
-                                 (ToolType == CliToolType.Kubectl && KubectlExecution != null && KubectlExecution.Status == KubectlExecutionStatus.Pending) ||
-                                 (ToolType == CliToolType.Psql && PsqlExecution != null && PsqlExecution.Status == AzCliExecutionStatus.Pending);
+        public bool IsPending => (ToolType == CliToolType.AzCli && AzCliExecution != null && AzCliExecution.Status.IsPending()) ||
+                                 (ToolType == CliToolType.Kubectl && KubectlExecution != null && KubectlExecution.Status.IsPending()) ||
+                                 (ToolType == CliToolType.Psql && PsqlExecution != null && PsqlExecution.Status.IsPending());
     }
 
     private async Task<CliToolExecution> GetCliToolExecution(Guid threadId, CliToolType toolType, Guid executionId)

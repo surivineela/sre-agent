@@ -1,4 +1,9 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text;
+using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Interface;
 
@@ -9,19 +14,19 @@ public class MockKubePlugin : IKubePlugin
     public string AksClusterResourceId { get; set; } = string.Empty;
 
     // Add dictionaries for mock data
-    private Dictionary<string, string> _mockNamespaces = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    private Dictionary<string, string> _mockDeployments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace
-    private Dictionary<string, string> _mockStatefulSets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace
-    private Dictionary<string, string> _mockSpecs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);         // Key: resourceId:namespace:apiGroup:kind:name
-    private Dictionary<string, string> _mockLogs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:podName
-    private Dictionary<string, string> _mockEvents = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);        // Key: resourceId:namespace:apiGroup:kind:name
-    private Dictionary<string, string> _mockPods = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:kind:workloadName
-    private Dictionary<string, (double Cpu, double Mem)> _mockPodMetrics = new Dictionary<string, (double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
-    private Dictionary<string, (double Cpu, double Mem, double Avail)> _mockMetrics = new Dictionary<string, (double, double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
-    private Dictionary<string, Action<int>> _scalingCallbacks = new Dictionary<string, Action<int>>(StringComparer.OrdinalIgnoreCase); // Key: statefulSetName
-    private Dictionary<string, string> _mockRecentlyUpdated = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:minutes
-    private Dictionary<string, string> _mockDeploymentRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
-    private Dictionary<string, string> _mockStatefulSetRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
+    private readonly Dictionary<string, string> _mockNamespaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _mockDeployments = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace
+    private readonly Dictionary<string, string> _mockStatefulSets = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace
+    private readonly Dictionary<string, string> _mockSpecs = new(StringComparer.OrdinalIgnoreCase);         // Key: resourceId:namespace:apiGroup:kind:name
+    private readonly Dictionary<string, string> _mockLogs = new(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:podName
+    private readonly Dictionary<string, string> _mockEvents = new(StringComparer.OrdinalIgnoreCase);        // Key: resourceId:namespace:apiGroup:kind:name
+    private readonly Dictionary<string, string> _mockPods = new(StringComparer.OrdinalIgnoreCase);          // Key: resourceId:namespace:kind:workloadName
+    private readonly Dictionary<string, (double Cpu, double Mem)> _mockPodMetrics = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
+    private readonly Dictionary<string, (double Cpu, double Mem, double Avail)> _mockMetrics = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
+    private readonly Dictionary<string, Action<int>> _scalingCallbacks = new(StringComparer.OrdinalIgnoreCase); // Key: statefulSetName
+    private readonly Dictionary<string, string> _mockRecentlyUpdated = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:minutes
+    private readonly Dictionary<string, string> _mockDeploymentRevisions = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
+    private readonly Dictionary<string, string> _mockStatefulSetRevisions = new(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
 
     // Property to set the resource ID directly in tests if needed
     public string MockAKSResourceId { get; set; } = string.Empty;
@@ -72,7 +77,7 @@ public class MockKubePlugin : IKubePlugin
             var podSpecKey = $"{resourceId}:{ns}:v1:Pod:{podName}"; // Assuming v1 apiGroup for Pods
             if (!_mockSpecs.ContainsKey(podSpecKey))
             {
-                string basicPodYaml = $"""
+                var basicPodYaml = $"""
                     apiVersion: v1
                     kind: Pod
                     metadata:
@@ -125,7 +130,6 @@ public class MockKubePlugin : IKubePlugin
         _mockMetrics[key] = (cpuPercent, memPercent, availPercent);
         Console.WriteLine($"MockKubePlugin configured Metrics for {key}: CPU={cpuPercent}%, Mem={memPercent}%, Avail={availPercent}%");
     }
-
 
     public void ConfigureMetrics(string resourceId, string ns, string workloadType, string workloadName, string podName, double cpuPercent, double memPercent)
     {
@@ -215,7 +219,6 @@ public class MockKubePlugin : IKubePlugin
             default:
                 return Task.FromResult($"Mock Error: Unsupported kind '{kind}' for ListKubeResourcesAsync.");
         }
-
     }
 
     // GetKubePodsAsync: Use configured mock data (_mockPods).
@@ -251,7 +254,6 @@ public class MockKubePlugin : IKubePlugin
             key = $"{resourceId}:{_namespace}:apps/v1:{kind}:{name}"; // Try with apps/v1 for Deploy/STS
         }
 
-
         if (_mockSpecs.TryGetValue(key, out var spec))
         {
             Console.WriteLine($"MockKubePlugin: GetKubeResourceSpecStatusAsync found for {key}");
@@ -260,7 +262,6 @@ public class MockKubePlugin : IKubePlugin
         Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceSpecStatusAsync NOT FOUND for {key}");
         return Task.FromResult($"Mock Error: Spec for {kind}/{name} not configured.");
     }
-
 
     // GetKubeResourceEventsAsync: Use configured mock data (_mockEvents).
     public Task<string> GetKubeResourceEventsAsync(string resourceId, string? _namespace, string apiGroup, string kind, string name)
@@ -371,9 +372,8 @@ public class MockKubePlugin : IKubePlugin
             // Decide behavior: return empty, error, or all metrics in namespace? Returning filtered matches is safer.
         }
 
-
         var sb = new System.Text.StringBuilder();
-        bool foundMetrics = false;
+        var foundMetrics = false;
 
         // Iterate through all configured metrics and filter by expected pods
         foreach (var kvp in _mockPodMetrics)
@@ -424,7 +424,7 @@ public class MockKubePlugin : IKubePlugin
         }
 
         var sb = new System.Text.StringBuilder();
-        bool foundMetrics = false;
+        var foundMetrics = false;
 
         // Iterate through all configured metrics and filter by expected pods
         foreach (var kvp in _mockPodMetrics)
@@ -449,7 +449,6 @@ public class MockKubePlugin : IKubePlugin
             }
         }
 
-
         if (!foundMetrics)
         {
             Console.WriteLine($"WARN: MockKubePlugin: No relevant Memory Metrics found for workload {workloadType}/{workloadName} in {_namespace}");
@@ -458,7 +457,6 @@ public class MockKubePlugin : IKubePlugin
 
         return Task.FromResult(sb.ToString().Trim());
     }
-
 
     // --- Other IKubePlugin Methods (Implement as needed or leave as NotImplemented) ---
 
@@ -484,7 +482,7 @@ public class MockKubePlugin : IKubePlugin
     {
         // Simple random implementation if needed for other tests, but prefer explicit configuration
         Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceMetricsRangeAsync started ");
-        string key = $"{resourceId}:{_namespace}:{kind}:{name}";
+        var key = $"{resourceId}:{_namespace}:{kind}:{name}";
         if (!_mockMetrics.TryGetValue(key, out var metrics))
         {
             Console.WriteLine($"WARN: MockKubePlugin: No metrics found for {key}");
@@ -493,13 +491,18 @@ public class MockKubePlugin : IKubePlugin
 
         // Parse start and end times
         if (!DateTime.TryParse(startTime, out DateTime start))
+        {
             start = DateTime.UtcNow.AddHours(-1);
+        }
+
         if (!DateTime.TryParse(endTime, out DateTime end))
+        {
             end = DateTime.UtcNow;
+        }
 
         // Determine which metric to use from the tuple
         double baseMetricValue;
-        string capitalizedMetricType = metricsType.ToUpperInvariant();
+        var capitalizedMetricType = metricsType.ToUpperInvariant();
         switch (metricsType.ToLowerInvariant())
         {
             case "cpu":
@@ -520,10 +523,10 @@ public class MockKubePlugin : IKubePlugin
         TimeSpan interval = (end - start) / 9; // 9 intervals for 10 points
         var sb = new StringBuilder();
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             DateTime pointTime = start.Add(interval * i);
-            double metricValue = baseMetricValue;
+            var metricValue = baseMetricValue;
             sb.AppendLine($"{pointTime:yyyy-MM-ddTHH:mm:ss}|{metricValue:F2}|{capitalizedMetricType} Usage");
         }
 
@@ -546,10 +549,10 @@ public class MockKubePlugin : IKubePlugin
     {
         Console.WriteLine($"---> MockKubePlugin: DiagnoseAKSAppAsync called for {resourceId}:{_namespace}:{kind}:{name}");
         var diagnosis = new System.Text.StringBuilder();
-        string podListStr = string.Empty;
+        var podListStr = string.Empty;
         List<string> podNames = new List<string>();
 
-        string workloadApiGroup = (kind.Equals("Deployment", StringComparison.OrdinalIgnoreCase) || kind.Equals("StatefulSet", StringComparison.OrdinalIgnoreCase))
+        var workloadApiGroup = (kind.Equals("Deployment", StringComparison.OrdinalIgnoreCase) || kind.Equals("StatefulSet", StringComparison.OrdinalIgnoreCase))
                                   ? "apps/v1" : ""; // Default assumption
 
         try
@@ -558,7 +561,7 @@ public class MockKubePlugin : IKubePlugin
             diagnosis.AppendLine($"## Diagnosis for {kind}/{name} in namespace {_namespace}");
             try
             {
-                string specStatus = await this.GetKubeResourceSpecStatusAsync(resourceId, _namespace, workloadApiGroup, kind, name);
+                var specStatus = await GetKubeResourceSpecStatusAsync(resourceId, _namespace, workloadApiGroup, kind, name);
                 diagnosis.AppendLine("📝 Status/events:");
                 // Simple summary - real agent might parse YAML, but mock can be simpler
                 if (specStatus.Contains("Mock Error:"))
@@ -574,7 +577,7 @@ public class MockKubePlugin : IKubePlugin
                     diagnosis.AppendLine($"- Spec/Status retrieved (content length: {specStatus.Length}).");
                 }
 
-                string events = await this.GetKubeResourceEventsAsync(resourceId, _namespace, workloadApiGroup, kind, name);
+                var events = await GetKubeResourceEventsAsync(resourceId, _namespace, workloadApiGroup, kind, name);
                 if (events.Contains("Mock Error:") || events.Contains("Mock: No events"))
                 {
                     diagnosis.AppendLine("- No specific warning/error events found for the resource.");
@@ -586,26 +589,25 @@ public class MockKubePlugin : IKubePlugin
             }
             catch (Exception ex) { diagnosis.AppendLine($"- Error getting resource spec/status/events: {ex.Message}"); }
 
-
             // 2. Get Pods for the workload
             diagnosis.AppendLine("\n👁️ Pod status/events:");
             try
             {
-                podListStr = await this.GetKubePodsAsync(resourceId, _namespace, kind, name);
+                podListStr = await GetKubePodsAsync(resourceId, _namespace, kind, name);
                 if (!string.IsNullOrWhiteSpace(podListStr) && !podListStr.Contains("Mock Error:"))
                 {
                     podNames = podListStr.Split(',').Select(p => p.Trim()).Where(p => !string.IsNullOrEmpty(p)).ToList();
                     diagnosis.AppendLine($"- Found {podNames.Count} pod(s): {podListStr}");
 
                     // 3. Get Diagnostics for each Pod (Status, Events, Logs) - Limit for brevity in mock
-                    int podsToDetail = Math.Min(podNames.Count, 2); // Check details for max 2 pods in mock summary
-                    for (int i = 0; i < podsToDetail; i++)
+                    var podsToDetail = Math.Min(podNames.Count, 2); // Check details for max 2 pods in mock summary
+                    for (var i = 0; i < podsToDetail; i++)
                     {
                         var podName = podNames[i];
                         diagnosis.AppendLine($"--- Pod: {podName} ---");
                         try
                         {
-                            string podStatus = await this.GetKubeResourceSpecStatusAsync(resourceId, _namespace, "v1", "Pod", podName); // Use v1 for Pod kind
+                            var podStatus = await GetKubeResourceSpecStatusAsync(resourceId, _namespace, "v1", "Pod", podName); // Use v1 for Pod kind
                             if (podStatus.Contains("Mock Error:"))
                             {
                                 diagnosis.AppendLine($"- Pod Status: {podStatus}");
@@ -619,7 +621,7 @@ public class MockKubePlugin : IKubePlugin
                                 diagnosis.AppendLine($"- Pod Status: Retrieved (content length: {podStatus.Length}).");
                             }
 
-                            string podEvents = await this.GetKubeResourceEventsAsync(resourceId, _namespace, "", "Pod", podName); // Empty apiGroup for Pod events
+                            var podEvents = await GetKubeResourceEventsAsync(resourceId, _namespace, "", "Pod", podName); // Empty apiGroup for Pod events
                             if (podEvents.Contains("Mock Error:") || podEvents.Contains("Mock: No events"))
                             {
                                 diagnosis.AppendLine("- Pod Events: No specific warning/error events found.");
@@ -629,7 +631,7 @@ public class MockKubePlugin : IKubePlugin
                                 diagnosis.AppendLine($"- Pod Events: {podEvents.Split('\n').FirstOrDefault() ?? podEvents}");
                             }
 
-                            string podLogs = await this.GetKubePodLogsAsync(resourceId, _namespace, podName, lines: 20); // Get fewer lines for summary
+                            var podLogs = await GetKubePodLogsAsync(resourceId, _namespace, podName, lines: 20); // Get fewer lines for summary
                             if (podLogs.Contains("Mock Error:"))
                             {
                                 diagnosis.AppendLine($"- Pod Logs: {podLogs}");
@@ -637,7 +639,7 @@ public class MockKubePlugin : IKubePlugin
                             else
                             {
                                 // Simple log summary
-                                string logSummary = podLogs.Length > 100 ? podLogs.Substring(0, 100) + "..." : podLogs;
+                                var logSummary = podLogs.Length > 100 ? podLogs.Substring(0, 100) + "..." : podLogs;
                                 diagnosis.AppendLine($"- Pod Logs: Snippet: {logSummary}");
                             }
                         }
@@ -655,12 +657,11 @@ public class MockKubePlugin : IKubePlugin
             }
             catch (Exception ex) { diagnosis.AppendLine($"- Error getting pods: {ex.Message}"); }
 
-
             // 4. Get Metrics (CPU & Memory)
             diagnosis.AppendLine("\n✅ Metrics:");
             try
             {
-                string cpuMetrics = await this.GetCpuMetricsForWorkloadAsync(resourceId, _namespace, kind, name);
+                var cpuMetrics = await GetCpuMetricsForWorkloadAsync(resourceId, _namespace, kind, name);
                 if (cpuMetrics.Contains("Mock Error:"))
                 {
                     diagnosis.AppendLine($"- CPU: {cpuMetrics}");
@@ -678,7 +679,7 @@ public class MockKubePlugin : IKubePlugin
 
             try
             {
-                string memMetrics = await this.GetMemoryMetricsForWorkloadAsync(resourceId, _namespace, kind, name);
+                var memMetrics = await GetMemoryMetricsForWorkloadAsync(resourceId, _namespace, kind, name);
                 if (memMetrics.Contains("Mock Error:"))
                 {
                     diagnosis.AppendLine($"- Memory: {memMetrics}");

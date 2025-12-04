@@ -115,7 +115,7 @@ public class AzCliExecutionController : ControllerBase
             { "Command", execution.Command ?? string.Empty },
             { "Status", execution.Status.ToString() }
         });
-        if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
+        if (!execution.Status.IsPending())
         {
             return Conflict(new
             {
@@ -182,19 +182,19 @@ public class AzCliExecutionController : ControllerBase
         }
         // Get messageId for streaming purposes for given execution
         var dbExecutions = await _threadRepository.GetMessagesWithAzCliExecutionAsync(threadGuid);
-        Guid messageId = dbExecutions.FirstOrDefault(m => m.AzCliExecution?.Id == executionGuid)?.Id ?? default;
+        var messageId = dbExecutions.FirstOrDefault(m => m.AzCliExecution?.Id == executionGuid)?.Id ?? default;
 
         switch (request.Action.ToLower())
         {
             case "run":
-                AzCliExecution? executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
+                var executionDoc = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
 
                 if (executionDoc == null || executionDoc.AgentContextId == null)
                 {
                     return NotFound(new { error = "AgentContextId not set in the executionDoc" });
                 }
 
-                AgentContext agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
+                var agentContext = await _threadRepository.GetAgentContextAsync(agentContextId: executionDoc.AgentContextId.Value, threadId: threadGuid);
                 _ = Task.Run(async () =>
                 {
                     try
@@ -265,7 +265,7 @@ public class AzCliExecutionController : ControllerBase
                                                 Id: Guid.NewGuid(),
                                                 ThreadId: threadId,
                                                 Title: title,
-                                                Description: $"Execute kubectl command {execution.Command}",
+                                                Description: $"Execute azcli command {execution.Command}",
                                                 Status: ApprovalDecision.Authorized,
                                                 CreatedTimestamp: execution.CreatedTimestamp,
                                                 DecisionTimestamp: DateTime.UtcNow,

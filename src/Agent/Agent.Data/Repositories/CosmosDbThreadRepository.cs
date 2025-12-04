@@ -467,7 +467,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Then create the thread
-        ThreadDocument threadDoc = ThreadDocument.FromDomainModel(thread);
+        var threadDoc = ThreadDocument.FromDomainModel(thread);
 
         threadDoc.IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty;
 
@@ -935,7 +935,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
             .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr &&
-                (m.Text != null && m.Text != string.Empty || m.Approval != null || m.AzCliExecution != null ||
+                ((m.Text != null && m.Text != string.Empty) || m.Approval != null || m.AzCliExecution != null ||
                  m.KubectlExecution != null || m.PsqlExecution != null || m.AgentTaskInfo != null ||
                  m.MemorySearchResult != null || m.TodoInfo != null))
             .OrderBy(m => m.TimeStamp);
@@ -1214,7 +1214,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the message document
-        MessageDocument messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
+        var messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
 
         var container = _client.GetContainer<MessageDocument>(_databaseName);
 
@@ -1286,7 +1286,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Create the updated message document
-            MessageDocument messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
+            var messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
 
             // Replace the existing document with the updated one
             var container = _client.GetContainer<MessageDocument>(_databaseName);
@@ -1357,7 +1357,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             };
 
             // Convert back to document and update in database
-            MessageDocument updatedMessageDoc = MessageDocument.FromDomainModel(updatedMessage, threadIdStr);
+            var updatedMessageDoc = MessageDocument.FromDomainModel(updatedMessage, threadIdStr);
 
             var container = _client.GetContainer<MessageDocument>(_databaseName);
             await container.ReplaceItemAsync(
@@ -1469,7 +1469,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Then create the thread
-        ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
+        var threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
         await _client.GetContainer<ThreadContextDocument>(_databaseName).CreateItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
 
         return threadContext;
@@ -1484,7 +1484,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Then create the thread
-        ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
+        var threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
         await _client.GetContainer<ThreadContextDocument>(_databaseName).UpsertItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
 
         return threadContext;
@@ -1551,7 +1551,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadIdStr = threadId.ToString();
 
         // Create the action document
-        ActionDocument actionDoc = ActionDocument.FromDomainModel(action, threadIdStr);
+        var actionDoc = ActionDocument.FromDomainModel(action, threadIdStr);
         await _client.GetContainer<ActionDocument>(_databaseName).UpsertItemAsync(actionDoc, new PartitionKey(actionDoc.PartitionKey));
 
         return action;
@@ -1811,7 +1811,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadIdStr = threadId.ToString();
 
         // Create the message document
-        MessageFeedbackDocument messageFeedbackDoc = MessageFeedbackDocument.FromDomainModel(messageFeedback, threadIdStr);
+        var messageFeedbackDoc = MessageFeedbackDocument.FromDomainModel(messageFeedback, threadIdStr);
         await _client.GetContainer<MessageFeedbackDocument>(_databaseName).UpsertItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
 
         return messageFeedback;
@@ -1914,7 +1914,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
+        var agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
         await _client.GetContainer<AgentContextDocument>(_databaseName).CreateItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
         return agentContext;
     }
@@ -1934,7 +1934,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
+        var agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
         await _client.GetContainer<AgentContextDocument>(_databaseName).UpsertItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
         return agentContext;
     }
@@ -2030,7 +2030,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        ReasoningMessageDocument reasoningMessageDoc = ReasoningMessageDocument.FromDomainModel(reasoningMessage);
+        var reasoningMessageDoc = ReasoningMessageDocument.FromDomainModel(reasoningMessage);
         await _client.GetContainer<ReasoningMessageDocument>(_databaseName).CreateItemAsync(reasoningMessageDoc, new PartitionKey(reasoningMessageDoc.PartitionKey));
         return reasoningMessage;
     }
@@ -2083,7 +2083,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+        var agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
         await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
         return agentChatHistory;
     }
@@ -2097,7 +2097,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+        var agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
         await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).UpsertItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
         return agentChatHistory;
     }
@@ -2130,7 +2130,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                     }
                 }
 
-                AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+                var agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
                 var createResponse = await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
                 return createResponse.Resource.ToDomainModel();
             }
@@ -2259,7 +2259,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        ApprovalV2Document approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
+        var approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
         await _client.GetContainer<ApprovalV2Document>(_databaseName).CreateItemAsync(approvalV2Document, new PartitionKey(approvalV2Document.PartitionKey));
         return approvalV2;
     }
@@ -2278,7 +2278,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         // Create the sub-agent thread document
-        ApprovalV2Document approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
+        var approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
         await _client.GetContainer<ApprovalV2Document>(_databaseName).UpsertItemAsync(approvalV2Document, new PartitionKey(approvalV2Document.PartitionKey));
         return approvalV2;
     }
@@ -2316,7 +2316,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             return null;
         }
 
-        ApprovalDocument approvalDocument = ApprovalDocument.FromDomainModel(approval);
+        var approvalDocument = ApprovalDocument.FromDomainModel(approval);
         await _client.GetContainer<ApprovalDocument>(_databaseName).CreateItemAsync(approvalDocument, new PartitionKey(approvalDocument.PartitionKey));
 
         return approval;
@@ -2446,7 +2446,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     public async Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
     {
         // Create the GitHub access token document
-        GitHubAccessTokenDocument gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
+        var gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
         await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).UpsertItemAsync(gitHubAccessTokenDoc, new PartitionKey(gitHubAccessTokenDoc.PartitionKey));
         return gitHubAccessToken;
     }
@@ -2487,7 +2487,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     public async Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId)
     {
         // Create the Azure DevOps access token document
-        AzureDevOpsAccessTokenDocument azureDevOpsAccessDoc = AzureDevOpsAccessTokenDocument.FromDomainModel(azureDevOpsAccessToken, resourceId);
+        var azureDevOpsAccessDoc = AzureDevOpsAccessTokenDocument.FromDomainModel(azureDevOpsAccessToken, resourceId);
         await _client.GetContainer<AzureDevOpsAccessTokenDocument>(_databaseName).UpsertItemAsync(azureDevOpsAccessDoc, new PartitionKey(azureDevOpsAccessDoc.PartitionKey));
         return azureDevOpsAccessToken;
     }
@@ -2539,7 +2539,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadIdStr = threadId.ToString();
 
         // Create the execution document
-        CliExecutionDocument executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        var executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
         await _client.GetContainer<CliExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
 
         return execution;
@@ -2648,7 +2648,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadIdStr = threadId.ToString();
 
         // Create the execution document
-        KubectlExecutionDocument executionDoc = KubectlExecutionDocument.FromDomainModel(execution, threadIdStr);
+        var executionDoc = KubectlExecutionDocument.FromDomainModel(execution, threadIdStr);
         await _client.GetContainer<KubectlExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
 
         return execution;
@@ -2756,7 +2756,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         var threadIdStr = threadId.ToString();
         // Create the execution document
-        CliExecutionDocument executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
+        var executionDoc = CliExecutionDocument.FromDomainModel(execution, threadIdStr);
         await _client.GetContainer<CliExecutionDocument>(_databaseName).CreateItemAsync(executionDoc, new PartitionKey(executionDoc.PartitionKey));
 
         return execution;

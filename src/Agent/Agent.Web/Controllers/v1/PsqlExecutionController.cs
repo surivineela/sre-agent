@@ -78,7 +78,7 @@ public class PsqlExecutionController : ControllerBase
         }
 
         // Validate current status
-        if (execution.Status != AzCliExecutionStatus.Pending && execution.Status != AzCliExecutionStatus.PendingAuthorization)
+        if (!execution.Status.IsPending())
         {
             return Conflict(new
             {

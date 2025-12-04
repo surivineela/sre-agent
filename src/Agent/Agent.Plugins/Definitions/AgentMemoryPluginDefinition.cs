@@ -35,7 +35,7 @@ public class AgentMemoryPluginDefinition(
     public const string NoDocumentsMessage = "No relevant documents found";
 
     [Description(@"Searches across all agent memory knowledge bases to retrieve relevant information for any query or task. This tool performs a comprehensive search across three distinct knowledge sources: past incident trajectories (resolution steps and root causes from previous incidents), user memories (explicit facts and preferences saved by users), and documentation (TSG guides, runbooks, and technical documentation). Use this tool proactively at the start of any new conversation or when exploring a topic to ground your response in historical knowledge and learned patterns. This is your primary tool for leveraging organizational knowledge and past learnings to inform current decisions.")]
-    public async Task<string> SearchMemoryAsync(
+    public async Task<string> SearchMemory(
        [Description("A comprehensive search query describing the topic, symptoms, error messages, or concepts you want to find information about. Be specific and detailed - include relevant technical terms, error codes, service names, or behavior descriptions. The query will be used to semantically search across all knowledge bases, so richer context leads to better results. Examples: 'Function app cold start performance issues', 'HTTP 503 errors in Azure App Service', 'Best practices for configuring Azure Redis cache'.")] string query
    )
     {
@@ -68,7 +68,7 @@ public class AgentMemoryPluginDefinition(
     }
 
     [Description(@"Retrieves specialized incident resolution knowledge from past experiences to assist with diagnosing and resolving Azure resource incidents. This tool performs targeted searches across three knowledge sources with a focus on incident resolution: past incident trajectories (especially those on the same resource or with similar symptoms), user memories relevant to troubleshooting, and technical documentation. When a resourceId is provided, it prioritizes incidents that occurred on that exact resource, which have the highest likelihood of being relevant. The search returns structured information including symptoms observed, resolution steps taken, root causes identified, and pitfalls to avoid. Use this tool when investigating service incidents, troubleshooting failures, or when you need historical context about how similar problems were resolved.")]
-    public async Task<string> SearchIncidentKnowledgeAsync(
+    public async Task<string> SearchIncidentKnowledge(
         [Description("The full Azure resource ID of the affected resource (e.g., '/subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Web/sites/{app-name}'). This is used to find past incidents that occurred on the exact same resource, which have the highest relevance. If you have a resource ID, always provide it - even partial matches can help. Leave empty if the query is not resource-specific.")] string resourceId,
         [Description("A detailed description of the current incident's symptoms, error messages, failure patterns, or observed behaviors. Be as specific as possible - include error codes, HTTP status codes, service names, timestamps, failure scenarios, or any technical indicators. Rich symptom descriptions enable semantic matching against past incidents with similar characteristics. Examples: 'Application returning 502 Bad Gateway after deployment', 'Database connection timeouts during peak hours', 'Container app crashes with OutOfMemory exceptions'.")] string symptoms
     )
@@ -156,7 +156,7 @@ public class AgentMemoryPluginDefinition(
                 threadId, userMemories.Count);
             sb.AppendLine("## Related User Memories");
             sb.AppendLine();
-            for (int i = 0; i < userMemories.Count; i++)
+            for (var i = 0; i < userMemories.Count; i++)
             {
                 var memory = userMemories[i];
                 var truncatedMemory = TruncateText(memory, 300);
@@ -175,7 +175,7 @@ public class AgentMemoryPluginDefinition(
             logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} relevant documents", threadId, documents.Count);
             sb.AppendLine("## Relevant Documentation");
             sb.AppendLine();
-            for (int i = 0; i < documents.Count; i++)
+            for (var i = 0; i < documents.Count; i++)
             {
                 var doc = documents[i];
                 sb.AppendLine($"**Document {i + 1}: {doc.Title}**");
@@ -384,19 +384,29 @@ public class AgentMemoryPluginDefinition(
             double score = InvestigationCompleteness;
 
             if (InvestigationOutcome == "resolved")
+            {
                 score += 5.0;
+            }
             else if (InvestigationOutcome == "partial")
+            {
                 score += 2.0;
+            }
             else if (InvestigationOutcome == "abandoned")
+            {
                 score -= 3.0;
+            }
 
             if (!string.IsNullOrWhiteSpace(RootCause) &&
                 RootCause != "N/A" &&
                 !RootCause.StartsWith("Inconclusive", StringComparison.OrdinalIgnoreCase))
+            {
                 score += 2.0;
+            }
 
             if (!string.IsNullOrWhiteSpace(Pitfalls) && Pitfalls != "N/A")
+            {
                 score += 1.0;
+            }
 
             return Math.Max(0, score);
         }
@@ -582,12 +592,16 @@ public class AgentMemoryPluginDefinition(
     private static string TruncateText(string text, int maxLength)
     {
         if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+        {
             return text;
+        }
 
         // Find the last space before the max length to avoid cutting words
         var truncateIndex = text.LastIndexOf(' ', maxLength);
         if (truncateIndex == -1)
+        {
             truncateIndex = maxLength;
+        }
 
         return text.Substring(0, truncateIndex).TrimEnd() + "...";
     }
@@ -595,7 +609,9 @@ public class AgentMemoryPluginDefinition(
     private async Task<string> GenerateLLMSummaryAsync(string documentTitle, string chunk, int maxLength = 200)
     {
         if (string.IsNullOrWhiteSpace(chunk))
+        {
             return string.Empty;
+        }
 
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
 
@@ -605,9 +621,9 @@ public class AgentMemoryPluginDefinition(
 
             var messages = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.System,
+            new(ChatRole.System,
                 "You are a technical documentation summarizer. Create concise, searchable summaries that help users quickly understand document content."),
-            new ChatMessage(ChatRole.User, $@"Summarize this chunk from the document ""{documentTitle}"":
+            new(ChatRole.User, $@"Summarize this chunk from the document ""{documentTitle}"":
 
 {TruncateText(chunk, 2000)}
 

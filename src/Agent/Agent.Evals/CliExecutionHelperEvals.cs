@@ -2,9 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
-using Agent.Tests.Common;
-using Microsoft.Extensions.AI;
+using Agent.Core.Helpers;
 
 namespace Agent.Evals;
 

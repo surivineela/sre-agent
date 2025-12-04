@@ -408,6 +408,10 @@ public static class ToolDescriptionHelper
             nameof(SourceCodeAnalysisAgentPluginDefinition.QuerySourceBySemanticSearch) => "Querying source code by semantic search...",
             nameof(SourceCodeAnalysisAgentPluginDefinition.CorrelateErrorsWithSourceCode) => "Correlating errors with source code...",
 
+            // Memory Tools
+            nameof(AgentMemoryPluginDefinition.SearchIncidentKnowledge) => "Searching past incident knowledge...",
+            nameof(AgentMemoryPluginDefinition.SearchMemory) => "Searching knowledge base...",
+
             // Default case
             _ => DefaultSafeDescription
         };

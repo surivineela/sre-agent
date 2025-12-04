@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -89,8 +90,9 @@ public class KubectlExecutionController : ControllerBase
                 { "User", request.User ?? string.Empty }
             });
             return NotFound(new { error = "Execution not found" });
-        }            // Validate current status
-        if (execution.Status != KubectlExecutionStatus.Pending && execution.Status != KubectlExecutionStatus.PendingAuthorization)
+        }
+        // Validate current status
+        if (!execution.Status.IsPending())
         {
             return Conflict(new
             {

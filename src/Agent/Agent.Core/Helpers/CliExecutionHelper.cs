@@ -3,8 +3,11 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
+
+namespace Agent.Core.Helpers;
 
 public enum CliErrorType
 {
@@ -14,6 +17,7 @@ public enum CliErrorType
     NotFoundError,
     Other
 }
+
 public class CliExecutionResult
 {
     public string Output { get; set; } = string.Empty;
@@ -45,7 +49,7 @@ public class CliErrorIndicator
 
 public static class CliExecutionHelper
 {
-    public async static Task<CliExecutionResult> ParseCliExecutionResult(IChatClient chatClient, string output)
+    public static async Task<CliExecutionResult> ParseCliExecutionResult(IChatClient chatClient, string output)
     {
         var msg = new ChatMessage(ChatRole.System, $"""
             You are a helpful assistant that analyzes Azure CLI and kubectl command outputs to determine if the COMMAND EXECUTION itself failed.
@@ -113,5 +117,15 @@ public static class CliExecutionHelper
         {
             Output = output,
         };
+    }
+
+    public static bool IsPending(this AzCliExecutionStatus status)
+    {
+        return status == AzCliExecutionStatus.Pending || status == AzCliExecutionStatus.PendingAuthorization;
+    }
+
+    public static bool IsPending(this KubectlExecutionStatus status)
+    {
+        return status == KubectlExecutionStatus.Pending || status == KubectlExecutionStatus.PendingAuthorization;
     }
 }

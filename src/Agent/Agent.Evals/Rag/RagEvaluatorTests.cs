@@ -85,7 +85,7 @@ public class RagEvaluatorTests
         TestContext.WriteLine($"Expected relevant trajectory titles: {string.Join(", ", testCase.RelevantTrajectoryTitles)}");
 
         // Act - Execute search using the plugin abstraction layer (the way agent would use it)
-        var searchResultText = await plugin.SearchIncidentKnowledgeAsync(
+        var searchResultText = await plugin.SearchIncidentKnowledge(
             resourceId: testCase.ResourceId,
             symptoms: testCase.Query);
 
