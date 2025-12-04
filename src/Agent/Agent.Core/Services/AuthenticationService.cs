@@ -657,6 +657,16 @@ public class AuthenticationService : IAuthenticationService
 
         return new AccessToken(tokenResponse.AccessToken, tokenResponse.ExpiresOn);
     }
+
+    public TokenCredential GetAzureAnthropicCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
     #endregion
 }
 

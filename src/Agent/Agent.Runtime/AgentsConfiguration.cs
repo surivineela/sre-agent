@@ -13,6 +13,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Logging;
+using Anthropic;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -433,20 +434,35 @@ public static class AgentsConfigurationExtensions
         // register keyed IChatClient for all models in ChatClientProviderSettings.ModelNames
         if (chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames))
         {
-            var modelNames = chatClientProviderSettings.ModelNames
+            var modelsByProvider = chatClientProviderSettings.ModelNames
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(m => m.Trim())
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Distinct()
-                .ToList();
+                .GroupBy(m => m.Contains("claude") ? "claude" : m.Contains("gpt") ? "gpt" : "other")
+                .ToDictionary(g => g.Key, g => g.ToList());
 
-            foreach (var modelName in modelNames)
+            if (modelsByProvider.TryGetValue("gpt", out var openaiModels))
             {
-                services.AddKeyedSingleton(modelName, (sp, _) =>
+                foreach (var modelName in openaiModels)
                 {
-                    return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
-                });
+                    services.AddKeyedSingleton(modelName, (sp, _) =>
+                    {
+                        return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
+                    });
+                }
             }
+
+            if (modelsByProvider.TryGetValue("claude", out var anthropicModels))
+            {
+                ConfigureAnthropicChatClients(services, configuration, anthropicModels);
+            }
+
+            if (modelsByProvider.TryGetValue("other", out var unsupportedModels))
+            {
+                throw new InvalidOperationException($"Unsupported model(s) found in ChatClientProvider.ModelNames: {string.Join(", ", unsupportedModels)}");
+            }
+
         }
 
         var agentModelSettings = configuration.GetSection("AppSettings:Core:AgentModel").Get<AgentModelSettings>();
@@ -489,6 +505,7 @@ public static class AgentsConfigurationExtensions
                     })
                     .Build();
             });
+
 
         // register chat client provider
         services.AddSingleton<IChatClientProvider, ChatClientProvider>();
@@ -541,5 +558,47 @@ public static class AgentsConfigurationExtensions
 
             return client.GetEmbeddingClient(embeddingModelName).AsIEmbeddingGenerator();
         });
+    }
+
+    public static void ConfigureAnthropicChatClients(this IServiceCollection services, IConfiguration configuration, List<string> anthropicModels)
+    {
+        var anthropicSettings = configuration.GetSection("AppSettings:Core:Anthropic").Get<AnthropicSettings>();
+        if (anthropicSettings is not null)
+        {
+            foreach (var modelName in anthropicModels)
+            {
+                _ = services.AddKeyedSingleton(modelName, (sp, _) =>
+                {
+                    var authService = sp.GetRequiredService<IAuthenticationService>();
+                    var httpClient = new HttpClient();
+                    // https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+                    httpClient.DefaultRequestHeaders.Add("anthropic-beta", "structured-outputs-2025-11-13");
+
+                    var options = new Anthropic.Core.ClientOptions
+                    {
+                        BaseUrl = new Uri(anthropicSettings.BaseUrl),
+                        MaxRetries = anthropicSettings.MaxRetries,
+                        HttpClient = httpClient,
+                    };
+
+                    var client = string.IsNullOrEmpty(anthropicSettings.ApiKey) switch
+                    {
+                        false => new AnthropicClient(options).WithOptions(o =>
+                        {
+                            o.APIKey = anthropicSettings.ApiKey;
+                            return o;
+                        }),
+                        true => new AnthropicTokenCredentialClient(authService.GetAzureAnthropicCredential(), options),
+                    };
+
+                    return new ChatClientBuilder(client.AsIChatClient(modelName))
+                        .Use(next => new ReasoningChatClient(next, false))
+                        .UseTokenLogging(sp.GetRequiredService<ILoggerFactory>())
+                        .UseLogging(sp.GetRequiredService<ILoggerFactory>())
+                        .Build();
+                });
+            }
+
+        }
     }
 }

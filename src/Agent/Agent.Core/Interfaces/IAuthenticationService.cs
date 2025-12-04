@@ -70,6 +70,7 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetAzureOpenAICredential();
+    public TokenCredential GetAzureAnthropicCredential();
 
     /// <summary>
     /// Get the credential to access Application Insights

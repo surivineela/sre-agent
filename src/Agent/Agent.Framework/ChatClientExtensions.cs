@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
+using Anthropic;
 using Microsoft.Extensions.AI;
 using OpenAI.Responses;
 
@@ -197,6 +198,10 @@ public static partial class ChatClientExtensions
         // try finding using chatclient. if set to null, we will fallback to decipher using the response
         var isResponsesApi = (client as ReasoningChatClient)?.UseResponsesApi;
 
+        var clientMetadata = client.GetService<ChatClientMetadata>();
+        bool isAnthropicModel = clientMetadata?.ProviderName?.Equals("Anthropic", StringComparison.OrdinalIgnoreCase) == true ||
+            clientMetadata?.DefaultModelId?.Contains("claude", StringComparison.OrdinalIgnoreCase) == true;
+
         Debug.Assert(isResponsesApi is not null);
 
         while (true)
@@ -223,9 +228,34 @@ public static partial class ChatClientExtensions
                     // distinguish responses api based on first update if not known yet
                     isResponsesApi ??= update.RawRepresentation is OpenAI.Responses.StreamingResponseCreatedUpdate;
 
+                    if (isAnthropicModel)
+                    {
+                        // Capture model ID from updates
+                        if (string.IsNullOrWhiteSpace(modelId) && !string.IsNullOrEmpty(update.ModelId))
+                        {
+                            modelId = update.ModelId;
+                        }
+
+                        chatResponseUpdates.Add(update);
+
+                        // output text begin
+                        if (outputTextStreamHandler is not null
+                            && !string.IsNullOrEmpty(update.Text))
+                        {
+                            await outputTextStreamHandler.AppendAsync(update.Text);
+                        }
+
+                        // output text end
+                        if (outputTextStreamHandler is not null
+                            && update.Contents.Count == 0)
+                        {
+                            await outputTextStreamHandler.CompleteAsync();
+                        }
+
+                    }
                     // keeps getting text delta in case of chat completions API
                     // simple implementation
-                    if (!isResponsesApi.Value)
+                    else if (!isResponsesApi.Value)
                     {
                         var completionUpdate = update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate;
 
@@ -328,6 +358,27 @@ public static partial class ChatClientExtensions
                 if (outputTextStreamHandler is not null)
                 {
                     await outputTextStreamHandler.CompleteAsync();
+                }
+
+                if (isAnthropicModel)
+                {
+                    // Deduplicate tool call messages by tool call id for each response.Messages.Contents
+                    // because there's a bug in Anthropic SDK that may cause duplicate tool calls in streaming mode with parallel tool call enabled
+                    // https://github.com/anthropics/anthropic-sdk-csharp/issues/53
+                    foreach (var message in response.Messages)
+                    {
+                        var seenToolCallIds = new HashSet<string>();
+                        message.Contents = message.Contents
+                            .Where(content =>
+                            {
+                                if (content is FunctionCallContent toolCall)
+                                {
+                                    return seenToolCallIds.Add(toolCall.CallId);
+                                }
+                                return true;
+                            })
+                            .ToList();
+                    }
                 }
 
                 return response;

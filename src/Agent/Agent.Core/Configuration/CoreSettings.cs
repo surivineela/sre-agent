@@ -10,6 +10,7 @@ public class CoreSettings
 {
     [Required]
     public AzureSettings Azure { get; set; } = new();
+    public AnthropicSettings Anthropic { get; set; } = new();
 
     [Required]
     public ExternalSettings External { get; set; } = new();

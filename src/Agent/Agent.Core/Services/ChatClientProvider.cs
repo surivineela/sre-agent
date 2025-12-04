@@ -202,7 +202,7 @@ namespace Agent.Core.Services
 
             var errors = new List<string>();
 
-            // Validate all required scenario types (except Embedding)  
+            // Validate all required scenario types (except Embedding)
             var requiredScenarios = Enum.GetValues<ModelScenarioType>()
                 .Where(type => type != ModelScenarioType.Embedding);
 

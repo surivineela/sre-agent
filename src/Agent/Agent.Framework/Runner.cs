@@ -621,10 +621,6 @@ public static class Runner
             chatOptions.AdditionalProperties[FrameworkConstants.ReasoningEffortKey] = agent.ReasoningEffortLevel;
         }
 
-        // Anthropic models don't support structured outputs
-        var isAnthropicModel = chatClientMetaData?.DefaultModelId?.Contains("claude") ?? false;
-        var modelSupportsStructuredOutput = !isAnthropicModel;
-
         List<ChatMessage> modelInput = [new ChatMessage(ChatRole.System, systemPrompt)];
         modelInput.AddRange(ParseCompactedInput(originalInput, generatedMessages));
 
@@ -642,7 +638,11 @@ public static class Runner
         AddSkillsReminderIfNeeded(modelInput, agent, activeSkills);
 
         // tool invocations like metrics query depend on current time
-        modelInput.Add(new ChatMessage(ChatRole.System, $"The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}"));
+        // Note: this message used to be a system message which works for openai models. But claude only supports one system message
+        // Multple system messages are hoisted to a signle one by the Anthropic SDK, generating a confusing system prompt with multiple date time messages
+        // Besides, it is also bad for prompt caching because the system prompt changes every time
+        // So it's changed to a user message
+        modelInput.Add(new ChatMessage(ChatRole.User, $"<system-reminder>The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}</system-reminder>"));
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
 
@@ -659,8 +659,7 @@ public static class Runner
 
         try
         {
-            if (agent.HasStructuredOutput
-                && modelSupportsStructuredOutput)
+            if (agent.HasStructuredOutput)
             {
                 // deserialize sometimes fail with missing field, falls back to non-structured response path
                 try
