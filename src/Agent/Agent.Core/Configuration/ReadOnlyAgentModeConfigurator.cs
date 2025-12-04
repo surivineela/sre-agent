@@ -30,7 +30,7 @@ public class ReadOnlyAgentModeConfigurator<TContext> : IAgentModeConfigurator<TC
     {
         if (promptDescriptors.TryGetValue("readonly", out var readOnlyPrompt))
         {
-            agent.Instructions.AddCommonPrompt(readOnlyPrompt.Prompt);
+            agent.Instructions.AddCommonPrompt(readOnlyPrompt.Name, readOnlyPrompt.Prompt);
             _logger.LogInternalInformation("Added readonly common prompt to agent {agentName} in ReadOnly mode.", agentDescriptor.Name);
         }
         else

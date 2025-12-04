@@ -27,17 +27,17 @@ public class Agent<TContext>(string name) where TContext : class
     // Tools preconfigured in the agent
     public List<AIFunction> Tools { get; set; } = [];
 
-    public List<string> StandardToolNames => Tools.Select(t => t.Name).ToList();
+    public List<string> StandardToolNames => [.. Tools.Select(t => t.Name)];
 
     public List<AIFunction> CustomTools { get; set; } = [];
 
-    public List<string> CustomToolNames => CustomTools.Select(t => t.Name).ToList();
+    public List<string> CustomToolNames => [.. CustomTools.Select(t => t.Name)];
 
     public List<Handoff<TContext>> Handoffs { get; set; } = [];
 
     public List<AgentAsTool<TContext>> AgentsAsTools { get; set; } = [];
 
-    public List<string> HandoffNames => Handoffs.Select(h => h.Name).ToList();
+    public List<string> HandoffNames => [.. Handoffs.Select(h => h.Name)];
 
     public IAgentHooks? Hooks { get; set; }
 

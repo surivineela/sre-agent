@@ -36,6 +36,11 @@ public static class TraceAttribute
     public const string ModelTools = "model.tools";
     public const string ModelHandoffs = "model.handoffs";
     public const string ModelAgentAsTools = "model.agentAsTools";
+    public const string ModelPromptStarters = "model.promptStarters";
+    public const string ModelAgentPrompt = "model.agentPrompt";
+    public const string ModelCommonPrompts = "model.commonPrompts";
+    public const string ModelPromptEnders = "model.promptEnders";
+    public const string ModelResultSummarizationPrompt = "model.resultSummarizationPrompt";
     public const string ModelInputTokensCount = "model.input.tokens.count";
     public const string ModelOutputTokensCount = "model.output.tokens.count";
     public const string ModelTotalTokensCount = "model.total.tokens.count";

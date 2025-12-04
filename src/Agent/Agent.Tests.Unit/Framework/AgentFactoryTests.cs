@@ -246,7 +246,7 @@ public class AgentFactoryTests
                 It.IsAny<IAgentDescriptor>(),
                 It.IsAny<IReadOnlyDictionary<string, IPromptDescriptor>>()))
             .Callback<Agent<AgentContext>, IAgentDescriptor, IReadOnlyDictionary<string, IPromptDescriptor>>(
-                (agent, descriptor, prompts) => agent.Instructions.AddCommonPrompt(ModeMarker));
+                (agent, descriptor, prompts) => agent.Instructions.AddCommonPrompt("mode_marker", ModeMarker));
 
         var toolFactory = CreateToolFactory();
 

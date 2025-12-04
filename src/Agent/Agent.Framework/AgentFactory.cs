@@ -397,7 +397,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 throw new Exception($"Agent descriptor {agentDescriptor.Name} has a common prompt {commonPromptName} that does not exist.");
             }
 
-            agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+            agent.Instructions.AddCommonPrompt(commonPrompt.Name, commonPrompt.Prompt);
         }
 
         // skip the handoff instructions and preamble for vanilla agent
@@ -1190,7 +1190,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     continue;
                 }
 
-                agent.Instructions.AddCommonPrompt(commonPrompt.Prompt);
+                agent.Instructions.AddCommonPrompt(commonPrompt.Name, commonPrompt.Prompt);
             }
         }
 

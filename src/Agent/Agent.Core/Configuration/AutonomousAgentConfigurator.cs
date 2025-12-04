@@ -30,7 +30,7 @@ public class AutonomousAgentModeConfigurator<TContext> : IAgentModeConfigurator<
     {
         if (promptDescriptors.TryGetValue("autonomous", out var autonomousPrompt))
         {
-            agent.Instructions.AddCommonPrompt(autonomousPrompt.Prompt);
+            agent.Instructions.AddCommonPrompt(autonomousPrompt.Name, autonomousPrompt.Prompt);
             _logger.LogInternalInformation("Added autonomous common prompt to agent {agentName} due in autonomous mode.", agentDescriptor.Name);
         }
         else

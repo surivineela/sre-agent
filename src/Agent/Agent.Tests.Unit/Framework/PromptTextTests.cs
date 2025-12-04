@@ -68,7 +68,7 @@ namespace Agent.Tests.Unit.Framework
         public void AddCommonPrompt_AddsPrompt()
         {
             var prompt = new PromptText("abc");
-            prompt.AddCommonPrompt("def");
+            prompt.AddCommonPrompt("common", "def");
 
             Assert.Contains("def", prompt.ToString());
         }

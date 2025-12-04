@@ -13,7 +13,7 @@ public class PromptText
 
     private string? _text;
 
-    private readonly List<string> _commonPrompts = [];
+    private readonly List<(string name, string content)> _commonPrompts = [];
 
     private readonly List<string> _promptStarters = [];
 
@@ -34,6 +34,33 @@ public class PromptText
     public string GetOriginalText()
     {
         return _value;
+    }
+
+    /// <summary>
+    /// Gets the list of prompt starters added to this instruction set.
+    /// </summary>
+    /// <returns>A read-only list of prompt starters.</returns>
+    public IReadOnlyList<string> GetPromptStarters()
+    {
+        return _promptStarters.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Gets the list of common prompts added to this instruction set.
+    /// </summary>
+    /// <returns>A read-only list of common prompts.</returns>
+    public IReadOnlyList<(string name, string content)> GetCommonPrompts()
+    {
+        return _commonPrompts.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Gets the list of prompt enders added to this instruction set.
+    /// </summary>
+    /// <returns>A read-only list of prompt enders.</returns>
+    public IReadOnlyList<string> GetPromptEnders()
+    {
+        return _promptEnders.AsReadOnly();
     }
 
     public override string ToString()
@@ -66,7 +93,7 @@ public class PromptText
 
             foreach (var commonPrompt in _commonPrompts)
             {
-                builder.AppendLine(commonPrompt);
+                builder.AppendLine(commonPrompt.content);
                 builder.AppendLine();
             }
 
@@ -113,9 +140,9 @@ public class PromptText
         _text = null; // Reset cached text
     }
 
-    public void AddCommonPrompt(string promptText)
+    public void AddCommonPrompt(string promptName, string promptText)
     {
-        _commonPrompts.Add(promptText);
+        _commonPrompts.Add((promptName, promptText));
         _text = null; // Reset cached text
     }
 

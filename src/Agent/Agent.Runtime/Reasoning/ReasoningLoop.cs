@@ -1524,6 +1524,11 @@ public class ReasoningLoop : IDisposable
             _currentGenerationSpan.SetAttribute(TraceAttribute.ModelTools, FormatToolsByType(chatOptions.Tools));
             _currentGenerationSpan.SetAttribute(TraceAttribute.ModelHandoffs, FormatHandoffs(chatOptions.Tools));
             _currentGenerationSpan.SetAttribute(TraceAttribute.ModelAgentAsTools, FormatAgentAsTools(chatOptions.Tools));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelPromptStarters, FormatPromptStarters(agent.Instructions));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelAgentPrompt, FormatAgentPrompt(agent.Instructions));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelCommonPrompts, FormatCommonPrompts(agent.Instructions));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelPromptEnders, FormatPromptEnders(agent.Instructions));
+            _currentGenerationSpan.SetAttribute(TraceAttribute.ModelResultSummarizationPrompt, FormatResultSummarizationPrompt(agent.ResultSummarizationPrompt));
             return Task.CompletedTask;
         };
 
@@ -2755,6 +2760,101 @@ public class ReasoningLoop : IDisposable
         {
             return string.Empty;
         }
+    }
+
+    private static string FormatPromptStarters(PromptText? instructions)
+    {
+        if (instructions is null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var starters = instructions.GetPromptStarters();
+            return starters.Count > 0
+                ? JsonSerializer.Serialize(starters, AIJsonUtilities.DefaultOptions)
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatAgentPrompt(PromptText? instructions)
+    {
+        if (instructions is null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var agentPrompt = instructions.GetOriginalText();
+            return !string.IsNullOrEmpty(agentPrompt)
+                ? agentPrompt
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatCommonPrompts(PromptText? instructions)
+    {
+        if (instructions is null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var commonPrompts = instructions.GetCommonPrompts();
+            if (commonPrompts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            // Transform to array of objects with name and content
+            var formattedPrompts = commonPrompts.Select(cp => new
+            {
+                cp.name,
+                cp.content
+            }).ToList();
+
+            return JsonSerializer.Serialize(formattedPrompts, AIJsonUtilities.DefaultOptions);
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatPromptEnders(PromptText? instructions)
+    {
+        if (instructions is null)
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var enders = instructions.GetPromptEnders();
+            return enders.Count > 0
+                ? JsonSerializer.Serialize(enders, AIJsonUtilities.DefaultOptions)
+                : string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string FormatResultSummarizationPrompt(string? prompt)
+    {
+        return !string.IsNullOrEmpty(prompt) ? prompt : string.Empty;
     }
 
     private static string FormatExperimentVariants(IReadOnlyDictionary<string, Variant> variants)
