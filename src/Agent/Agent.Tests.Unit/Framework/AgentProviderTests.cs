@@ -151,7 +151,6 @@ public class AgentProviderTests
     public async Task AppliesForcedVariantPromptOverlay()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "prompt_experiment=prompt_overlay");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -161,24 +160,23 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("prompt_experiment=prompt_overlay");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         Assert.Contains("Replaced system prompt for agent1.", agent1.Instructions.ToString());
         Assert.Contains("Prepended text.", agent1.Instructions.ToString());
         Assert.Contains("Appended text.", agent1.Instructions.ToString());
         Assert.NotNull(agent1.HandoffDescription);
         Assert.Equal("New handoff instructions.".Trim(), agent1.HandoffDescription.ToString().Trim());
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
     public async Task AppliesToolOverlayOperations()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "tool_experiment=tools_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -188,10 +186,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("tool_experiment=tools_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         var agent2 = provider.GetAgent("agent2");
         Assert.Contains("ReplaceToolA", agent1.FactoryTools);
@@ -200,14 +199,12 @@ public class AgentProviderTests
         Assert.Contains("ExtraTool1", agent2.FactoryTools);
         Assert.Contains("ExtraTool2", agent2.FactoryTools);
         Assert.DoesNotContain("TestManualTool", agent2.FactoryTools);
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
     public async Task AppliesHandoffOverlayOperations()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "handoff_experiment=handoffs_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -217,10 +214,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("handoff_experiment=handoffs_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         var agent2 = provider.GetAgent("agent2");
         var agent3 = provider.GetAgent("agent3");
@@ -229,14 +227,12 @@ public class AgentProviderTests
         Assert.Empty(agent2.Handoffs);
         Assert.Single(agent3.Handoffs);
         Assert.Equal("agent1", agent3.Handoffs[0].AgentName);
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
     public async Task AppliesParamOverlayOperations()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "param_experiment=params_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -246,15 +242,15 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("param_experiment=params_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         var agent2 = provider.GetAgent("agent2");
         Assert.Equal("high", agent1.ReasoningEffortLevel);
         Assert.Equal("high", agent2.ReasoningEffortLevel);
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     private sealed class TestVariantAssignerNotInExperiment : IVariantAssigner
@@ -266,7 +262,6 @@ public class AgentProviderTests
     public async Task DoesNotApplyOverlayWhenNotInExperiment()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -276,10 +271,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new TestVariantAssignerNotInExperiment(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new TestVariantAssignerNotInExperiment(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         Assert.DoesNotContain("Replaced system prompt for agent1.", agent1.Instructions.ToString());
         Assert.NotEqual("New handoff instructions.", agent1.HandoffDescription?.ToString());
@@ -303,10 +298,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new TestVariantAssignerAlwaysIn(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new TestVariantAssignerAlwaysIn(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
         Assert.DoesNotContain("DISABLED_EXPERIMENT_SHOULD_NOT_APPLY", agent1.Instructions.ToString());
     }
@@ -333,10 +328,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, assigner, _mockProviderLogger.Object, "test-instance-for-coverage0");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, assigner, _mockProviderLogger.Object, "test-instance-for-coverage0");
         var agent1 = provider.GetAgent("agent1");
         Assert.DoesNotContain("COVERAGE_SHOULD_NOT_APPLY", agent1.Instructions.ToString());
         var variants = provider.GetActiveVariants("thread-x");
@@ -376,10 +371,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "global-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "global-instance");
         var agentThread1 = provider.GetAgent("agent1", threadId: "thread-1");
         var agentThread2 = provider.GetAgent("agent1", threadId: "thread-2");
         Assert.Contains("GLOBAL_VARIANT_APPLIED", agentThread1.Instructions.ToString());
@@ -402,10 +397,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "per-thread-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "per-thread-instance");
         var agentA = provider.GetAgent("agent1", threadId: "threadA");
         var agentB = provider.GetAgent("agent1", threadId: "threadB");
         Assert.Contains("PER_THREAD_VARIANT_A", agentA.Instructions.ToString());
@@ -430,7 +425,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "cache-test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "cache-test-instance");
 
         // Both threads end with "A", so they should get the same variant combination
         var agent1Thread1 = provider.GetAgent("agent1", threadId: "thread1A");
@@ -463,10 +459,10 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "cache-diff-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new DeterministicThreadVariantAssigner(), _mockProviderLogger.Object, "cache-diff-instance");
 
         // Thread ending with "A" vs "B" should get different variants
         var agentA = provider.GetAgent("agent1", threadId: "threadA");
@@ -615,7 +611,6 @@ public class AgentProviderTests
     public async Task ForceDisableExperimentsSkipsDisabledExperiments()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, "prompt_experiment;tool_experiment");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -625,10 +620,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddDisabledExperiments("prompt_experiment;tool_experiment");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         var agent1 = provider.GetAgent("agent1");
 
@@ -641,7 +637,6 @@ public class AgentProviderTests
         Assert.DoesNotContain("prompt_experiment", variants.Keys);
         Assert.DoesNotContain("tool_experiment", variants.Keys);
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, null);
     }
 
     [Fact]
@@ -649,8 +644,6 @@ public class AgentProviderTests
     {
         var toolFactory = CreateToolFactory();
         // Disable only prompt_experiment, but keep tool_experiment enabled
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, "prompt_experiment");
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "tool_experiment=tools_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -660,10 +653,12 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddDisabledExperiments("prompt_experiment");
+        experimentLoader.ParseAndAddForcedVariants("tool_experiment=tools_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         var agent1 = provider.GetAgent("agent1");
 
@@ -679,8 +674,6 @@ public class AgentProviderTests
         Assert.DoesNotContain("prompt_experiment", variants.Keys);
         Assert.Contains("tool_experiment", variants.Keys);
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, null);
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
@@ -688,8 +681,6 @@ public class AgentProviderTests
     {
         var toolFactory = CreateToolFactory();
         // Try to force a variant for an experiment that's also disabled - disable should win
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, "prompt_experiment");
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "prompt_experiment=prompt_overlay");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -699,10 +690,12 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddDisabledExperiments("prompt_experiment");
+        experimentLoader.ParseAndAddForcedVariants("prompt_experiment=prompt_overlay");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         var agent1 = provider.GetAgent("agent1");
 
@@ -713,8 +706,6 @@ public class AgentProviderTests
         var variants = provider.GetActiveVariants("test-thread");
         Assert.DoesNotContain("prompt_experiment", variants.Keys);
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar, null);
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
@@ -731,7 +722,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Get agent4 which has agent3 as a tool
         var agent4 = provider.GetAgent("agent4", threadId: "thread1");
@@ -760,7 +752,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Get agent4 for two different threads (no experiments, so same variant combination)
         var agent4Thread1 = provider.GetAgent("agent4", threadId: "thread1");
@@ -793,7 +786,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Get agent4 which has agent3 as a tool
         var agent4 = provider.GetAgent("agent4", threadId: "thread1");
@@ -818,7 +812,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Get the base agent from the factory
         var factoryAgent4 = factory.GetAgent("agent4");
@@ -844,7 +839,6 @@ public class AgentProviderTests
     public async Task CommonPromptsOverlayApplied()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "prompt_experiment=common_prompts_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -854,10 +848,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("prompt_experiment=common_prompts_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
@@ -873,14 +868,12 @@ public class AgentProviderTests
         // This means the base agent's common prompts (like todo_write) should NOT be present
         // Note: We can't easily verify this without knowing what todo_write contains
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
     public async Task HasHandoffInstructionsDisabled()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "prompt_experiment=no_handoff_instructions_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -890,10 +883,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("prompt_experiment=no_handoff_instructions_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
@@ -903,14 +897,12 @@ public class AgentProviderTests
         // The PromptText.HasHandoffInstructions should be false
         Assert.False(agent1.Instructions.HasHandoffInstructions);
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
     public async Task ApplyStandardModifiersEnabled()
     {
         var toolFactory = CreateToolFactory();
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, "prompt_experiment=apply_standard_modifiers_variant");
         var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
         var factory = new AgentFactory<AgentContext>(
             logger: _mockFactoryLogger.Object,
@@ -920,10 +912,11 @@ public class AgentProviderTests
             modeConfigurator: _mockAgentModeConfigurator.Object,
             agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
-            experimentsYamlDirectory: experimentsDir);
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance", experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("prompt_experiment=apply_standard_modifiers_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
         var agent1 = provider.GetAgent("agent1");
 
         // Verify the system prompt was replaced
@@ -936,7 +929,6 @@ public class AgentProviderTests
         // Base agent's common prompts should be present (prompt1 is in the base agent's common_prompts)
         Assert.Contains("This is a test prompt.", agent1.Instructions.ToString());
 
-        Environment.SetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar, null);
     }
 
     [Fact]
@@ -954,8 +946,8 @@ public class AgentProviderTests
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Act - Get an agent to populate the cache
         var agent1Before = provider.GetAgent("agent1");
@@ -993,8 +985,8 @@ handoffs: []
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Get agent1 to populate the cache
         var agent1Before = provider.GetAgent("agent1");
@@ -1028,7 +1020,8 @@ handoffs: []
             agentsYamlDirectory: null);
         await factory.InitializeAsync();
 
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Act - Add multiple dynamic agents
         for (int i = 1; i <= 3; i++)
@@ -1068,8 +1061,8 @@ handoffs: []
             commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
         await factory.InitializeAsync();
-
-        var provider = new AgentProvider<AgentContext>(factory, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+        var experimentLoader = new ExperimentLoader(_serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(), new HashVariantAssigner(), "test-instance");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
 
         // Populate cache for multiple threads
         var agent1Thread1Before = provider.GetAgent("agent1", threadId: "thread-1");

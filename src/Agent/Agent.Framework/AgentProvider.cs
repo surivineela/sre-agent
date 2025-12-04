@@ -15,6 +15,7 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
     where TContext : class
 {
     private readonly IAgentFactory<TContext> _factory;
+    private readonly IExperimentLoader _experimentLoader;
     private readonly IVariantAssigner _variantAssigner;
     private readonly ILogger<AgentProvider<TContext>> _logger;
     private readonly string _instanceId;
@@ -25,20 +26,15 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
     // Cache: VariantCombinationKey → Active Variants (for telemetry)
     private readonly ConcurrentDictionary<VariantCombinationKey, IReadOnlyDictionary<string, Variant>> _variantCache = new();
 
-    // Forced experiment variants from environment variable
-    private readonly Dictionary<string, string> _forcedVariants = [];
-
-    // Set of experiment IDs to force disable
-    private readonly HashSet<string> _disabledExperiments = [];
-
     public AgentProvider(
         IAgentFactory<TContext> factory,
+        IExperimentLoader experimentLoader,
         IVariantAssigner variantAssigner,
         ILogger<AgentProvider<TContext>> logger,
-        string? instanceId = null,
-        string? runtimeForcedVariants = null)
+        string? instanceId = null)
     {
         _factory = factory;
+        _experimentLoader = experimentLoader;
         _variantAssigner = variantAssigner;
         _logger = logger;
         _instanceId = instanceId ?? "default";
@@ -52,58 +48,6 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         else
         {
             _logger.LogInternalWarning("AgentProvider could not subscribe to AgentChanged event - factory is not AgentFactory<TContext>");
-        }
-
-        // Parse force-disabled experiments from environment variable
-        // Format: "experiment1;experiment2;experiment3"
-        var forceDisabledExperiments = Environment.GetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar);
-        if (!string.IsNullOrEmpty(forceDisabledExperiments))
-        {
-            var disabledExperiments = forceDisabledExperiments.Contains('*')
-                ? _factory.Experiments.Select(e => e.ExperimentId)
-                : forceDisabledExperiments.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var exp in disabledExperiments)
-            {
-                var experimentId = exp.Trim();
-                if (!string.IsNullOrEmpty(experimentId))
-                {
-                    _disabledExperiments.Add(experimentId);
-                    _logger.LogInternalInformation(
-                        "Force-disabled experiment: {ExperimentId}",
-                        experimentId);
-                }
-            }
-        }
-
-        // Parse forced experiment variants from environment variable
-        // Format: "experiment1=variant1;experiment2=variant2"
-        var forcedVariants = Environment.GetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar);
-        ParseAndAddForcedVariants(forcedVariants);
-        ParseAndAddForcedVariants(runtimeForcedVariants);
-    }
-
-    private void ParseAndAddForcedVariants(string? forcedVariants)
-    {
-        if (string.IsNullOrEmpty(forcedVariants))
-        {
-            return;
-        }
-
-        var experiments = forcedVariants.Split(';', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var exp in experiments)
-        {
-            var parts = exp.Split('=', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 2)
-            {
-                var experimentId = parts[0].Trim();
-                var variantName = parts[1].Trim();
-                _forcedVariants[experimentId] = variantName;
-                _logger.LogInternalInformation(
-                    "Forced experiment variant: {ExperimentId} = {VariantName}",
-                    experimentId,
-                    variantName);
-            }
         }
     }
 
@@ -135,17 +79,18 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
 
     private VariantCombinationKey GetOrCreateVariantKey(string? threadId)
     {
-        var assignments = _factory.Experiments
+        var assignments = _experimentLoader.Experiments
             .Select(exp =>
             {
                 // Skip if this experiment is force-disabled
-                if (_disabledExperiments.Contains(exp.ExperimentId))
+                if (_experimentLoader.IsExperimentDisabled(exp.ExperimentId))
                 {
                     return new AssignedVariant(exp.ExperimentId, "disabled", InExperiment: false);
                 }
 
                 // Check for forced variants first
-                if (_forcedVariants.TryGetValue(exp.ExperimentId, out var forcedVariantName))
+                var forcedVariantName = _experimentLoader.GetForcedVariant(exp.ExperimentId);
+                if (forcedVariantName != null)
                 {
                     var forcedVariant = exp.Variants.FirstOrDefault(v => v.Name == forcedVariantName);
                     if (forcedVariant != null)
@@ -181,10 +126,10 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
         // 3. Assign variants and apply overlays
         var activeVariants = new Dictionary<string, Variant>();
 
-        foreach (var experiment in _factory.Experiments)
+        foreach (var experiment in _experimentLoader.Experiments)
         {
             // Skip if this experiment is force-disabled
-            if (_disabledExperiments.Contains(experiment.ExperimentId))
+            if (_experimentLoader.IsExperimentDisabled(experiment.ExperimentId))
             {
                 _logger.LogInternalInformation(
                     "Experiment {ExperimentId} is force-disabled. Skipping.",
@@ -195,7 +140,8 @@ public sealed class AgentProvider<TContext> : IAgentProvider<TContext>
             Variant? variantToApply = null;
 
             // Check for forced variants first
-            if (_forcedVariants.TryGetValue(experiment.ExperimentId, out var forcedVariantName))
+            var forcedVariantName = _experimentLoader.GetForcedVariant(experiment.ExperimentId);
+            if (forcedVariantName != null)
             {
                 variantToApply = experiment.Variants.FirstOrDefault(v => v.Name == forcedVariantName);
                 if (variantToApply != null)

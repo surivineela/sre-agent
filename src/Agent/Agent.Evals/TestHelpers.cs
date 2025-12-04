@@ -397,6 +397,21 @@ public static class TestHelpers
             return replay;
         });
 
+        // Register ExperimentLoader
+        builder.Services.AddSingleton<IExperimentLoader>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<ExperimentLoader>>();
+            var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
+            var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "default";
+            var experimentsDirectory = Path.Combine(AppContext.BaseDirectory, "Experiments");
+
+            return new ExperimentLoader(
+                logger: logger,
+                variantAssigner: variantAssigner,
+                instanceId: instanceId,
+                experimentsYamlDirectory: experimentsDirectory);
+        });
+
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
@@ -415,7 +430,6 @@ public static class TestHelpers
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Experiments"),
                 promptStarters: [Core.Constants.SREAgentPromptStarter],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
@@ -428,12 +442,14 @@ public static class TestHelpers
         builder.Services.AddSingleton<IAgentProvider<AgentContext>>(sp =>
         {
             var agentFactory = sp.GetRequiredService<IAgentFactory<AgentContext>>();
+            var experimentLoader = sp.GetRequiredService<IExperimentLoader>();
             var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
             var logger = sp.GetRequiredService<ILogger<AgentProvider<AgentContext>>>();
             var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
 
             return new AgentProvider<AgentContext>(
                 factory: agentFactory,
+                experimentLoader: experimentLoader,
                 variantAssigner: variantAssigner,
                 logger: logger,
                 instanceId: instanceId);

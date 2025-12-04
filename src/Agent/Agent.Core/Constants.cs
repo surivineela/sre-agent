@@ -273,6 +273,11 @@ public class Constants
             "I am unable to fully address your request due to an internal error. Please retry to continue the conversation!";
     }
 
+    public static class FeatureFlags
+    {
+        public const string EnableResponsesApi = "EnableResponsesApi";
+    }
+
     public static readonly TimeSpan AzCliDefaultTimeout = TimeSpan.FromMinutes(15);
 }
 

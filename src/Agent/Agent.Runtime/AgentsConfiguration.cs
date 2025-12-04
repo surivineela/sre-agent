@@ -522,6 +522,13 @@ public static class AgentsConfigurationExtensions
         var experimentalSettings = serviceProvider.GetRequiredService<ExperimentalSettings>();
         var useResponsesApi = experimentalSettings.UseResponsesApi;
 
+        // load experiments to see if Responses API is enabled via experiment
+        var experimentLoader = serviceProvider.GetRequiredService<IExperimentLoader>();
+        if (experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableResponsesApi))
+        {
+            useResponsesApi = true;
+        }
+
         var client = serviceProvider.GetRequiredService<OpenAIClient>();
 
         // Pick OpenAIResponseClient or ChatClient based on experimental settings

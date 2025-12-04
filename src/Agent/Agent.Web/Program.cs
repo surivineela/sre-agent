@@ -649,6 +649,47 @@ public class Program
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
         });
 
+        // Register IVariantAssigner (must be before ExperimentLoader)
+        builder.Services.AddSingleton<IVariantAssigner, HashVariantAssigner>();
+
+        // Register ExperimentLoader as singleton
+        builder.Services.AddSingleton<IExperimentLoader>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<ExperimentLoader>>();
+            var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
+            var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
+            var experimentsDirectory = Path.Combine(AppContext.BaseDirectory, "Experiments");
+            var forceDisabledExperiments = Environment.GetEnvironmentVariable(FrameworkConstants.ForceDisableExperimentsEnvVar);
+            var forcedVariants = Environment.GetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar);
+
+            // Add runtime forced variants based on configuration
+            if (ShouldForceEnableSkills(builder))
+            {
+                logger.LogInternalInformation("Forcing skill enablement.");
+                var runtimeForcedVariants = "agent_skills=single_agent_skills_responses_api";
+                forcedVariants = string.IsNullOrEmpty(forcedVariants)
+                    ? runtimeForcedVariants
+                    : $"{forcedVariants};{runtimeForcedVariants}";
+            }
+
+            var additionalForcedVariants = GetRuntimeForcedExperimentVariants(builder);
+            if (!string.IsNullOrEmpty(additionalForcedVariants))
+            {
+                logger.LogInternalInformation($"Adding additional runtime forced experiment variants: {additionalForcedVariants}");
+                forcedVariants = string.IsNullOrEmpty(forcedVariants)
+                    ? additionalForcedVariants
+                    : $"{forcedVariants};{additionalForcedVariants}";
+            }
+
+            return new ExperimentLoader(
+                logger: logger,
+                variantAssigner: variantAssigner,
+                instanceId: instanceId,
+                experimentsYamlDirectory: experimentsDirectory,
+                forceDisabledExperiments: forceDisabledExperiments,
+                forcedVariants: forcedVariants);
+        });
+
         builder.Services.AddSingleton<IAgentFactory<AgentContext>>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<AgentFactory<AgentContext>>>();
@@ -684,7 +725,6 @@ public class Program
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Experiments"),
                 promptStarters: promptStarters.ToArray(),
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
@@ -706,28 +746,18 @@ public class Program
         builder.Services.AddSingleton<IAgentProvider<AgentContext>>(sp =>
         {
             var agentFactory = sp.GetRequiredService<IAgentFactory<AgentContext>>();
+            var experimentLoader = sp.GetRequiredService<IExperimentLoader>();
             var variantAssigner = sp.GetRequiredService<IVariantAssigner>();
             var logger = sp.GetRequiredService<ILogger<AgentProvider<AgentContext>>>();
             var instanceId = Environment.GetEnvironmentVariable("AGENT_NAME") ?? Core.Constants.DefaultAgentName;
 
-            string? forceEnabledExperiments = null;
-
-            if (ShouldForceEnableSkills(builder))
-            {
-                logger.LogInternalInformation("Forcing skill enablement.");
-                forceEnabledExperiments = "agent_skills=single_agent_with_skills";
-            }
-
             return new AgentProvider<AgentContext>(
                 factory: agentFactory,
+                experimentLoader: experimentLoader,
                 variantAssigner: variantAssigner,
                 logger: logger,
-                instanceId: instanceId,
-                runtimeForcedVariants: forceEnabledExperiments);
+                instanceId: instanceId);
         });
-
-        // Register IVariantAssigner
-        builder.Services.AddSingleton<IVariantAssigner, HashVariantAssigner>();
 
         builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
@@ -1702,6 +1732,12 @@ public class Program
         var configSet = builder.Configuration.GetValue<bool>("Enable3PSkills");
 
         return agentName.Contains("enable-3p-skills", StringComparison.InvariantCultureIgnoreCase) || configSet;
+    }
+
+    private static string GetRuntimeForcedExperimentVariants(WebApplicationBuilder builder)
+    {
+        var forcedVariants = builder.Configuration.GetValue<string>("ForcedExperimentVariants");
+        return forcedVariants ?? string.Empty;
     }
 }
 

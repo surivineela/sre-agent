@@ -64,8 +64,6 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     List<IAgentDescriptor> GetAllAgentDescriptors();
 
-    IReadOnlyList<Experiment> Experiments { get; }
-
     // Attempt loading deferred MCP agent descriptors after MCP tools become available
     void AttemptLoadDeferredMcpAgents();
 }
@@ -86,7 +84,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly string? _agentsYamlDirectory;
     private readonly string? _commonPromptsYamlDirectory;
     private readonly string? _commonToolsYamlDirectory;
-    private readonly string? _experimentsYamlDirectory;
     private readonly IEnumerable<string>? _promptStarters;
     private readonly IEnumerable<string>? _promptEnders;
     private readonly Type? _defaultOutputType;
@@ -104,7 +101,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _gpt5Enabled;
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _scheduledTasksEnabled;
-    private readonly List<Experiment> _experiments = [];
 
     // NEW: store deferred MCP agent descriptors (descriptor, isCustom, overwrite)
     private readonly List<(IAgentDescriptor Descriptor, bool IsCustom, bool Overwrite)> _deferredMcpAgentDescriptors = [];
@@ -129,7 +125,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         string? agentsYamlDirectory = null,
         string? commonPromptsYamlDirectory = null,
         string? commonToolsYamlDirectory = null,
-        string? experimentsYamlDirectory = null,
         IEnumerable<string>? promptStarters = null,
         IEnumerable<string>? promptEnders = null,
         Type? defaultOutputType = null,
@@ -148,7 +143,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _agentsYamlDirectory = agentsYamlDirectory;
         _commonPromptsYamlDirectory = commonPromptsYamlDirectory;
         _commonToolsYamlDirectory = commonToolsYamlDirectory;
-        _experimentsYamlDirectory = experimentsYamlDirectory;
         _promptStarters = promptStarters;
         _promptEnders = promptEnders;
         _modeConfigurator = modeConfigurator;
@@ -626,9 +620,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             UpdateHandoffs();
 
             UpdateAgentTools();
-
-            // Load experiments but don't apply them - they will be applied per-thread by AgentProvider
-            LoadExperimentsFromYaml();
         }
         catch (Exception ex)
         {
@@ -980,35 +971,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     public IReadOnlyDictionary<string, IPromptDescriptor> PromptDescriptors => _promptDescriptors.AsReadOnly();
 
-    private void LoadExperimentsFromYaml()
-    {
-        if (_experimentsYamlDirectory is null)
-        {
-            return;
-        }
-
-        var yamlFiles = Directory.GetFiles(_experimentsYamlDirectory, "*.yaml", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(_experimentsYamlDirectory, "*.yml", SearchOption.AllDirectories));
-
-        foreach (var yamlFile in yamlFiles)
-        {
-            try
-            {
-                string yamlContent = File.ReadAllText(yamlFile);
-                var experiment = Experiment.FromYaml(yamlContent);
-                _experiments.Add(experiment);
-                _logger.LogInternalInformation(
-                    "Successfully loaded experiment '{experimentId}' from YAML file '{yamlFile}'.",
-                    experiment.ExperimentId,
-                    yamlFile);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Failed to load experiment from file {filePath}.", yamlFile);
-            }
-        }
-    }
-
     /// <summary>
     /// Applies a variant overlay to a provided agent graph.
     /// This method is public to allow AgentProvider to apply overlays to cloned agent graphs.
@@ -1331,8 +1293,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             agent.AllowParallelToolCalls = overlay.AllowParallelToolCalls.Value;
         }
     }
-
-    public IReadOnlyList<Experiment> Experiments => _experiments.AsReadOnly();
 
     /// <summary>
     /// Raises the AgentChanged event to notify subscribers that an agent has been modified

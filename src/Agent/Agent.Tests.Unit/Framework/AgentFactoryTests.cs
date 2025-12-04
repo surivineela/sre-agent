@@ -653,25 +653,18 @@ public class AgentFactoryTests
     }
 
     [Fact]
-    public async Task LoadsExperiments()
+    public void LoadsExperiments()
     {
         var toolFactory = CreateToolFactory();
 
-        var agentFactory = new AgentFactory<AgentContext>(
-            logger: _mockLogger.Object,
-            toolFactory: toolFactory,
-            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
-            modeConfigurator: _mockAgentModeConfigurator.Object,
-            assembliesToScan: [Assembly.GetExecutingAssembly()],
-            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
-            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
-            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"),
+        var experimentLoader = new ExperimentLoader(
+            logger: NullLogger<ExperimentLoader>.Instance,
+            variantAssigner: new HashVariantAssigner(),
+            instanceId: "test-instance",
             experimentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments")
         );
 
-        await agentFactory.InitializeAsync();
-
-        Assert.NotEmpty(agentFactory.Experiments);
+        Assert.NotEmpty(experimentLoader.Experiments);
     }
 
     [Fact]

@@ -65,6 +65,38 @@ public sealed record Experiment
 
         return deserializer.Deserialize<Experiment>(yamlContent);
     }
+
+    public void Validate()
+    {
+        if (Variants == null || !Variants.Any())
+        {
+            throw new InvalidOperationException($"Experiment '{ExperimentId}' must have at least one variant defined.");
+        }
+
+        double totalSplit = Variants.Sum(v => v.Split);
+        if (totalSplit <= 0)
+        {
+            throw new InvalidOperationException($"Experiment '{ExperimentId}' must have a total variant split greater than zero.");
+        }
+
+        foreach (var variant in Variants)
+        {
+            if (variant.Split < 0 || variant.Split > 1)
+            {
+                throw new InvalidOperationException($"Variant '{variant.Name}' in experiment '{ExperimentId}' has an invalid split value of {variant.Split}. Must be between 0 and 1.");
+            }
+
+            if (variant.Overlay.SystemOverlay != null && Unit != ExperimentUnit.Global)
+            {
+                throw new InvalidOperationException($"Variant '{variant.Name}' in experiment '{ExperimentId}' defines system overlay feature flags, which is only supported for Global experiments.");
+            }
+        }
+    }
+
+    public Variant? GetVariantByName(string variantName)
+    {
+        return Variants.FirstOrDefault(v => v.Name == variantName);
+    }
 }
 
 public sealed record Variant
@@ -96,6 +128,9 @@ public sealed record VariantOverlay
 
     [YamlMember(Alias = "agent_params")]
     public IEnumerable<ParamOverlay>? ParamOverlay { get; init; }
+
+    [YamlMember(Alias = "system")]
+    public SystemOverlay? SystemOverlay { get; init; }
 }
 
 public sealed record PromptOverlay
@@ -222,4 +257,10 @@ public sealed record ParamOverlay
     public bool? AllowParallelToolCalls { get; init; }
 
     // add more model parameters as needed
+}
+
+public sealed record SystemOverlay
+{
+    [YamlMember(Alias = "feature_flags")]
+    public required IEnumerable<string> FeatureFlags { get; init; }
 }
