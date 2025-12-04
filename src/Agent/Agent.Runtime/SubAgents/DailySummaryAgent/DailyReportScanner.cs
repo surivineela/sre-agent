@@ -18,6 +18,7 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Services.Interfaces;
 using Microsoft.Extensions.AI;
@@ -229,6 +230,24 @@ public class DailyReportScanner
             isDailyReport: true);
 
         _logger.LogInternalInformation("Created thread for daily report: {ThreadId}", thread.Id);
+
+        // Emit agent action telemetry for thread creation
+        try
+        {
+            var param = JsonSerializer.Serialize(new { Message = "Daily report thread created" });
+            _logger.LogAgentAction(
+                action: AgentActionEvents.CreateThread,
+                parameter: param,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: thread.Id.ToString(),
+                subAgentName: "daily_report_agent",
+                threadSource: thread.Source.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[DailyReportScanner] Failed to emit LogAgentAction for CreateThread");
+        }
 
         _logger.LogInternalInformation("Using Agent Framework to process daily report summary");
         var message = new ThreadMessage(
