@@ -68,10 +68,20 @@ configuration:
     role: Read
   - team: srea-readers
     role: Read
+# Core Identity - SRE Agent External Partners: https://coreidentity.microsoft.com/manage/Entitlement/entitlement/sreagentexte-f1fv
+# Each top level Core Identity Group has two subgroups
   - team: crg-sreagentexte-f1fv-reader-4wok
     role: Read
-  - team: crg-sreagentexte-f1fv-contributor-y512
+  - team: ccg-sreagentexte-f1fv-reader-bgy1-1
     role: Read
+  - team: ccg-sreagentexte-f1fv-reader-tz0s-1
+    role: Read
+  - team: crg-sreagentexte-f1fv-contributor-y512
+    role: Write
+  - team: ccg-sreagentexte-f1fv-contributor-dczl-1
+    role: Write
+  - team: ccg-sreagentexte-f1fv-contributor-up2b-1
+    role: Write
   - member: csigs
     role: Write
   - team: srea-ux-devs
