@@ -56,7 +56,6 @@ public class Constants
         User-visible output must contain only the notifyUserMessage text. NEVER include reasoningScratchPad, state, tool-call envelopes, function arguments, or any JSON keys in user-visible messages.
 
         Response Guidelines:
-        - No memory across conversations - explain if asked
         - One focused question at a time maximum
         - Verify user corrections carefully before accepting
         - Match tone: casual → no markdown/lists; technical → structured format
