@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Anthropic" Version="11.0.0" />
@@ -41,6 +42,8 @@
     <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.4.0" />
     <PackageVersion Include="Azure.ResourceManager.Support" Version="1.1.0" />
     <PackageVersion Include="Azure.Search.Documents" Version="11.7.0-beta.4" />
+    <!-- overwrite to 1.8.1. See https://github.com/azure/azure-sdk-for-net/issues/53716 -->
+    <PackageVersion Include="System.ClientModel" Version="1.8.1" />
     <PackageVersion Include="Azure.Security.KeyVault.Keys" Version="4.7.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Certificates" Version="4.7.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.7.0" />
@@ -68,9 +71,9 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Csharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Diagnostics.Runtime" Version="3.1.512801" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.20" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="9.8.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="9.8.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="9.8.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageVersion Include="Microsoft.Graph" Version="5.75.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.3.0" />
@@ -99,9 +102,9 @@
     <PackageVersion Include="Microsoft.DurableTask.Worker.AzureManaged" Version="1.10.0-preview.1" />
     <!-- Override transitive dependency from Microsoft.VisualStudio.Services.Client to use 4.8.6 instead of 4.8.5 -->
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
-    <PackageVersion Include="Microsoft.Extensions.AI" Version="9.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="9.10.0-preview.1.25513.3" />
+    <PackageVersion Include="Microsoft.Extensions.AI" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.0.0-preview.1.25560.10" />
     <PackageVersion Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
@@ -126,9 +129,9 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.55.0-preview" />
     <PackageVersion Include="Microsoft.SREAgent.Incidents.IcM" Version="25.11.82" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-    <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.2" />
+    <PackageVersion Include="ModelContextProtocol" Version="0.4.1-preview.1" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
-    <PackageVersion Include="OpenAI" Version="2.5.0" />
+    <PackageVersion Include="OpenAI" Version="2.6.0" />
     <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
