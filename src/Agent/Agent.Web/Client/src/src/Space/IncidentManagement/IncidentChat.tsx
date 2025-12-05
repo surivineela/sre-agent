@@ -36,6 +36,7 @@ const IncidentChat: FC<IncidentChatProps> = ({
                     handleThreadDelete={handleThreadDelete}
                     hideCopyDeeplink={true}
                     hideFavorite={true}
+                    hideRename={true}
                 />
             }
             titleActions={titleActions}

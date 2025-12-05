@@ -80,9 +80,17 @@ interface ThreadActionsMenuProps {
     hideCopyDeeplink?: boolean;
     hideDelete?: boolean;
     hideFavorite?: boolean;
+    hideRename?: boolean;
 }
 
-const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideDelete, hideFavorite }: ThreadActionsMenuProps) => {
+const ThreadActionsMenu = ({
+    thread,
+    handleThreadDelete,
+    hideCopyDeeplink,
+    hideDelete,
+    hideFavorite,
+    hideRename,
+}: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
@@ -227,17 +235,19 @@ const ThreadActionsMenu = ({ thread, handleThreadDelete, hideCopyDeeplink, hideD
                                 {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                             </MenuItem>
                         )}
-                        <PermissionedMenuItem
-                            {...restoreFocusTargetAttributes}
-                            canPerform={canWriteThreads}
-                            noPermissionTooltip={intl.formatMessage(SreAgentResources.renamePermissionsError)}
-                            icon={<EditRegular />}
-                            onClick={() => {
-                                setIsThreadRenamingDialogOpen(true);
-                            }}
-                        >
-                            {intl.formatMessage(SreAgentResources.rename)}
-                        </PermissionedMenuItem>
+                        {!hideRename && (
+                            <PermissionedMenuItem
+                                {...restoreFocusTargetAttributes}
+                                canPerform={canWriteThreads}
+                                noPermissionTooltip={intl.formatMessage(SreAgentResources.renamePermissionsError)}
+                                icon={<EditRegular />}
+                                onClick={() => {
+                                    setIsThreadRenamingDialogOpen(true);
+                                }}
+                            >
+                                {intl.formatMessage(SreAgentResources.rename)}
+                            </PermissionedMenuItem>
+                        )}
                         {!hideDelete && (
                             <PermissionedMenuItem
                                 canPerform={canDelete}
