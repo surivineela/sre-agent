@@ -162,15 +162,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";+Pmftr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Reset draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Återställ utkast]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";+S4WAz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom response plan]]></Val>
@@ -239,15 +230,6 @@
           <Val><![CDATA[Added handoff from {sourceAgent} to subagent {targetAgent}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Överlämning har lagts till från {sourceAgent} till underagenten {targetAgent}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";+ZdOJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Stänger av schemalagda uppgifter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -777,6 +759,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0BVwlv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owning team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ägande team]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0D+7fr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft IcM]]></Val>
@@ -836,15 +827,6 @@
           <Val><![CDATA[Quick fixes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Snabbåtgärder]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";0MhOuN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete task {name}? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vill du ta bort uppgiften {name}? Du kan inte ångra den här åtgärden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1140,6 +1122,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1/3fw+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";12GY0h" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule before generating a cron expression.]]></Val>
@@ -1217,15 +1205,6 @@
           <Val><![CDATA[Add a response plan to automate incident handling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lägg till en svarsplan för att automatisera hanteringen av incidenter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1DDIYv" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to resume this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vill du återuppta den här schemalagda uppgiften?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1476,20 +1455,17 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1vVgdq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";1xTayQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter endpoint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ange slutpunkt]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1xZjpU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to pause this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vill du pausa den här schemalagda uppgiften?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1584,15 +1560,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";2CSEeq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence—get the cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskriv frekvensen – hämta cron]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";2FLZrG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total incidents]]></Val>
@@ -1670,15 +1637,6 @@
           <Val><![CDATA[Incident summary]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidentsammanfattning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";2YgmBr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schemalagd uppgift har inaktiverats]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1809,20 +1767,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3/OG7/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uppdaterar schemalagd aktivitet{name, select, undefined {} other { {name}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3/wF0G" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Slash commands]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Snedstreckskommandon]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";30Ap/Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1998,15 +1956,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3Wq8aM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3a5wL8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active]]></Val>
@@ -2145,15 +2094,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3sjbqq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating Scheduled Task...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapar schemalagd uppgift...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3t/IhV" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Can view cost data and configuration (e.g. budgets, exports).]]></Val>
@@ -2168,15 +2108,6 @@
           <Val><![CDATA[Expand navigation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Visa navigering]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";3y9DGg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Resume]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Återuppta]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2231,15 +2162,6 @@
           <Val><![CDATA[Linking Grafana dashboard to SRE Agent in progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Länkning av Grafana-instrumentpanelen till SRE-agenten pågår]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";40gxTJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Prompt]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentprompt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2321,15 +2243,6 @@
           <Val><![CDATA[This agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Den här agenten]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";493R/T" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Share your draft instructions and we’ll tailor them for a scheduled agent run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Dela dina utkastinstruktioner så anpassar vi dem för en schemalagd agentkörning.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2640,29 +2553,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";53qjcm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Updating scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Uppdaterat schemalagd uppgift]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";543Ygw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execution details and request]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Körningsinformation och begäran]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";54UIcW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[We couldn’t polish the instructions. Try again shortly.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vi kunde inte förbättra instruktionerna. Försök igen inom kort.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2834,6 +2729,15 @@
           <Val><![CDATA[Create new]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skapa ny]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5WNvJO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kör schemalagd aktivitet{name, select, undefined {} other { {name}}}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3336,15 +3240,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6YHhH+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[e.g. */5 * * * *]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[t.ex. */5 * * * *]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6YXj/s" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Contribute to Speech service resources.]]></Val>
@@ -3363,29 +3258,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6aH1+U" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapa en schemalagd uppgift]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6bkNTl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation ID:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Korrelations-ID:]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6dEJ43" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron-utkast]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3530,15 +3407,6 @@
           <Val><![CDATA[Generating insights...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Genererar insikter...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";75lAeu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select end date for scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Välj slutdatum för schemalagd uppgift]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3963,6 +3831,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8H0PeE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8LMIGa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[These will be replaced with actual values at runtime.]]></Val>
@@ -4173,20 +4047,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8lQNdb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagda aktiviteter har tagits bort.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8nBFW4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Redis Cache Contributor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Redis Cache-deltagare]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";8ojA9A" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Let AI polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Låt AI förbättra instruktionerna]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4464,15 +4338,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";9MPGF8" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentinstruktioner]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";9MwJ6v" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[e.g., IncidentAnalyzer]]></Val>
@@ -4635,15 +4500,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";A0mVzo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Define success / failure signals and required output format if specific.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Definiera signaler för framgång/misslyckande och önskat utdataformat om det är specifikt.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";A0rbH+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IcM connected. Your next step is to set up incident response plans.]]></Val>
@@ -4658,15 +4514,6 @@
           <Val><![CDATA[Your annotation is updated successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Anteckningen har uppdaterats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";A3ptul" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Templates]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mallar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4845,24 +4692,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";AaJ/LU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Förbättra instruktionerna]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";AbXVP4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Created at]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapat]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Abi/u/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand panel]]></Val>
@@ -4886,15 +4715,6 @@
           <Val><![CDATA[Enter instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ange instruktioner]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Ad7J7h" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to delete task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att ta bort uppgiften: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4976,6 +4796,15 @@
           <Val><![CDATA[REST API access key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[REST API-åtkomstnyckel]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";AuUgE1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} har körts.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5093,15 +4922,6 @@
           <Val><![CDATA[Azure Center for SAP solutions reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Center for SAP solutions-läsare]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BLU3k6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Redigera en schemalagd uppgift]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5264,15 +5084,6 @@
           <Val><![CDATA[Collapse panel]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dölj panel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BynA9c" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Optional tweaks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Valfria justeringar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6510,15 +6321,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";FNQNS1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Weekdays at 9am Pacific]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vardagar kl. 09.00 Pacific]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";FPdoJ3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Define how incidents are detected and reviewed, and the instructions for how the agent responds.]]></Val>
@@ -6533,24 +6335,6 @@
           <Val><![CDATA[No source agent specified]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ingen källagent har angetts]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSYccN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[When should this task run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[När ska den här uppgiften köras?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSZ5F/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tar bort den schemalagda uppgiften {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6596,15 +6380,6 @@
           <Val><![CDATA[Disconnected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Frånkopplad]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FZwBv0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Körningsinformation]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7071,15 +6846,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Gvxoji" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Name is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Namn måste anges]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";GzKpRn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count} params detected]]></Val>
@@ -7193,15 +6959,6 @@
           <Val><![CDATA[Build Your Agent Ecosystem]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Bygg ditt agentekosystem]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HOJNsf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select when the task should stop running]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Välj när uppgiften ska sluta köras]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7668,15 +7425,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IbMKy+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use this version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Använd den här versionen]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";IcB2fr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool method argument that receives this value]]></Val>
@@ -7754,6 +7502,15 @@
           <Val><![CDATA[Auto-apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tillämpa automatiskt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";IpS9Tn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn on scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktivera schemalagda aktiviteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7844,6 +7601,15 @@
           <Val><![CDATA[Failed to validate ServiceNow settings. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att verifiera ServiceNow-inställningarna. Försök igen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";J3nUiY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagda aktiviteter är nu inaktiverade.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7952,6 +7718,15 @@
           <Val><![CDATA[With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Med incidentsvarsplaner väljer agenten de verktyg som behövs för att hantera vanliga typer av incidenter. Anpassade svarsplaner ersätter den här funktionen genom att ge agenten specifika instruktioner som du tillhandahåller.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JSVEZ3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort schemalagda uppgifter.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8247,15 +8022,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";JzOvG/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Assumptions we made]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Antaganden som vi har gjort]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";K1h5xo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled tasks require an upgrade. Contact your administrator to enable them.]]></Val>
@@ -8279,15 +8045,6 @@
           <Val><![CDATA[Show]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Visa]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";K7tsik" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task ran successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Den schemalagda aktiviteten har slutförts]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8400,15 +8157,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KS5JHs" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution count]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Antal körningar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";KXyWfi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Urgency]]></Val>
@@ -8502,21 +8250,18 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KiANnA" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turn on scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktivera schemalagda uppgifter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Kkc3/u" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Redigera incidentsvarsplan]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";KlWAix" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn on scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8682,15 +8427,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";LFn7Ak" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task created successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Den schemalagda uppgiften har skapats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LGZkPZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to YAML]]></Val>
@@ -8835,6 +8571,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LjwVHP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagda aktiviteter är nu aktiverade.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LkUvu/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule]]></Val>
@@ -8973,6 +8718,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";M+AZNX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ta bort schemalagda uppgifter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";M+QCSD" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter {name}]]></Val>
@@ -8982,29 +8736,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";M/3/kG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions must be a positive number.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Högsta antal körningar måste vara ett positivt tal.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";M/zZVx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lägg till filter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";M0ay1D" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kör schemalagda aktiviteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9201,29 +8937,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";MPzBut" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution history]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Historik över körningar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MQNtQ+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data Connectors]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dataanslutningar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";MSWnaq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapa en ny schemalagd uppgift för att övervaka eller utföra åtgärder med jämna mellanrum med hjälp av cron-uttryck.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9327,15 +9045,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Mx6yYf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schemalagda uppgifter har inaktiverats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MxYLKu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add SRE Agent Administrator role]]></Val>
@@ -9408,11 +9117,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";N7cqYp" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";N75VIa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task {name}]]></Val>
+          <Val><![CDATA[Creating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Inaktivera den schemalagda uppgiften {name}]]></Val>
+            <Val><![CDATA[Skapar schemalagd aktivitet{name, select, undefined {} other { {name}}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9440,15 +9149,6 @@
           <Val><![CDATA[Authorized]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Auktoriserad]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";NBiLYK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Drafting…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapar utkast...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9708,6 +9408,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";O25MZU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Välj alla verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";O3Ak71" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to use this feature.]]></Val>
@@ -9740,6 +9449,15 @@
           <Val><![CDATA[Fresh]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ny]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ODswb7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktiverar schemalagd aktivitet{name, select, undefined {} other { {name}}}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10275,15 +9993,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PXYq8b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a valid 5-part cron expression (m h dom mon dow).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ange ett giltigt cron-uttryck med 5 delar (m h dom mon dow).]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PXg8+x" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Virtual Machine Contributor]]></Val>
@@ -10437,15 +10146,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PxsPJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktiverar schemalagda uppgifter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PysW/n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reset changes]]></Val>
@@ -10478,6 +10178,15 @@
           <Val><![CDATA[Decision Time]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Beslutstid]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Q0B/Lb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams that allow incident assignment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Endast team som tillåter incidenttilldelning]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10532,15 +10241,6 @@
           <Val><![CDATA[Description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Beskrivning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Q9IHxV" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kör den schemalagda uppgiften {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10887,6 +10587,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";R56nxF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to create scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";R7DP3y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolved by agent]]></Val>
@@ -10901,15 +10607,6 @@
           <Val><![CDATA[Incident threads have moved]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidenttrådarna har flyttats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";RA3fki" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Missing context]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kontext saknas]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11214,6 +10911,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";S8Rsb6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} har tagits bort.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SAINuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Azure Managed Grafana]]></Val>
@@ -11250,6 +10956,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SEdSoA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been updated.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} har uppdaterats.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SFUZOQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident created]]></Val>
@@ -11264,15 +10979,6 @@
           <Val><![CDATA[Threads with Insights ({count})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Trådar med Insights ({count})]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";SL+c5a" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[—]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[—]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11408,6 +11114,15 @@
           <Val><![CDATA[Owning team ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ID för ägande team]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SjeMma" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kör schemalagda aktiviteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11628,15 +11343,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";TFsGSl" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Leave empty for unlimited executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Lämna tomt för obegränsade körningar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";TGc4Lh#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete incident triggers]]></Val>
@@ -11703,6 +11409,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TKNqWx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now active.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} är nu aktiv.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TKmub+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This field is required]]></Val>
@@ -11717,15 +11432,6 @@
           <Val><![CDATA[Across all incidents in {platform}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[För alla incidenter på {platform}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";TKsgZu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Key alerts]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nyckelaviseringar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12036,6 +11742,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Uiw6Xo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inaktiverar schemalagda aktiviteter.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UjETJe" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Base incident]]></Val>
@@ -12149,15 +11864,6 @@
           <Val><![CDATA[Hide]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dölj]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";VB+AjJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Custom Cron Expression]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Anpassat Cron-uttryck]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12320,6 +12026,15 @@
           <Val><![CDATA[Review (Default)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Granska (standard)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Vi21gb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktiverar schemalagda aktiviteter.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12585,6 +12300,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";WUZAzC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} är nu inaktiverad.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";WVTzuw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The action was completed using temporary permissions granted by {name}.]]></Val>
@@ -12599,15 +12323,6 @@
           <Val><![CDATA[Grafana dashboard created successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana-instrumentpanelen har skapats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";WbV0j4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Editing: {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Redigerar: {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12867,15 +12582,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";X5UCWb" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Den schemalagda uppgiften har tagits bort]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";X5yqtT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PostgreSQL]]></Val>
@@ -12908,15 +12614,6 @@
           <Val><![CDATA[The action was canceled.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Åtgärden avbröts.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XCfiZ2" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Draft the cron for me]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapa ett cron-utkast åt mig]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13002,15 +12699,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";XJuPK6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Include any resource identifiers (e.g. subscription / resource group) needed each run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ta med alla resursidentifierare (t.ex. prenumeration/resursgrupp) som behövs vid varje körning.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";XKWCS3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Removed the starter agent. Next messages will stay in this thread.]]></Val>
@@ -13025,15 +12713,6 @@
           <Val><![CDATA[The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fullständigt autonomt läge. Med nödvändiga behörigheter analyserar agenten incidenter och utför självständigt åtgärder eller resursändringar.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XKvrQy" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Task Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Information om uppgift]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13268,15 +12947,6 @@
           <Val><![CDATA[equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[är lika med]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Y3qQB0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktiverar den schemalagda uppgiften {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13668,15 +13338,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZA4OiK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to create scheduled task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att skapa schemalagd uppgift: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ZAkVKt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a handoff subagent]]></Val>
@@ -13718,15 +13379,6 @@
           <Val><![CDATA[Updating upgrade channel to {channel}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Uppdaterar uppgraderingskanalen till {channel}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ZMa6Rh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tar bort de schemalagda uppgifterna]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14022,15 +13674,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";a7QT/5" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Advanced: Use cron format (minute hour day month day-of-week)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Avancerat: Använd cron-format (minut timme dag månad veckodag)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";a8czK7" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a knowledge source]]></Val>
@@ -14304,15 +13947,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ajASB/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Keep description short; put detailed run logic here.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Håll beskrivningen kort; lägg detaljerad körningslogik här.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";anSi7M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to load resource groups.]]></Val>
@@ -14421,24 +14055,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";b3sNCU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn off task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att inaktivera uppgiften: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";b5OEXm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[How often should it run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Hur ofta ska den köras?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";b7D4Lh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage the identities associated with your agent which may be used to communicate with other services]]></Val>
@@ -14484,6 +14100,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bGIW7m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn off scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bICPAQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread Feedback]]></Val>
@@ -14511,11 +14133,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bMqcq2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inaktiverar schemalagd aktivitet{name, select, undefined {} other { {name}}}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bN0x+w" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Device Provisioning Service Data Reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dataläsare för Device Provisioning Service]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bR/LRB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Välj alla verktyg i {groupName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14618,15 +14258,6 @@
           <Val><![CDATA[Please restart the chat to see your changes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Starta om chatten för att se ändringarna.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bjOnWH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Add your draft instructions before asking for polish.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Lägg till dina utkastinstruktioner innan du ber om förbättring.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15234,20 +14865,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";dI9gP+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentinstruktioner]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";dJqE3e" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create scheduled task]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skapa schemalagd uppgift]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dLWrbO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams with an on-call rotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Endast team med jourrotation]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15275,15 +14906,6 @@
           <Val><![CDATA[This feature isn't available in this portal yet.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Den här funktionen är ännu inte tillgänglig i den här portalen.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dQKATf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please enter a name (min 3 characters).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ange ett namn (minst 3 tecken).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15333,11 +14955,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";daUwAL" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";dbXXhB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Creating scheduled task]]></Val>
+          <Val><![CDATA[Running scheduled tasks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapar schemalagd uppgift]]></Val>
+            <Val><![CDATA[Kör schemalagda aktiviteter.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15347,15 +14969,6 @@
           <Val><![CDATA[Schedule Preview]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Förhandsgranskning av schema]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dhmpfi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Delete scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ta bort schemalagda uppgifter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15446,15 +15059,6 @@
           <Val><![CDATA[Never]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aldrig]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dw6Z3b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What it means]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vad det betyder]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15630,15 +15234,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ee4AUg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned on successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schemalagd uppgift har aktiverats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";egubDj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{score}% confidence]]></Val>
@@ -15716,15 +15311,6 @@
           <Val><![CDATA[Custom response guidance]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Anpassad svarsvägledning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";euBSDU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions are required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentinstruktioner måste anges.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15819,24 +15405,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";f6xT1Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned on successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schemalagda uppgifter har aktiverats]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";f7Zx3L" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Prompt Tips]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tips för prompt]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";f9xN/g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rising Specialist]]></Val>
@@ -15914,15 +15482,6 @@
           <Val><![CDATA[Insights: {status}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Insikter: {status}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";fIQSsD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Couldn’t draft the cron yet. Refine the description and try again.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att skapa cron-uttrycket än. Förfina beskrivningen och försök igen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16296,15 +15855,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gdUWAX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Description should be 140 characters or fewer.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskrivningen får innehålla högst 140 tecken.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ggVnjB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread ID]]></Val>
@@ -16364,15 +15914,6 @@
           <Val><![CDATA[Enter the database name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ange namnet på databasen]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";grgDhd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to load scheduled tasks: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att läsa in schemalagda aktiviteter: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16836,15 +16377,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";iDPKM0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Filter tasks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Filtrera uppgifter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";iDSWYk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning.]]></Val>
@@ -16913,6 +16445,15 @@
           <Val><![CDATA[Create a new trigger with custom settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skapa en ny utlösare med anpassade inställningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";iWNutw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort schemalagd aktivitet{name, select, undefined {} other { {name}}}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17379,15 +16920,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";jX6uvW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to run task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att köra aktiviteten: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";jXIYLG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to edit response plans.]]></Val>
@@ -17438,15 +16970,6 @@
           <Val><![CDATA[Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Databas]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";jlOO/9" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Next execution]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nästa körning]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17555,15 +17078,6 @@
           <Val><![CDATA[Number]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nummer]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";kG0ZtT" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Other cron ideas]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Andra cron-idéer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17757,15 +17271,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l+e8nZ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vill dul ta bort de valda schemalagda uppgifterna? Du kan inte ångra den här åtgärden.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l0UKyP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Data Explorer]]></Val>
@@ -17811,11 +17316,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l8IRTD" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";lCe4Sh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) ran successfully]]></Val>
+          <Val><![CDATA[Search Icm team]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Schemalagda aktiviteter har körts]]></Val>
+            <Val><![CDATA[Sök efter ICM-team]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17852,15 +17357,6 @@
           <Val><![CDATA[Default]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Standard]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";lM2HXD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No prompt provided.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ingen prompt har angetts.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18086,15 +17582,6 @@
           <Val><![CDATA[Edit QnA Maker knowledge bases.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Redigera QnA Maker-kunskapsbaser.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";mChei1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Detaljerade instruktioner i flera rader. Ange: mål, sammanhang/resurser, begränsningar, framgångskriterier.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18522,15 +18009,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";nRkusX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron expression is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron-uttryck krävs]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";nUT0Lv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools]]></Val>
@@ -18702,15 +18180,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";o9bCTX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Last execution]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Senaste körning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";oBv1Sy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Relevant Documents]]></Val>
@@ -18869,15 +18338,6 @@
           <Val><![CDATA[Writer/Operator]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skrivare/operator]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";oXd3cw" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Högsta antal körningar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19094,6 +18554,15 @@
           <Val><![CDATA[P4]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[P4]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";pByJCZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagda aktiviteter har körts.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19341,15 +18810,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";psUT6S" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Maximum number of times this task should run]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Högsta antal gånger som den här uppgiften ska köras]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";puQ/kF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading chat threads]]></Val>
@@ -19445,15 +18905,6 @@
           <Val><![CDATA[The agent references documentation and files to understand your projects and processes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Agenten hänvisar till dokumentation och filer för att förstå dina projekt och processer.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qavd9Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tell us how often your agent should run and we’ll draft the cron expression for you.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Berätta hur ofta agenten ska köras, så skapar vi cron-uttrycket åt dig.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20463,15 +19914,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";sf6hMj" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Heads-up]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Förvarning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";sjlioi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent invoked]]></Val>
@@ -20706,15 +20148,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";tFFMkF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Pause]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pausa]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";tFoDh3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Yes, turn on deep investigation]]></Val>
@@ -20900,24 +20333,6 @@
           <Val><![CDATA[Experiment with your agent's configuration and see real-time results]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Experimentera med agentens konfiguration och se resultaten i realtid]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";tkr5bn" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turn off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Stäng av schemalagda uppgifter]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";trPabo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No scheduled tasks found]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Inga schemalagda uppgifter hittades]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21339,15 +20754,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";unj6JR" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create from template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapa från mall]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";unxs9C" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools selected for incident response]]></Val>
@@ -21420,15 +20826,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";v0CXYP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a descriptive name for your task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ange ett beskrivande namn på din uppgift]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";v0fBOU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse all]]></Val>
@@ -21461,15 +20858,6 @@
           <Val><![CDATA[Kusto tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kusto-verktyg]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";v8cTK0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task updated successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Den schemalagda uppgiften har uppdaterats]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21591,24 +20979,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";vSW3OF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to update task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att uppdatera uppgiften: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";vV67Wm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn on task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att inaktivera uppgiften: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";vVpzJQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Suggested instructions]]></Val>
@@ -21632,6 +21002,15 @@
           <Val><![CDATA[Warning actions present]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Varningsåtgärder förekommer]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vZRYf4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Avmarkera alla verktyg]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21767,15 +21146,6 @@
           <Val><![CDATA[Clear description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Rensa beskrivning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";w4Nqlr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Run scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kör schemalagda aktiviteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22059,15 +21429,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wgyFIG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polishing…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Förbättrar...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wjEBlr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{metric} is at {score}%. Continue refining to move toward the next tier.]]></Val>
@@ -22140,15 +21501,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";x1YTqM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence before we can help.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskriv frekvensen innan vi kan hjälpa dig.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";x25AjF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool usage ID]]></Val>
@@ -22190,6 +21542,15 @@
           <Val><![CDATA[Click here to learn more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Klicka här om du vill läsa mer]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xGK1X2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Avmarkera alla verktyg i {groupName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22446,15 +21807,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";xxoHVE" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent prompt is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentprompt måste anges]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";xy47sz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to parse YAML: {message}]]></Val>
@@ -22550,6 +21902,15 @@
           <Val><![CDATA[Chat input]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Chattindata]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yGVEST" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete these scheduled tasks? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vill du ta bort de här schemalagda aktiviteterna? Du kan inte ångra den här åtgärden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22680,15 +22041,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yf9+0C" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polished version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Förbättrad version]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";yh4G7g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[System assigned]]></Val>
@@ -22739,6 +22091,15 @@
           <Val><![CDATA[Managed resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hanterade resursgrupper]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yisTNp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn off scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inaktivera schemalagda aktiviteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22854,15 +22215,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yzfsFI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Short one-line summary (<=140 chars)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kort enradssammanfattning (<=140 tecken)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";z0uI4M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run scenario]]></Val>
@@ -22877,24 +22229,6 @@
           <Val><![CDATA[View Knowledge Base]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Visa kunskapsbas]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z5cF/O" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Description must be a single line summary.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskrivningen måste vara en sammanfattande rad.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z7SGAU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[De schemalagda uppgifterna har tagits bort]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23043,15 +22377,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";zZsxcQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[State frequency-sensitive expectations (e.g. "summarize only last 15m of metrics").]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ange frekvenskänsliga förväntningar (t.ex. ”sammanfatta endast de senaste 15 uppmätta minuterna”).]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";zaYxwd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident]]></Val>
@@ -23075,6 +22400,15 @@
           <Val><![CDATA[Deleting {count} incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tar bort {count} incidenter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zefL4U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemalagd aktivitet{name, select, undefined {} other { {name}}} är nu på.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

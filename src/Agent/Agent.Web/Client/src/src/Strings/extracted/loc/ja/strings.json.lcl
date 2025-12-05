@@ -162,15 +162,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";+Pmftr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Reset draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[下書きをリセットする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";+S4WAz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom response plan]]></Val>
@@ -239,15 +230,6 @@
           <Val><![CDATA[Added handoff from {sourceAgent} to subagent {targetAgent}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{sourceAgent} からサブエージェント {targetAgent} へのハンドオフが追加されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";+ZdOJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクをオフにしています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -774,6 +756,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0BVwlv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owning team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所有チーム]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0D+7fr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft IcM]]></Val>
@@ -833,15 +824,6 @@
           <Val><![CDATA[Quick fixes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[クイック修正]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";0MhOuN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete task {name}? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスク {name} を削除しますか?この操作は元に戻せません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1134,6 +1116,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1/3fw+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクを更新できませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";12GY0h" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule before generating a cron expression.]]></Val>
@@ -1211,15 +1202,6 @@
           <Val><![CDATA[Add a response plan to automate incident handling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデントへの対応を自動化する応答プランを追加する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1DDIYv" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to resume this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[このスケジュールされたタスクを再開しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1467,20 +1449,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1vVgdq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクを実行できませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";1xTayQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter endpoint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エンドポイントの入力]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1xZjpU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to pause this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[このスケジュールされたタスクを一時停止しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1575,15 +1557,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";2CSEeq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence—get the cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[周期を説明して、Cron を取得する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";2FLZrG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Total incidents]]></Val>
@@ -1661,15 +1634,6 @@
           <Val><![CDATA[Incident summary]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデントの要約]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";2YgmBr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常にオフになりました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1800,20 +1764,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3/OG7/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} を更新しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3/wF0G" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Slash commands]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スラッシュ コマンド]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";30Ap/Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1989,15 +1953,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3Wq8aM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3a5wL8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active]]></Val>
@@ -2133,15 +2088,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3sjbqq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating Scheduled Task...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを作成しています...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3t/IhV" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Can view cost data and configuration (e.g. budgets, exports).]]></Val>
@@ -2156,15 +2102,6 @@
           <Val><![CDATA[Expand navigation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ナビゲーションの展開]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";3y9DGg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Resume]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[再開]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2219,15 +2156,6 @@
           <Val><![CDATA[Linking Grafana dashboard to SRE Agent in progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana ダッシュボードの SRE エージェントへのリンクが進行中です]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";40gxTJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Prompt]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェント プロンプト]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2309,15 +2237,6 @@
           <Val><![CDATA[This agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[このエージェント]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";493R/T" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Share your draft instructions and we’ll tailor them for a scheduled agent run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[下書きの指示を教えてもらえれば、スケジュールされたエージェントの実行に合わせてこちらでそれを調整します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2628,29 +2547,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";53qjcm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Updating scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを更新しています]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";543Ygw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execution details and request]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[実行の詳細と要求]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";54UIcW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[We couldn’t polish the instructions. Try again shortly.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[指示を推敲できませんでした。しばらくしてから、もう一度お試しください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2822,6 +2723,15 @@
           <Val><![CDATA[Create new]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新規作成]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5WNvJO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} を実行しています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3321,15 +3231,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6YHhH+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[e.g. */5 * * * *]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[例: */5 * * * *]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6YXj/s" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Contribute to Speech service resources.]]></Val>
@@ -3348,29 +3249,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6aH1+U" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを作成する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6bkNTl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation ID:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[関連付け ID:]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6dEJ43" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron の下書き]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3515,15 +3398,6 @@
           <Val><![CDATA[Generating insights...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[分析情報を生成しています...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";75lAeu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select end date for scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクの終了日を選択します]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3942,6 +3816,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8H0PeE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクを削除できませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8LMIGa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[These will be replaced with actual values at runtime.]]></Val>
@@ -4149,20 +4032,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8lQNdb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクが削除されました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8nBFW4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Redis Cache Contributor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Redis Cache 共同作成者]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";8ojA9A" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Let AI polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AI に指示を推敲させる]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4437,15 +4320,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";9MPGF8" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェントの指示]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";9MwJ6v" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[e.g., IncidentAnalyzer]]></Val>
@@ -4608,15 +4482,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";A0mVzo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Define success / failure signals and required output format if specific.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[成功/失敗のシグナルと、特定の場合に必要な出力形式を定義します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";A0rbH+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IcM connected. Your next step is to set up incident response plans.]]></Val>
@@ -4631,15 +4496,6 @@
           <Val><![CDATA[Your annotation is updated successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[注釈が正常に更新されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";A3ptul" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Templates]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[テンプレート]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4815,24 +4671,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";AaJ/LU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[指示を推敲する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";AbXVP4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Created at]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[作成時刻]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Abi/u/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand panel]]></Val>
@@ -4856,15 +4694,6 @@
           <Val><![CDATA[Enter instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[指示の入力]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Ad7J7h" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to delete task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクの削除に失敗しました。{errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4946,6 +4775,15 @@
           <Val><![CDATA[REST API access key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[REST API アクセス キー]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";AuUgE1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} が実行されました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5063,15 +4901,6 @@
           <Val><![CDATA[Azure Center for SAP solutions reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure Center for SAP solutions 閲覧者]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BLU3k6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを編集する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5234,15 +5063,6 @@
           <Val><![CDATA[Collapse panel]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[パネルを折りたたむ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BynA9c" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Optional tweaks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[オプションの調整]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6480,15 +6300,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";FNQNS1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Weekdays at 9am Pacific]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[平日の午前 9 時 (太平洋標準時)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";FPdoJ3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Define how incidents are detected and reviewed, and the instructions for how the agent responds.]]></Val>
@@ -6503,24 +6314,6 @@
           <Val><![CDATA[No source agent specified]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ソース エージェントが指定されていません]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSYccN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[When should this task run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[このタスクはいつ実行しますか?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSZ5F/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスク {name} を削除しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6566,15 +6359,6 @@
           <Val><![CDATA[Disconnected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[切断]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FZwBv0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[実行の詳細]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7038,15 +6822,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Gvxoji" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Name is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[名前は必須です]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";GzKpRn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count} params detected]]></Val>
@@ -7160,15 +6935,6 @@
           <Val><![CDATA[Build Your Agent Ecosystem]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エージェント エコシステムを構築]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HOJNsf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select when the task should stop running]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクの実行を停止するタイミングを選択します]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7632,15 +7398,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IbMKy+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use this version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[このバージョンを使用する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";IcB2fr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool method argument that receives this value]]></Val>
@@ -7718,6 +7475,15 @@
           <Val><![CDATA[Auto-apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[自動適用]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";IpS9Tn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn on scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオンにする]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7808,6 +7574,15 @@
           <Val><![CDATA[Failed to validate ServiceNow settings. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ServiceNow の設定を検証できませんでした。もう一度お試しください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";J3nUiY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクがオフになりました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7916,6 +7691,15 @@
           <Val><![CDATA[With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデント対応計画を使用すると、一般的な種類のインシデントを管理するために必要なツールがエージェントによって選択されます。カスタム対応計画は、指定した特定の指示をエージェントに与えることによって、この機能を置き換えます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JSVEZ3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクを削除しています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8208,15 +7992,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";JzOvG/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Assumptions we made]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[こちらで行った想定]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";K1h5xo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled tasks require an upgrade. Contact your administrator to enable them.]]></Val>
@@ -8240,15 +8015,6 @@
           <Val><![CDATA[Show]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[表示]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";K7tsik" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task ran successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に実行されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8361,15 +8127,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KS5JHs" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution count]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[実行回数]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";KXyWfi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Urgency]]></Val>
@@ -8460,20 +8217,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KiANnA" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turn on scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを有効にする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Kkc3/u" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデント対応計画の編集]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";KlWAix" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn on scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオンにできませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8640,15 +8397,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";LFn7Ak" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task created successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に作成されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LGZkPZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to YAML]]></Val>
@@ -8793,6 +8541,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LjwVHP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクがオンになりました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LkUvu/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule]]></Val>
@@ -8928,6 +8685,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";M+AZNX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクの削除]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";M+QCSD" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter {name}]]></Val>
@@ -8937,29 +8703,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";M/3/kG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions must be a positive number.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最大実行数は正の数である必要があります。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";M/zZVx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[フィルターの追加]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";M0ay1D" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを実行しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9153,29 +8901,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";MPzBut" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution history]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[実行履歴]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MQNtQ+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data Connectors]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データ コネクタ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";MSWnaq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron 式を使って、定期的に監視やアクションを実行する新しいスケジュールされたタスクを作成します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9279,15 +9009,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Mx6yYf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常にオフになりました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MxYLKu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add SRE Agent Administrator role]]></Val>
@@ -9360,11 +9081,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";N7cqYp" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";N75VIa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task {name}]]></Val>
+          <Val><![CDATA[Creating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスク {name} をオフにしています]]></Val>
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} を作成しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9392,15 +9113,6 @@
           <Val><![CDATA[Authorized]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[承認済み]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";NBiLYK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Drafting…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[下書き作成中…]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9657,6 +9369,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";O25MZU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[すべてのツールの選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";O3Ak71" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to use this feature.]]></Val>
@@ -9689,6 +9410,15 @@
           <Val><![CDATA[Fresh]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[最新の情報に更新]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ODswb7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} をオンにしています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10224,15 +9954,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PXYq8b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a valid 5-part cron expression (m h dom mon dow).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[有効な 5 部構成の Cron 式 (分 時 日 月 曜日) を入力します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PXg8+x" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Virtual Machine Contributor]]></Val>
@@ -10386,15 +10107,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PxsPJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスク {name} を有効にしています]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PysW/n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reset changes]]></Val>
@@ -10427,6 +10139,15 @@
           <Val><![CDATA[Decision Time]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[判定時刻]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Q0B/Lb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams that allow incident assignment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[インシデントの割り当てを許可しているチームのみ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10481,15 +10202,6 @@
           <Val><![CDATA[Description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[説明]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Q9IHxV" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスク {name} を実行しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10836,6 +10548,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";R56nxF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to create scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクを作成できませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";R7DP3y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolved by agent]]></Val>
@@ -10850,15 +10571,6 @@
           <Val><![CDATA[Incident threads have moved]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[インシデント スレッドは移動しました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";RA3fki" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Missing context]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[コンテキストがありません]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11160,6 +10872,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";S8Rsb6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} が削除されました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SAINuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Azure Managed Grafana]]></Val>
@@ -11196,6 +10917,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SEdSoA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been updated.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} が更新されました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SFUZOQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident created]]></Val>
@@ -11210,15 +10940,6 @@
           <Val><![CDATA[Threads with Insights ({count})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[分析情報を含むスレッド ({count})]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";SL+c5a" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[—]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[—]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11354,6 +11075,15 @@
           <Val><![CDATA[Owning team ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[所有チーム ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SjeMma" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクの実行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11574,15 +11304,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";TFsGSl" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Leave empty for unlimited executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[無制限の実行の場合は空のままにします]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";TGc4Lh#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete incident triggers]]></Val>
@@ -11646,6 +11367,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TKNqWx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now active.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} がアクティブになりました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TKmub+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This field is required]]></Val>
@@ -11660,15 +11390,6 @@
           <Val><![CDATA[Across all incidents in {platform}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{platform} のすべてのインシデント]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";TKsgZu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Key alerts]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[主要なアラート]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11979,6 +11700,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Uiw6Xo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオフにしています。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UjETJe" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Base incident]]></Val>
@@ -12092,15 +11822,6 @@
           <Val><![CDATA[Hide]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[非表示にする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";VB+AjJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Custom Cron Expression]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[カスタム Cron 式]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12263,6 +11984,15 @@
           <Val><![CDATA[Review (Default)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[レビュー (既定)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Vi21gb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオンにしています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12528,6 +12258,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";WUZAzC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} がオフになりました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";WVTzuw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The action was completed using temporary permissions granted by {name}.]]></Val>
@@ -12542,15 +12281,6 @@
           <Val><![CDATA[Grafana dashboard created successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana ダッシュボードが正常に作成されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";WbV0j4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Editing: {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[編集中: {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12807,15 +12537,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";X5UCWb" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に削除されました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";X5yqtT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PostgreSQL]]></Val>
@@ -12848,15 +12569,6 @@
           <Val><![CDATA[The action was canceled.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[アクションは取り消されました。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XCfiZ2" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Draft the cron for me]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron の下書きを自動的に作成する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12942,15 +12654,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";XJuPK6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Include any resource identifiers (e.g. subscription / resource group) needed each run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[各実行に必要なリソース識別子 (サブスクリプション、リソース グループなど) を含めます。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";XKWCS3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Removed the starter agent. Next messages will stay in this thread.]]></Val>
@@ -12965,15 +12668,6 @@
           <Val><![CDATA[The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[完全自律モード。必要なアクセス許可を付与されたエージェントがインシデントを分析し、対応策またはリソースの変更を独自に実行します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XKvrQy" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Task Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクの詳細]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13208,15 +12902,6 @@
           <Val><![CDATA[equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[等しい]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Y3qQB0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスク {name} を有効にしています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13608,15 +13293,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZA4OiK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to create scheduled task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクの作成に失敗しました。{errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ZAkVKt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a handoff subagent]]></Val>
@@ -13658,15 +13334,6 @@
           <Val><![CDATA[Updating upgrade channel to {channel}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[アップグレード チャネルを {channel} に更新しています]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ZMa6Rh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを削除しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13959,15 +13626,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";a7QT/5" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Advanced: Use cron format (minute hour day month day-of-week)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[詳細: Cron 形式 (分 時 日 月 曜日) を使用]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";a8czK7" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a knowledge source]]></Val>
@@ -14238,15 +13896,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ajASB/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Keep description short; put detailed run logic here.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[説明を短くし、詳細な実行ロジックをここに記載します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";anSi7M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to load resource groups.]]></Val>
@@ -14355,24 +14004,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";b3sNCU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn off task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクの無効化に失敗しました。{errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";b5OEXm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[How often should it run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[どれくらいの頻度で実行する必要がありますか?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";b7D4Lh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage the identities associated with your agent which may be used to communicate with other services]]></Val>
@@ -14418,6 +14049,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bGIW7m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn off scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオフにできませんでした。{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bICPAQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread Feedback]]></Val>
@@ -14445,11 +14085,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bMqcq2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} をオフにしています。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bN0x+w" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Device Provisioning Service Data Reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Device Provisioning Service データ閲覧者]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bR/LRB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{groupName} のすべてのツールを選択する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14549,15 +14207,6 @@
           <Val><![CDATA[Please restart the chat to see your changes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更を反映するにはチャットを再起動してください。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bjOnWH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Add your draft instructions before asking for polish.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[推敲を求める前に、下書きの指示を追加してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15165,20 +14814,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";dI9gP+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェントの指示]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";dJqE3e" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create scheduled task]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スケジュールされたタスクの作成]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dLWrbO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams with an on-call rotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[オンコール ローテーションがあるチームのみ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15206,15 +14855,6 @@
           <Val><![CDATA[This feature isn't available in this portal yet.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[この機能は、このポータルではまだ利用できません。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dQKATf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please enter a name (min 3 characters).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[名前を入力してください (3 文字以上)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15264,11 +14904,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";daUwAL" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";dbXXhB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Creating scheduled task]]></Val>
+          <Val><![CDATA[Running scheduled tasks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを作成しています]]></Val>
+            <Val><![CDATA[スケジュールされたタスクを実行しています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15278,15 +14918,6 @@
           <Val><![CDATA[Schedule Preview]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スケジュール プレビュー]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dhmpfi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Delete scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを削除する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15377,15 +15008,6 @@
           <Val><![CDATA[Never]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[なし]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dw6Z3b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What it means]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[それが意味する内容]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15561,15 +15183,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ee4AUg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned on successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常にオフになりました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";egubDj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{score}% confidence]]></Val>
@@ -15647,15 +15260,6 @@
           <Val><![CDATA[Custom response guidance]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[カスタム対応ガイダンス]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";euBSDU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions are required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェントの指示が必要です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15750,24 +15354,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";f6xT1Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned on successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に有効になりました]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";f7Zx3L" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Prompt Tips]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[プロンプトのヒント]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";f9xN/g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rising Specialist]]></Val>
@@ -15845,15 +15431,6 @@
           <Val><![CDATA[Insights: {status}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[分析情報: {status}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";fIQSsD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Couldn’t draft the cron yet. Refine the description and try again.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron の下書きをまだ作成できませんでした。説明を調整して、もう一度お試しください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16227,15 +15804,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gdUWAX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Description should be 140 characters or fewer.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[説明は 140 文字以下にする必要があります。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ggVnjB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread ID]]></Val>
@@ -16295,15 +15863,6 @@
           <Val><![CDATA[Enter the database name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データベース名を入力してください]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";grgDhd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to load scheduled tasks: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクの読み込みに失敗しました。{errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16767,15 +16326,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";iDPKM0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Filter tasks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクをフィルター処理する]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";iDSWYk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning.]]></Val>
@@ -16844,6 +16394,15 @@
           <Val><![CDATA[Create a new trigger with custom settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[カスタム設定で新しいトリガーを作成]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";iWNutw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} を削除しています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17307,15 +16866,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";jX6uvW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to run task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクを実行できませんでした: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";jXIYLG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to edit response plans.]]></Val>
@@ -17366,15 +16916,6 @@
           <Val><![CDATA[Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データベース]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";jlOO/9" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Next execution]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[次の実行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17483,15 +17024,6 @@
           <Val><![CDATA[Number]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[数値]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";kG0ZtT" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Other cron ideas]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron のその他のアイデア]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17685,15 +17217,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l+e8nZ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクを削除しますか?この操作は元に戻せません。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l0UKyP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Data Explorer]]></Val>
@@ -17739,11 +17262,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l8IRTD" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";lCe4Sh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) ran successfully]]></Val>
+          <Val><![CDATA[Search Icm team]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に実行されました]]></Val>
+            <Val><![CDATA[ICM チームの検索]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17780,15 +17303,6 @@
           <Val><![CDATA[Default]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[既定値]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";lM2HXD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No prompt provided.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[プロンプトが指定されていません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18014,15 +17528,6 @@
           <Val><![CDATA[Edit QnA Maker knowledge bases.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[QnA Maker ナレッジ ベースを編集します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";mChei1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[詳細な複数行の指示。目標、コンテキスト/リソース、制約、成功基準を提供します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18450,15 +17955,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";nRkusX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron expression is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron 式は必須です]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";nUT0Lv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools]]></Val>
@@ -18630,15 +18126,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";o9bCTX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Last execution]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[前回の実行]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";oBv1Sy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Relevant Documents]]></Val>
@@ -18797,15 +18284,6 @@
           <Val><![CDATA[Writer/Operator]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ライター/オペレーター]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";oXd3cw" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[最大実行数]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19022,6 +18500,15 @@
           <Val><![CDATA[P4]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[P4]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";pByJCZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクが実行されました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19269,15 +18756,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";psUT6S" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Maximum number of times this task should run]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[このタスクの最大実行回数]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";puQ/kF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading chat threads]]></Val>
@@ -19373,15 +18851,6 @@
           <Val><![CDATA[The agent references documentation and files to understand your projects and processes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エージェントは、プロジェクトとプロセスを理解するためにドキュメントとファイルを参照します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qavd9Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tell us how often your agent should run and we’ll draft the cron expression for you.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェントを実行する頻度を教えてもらえれば、こちらで Cron 式の下書きを作成します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20385,15 +19854,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";sf6hMj" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Heads-up]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[注意事項]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";sjlioi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent invoked]]></Val>
@@ -20628,15 +20088,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";tFFMkF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Pause]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[一時停止]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";tFoDh3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Yes, turn on deep investigation]]></Val>
@@ -20822,24 +20273,6 @@
           <Val><![CDATA[Experiment with your agent's configuration and see real-time results]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エージェントの構成を試し、リアルタイムの結果を確認します]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";tkr5bn" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turn off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクをオフにする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";trPabo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No scheduled tasks found]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが見つかりません]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21258,15 +20691,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";unj6JR" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create from template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[テンプレートから作成]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";unxs9C" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools selected for incident response]]></Val>
@@ -21339,15 +20763,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";v0CXYP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a descriptive name for your task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクのわかりやすい名前を入力します]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";v0fBOU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse all]]></Val>
@@ -21380,15 +20795,6 @@
           <Val><![CDATA[Kusto tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kusto ツール]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";v8cTK0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task updated successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に更新されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21510,24 +20916,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";vSW3OF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to update task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクを更新できませんでした。{errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";vV67Wm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn on task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[タスクを有効にできませんでした。{errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";vVpzJQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Suggested instructions]]></Val>
@@ -21551,6 +20939,15 @@
           <Val><![CDATA[Warning actions present]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[警告アクションがあります]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vZRYf4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[すべてのツールの選択解除]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21686,15 +21083,6 @@
           <Val><![CDATA[Clear description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[説明をクリアする]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";w4Nqlr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Run scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクの実行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21978,15 +21366,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wgyFIG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polishing…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[推敲中…]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wjEBlr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{metric} is at {score}%. Continue refining to move toward the next tier.]]></Val>
@@ -22059,15 +21438,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";x1YTqM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence before we can help.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[サポートできるよう、先に周期を説明してください。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";x25AjF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool usage ID]]></Val>
@@ -22109,6 +21479,15 @@
           <Val><![CDATA[Click here to learn more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[詳細については、ここをクリックしてください]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xGK1X2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{groupName} のすべてのツールを選択解除する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22365,15 +21744,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";xxoHVE" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent prompt is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[エージェント プロンプトが必要です]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";xy47sz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to parse YAML: {message}]]></Val>
@@ -22469,6 +21839,15 @@
           <Val><![CDATA[Chat input]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[チャット入力]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yGVEST" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete these scheduled tasks? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これらのスケジュールされたタスクを削除しますか?この操作は元に戻せません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22599,15 +21978,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yf9+0C" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polished version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[推敲されたバージョン]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";yh4G7g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[System assigned]]></Val>
@@ -22658,6 +22028,15 @@
           <Val><![CDATA[Managed resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[管理対象リソース グループ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yisTNp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn off scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスクをオフにする]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22770,15 +22149,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yzfsFI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Short one-line summary (<=140 chars)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[短い 1 行の要約 (<=140 文字)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";z0uI4M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run scenario]]></Val>
@@ -22793,24 +22163,6 @@
           <Val><![CDATA[View Knowledge Base]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ナレッジ ベースの表示]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z5cF/O" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Description must be a single line summary.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[説明は 1 行の要約である必要があります。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z7SGAU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[スケジュールされたタスクが正常に削除されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22959,15 +22311,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";zZsxcQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[State frequency-sensitive expectations (e.g. "summarize only last 15m of metrics").]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[周波数検知の期待値を明示します (例: "メトリックの直近 15 分のみを要約する")。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";zaYxwd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident]]></Val>
@@ -22991,6 +22334,15 @@
           <Val><![CDATA[Deleting {count} incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{count} 件のインシデントを削除しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zefL4U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[スケジュールされたタスク{name, select, undefined {} other { {name}}} がオンになりました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
