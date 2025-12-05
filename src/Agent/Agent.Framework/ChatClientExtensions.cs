@@ -327,7 +327,7 @@ public static partial class ChatClientExtensions
                         // convert to client result exceptions to retry the loop with delay
                         if (update.RawRepresentation is OpenAI.Responses.StreamingResponseErrorUpdate responseErrorUpdate)
                         {
-                            throw new ClientResultException(responseErrorUpdate.Message);
+                            throw new ClientResultException($"Got StreamingResponseErrorUpdate code {responseErrorUpdate.Code ?? ""}, message: {responseErrorUpdate.Message ?? ""}");
                         }
                     }
                 }
