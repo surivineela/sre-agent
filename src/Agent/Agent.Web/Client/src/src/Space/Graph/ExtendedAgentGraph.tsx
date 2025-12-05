@@ -1727,7 +1727,7 @@ const ExtendedAgentGraphContent = memo(() => {
             }
 
             if (itemType === 'tool') {
-                setCreateToolAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);
+                setCreateToolAgent(undefined);
                 setToolDialogMode(KustoToolDialogMode.Create);
                 setToolToEdit(undefined);
                 setIsToolDialogOpen(true);
