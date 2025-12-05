@@ -234,4 +234,14 @@ public class McpConnectionMetadata
     /// This is a free-form string for categorization purposes only.
     /// </summary>
     public string? ServiceType { get; init; }
+
+    /// <summary>
+    /// Environment variables to pass to the MCP server process.
+    /// </summary>
+    public Dictionary<string, string>? EnvironmentVariables { get; init; }
+
+    /// <summary>
+    /// Azure Managed Identity resource ID for authentication.
+    /// </summary>
+    public string? Identity { get; init; }
 }

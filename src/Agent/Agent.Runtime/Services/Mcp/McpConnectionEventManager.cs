@@ -114,7 +114,9 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 Arguments = arguments,
                 WorkingDirectory = workingDirectory,
                 Description = description,
-                ServiceType = serviceType
+                ServiceType = serviceType,
+                EnvironmentVariables = envVars,
+                Identity = identity
             }
         };
 
@@ -252,7 +254,12 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 metadata.Command,
                 metadata.Arguments,
                 metadata.WorkingDirectory,
-                authConfig);
+                authConfig,
+                headers: null,
+                metadata.Description,
+                metadata.ServiceType,
+                metadata.EnvironmentVariables,
+                metadata.Identity);
 
             _logger.LogInternalInformation(
                 "Successfully refreshed MCP connection '{ConnectionId}' - New tool count: {ToolCount}",
