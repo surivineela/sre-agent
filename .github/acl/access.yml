@@ -64,6 +64,8 @@ configuration:
     role: Read
   - team: antsanchit
     role: Write
+  - team: antshekharsg
+    role: Write
   - team: srea-devs
     role: Read
   - team: srea-readers
