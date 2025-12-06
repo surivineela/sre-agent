@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -22,6 +25,8 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+
+    private const int MaxEmailListPageSize = 50;
 
     private readonly IConnectorResolver _connectorResolver;
     private readonly IAuthenticationService _authenticationService;
@@ -154,6 +159,648 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         }
     }
 
+    public async Task<EmailMessageResult> GetEmailAsync(
+        string messageId,
+        string? mailboxAddress,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(messageId);
+
+        string trimmedMessageId = messageId.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedMessageId))
+        {
+            return new EmailMessageResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ResponseContent = string.Empty,
+                Message = "A message ID must be provided."
+            };
+        }
+
+        string? trimmedMailbox = string.IsNullOrWhiteSpace(mailboxAddress) ? null : mailboxAddress.Trim();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
+                connectorName: string.Empty,
+                connectorType: "Outlook",
+                dataSource: string.Empty);
+
+            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
+            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            {
+                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
+                return new EmailMessageResult
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    ResponseContent = string.Empty,
+                    Message = "Failed to acquire access token for email connector."
+                };
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            var requestUri = new StringBuilder($"v2/Mail/{Uri.EscapeDataString(trimmedMessageId)}");
+            if (!string.IsNullOrEmpty(trimmedMailbox))
+            {
+                requestUri.Append("?mailboxAddress=").Append(Uri.EscapeDataString(trimmedMailbox));
+            }
+
+            using var response = await client.GetAsync(requestUri.ToString(), cancellationToken).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            bool success = response.IsSuccessStatusCode;
+            var email = success ? TryParseEmail(responseBody) : null;
+
+            if (success)
+            {
+                _logger.LogInternalInformation(
+                    "Retrieved email {MessageId} with status code {StatusCode}",
+                    trimmedMessageId,
+                    (int)response.StatusCode);
+            }
+            else
+            {
+                _logger.LogInternalWarning(
+                    "Failed to retrieve email {MessageId} with status code {StatusCode} and response {Response}",
+                    trimmedMessageId,
+                    (int)response.StatusCode,
+                    responseBody);
+            }
+
+            return new EmailMessageResult
+            {
+                Success = success,
+                StatusCode = (int)response.StatusCode,
+                ResponseContent = responseBody,
+                Message = success ? "Email retrieved successfully." : "Failed to retrieve email.",
+                Email = email
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Unexpected error while retrieving email through Outlook connector.");
+            return new EmailMessageResult
+            {
+                Success = false,
+                StatusCode = 500,
+                ResponseContent = string.Empty,
+                Message = "Unexpected error while retrieving email."
+            };
+        }
+    }
+
+    public async Task<EmailListResult> ListEmailsAsync(
+        string folderPath,
+        bool fetchOnlyUnread,
+        int top,
+        string? mailboxAddress,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(folderPath);
+
+        string trimmedFolderPath = folderPath.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedFolderPath))
+        {
+            return new EmailListResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ResponseContent = string.Empty,
+                Message = "Folder path must be provided."
+            };
+        }
+
+        if (top <= 0)
+        {
+            return new EmailListResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ResponseContent = string.Empty,
+                Message = "The top parameter must be greater than zero."
+            };
+        }
+
+        int cappedTop = Math.Min(top, MaxEmailListPageSize);
+        if (cappedTop != top)
+        {
+            _logger.LogInternalInformation(
+                "Requested top {RequestedTop} exceeds maximum {MaxTop}. Using capped value {CappedTop}.",
+                top,
+                MaxEmailListPageSize,
+                cappedTop);
+        }
+
+        string? trimmedMailbox = string.IsNullOrWhiteSpace(mailboxAddress) ? null : mailboxAddress.Trim();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
+                connectorName: string.Empty,
+                connectorType: "Outlook",
+                dataSource: string.Empty);
+
+            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
+            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            {
+                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
+                return new EmailListResult
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    ResponseContent = string.Empty,
+                    Message = "Failed to acquire access token for email connector."
+                };
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            var queryBuilder = new StringBuilder("v3/Mail?");
+            queryBuilder
+                .Append("folderPath=")
+                .Append(Uri.EscapeDataString(trimmedFolderPath))
+                .Append("&fetchOnlyUnread=")
+                .Append(fetchOnlyUnread ? "true" : "false")
+                .Append("&top=")
+                .Append(cappedTop.ToString(CultureInfo.InvariantCulture));
+
+            if (!string.IsNullOrEmpty(trimmedMailbox))
+            {
+                queryBuilder.Append("&mailboxAddress=").Append(Uri.EscapeDataString(trimmedMailbox));
+            }
+
+            using var response = await client.GetAsync(queryBuilder.ToString(), cancellationToken).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            bool success = response.IsSuccessStatusCode;
+            string? continuationToken = null;
+            IReadOnlyList<EmailMessage> emails = success
+                ? TryParseEmailList(responseBody, out continuationToken)
+                : Array.Empty<EmailMessage>();
+
+            if (success)
+            {
+                _logger.LogInternalInformation(
+                    "Retrieved {EmailCount} emails from folder {FolderPath} with status code {StatusCode}",
+                    emails.Count,
+                    trimmedFolderPath,
+                    (int)response.StatusCode);
+            }
+            else
+            {
+                _logger.LogInternalWarning(
+                    "Failed to list emails from folder {FolderPath} with status code {StatusCode} and response {Response}",
+                    trimmedFolderPath,
+                    (int)response.StatusCode,
+                    responseBody);
+            }
+
+            return new EmailListResult
+            {
+                Success = success,
+                StatusCode = (int)response.StatusCode,
+                ResponseContent = responseBody,
+                Message = success ? "Emails retrieved successfully." : "Failed to retrieve emails.",
+                Emails = emails,
+                ContinuationToken = continuationToken
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Unexpected error while listing emails through Outlook connector.");
+            return new EmailListResult
+            {
+                Success = false,
+                StatusCode = 500,
+                ResponseContent = string.Empty,
+                Message = "Unexpected error while retrieving emails."
+            };
+        }
+    }
+
+    public async Task<EmailReplyResult> ReplyToEmailAsync(
+        string messageId,
+        string body,
+        string bodyType,
+        string importance,
+        string? mailboxAddress,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(messageId);
+        ArgumentNullException.ThrowIfNull(body);
+
+        string trimmedMessageId = messageId.Trim();
+        string trimmedBody = body.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedMessageId) || string.IsNullOrWhiteSpace(trimmedBody))
+        {
+            return new EmailReplyResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ResponseContent = string.Empty,
+                Message = "Message ID and body must both be provided."
+            };
+        }
+
+        string? trimmedMailbox = string.IsNullOrWhiteSpace(mailboxAddress) ? null : mailboxAddress.Trim();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
+                connectorName: string.Empty,
+                connectorType: "Outlook",
+                dataSource: string.Empty);
+
+            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
+            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            {
+                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
+                return new EmailReplyResult
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    ResponseContent = string.Empty,
+                    Message = "Failed to acquire access token for email connector."
+                };
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            var requestUri = new StringBuilder($"v3/Mail/ReplyTo/{Uri.EscapeDataString(trimmedMessageId)}");
+            if (!string.IsNullOrEmpty(trimmedMailbox))
+            {
+                requestUri.Append("?mailboxAddress=").Append(Uri.EscapeDataString(trimmedMailbox));
+            }
+
+            var payload = new ReplyEmailPayload
+            {
+                Body = trimmedBody,
+                BodyType = NormalizeBodyType(bodyType),
+                Importance = NormalizeImportance(importance)
+            };
+
+            var content = new StringContent(JsonSerializer.Serialize(payload, SerializerOptions), Encoding.UTF8, "application/json");
+
+            _logger.LogInternalInformation(
+                "Replying to email {MessageId} via Outlook connector endpoint {Endpoint}",
+                trimmedMessageId,
+                baseUrl);
+
+            using var response = await client.PostAsync(requestUri.ToString(), content, cancellationToken).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            bool success = response.IsSuccessStatusCode;
+            if (success)
+            {
+                _logger.LogInternalInformation(
+                    "Reply to email {MessageId} succeeded with status code {StatusCode}",
+                    trimmedMessageId,
+                    (int)response.StatusCode);
+            }
+            else
+            {
+                _logger.LogInternalWarning(
+                    "Reply to email {MessageId} failed with status code {StatusCode} and response {Response}",
+                    trimmedMessageId,
+                    (int)response.StatusCode,
+                    responseBody);
+            }
+
+            return new EmailReplyResult
+            {
+                Success = success,
+                StatusCode = (int)response.StatusCode,
+                ResponseContent = responseBody,
+                Message = success ? "Reply sent successfully." : "Reply request failed."
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Unexpected error while replying to email through Outlook connector.");
+            return new EmailReplyResult
+            {
+                Success = false,
+                StatusCode = 500,
+                ResponseContent = string.Empty,
+                Message = "Unexpected error while replying to email."
+            };
+        }
+    }
+
+    private EmailMessage? TryParseEmail(string responseContent)
+    {
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(responseContent);
+            return CreateEmailMessage(document.RootElement);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogInternalWarning("Failed to parse email payload: {Error}", ex.Message);
+            return null;
+        }
+    }
+
+    private IReadOnlyList<EmailMessage> TryParseEmailList(string responseContent, out string? continuationToken)
+    {
+        continuationToken = null;
+
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            return Array.Empty<EmailMessage>();
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(responseContent);
+            var root = document.RootElement;
+
+            IReadOnlyList<EmailMessage> emails;
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                emails = ParseEmailArray(root);
+            }
+            else if (TryGetPropertyCaseInsensitive(root, "value", out var valueElement) && valueElement.ValueKind == JsonValueKind.Array)
+            {
+                emails = ParseEmailArray(valueElement);
+                continuationToken = ExtractContinuationToken(root);
+            }
+            else
+            {
+                var single = CreateEmailMessage(root);
+                emails = single is null ? Array.Empty<EmailMessage>() : new[] { single };
+            }
+
+            continuationToken ??= ExtractContinuationToken(root);
+            return emails;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogInternalWarning("Failed to parse email list payload: {Error}", ex.Message);
+            continuationToken = null;
+            return Array.Empty<EmailMessage>();
+        }
+    }
+
+    private static IReadOnlyList<EmailMessage> ParseEmailArray(JsonElement arrayElement)
+    {
+        if (arrayElement.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<EmailMessage>();
+        }
+
+        var emails = new List<EmailMessage>();
+        foreach (var item in arrayElement.EnumerateArray())
+        {
+            var email = CreateEmailMessage(item);
+            if (email is not null)
+            {
+                emails.Add(email);
+            }
+        }
+
+        return emails;
+    }
+
+    private static EmailMessage? CreateEmailMessage(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var rawClone = element.Clone();
+        var id = GetStringCaseInsensitive(element, "Id") ?? GetStringCaseInsensitive(element, "id") ?? string.Empty;
+
+        return new EmailMessage
+        {
+            Id = id,
+            Subject = GetStringCaseInsensitive(element, "Subject") ?? GetStringCaseInsensitive(element, "subject"),
+            From = ExtractSenderAddress(element),
+            ToRecipients = ExtractRecipients(element, "ToRecipients"),
+            CcRecipients = ExtractRecipients(element, "CcRecipients"),
+            IsRead = GetNullableBool(element, "IsRead"),
+            Importance = GetStringCaseInsensitive(element, "Importance"),
+            ReceivedDateTime = GetNullableDateTime(element, "ReceivedDateTime"),
+            BodyPreview = GetStringCaseInsensitive(element, "BodyPreview"),
+            BodyContentType = GetNestedStringCaseInsensitive(element, "Body", "ContentType"),
+            BodyContent = GetNestedStringCaseInsensitive(element, "Body", "Content"),
+            RawPayload = rawClone
+        };
+    }
+
+    private static string? ExtractContinuationToken(JsonElement element)
+    {
+        if (TryGetPropertyCaseInsensitive(element, "@odata.nextLink", out var nextLink) && nextLink.ValueKind == JsonValueKind.String)
+        {
+            return nextLink.GetString();
+        }
+
+        if (TryGetPropertyCaseInsensitive(element, "nextLink", out var altNextLink) && altNextLink.ValueKind == JsonValueKind.String)
+        {
+            return altNextLink.GetString();
+        }
+
+        if (TryGetPropertyCaseInsensitive(element, "skipToken", out var skipToken) && skipToken.ValueKind == JsonValueKind.String)
+        {
+            return skipToken.GetString();
+        }
+
+        return null;
+    }
+
+    private static string? GetStringCaseInsensitive(JsonElement element, string propertyName)
+    {
+        if (TryGetPropertyCaseInsensitive(element, propertyName, out var value) && value.ValueKind == JsonValueKind.String)
+        {
+            return value.GetString();
+        }
+
+        return null;
+    }
+
+    private static string? GetNestedStringCaseInsensitive(JsonElement element, string parentPropertyName, string childPropertyName)
+    {
+        if (TryGetPropertyCaseInsensitive(element, parentPropertyName, out var parent) && parent.ValueKind == JsonValueKind.Object)
+        {
+            return GetStringCaseInsensitive(parent, childPropertyName);
+        }
+
+        return null;
+    }
+
+    private static bool? GetNullableBool(JsonElement element, string propertyName)
+    {
+        if (TryGetPropertyCaseInsensitive(element, propertyName, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False)
+            {
+                return property.GetBoolean();
+            }
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset? GetNullableDateTime(JsonElement element, string propertyName)
+    {
+        var value = GetStringCaseInsensitive(element, propertyName);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static string? ExtractSenderAddress(JsonElement element)
+    {
+        if (TryGetPropertyCaseInsensitive(element, "From", out var fromElement))
+        {
+            return ExtractRecipientAddress(fromElement);
+        }
+
+        if (TryGetPropertyCaseInsensitive(element, "Sender", out var senderElement))
+        {
+            return ExtractRecipientAddress(senderElement);
+        }
+
+        return null;
+    }
+
+    private static IReadOnlyList<string> ExtractRecipients(JsonElement element, string propertyName)
+    {
+        if (!TryGetPropertyCaseInsensitive(element, propertyName, out var recipientsElement) || recipientsElement.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<string>();
+        }
+
+        var recipients = new List<string>();
+        foreach (var recipientElement in recipientsElement.EnumerateArray())
+        {
+            var address = ExtractRecipientAddress(recipientElement);
+            if (!string.IsNullOrWhiteSpace(address))
+            {
+                recipients.Add(address);
+            }
+        }
+
+        return recipients;
+    }
+
+    private static string? ExtractRecipientAddress(JsonElement element)
+    {
+        if (TryGetPropertyCaseInsensitive(element, "EmailAddress", out var emailAddressElement) && emailAddressElement.ValueKind == JsonValueKind.Object)
+        {
+            var nestedAddress = GetStringCaseInsensitive(emailAddressElement, "Address");
+            if (!string.IsNullOrWhiteSpace(nestedAddress))
+            {
+                return nestedAddress;
+            }
+        }
+
+        if (TryGetPropertyCaseInsensitive(element, "Address", out var addressElement) && addressElement.ValueKind == JsonValueKind.String)
+        {
+            return addressElement.GetString();
+        }
+
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            return element.GetString();
+        }
+
+        return null;
+    }
+
+    private static bool TryGetPropertyCaseInsensitive(JsonElement element, string propertyName, out JsonElement value)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            if (element.TryGetProperty(propertyName, out value))
+            {
+                return true;
+            }
+
+            foreach (var property in element.EnumerateObject())
+            {
+                if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = property.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static string NormalizeBodyType(string bodyType)
+    {
+        if (string.IsNullOrWhiteSpace(bodyType))
+        {
+            return "HTML";
+        }
+
+        return string.Equals(bodyType.Trim(), "text", StringComparison.OrdinalIgnoreCase) ? "Text" : "HTML";
+    }
+
     private static string EnsureTrailingSlash(string url)
     {
         return url.EndsWith('/') ? url : url + '/';
@@ -172,6 +819,18 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             "high" => "High",
             _ => "Normal"
         };
+    }
+
+    private sealed class ReplyEmailPayload
+    {
+        [JsonPropertyName("body")]
+        public string Body { get; init; } = string.Empty;
+
+        [JsonPropertyName("body_type")]
+        public string BodyType { get; init; } = "HTML";
+
+        [JsonPropertyName("importance")]
+        public string Importance { get; init; } = "Normal";
     }
 
     private sealed class SendEmailPayload

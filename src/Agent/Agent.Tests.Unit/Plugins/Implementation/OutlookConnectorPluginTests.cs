@@ -77,7 +77,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         [Fact]
         public void Constructor_WithNullConnectorResolver_ThrowsArgumentNullException()
         {
-            // Arrange & Act & Assert
+            // Arrange & Act
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new OutlookConnectorPlugin(
                     _mockLogger.Object,
@@ -85,13 +85,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     _mockHttpClientFactory.Object,
                     _mockAuthenticationService.Object));
 
+            // Assert
             Assert.Equal("connectorResolver", exception.ParamName);
         }
 
         [Fact]
         public void Constructor_WithNullHttpClientFactory_ThrowsArgumentNullException()
         {
-            // Arrange & Act & Assert
+            // Arrange & Act
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new OutlookConnectorPlugin(
                     _mockLogger.Object,
@@ -99,13 +100,14 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     null!,
                     _mockAuthenticationService.Object));
 
+            // Assert
             Assert.Equal("httpClientFactory", exception.ParamName);
         }
 
         [Fact]
         public void Constructor_WithNullAuthenticationService_ThrowsArgumentNullException()
         {
-            // Arrange & Act & Assert
+            // Arrange & Act
             var exception = Assert.Throws<ArgumentNullException>(() =>
                 new OutlookConnectorPlugin(
                     _mockLogger.Object,
@@ -113,6 +115,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     _mockHttpClientFactory.Object,
                     null!));
 
+            // Assert
             Assert.Equal("authenticationService", exception.ParamName);
         }
 
@@ -189,7 +192,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task SendEmailAsync_WithEmptyTo_ReturnsFailureResult()
         {
             // Arrange
-            var to = "";
+            var to = string.Empty;
             var subject = "Test Subject";
             var body = "Test Body";
 
@@ -226,7 +229,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         {
             // Arrange
             var to = "test@example.com";
-            var subject = "";
+            var subject = string.Empty;
             var body = "Test Body";
 
             // Act
@@ -245,7 +248,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var to = "test@example.com";
             var subject = "Test Subject";
-            var body = "";
+            var body = string.Empty;
 
             // Act
             var result = await _outlookConnectorPlugin.SendEmailAsync(to, subject, body, "HTML", "Normal", null, null);
@@ -640,6 +643,196 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             var requestBody = await capturedRequest.Content!.ReadAsStringAsync();
             var payload = JsonSerializer.Deserialize<JsonElement>(requestBody);
             Assert.Equal("Normal", payload.GetProperty("Importance").GetString());
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_WithValidMessageId_ReturnsParsedEmail()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var responseJson = """
+			{
+				"Id": "message-123",
+				"Subject": "Test subject",
+				"From": { "EmailAddress": { "Address": "sender@example.com" } },
+				"ToRecipients": [
+					{ "EmailAddress": { "Address": "recipient@example.com" } }
+				],
+				"BodyPreview": "Preview",
+				"Body": { "ContentType": "HTML", "Content": "<p>Body</p>" }
+			}
+			""";
+
+            HttpRequestMessage? capturedRequest = null;
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync(messageId, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal("Email retrieved successfully.", result.Message);
+            Assert.NotNull(result.Email);
+            Assert.Equal("message-123", result.Email!.Id);
+            Assert.Equal("Test subject", result.Email.Subject);
+            Assert.NotNull(capturedRequest);
+            Assert.Contains($"v2/Mail/{messageId}", capturedRequest!.RequestUri!.ToString());
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_WithEmptyMessageId_ReturnsFailure()
+        {
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync("  ", null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("A message ID must be provided.", result.Message);
+        }
+
+        [Fact]
+        public async Task ListEmailsAsync_WithValidParameters_ReturnsEmails()
+        {
+            // Arrange
+            var responseJson = """
+			{
+				"value": [
+					{
+						"Id": "one",
+						"Subject": "First",
+						"From": { "EmailAddress": { "Address": "sender1@example.com" } }
+					},
+					{
+						"Id": "two",
+						"Subject": "Second",
+						"From": { "EmailAddress": { "Address": "sender2@example.com" } }
+					}
+				],
+				"@odata.nextLink": "https://next"
+			}
+			""";
+
+            HttpRequestMessage? capturedRequest = null;
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.ListEmailsAsync("Inbox/SubFolder", true, 5, null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal(2, result.Emails.Count);
+            Assert.Equal("https://next", result.ContinuationToken);
+            Assert.NotNull(capturedRequest);
+            Assert.Contains("folderPath=Inbox%2FSubFolder", capturedRequest!.RequestUri!.Query);
+            Assert.Contains("fetchOnlyUnread=true", capturedRequest.RequestUri!.Query);
+            Assert.Contains("top=5", capturedRequest.RequestUri!.Query);
+        }
+
+        [Fact]
+        public async Task ListEmailsAsync_WithInvalidTop_ReturnsFailure()
+        {
+            // Act
+            var result = await _outlookConnectorPlugin.ListEmailsAsync("Inbox", false, 0, null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("The top parameter must be greater than zero.", result.Message);
+        }
+
+        [Fact]
+        public async Task ListEmailsAsync_WithTopExceedingMax_IsClamped()
+        {
+            // Arrange
+            HttpRequestMessage? capturedRequest = null;
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("{\"value\": []}")
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.ListEmailsAsync("Inbox", false, 500, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(capturedRequest);
+            Assert.Contains("top=50", capturedRequest!.RequestUri!.Query);
+        }
+
+        [Fact]
+        public async Task ReplyToEmailAsync_WithValidPayload_ReturnsSuccess()
+        {
+            // Arrange
+            HttpRequestMessage? capturedRequest = null;
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("Reply sent")
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.ReplyToEmailAsync("message-123", "<p>Body</p>", "HTML", "High", null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(200, result.StatusCode);
+            Assert.NotNull(capturedRequest);
+            Assert.Contains("v3/Mail/ReplyTo/message-123", capturedRequest!.RequestUri!.ToString());
+            var payloadJson = await capturedRequest.Content!.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(payloadJson);
+            Assert.Equal("<p>Body</p>", document.RootElement.GetProperty("body").GetString());
+            Assert.Equal("HTML", document.RootElement.GetProperty("body_type").GetString());
+            Assert.Equal("High", document.RootElement.GetProperty("importance").GetString());
+        }
+
+        [Fact]
+        public async Task ReplyToEmailAsync_WithMissingBody_ReturnsFailure()
+        {
+            // Act
+            var result = await _outlookConnectorPlugin.ReplyToEmailAsync("message-123", " ", "HTML", "Normal", null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("Message ID and body must both be provided.", result.Message);
         }
     }
 }

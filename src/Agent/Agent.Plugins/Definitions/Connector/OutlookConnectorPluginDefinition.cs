@@ -55,4 +55,58 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
            cc,
            bcc).ConfigureAwait(false);
     }
+
+    [Description(@"Retrieves a specific email message from the Outlook connector using the v2 Mail API. Provide the messageId returned by other email calls. Use mailbox_address when accessing a shared mailbox.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<EmailMessageResult> GetOutlookEmail(
+        [Description("Unique Outlook message identifier returned by list or trigger operations.")]
+        string message_id,
+        [Description("Optional mailbox address for shared mailboxes. Leave blank for the signed-in mailbox.")]
+        string? mailbox_address = null)
+    {
+        return await _outlookConnectorPlugin.GetEmailAsync(
+            message_id,
+            mailbox_address).ConfigureAwait(false);
+    }
+
+    [Description(@"Lists messages from a specific folder via the Outlook v3 Mail endpoint. Set fetch_only_unread to true to filter unread messages. The top parameter is required and caps the number of messages returned (max 50). Use mailbox_address for shared mailboxes.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<EmailListResult> ListOutlookEmails(
+        [Description("Maximum number of messages to return (1-50). This value is required.")]
+        int top,
+        [Description("Folder path to query (e.g., Inbox, Sent Items)."), DefaultValue("Inbox")]
+        string folder_path = "Inbox",
+        [Description("When true, only unread messages are returned."), DefaultValue(false)]
+        bool fetch_only_unread = false,
+        [Description("Optional mailbox address for shared mailboxes. Leave blank for the signed-in mailbox.")]
+        string? mailbox_address = null)
+    {
+        return await _outlookConnectorPlugin.ListEmailsAsync(
+            folder_path,
+            fetch_only_unread,
+            top,
+            mailbox_address).ConfigureAwait(false);
+    }
+
+    [Description(@"Replies to an existing email message via the Outlook v3 Mail ReplyTo endpoint. Provide HTML or text body content and optionally override importance or mailbox address.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<EmailReplyResult> ReplyToOutlookEmail(
+        [Description("Unique Outlook message identifier to reply to.")]
+        string message_id,
+        [Description("Reply body content. Must be well-formed HTML when body_type is HTML.")]
+        string body,
+        [Description("Body type expected by Outlook. Accepted values: HTML or Text."), DefaultValue("HTML")]
+        string body_type = "HTML",
+        [Description("Importance level for the reply. Accepted values: Low, Normal, High."), DefaultValue("Normal")]
+        string importance = "Normal",
+        [Description("Optional mailbox address for shared mailboxes. Leave blank for the signed-in mailbox.")]
+        string? mailbox_address = null)
+    {
+        return await _outlookConnectorPlugin.ReplyToEmailAsync(
+            message_id,
+            body,
+            body_type,
+            importance,
+            mailbox_address).ConfigureAwait(false);
+    }
 }
