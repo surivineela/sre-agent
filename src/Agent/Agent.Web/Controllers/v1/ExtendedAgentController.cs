@@ -14,10 +14,7 @@ using Agent.Core.Validation;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Framework.Skills;
-using Agent.Plugins.Connector;
-using Agent.Plugins.Kusto;
 using Agent.Plugins.Python.Tools;
-using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models.ExtendedAgents;
 using Agent.Runtime.Services;
@@ -1036,7 +1033,7 @@ User Prompt To Improve (between <<< and >>>):
                 .ToList();
 
             // Filter to stable/published tools if stableOnly is true
-            if (!FirstPartyHelper.IsFirstPartyTenant() && stableOnly)
+            if (stableOnly)
             {
                 // Load published tools from PublishedTools.json
                 var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

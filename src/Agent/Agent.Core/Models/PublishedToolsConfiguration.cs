@@ -20,6 +20,9 @@ namespace Agent.Core.Models
         [JsonPropertyName("versions")]
         public Dictionary<string, string>? Versions { get; set; }
 
+        [JsonPropertyName("firstPartyOnly")]
+        public bool FirstPartyOnly { get; set; }
+
         /// <summary>
         /// Gets the effective tool name to use.
         /// If versions are defined, returns the latest version; otherwise returns the name itself.

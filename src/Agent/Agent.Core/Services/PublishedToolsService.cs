@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Logging;
 using Microsoft.Extensions.Hosting;
@@ -21,14 +22,19 @@ namespace Agent.Core.Services
     {
         private readonly ILogger<PublishedToolsService> _logger;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly bool _isFirstPartyTenant;
         private PublishedToolsConfiguration? _configuration;
         private HashSet<string> _publishedToolNames;
         private readonly object _lockObject = new object();
 
-        public PublishedToolsService(ILogger<PublishedToolsService> logger, IHostEnvironment hostEnvironment)
+        public PublishedToolsService(
+            ILogger<PublishedToolsService> logger,
+            IHostEnvironment hostEnvironment,
+            IFirstPartyTenantProvider firstPartyTenantProvider)
         {
             _logger = logger;
             _hostEnvironment = hostEnvironment;
+            _isFirstPartyTenant = firstPartyTenantProvider.IsFirstPartyTenant();
             _publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _ = Task.Run(LoadConfigurationAsync);
         }
@@ -116,6 +122,14 @@ namespace Agent.Core.Services
                 var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var tool in configuration.Tools)
                 {
+                    if (tool.FirstPartyOnly && !_isFirstPartyTenant)
+                    {
+                        _logger.LogInternalInformation(
+                            "LoadConfigurationAsync: Skipping first-party-only tool {ToolName} for non-first-party tenant",
+                            tool.Name);
+                        continue;
+                    }
+
                     var effectiveToolName = tool.GetEffectiveToolName();
                     publishedToolNames.Add(effectiveToolName);
                     _logger.LogInternalInformation("LoadConfigurationAsync: Added published tool: {ToolName} (effective: {EffectiveToolName})", tool.Name, effectiveToolName);

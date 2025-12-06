@@ -107,12 +107,19 @@
       "version": "latest"
     },
     {
+      "name": "PerformDgrepSearch",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
       "name": "ExecuteGenevaAction",
-      "version": "latest"
+      "version": "latest",
+      "firstPartyOnly": true
     },
     {
       "name": "ListInputParametersForGenevaAction",
-      "version": "latest"
+      "version": "latest",
+      "firstPartyOnly": true
     },
     {
       "name": "CreateGithubIssue",
@@ -261,6 +268,36 @@
     {
       "name": "SearchIncidentKnowledge",
       "version": "latest"
+    },
+    {
+      "name": "SendOutlookEmail",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
+      "name": "GetOutlookEmail",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
+      "name": "ListOutlookEmails",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
+      "name": "ReplyToOutlookEmail",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
+      "name": "PostTeamsMessage",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
+      "name": "GetTeamsMessages",
+      "version": "latest",
+      "firstPartyOnly": true
     }
   ]
 }

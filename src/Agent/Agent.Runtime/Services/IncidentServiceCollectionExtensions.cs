@@ -12,6 +12,7 @@ using Agent.Data.DataModels.IncidentModel;
 using Agent.Data.Interface.IncidentAPI;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents.Scanner;
 using Azure.Core;
@@ -98,6 +99,7 @@ public static class IncidentServiceCollectionExtensions
                 break;
         }
 
+        services.AddSingleton<IFirstPartyTenantProvider, FirstPartyTenantProvider>();
         services.AddSingleton<IInstructionGenerationService, InstructionGenerationService>();
         services.AddSingleton<IIncidentStatusMetricsService, IncidentStatusMetricsService>();
         services.AddSingleton<IPublishedToolsService, PublishedToolsService>();
