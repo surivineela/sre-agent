@@ -14,12 +14,12 @@ public static class ThreadCommandHandlers
     {
         try
         {
-            var message = parseResult.GetValue(AgentCommandOptions.ThreadMessageOption);
-            var userId = parseResult.GetValue(AgentCommandOptions.ThreadUserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(AgentCommandOptions.ThreadDisplayNameOption) ?? Environment.UserName;
-            var wait = parseResult.GetValue(AgentCommandOptions.ThreadWaitOption);
-            var noWait = parseResult.GetValue(AgentCommandOptions.ThreadNoWaitOption);
-            var agent = parseResult.GetValue(AgentCommandOptions.ChatAgentNameOption);
+            var message = parseResult.GetValue(ThreadCommandOptions.New.MessageOption);
+            var userId = parseResult.GetValue(ThreadCommandOptions.New.UserIdOption) ?? Environment.UserName;
+            var displayName = parseResult.GetValue(ThreadCommandOptions.New.DisplayNameOption) ?? Environment.UserName;
+            var wait = parseResult.GetValue(ThreadCommandOptions.New.WaitOption);
+            var noWait = parseResult.GetValue(ThreadCommandOptions.New.NoWaitOption);
+            var agent = parseResult.GetValue(ThreadCommandOptions.New.AgentNameOption);
 
             // Default behavior is to wait unless --no-wait is specified
             // If --wait was explicitly provided, respect its value, otherwise default to true
@@ -92,7 +92,7 @@ public static class ThreadCommandHandlers
     {
         try
         {
-            var filePath = parseResult.GetValue(AgentCommandOptions.ApplyYamlFileOption);
+            var filePath = parseResult.GetValue(ThreadCommandOptions.Apply.FileOption);
             if (string.IsNullOrWhiteSpace(filePath))
             {
                 Console.WriteLine("--file is required");
@@ -142,12 +142,12 @@ public static class ThreadCommandHandlers
     {
         try
         {
-            var threadId = parseResult.GetValue(AgentCommandOptions.ThreadIdOption);
-            var message = parseResult.GetValue(AgentCommandOptions.ThreadMessageOptionalOption);
-            var userId = parseResult.GetValue(AgentCommandOptions.ThreadUserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(AgentCommandOptions.ThreadDisplayNameOption) ?? Environment.UserName;
-            var wait = parseResult.GetValue(AgentCommandOptions.ThreadWaitOption);
-            var noWait = parseResult.GetValue(AgentCommandOptions.ThreadNoWaitOption);
+            var threadId = parseResult.GetValue(ThreadCommandOptions.Continue.ThreadIdOption);
+            var message = parseResult.GetValue(ThreadCommandOptions.Continue.MessageOption);
+            var userId = parseResult.GetValue(ThreadCommandOptions.Continue.UserIdOption) ?? Environment.UserName;
+            var displayName = parseResult.GetValue(ThreadCommandOptions.Continue.DisplayNameOption) ?? Environment.UserName;
+            var wait = parseResult.GetValue(ThreadCommandOptions.Continue.WaitOption);
+            var noWait = parseResult.GetValue(ThreadCommandOptions.Continue.NoWaitOption);
 
             // Default behavior is to wait unless --no-wait is specified
             // If --wait was explicitly provided, respect its value, otherwise default to true
@@ -351,7 +351,7 @@ public static class ThreadCommandHandlers
     {
         try
         {
-            var threadId = parseResult.GetValue(AgentCommandOptions.ThreadIdRequiredOption);
+            var threadId = parseResult.GetValue(ThreadCommandOptions.Delete.ThreadIdOption);
 
             if (string.IsNullOrWhiteSpace(threadId))
             {
@@ -391,7 +391,7 @@ public static class ThreadCommandHandlers
     {
         try
         {
-            var threadId = parseResult.GetValue(AgentCommandOptions.ThreadIdRequiredOption);
+            var threadId = parseResult.GetValue(ThreadCommandOptions.Track.ThreadIdOption);
 
             if (string.IsNullOrWhiteSpace(threadId))
             {

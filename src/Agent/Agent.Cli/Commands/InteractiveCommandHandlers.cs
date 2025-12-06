@@ -84,7 +84,7 @@ public static class InteractiveCommandHandlers
                 ProgressService.MultiStepProgress.NextStep();
 
                 // Step 3+4: call your init handler (should do connection test + sample files)
-                await GeneralCommandHandlers.HandleInitCommandWithResourceUrl(serverUrl);
+                await InitCommandHandler.HandleCommand(serverUrl);
                 ProgressService.MultiStepProgress.NextStep(); // connection tested
                 ProgressService.MultiStepProgress.NextStep(); // examples created
 
@@ -660,7 +660,7 @@ public static class InteractiveCommandHandlers
             Console.WriteLine();
 
             // Call the actual init command
-            await GeneralCommandHandlers.HandleInitCommandWithResourceUrl(serverUrl);
+            await InitCommandHandler.HandleCommand(serverUrl);
 
             ConsoleUI.WriteStatus(true, "Workspace initialized successfully!");
             ConsoleUI.WriteInfo("Next step: Create your first agent");
@@ -1887,7 +1887,7 @@ description: A {type} tool created interactively";
             // Reuse the existing chat handler which supports deferred thread creation and /agent switching.
             var chatCmd = new Command("chat")
             {
-                AgentCommandOptions.ChatAgentNameOption
+                ThreadCommandOptions.New.AgentNameOption
             };
             var parseResult = chatCmd.Parse(["--agent", agentName]);
             await GeneralCommandHandlers.HandleChatCommand(parseResult);

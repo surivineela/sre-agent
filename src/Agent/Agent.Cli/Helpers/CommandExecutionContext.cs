@@ -51,12 +51,7 @@ public static class CommandExecutionContext
         }
 
         // 2) Global option instance
-        try { enabled |= parseResult.GetValue(GlobalOptions.Debug); } catch { /* ignore */ }
-
-        // 3) Agent/tool/doc-specific option instances (may be present on some subcommands)
-        try { enabled |= parseResult.GetValue(AgentCommandOptions.DebugOption); } catch { /* ignore */ }
-        try { enabled |= parseResult.GetValue(ToolCommandOptions.DebugOption); } catch { /* ignore */ }
-        try { enabled |= parseResult.GetValue(DocumentCommandOptions.DebugOption); } catch { /* ignore */ }
+        try { enabled |= parseResult.GetValue(GlobalOptions.DebugOption); } catch { /* ignore */ }
 
         return enabled;
     }

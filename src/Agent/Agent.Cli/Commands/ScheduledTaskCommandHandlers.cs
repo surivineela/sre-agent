@@ -16,16 +16,16 @@ public static class ScheduledTaskCommandHandlers
 {
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
-        var name = parseResult.GetValue(ScheduledTaskCommandOptions.CreateNameOption);
-        var description = parseResult.GetValue(ScheduledTaskCommandOptions.DescriptionOption);
-        var cronExpression = parseResult.GetValue(ScheduledTaskCommandOptions.CronExpressionOption);
-        var agentPrompt = parseResult.GetValue(ScheduledTaskCommandOptions.AgentPromptOption);
-        var agent = parseResult.GetValue(ScheduledTaskCommandOptions.AgentOption);
-        var startTime = parseResult.GetValue(ScheduledTaskCommandOptions.StartTimeOption);
-        var endTime = parseResult.GetValue(ScheduledTaskCommandOptions.EndTimeOption);
-        var threadId = parseResult.GetValue(ScheduledTaskCommandOptions.ThreadIdOption);
-        var maxExecutions = parseResult.GetValue(ScheduledTaskCommandOptions.MaxExecutionsOption);
-        var notificationChannel = parseResult.GetValue(ScheduledTaskCommandOptions.NotificationChannelOption);
+        var name = parseResult.GetValue(ScheduledTaskCommandOptions.Create.NameOption);
+        var description = parseResult.GetValue(ScheduledTaskCommandOptions.Create.DescriptionOption);
+        var cronExpression = parseResult.GetValue(ScheduledTaskCommandOptions.Create.CronExpressionOption);
+        var agentPrompt = parseResult.GetValue(ScheduledTaskCommandOptions.Create.AgentPromptOption);
+        var agent = parseResult.GetValue(ScheduledTaskCommandOptions.Create.AgentOption);
+        var startTime = parseResult.GetValue(ScheduledTaskCommandOptions.Create.StartTimeOption);
+        var endTime = parseResult.GetValue(ScheduledTaskCommandOptions.Create.EndTimeOption);
+        var threadId = parseResult.GetValue(ScheduledTaskCommandOptions.Create.ThreadIdOption);
+        var maxExecutions = parseResult.GetValue(ScheduledTaskCommandOptions.Create.MaxExecutionsOption);
+        var notificationChannel = parseResult.GetValue(ScheduledTaskCommandOptions.Create.NotificationChannelOption);
 
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(cronExpression) || string.IsNullOrWhiteSpace(agentPrompt))
         {
@@ -128,9 +128,9 @@ public static class ScheduledTaskCommandHandlers
 
     public static async Task HandleListCommand(ParseResult parseResult)
     {
-        var verbose = parseResult.GetValue(ScheduledTaskCommandOptions.VerboseOption);
-        var filterThreadId = parseResult.GetValue(ScheduledTaskCommandOptions.FilterThreadIdOption);
-        var filterStatus = parseResult.GetValue(ScheduledTaskCommandOptions.FilterStatusOption);
+        var verbose = parseResult.GetValue(ScheduledTaskCommandOptions.List.VerboseOption);
+        var filterThreadId = parseResult.GetValue(ScheduledTaskCommandOptions.List.FilterThreadIdOption);
+        var filterStatus = parseResult.GetValue(ScheduledTaskCommandOptions.List.FilterStatusOption);
 
         try
         {
@@ -235,7 +235,7 @@ public static class ScheduledTaskCommandHandlers
 
     public static async Task HandleGetCommand(ParseResult parseResult)
     {
-        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.RequiredTaskIdOption);
+        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.Get.TaskIdOption);
 
         if (string.IsNullOrWhiteSpace(taskId))
         {
@@ -312,7 +312,7 @@ public static class ScheduledTaskCommandHandlers
 
     public static async Task HandlePauseCommand(ParseResult parseResult)
     {
-        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.RequiredTaskIdOption);
+        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.Pause.TaskIdOption);
 
         if (string.IsNullOrWhiteSpace(taskId))
         {
@@ -346,7 +346,7 @@ public static class ScheduledTaskCommandHandlers
 
     public static async Task HandleResumeCommand(ParseResult parseResult)
     {
-        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.RequiredTaskIdOption);
+        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.Resume.TaskIdOption);
 
         if (string.IsNullOrWhiteSpace(taskId))
         {
@@ -380,7 +380,7 @@ public static class ScheduledTaskCommandHandlers
 
     public static async Task HandleDeleteCommand(ParseResult parseResult)
     {
-        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.RequiredTaskIdOption);
+        var taskId = parseResult.GetValue(ScheduledTaskCommandOptions.Delete.TaskIdOption);
 
         if (string.IsNullOrWhiteSpace(taskId))
         {
@@ -415,7 +415,7 @@ public static class ScheduledTaskCommandHandlers
     public static async Task HandleApplyYamlCommand(ParseResult parseResult)
     {
         // Apply a ScheduledTask YAML manifest (apiVersion/kind/spec)
-        var filePath = parseResult.GetValue(AgentCommandOptions.ApplyYamlFileOption);
+        var filePath = parseResult.GetValue(ScheduledTaskCommandOptions.Apply.FileOption);
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
         {
             ConsoleUI.WriteStatus(false, string.IsNullOrWhiteSpace(filePath) ? "--file is required" : $"File not found: {filePath}");
@@ -477,12 +477,13 @@ public static class ScheduledTaskCommandHandlers
     public static async Task HandleQuickstartCommand(ParseResult parseResult)
     {
         // Interactive hello world scheduled task
-        var name = parseResult.GetValue(ScheduledTaskCommandOptions.QuickstartNameOption) ?? "hello-world-check";
-        var cron = parseResult.GetValue(ScheduledTaskCommandOptions.QuickstartCronOption) ?? "*/15 * * * *";
-        var dur = parseResult.GetValue(ScheduledTaskCommandOptions.QuickstartDurationHoursOption);
+        var name = parseResult.GetValue(ScheduledTaskCommandOptions.Quickstart.NameOption) ?? "hello-world-check";
+        var cron = parseResult.GetValue(ScheduledTaskCommandOptions.Quickstart.CronOption) ?? "*/15 * * * *";
+        var dur = parseResult.GetValue(ScheduledTaskCommandOptions.Quickstart.DurationHoursOption);
+        var agent = parseResult.GetValue(ScheduledTaskCommandOptions.Quickstart.AgentOption);
+        var apply = parseResult.GetValue(ScheduledTaskCommandOptions.Quickstart.ApplyOption);
+
         if (dur <= 0) dur = 1;
-        var agent = parseResult.GetValue(ScheduledTaskCommandOptions.QuickstartAgentOption);
-        var apply = parseResult.GetValue(ScheduledTaskCommandOptions.QuickstartApplyOption);
 
         ConsoleUI.WriteSection("Hello World Scheduled Task");
         ConsoleUI.WriteKeyValue("Name", name);

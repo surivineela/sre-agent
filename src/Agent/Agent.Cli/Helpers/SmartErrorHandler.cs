@@ -262,7 +262,7 @@ public static class SmartErrorHandler
             var url = Console.ReadLine()?.Trim();
             if (!string.IsNullOrEmpty(url))
             {
-                await GeneralCommandHandlers.HandleInitCommandWithResourceUrl(url);
+                await InitCommandHandler.HandleCommand(url);
                 return true;
             }
             return false;

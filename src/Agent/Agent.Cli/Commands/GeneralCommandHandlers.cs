@@ -203,75 +203,6 @@ public static class GeneralCommandHandlers
         }
     }
 
-    /// <summary>
-    /// Handles the init command with a specific resource URL.
-    /// </summary>
-    public static async Task HandleInitCommandWithResourceUrl(string resourceUrl)
-    {
-        try
-        {
-            // Validate URL format
-            if (!Uri.TryCreate(resourceUrl, UriKind.Absolute, out _))
-            {
-                ConsoleUI.WriteStatus(false, "Invalid URL format provided.");
-                Environment.Exit(1);
-                return;
-            }
-
-            // Create configuration
-            var config = new CliConfiguration
-            {
-                ResourceUrl = resourceUrl,
-                AuthRequired = !CliConfigurationService.IsLocalhost(resourceUrl),
-                LastUpdated = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            // Save configuration
-            var configService = new CliConfigurationService();
-            await configService.SaveConfigurationAsync(config);
-
-            // Create directory structure
-            Directory.CreateDirectory("agents");
-            Directory.CreateDirectory("tools");
-            Directory.CreateDirectory("skills");
-            Directory.CreateDirectory("scheduledtasks");
-
-            // Copy example files
-            await ExampleFileManager.CopyExampleFilesAsync();
-
-            // Create instructions.md file in .github folder
-            await InstructionsFileService.CreateInstructionsFileAsync();
-
-            ConsoleUI.WriteStatus(true, "SREAgent CLI initialized successfully!");
-            ConsoleUI.WriteBullet($"Resource URL: {resourceUrl}", ConsoleColor.White);
-            ConsoleUI.WriteBullet($"Auth Required: {config.AuthRequired}", ConsoleColor.White);
-            ConsoleUI.WriteBullet("Created directories: agents/, tools/, skills/, scheduledtasks/, .github/", ConsoleColor.White);
-            ConsoleUI.WriteBullet("Added example files: example_agent.yaml, example_tool.yaml", ConsoleColor.White);
-            ConsoleUI.WriteBullet("Created comprehensive instructions file: .github/instructions.md", ConsoleColor.White);
-
-            // Test connection
-            Console.WriteLine();
-            ConsoleUI.WriteBullet("Testing connection...", ConsoleColor.Cyan);
-            using var apiService = new ApiService();
-            var (success, response) = await apiService.TestConnectionAsync(resourceUrl);
-            Console.WriteLine(response);
-
-            // Exit with appropriate code, but don't fail initialization for connection issues
-            if (!success)
-            {
-                ConsoleUI.WriteBullet("Note: Initialization completed successfully, but connection test failed.", ConsoleColor.Yellow);
-                ConsoleUI.WriteBullet("You can still use srectl commands that don't require server connection.", ConsoleColor.White);
-            }
-
-            Environment.Exit(0); // Always exit successfully if initialization steps completed
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"Initialization failed: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
 
     /// <summary>
     /// Handles the list tools command.
@@ -402,42 +333,6 @@ public static class GeneralCommandHandlers
     }
 
     /// <summary>
-    /// Handles the apply-yaml command.
-    /// </summary>
-    public static async Task HandleApplyYamlCommand(ParseResult parseResult)
-    {
-        try
-        {
-            var filePath = parseResult.GetValue(AgentCommandOptions.ApplyYamlFileOption);
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                ConsoleUI.WriteStatus(false, "File path is required.");
-                Environment.Exit(1);
-                return;
-            }
-
-            if (!File.Exists(filePath))
-            {
-                ConsoleUI.WriteStatus(false, $"File not found: {filePath}");
-                Environment.Exit(1);
-                return;
-            }
-
-            using var apiService = new ApiService();
-            var (success, response) = await apiService.ApplyYamlFileAsync(filePath);
-
-            Console.WriteLine(response);
-            Environment.Exit(success ? 0 : 1);
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"Failed to apply YAML file: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    /// <summary>
     /// Handles the chat command for interactive mode.
     /// </summary>
     public static async Task HandleChatCommand(ParseResult parseResult)
@@ -446,7 +341,7 @@ public static class GeneralCommandHandlers
         {
             LoggingService.Initialize(parseResult);
 
-            var agentName = parseResult.GetValue(AgentCommandOptions.ChatAgentNameOption);
+            var agentName = parseResult.GetValue(ThreadCommandOptions.New.AgentNameOption);
 
             LoggingService.Info("Starting interactive chat session...");
             if (!string.IsNullOrWhiteSpace(agentName))

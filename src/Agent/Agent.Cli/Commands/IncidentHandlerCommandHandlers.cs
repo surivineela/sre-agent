@@ -14,8 +14,8 @@ public static class IncidentHandlerCommandHandlers
 {
     public static async Task HandleMapAgentCommand(ParseResult parseResult)
     {
-        var filterName = parseResult.GetValue(IncidentHandlerCommandOptions.FilterNameOption);
-        var handlingAgent = parseResult.GetValue(IncidentHandlerCommandOptions.HandlingAgentOption);
+        var filterName = parseResult.GetValue(IncidentHandlerCommandOptions.MapAgent.NameOption);
+        var handlingAgent = parseResult.GetValue(IncidentHandlerCommandOptions.MapAgent.HandlingAgentOption);
 
         if (string.IsNullOrWhiteSpace(filterName) || string.IsNullOrWhiteSpace(handlingAgent))
         {
@@ -212,17 +212,17 @@ public static class IncidentHandlerCommandHandlers
 
     public static async Task HandleCreateCommand(ParseResult parseResult)
     {
-        var id = parseResult.GetValue(IncidentHandlerCommandOptions.CreateIdOption);
-        var name = parseResult.GetValue(IncidentHandlerCommandOptions.CreateNameOption);
-        var impactedService = parseResult.GetValue(IncidentHandlerCommandOptions.ImpactedServiceOption);
-        var priority = parseResult.GetValue(IncidentHandlerCommandOptions.PriorityOption);
-        var incidentType = parseResult.GetValue(IncidentHandlerCommandOptions.IncidentTypeOption);
-        var alertId = parseResult.GetValue(IncidentHandlerCommandOptions.AlertIdOption);
-        var titleContains = parseResult.GetValue(IncidentHandlerCommandOptions.TitleContainsOption);
-        var agentMode = parseResult.GetValue(IncidentHandlerCommandOptions.AgentModeOption);
-        var handlingAgent = parseResult.GetValue(IncidentHandlerCommandOptions.CreateHandlingAgentOption);
-        var owningTeamId = parseResult.GetValue(IncidentHandlerCommandOptions.OwningTeamIdOption);
-        var maxAttempts = parseResult.GetValue(IncidentHandlerCommandOptions.MaxAttemptsOption);
+        var id = parseResult.GetValue(IncidentHandlerCommandOptions.Create.IdOption);
+        var name = parseResult.GetValue(IncidentHandlerCommandOptions.Create.NameOption);
+        var impactedService = parseResult.GetValue(IncidentHandlerCommandOptions.Create.ImpactedServiceOption);
+        var priority = parseResult.GetValue(IncidentHandlerCommandOptions.Create.PriorityOption);
+        var incidentType = parseResult.GetValue(IncidentHandlerCommandOptions.Create.IncidentTypeOption);
+        var alertId = parseResult.GetValue(IncidentHandlerCommandOptions.Create.AlertIdOption);
+        var titleContains = parseResult.GetValue(IncidentHandlerCommandOptions.Create.TitleContainsOption);
+        var agentMode = parseResult.GetValue(IncidentHandlerCommandOptions.Create.AgentModeOption);
+        var handlingAgent = parseResult.GetValue(IncidentHandlerCommandOptions.Create.HandlingAgentOption);
+        var owningTeamId = parseResult.GetValue(IncidentHandlerCommandOptions.Create.OwningTeamIdOption);
+        var maxAttempts = parseResult.GetValue(IncidentHandlerCommandOptions.Create.MaxAttemptsOption);
 
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -313,7 +313,7 @@ public static class IncidentHandlerCommandHandlers
 
     public static async Task HandleListCommand(ParseResult parseResult)
     {
-        var verbose = parseResult.GetValue(IncidentHandlerCommandOptions.VerboseOption);
+        var verbose = parseResult.GetValue(IncidentHandlerCommandOptions.List.VerboseOption);
 
         try
         {

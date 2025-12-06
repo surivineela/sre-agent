@@ -11,12 +11,6 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class SkillCommandOptions
 {
-    // Global debug option for all skill commands
-    public static readonly Option<bool> DebugOption = new("--debug")
-    {
-        Description = "Enable verbose debug logging for network calls and operations"
-    };
-
     // Upload command options
     public static readonly Option<string> UploadPathOption = new("--path")
     {

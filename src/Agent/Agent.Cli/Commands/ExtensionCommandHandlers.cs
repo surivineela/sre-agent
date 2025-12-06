@@ -20,9 +20,9 @@ public static class ExtensionCommandHandlers
         DebugLogger.Debug("Command", "Starting extension generate-ev2 command");
 
         // Extract options
-        var toolsFolder = parseResult.GetValue(ExtensionCommandOptions.ToolsFolderOption);
-        var agentFolder = parseResult.GetValue(ExtensionCommandOptions.AgentFolderOption);
-        var outputFolder = parseResult.GetValue(ExtensionCommandOptions.OutputOption);
+        var toolsFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ToolsFolderOption);
+        var agentFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.AgentFolderOption);
+        var outputFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.OutputOption);
 
         DebugLogger.Debug("Parameters", $"Tools Folder: {toolsFolder}, Agent Folder: {agentFolder}, Output: {outputFolder}");
 

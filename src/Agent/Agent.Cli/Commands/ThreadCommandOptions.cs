@@ -1,0 +1,129 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.CommandLine;
+
+namespace Agent.Cli.Commands;
+
+/// <summary>
+/// Builds command-line options for thread commands.
+/// </summary>
+public static class ThreadCommandOptions
+{
+    // ============================================================
+    // Thread New Command Options
+    // ============================================================
+
+    public static class New
+    {
+        public static readonly Option<string> MessageOption = new("--message")
+        {
+            Description = "Message to send to the agent",
+            Required = true
+        };
+
+        public static readonly Option<string> UserIdOption = new("--user-id")
+        {
+            Description = "User ID (defaults to current user)"
+        };
+
+        public static readonly Option<string> DisplayNameOption = new("--display-name")
+        {
+            Description = "Display name (defaults to current user)"
+        };
+
+        public static readonly Option<string> AgentNameOption = new("--agent")
+        {
+            Description = "Agent to start chatting with"
+        };
+
+        public static readonly Option<bool> WaitOption = new("--wait")
+        {
+            Description = "Wait for response (default: true)",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        public static readonly Option<bool> NoWaitOption = new("--no-wait")
+        {
+            Description = "Don't wait for response"
+        };
+    }
+
+    // ============================================================
+    // Thread Continue Command Options
+    // ============================================================
+
+    public static class Continue
+    {
+        public static readonly Option<string> ThreadIdOption = new("--thread-id")
+        {
+            Description = "Thread ID (uses last thread if omitted)"
+        };
+
+        public static readonly Option<string> MessageOption = new("--message")
+        {
+            Description = "Message to send to the agent",
+            Required = false
+        };
+
+        public static readonly Option<string> UserIdOption = new("--user-id")
+        {
+            Description = "User ID (defaults to current user)"
+        };
+
+        public static readonly Option<string> DisplayNameOption = new("--display-name")
+        {
+            Description = "Display name (defaults to current user)"
+        };
+
+        public static readonly Option<bool> WaitOption = new("--wait")
+        {
+            Description = "Wait for response (default: true)",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        public static readonly Option<bool> NoWaitOption = new("--no-wait")
+        {
+            Description = "Don't wait for response"
+        };
+    }
+
+    // ============================================================
+    // Thread Delete Command Options
+    // ============================================================
+
+    public static class Delete
+    {
+        public static readonly Option<string> ThreadIdOption = new("--thread-id")
+        {
+            Description = "Thread ID to delete",
+            Required = true
+        };
+    }
+
+    // ============================================================
+    // Thread Track Command Options
+    // ============================================================
+
+    public static class Track
+    {
+        public static readonly Option<string> ThreadIdOption = new("--thread-id")
+        {
+            Description = "Thread ID to track",
+            Required = true
+        };
+    }
+
+    // ============================================================
+    // Thread Apply Command Options
+    // ============================================================
+
+    public static class Apply
+    {
+        public static readonly Option<string> FileOption = new("--file")
+        {
+            Description = "Path to YAML file to apply"
+        };
+    }
+}

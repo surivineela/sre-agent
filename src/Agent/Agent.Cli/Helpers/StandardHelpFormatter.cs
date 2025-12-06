@@ -22,7 +22,7 @@ public static class StandardHelpFormatter
         {
             "✻ SRE Agent CLI (srectl)",
             "",
-            "  Your intelligent assistant for Incident Diagnosis and automation",
+            "  Your intelligent assistant for Incident Diagnosis and Automation",
             "",
             $"  cwd: {currentDir}"
         };

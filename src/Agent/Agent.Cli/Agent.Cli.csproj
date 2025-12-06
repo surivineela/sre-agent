@@ -16,6 +16,7 @@
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
     <AssemblyTitle>srectl</AssemblyTitle>
     <AssemblyName>srectl</AssemblyName>
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <!-- Self-contained publishing configuration (only when not packing as tool) -->
@@ -32,7 +33,7 @@
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" />
     <PackageReference Include="YamlDotNet" />
-  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +41,7 @@
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
     <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
     <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
-  <ProjectReference Include="..\Common.Core\Agent.Common.Core.csproj" />
+    <ProjectReference Include="..\Common.Core\Agent.Common.Core.csproj" />
   </ItemGroup>
 
 </Project>

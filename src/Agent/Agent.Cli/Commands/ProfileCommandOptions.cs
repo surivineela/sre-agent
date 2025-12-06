@@ -12,14 +12,6 @@ namespace Agent.Cli.Commands;
 public static class ProfileCommandOptions
 {
     /// <summary>
-    /// Global debug option for all profile commands.
-    /// </summary>
-    public static readonly Option<bool> DebugOption = new("--debug")
-    {
-        Description = "Enable verbose debug logging for network calls and operations"
-    };
-
-    /// <summary>
     /// Profile name option - optional for get command (shows current if not specified).
     /// </summary>
     public static readonly Option<string> ProfileNameOption = new("--name")

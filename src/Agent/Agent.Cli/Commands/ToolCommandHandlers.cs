@@ -25,15 +25,15 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool create command");
 
-        var name = parseResult.GetValue(ToolCommandOptions.NameOption);
-        var type = parseResult.GetValue(ToolCommandOptions.TypeOption);
-        var customPath = parseResult.GetValue(ToolCommandOptions.PathOption);
-        var connector = parseResult.GetValue(ToolCommandOptions.ConnectorOption);
-        var database = parseResult.GetValue(ToolCommandOptions.DatabaseOption);
-        var description = parseResult.GetValue(ToolCommandOptions.DescriptionOption);
-        var query = parseResult.GetValue(ToolCommandOptions.QueryOption);
-        var template = parseResult.GetValue(ToolCommandOptions.TemplateOption);
-        var parameters = parseResult.GetValue(ToolCommandOptions.ParameterOption);
+        var name = parseResult.GetValue(ToolCommandOptions.Create.NameOption);
+        var type = parseResult.GetValue(ToolCommandOptions.Create.TypeOption);
+        var customPath = parseResult.GetValue(ToolCommandOptions.Create.PathOption);
+        var connector = parseResult.GetValue(ToolCommandOptions.Create.ConnectorOption);
+        var database = parseResult.GetValue(ToolCommandOptions.Create.DatabaseOption);
+        var description = parseResult.GetValue(ToolCommandOptions.Create.DescriptionOption);
+        var query = parseResult.GetValue(ToolCommandOptions.Create.QueryOption);
+        var template = parseResult.GetValue(ToolCommandOptions.Create.TemplateOption);
+        var parameters = parseResult.GetValue(ToolCommandOptions.Create.ParameterOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}");
 
@@ -121,8 +121,8 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool validate command");
 
-        var validateAll = parseResult.GetValue(ToolCommandOptions.ValidateAllOption);
-        var name = parseResult.GetValue(ToolCommandOptions.ValidateNameOption);
+        var validateAll = parseResult.GetValue(ToolCommandOptions.Validate.AllOption);
+        var name = parseResult.GetValue(ToolCommandOptions.Validate.NameOption);
 
         DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, Name: {name ?? "none"}");
 
@@ -146,8 +146,8 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool apply command");
 
-        var name = parseResult.GetValue(ToolCommandOptions.ApplyNameOption);
-        var dryRun = parseResult.GetValue(ToolCommandOptions.ApplyDryRunOption);
+        var name = parseResult.GetValue(ToolCommandOptions.Apply.NameOption);
+        var dryRun = parseResult.GetValue(ToolCommandOptions.Apply.DryRunOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
 
@@ -163,7 +163,7 @@ public static class ToolCommandHandlers
     /// </summary>
     public static int HandleShowTypesCommand(ParseResult parseResult)
     {
-        var toolType = parseResult.GetValue(ToolCommandOptions.ShowTypesTypeOption);
+        var toolType = parseResult.GetValue(ToolCommandOptions.ShowTypes.TypeOption);
 
         if (!string.IsNullOrEmpty(toolType))
         {
@@ -242,9 +242,9 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool list command");
 
-        var search = parseResult.GetValue(ToolCommandOptions.ListSearchOption);
-        var name = parseResult.GetValue(ToolCommandOptions.ListNameOption);
-        var detail = parseResult.GetValue(ToolCommandOptions.ListDetailOption);
+        var search = parseResult.GetValue(ToolCommandOptions.List.SearchOption);
+        var name = parseResult.GetValue(ToolCommandOptions.List.NameOption);
+        var detail = parseResult.GetValue(ToolCommandOptions.List.DetailOption);
 
         DebugLogger.Debug("Parameters", $"Search: {search}, Name: {name}, Detail: {detail}");
 
@@ -314,8 +314,8 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool delete command");
 
-        var toolName = parseResult.GetValue(ToolCommandOptions.DeleteNameOption);
-        var dryRun = parseResult.GetValue(ToolCommandOptions.DeleteDryRunOption);
+        var toolName = parseResult.GetValue(ToolCommandOptions.Delete.NameOption);
+        var dryRun = parseResult.GetValue(ToolCommandOptions.Delete.DryRunOption);
 
         DebugLogger.Debug("Parameters", $"ToolName: {toolName}, DryRun: {dryRun}");
 
@@ -372,9 +372,9 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool diff command");
 
-        var toolName = parseResult.GetValue(ToolCommandOptions.DiffNameOption);
-        var diffTool = parseResult.GetValue(ToolCommandOptions.DiffToolOption) ?? "git";
-        var showRaw = parseResult.GetValue(ToolCommandOptions.DiffRawOption);
+        var toolName = parseResult.GetValue(ToolCommandOptions.Diff.NameOption);
+        var diffTool = parseResult.GetValue(ToolCommandOptions.Diff.ToolOption) ?? "git";
+        var showRaw = parseResult.GetValue(ToolCommandOptions.Diff.RawOption);
 
         DebugLogger.Debug("Parameters", $"ToolName: {toolName}, Tool: {diffTool}, Raw: {showRaw}");
 
@@ -1128,9 +1128,9 @@ public static class ToolCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting tool migrate command");
 
-        var toolName = parseResult.GetValue(ToolCommandOptions.MigrateNameOption);
-        var migrateAll = parseResult.GetValue(ToolCommandOptions.MigrateAllOption);
-        var dryRun = parseResult.GetValue(ToolCommandOptions.MigrateDryRunOption);
+        var toolName = parseResult.GetValue(ToolCommandOptions.Migrate.NameOption);
+        var migrateAll = parseResult.GetValue(ToolCommandOptions.Migrate.AllOption);
+        var dryRun = parseResult.GetValue(ToolCommandOptions.Migrate.DryRunOption);
 
         DebugLogger.Debug("Parameters", $"Name: {toolName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
 

@@ -11,191 +11,269 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class AgentCommandOptions
 {
-    // Global debug option for all agent commands
-    public static readonly Option<bool> DebugOption = new("--debug")
-    {
-        Description = "Enable verbose debug logging for network calls and operations"
-    };
+    // ============================================================
+    // Agent Create Command Options
+    // ============================================================
 
-    // Agent options for create (only name is required)
-    public static readonly Option<string> NameOptionCreate = new("--name") { Required = true };
-    public static readonly Option<string> InstructionsOptionCreate = new("--instructions");
-    public static readonly Option<string[]> ToolsOptionCreate = new("--tools")
+    public static class Create
     {
-        Arity = ArgumentArity.ZeroOrMore,
-        AllowMultipleArgumentsPerToken = true
-    };
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the agent",
+            Required = true
+        };
 
-    // Agent options for create (optional)
-    public static readonly Option<string> HandoffDescriptionOption = new("--handoff-description");
-    public static readonly Option<string[]> HandoffsOption = new("--handoffs")
-    {
-        Arity = ArgumentArity.ZeroOrMore,
-        AllowMultipleArgumentsPerToken = true
-    };
-    public static readonly Option<bool> AllowParallelToolCallsOption = new("--allow-parallel-tool-calls");
-    public static readonly Option<int> MaxReflectionCountOption = new("--max-reflection-count");
-    public static readonly Option<string> CriticPromptPathOption = new("--critic-prompt-path");
-    public static readonly Option<bool> CriticOnHandoffOption = new("--critic-on-handoff");
-    public static readonly Option<string> CustomReflectionNoteOption = new("--custom-reflection-note");
-    public static readonly Option<string[]> CommonPromptsOption = new("--common-prompts")
-    {
-        Arity = ArgumentArity.ZeroOrMore,
-        AllowMultipleArgumentsPerToken = true
-    };
-    public static readonly Option<float?> TemperatureOption = new("--temperature");
-    public static readonly Option<string> OutputTypeOption = new("--output-type");
-    public static readonly Option<bool> VanillaModeOption = new("--vanilla-mode");
-    public static readonly Option<bool> SmartOption = new("--smart")
-    {
-        Description = "Use AI to automatically generate instructions and recommend tools"
-    };
+        public static readonly Option<string> InstructionsOption = new("--instructions")
+        {
+            Description = "Instructions for the agent"
+        };
 
-    // Agent options for validate (not required)
-    public static readonly Option<string> NameOptionValidate = new("--name") { Description = "Agent name to validate" };
-    public static readonly Option<string> FileOptionValidate = new("--file");
-    public static readonly Option<bool> AllOption = new("--all");
-    public static readonly Option<bool> CheckToolsOption = new("--check-tools")
-    {
-        Description = "Validate that all referenced tools exist locally or on the remote server"
-    };
+        public static readonly Option<string[]> ToolsOption = new("--tools")
+        {
+            Description = "Tools the agent can use",
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true
+        };
 
-    // Agent list options
-    public static readonly Option<string?> ListSearchOption = new("--search")
-    {
-        Description = "Search filter for agent names or instructions"
-    };
-    public static readonly Option<string?> ListNameOption = new("--name")
-    {
-        Description = "Get a specific agent by name and output the full YAML"
-    };
-    public static readonly Option<bool> ListDetailOption = new("--detail")
-    {
-        Description = "Output the full YAML for all agents in the list"
-    };
+        public static readonly Option<string> HandoffDescriptionOption = new("--handoff-description")
+        {
+            Description = "Description for handoff capabilities"
+        };
 
-    // Agent options for apply
-    public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };
-    public static readonly Option<bool> ApplyDryRunOption = new("--dry-run")
-    {
-        Description = "Show what would be applied without making changes"
-    };
+        public static readonly Option<string[]> HandoffsOption = new("--handoffs")
+        {
+            Description = "Agents this agent can hand off to",
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true
+        };
 
-    // Agent options for delete
-    public static readonly Option<string> DeleteNameOption = new("--name") { Required = true };
+        public static readonly Option<bool> AllowParallelToolCallsOption = new("--allow-parallel-tool-calls")
+        {
+            Description = "Allow parallel tool execution"
+        };
 
-    // Agent options for test
-    public static readonly Option<string> TestNameOption = new("--name")
-    {
-        Required = true,
-        Description = "Name of the agent to test"
-    };
-    public static readonly Option<string> TestMessageOption = new("--message")
-    {
-        Required = true,
-        Description = "Test message to send to the agent"
-    };
-    public static readonly Option<string> TestUserIdOption = new("--user-id")
-    {
-        Description = "User ID for the test message (defaults to current user)"
-    };
-    public static readonly Option<string> TestDisplayNameOption = new("--display-name")
-    {
-        Description = "Display name for the test message (defaults to current user)"
-    };
-    public static readonly Option<bool> TestNoWaitOption = new("--no-wait")
-    {
-        Description = "Don't wait for the agent's response, just send the test message"
-    };
+        public static readonly Option<int> MaxReflectionCountOption = new("--max-reflection-count")
+        {
+            Description = "Maximum number of reflection iterations"
+        };
 
-    // Option for apply-yaml command
-    public static readonly Option<string> ApplyYamlFileOption = new("--file")
-    {
-        Description = "Path to the YAML file to apply"
-    };
+        public static readonly Option<string> CriticPromptPathOption = new("--critic-prompt-path")
+        {
+            Description = "Path to critic prompt file"
+        };
 
-    // Options for thread commands
-    public static readonly Option<string> ThreadMessageOption = new("--message")
-    {
-        Required = true,
-        Description = "The message to send to the SRE Agent"
-    };
-    public static readonly Option<string> ThreadMessageOptionalOption = new("--message")
-    {
-        Required = false,
-        Description = "The message to send to the SRE Agent (optional)"
-    };
-    public static readonly Option<string> ThreadUserIdOption = new("--user-id")
-    {
-        Description = "User ID for the message (defaults to current user)"
-    };
-    public static readonly Option<string> ThreadDisplayNameOption = new("--display-name")
-    {
-        Description = "Display name for the message (defaults to current user)"
-    };
-    public static readonly Option<bool> ThreadWaitOption = new("--wait")
-    {
-        Description = "Wait for the agent's response (default: true)",
-        Arity = ArgumentArity.ZeroOrOne
-    };
-    public static readonly Option<bool> ThreadNoWaitOption = new("--no-wait")
-    {
-        Description = "Don't wait for the agent's response (overrides default wait behavior)"
-    };
-    public static readonly Option<string> ThreadIdOption = new("--thread-id")
-    {
-        Description = "Thread ID to continue (if not provided, uses the last used thread)"
-    };
-    public static readonly Option<string> ThreadIdRequiredOption = new("--thread-id")
-    {
-        Required = true,
-        Description = "Thread ID to delete"
-    };
+        public static readonly Option<bool> CriticOnHandoffOption = new("--critic-on-handoff")
+        {
+            Description = "Enable critic on handoff"
+        };
 
-    // Chat command options
-    public static readonly Option<string> ChatAgentNameOption = new("--agent")
-    {
-        Description = "Name of the specific agent to start chatting with"
-    };
+        public static readonly Option<string> CustomReflectionNoteOption = new("--custom-reflection-note")
+        {
+            Description = "Custom note for reflection"
+        };
 
-    // Agent diff command options
-    public static readonly Option<string> DiffNameOption = new("--name") { Required = true };
-    public static readonly Option<string> DiffToolOption = new("--tool")
-    {
-        Description = "Diff tool to use: git, vim, code (default: git)"
-    };
-    public static readonly Option<bool> DiffRawOption = new("--raw")
-    {
-        Description = "Show inline diff instead of launching external tool"
-    };
+        public static readonly Option<string[]> CommonPromptsOption = new("--common-prompts")
+        {
+            Description = "Common prompts to include",
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true
+        };
 
-    // Agent migrate command options
-    public static readonly Option<string?> MigrateNameOption = new("--name")
-    {
-        Description = "Name of specific agent to migrate from V1 to V2 format"
-    };
-    public static readonly Option<bool> MigrateAllOption = new("--all")
-    {
-        Description = "Migrate all V1 agents to V2 format"
-    };
-    public static readonly Option<bool> MigrateDryRunOption = new("--dry-run")
-    {
-        Description = "Preview changes without modifying files"
-    };
+        public static readonly Option<float?> TemperatureOption = new("--temperature")
+        {
+            Description = "Model temperature setting"
+        };
 
-    // skills options
-    public static readonly Option<bool> EnableSkillsOption = new("--enable-skills")
-    {
-        Description = "Enable skills for the agent",
-        DefaultValueFactory = _ => false
-    };
+        public static readonly Option<string> OutputTypeOption = new("--output-type")
+        {
+            Description = "Expected output format"
+        };
 
-    public static readonly Option<bool> AddSystemSkillsOption = new("--add-system-skills")
-    {
-        Description = "Add system skills to the agent. Only applicable if skills are enabled with --enable-skills. This is not recommended for custom meta-agents as system skills may interfere with intended behavior.",
-        DefaultValueFactory = _ => false
-    };
+        public static readonly Option<bool> VanillaModeOption = new("--vanilla-mode")
+        {
+            Description = "Use vanilla mode without enhancements"
+        };
 
-    // Completion services disabled - System.CommandLine version doesn't support AddCompletions method
-    // These services are implemented but not compatible with current CLI framework version
+        public static readonly Option<bool> SmartOption = new("--smart")
+        {
+            Description = "Use AI to generate instructions and recommend tools"
+        };
+
+        public static readonly Option<bool> EnableSkillsOption = new("--enable-skills")
+        {
+            Description = "Enable skills for the agent",
+            DefaultValueFactory = _ => false
+        };
+
+        public static readonly Option<bool> AddSystemSkillsOption = new("--add-system-skills")
+        {
+            Description = "Add system skills (not recommended for custom meta-agents)",
+            DefaultValueFactory = _ => false
+        };
+    }
+
+    // ============================================================
+    // Agent Validate Command Options
+    // ============================================================
+
+    public static class Validate
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Agent name to validate"
+        };
+
+        public static readonly Option<string> FileOption = new("--file")
+        {
+            Description = "YAML file to validate"
+        };
+
+        public static readonly Option<bool> AllOption = new("--all")
+        {
+            Description = "Validate all agents"
+        };
+
+        public static readonly Option<bool> CheckToolsOption = new("--check-tools")
+        {
+            Description = "Validate that referenced tools exist"
+        };
+    }
+
+    // ============================================================
+    // Agent List Command Options
+    // ============================================================
+
+    public static class List
+    {
+        public static readonly Option<string?> SearchOption = new("--search")
+        {
+            Description = "Filter agents by name or instructions"
+        };
+
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Get specific agent and output full YAML"
+        };
+
+        public static readonly Option<bool> DetailOption = new("--detail")
+        {
+            Description = "Output full YAML for all agents"
+        };
+    }
+
+    // ============================================================
+    // Agent Apply Command Options
+    // ============================================================
+
+    public static class Apply
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the agent to apply",
+            Required = true
+        };
+
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Preview changes without applying"
+        };
+    }
+
+    // ============================================================
+    // Agent Delete Command Options
+    // ============================================================
+
+    public static class Delete
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the agent to delete",
+            Required = true
+        };
+    }
+
+    // ============================================================
+    // Agent Test Command Options
+    // ============================================================
+
+    public static class Test
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the agent to test",
+            Required = true
+        };
+
+        public static readonly Option<string> MessageOption = new("--message")
+        {
+            Description = "Test message to send",
+            Required = true
+        };
+
+        public static readonly Option<string> UserIdOption = new("--user-id")
+        {
+            Description = "User ID (defaults to current user)"
+        };
+
+        public static readonly Option<string> DisplayNameOption = new("--display-name")
+        {
+            Description = "Display name (defaults to current user)"
+        };
+
+        public static readonly Option<bool> WaitOption = new("--wait")
+        {
+            Description = "Wait for response (default: true)",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        public static readonly Option<bool> NoWaitOption = new("--no-wait")
+        {
+            Description = "Send message without waiting for response"
+        };
+    }
+
+    // ============================================================
+    // Agent Diff Command Options
+    // ============================================================
+
+    public static class Diff
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the agent to diff",
+            Required = true
+        };
+
+        public static readonly Option<string> ToolOption = new("--tool")
+        {
+            Description = "Diff tool: git, vim, code (default: git)"
+        };
+
+        public static readonly Option<bool> RawOption = new("--raw")
+        {
+            Description = "Show inline diff"
+        };
+    }
+
+    // ============================================================
+    // Agent Migrate Command Options
+    // ============================================================
+
+    public static class Migrate
+    {
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Agent to migrate from V1 to V2"
+        };
+
+        public static readonly Option<bool> AllOption = new("--all")
+        {
+            Description = "Migrate all V1 agents to V2"
+        };
+
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Preview changes without modifying files"
+        };
+    }
 }

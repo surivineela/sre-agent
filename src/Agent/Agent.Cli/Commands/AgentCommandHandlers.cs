@@ -22,23 +22,23 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent create command");
 
-        var name = parseResult.GetValue(AgentCommandOptions.NameOptionCreate);
-        var instructions = parseResult.GetValue(AgentCommandOptions.InstructionsOptionCreate);
-        var tools = parseResult.GetValue(AgentCommandOptions.ToolsOptionCreate);
-        var handoffDescription = parseResult.GetValue(AgentCommandOptions.HandoffDescriptionOption);
-        var handoffs = parseResult.GetValue(AgentCommandOptions.HandoffsOption);
-        var allowParallelToolCalls = parseResult.GetValue(AgentCommandOptions.AllowParallelToolCallsOption);
-        var maxReflectionCount = parseResult.GetValue(AgentCommandOptions.MaxReflectionCountOption);
-        var criticPromptPath = parseResult.GetValue(AgentCommandOptions.CriticPromptPathOption);
-        var criticOnHandoff = parseResult.GetValue(AgentCommandOptions.CriticOnHandoffOption);
-        var customReflectionNote = parseResult.GetValue(AgentCommandOptions.CustomReflectionNoteOption);
-        var commonPrompts = parseResult.GetValue(AgentCommandOptions.CommonPromptsOption);
-        var temperature = parseResult.GetValue(AgentCommandOptions.TemperatureOption);
-        var outputType = parseResult.GetValue(AgentCommandOptions.OutputTypeOption);
-        var vanillaMode = parseResult.GetValue(AgentCommandOptions.VanillaModeOption);
-        var useSmart = parseResult.GetValue(AgentCommandOptions.SmartOption);
-        var enableSkills = parseResult.GetValue(AgentCommandOptions.EnableSkillsOption);
-        var addSystemSkills = parseResult.GetValue(AgentCommandOptions.AddSystemSkillsOption);
+        var name = parseResult.GetValue(AgentCommandOptions.Create.NameOption);
+        var instructions = parseResult.GetValue(AgentCommandOptions.Create.InstructionsOption);
+        var tools = parseResult.GetValue(AgentCommandOptions.Create.ToolsOption);
+        var handoffDescription = parseResult.GetValue(AgentCommandOptions.Create.HandoffDescriptionOption);
+        var handoffs = parseResult.GetValue(AgentCommandOptions.Create.HandoffsOption);
+        var allowParallelToolCalls = parseResult.GetValue(AgentCommandOptions.Create.AllowParallelToolCallsOption);
+        var maxReflectionCount = parseResult.GetValue(AgentCommandOptions.Create.MaxReflectionCountOption);
+        var criticPromptPath = parseResult.GetValue(AgentCommandOptions.Create.CriticPromptPathOption);
+        var criticOnHandoff = parseResult.GetValue(AgentCommandOptions.Create.CriticOnHandoffOption);
+        var customReflectionNote = parseResult.GetValue(AgentCommandOptions.Create.CustomReflectionNoteOption);
+        var commonPrompts = parseResult.GetValue(AgentCommandOptions.Create.CommonPromptsOption);
+        var temperature = parseResult.GetValue(AgentCommandOptions.Create.TemperatureOption);
+        var outputType = parseResult.GetValue(AgentCommandOptions.Create.OutputTypeOption);
+        var vanillaMode = parseResult.GetValue(AgentCommandOptions.Create.VanillaModeOption);
+        var useSmart = parseResult.GetValue(AgentCommandOptions.Create.SmartOption);
+        var enableSkills = parseResult.GetValue(AgentCommandOptions.Create.EnableSkillsOption);
+        var addSystemSkills = parseResult.GetValue(AgentCommandOptions.Create.AddSystemSkillsOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Smart: {useSmart}, Tools: {tools?.Length ?? 0} items");
 
@@ -254,10 +254,10 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent validate command");
 
-        var validateAll = parseResult.GetValue(AgentCommandOptions.AllOption);
-        var agentName = parseResult.GetValue(AgentCommandOptions.NameOptionValidate);
-        var filePath = parseResult.GetValue(AgentCommandOptions.FileOptionValidate);
-        var checkTools = parseResult.GetValue(AgentCommandOptions.CheckToolsOption);
+        var validateAll = parseResult.GetValue(AgentCommandOptions.Validate.AllOption);
+        var agentName = parseResult.GetValue(AgentCommandOptions.Validate.NameOption);
+        var filePath = parseResult.GetValue(AgentCommandOptions.Validate.FileOption);
+        var checkTools = parseResult.GetValue(AgentCommandOptions.Validate.CheckToolsOption);
 
         DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, Name: {agentName ?? "none"}, FilePath: {filePath ?? "none"}, CheckTools: {checkTools}");
 
@@ -295,7 +295,7 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent apply command");
 
-        var name = parseResult.GetValue(AgentCommandOptions.ApplyNameOption);
+        var name = parseResult.GetValue(AgentCommandOptions.Apply.NameOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}");
 
@@ -436,7 +436,7 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent delete command");
 
-        var agentName = parseResult.GetValue(AgentCommandOptions.DeleteNameOption);
+        var agentName = parseResult.GetValue(AgentCommandOptions.Delete.NameOption);
 
         DebugLogger.Debug("Parameters", $"AgentName: {agentName}");
 
@@ -482,9 +482,9 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent migrate command");
 
-        var agentName = parseResult.GetValue(AgentCommandOptions.MigrateNameOption);
-        var migrateAll = parseResult.GetValue(AgentCommandOptions.MigrateAllOption);
-        var dryRun = parseResult.GetValue(AgentCommandOptions.MigrateDryRunOption);
+        var agentName = parseResult.GetValue(AgentCommandOptions.Migrate.NameOption);
+        var migrateAll = parseResult.GetValue(AgentCommandOptions.Migrate.AllOption);
+        var dryRun = parseResult.GetValue(AgentCommandOptions.Migrate.DryRunOption);
 
         DebugLogger.Debug("Parameters", $"Name: {agentName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
 
@@ -624,9 +624,9 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent list command");
 
-        var search = parseResult.GetValue(AgentCommandOptions.ListSearchOption);
-        var name = parseResult.GetValue(AgentCommandOptions.ListNameOption);
-        var detail = parseResult.GetValue(AgentCommandOptions.ListDetailOption);
+        var search = parseResult.GetValue(AgentCommandOptions.List.SearchOption);
+        var name = parseResult.GetValue(AgentCommandOptions.List.NameOption);
+        var detail = parseResult.GetValue(AgentCommandOptions.List.DetailOption);
 
         DebugLogger.Debug("Parameters", $"Search: {search}, Name: {name}, Detail: {detail}");
 
@@ -698,11 +698,11 @@ public static class AgentCommandHandlers
 
         try
         {
-            var agentName = parseResult.GetValue(AgentCommandOptions.TestNameOption);
-            var message = parseResult.GetValue(AgentCommandOptions.TestMessageOption);
-            var userId = parseResult.GetValue(AgentCommandOptions.TestUserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(AgentCommandOptions.TestDisplayNameOption) ?? Environment.UserName;
-            var noWait = parseResult.GetValue(AgentCommandOptions.TestNoWaitOption);
+            var agentName = parseResult.GetValue(AgentCommandOptions.Test.NameOption);
+            var message = parseResult.GetValue(AgentCommandOptions.Test.MessageOption);
+            var userId = parseResult.GetValue(AgentCommandOptions.Test.UserIdOption) ?? Environment.UserName;
+            var displayName = parseResult.GetValue(AgentCommandOptions.Test.DisplayNameOption) ?? Environment.UserName;
+            var noWait = parseResult.GetValue(AgentCommandOptions.Test.NoWaitOption);
 
             // Default behavior is to wait unless --no-wait is specified
             var shouldWait = !noWait;
@@ -796,9 +796,9 @@ public static class AgentCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting agent diff command");
 
-        var agentName = parseResult.GetValue(AgentCommandOptions.DiffNameOption);
-        var diffTool = parseResult.GetValue(AgentCommandOptions.DiffToolOption) ?? "git";
-        var showRaw = parseResult.GetValue(AgentCommandOptions.DiffRawOption);
+        var agentName = parseResult.GetValue(AgentCommandOptions.Diff.NameOption);
+        var diffTool = parseResult.GetValue(AgentCommandOptions.Diff.ToolOption) ?? "git";
+        var showRaw = parseResult.GetValue(AgentCommandOptions.Diff.RawOption);
 
         DebugLogger.Debug("Parameters", $"AgentName: {agentName}, Tool: {diffTool}, Raw: {showRaw}");
 

@@ -40,7 +40,7 @@ public class CreateCommandInvalidParameterTests : IDisposable
         _output.WriteLine(result.Output);
         Assert.False(result.Success, "Command should fail when --name is missing");
         Assert.NotEqual(0, result.ExitCode);
-        Assert.Contains("Option '--name' is required", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Tool name must not be empty", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
