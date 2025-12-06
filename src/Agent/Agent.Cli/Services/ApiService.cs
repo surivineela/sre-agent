@@ -54,6 +54,39 @@ public class ApiService : IDisposable
     }
 
     /// <summary>
+    /// Detects the YAML version by checking the api_version field.
+    /// Returns: YamlApiVersion.V1 ("agent.platform.ai/v1"), 
+    ///          YamlApiVersion.V2 ("azuresre.ai/v2"),
+    ///          or null if unsupported/invalid version
+    /// </summary>
+    private static YamlApiVersion? DetectYamlVersion(string yamlContent)
+    {
+        try
+        {
+            // Deserialize to ResourceModel to get ApiVersion property
+            var deserializer = new DeserializerBuilder()
+                .IgnoreUnmatchedProperties()
+                .Build();
+
+            var resourceModel = deserializer.Deserialize<ResourceModel>(yamlContent);
+
+            if (resourceModel != null && !string.IsNullOrEmpty(resourceModel.ApiVersion))
+            {
+                // Parse the API version string
+                return YamlApiVersion.Parse(resourceModel.ApiVersion);
+            }
+
+            // If no api_version field, return null (unsupported)
+            return null;
+        }
+        catch
+        {
+            // If parsing fails, return null (invalid)
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Converts snake case YAML content to JsonNode with camelCase property names and proper types.
     /// YamlDotNet's untyped deserialization treats all scalars as strings, so we convert them
     /// back to proper types (booleans, numbers) during the camelCase conversion.
@@ -263,6 +296,68 @@ public class ApiService : IDisposable
             stopwatch.Stop();
             DebugLogger.LogNetwork($"HTTP request failed after {stopwatch.ElapsedMilliseconds}ms: {ex.Message}");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Makes an HTTP request and deserializes the response to the specified type with error handling.
+    /// If T is string, returns the raw content directly without JSON deserialization.
+    /// </summary>
+    /// <typeparam name="T">The type to deserialize the response to (or string for raw content)</typeparam>
+    /// <param name="method">The HTTP method to use</param>
+    /// <param name="relativeUrl">The relative URL path (will be appended to config.ResourceUrl)</param>
+    /// <param name="requestBody">Optional request body content to send with the request</param>
+    /// <returns>A tuple containing the deserialized response object, HTTP status code, and error message if any</returns>
+    private async Task<(T? ResponseObject, HttpStatusCode StatusCode, string? ErrorMessage)> MakeHttpRequestAsync<T>(HttpMethod method, string relativeUrl, string? requestBody = null)
+    {
+        var config = await _configService.LoadConfigurationAsync();
+        if (config == null)
+        {
+            return (default(T), HttpStatusCode.InternalServerError, "Configuration not found. Please run 'srectl init' first.");
+        }
+
+        var fullUrl = $"{config.ResourceUrl.TrimEnd('/')}/{relativeUrl.TrimStart('/')}";
+        var request = new HttpRequestMessage(method, fullUrl);
+
+        if (!string.IsNullOrEmpty(requestBody))
+        {
+            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+        }
+
+        var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+
+        // Check if the response is HTML instead of JSON
+        var mediaType = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(mediaType) && mediaType.Contains("html"))
+        {
+            return (default(T), response.StatusCode, "Server returned HTML instead of JSON. Check the API URL/auth.");
+        }
+
+        // Check if the content looks like JSON
+        if (!LooksLikeJson(content))
+        {
+            return (default(T), response.StatusCode, "Unexpected response format");
+        }
+
+        if (typeof(T) == typeof(string))
+        {
+            var errorMsg = !response.IsSuccessStatusCode ? $"Request failed: {response.StatusCode} - {content}" : null;
+            return ((T)(object)content, response.StatusCode, errorMsg);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return (default(T), response.StatusCode, $"Request failed: {response.StatusCode} - {content}");
+        }
+
+        try
+        {
+            var deserializedObject = JsonSerializer.Deserialize<T>(content, _camelCaseJsonOptions);
+            return (deserializedObject, response.StatusCode, null);
+        }
+        catch (JsonException ex)
+        {
+            return (default(T), response.StatusCode, $"Failed to deserialize response: {ex.Message}");
         }
     }
 
@@ -482,76 +577,70 @@ public class ApiService : IDisposable
             var agentYamlContent = await File.ReadAllTextAsync(agentFilePath);
             DebugLogger.LogFile("READ", agentFilePath, $"Content size: {agentYamlContent.Length} characters");
 
-            // Convert YAML (snake_case) to JSON (camelCase)
-            DebugLogger.Debug("YAML", "Converting YAML to JSON with naming convention change");
-            var jsonNode = ConvertYamlToJsonNode(agentYamlContent);
-            if (jsonNode == null)
+            // Step 1: Detect YAML version
+            var detectedVersion = DetectYamlVersion(agentYamlContent);
+
+            if (detectedVersion == null)
             {
-                return (false, "❌ Failed to parse YAML content as JSON");
+                return (false, $"❌ Unsupported or invalid YAML version. Expected api_version: '{YamlApiVersion.V1}' or '{YamlApiVersion.V2}'");
             }
 
-            DebugLogger.Debug("JSON", $"{jsonNode.ToJsonString()}");
-            DebugLogger.Debug("JSON", $"Generated JSON content size: {jsonNode.ToJsonString().Length} characters");
+            DebugLogger.Debug("YAML", $"Detected YAML version: {detectedVersion}");
 
-            var extendedAgentJsonObj = jsonNode.AsObject();
-
-            // create api request envelope
-            string? owner = null;
-            List<string>? tags = null;
-
-            // get metadata info and set in the envelope
-            if (extendedAgentJsonObj.TryGetPropertyValue("metadata", out var metadataNode) && metadataNode is JsonObject metadataObj)
+            // Step 2: Load YAML and convert to V2 if necessary
+            ExtendedAgentV2? v2Agent = null;
+            if (detectedVersion == YamlApiVersion.V1)
             {
-                if (metadataObj.TryGetPropertyValue("owner", out var ownerNode))
+                // V1: Deserialize to V1 model and convert to V2
+                // No naming convention needed - models use explicit [YamlMember] aliases
+                var v1Agent = ExtendedAgentV1.ParseYaml(agentYamlContent);
+                if (v1Agent == null)
                 {
-                    owner = ownerNode?.GetValue<string>();
+                    return (false, "❌ Failed to deserialize V1 YAML");
                 }
 
-                if (metadataObj.TryGetPropertyValue("tags", out var tagsNode) && tagsNode is JsonArray tagsArray)
+                v2Agent = Converters.ExtendedAgentConverter.ConvertToV2(v1Agent);
+
+                ConsoleUI.WriteInfo($"⚠️  Warning: Agent YAML is using V1 format.", ConsoleColor.Yellow);
+                ConsoleUI.WriteInfo($"   Consider migrating to V2 format by running:", ConsoleColor.Yellow);
+                ConsoleUI.WriteInfo($"   'srectl agent sync' to download the latest V2 format from the server.", ConsoleColor.Yellow);
+                Console.WriteLine();
+            }
+            else if (detectedVersion == YamlApiVersion.V2)
+            {
+                // V2: Deserialize directly
+                // No naming convention needed - models use explicit [YamlMember] aliases
+                v2Agent = ExtendedAgentV2.ParseYaml(agentYamlContent);
+                if (v2Agent == null)
                 {
-                    tags = tagsArray.Select(t => t?.GetValue<string>() ?? "").Where(t => !string.IsNullOrEmpty(t)).ToList();
+                    return (false, "❌ Failed to deserialize V2 YAML");
                 }
             }
 
-            JsonObject extendedAgentProperties;
-            if (extendedAgentJsonObj.TryGetPropertyValue("spec", out var specNode) && specNode is JsonObject specObj)
+            if (v2Agent == null)
             {
-                extendedAgentProperties = specObj.Deserialize<JsonObject>()!;
-
-                // Handle deprecated field names (YAML uses system_prompt → API expects instructions)
-                if (extendedAgentProperties.TryGetPropertyValue("systemPrompt", out var systemPromptNode))
-                {
-                    ConsoleUI.WriteInfo($"⚠️  Warning: 'system_prompt' is deprecated in v2 API. Use 'instructions' instead.");
-                    ConsoleUI.WriteInfo($"   Automatically mapping 'system_prompt' → 'instructions' for this request.");
-                    ConsoleUI.WriteInfo($"   Run 'srectl agent sync {agentName}' after srectl agent apply to update your local YAML file.");
-
-                    extendedAgentProperties["instructions"] = systemPromptNode?.DeepClone();
-                    extendedAgentProperties.Remove("systemPrompt");
-                }
-
-                // Remove fields that belong at envelope level, not in properties
-                extendedAgentProperties.Remove("name");
-            }
-            else
-            {
-                return (false, "❌ missing spec on agent YAML. Please run validate before applying.");
+                return (false, "❌ Failed to load agent YAML");
             }
 
+            DebugLogger.Debug("Model", $"Loaded ExtendedAgentV2: {v2Agent.Metadata.Name}");
+
+            // Step 3: Build API envelope from V2 model
             var envelope = new JsonObject
             {
                 ["name"] = agentName,
                 ["type"] = "ExtendedAgent",
-                ["properties"] = extendedAgentProperties
+                ["properties"] = JsonSerializer.SerializeToNode(v2Agent.Spec, _camelCaseJsonOptions)
             };
 
-            if (owner != null)
+            // Add metadata to envelope if present
+            if (v2Agent.Metadata?.Owner != null)
             {
-                envelope["owner"] = owner;
+                envelope["owner"] = v2Agent.Metadata.Owner;
             }
 
-            if (tags != null && tags.Count > 0)
+            if (v2Agent.Metadata?.Tags != null && v2Agent.Metadata.Tags.Count > 0)
             {
-                envelope["tags"] = new JsonArray(tags.Select(t => JsonValue.Create(t)).ToArray());
+                envelope["tags"] = new JsonArray(v2Agent.Metadata.Tags.Select(t => JsonValue.Create(t)).ToArray());
             }
 
             var apiRequestBody = envelope.ToJsonString(new JsonSerializerOptions
@@ -559,7 +648,7 @@ public class ApiService : IDisposable
                 WriteIndented = false
             });
 
-            DebugLogger.Debug("API Payload", $"Wrapped in ApiRequestEnvelope format, size: {apiRequestBody.Length} characters");
+            DebugLogger.Debug("API Envelope", $"Built envelope for agent '{agentName}', size: {apiRequestBody.Length} characters");
 
             // Call v2 API with optional dryRun parameter
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents/{agentName}";
@@ -580,7 +669,7 @@ public class ApiService : IDisposable
             {
                 stopwatch.Stop();
                 DebugLogger.LogTiming($"{operation}", stopwatch.Elapsed);
-                return (true, $"✅ Agent '{agentName}' {operation} successful!");
+                return (true, $"✅ Agent '{agentName}' {operation} successfully!");
             }
             else
             {
@@ -1030,116 +1119,119 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> ListExtendedToolsAsync()
+    public async Task<(List<ExtendedToolV2> Result, string? Error)> ListExtendedToolsAsync(string? search = null)
     {
+        var resultList = new List<ExtendedToolV2>();
+
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            var relativeUrl = "api/v2/extendedAgent/tools";
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
+                relativeUrl += $"?search={Uri.EscapeDataString(search)}";
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            var (toolsEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiCollectionEnvelope<ToolSpecV2>>(HttpMethod.Get, relativeUrl);
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            if (errorMessage != null)
             {
-                // Parse the response using the shared tool response parser
-                var toolElements = ToolResponseParser.ParseToolElements(content);
+                return (resultList, errorMessage);
+            }
 
-                var toolList = new List<string>();
+            if (toolsEnvelope?.Value == null || toolsEnvelope.Value.Count == 0)
+            {
+                return (resultList, null);
+            }
 
-                if (toolElements.Length == 0)
+            // Convert envelopes to ExtendedToolV2
+            foreach (var envelope in toolsEnvelope.Value)
+            {
+                if (envelope.Properties == null)
                 {
-                    toolList.Add("\nNo extended tools found on the server.");
-                    toolList.Add("Use 'srectl tool apply <tool-name>' to add tools to the server.");
-                }
-                else
-                {
-                    var extendedToolDisplayInfo = ToolResponseParser.ExtractExtendedToolDisplayInfo(toolElements);
-                    toolList.AddRange(extendedToolDisplayInfo);
-
-                    // Get pagination info from the original response structure
-                    var jsonDoc = JsonDocument.Parse(content);
-                    int totalCount = toolElements.Length; // Default fallback
-                    bool hasMore = false;
-                    int pageSize = 50;
-                    int pageIndex = 0;
-
-                    // Try to get pagination info from PaginatedResponse structure
-                    if (jsonDoc.RootElement.TryGetProperty("total_count", out var totalCountElement))
-                    {
-                        totalCount = totalCountElement.GetInt32();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("has_next_page", out var hasMoreElement))
-                    {
-                        hasMore = hasMoreElement.GetBoolean();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("page_size", out var pageSizeElement))
-                    {
-                        pageSize = pageSizeElement.GetInt32();
-                    }
-                    if (jsonDoc.RootElement.TryGetProperty("page_index", out var pageIndexElement))
-                    {
-                        pageIndex = pageIndexElement.GetInt32();
-                    }
-                    // Legacy pagination format (only if data is an object, not an array)
-                    else if (jsonDoc.RootElement.TryGetProperty("data", out var legacyDataElement) &&
-                             legacyDataElement.ValueKind == JsonValueKind.Object &&
-                             legacyDataElement.TryGetProperty("pagination", out var legacyPaginationElement))
-                    {
-                        if (legacyPaginationElement.TryGetProperty("total_count", out var legacyTotalElement))
-                        {
-                            totalCount = legacyTotalElement.GetInt32();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("has_more", out var legacyHasMoreElement))
-                        {
-                            hasMore = legacyHasMoreElement.GetBoolean();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("limit", out var legacyLimitElement))
-                        {
-                            pageSize = legacyLimitElement.GetInt32();
-                        }
-                        if (legacyPaginationElement.TryGetProperty("offset", out var legacyOffsetElement))
-                        {
-                            pageIndex = legacyOffsetElement.GetInt32() / pageSize; // Convert offset to page index
-                        }
-                    }
-
-                    toolList.Add($"\nTotal: {totalCount} extended tool(s)");
-
-                    // Add pagination info if available and we have actual results to show
-                    if ((hasMore || pageIndex > 0) && toolElements.Length > 0)
-                    {
-                        var currentPageTools = toolElements.Length;
-                        var actualOffset = pageIndex * pageSize;
-                        var startIndex = actualOffset + 1;
-                        var endIndex = actualOffset + currentPageTools;
-                        // Only show pagination if it makes sense
-                        if (startIndex <= totalCount)
-                        {
-                            toolList.Add($"Showing tools {startIndex}-{endIndex} of {totalCount} (page {pageIndex + 1})");
-                        }
-                    }
+                    continue;
                 }
 
-                return (true, string.Join("\n", toolList));
+                // Construct ExtendedToolV2 from envelope
+                var extendedTool = new ExtendedToolV2
+                {
+                    Metadata = new ResourceMetadataModel
+                    {
+                        Name = envelope.Name,
+                        Owner = envelope.Owner,
+                        Tags = envelope.Tags ?? new List<string>()
+                    },
+                    Spec = envelope.Properties
+                };
+
+                resultList.Add(extendedTool);
             }
-            else
-            {
-                return (false, $"❌ Failed to list extended tools: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
+
+            return (resultList, null);
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to list extended tools: {ex.Message}");
+            DebugLogger.Debug("Exception", $"ListExtendedTools failed: {ex.Message}");
+            return (resultList, $"Failed to list tools: {ex.Message}");
         }
     }
 
-    public async Task<(bool Success, string Response)> ApplyToolAsync(string toolName)
+    public async Task<(List<ExtendedAgentV2> Result, string? Error)> ListExtendedAgentsAsync(string? search = null)
+    {
+        var resultList = new List<ExtendedAgentV2>();
+
+        try
+        {
+            var relativeUrl = "api/v2/extendedAgent/agents";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                relativeUrl += $"?search={Uri.EscapeDataString(search)}";
+            }
+
+            var (agentsEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiCollectionEnvelope<ExtendedAgentSpecV2>>(HttpMethod.Get, relativeUrl);
+
+            if (errorMessage != null)
+            {
+                return (resultList, errorMessage);
+            }
+
+            if (agentsEnvelope?.Value == null || agentsEnvelope.Value.Count == 0)
+            {
+                return (resultList, null);
+            }
+
+            // Convert envelopes to ExtendedAgentV2
+            foreach (var envelope in agentsEnvelope.Value)
+            {
+                if (envelope.Properties == null)
+                {
+                    continue;
+                }
+
+                // Construct ExtendedAgentV2 from envelope
+                var extendedAgent = new ExtendedAgentV2
+                {
+                    Metadata = new ResourceMetadataModel
+                    {
+                        Name = envelope.Name,
+                        Owner = envelope.Owner,
+                        Tags = envelope.Tags ?? new List<string>()
+                    },
+                    Spec = envelope.Properties
+                };
+
+                resultList.Add(extendedAgent);
+            }
+
+            return (resultList, null);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListExtendedAgents failed: {ex.Message}");
+            return (resultList, $"Failed to list agents: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> ApplyExtendedToolAsync(string toolName, bool dryRun = false)
     {
         try
         {
@@ -1156,52 +1248,54 @@ public class ApiService : IDisposable
                 return (false, $"Tool file not found for '{toolName}'. Searched in tools directory and subdirectories for '{toolName}.yaml'");
             }
 
-            // Read the YAML file
-            var yamlContent = await File.ReadAllTextAsync(toolFilePath);
-
-            // Parse the tool YAML content to an object
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-            var toolData = deserializer.Deserialize<object>(yamlContent);
-
-            // Create the wrapper with proper structure
-            var toolWrapper = new StructuredToolListYaml
+            // Check tool version before attempting to apply
+            var detectedVersion = ExtendedToolHelper.DetectVersion(toolFilePath);
+            if (detectedVersion != YamlApiVersion.V2)
             {
-                ApiVersion = config.ApiVersion ?? "azuresre.ai/v1",
-                Metadata = new YamlMetadata
-                {
-                    Owner = config.Owner ?? "your-team@example.com",
-                    Version = config.Version ?? "1.0.0",
-                    Tags = config.Tags?.Any() == true ? config.Tags : ["example", "demo", "generic"],
-                    CreatedAt = config.CreatedAt != default(DateTime) ? config.CreatedAt.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                    UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd")
-                },
-                Spec = new ToolListSpec { Tools = [toolData] }
+                var versionName = detectedVersion == YamlApiVersion.V1 ? "V1" : "unknown";
+                return (false, $"❌ Tool '{toolName}' is using {versionName} format and must be migrated to V2 before applying.\n" +
+                              $"   Run: srectl tool migrate --name {toolName}\n" +
+                              $"   Or:  srectl tool migrate --all");
+            }
+
+            // Read and parse the YAML file as ExtendedToolV2
+            var tool = await ExtendedToolV2.LoadYamlAsync(toolFilePath);
+            if (tool == null)
+            {
+                return (false, $"Failed to parse tool YAML file: {toolFilePath}");
+            }
+
+            // Serialize spec to JSON node with camelCase properties
+            var propertiesNode = JsonSerializer.SerializeToNode(tool.Spec, _camelCaseJsonOptions);
+
+            // Build the API request envelope in camelCase
+            var requestBody = new
+            {
+                name = tool.Metadata.Name,
+                type = "ExtendedAgentTool",
+                tags = tool.Metadata.Tags ?? new List<string>(),
+                owner = tool.Metadata.Owner,
+                properties = propertiesNode
             };
 
-            // Serialize to YAML
-            var serializer = new SerializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                .Build();
-            var wrappedYamlContent = serializer.Serialize(toolWrapper);
+            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
 
-            // Create the request
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            // Use V2 API endpoint: PUT /api/v2/extendedAgent/tools/{toolName}
+            var dryRunQuery = dryRun ? "?dryRun=true" : "";
+            var relativeUrl = $"api/v2/extendedAgent/tools/{Uri.EscapeDataString(toolName)}{dryRunQuery}";
+
+            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
+
+            if (errorMessage == null)
             {
-                Content = new StringContent(wrappedYamlContent, Encoding.UTF8, "application/yaml")
-            };
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return (true, $"✅ Tool '{toolName}' applied successfully!");
+                var message = dryRun
+                    ? $"✅ Tool '{toolName}' validated successfully (dry run)"
+                    : $"✅ Tool '{toolName}' applied successfully!";
+                return (true, message);
             }
             else
             {
-                return (false, $"❌ Failed to apply tool: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                return (false, $"❌ Failed to apply tool: {statusCode} - {responseContent}");
             }
         }
         catch (Exception ex)
@@ -2202,62 +2296,60 @@ public class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> DeleteToolAsync(string toolName)
+    public async Task<(bool Success, string Message)> DeleteExtendedToolAsync(string toolName, bool dryRun = false)
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            // Use V2 API endpoint: DELETE /api/v2/extendedAgent/tools/{toolName}
+            var relativeUrl = $"api/v2/extendedAgent/tools/{Uri.EscapeDataString(toolName)}";
+            if (dryRun)
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
+                relativeUrl += "?dryRun=true";
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/tools/{toolName}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+            var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            if (errorMessage != null)
             {
-                return (true, $"Tool '{toolName}' deleted successfully");
-            }
-            else if (response.StatusCode == HttpStatusCode.Conflict)
-            {
-                // Parse conflict response to show dependent agents
-                try
+                // Check specific status codes for better error messages
+                if (statusCode == HttpStatusCode.Conflict)
                 {
-                    var conflictData = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                    // Parse conflict response to show dependent agents
+                    try
                     {
-                        var dependentAgents = dependentAgentsElement.EnumerateArray()
-                            .Select(x => x.GetString())
-                            .Where(x => !string.IsNullOrEmpty(x))
-                            .ToList();
+                        var conflictData = JsonSerializer.Deserialize<JsonElement>(content ?? "{}");
+                        if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                        {
+                            var dependentAgents = dependentAgentsElement.EnumerateArray()
+                                .Select(x => x.GetString())
+                                .Where(x => !string.IsNullOrEmpty(x))
+                                .ToList();
 
-                        var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
-                        return (false, $"Cannot delete tool '{toolName}': it is used by the following agents: {agentList}");
+                            var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
+                            return (false, $"Cannot delete tool '{toolName}': it is used by the following agents: {agentList}");
+                        }
+
+                        if (conflictData.TryGetProperty("message", out var messageElement))
+                        {
+                            return (false, messageElement.GetString() ?? $"Conflict deleting tool '{toolName}'");
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to generic conflict message if parsing fails
                     }
 
-                    if (conflictData.TryGetProperty("message", out var messageElement))
-                    {
-                        return (false, messageElement.GetString() ?? $"Conflict deleting tool '{toolName}'");
-                    }
+                    return (false, $"Cannot delete tool '{toolName}': it is being used by agents");
                 }
-                catch
+                else if (statusCode == HttpStatusCode.NotFound)
                 {
-                    // Fall back to generic conflict message if parsing fails
+                    return (false, $"Tool '{toolName}' not found");
                 }
 
-                return (false, $"Cannot delete tool '{toolName}': it is being used by agents");
+                return (false, errorMessage);
             }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return (false, $"Tool '{toolName}' not found");
-            }
-            else
-            {
-                return (false, $"Failed to delete tool: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
+
+            return (true, $"Tool '{toolName}' deleted successfully");
         }
         catch (Exception ex)
         {
@@ -2840,7 +2932,7 @@ public class ApiService : IDisposable
     /// </summary>
     /// <param name="agentName">The name of the agent to retrieve</param>
     /// <returns>Success status, YAML content, and error message</returns>
-    public async Task<(bool Success, string YamlContent, string ErrorMessage)> GetAgentConfigurationAsync(string agentName)
+    public async Task<(bool Success, string YamlContent, string ErrorMessage)> GetExtendedAgentAsync(string agentName)
     {
         try
         {
@@ -2849,94 +2941,69 @@ public class ApiService : IDisposable
             {
                 return (false, "", "Configuration not found. Please run 'srectl init' first.");
             }
-            // Only collection API exists: fetch collection, find by name, convert JSON->YAML
-            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents";
+
+            // Use V2 API to fetch specific agent
+            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents/{agentName}";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             var (response, content, _) = await MakeHttpRequestAsync(request);
+
             if (!response.IsSuccessStatusCode)
             {
-                return (false, "", $"Failed to list agents: {response.StatusCode}");
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return (false, "", $"Agent '{agentName}' not found on server");
+                }
+                return (false, "", $"Failed to get agent: {response.StatusCode}");
             }
+
             var mediaType = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant();
             if (!string.IsNullOrWhiteSpace(mediaType) && mediaType.Contains("html"))
             {
                 return (false, "", "Server returned HTML instead of JSON. Check the API URL/auth.");
             }
+
             if (!LooksLikeJson(content))
             {
-                return (false, "", "Unexpected response format for agents list");
+                return (false, "", "Unexpected response format for agent");
             }
 
-            // Parse possible shapes: { data: [...] }, { agents: [...] }, or bare array
+            // Parse V2 API response: { "name": "...", "type": "...", "properties": {...}, "tags": [...], "owner": "..." }
             try
             {
-                var jsonDoc = JsonDocument.Parse(content);
-                JsonElement agentsArray;
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataEl) && dataEl.ValueKind == JsonValueKind.Array)
+                var agentEnvelope = JsonSerializer.Deserialize<ApiEnvelope<ExtendedAgentSpecV2>>(content, _camelCaseJsonOptions);
+
+                if (agentEnvelope?.Properties == null)
                 {
-                    agentsArray = dataEl;
-                }
-                else if (jsonDoc.RootElement.TryGetProperty("agents", out var agentsEl) && agentsEl.ValueKind == JsonValueKind.Array)
-                {
-                    agentsArray = agentsEl;
-                }
-                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    agentsArray = jsonDoc.RootElement;
-                }
-                else
-                {
-                    return (false, "", "No agents array found in response");
+                    return (false, "", $"Agent '{agentName}' has no properties");
                 }
 
-                foreach (var agent in agentsArray.EnumerateArray())
+                // Create V2 wrapper with metadata from envelope
+                var v2Agent = new ExtendedAgentV2
                 {
-                    if (agent.ValueKind != JsonValueKind.Object) continue;
-                    if (!agent.TryGetProperty("name", out var nameEl)) continue;
-                    var name = nameEl.GetString();
-                    if (!string.Equals(name, agentName, StringComparison.OrdinalIgnoreCase)) continue;
-
-                    // Deserialize the JSON element into YamlAgentDescriptor to get proper snake_case properties
-                    var jsonString = agent.GetRawText();
-                    var agentDescriptor = JsonSerializer.Deserialize<YamlAgentDescriptor>(jsonString, _camelCaseJsonOptions);
-
-                    if (agentDescriptor == null)
+                    Spec = agentEnvelope.Properties,
+                    Metadata = new ResourceMetadataModel
                     {
-                        return (false, "", $"Failed to deserialize agent '{agentName}'");
+                        Name = agentEnvelope.Name ?? agentName,
+                        Owner = agentEnvelope.Owner ?? string.Empty,
+                        Tags = agentEnvelope.Tags ?? []
                     }
+                };
 
-                    // Create structured wrapper with flattened spec (matches validator expectations)
-                    var wrapper = new StructuredAgentYaml
-                    {
-                        Spec = agentDescriptor,
-                        Metadata = new YamlMetadata
-                        {
-                            Owner = agentDescriptor.Metadata?.Owner ?? string.Empty,
-                            Version = agentDescriptor.Metadata?.Version ?? string.Empty,
-                            Tags = agentDescriptor.Metadata?.Tags ?? [],
-                            CreatedAt = agentDescriptor.Metadata?.CreatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty,
-                            UpdatedAt = agentDescriptor.Metadata?.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") ?? string.Empty
-                        }
-                    };
-
-                    var serializer = new SerializerBuilder()
-                        .WithNamingConvention(UnderscoredNamingConvention.Instance)
-                        .DisableAliases()
-                        .Build();
-                    var yaml = serializer.Serialize(wrapper);
-                    return (true, yaml, "");
-                }
-
-                return (false, "", $"Agent '{agentName}' not found on server");
+                // Serialize to YAML (no naming convention needed - uses explicit [YamlMember] aliases)
+                var serializer = new SerializerBuilder()
+                    .DisableAliases()
+                    .Build();
+                var yaml = serializer.Serialize(v2Agent);
+                return (true, yaml, "");
             }
             catch (Exception ex)
             {
-                return (false, "", $"Failed to parse agents list: {ex.Message}");
+                return (false, "", $"Failed to parse agent response: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
-            DebugLogger.Debug("Exception", $"GetAgentConfiguration failed: {ex.Message}");
+            DebugLogger.Debug("Exception", $"GetExtendedAgent failed: {ex.Message}");
             return (false, "", $"Failed to retrieve agent configuration: {ex.Message}");
         }
     }

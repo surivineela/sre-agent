@@ -5,8 +5,8 @@
 using System.CommandLine;
 using System.Text;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
 using Agent.Cli.Services;
-using Agent.Data.DataModels;
 
 namespace Agent.Cli.Commands;
 
@@ -1166,11 +1166,11 @@ public static class InteractiveCommandHandlers
         var typeChoice = Console.ReadLine()?.Trim();
         var toolType = typeChoice switch
         {
-            "1" => "KustoTool",
+            "1" => (string)ToolName.KustoTool,
             //"2" => "AzureTool",
             //"3" => "HttpTool",
             //"4" => "ScriptTool",
-            _ => null
+            _ => (string?)null
         };
 
         if (toolType == null)
@@ -1398,7 +1398,7 @@ public static class InteractiveCommandHandlers
                 case "1":
                     ConsoleUI.WriteCommand("Running command", "srectl agent list");
                     Console.WriteLine();
-                    await GeneralCommandHandlers.HandleListAgentsCommand(CreateEmptyParseResult());
+                    await AgentCommandHandlers.HandleListCommand(CreateEmptyParseResult());
                     break;
                 case "2":
                     ConsoleUI.WriteCommand("Running command", "srectl tool list");
@@ -1469,9 +1469,8 @@ public static class InteractiveCommandHandlers
                 }
             }
 
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
                 Instructions = finalInstructions,
                 Tools = finalTools,
                 Handoffs = [],
@@ -1479,7 +1478,7 @@ public static class InteractiveCommandHandlers
                 AllowParallelToolCalls = false,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
-                CriticOnHandOff = false,
+                CriticOnHandoff = false,
                 CustomReflectionNote = string.Empty,
                 CommonPrompts = [],
                 Temperature = null,
@@ -1527,9 +1526,9 @@ public static class InteractiveCommandHandlers
   <important>Prefer specialized agents first; if not covered, fall back to this agent. Always have the subscription GUID handy before handoff.</important>
   The sub-agent securely runs the command and returns raw CLI outp";
 
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
+
                 Instructions = instructions,
                 Tools =
                 [
@@ -1556,7 +1555,7 @@ public static class InteractiveCommandHandlers
   - Verify outcomes with targeted reads.",
                 Temperature = 0.2f,
                 AllowParallelToolCalls = false,
-                CriticOnHandOff = false,
+                CriticOnHandoff = false,
                 OutputType = null
             };
 
@@ -1604,9 +1603,9 @@ public static class InteractiveCommandHandlers
   - **Forbidden/insufficient RBAC** or requests to run `az aks command invoke`.
   When handing off, include a one-line reason and the workload/cluster context gathered so far.";
 
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
+
                 Instructions = instructions,
                 Tools =
                 [
@@ -1636,7 +1635,7 @@ public static class InteractiveCommandHandlers
                 CustomReflectionNote = string.Empty,
                 Temperature = null,
                 AllowParallelToolCalls = false,
-                CriticOnHandOff = false
+                CriticOnHandoff = false
             };
 
             var folder = Path.Combine("agents", name);
@@ -1654,9 +1653,9 @@ public static class InteractiveCommandHandlers
     {
         try
         {
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
+
                 Instructions = instructions,
                 Tools =
                 [
@@ -1677,7 +1676,7 @@ public static class InteractiveCommandHandlers
                 CustomReflectionNote = string.Empty,
                 Temperature = 0.2f,
                 AllowParallelToolCalls = false,
-                CriticOnHandOff = false,
+                CriticOnHandoff = false,
                 OutputType = null
             };
 
@@ -1696,9 +1695,9 @@ public static class InteractiveCommandHandlers
     {
         try
         {
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
+
                 Instructions = instructions,
                 Tools =
                 [
@@ -1728,7 +1727,7 @@ public static class InteractiveCommandHandlers
                 CustomReflectionNote = string.Empty,
                 Temperature = null,
                 AllowParallelToolCalls = false,
-                CriticOnHandOff = false,
+                CriticOnHandoff = false,
                 OutputType = null
             };
 
@@ -1808,9 +1807,9 @@ public static class InteractiveCommandHandlers
             await ApplyToolDirectly("CheckAllScenarioImpact");
 
             // 3) Create agent referencing the tools
-            var agent = new AgentSpec
+            var agent = new ExtendedAgentSpecV2
             {
-                Name = name,
+
                 Instructions = "You triage ICM incidents and run Kusto to investigate a web app frontend. Be concise and use the provided tools.",
                 Tools = ["CheckAllScenarioImpact"],
                 Handoffs = [],
@@ -1818,7 +1817,7 @@ public static class InteractiveCommandHandlers
                 AllowParallelToolCalls = false,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
-                CriticOnHandOff = false,
+                CriticOnHandoff = false,
                 CustomReflectionNote = string.Empty,
                 CommonPrompts = [],
                 Temperature = 0.2f,

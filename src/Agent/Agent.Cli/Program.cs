@@ -45,6 +45,9 @@ public static class Program
                     e.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
                     e.Message.Contains("requires", StringComparison.OrdinalIgnoreCase) ||
                     e.Message.Contains("expects", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("Cannot", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains("Please specify", StringComparison.OrdinalIgnoreCase) ||
+                    e.Message.Contains(ErrorMessageHelper.Category.InvalidParameter, StringComparison.OrdinalIgnoreCase) ||
                     e.Message.Contains("Option", StringComparison.OrdinalIgnoreCase) && e.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
                     e.Message.Contains("argument", StringComparison.OrdinalIgnoreCase) && e.Message.Contains("missing", StringComparison.OrdinalIgnoreCase));
 
@@ -133,7 +136,13 @@ public static class Program
                     if (deepest?.Command is Command cmd && cmd is not RootCommand)
                     {
                         StandardHelpFormatter.ShowSrectlHeader();
-                        ConsoleUI.WriteStatus(false, $"Missing or invalid options for '{GetCommandPath(deepest)}'.");
+
+                        // Show actual error messages from validators
+                        foreach (var error in parseResult.Errors)
+                        {
+                            ConsoleUI.WriteStatus(false, error.Message);
+                        }
+
                         Console.WriteLine();
                         ShowScopedSuggestions(cmd);
                         Console.WriteLine();
@@ -306,8 +315,7 @@ public static class Program
             ConsoleUI.WriteSection("Options");
             foreach (var opt in cmd.Options)
             {
-                // Normalize display to the canonical long form --{name} to avoid duplication like "----name"
-                var canonical = $"--{opt.Name}";
+                var canonical = $"{opt.Name}";
                 ConsoleUI.WriteKeyValue(canonical, opt.Description ?? string.Empty, 28, ConsoleColor.Green);
             }
         }

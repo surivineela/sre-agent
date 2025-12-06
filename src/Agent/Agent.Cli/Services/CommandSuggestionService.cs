@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text;
+using Agent.Cli.Models;
 
 namespace Agent.Cli.Services;
 
@@ -382,7 +383,7 @@ public static class CommandSuggestionService
             "tool create" =>
             [
                 new("--name", "Tool name (required)", "QueryMetrics"),
-                new("--type", "Tool type (required)", "KustoTool"),
+                new("--type", "Tool type (required)", ToolName.KustoTool),
                 new("--path", "Organization path", "\"Metrics/Performance\""),
                 new("--debug", "Enable debug logging", "")
             ],

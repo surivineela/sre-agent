@@ -69,7 +69,7 @@ public static class GeneralCommandHandlers
                 {
                     try
                     {
-                        var (ok, yaml, err) = await api.GetAgentConfigurationAsync(name);
+                        var (ok, yaml, err) = await api.GetExtendedAgentAsync(name);
                         if (!ok || string.IsNullOrWhiteSpace(yaml))
                         {
                             ConsoleUI.WriteBullet($"Skip {name}: {err}", ConsoleColor.Yellow);
@@ -124,8 +124,8 @@ public static class GeneralCommandHandlers
                             // Deserialize YAML to the correct derived type to preserve all fields (like query)
                             YamlToolDefinitionBase tool = toolType switch
                             {
-                                "KustoTool" => deserializer.Deserialize<KustoToolDefinition>(yaml),
-                                "LinkTool" => deserializer.Deserialize<LinkToolDefinition>(yaml),
+                                var t when ToolName.KustoTool == t => deserializer.Deserialize<KustoToolDefinition>(yaml),
+                                var t when ToolName.LinkTool == t => deserializer.Deserialize<LinkToolDefinition>(yaml),
                                 _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
                             };
 
@@ -274,121 +274,6 @@ public static class GeneralCommandHandlers
     }
 
     /// <summary>
-    /// Handles the list agents command.
-    /// </summary>
-    public static async Task HandleListAgentsCommand(ParseResult parseResult)
-    {
-        // Ensure debug/quiet flags are honored for this handler
-        CommandExecutionContext.Initialize(parseResult);
-        var showAll = parseResult.GetValue(AgentCommandOptions.AllOption);
-
-        DebugLogger.Debug("Command", "Starting agent list command");
-        DebugLogger.Debug("Parameters", $"ShowAll: {showAll}");
-
-        using var apiService = new ApiService();
-
-        if (showAll)
-        {
-            // Show all agents with full details (existing behavior)
-            var (success, response, _) = await apiService.ListAgentsAsync();
-
-            if (success)
-            {
-                ConsoleUI.WriteSection("All Available Agents");
-
-                if (DebugLogger.IsDebugEnabled)
-                {
-                    DebugLogger.Debug("API Response", "Successfully retrieved complete agent list from server");
-                }
-
-                Console.WriteLine(response);
-            }
-            else
-            {
-                if (DebugLogger.IsDebugEnabled)
-                {
-                    DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
-                    DebugLogger.Debug("Error Response", response);
-                }
-                Console.WriteLine(response);
-            }
-            Environment.Exit(success ? 0 : 1);
-        }
-        else
-        {
-            // Show only remote extended agents (simplified view)
-            var (success, response, _) = await apiService.ListAgentsAsync();
-
-            if (success)
-            {
-                ConsoleUI.WriteSection("Remote Extended Agents");
-
-                if (DebugLogger.IsDebugEnabled)
-                {
-                    DebugLogger.Debug("API Response", "Successfully retrieved agent list from server");
-                }
-
-                // For simplified view, try to extract just the agent names from the response
-                try
-                {
-                    // Extract agent names from the formatted response
-                    var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    var agentNames = new List<string>();
-
-                    foreach (var line in lines)
-                    {
-                        // Look for lines that start with bullet point (agent names)
-                        var trimmed = line.Trim();
-                        if (trimmed.StartsWith("• ") && !trimmed.Contains("System Prompt:") &&
-                            !trimmed.Contains("Description:") && !trimmed.Contains("Tools:") &&
-                            !trimmed.Contains("Created:") && !trimmed.Contains("Handoffs:") &&
-                            !trimmed.StartsWith("• Total:"))
-                        {
-                            var agentName = trimmed.Substring(2).Trim();
-                            if (!string.IsNullOrEmpty(agentName))
-                            {
-                                agentNames.Add(agentName);
-                            }
-                        }
-                    }
-
-                    if (agentNames.Count != 0)
-                    {
-                        foreach (var name in agentNames.OrderBy(n => n))
-                        {
-                            ConsoleUI.WriteBullet(name);
-                        }
-                        Console.WriteLine($"\nTotal: {agentNames.Count} extended agent(s)");
-                    }
-                    else
-                    {
-                        ConsoleUI.WriteInfo("No extended agents found.", ConsoleColor.Yellow);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (DebugLogger.IsDebugEnabled)
-                    {
-                        DebugLogger.Debug("Parser Error", $"Failed to parse agent names: {ex.Message}");
-                    }
-                    // Fall back to showing the full response
-                    Console.WriteLine(response);
-                }
-            }
-            else
-            {
-                if (DebugLogger.IsDebugEnabled)
-                {
-                    DebugLogger.Debug("API Error", "Failed to retrieve agent list from server");
-                    DebugLogger.Debug("Error Response", response);
-                }
-                Console.WriteLine(response);
-            }
-            Environment.Exit(success ? 0 : 1);
-        }
-    }
-
-    /// <summary>
     /// Handles the list tools command.
     /// </summary>
     public static async Task HandleListToolsCommand(ParseResult parseResult)
@@ -435,29 +320,49 @@ public static class GeneralCommandHandlers
         DebugLogger.Debug("Command", "Starting extended tools list command");
 
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ListExtendedToolsAsync();
+        var (toolsList, error) = await apiService.ListExtendedToolsAsync();
 
-        if (success)
-        {
-            ConsoleUI.WriteSection("Extended Tools");
-
-            if (DebugLogger.IsDebugEnabled)
-            {
-                DebugLogger.Debug("API Response", "Successfully retrieved extended tools list from server");
-            }
-
-            Console.WriteLine(response);
-        }
-        else
+        if (error != null)
         {
             if (DebugLogger.IsDebugEnabled)
             {
                 DebugLogger.Debug("API Error", "Failed to retrieve extended tools list from server");
-                DebugLogger.Debug("Error Response", response);
+                DebugLogger.Debug("Error Response", error);
             }
-            Console.WriteLine(response);
+            ConsoleUI.WriteStatus(false, $"Failed to list tools: {error}");
+            Environment.Exit(1);
+            return;
         }
-        Environment.Exit(success ? 0 : 1);
+
+        ConsoleUI.WriteSection("Extended Tools");
+
+        if (DebugLogger.IsDebugEnabled)
+        {
+            DebugLogger.Debug("API Response", "Successfully retrieved extended tools list from server");
+        }
+
+        if (toolsList.Count == 0)
+        {
+            Console.WriteLine("\nNo extended tools found on the server.");
+            Console.WriteLine("Use 'srectl tool apply <tool-name>' to add tools to the server.");
+        }
+        else
+        {
+            // Output each tool as YAML with separators
+            for (int i = 0; i < toolsList.Count; i++)
+            {
+                var yamlOutput = toolsList[i].ToYaml();
+                Console.WriteLine(yamlOutput);
+                if (i < toolsList.Count - 1)
+                {
+                    Console.WriteLine("---"); // YAML document separator
+                }
+            }
+
+            Console.WriteLine($"\nTotal: {toolsList.Count} extended tool(s)");
+        }
+
+        Environment.Exit(0);
     }
 
     /// <summary>

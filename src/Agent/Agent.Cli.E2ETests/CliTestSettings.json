@@ -1,7 +1,0 @@
-{
-  "ServerUrl": "https://localhost:7023",
-  "TimeoutSeconds": 120,
-  "Cleanup": true,
-  "CliPath": null,
-  "Debug": false
-}

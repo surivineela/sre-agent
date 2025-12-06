@@ -3,14 +3,11 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.Text;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
 using Agent.Cli.Services;
-using Agent.Cli.Validations;
 using Agent.Data.Tools;
 using Agent.Framework;
-using YamlDotNet.Core;
-using YamlDotNet.RepresentationModel;
 
 namespace Agent.Cli.Commands;
 
@@ -19,680 +16,295 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class ToolCommandHandlers
 {
-    private static readonly string[] value =
-                [
-                    "# NOTE: This is a Kusto tool template. Update it before applying.",
-                    "# - Set a meaningful description, database, and query.",
-                    "# - Ensure the 'connector' points to a configured Kusto connector.",
-                    "# - Verify the connector principal has required ADX permissions (see http://aka.ms/1psreagent).",
-                    ""
-                ];
+    private const string ToolsDirectory = "tools";
 
     /// <summary>
     /// Handles the tool create command.
     /// </summary>
-    public static async Task HandleCreateCommand(ParseResult parseResult)
+    public static async Task<int> HandleCreateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool create command");
 
-        try
+        var name = parseResult.GetValue(ToolCommandOptions.NameOption);
+        var type = parseResult.GetValue(ToolCommandOptions.TypeOption);
+        var customPath = parseResult.GetValue(ToolCommandOptions.PathOption);
+        var connector = parseResult.GetValue(ToolCommandOptions.ConnectorOption);
+        var database = parseResult.GetValue(ToolCommandOptions.DatabaseOption);
+        var description = parseResult.GetValue(ToolCommandOptions.DescriptionOption);
+        var query = parseResult.GetValue(ToolCommandOptions.QueryOption);
+        var template = parseResult.GetValue(ToolCommandOptions.TemplateOption);
+        var parameters = parseResult.GetValue(ToolCommandOptions.ParameterOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}");
+
+        // Get tool type info for display purposes
+        var availableTypes = ExtendedToolHelper.GetAvailableToolTypes();
+        var toolTypeInfo = availableTypes.FirstOrDefault(t =>
+            t.Name.Equals(type, StringComparison.OrdinalIgnoreCase));
+
+        DebugLogger.LogValidation($"Tool {name}", true);
+
+        // Always use V2 structured creation with ExtendedToolV2
+        string toolYaml = CreateToolV2(name!, type!, connector, database, description, query, template, parameters);
+
+        // For KustoTool, prepend a helpful header with modification + permissions guidance
+        if (ToolName.KustoTool == type)
         {
-            var name = parseResult.GetValue(ToolCommandOptions.NameOption);
-            var type = parseResult.GetValue(ToolCommandOptions.TypeOption);
-            var customPath = parseResult.GetValue(ToolCommandOptions.PathOption);
-            var extra = parseResult.GetValue(ToolCommandOptions.ExtraOption);
-
-            DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}, Extra: {extra?.Length ?? 0} items");
-
-            // Validate tool type is supported
-            var availableTypes = ToolDefinitionService.GetAvailableToolTypes();
-            var toolTypeInfo = availableTypes.FirstOrDefault(t =>
-                t.Name.Equals(type, StringComparison.OrdinalIgnoreCase));
-
-            if (toolTypeInfo == null)
+            var kustoToolHeader = new[]
             {
-                DebugLogger.Debug("Validation", $"Unknown tool type: {type}");
-                ConsoleUI.WriteStatus(false, $"Unknown tool type '{type}'");
-                ConsoleUI.WriteSection("Available tool types");
-                foreach (var availableType in availableTypes)
-                {
-                    ConsoleUI.WriteBullet($"{availableType.Name}: {availableType.Description}");
-                }
-                Console.WriteLine();
-                ConsoleUI.WriteInfo("Use 'srectl tool show-types' for more details.");
-                Environment.Exit(1);
-                return;
-            }
+                "# NOTE: This is a Kusto tool template. Update it before applying.",
+                "# - Set a meaningful description, database, and query.",
+                "# - Ensure the 'connector' points to a configured Kusto connector.",
+                "# - Verify the connector principal has required ADX permissions (see http://aka.ms/1psreagent).",
+                ""
+            };
+            var header = string.Join('\n', kustoToolHeader);
+            toolYaml = header + toolYaml;
+        }
 
-            // Tool validation
-            if (!ToolValidation.ValidateTool(name!, type!, out var errors))
-            {
-                DebugLogger.LogValidation($"Tool {name}", false, errors);
-                ConsoleUI.WriteStatus(false, "Tool validation failed");
-                foreach (var error in errors)
-                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-                Environment.Exit(1);
-                return;
-            }
+        // Write tool to file
+        string yamlPath;
 
-            DebugLogger.LogValidation($"Tool {name}", true);
+        if (customPath != null && customPath.Length > 0)
+        {
+            // Use custom path: tools/{customPath}/{name}.yaml
+            var toolDir = Path.Combine(ToolsDirectory, customPath);
+            Directory.CreateDirectory(toolDir);
+            yamlPath = Path.Combine(toolDir, $"{name}.yaml");
+        }
+        else if (customPath == string.Empty)
+        {
+            // Use flat structure: tools/{name}.yaml
+            Directory.CreateDirectory(ToolsDirectory);
+            yamlPath = Path.Combine(ToolsDirectory, $"{name}.yaml");
+        }
+        else
+        {
+            // Use legacy structure: tools/{name}/{name}.yaml
+            var toolDir = Path.Combine(ToolsDirectory, name!);
+            Directory.CreateDirectory(toolDir);
+            yamlPath = Path.Combine(toolDir, $"{name}.yaml");
+        }
 
-            // Create tool using template based on actual definitions
-            var toolYaml = CreateToolFromTemplate(name!, type!, extra);
+        DebugLogger.LogFile("WRITE", yamlPath, $"Tool YAML content size: {toolYaml.Length} characters");
 
-            // For KustoTool, prepend a helpful header with modification + permissions guidance
-            if (!string.IsNullOrWhiteSpace(type) && type.Equals("KustoTool", StringComparison.OrdinalIgnoreCase))
-            {
-                var header = string.Join('\n', value);
-                toolYaml = header + toolYaml;
-            }
-
-            // Write tool to file
-            var toolsDir = "tools";
-            string yamlPath;
-
-            if (!string.IsNullOrWhiteSpace(customPath))
-            {
-                // Use custom path: tools/{customPath}/{name}.yaml
-                var toolDir = Path.Combine(toolsDir, customPath);
-                Directory.CreateDirectory(toolDir);
-                yamlPath = Path.Combine(toolDir, $"{name}.yaml");
-            }
-            else
-            {
-                // Use legacy structure: tools/{name}/{name}.yaml
-                var toolDir = Path.Combine(toolsDir, name!);
-                Directory.CreateDirectory(toolDir);
-                yamlPath = Path.Combine(toolDir, $"{name}.yaml");
-            }
-
-            DebugLogger.LogFile("WRITE", yamlPath, $"Tool YAML content size: {toolYaml.Length} characters");
-
-            await File.WriteAllTextAsync(yamlPath, toolYaml);
-            ConsoleUI.WriteStatus(true, $"Tool YAML created at {yamlPath}");
+        await File.WriteAllTextAsync(yamlPath, toolYaml);
+        ConsoleUI.WriteStatus(true, $"Tool YAML created at {yamlPath}");
+        if (toolTypeInfo != null)
+        {
             ConsoleUI.WriteKeyValue("Tool type", $"{toolTypeInfo.Name} - {toolTypeInfo.Description}");
-            Console.WriteLine();
-            ConsoleUI.WriteSection("Next Steps");
-            ConsoleUI.WriteCommand("Review and customize", "Edit the generated YAML file");
-            ConsoleUI.WriteCommand("Update connector", "Set the correct connector reference");
-            ConsoleUI.WriteCommand("Validate tool", $"srectl tool validate --name {name}");
-            ConsoleUI.WriteCommand("Apply tool", $"srectl tool apply --name {name}");
+        }
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Next Steps");
+        ConsoleUI.WriteCommand("Review and customize", "Edit the generated YAML file");
+        ConsoleUI.WriteCommand("Update connector", "Set the correct connector reference");
+        ConsoleUI.WriteCommand("Validate tool", $"srectl tool validate --name {name}");
+        ConsoleUI.WriteCommand("Apply tool", $"srectl tool apply --name {name}");
 
-            // Kusto-specific post-create reminders
-            if (!string.IsNullOrWhiteSpace(type) && type.Equals("KustoTool", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine();
-                ConsoleUI.WriteSection("Kusto prerequisites");
-                ConsoleUI.WriteBullet("Edit YAML to set database, cluster, data connection and query.", ConsoleColor.Yellow);
-                ConsoleUI.WriteBullet("Ensure the connector principal has the required ADX permissions.", ConsoleColor.Yellow);
-                ConsoleUI.WriteCommand("Docs", "http://aka.ms/1psreagent");
-            }
-        }
-        catch (Exception ex)
+        // Kusto-specific post-create reminders
+        if (!string.IsNullOrWhiteSpace(type) && ToolName.KustoTool == type)
         {
-            DebugLogger.Debug("Exception", $"CreateTool failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, ex.Message);
-            Environment.Exit(1);
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Kusto prerequisites");
+            ConsoleUI.WriteBullet("Edit YAML to set database, cluster, data connection and query.", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet("Ensure the connector principal has the required ADX permissions.", ConsoleColor.Yellow);
+            ConsoleUI.WriteCommand("Docs", "http://aka.ms/1psreagent");
         }
+
+        return 0;
     }
 
     /// <summary>
     /// Handles the tool validate command.
     /// </summary>
-    public static void HandleValidateCommand(ParseResult parseResult)
+    public static async Task<int> HandleValidateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool validate command");
 
-        var validateAll = parseResult.GetValue(ToolCommandOptions.AllOption);
-        var name = parseResult.GetValue(ToolCommandOptions.NameOptionValidate);
+        var validateAll = parseResult.GetValue(ToolCommandOptions.ValidateAllOption);
+        var name = parseResult.GetValue(ToolCommandOptions.ValidateNameOption);
 
         DebugLogger.Debug("Parameters", $"ValidateAll: {validateAll}, Name: {name ?? "none"}");
 
-        var deserializer = YamlHelper.CreateCamelCaseDeserializer();
-
+        bool success;
         if (validateAll)
         {
-            ValidateAllTools(deserializer);
-        }
-        else if (!string.IsNullOrWhiteSpace(name))
-        {
-            ValidateSingleTool(name, deserializer);
+            success = await ValidateAllToolsAsync();
         }
         else
         {
-            ConsoleUI.WriteStatus(false, "Please provide either --name or --all for tool validation.");
-            Environment.Exit(1);
+            success = await ValidateSingleToolAsync(name!);
         }
+
+        return success ? 0 : 1;
     }
 
     /// <summary>
     /// Handles the tool apply command.
     /// </summary>
-    public static async Task HandleApplyCommand(ParseResult parseResult)
+    public static async Task<int> HandleApplyCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool apply command");
 
         var name = parseResult.GetValue(ToolCommandOptions.ApplyNameOption);
-        var dryRun = parseResult.GetValue(ToolCommandOptions.DryRunOption);
+        var dryRun = parseResult.GetValue(ToolCommandOptions.ApplyDryRunOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
 
-        if (dryRun)
-        {
-            await HandleApplyDryRun(name!);
-            return;
-        }
-
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ApplyToolAsync(name!);
+        var (success, response) = await apiService.ApplyExtendedToolAsync(name!, dryRun);
 
         Console.WriteLine(response);
-        Environment.Exit(success ? 0 : 1);
+        return success ? 0 : 1;
     }
 
     /// <summary>
     /// Handles the tool show-types command to display available tool types.
     /// </summary>
-    public static void HandleShowTypesCommand(ParseResult parseResult)
+    public static int HandleShowTypesCommand(ParseResult parseResult)
     {
-        try
-        {
-            var verbose = parseResult.GetValue(ToolCommandOptions.VerboseOption);
-            var toolType = parseResult.GetValue(ToolCommandOptions.TypeFilterOption);
+        var toolType = parseResult.GetValue(ToolCommandOptions.ShowTypesTypeOption);
 
-            if (!string.IsNullOrEmpty(toolType))
-            {
-                // Show details for a specific tool type
-                ShowSpecificToolTypeDetails(toolType);
-            }
-            else
-            {
-                // Show all available tool types
-                ShowAllToolTypes(verbose);
-            }
-        }
-        catch (Exception ex)
+        if (!string.IsNullOrEmpty(toolType))
         {
-            Console.WriteLine($"[ERROR] {ex.Message}");
-            Environment.Exit(1);
+            // Show details for a specific tool type
+            return ShowSpecificToolTypeDetails(toolType);
+        }
+        else
+        {
+            // Show all available tool types
+            ShowAllToolTypes();
+            return 0;
         }
     }
 
     /// <summary>
     /// Handles the tool show-connectors command to display available connector types.
     /// </summary>
-    public static async Task HandleShowConnectorsCommand(ParseResult parseResult)
+    public static async Task<int> HandleShowConnectorsCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        try
+        // First, try to show configured data connectors from the server (these are the actual names to use in YAML)
+        ConsoleUI.WriteSection("Configured Data Connectors (use these names in YAML)");
+        bool printedConfigured = false;
+        using (var api = new ApiService())
         {
-            var verbose = parseResult.GetValue(ToolCommandOptions.VerboseOption);
-
-            // First, try to show configured data connectors from the server (these are the actual names to use in YAML)
-            ConsoleUI.WriteSection("Configured Data Connectors (use these names in YAML)");
-            bool printedConfigured = false;
-            using (var api = new ApiService())
+            try
             {
-                try
+                var (success, response) = await api.ListDataConnectorsAsync();
+                if (success)
                 {
-                    var (success, response) = await api.ListDataConnectorsAsync();
-                    if (success)
-                    {
-                        Console.WriteLine(response);
-                        printedConfigured = true;
-                        Console.WriteLine();
-                        ConsoleUI.WriteInfo("YAML: connector: <name>", ConsoleColor.Gray);
-                    }
-                    else
-                    {
-                        ConsoleUI.WriteInfo("Could not fetch connectors from server.", ConsoleColor.Yellow);
-                        ConsoleUI.WriteInfo("Tip: run 'srectl init' and 'srectl list data-connectors' when connected.", ConsoleColor.Gray);
-                    }
+                    Console.WriteLine(response);
+                    printedConfigured = true;
+                    Console.WriteLine();
+                    ConsoleUI.WriteInfo("YAML: connector: <name>", ConsoleColor.Gray);
                 }
-                catch
+                else
                 {
-                    ConsoleUI.WriteInfo("Unable to connect to server to list configured connectors.", ConsoleColor.Yellow);
+                    ConsoleUI.WriteInfo("Could not fetch connectors from server.", ConsoleColor.Yellow);
+                    ConsoleUI.WriteInfo("Tip: run 'srectl init' and 'srectl list data-connectors' when connected.", ConsoleColor.Gray);
                 }
             }
-
-            // Then, show available connector types from local SDK discovery (helpful reference)
-            if (printedConfigured)
+            catch
             {
-                Console.WriteLine();
+                ConsoleUI.WriteInfo("Unable to connect to server to list configured connectors.", ConsoleColor.Yellow);
             }
-            ConsoleUI.WriteSection("Available Connector Types");
-
-            var connectorTypes = ToolDefinitionService.GetAvailableConnectorTypes();
-
-            if (connectorTypes.Count == 0)
-            {
-                ConsoleUI.WriteStatus(false, "No connector types found.");
-                return;
-            }
-
-            foreach (var connector in connectorTypes)
-            {
-                ConsoleUI.WriteKeyValue(connector.Name, connector.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
-
-                if (verbose)
-                {
-                    ConsoleUI.WriteBullet($"Type: {connector.TypeName}", ConsoleColor.DarkGray, 4);
-                    ConsoleUI.WriteBullet($"Assembly: {connector.Assembly}", ConsoleColor.DarkGray, 4);
-                    ConsoleUI.WriteBullet($"Namespace: {connector.Namespace}", ConsoleColor.DarkGray, 4);
-                }
-                Console.WriteLine();
-            }
-
-            ConsoleUI.WriteKeyValue("Total", $"{connectorTypes.Count} connector type(s)", 10);
         }
-        catch (Exception ex)
+
+        // Then, show available connector types from local SDK discovery (helpful reference)
+        if (printedConfigured)
         {
-            ConsoleUI.WriteStatus(false, ex.Message);
-            Environment.Exit(1);
+            Console.WriteLine();
         }
+        ConsoleUI.WriteSection("Available Connector Types");
+
+        var connectorTypes = ToolDefinitionService.GetAvailableConnectorTypes();
+
+        if (connectorTypes.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No connector types found.");
+            return 1;
+        }
+
+        foreach (var connector in connectorTypes)
+        {
+            ConsoleUI.WriteKeyValue(connector.Name, connector.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
+            Console.WriteLine();
+        }
+
+        ConsoleUI.WriteKeyValue("Total", $"{connectorTypes.Count} connector type(s)", 10);
+        return 0;
     }
 
     /// <summary>
     /// Handles the tool list command to display available tools.
     /// </summary>
-    public static async Task HandleListCommand(ParseResult parseResult)
+    public static async Task<int> HandleListCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool list command");
 
-        var listAll = parseResult.GetValue(ToolCommandOptions.ListAllOption);
+        var search = parseResult.GetValue(ToolCommandOptions.ListSearchOption);
+        var name = parseResult.GetValue(ToolCommandOptions.ListNameOption);
+        var detail = parseResult.GetValue(ToolCommandOptions.ListDetailOption);
 
-        DebugLogger.Debug("Parameters", $"ListAll: {listAll}");
+        DebugLogger.Debug("Parameters", $"Search: {search}, Name: {name}, Detail: {detail}");
 
-        try
+        using var apiService = new ApiService();
+
+        var (toolsList, error) = await apiService.ListExtendedToolsAsync(search);
+
+        if (error != null)
         {
-            using var apiService = new ApiService();
+            ConsoleUI.WriteStatus(false, error);
+            return 1;
+        }
 
-            if (listAll)
+        if (toolsList.Count == 0)
+        {
+            ConsoleUI.WriteInfo("No extended tools found on the server.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Use 'srectl tool apply <tool-name>' to add tools to the server.", ConsoleColor.Gray);
+            return 0;
+        }
+
+        // Filter by name if specified
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var tool = toolsList.FirstOrDefault(t =>
+                string.Equals(t.Metadata?.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            if (tool == null)
             {
-                // List both extended tools and legacy tools
-                ConsoleUI.WriteSection("All Available Tools");
-                Console.WriteLine();
+                ConsoleUI.WriteStatus(false, $"Tool '{name}' not found.");
+                return 1;
+            }
 
-                // Get extended tools first
-                ConsoleUI.WriteInfo("Extended Tools (recommended):", ConsoleColor.Cyan);
-                var (extendedSuccess, extendedResponse) = await apiService.ListExtendedToolsAsync();
+            ConsoleUI.WriteSection("Remote Extended Tool");
+            Console.WriteLine(tool.ToYaml());
+            return 0;
+        }
 
-                if (extendedSuccess)
+        ConsoleUI.WriteSection("Remote Extended Tools");
+
+        for (int i = 0; i < toolsList.Count; i++)
+        {
+            if (detail)
+            {
+                var yamlOutput = toolsList[i].ToYaml();
+                Console.WriteLine(yamlOutput);
+                if (i < toolsList.Count - 1)
                 {
-                    Console.WriteLine(extendedResponse);
+                    ConsoleUI.DrawLine();
                 }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, "Failed to retrieve extended tools");
-                    Console.WriteLine($"   {extendedResponse}");
-                }
-
-                Console.WriteLine();
-                ConsoleUI.DrawLine(60);
-                Console.WriteLine();
-
-                // Get legacy tools
-                ConsoleUI.WriteInfo("Legacy Tools:", ConsoleColor.Yellow);
-                var (legacySuccess, legacyResponse) = await apiService.ListToolsAsync();
-
-                if (legacySuccess)
-                {
-                    Console.WriteLine(legacyResponse);
-                }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, "Failed to retrieve legacy tools");
-                    Console.WriteLine($"   {legacyResponse}");
-                }
-
-                // Summary
-                Console.WriteLine();
-                ConsoleUI.WriteSection("Summary");
-                ConsoleUI.WriteBullet("Extended tools support advanced features and are recommended for new developments", ConsoleColor.Green);
-                ConsoleUI.WriteBullet("Legacy tools are maintained for backward compatibility", ConsoleColor.Yellow);
-                Console.WriteLine();
-                ConsoleUI.WriteCommand("Create new tool", "srectl tool create --name <name> --type <type>");
-                ConsoleUI.WriteCommand("Apply existing tool", "srectl tool apply --name <name>");
-
-                Environment.Exit((extendedSuccess || legacySuccess) ? 0 : 1);
             }
             else
             {
-                // Default behavior: list extended tools only (mirrors list extended-tools)
-                var (success, response) = await apiService.ListExtendedToolsAsync();
-
-                if (success)
-                {
-                    Console.WriteLine(response);
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, "Failed to retrieve tools");
-                    Console.WriteLine(response);
-                    Environment.Exit(1);
-                }
+                var toolName = toolsList[i].Metadata?.Name ?? "Unknown";
+                ConsoleUI.WriteBullet(toolName);
             }
         }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"ListTools failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Failed to list tools: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
 
-    private static string NormalizeNewlines(string s)
-    {
-        return (s ?? string.Empty).Replace("\r\n", "\n").Replace("\r", "\n");
-    }
-
-    private static void RemoveKeyIgnoreCase(YamlMappingNode mapping, string keyName)
-    {
-        YamlNode? toRemove = null;
-        foreach (var kv in mapping.Children)
-        {
-            if (kv.Key is YamlScalarNode ks &&
-                string.Equals(ks.Value, keyName, StringComparison.OrdinalIgnoreCase))
-            {
-                toRemove = kv.Key;
-                break;
-            }
-        }
-        if (toRemove != null)
-        {
-            mapping.Children.Remove(toRemove);
-        }
-    }
-
-    private static string CreateToolFromTemplate(string name, string type, string[]? extra)
-    {
-        var details = ToolDefinitionService.GetToolTypeDetails(type)
-            ?? throw new InvalidOperationException($"Unable to get details for tool type '{type}'");
-
-        // Base template substitutions
-        var yamlContent = details.SampleYaml
-            .Replace("MyKustoTool", name)
-            .Replace("MyKustoQuery", name)
-            .Replace("CheckResourceImpact", name)   // legacy alias if present
-            .Replace($"My{type}", name);
-
-        if (extra == null || extra.Length == 0)
-        {
-            return yamlContent;
-        }
-
-        var keyValuePairs = ArgumentParser.ParseKeyValuePairs(extra); // likely Dictionary<string, object>
-
-        try
-        {
-            var stream = new YamlStream();
-            stream.Load(new StringReader(yamlContent));
-
-            if (stream.Documents.Count == 0 || stream.Documents[0].RootNode is not YamlMappingNode root)
-            {
-                // Fall back to append mode if we can't safely edit the DOM
-                var sbNoDom = new StringBuilder(yamlContent.TrimEnd());
-                foreach (var kv in keyValuePairs)
-                {
-                    var raw = kv.Value?.ToString() ?? string.Empty;
-                    if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
-                    {
-                        sbNoDom.AppendLine()
-                               .AppendLine("description: |");
-                        foreach (var line in NormalizeNewlines(raw).Split('\n'))
-                        {
-                            sbNoDom.Append("  ").AppendLine(line);
-                        }
-                    }
-                    else
-                    {
-                        sbNoDom.AppendLine()
-                               .Append(kv.Key).Append(": ").Append(raw);
-                    }
-                }
-                return sbNoDom.ToString();
-            }
-
-            // DOM update: remove existing keys (case-insensitive), then add
-            foreach (var kv in keyValuePairs)
-            {
-                var raw = kv.Value?.ToString() ?? string.Empty;
-
-                RemoveKeyIgnoreCase(root, kv.Key);
-
-                var keyNode = new YamlScalarNode(kv.Key);
-                YamlScalarNode valueNode;
-                if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
-                {
-                    valueNode = new YamlScalarNode(NormalizeNewlines(raw)) { Style = ScalarStyle.Literal }; // |
-                }
-                else
-                {
-                    valueNode = new YamlScalarNode(raw) { Style = ScalarStyle.Plain };
-                }
-
-                root.Add(keyNode, valueNode);
-            }
-
-            var sw = new StringWriter();
-            stream.Save(sw, assignAnchors: false);
-            return sw.ToString();
-        }
-        catch
-        {
-            // Fallback: append keys to the end, with description as a block
-            var sb = new StringBuilder(yamlContent.TrimEnd());
-            foreach (var kv in keyValuePairs)
-            {
-                var raw = kv.Value?.ToString() ?? string.Empty;
-
-                if (kv.Key.Equals("description", StringComparison.OrdinalIgnoreCase))
-                {
-                    sb.AppendLine()
-                      .AppendLine("description: |");
-                    foreach (var line in NormalizeNewlines(raw).Split('\n'))
-                    {
-                        sb.Append("  ").AppendLine(line);
-                    }
-                }
-                else
-                {
-                    sb.AppendLine()
-                      .Append(kv.Key).Append(": ").Append(raw);
-                }
-            }
-            return sb.ToString();
-        }
-    }
-
-    private static void ValidateAllTools(YamlDotNet.Serialization.IDeserializer deserializer)
-    {
-        var toolsDir = "tools";
-        if (!Directory.Exists(toolsDir))
-        {
-            ConsoleUI.WriteStatus(false, "No tools directory found.");
-            Environment.Exit(1);
-        }
-
-        var files = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
-        if (files.Length == 0)
-        {
-            ConsoleUI.WriteStatus(false, "No tool YAML files found in tools directory.");
-            Environment.Exit(1);
-        }
-
-        bool allValid = true;
-        foreach (var file in files)
-        {
-            try
-            {
-                var yaml = File.ReadAllText(file, Encoding.UTF8);
-                var doc = deserializer.Deserialize<Dictionary<string, object>>(yaml);
-
-                string toolName = doc.TryGetValue("name", out var n) ? n?.ToString() ?? string.Empty : string.Empty;
-                string toolType = doc.TryGetValue("type", out var t) ? t?.ToString() ?? string.Empty : string.Empty;
-
-                DebugLogger.Debug("ToolValidation", $"Validating tool '{toolName}' of type '{toolType}' from {file}");
-
-                // Basic validation first
-                if (!ToolValidation.ValidateTool(toolName, toolType, out var basicErrors))
-                {
-                    allValid = false;
-                    DebugLogger.LogValidation($"Tool {toolName} (basic)", false, basicErrors);
-                    ConsoleUI.WriteStatus(false, $"{file}: Basic validation failed");
-                    foreach (var error in basicErrors)
-                        ConsoleUI.WriteBullet(error, ConsoleColor.Red, 6);
-                    continue;
-                }
-
-                // YAML and type-specific validation
-                if (!ToolValidation.ValidateToolYaml(yaml, out var yamlErrors))
-                {
-                    allValid = false;
-                    DebugLogger.LogValidation($"Tool {toolName} (YAML)", false, yamlErrors);
-                    ConsoleUI.WriteStatus(false, $"{file}: YAML validation failed");
-                    foreach (var error in yamlErrors)
-                        ConsoleUI.WriteBullet(error, ConsoleColor.Red, 6);
-                    continue;
-                }
-
-                DebugLogger.LogValidation($"Tool {toolName}", true);
-                ConsoleUI.WriteStatus(true, $"{file}: Validation succeeded");
-            }
-            catch (Exception ex)
-            {
-                allValid = false;
-                DebugLogger.Debug("ToolValidation", $"Exception validating {file}: {ex.Message}");
-                ConsoleUI.WriteStatus(false, $"{file}: Exception during validation: {ex.Message}");
-            }
-        }
-        if (allValid)
-            ConsoleUI.WriteStatus(true, "All tool YAML files are valid");
-        else
-        {
-            ConsoleUI.WriteStatus(false, "Some tool YAML files failed validation");
-            Environment.Exit(1);
-        }
-    }
-
-    private static void ValidateSingleTool(string name, YamlDotNet.Serialization.IDeserializer deserializer)
-    {
-        var filePath = FindToolFile(name);
-        if (filePath == null)
-        {
-            ConsoleUI.WriteStatus(false, $"Tool YAML file not found for tool '{name}'");
-            ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{name}.yaml'", ConsoleColor.Yellow);
-            Environment.Exit(1);
-        }
-
-        try
-        {
-            var yaml = File.ReadAllText(filePath, Encoding.UTF8);
-            var doc = deserializer.Deserialize<Dictionary<string, object>>(yaml);
-
-            string toolName = doc.TryGetValue("name", out var n) ? n?.ToString() ?? string.Empty : string.Empty;
-            string toolType = doc.TryGetValue("type", out var t) ? t?.ToString() ?? string.Empty : string.Empty;
-
-            DebugLogger.Debug("ToolValidation", $"Validating tool '{toolName}' of type '{toolType}' from {filePath}");
-
-            // First validate basic tool properties
-            if (!ToolValidation.ValidateTool(toolName, toolType, out var basicErrors))
-            {
-                DebugLogger.LogValidation($"Tool {toolName} (basic)", false, basicErrors);
-                ConsoleUI.WriteStatus(false, $"Basic tool validation failed for '{name}' at {filePath}");
-                foreach (var error in basicErrors)
-                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-                Environment.Exit(1);
-                return;
-            }
-
-            // Then validate YAML content and type-specific requirements
-            if (!ToolValidation.ValidateToolYaml(yaml, out var yamlErrors))
-            {
-                DebugLogger.LogValidation($"Tool {toolName} (YAML)", false, yamlErrors);
-                ConsoleUI.WriteStatus(false, $"Tool YAML validation failed for '{name}' at {filePath}");
-                foreach (var error in yamlErrors)
-                    ConsoleUI.WriteBullet(error, ConsoleColor.Red);
-                Environment.Exit(1);
-                return;
-            }
-
-            DebugLogger.LogValidation($"Tool {toolName}", true);
-            ConsoleUI.WriteStatus(true, $"Tool validation succeeded for '{name}' at {filePath}");
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"Exception during validation: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    private static void ShowAllToolTypes(bool verbose)
-    {
-        ConsoleUI.WriteSection("Available Tool Types");
-
-        var toolTypes = ToolDefinitionService.GetAvailableToolTypes();
-
-        if (toolTypes.Count == 0)
-        {
-            ConsoleUI.WriteStatus(false, "No tool types found.");
-            return;
-        }
-
-        foreach (var toolType in toolTypes)
-        {
-            ConsoleUI.WriteKeyValue("🔧 " + toolType.Name, toolType.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
-
-            if (verbose)
-            {
-                ConsoleUI.WriteBullet($"Type: {toolType.TypeName}", ConsoleColor.DarkGray, 4);
-                ConsoleUI.WriteBullet($"Assembly: {toolType.Assembly}", ConsoleColor.DarkGray, 4);
-                ConsoleUI.WriteBullet($"Namespace: {toolType.Namespace}", ConsoleColor.DarkGray, 4);
-            }
-            Console.WriteLine();
-        }
-
-        ConsoleUI.WriteKeyValue("Total", $"{toolTypes.Count} tool type(s)", 10);
         Console.WriteLine();
-        ConsoleUI.WriteInfo("Use 'srectl tool show-types --type <ToolTypeName>' for detailed information");
-    }
-
-    private static void ShowSpecificToolTypeDetails(string toolTypeName)
-    {
-        var details = ToolDefinitionService.GetToolTypeDetails(toolTypeName);
-
-        if (details == null)
-        {
-            ConsoleUI.WriteStatus(false, $"Tool type '{toolTypeName}' not found.");
-            ConsoleUI.WriteInfo("Use 'srectl tool show-types' to see available tool types.");
-            Environment.Exit(1);
-            return;
-        }
-
-        ConsoleUI.WriteSection($"🔧 Tool Type Details: {details.Name}");
-
-        ConsoleUI.WriteKeyValue("Description", details.Description, 12);
-        ConsoleUI.WriteKeyValue("Type", details.TypeName, 12);
-        ConsoleUI.WriteKeyValue("Assembly", details.Assembly, 12);
-        ConsoleUI.WriteKeyValue("Namespace", details.Namespace, 12);
-        Console.WriteLine();
-
-        if (details.SupportedProperties.Count != 0)
-        {
-            ConsoleUI.WriteSection("Supported Properties");
-            foreach (var prop in details.SupportedProperties)
-            {
-                ConsoleUI.WriteBullet(prop);
-            }
-            Console.WriteLine();
-        }
-
-        ConsoleUI.WriteSection("Sample YAML");
-        ConsoleUI.DrawLine();
-        Console.WriteLine(details.SampleYaml);
-        Console.WriteLine();
-
-        ConsoleUI.WriteStatus(true, $"Tool type details displayed for '{toolTypeName}'");
+        ConsoleUI.WriteKeyValue("Total", $"{toolsList.Count} extended tool(s)", 0);
+        return 0;
     }
 
     /// <summary>
@@ -714,29 +326,34 @@ public static class ToolCommandHandlers
             return;
         }
 
-        if (dryRun)
-        {
-            await HandleDeleteDryRun(toolName);
-            return;
-        }
-
         try
         {
             using var apiService = new ApiService();
-            ConsoleUI.WriteInfo($"Deleting tool '{toolName}'...", ConsoleColor.Yellow);
 
-            var (success, response) = await apiService.DeleteToolAsync(toolName);
-
-            if (success)
+            if (dryRun)
             {
-                ConsoleUI.WriteStatus(true, response);
-
-                // After successful server deletion, offer to clean up local files
-                OfferLocalToolCleanup(toolName);
+                ConsoleUI.WriteInfo($"Validating tool deletion for '{toolName}' (dry run)...", ConsoleColor.Yellow);
             }
             else
             {
-                ConsoleUI.WriteStatus(false, response);
+                ConsoleUI.WriteInfo($"Deleting tool '{toolName}'...", ConsoleColor.Yellow);
+            }
+
+            var (success, message) = await apiService.DeleteExtendedToolAsync(toolName, dryRun);
+
+            if (success)
+            {
+                ConsoleUI.WriteStatus(true, message);
+
+                // After successful server deletion (not dry-run), offer to clean up local files
+                if (!dryRun)
+                {
+                    OfferLocalToolCleanup(toolName);
+                }
+            }
+            else
+            {
+                ConsoleUI.WriteStatus(false, message);
                 Environment.Exit(1);
             }
         }
@@ -834,16 +451,16 @@ public static class ToolCommandHandlers
                 // Deserialize YAML to the correct derived type to preserve all fields (like query)
                 YamlToolDefinitionBase remoteTool = toolType switch
                 {
-                    "KustoTool" => remoteDeserializer.Deserialize<KustoToolDefinition>(remoteYaml),
-                    // "LinkTool" => remoteDeserializer.Deserialize<LinkToolDefinition>(remoteYaml),
+                    var t when ToolName.KustoTool == t => remoteDeserializer.Deserialize<KustoToolDefinition>(remoteYaml),
+                    // var t when ToolName.LinkTool == t => remoteDeserializer.Deserialize<LinkToolDefinition>(remoteYaml),
                     _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
                 };
 
                 // Also deserialize local YAML using the underscored tool type
                 YamlToolDefinitionBase localTool = toolType switch
                 {
-                    "KustoTool" => localDeserializer.Deserialize<KustoToolDefinition>(localYaml),
-                    // "LinkTool" => localDeserializer.Deserialize<LinkToolDefinition>(localYaml),
+                    var t when ToolName.KustoTool == t => localDeserializer.Deserialize<KustoToolDefinition>(localYaml),
+                    // var t when ToolName.LinkTool == t => localDeserializer.Deserialize<LinkToolDefinition>(localYaml),
                     _ => throw new NotSupportedException($"Unknown tool type: {toolType}")
                 };
 
@@ -909,6 +526,231 @@ public static class ToolCommandHandlers
     }
 
     /// <summary>
+    /// Determines if we should use V2 structured creation based on provided parameters.
+    /// </summary>
+    /// <summary>
+    /// Creates a tool using V2 structured approach with ExtendedToolV2.
+    /// </summary>
+    private static string CreateToolV2(string name, string type, string? connector, string? database,
+        string? description, string? query, string? template, string[]? parameters)
+    {
+        ExtendedToolV2 tool;
+
+        if (ToolName.KustoTool == type)
+        {
+            tool = ExtendedToolHelper.CreateKustoTool(name, connector, database, description, query, parameters);
+        }
+        else if (ToolName.LinkTool == type)
+        {
+            tool = ExtendedToolHelper.CreateLinkTool(name, description, template, parameters);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported tool type '{type}'. Only KustoTool and LinkTool are supported.");
+        }
+
+        // Serialize to YAML
+        return tool.ToYaml();
+    }
+
+    private static async Task<bool> ValidateAllToolsAsync()
+    {
+        if (!Directory.Exists(ToolsDirectory))
+        {
+            ConsoleUI.WriteStatus(false, "No tools directory found.");
+            return false;
+        }
+
+        var files = Directory.GetFiles(ToolsDirectory, "*.yaml", SearchOption.AllDirectories);
+        if (files.Length == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No tool YAML files found in tools directory.");
+            return false;
+        }
+
+        bool allValid = true;
+        foreach (var file in files)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            var (success, errorMessage) = await ValidateToolFileAsync(file, fileName, showFullPath: true);
+
+            if (!success)
+            {
+                allValid = false;
+            }
+        }
+
+        if (allValid)
+        {
+            ConsoleUI.WriteStatus(true, "All tool YAML files are valid");
+        }
+        else
+        {
+            ConsoleUI.WriteStatus(false, "Some tool YAML files failed validation");
+        }
+
+        return allValid;
+    }
+
+    private static async Task<bool> ValidateSingleToolAsync(string name)
+    {
+        var filePath = FindToolFile(name);
+        if (filePath == null)
+        {
+            ConsoleUI.WriteStatus(false, $"Tool YAML file not found for tool '{name}'");
+            ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{name}.yaml'", ConsoleColor.Yellow);
+            return false;
+        }
+
+        var (success, _) = await ValidateToolFileAsync(filePath, name, showFullPath: true);
+        return success;
+    }
+
+    /// <summary>
+    /// Validates a single tool file and returns success status with optional error message.
+    /// </summary>
+    /// <param name="filePath">Path to the tool YAML file</param>
+    /// <param name="toolName">Name of the tool for display purposes</param>
+    /// <param name="showFullPath">Whether to show full file path in output</param>
+    /// <returns>Tuple of (success, errorMessage)</returns>
+    private static async Task<(bool success, string? errorMessage)> ValidateToolFileAsync(string filePath, string toolName, bool showFullPath)
+    {
+        var displayPath = showFullPath ? filePath : toolName;
+
+        try
+        {
+            // Detect YAML version using ExtendedToolHelper
+            var apiVersion = ExtendedToolHelper.DetectVersion(filePath);
+
+            if (apiVersion == null)
+            {
+                var errorMsg = "Not a valid extended tool YAML";
+                DebugLogger.Debug("ToolValidation", $"{errorMsg}: {filePath}");
+                ConsoleUI.WriteStatus(false, $"{displayPath}: {errorMsg}");
+                ConsoleUI.WriteBullet("File does not appear to be a valid tool configuration", ConsoleColor.Red, showFullPath ? 6 : 0);
+                return (false, errorMsg);
+            }
+
+            // Check if this is a V1 tool
+            if (apiVersion != YamlApiVersion.V2)
+            {
+                var versionName = apiVersion == YamlApiVersion.V1 ? "V1" : "unknown";
+                var errorMsg = $"Tool is using {versionName} format";
+                DebugLogger.Debug("ToolValidation", $"Tool '{toolName}' is using {versionName} format from {filePath}");
+                ConsoleUI.WriteStatus(false, $"{displayPath}: {errorMsg}");
+                ConsoleUI.WriteBullet("V1 tools must be migrated to V2 format", ConsoleColor.Yellow, showFullPath ? 6 : 0);
+                ConsoleUI.WriteBullet("Run 'srectl tool migrate --name <toolname>' to migrate (command coming soon)", ConsoleColor.Gray, showFullPath ? 6 : 0);
+                return (false, errorMsg);
+            }
+
+            // Deserialize as V2 tool
+            var tool = await ExtendedToolV2.LoadYamlAsync(filePath);
+            var actualToolName = tool?.Metadata?.Name ?? toolName;
+
+            DebugLogger.Debug("ToolValidation", $"Validating tool '{actualToolName}' of type '{tool?.Spec?.Type}' from {filePath}");
+
+            // Validate using ExtendedToolV2.Validate()
+            var validationErrors = tool != null ? tool.Validate() : new List<string> { "Tool failed to load" };
+
+            if (validationErrors.Count == 0)
+            {
+                DebugLogger.LogValidation($"Tool {actualToolName}", true);
+                ConsoleUI.WriteStatus(true, showFullPath
+                    ? $"{displayPath}: Validation succeeded"
+                    : $"Tool validation succeeded for '{toolName}' at {filePath}");
+
+                return (true, null);
+            }
+            else
+            {
+                var errorMsg = string.Join("; ", validationErrors);
+                DebugLogger.Debug("ToolValidation", $"Validation failed for '{toolName}': {errorMsg}");
+                ConsoleUI.WriteStatus(false, showFullPath
+                    ? $"{displayPath}: Validation failed"
+                    : $"Validation failed for '{toolName}' at {filePath}");
+                foreach (var error in validationErrors)
+                {
+                    ConsoleUI.WriteBullet(error, ConsoleColor.Red, showFullPath ? 6 : 0);
+                }
+                return (false, errorMsg);
+            }
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = $"Exception during validation: {ex.Message}";
+            DebugLogger.Debug("ToolValidation", $"Exception validating '{toolName}': {ex.Message}");
+            ConsoleUI.WriteStatus(false, showFullPath
+                ? $"{displayPath}: {errorMsg}"
+                : errorMsg);
+            return (false, errorMsg);
+        }
+    }
+
+    private static void ShowAllToolTypes()
+    {
+        ConsoleUI.WriteSection("Available Tool Types");
+
+        var toolTypes = ExtendedToolHelper.GetAvailableToolTypes();
+
+        if (toolTypes.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No tool types found.");
+            return;
+        }
+
+        foreach (var toolType in toolTypes)
+        {
+            ConsoleUI.WriteKeyValue("🔧 " + toolType.Name, toolType.Description, 20, ConsoleColor.Yellow, ConsoleColor.Gray);
+            Console.WriteLine();
+        }
+
+        ConsoleUI.WriteKeyValue("Total", $"{toolTypes.Count} tool type(s)", 10);
+        Console.WriteLine();
+        ConsoleUI.WriteInfo("Use 'srectl tool show-types --type <ToolTypeName>' for detailed information");
+    }
+
+    private static int ShowSpecificToolTypeDetails(string toolTypeName)
+    {
+        var toolTypes = ExtendedToolHelper.GetAvailableToolTypes();
+        var toolType = toolTypes.FirstOrDefault(t => t.Name.Equals(toolTypeName, StringComparison.OrdinalIgnoreCase));
+
+        if (toolType == null)
+        {
+            ConsoleUI.WriteStatus(false, $"Tool type '{toolTypeName}' not found.");
+            ConsoleUI.WriteInfo("Use 'srectl tool show-types' to see available tool types.");
+            return 1;
+        }
+
+        ConsoleUI.WriteSection($"🔧 Tool Type Details: {toolType.Name}");
+        ConsoleUI.WriteKeyValue("Description", toolType.Description, 12);
+        Console.WriteLine();
+
+        // Generate sample YAML using ExtendedToolHelper
+        string sampleYaml;
+        if (ToolName.KustoTool == toolType.Name)
+        {
+            var sampleTool = ExtendedToolHelper.CreateKustoTool("MyKustoTool");
+            sampleYaml = sampleTool.ToYaml();
+        }
+        else if (ToolName.LinkTool == toolType.Name)
+        {
+            var sampleTool = ExtendedToolHelper.CreateLinkTool("MyLinkTool");
+            sampleYaml = sampleTool.ToYaml();
+        }
+        else
+        {
+            sampleYaml = "# Sample YAML not available for this tool type";
+        }
+
+        ConsoleUI.WriteSection("Sample YAML");
+        Console.WriteLine(sampleYaml);
+        Console.WriteLine();
+
+        ConsoleUI.WriteStatus(true, $"Tool type details displayed for '{toolTypeName}'");
+        return 0;
+    }
+
+    /// <summary>
     /// Finds a tool YAML file by searching recursively under the tools directory.
     /// Supports flexible folder organization.
     /// </summary>
@@ -916,28 +758,27 @@ public static class ToolCommandHandlers
     /// <returns>The full path to the tool YAML file, or null if not found</returns>
     public static string? FindToolFile(string toolName)
     {
-        var toolsDir = "tools";
-        if (!Directory.Exists(toolsDir))
+        if (!Directory.Exists(ToolsDirectory))
         {
             return null;
         }
 
         // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
-        var legacyPath = Path.Combine(toolsDir, toolName, $"{toolName}.yaml");
+        var legacyPath = Path.Combine(ToolsDirectory, toolName, $"{toolName}.yaml");
         if (File.Exists(legacyPath))
         {
             return legacyPath;
         }
 
         // Then try the flat structure: tools/{toolName}.yaml
-        var flatPath = Path.Combine(toolsDir, $"{toolName}.yaml");
+        var flatPath = Path.Combine(ToolsDirectory, $"{toolName}.yaml");
         if (File.Exists(flatPath))
         {
             return flatPath;
         }
 
         // Finally, search recursively for any YAML file with the matching tool name
-        var yamlFiles = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
+        var yamlFiles = Directory.GetFiles(ToolsDirectory, "*.yaml", SearchOption.AllDirectories);
 
         foreach (var file in yamlFiles)
         {
@@ -949,194 +790,6 @@ public static class ToolCommandHandlers
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Handles dry-run for tool apply command.
-    /// </summary>
-    private static async Task HandleApplyDryRun(string toolName)
-    {
-        try
-        {
-            ConsoleUI.WriteSection($"DRY RUN: Tool apply for '{toolName}'");
-            ConsoleUI.DrawLine();
-
-            // Find and validate tool file exists
-            var toolFilePath = FindToolFile(toolName);
-            if (toolFilePath == null)
-            {
-                ConsoleUI.WriteStatus(false, $"Tool file not found for '{toolName}'");
-                ConsoleUI.WriteBullet($"Searched in tools directory and subdirectories for '{toolName}.yaml'", ConsoleColor.Yellow);
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteKeyValue("Tool file found", toolFilePath);
-
-            // Read and parse the YAML file
-            var yamlContent = await File.ReadAllTextAsync(toolFilePath);
-            ConsoleUI.WriteKeyValue("Content size", $"{yamlContent.Length} characters");
-
-            // Validate YAML structure
-            var deserializer = YamlHelper.CreateCamelCaseDeserializer();
-            try
-            {
-                var toolConfig = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
-
-                ConsoleUI.WriteStatus(true, "YAML structure is valid");
-                Console.WriteLine();
-                ConsoleUI.WriteSection("Tool Details");
-
-                if (toolConfig.TryGetValue("name", out var nameValue))
-                    ConsoleUI.WriteBullet($"Name: {nameValue}");
-                if (toolConfig.TryGetValue("type", out var typeValue))
-                    ConsoleUI.WriteBullet($"Type: {typeValue}");
-                if (toolConfig.TryGetValue("description", out var descValue))
-                    ConsoleUI.WriteBullet($"Description: {descValue}");
-                if (toolConfig.TryGetValue("connector", out var connectorValue))
-                    ConsoleUI.WriteBullet($"Connector: {connectorValue}");
-            }
-            catch (Exception ex)
-            {
-                ConsoleUI.WriteStatus(false, $"YAML parsing failed: {ex.Message}");
-                Environment.Exit(1);
-                return;
-            }
-
-            // Check server connectivity
-            var configService = new CliConfigurationService();
-            var config = await configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
-            ConsoleUI.WriteKeyValue("Auth required", config.AuthRequired.ToString());
-
-            Console.WriteLine();
-            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
-            Console.WriteLine();
-            ConsoleUI.WriteSection("Summary");
-            ConsoleUI.WriteBullet($"Tool '{toolName}' configuration is valid", ConsoleColor.Green);
-            ConsoleUI.WriteBullet("YAML file can be parsed successfully", ConsoleColor.Green);
-            ConsoleUI.WriteBullet("Server configuration is available", ConsoleColor.Green);
-            ConsoleUI.WriteBullet($"Would apply to: {config.ResourceUrl}", ConsoleColor.Green);
-            Console.WriteLine();
-            ConsoleUI.WriteCommand("To apply", $"srectl tool apply --name {toolName}");
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    /// <summary>
-    /// Handles dry-run for tool delete command.
-    /// </summary>
-    private static async Task HandleDeleteDryRun(string toolName)
-    {
-        try
-        {
-            ConsoleUI.WriteSection($"DRY RUN: Tool delete for '{toolName}'");
-            Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-            // Check if tool exists locally
-            var toolFilePath = FindToolFile(toolName);
-            if (toolFilePath != null)
-            {
-                ConsoleUI.WriteInfo($"Local tool file found: {toolFilePath}", ConsoleColor.Green);
-            }
-            else
-            {
-                ConsoleUI.WriteInfo($"No local tool file found for '{toolName}'", ConsoleColor.Yellow);
-            }
-
-            // Check server connectivity
-            var configService = new CliConfigurationService();
-            var config = await configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                ConsoleUI.WriteStatus(false, "Configuration not found. Run 'srectl init' first.");
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteKeyValue("Target server", config.ResourceUrl);
-            ConsoleUI.WriteKeyValue("Authentication required", config.AuthRequired.ToString());
-
-            // Check for dependencies by searching for tool references in agent files
-            var dependencies = FindToolDependencies(toolName);
-            if (dependencies.Count != 0)
-            {
-                ConsoleUI.WriteInfo($"Found {dependencies.Count} potential dependencies:", ConsoleColor.Yellow);
-                foreach (var dep in dependencies)
-                {
-                    Console.WriteLine($"   • {dep}");
-                }
-                Console.WriteLine("   Delete might fail if these agents are deployed and reference this tool");
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(true, "No local dependencies found");
-            }
-
-            ConsoleUI.WriteStatus(true, "DRY RUN COMPLETE");
-            ConsoleUI.WriteSection("Summary");
-            Console.WriteLine($"   • Tool '{toolName}' would be deleted from server");
-            Console.WriteLine($"   • Target server: {config.ResourceUrl}");
-            if (dependencies.Count != 0)
-            {
-                ConsoleUI.WriteBullet($"{dependencies.Count} potential dependencies found", ConsoleColor.Yellow);
-            }
-            ConsoleUI.WriteCommand("To actually delete the tool", $"srectl tool delete --name {toolName}");
-            if (dependencies.Count != 0)
-            {
-                ConsoleUI.WriteInfo("Consider updating dependent agents first to avoid deployment issues", ConsoleColor.Yellow);
-            }
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"DRY RUN FAILED: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    /// <summary>
-    /// Finds agents that depend on the specified tool.
-    /// </summary>
-    private static List<string> FindToolDependencies(string toolName)
-    {
-        var dependencies = new List<string>();
-        var agentsDir = "agents";
-
-        if (!Directory.Exists(agentsDir))
-            return dependencies;
-
-        var yamlFiles = Directory.GetFiles(agentsDir, "*.yaml", SearchOption.AllDirectories);
-
-        foreach (var file in yamlFiles)
-        {
-            try
-            {
-                var content = File.ReadAllText(file);
-                if (content.Contains(toolName))
-                {
-                    var agentName = Path.GetFileNameWithoutExtension(file);
-                    var relativePath = Path.GetRelativePath(agentsDir, file);
-                    dependencies.Add($"{agentName} ({relativePath})");
-                }
-            }
-            catch
-            {
-                // Ignore files that can't be read
-            }
-        }
-
-        return dependencies;
     }
 
     /// <summary>
@@ -1467,4 +1120,242 @@ public static class ToolCommandHandlers
     }
 
     #endregion
+
+    /// <summary>
+    /// Handles the tool migrate command to migrate V1 tools to V2 format.
+    /// </summary>
+    public static async Task<int> HandleMigrateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting tool migrate command");
+
+        var toolName = parseResult.GetValue(ToolCommandOptions.MigrateNameOption);
+        var migrateAll = parseResult.GetValue(ToolCommandOptions.MigrateAllOption);
+        var dryRun = parseResult.GetValue(ToolCommandOptions.MigrateDryRunOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {toolName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
+
+        if (!Directory.Exists(ToolsDirectory))
+        {
+            ConsoleUI.WriteStatus(false, "No tools directory found.");
+            return 1;
+        }
+
+        List<string> filesToMigrate = [];
+
+        if (migrateAll)
+        {
+            filesToMigrate = Directory.GetFiles(ToolsDirectory, "*.yaml", SearchOption.AllDirectories).ToList();
+        }
+        else
+        {
+            var toolFile = FindToolFile(toolName!);
+            if (toolFile == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Tool file not found for '{toolName}'");
+                ConsoleUI.WriteInfo($"Expected: tools/{toolName}.yaml or tools/{toolName}/{toolName}.yaml", ConsoleColor.Gray);
+                return 1;
+            }
+            filesToMigrate.Add(toolFile);
+        }
+
+        if (filesToMigrate.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No tool YAML files found to migrate.");
+            return 1;
+        }
+
+        ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} tool(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        Console.WriteLine();
+
+        int migratedCount = 0;
+        int skippedCount = 0;
+        int errorCount = 0;
+
+        foreach (var file in filesToMigrate)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(file);
+                var content = await File.ReadAllTextAsync(file);
+
+                // Step 1: Create List<ExtendedToolV2>
+                List<ExtendedToolV2> v2Tools = [];
+                bool isToolList = false;
+
+                // Check if this is a ToolList by looking at the kind and api_version fields
+                var yamlDeserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                var yamlDict = yamlDeserializer.Deserialize<Dictionary<string, object>>(content);
+                var kind = yamlDict.TryGetValue("kind", out var kindObj) ? kindObj?.ToString() : null;
+                var apiVersion = yamlDict.TryGetValue("api_version", out var apiObj) ? apiObj?.ToString() : null;
+
+                // Step 2: If kind = ToolList and api_version = V1, process as ToolList
+                if (string.Equals(kind, "ToolList", StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(apiVersion, YamlApiVersion.V1, StringComparison.OrdinalIgnoreCase))
+                {
+                    isToolList = true;
+                    var toolListV1 = ExtendedToolListV1.ParseYaml(content);
+                    if (toolListV1?.Spec?.Tools == null || toolListV1.Spec.Tools.Count == 0)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: ToolList is empty", ConsoleColor.Yellow);
+                        skippedCount++;
+                        continue;
+                    }
+
+                    v2Tools = Converters.ExtendedToolConverter.ConvertToV2(toolListV1);
+                }
+                else
+                {
+                    // Step 3: Detect version and process as single file (original logic)
+                    var detectedVersion = ExtendedToolHelper.DetectVersion(file);
+
+                    // Check if file is already V2
+                    if (detectedVersion == YamlApiVersion.V2)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Already V2 format", ConsoleColor.Gray);
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // Check if file is V1
+                    if (detectedVersion != YamlApiVersion.V1)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Not a V1 tool file", ConsoleColor.Yellow);
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // Convert single V1 tool to V2
+                    var v1Tool = ExtendedToolV1.ParseYaml(content);
+                    if (v1Tool == null)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Failed to deserialize V1 format", ConsoleColor.Red);
+                        errorCount++;
+                        continue;
+                    }
+
+                    ExtendedToolV2? v2Tool = null;
+                    var toolType = v1Tool.Type;
+
+                    if (ToolName.KustoTool == toolType)
+                    {
+                        var kustoV1 = KustoToolV1.ParseYaml(content);
+                        v2Tool = Converters.ExtendedToolConverter.ConvertToV2(kustoV1);
+                    }
+                    else if (ToolName.LinkTool == toolType)
+                    {
+                        var linkV1 = LinkToolV1.ParseYaml(content);
+                        v2Tool = Converters.ExtendedToolConverter.ConvertToV2(linkV1);
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Unsupported tool type '{v1Tool.Type}'", ConsoleColor.Red);
+                        errorCount++;
+                        continue;
+                    }
+
+                    if (v2Tool == null)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Failed to convert to V2 format", ConsoleColor.Red);
+                        errorCount++;
+                        continue;
+                    }
+
+                    v2Tools.Add(v2Tool);
+                }
+
+                // Step 4: Process the v2Tools based on dry-run flag
+                if (dryRun)
+                {
+                    if (isToolList)
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Would migrate {v2Tools.Count} tools to V2", ConsoleColor.Green);
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Would migrate to V2", ConsoleColor.Green);
+                    }
+                }
+                else
+                {
+                    // Perform actual migration
+                    var fileDir = Path.GetDirectoryName(file);
+
+                    if (isToolList)
+                    {
+                        // Save each tool from ToolList as separate V2 file
+                        bool originalFileOverwritten = false;
+                        foreach (var tool in v2Tools)
+                        {
+                            var convertedToolName = tool.Metadata?.Name ?? "UnnamedTool";
+                            var outputFile = Path.Combine(fileDir!, $"{convertedToolName}.yaml");
+
+                            // Check if we're about to overwrite the original file
+                            if (string.Equals(outputFile, file, StringComparison.OrdinalIgnoreCase))
+                            {
+                                originalFileOverwritten = true;
+                            }
+
+                            await tool.SaveYamlAsync(outputFile);
+                        }
+
+                        // Step 5: Backup original ToolList file only if it was not overwritten
+                        if (!originalFileOverwritten)
+                        {
+                            var backupFile = file + ".v1.bak";
+                            if (File.Exists(backupFile))
+                            {
+                                File.Delete(backupFile);
+                            }
+                            File.Move(file, backupFile);
+                            ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Tools.Count} tools to V2 (original backed up to {Path.GetFileName(backupFile)})", ConsoleColor.Green);
+                        }
+                        else
+                        {
+                            ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Tools.Count} tools to V2 (original file overwritten)", ConsoleColor.Green);
+                        }
+                    }
+                    else
+                    {
+                        // Save single tool in-place (overwrites original file)
+                        await v2Tools[0].SaveYamlAsync(file);
+                        ConsoleUI.WriteBullet($"{fileName}: Migrated to V2", ConsoleColor.Green);
+                    }
+                }
+
+                migratedCount += v2Tools.Count;
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteBullet($"{Path.GetFileName(file)}: Error - {ex.Message}", ConsoleColor.Red);
+                errorCount++;
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Migration Summary");
+        ConsoleUI.WriteKeyValue("Total files", filesToMigrate.Count.ToString());
+        ConsoleUI.WriteKeyValue("Migrated", migratedCount.ToString(), valueColor: ConsoleColor.Green);
+        ConsoleUI.WriteKeyValue("Skipped", skippedCount.ToString(), valueColor: ConsoleColor.Gray);
+        ConsoleUI.WriteKeyValue("Errors", errorCount.ToString(), valueColor: errorCount > 0 ? ConsoleColor.Red : ConsoleColor.Gray);
+
+        if (dryRun && migratedCount > 0)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteInfo("This was a dry run. No files were modified.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Run without --dry-run to apply changes.", ConsoleColor.Yellow);
+        }
+
+        if (migratedCount > 0 && !dryRun)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Next Steps");
+            ConsoleUI.WriteCommand("Validate migrated tools", "srectl tool validate --all");
+            ConsoleUI.WriteCommand("Apply to server", "srectl sync");
+        }
+
+        return errorCount > 0 ? 1 : 0;
+    }
 }

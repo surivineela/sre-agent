@@ -21,6 +21,7 @@ public static class CommandBuilder
             CreateAgentDeleteCommand(),
             CreateAgentTestCommand(),
             CreateAgentDiffCommand(),
+            CreateAgentMigrateCommand(),
             CreateAgentListCommand()
         };
 
@@ -34,6 +35,7 @@ public static class CommandBuilder
             CreateToolApplyCommand(),
             CreateToolDeleteCommand(),
             CreateToolDiffCommand(),
+            CreateToolMigrateCommand(),
             CreateToolShowTypesCommand(),
             CreateToolShowConnectorsCommand(),
             CreateToolListCommand()
@@ -101,6 +103,11 @@ public static class CommandBuilder
         // Add default action for incident handler command to show formatted help
         incidentHandler.SetAction(pr => ShowFormattedIncidentHandlerHelp(incidentHandler));
 
+        var extension = BuildExtensionCommand();
+
+        // Add default action for extension command to show formatted help
+        extension.SetAction(pr => ShowFormattedExtensionHelp(extension));
+
         // ----- Root
         var root = new RootCommand(
             "SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response\n\n" +
@@ -108,7 +115,7 @@ public static class CommandBuilder
         {
             welcomeCommand, helpCommand, statusCommand, interactiveCommand, versionCommand,
             initCommand, syncCommand, listCommand, applyYamlCommand, threadCommand, chatCommand,
-            agent, tool, doc, profile, skill, incidentHandler, scheduledTask
+            agent, tool, doc, profile, skill, incidentHandler, scheduledTask, extension
         };
 
         // Single root action (runs when no verb provided)
@@ -122,73 +129,33 @@ public static class CommandBuilder
 
     private static Command CreateSkillCreateCommand()
     {
-        var cmd = new Command("create", "Create a new skill directory with template files")
+        var cmd = new Command("create", CommandExamples.Skill.CreateDescription)
         {
             SkillCommandOptions.CreateNameOption,
             SkillCommandOptions.CreateOutputPathOption,
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill Create",
-                    "Create a new skill directory with metadata.yaml and SKILL.md template files",
-                    cmd,
-                    [
-                        "# Create a new skill",
-                        "srectl skill create --name my-skill",
-                        "",
-                        "# Create to a custom path",
-                        "srectl skill create --name my-skill --output-path custom/path"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleCreateCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleCreateCommand);
         return cmd;
     }
 
     private static Command CreateSkillUploadCommand()
     {
-        var cmd = new Command("upload", "Upload a custom skill or multiple skills from a directory")
+        var cmd = new Command("upload", CommandExamples.Skill.UploadDescription)
         {
             SkillCommandOptions.UploadPathOption,
             SkillCommandOptions.UploadFolderOption,
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill Upload",
-                    "Upload one or more skills to the server",
-                    cmd,
-                    [
-                        "# Upload a single skill directory",
-                        "srectl skill upload --path skills/my-skill",
-                        "",
-                        "# Upload all skills from a folder",
-                        "srectl skill upload --folder skills"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleUploadCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleUploadCommand);
         return cmd;
     }
 
     private static Command CreateSkillConvertCommand()
     {
-        var cmd = new Command("convert", "Convert an existing agent to a skill")
+        var cmd = new Command("convert", CommandExamples.Skill.ConvertDescription)
         {
             SkillCommandOptions.ConvertAgentNameOption,
             SkillCommandOptions.ConvertTopLevelAgentsOption,
@@ -196,36 +163,13 @@ public static class CommandBuilder
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill Convert",
-                    "Convert an existing agent into a reusable skill",
-                    cmd,
-                    [
-                        "# Convert an agent to a skill",
-                        "srectl skill convert --agent-name my-agent",
-                        "",
-                        "# Convert with specific top-level agents for context",
-                        "srectl skill convert --agent-name my-agent --top-level-agents triage-agent support-agent",
-                        "",
-                        "# Specify custom output path",
-                        "srectl skill convert --agent-name my-agent --output-path custom/path"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleConvertCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleConvertCommand);
         return cmd;
     }
 
     private static Command CreateSkillListCommand()
     {
-        var cmd = new Command("list", "List all available skills")
+        var cmd = new Command("list", CommandExamples.Skill.ListDescription)
         {
             SkillCommandOptions.ListLimitOption,
             SkillCommandOptions.ListPageOption,
@@ -233,119 +177,40 @@ public static class CommandBuilder
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill List",
-                    "List all skills available on the server",
-                    cmd,
-                    [
-                        "# List all skills",
-                        "srectl skill list",
-                        "",
-                        "# List with pagination",
-                        "srectl skill list --page 2 --limit 25",
-                        "",
-                        "# Search for specific skills",
-                        "srectl skill list --search database"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleListCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleListCommand);
         return cmd;
     }
 
     private static Command CreateSkillDownloadCommand()
     {
-        var cmd = new Command("download", "Download a skill from the server")
+        var cmd = new Command("download", CommandExamples.Skill.DownloadDescription)
         {
             SkillCommandOptions.DownloadNameOption,
             SkillCommandOptions.DownloadOutputPathOption,
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill Download",
-                    "Download a skill from the server to a local directory",
-                    cmd,
-                    [
-                        "# Download a skill",
-                        "srectl skill download --name my-skill",
-                        "",
-                        "# Download to a specific path",
-                        "srectl skill download --name my-skill --output-path custom/path"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleDownloadCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleDownloadCommand);
         return cmd;
     }
 
     private static Command CreateSkillDeleteCommand()
     {
-        var cmd = new Command("delete", "Delete a skill from the server")
+        var cmd = new Command("delete", CommandExamples.Skill.DeleteDescription)
         {
             SkillCommandOptions.DeleteNameOption,
             SkillCommandOptions.DebugOption
         };
 
-        cmd.SetAction(pr =>
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Skill Delete",
-                    "Delete a skill from the server",
-                    cmd,
-                    [
-                        "# Delete a skill",
-                        "srectl skill delete --name my-skill"
-                    ]
-                );
-            }
-
-            return SkillCommandHandlers.HandleDeleteCommand(pr);
-        });
-
+        cmd.SetAction(SkillCommandHandlers.HandleDeleteCommand);
         return cmd;
     }
 
     private static Command CreateSyncCommand()
     {
-        var cmd = new Command("sync", "Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)");
+        var cmd = new Command("sync", CommandExamples.General.SyncDescription);
 
-        cmd.SetAction(pr =>
-
-        {
-            // Show a nice formatted help if user asked for it (for consistency with others)
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp(
-                    "Sync",
-                    "Download all remote agent and tool YAMLs and populate the local 'agents/' and 'tools/' folders",
-                    cmd,
-                    [
-                        "srectl sync",
-                        "# Requires prior 'srectl init --resource-url <url>'",
-                    ]
-                );
-            }
-
-            return GeneralCommandHandlers.HandleSyncCommand(pr);
-        });
-
+        cmd.SetAction(GeneralCommandHandlers.HandleSyncCommand);
         return cmd;
     }
 
@@ -372,18 +237,7 @@ public static class CommandBuilder
             AgentCommandOptions.AddSystemSkillsOption
         };
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Create", "Create a new agent YAML configuration file", cmd,
-                    [
-                        "srectl agent create --name DevOpsAgent --instructions \"Help with DevOps tasks such as monitoring and incident response\"",
-                        "srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics",
-                        "srectl agent create --name StorageAgent --smart --instructions \"Help troubleshoot Azure Storage issues\""
-                    ]);
-            return AgentCommandHandlers.HandleCreateCommand(pr);
-        });
+        cmd.SetAction(AgentCommandHandlers.HandleCreateCommand);
         return cmd;
     }
 
@@ -397,19 +251,7 @@ public static class CommandBuilder
             AgentCommandOptions.CheckToolsOption
         };
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Validate", "Validate agent YAML configuration files", cmd,
-                    [
-                        "srectl agent validate --name MyAgent",
-                        "srectl agent validate --all",
-                        "srectl agent validate --all --check-tools",
-                        "srectl agent validate --file agents/MyAgent/MyAgent.yaml"
-                    ]);
-            return AgentCommandHandlers.HandleValidateCommand(pr);
-        });
+        cmd.SetAction(AgentCommandHandlers.HandleValidateCommand);
         return cmd;
     }
 
@@ -421,18 +263,7 @@ public static class CommandBuilder
             AgentCommandOptions.ApplyDryRunOption
         };
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Apply", "Apply an agent configuration to the remote server", cmd,
-                    [
-                        "srectl agent apply --name DevOpsAgent",
-                        "srectl agent apply --name KustoAgent --dry-run",
-                        "srectl agent apply --name MyAgent --debug"
-                    ]);
-            return AgentCommandHandlers.HandleApplyCommand(pr);
-        });
+        cmd.SetAction(AgentCommandHandlers.HandleApplyCommand);
         return cmd;
     }
 
@@ -443,17 +274,7 @@ public static class CommandBuilder
             AgentCommandOptions.DeleteNameOption
         };
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Delete", "Delete an agent from the remote server", cmd,
-                    [
-                        "srectl agent delete --name OldAgent",
-                        "srectl agent delete --name TestAgent --debug"
-                    ]);
-            return AgentCommandHandlers.HandleDeleteCommand(pr);
-        });
+        cmd.SetAction(AgentCommandHandlers.HandleDeleteCommand);
         return cmd;
     }
 
@@ -476,18 +297,7 @@ public static class CommandBuilder
             if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
         });
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Test", "Test an agent with a specific message", cmd,
-                    [
-                        "srectl agent test --name DevOpsAgent --message \"Check pod status in namespace production\"",
-                        "srectl agent test --name KustoAgent --message \"Query memory usage\" --no-wait",
-                        "srectl agent test --name MyAgent --message \"Help me\" --user-id john.doe --display-name \"John Doe\""
-                    ]);
-            return AgentCommandHandlers.HandleTestCommand(pr);
-        });
+        cmd.SetAction(AgentCommandHandlers.HandleTestCommand);
         return cmd;
     }
 
@@ -500,38 +310,45 @@ public static class CommandBuilder
             AgentCommandOptions.DiffRawOption
         };
 
-        cmd.SetAction(pr =>
+        cmd.SetAction(AgentCommandHandlers.HandleDiffCommand);
+        return cmd;
+    }
 
+    private static Command CreateAgentMigrateCommand()
+    {
+        var cmd = new Command("migrate", CommandExamples.Agent.MigrateDescription)
         {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent Diff", "Compare local and remote agent configurations", cmd,
-                    [
-                        "srectl agent diff --name DevOpsAgent",
-                        "srectl agent diff --name KustoAgent --tool code",
-                        "srectl agent diff --name MyAgent --raw"
-                    ]);
-            return AgentCommandHandlers.HandleDiffCommand(pr);
-        });
+            AgentCommandOptions.MigrateNameOption,
+            AgentCommandOptions.MigrateAllOption,
+            AgentCommandOptions.MigrateDryRunOption
+        };
+
+        cmd.SetAction(AgentCommandHandlers.HandleMigrateCommand);
         return cmd;
     }
 
     private static Command CreateAgentListCommand()
     {
-        var cmd = new Command("list", "List remote extended agents from the server")
+        var cmd = new Command("list", CommandExamples.Agent.ListDescription)
         {
-            AgentCommandOptions.DebugOption,
-            AgentCommandOptions.AllOption
+            AgentCommandOptions.ListSearchOption,
+            AgentCommandOptions.ListNameOption,
+            AgentCommandOptions.ListDetailOption
         };
-        cmd.SetAction(pr =>
 
+        // Validate mutually exclusive options
+        cmd.Validators.Add(result =>
         {
-            // Initialize context early to surface debug logs in this path
-            CommandExecutionContext.Initialize(pr);
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Agent List", "List remote extended agents from the server", cmd,
-                    ["srectl agent list", "srectl agent list --all", "srectl agent list --debug"]);
-            return GeneralCommandHandlers.HandleListAgentsCommand(pr);
+            var name = result.GetValue(AgentCommandOptions.ListNameOption);
+            var search = result.GetValue(AgentCommandOptions.ListSearchOption);
+
+            if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(search))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Cannot use both --name and --search together"));
+            }
         });
+
+        cmd.SetAction(AgentCommandHandlers.HandleListCommand);
         return cmd;
     }
 
@@ -542,7 +359,12 @@ public static class CommandBuilder
             ToolCommandOptions.NameOption,
             ToolCommandOptions.TypeOption,
             ToolCommandOptions.PathOption,
-            ToolCommandOptions.ExtraOption
+            ToolCommandOptions.ConnectorOption,
+            ToolCommandOptions.DatabaseOption,
+            ToolCommandOptions.DescriptionOption,
+            ToolCommandOptions.QueryOption,
+            ToolCommandOptions.TemplateOption,
+            ToolCommandOptions.ParameterOption
         };
 
         cmd.SetAction(ToolCommandHandlers.HandleCreateCommand);
@@ -553,11 +375,27 @@ public static class CommandBuilder
     {
         var cmd = new Command("validate", CommandExamples.Tool.ValidateDescription)
         {
-            ToolCommandOptions.NameOptionValidate,
-            ToolCommandOptions.AllOption
+            ToolCommandOptions.ValidateNameOption,
+            ToolCommandOptions.ValidateAllOption
         };
 
-        cmd.SetAction(ToolCommandHandlers.HandleValidateCommand);
+        // Validate mutually exclusive options
+        cmd.Validators.Add(result =>
+        {
+            var name = result.GetValue(ToolCommandOptions.ValidateNameOption);
+            var all = result.GetValue(ToolCommandOptions.ValidateAllOption);
+
+            if (all && !string.IsNullOrWhiteSpace(name))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Cannot use both --name and --all together"));
+            }
+            else if (!all && string.IsNullOrWhiteSpace(name))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Must specify either --name or --all"));
+            }
+        });
+
+        cmd.SetAction((parseResult, cancellationToken) => ToolCommandHandlers.HandleValidateCommand(parseResult));
         return cmd;
     }
 
@@ -566,7 +404,7 @@ public static class CommandBuilder
         var cmd = new Command("apply", CommandExamples.Tool.ApplyDescription)
         {
             ToolCommandOptions.ApplyNameOption,
-            ToolCommandOptions.DryRunOption
+            ToolCommandOptions.ApplyDryRunOption
         };
 
         cmd.SetAction(ToolCommandHandlers.HandleApplyCommand);
@@ -594,18 +432,7 @@ public static class CommandBuilder
             ToolCommandOptions.DiffRawOption
         };
 
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Tool Diff", "Compare local and remote tool configurations", cmd,
-                    [
-                        "srectl tool diff --name QueryMetrics",
-                        "srectl tool diff --name KustoTool --tool code",
-                        "srectl tool diff --name MyTool --raw"
-                    ]);
-            return ToolCommandHandlers.HandleDiffCommand(pr);
-        });
+        cmd.SetAction(ToolCommandHandlers.HandleDiffCommand);
         return cmd;
     }
 
@@ -649,7 +476,7 @@ public static class CommandBuilder
             AgentCommandOptions.DebugOption,
             AgentCommandOptions.AllOption
         };
-        listAgents.SetAction(GeneralCommandHandlers.HandleListAgentsCommand);
+        listAgents.SetAction(AgentCommandHandlers.HandleListCommand);
 
         var listExtendedTools = new Command("extended-tools", "List all extended tools added to the server through apply command")
         {
@@ -681,8 +508,7 @@ public static class CommandBuilder
     {
         var cmd = new Command("show-types", CommandExamples.Tool.ShowTypesDescription)
         {
-            ToolCommandOptions.VerboseOption,
-            ToolCommandOptions.TypeFilterOption
+            ToolCommandOptions.ShowTypesTypeOption
         };
 
         cmd.SetAction(ToolCommandHandlers.HandleShowTypesCommand);
@@ -691,10 +517,7 @@ public static class CommandBuilder
 
     private static Command CreateToolShowConnectorsCommand()
     {
-        var cmd = new Command("show-connectors", CommandExamples.Tool.ShowConnectorsDescription)
-        {
-            ToolCommandOptions.VerboseOption
-        };
+        var cmd = new Command("show-connectors", CommandExamples.Tool.ShowConnectorsDescription);
 
         cmd.SetAction(ToolCommandHandlers.HandleShowConnectorsCommand);
         return cmd;
@@ -702,11 +525,55 @@ public static class CommandBuilder
 
     private static Command CreateToolListCommand()
     {
-        var cmd = new Command("list", "List all tools from the remote server")
+        var cmd = new Command("list", CommandExamples.Tool.ListDescription)
         {
-            ToolCommandOptions.DebugOption
+            ToolCommandOptions.ListSearchOption,
+            ToolCommandOptions.ListNameOption,
+            ToolCommandOptions.ListDetailOption
         };
-        cmd.SetAction(GeneralCommandHandlers.HandleListToolsCommand);
+
+        // Validate mutually exclusive options
+        cmd.Validators.Add(result =>
+        {
+            var name = result.GetValue(ToolCommandOptions.ListNameOption);
+            var search = result.GetValue(ToolCommandOptions.ListSearchOption);
+
+            if (!string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(search))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Cannot use both --name and --search together"));
+            }
+        });
+
+        cmd.SetAction(ToolCommandHandlers.HandleListCommand);
+        return cmd;
+    }
+
+    private static Command CreateToolMigrateCommand()
+    {
+        var cmd = new Command("migrate", CommandExamples.Tool.MigrateDescription)
+        {
+            ToolCommandOptions.MigrateNameOption,
+            ToolCommandOptions.MigrateAllOption,
+            ToolCommandOptions.MigrateDryRunOption
+        };
+
+        // Validate mutually exclusive options
+        cmd.Validators.Add(result =>
+        {
+            var name = result.GetValue(ToolCommandOptions.MigrateNameOption);
+            var all = result.GetValue(ToolCommandOptions.MigrateAllOption);
+
+            if (all && !string.IsNullOrWhiteSpace(name))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Cannot use both --name and --all together"));
+            }
+            else if (!all && string.IsNullOrWhiteSpace(name))
+            {
+                result.AddError(ErrorMessageHelper.InvalidParameter("Must specify either --name or --all"));
+            }
+        });
+
+        cmd.SetAction((parseResult, cancellationToken) => ToolCommandHandlers.HandleMigrateCommand(parseResult));
         return cmd;
     }
 
@@ -845,16 +712,7 @@ public static class CommandBuilder
     private static Command CreateProfileListCommand()
     {
         var cmd = new Command("list", CommandExamples.Profile.ListDescription);
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Profile List", "List all available profiles and show which one is currently active", cmd,
-                    ["srectl profile list", "srectl profile list --verbose"]);
-            return ProfileCommandHandlers.HandleListCommand(pr);
-        });
-
-        // Help is already handled by IsHelpRequested check in the command action
+        cmd.SetAction(ProfileCommandHandlers.HandleListCommand);
         return cmd;
     }
 
@@ -864,18 +722,7 @@ public static class CommandBuilder
         {
             ProfileCommandOptions.ProfileNameOption
         };
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-            {
-                return ShowFormattedSubcommandHelp("Profile Get", "Get details of a specific profile or the current active profile", cmd,
-                    ["srectl profile get", "srectl profile get --name production", "srectl profile get --name local --debug"]);
-            }
-            return ProfileCommandHandlers.HandleGetCommand(pr);
-        });
-
-        // Help is already handled by IsHelpRequested check in the command action
+        cmd.SetAction(ProfileCommandHandlers.HandleGetCommand);
         return cmd;
     }
 
@@ -887,20 +734,7 @@ public static class CommandBuilder
             ProfileCommandOptions.ResourceUrlOption,
             ProfileCommandOptions.SetCurrentOption
         };
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Profile Create", "Create a new connection profile", cmd,
-                    [
-                        "srectl profile create --name local --url https://localhost:7023",
-                        "srectl profile create --name production --url https://prod-sreagent.company.com",
-                        "srectl profile create --name staging --url https://staging.company.com --set-current"
-                    ]);
-            return ProfileCommandHandlers.HandleCreateCommand(pr);
-        });
-
-        // Help is already handled by IsHelpRequested check in the command action
+        cmd.SetAction(ProfileCommandHandlers.HandleCreateCommand);
         return cmd;
     }
 
@@ -910,16 +744,7 @@ public static class CommandBuilder
         {
             ProfileCommandOptions.ProfileNameRequiredOption
         };
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Profile Set", "Set the active profile", cmd,
-                    ["srectl profile set --name local", "srectl profile set --name production", "srectl profile set --name staging --debug"]);
-            return ProfileCommandHandlers.HandleSetCommand(pr);
-        });
-
-        // Help is already handled by IsHelpRequested check in the command action
+        cmd.SetAction(ProfileCommandHandlers.HandleSetCommand);
         return cmd;
     }
 
@@ -929,16 +754,7 @@ public static class CommandBuilder
         {
             ProfileCommandOptions.ProfileNameRequiredOption
         };
-        cmd.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Profile Delete", "Delete a profile", cmd,
-                    ["srectl profile delete --name old-environment", "srectl profile delete --name test --debug"]);
-            return ProfileCommandHandlers.HandleDeleteCommand(pr);
-        });
-
-        // Help is already handled by IsHelpRequested check in the command action
+        cmd.SetAction(ProfileCommandHandlers.HandleDeleteCommand);
         return cmd;
     }
 
@@ -1195,7 +1011,8 @@ public static class CommandBuilder
 
         var examples = new[]
         {
-            "srectl tool create --name QueryMetrics --type KustoTool",
+            "srectl tool create --name QueryMetrics --type KustoTool --connector my-connector --database MyDB --parameter limit",
+            "srectl tool create --name GenerateLink --type LinkTool --template \"https://example.com/{id}\" --parameter id",
             "srectl tool validate --all",
             "srectl tool diff --name QueryMetrics",
             "srectl tool show-types",
@@ -1387,7 +1204,7 @@ public static class CommandBuilder
     {
         var scheduledTaskCommand = new Command("scheduledtask", "Manage scheduled tasks for automated agent operations");
 
-        var createCommand = new Command("create", "Create a new scheduled task")
+        var createCommand = new Command("create", CommandExamples.ScheduledTask.CreateDescription)
         {
             ScheduledTaskCommandOptions.CreateNameOption,
             ScheduledTaskCommandOptions.DescriptionOption,
@@ -1400,101 +1217,39 @@ public static class CommandBuilder
             ScheduledTaskCommandOptions.MaxExecutionsOption,
             ScheduledTaskCommandOptions.NotificationChannelOption
         };
-        createCommand.SetAction(pr =>
+        createCommand.SetAction(ScheduledTaskCommandHandlers.HandleCreateCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task Create", "Create a new scheduled task for automated agent operations", createCommand,
-                    [
-                        "srectl scheduledtask create --name \"Daily Health Check\" --cron \"0 9 * * *\" --prompt \"Check system health\"",
-                        "srectl scheduledtask create --name \"Weekly Report\" --cron \"0 9 * * 1\" --prompt \"Generate weekly report\" --max-executions 4",
-                        "srectl scheduledtask create --name \"Agent Task\" --cron \"0 10 * * *\" --prompt \"Run daily checks\" --agent \"ProductionAgent\""
-                    ]);
-            return ScheduledTaskCommandHandlers.HandleCreateCommand(pr);
-        });
-
-        var listCommand = new Command("list", "List all scheduled tasks")
+        var listCommand = new Command("list", CommandExamples.ScheduledTask.ListDescription)
         {
             ScheduledTaskCommandOptions.VerboseOption,
             ScheduledTaskCommandOptions.FilterThreadIdOption,
             ScheduledTaskCommandOptions.FilterStatusOption
         };
-        listCommand.SetAction(pr =>
+        listCommand.SetAction(ScheduledTaskCommandHandlers.HandleListCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task List", "List all scheduled tasks from the remote server", listCommand,
-                    [
-                        "srectl scheduledtask list",
-                        "srectl scheduledtask list --verbose",
-                        "srectl scheduledtask list --status Active"
-                    ]);
-            return ScheduledTaskCommandHandlers.HandleListCommand(pr);
-        });
-
-        var getCommand = new Command("get", "Get details of a specific scheduled task")
+        var getCommand = new Command("get", CommandExamples.ScheduledTask.GetDescription)
         {
             ScheduledTaskCommandOptions.RequiredTaskIdOption
         };
-        getCommand.SetAction(pr =>
+        getCommand.SetAction(ScheduledTaskCommandHandlers.HandleGetCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task Get", "Get detailed information about a specific scheduled task", getCommand,
-                    [
-                        "srectl scheduledtask get --id task-123",
-                        "srectl scheduledtask get --id daily-health-check"
-                    ]);
-            return ScheduledTaskCommandHandlers.HandleGetCommand(pr);
-        });
-
-        var pauseCommand = new Command("pause", "Pause a scheduled task")
+        var pauseCommand = new Command("pause", CommandExamples.ScheduledTask.PauseDescription)
         {
             ScheduledTaskCommandOptions.RequiredTaskIdOption
         };
-        pauseCommand.SetAction(pr =>
+        pauseCommand.SetAction(ScheduledTaskCommandHandlers.HandlePauseCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task Pause", "Pause a scheduled task to stop its execution", pauseCommand,
-                    [
-                        "srectl scheduledtask pause --id task-123",
-                        "srectl scheduledtask pause --id daily-health-check"
-                    ]);
-            return ScheduledTaskCommandHandlers.HandlePauseCommand(pr);
-        });
-
-        var resumeCommand = new Command("resume", "Resume a paused scheduled task")
+        var resumeCommand = new Command("resume", CommandExamples.ScheduledTask.ResumeDescription)
         {
             ScheduledTaskCommandOptions.RequiredTaskIdOption
         };
-        resumeCommand.SetAction(pr =>
+        resumeCommand.SetAction(ScheduledTaskCommandHandlers.HandleResumeCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task Resume", "Resume a paused scheduled task", resumeCommand,
-                    [
-                        "srectl scheduledtask resume --id task-123",
-                        "srectl scheduledtask resume --id daily-health-check"
-                    ]);
-            return ScheduledTaskCommandHandlers.HandleResumeCommand(pr);
-        });
-
-        var deleteCommand = new Command("delete", "Delete a scheduled task")
+        var deleteCommand = new Command("delete", CommandExamples.ScheduledTask.DeleteDescription)
         {
             ScheduledTaskCommandOptions.RequiredTaskIdOption
         };
-        deleteCommand.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Scheduled Task Delete", "Permanently delete a scheduled task", deleteCommand,
-                    [
-                        "srectl scheduledtask delete --id task-123",
-                        "srectl scheduledtask delete --id old-maintenance-task"
-                    ]);
-            return ScheduledTaskCommandHandlers.HandleDeleteCommand(pr);
-        });
+        deleteCommand.SetAction(ScheduledTaskCommandHandlers.HandleDeleteCommand);
 
         // Quickstart creates a minimal hello-world manifest interactively and applies it
         var quickstart = new Command("quickstart", "Interactive hello-world scheduled task wizard")
@@ -1585,125 +1340,24 @@ public static class CommandBuilder
         return Task.CompletedTask;
     }
 
-    // Helper methods for consistent subcommand help formatting
-    private static bool IsHelpRequested(ParseResult parseResult)
-    {
-        return parseResult.Tokens.Any(token =>
-            token.Value == "-h" || token.Value == "--help" || token.Value == "-?" || token.Value == "help");
-    }
-
-    private static Task ShowFormattedSubcommandHelp(string title, string description, Command command, string[] examples)
-    {
-        StandardHelpFormatter.ShowSrectlHeader();
-
-        ConsoleUI.DrawPanel(title, description, ConsoleColor.Cyan);
-        Console.WriteLine();
-
-        // Show usage
-        ConsoleUI.WriteSection("Usage");
-        Console.WriteLine($"  srectl {GetCommandPath(command)} [options]");
-        Console.WriteLine();
-
-        // Show options
-        if (command.Options.Any())
-        {
-            ConsoleUI.WriteSection("Options");
-            foreach (var option in command.Options)
-            {
-                // Always display canonical long form to avoid duplicated dashes from alias lists
-                var canonical = $"--{option.Name}";
-                var required = option.Required ? " (REQUIRED)" : "";
-                ConsoleUI.WriteKeyValue(canonical + required, option.Description ?? "No description", 20, ConsoleColor.Yellow);
-            }
-            Console.WriteLine();
-        }
-
-        // Show examples using the new ConsoleUI renderer
-        if (examples?.Any() == true)
-        {
-            var tuples = examples.Select(e => ("", e)).ToArray();
-            ConsoleUI.WriteExamples(tuples);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private static string GetCommandPath(Command command)
-    {
-        // For subcommands, manually construct the path based on command name
-        switch (command.Name)
-        {
-            case "list":
-            case "get":
-            case "create":
-            case "set":
-            case "delete":
-                // Could be profile, agent, tool, or doc commands
-                // We'll use context clues from other properties if needed
-                if (command.Description?.Contains("profile") == true)
-                    return $"profile {command.Name}";
-                if (command.Description?.Contains("agent") == true || command.Options.Any(o => o.Aliases.Contains("--name")))
-                    return $"agent {command.Name}";
-                if (command.Description?.Contains("tool") == true)
-                    return $"tool {command.Name}";
-                if (command.Description?.Contains("document") == true)
-                    return $"doc {command.Name}";
-                break;
-            case "validate":
-            case "apply":
-            case "test":
-                return $"agent {command.Name}";
-            case "show-types":
-            case "show-connectors":
-                return $"tool {command.Name}";
-            case "upload":
-            case "search":
-            case "reindex":
-                return $"doc {command.Name}";
-        }
-
-        return command.Name ?? "";
-    }
-
-    // Add this method or update existing BuildCommands method:
     private static Command BuildIncidentHandlerCommand()
     {
         var incidentHandlerCommand = new Command("incidenthandler", "Manage incident handlers and filters");
 
-        var mapAgentCommand = new Command("map-agent", "Map a YAML agent to an incident filter")
+        var mapAgentCommand = new Command("map-agent", CommandExamples.IncidentHandler.MapAgentDescription)
         {
             IncidentHandlerCommandOptions.FilterNameOption,
             IncidentHandlerCommandOptions.HandlingAgentOption
         };
-        mapAgentCommand.SetAction(pr =>
+        mapAgentCommand.SetAction(IncidentHandlerCommandHandlers.HandleMapAgentCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Incident Handler Map Agent", "Map a YAML agent to an incident filter", mapAgentCommand,
-                    [
-                        "srectl incidenthandler map-agent --name ProductionFilter --handling-agent ProductionAgent",
-                        "srectl incidenthandler map-agent --name StorageIssues --handling-agent StorageAgent"
-                    ]);
-            return IncidentHandlerCommandHandlers.HandleMapAgentCommand(pr);
-        });
-
-        var listCommand = new Command("list", "List all incident handlers")
+        var listCommand = new Command("list", CommandExamples.IncidentHandler.ListDescription)
         {
             IncidentHandlerCommandOptions.VerboseOption
         };
-        listCommand.SetAction(pr =>
+        listCommand.SetAction(IncidentHandlerCommandHandlers.HandleListCommand);
 
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Incident Handler List", "List all incident handlers from the remote server", listCommand,
-                    [
-                        "srectl incidenthandler list",
-                        "srectl incidenthandler list --verbose"
-                    ]);
-            return IncidentHandlerCommandHandlers.HandleListCommand(pr);
-        });
-
-        var createCommand = new Command("create", "Create a new incident filter")
+        var createCommand = new Command("create", CommandExamples.IncidentHandler.CreateDescription)
         {
             IncidentHandlerCommandOptions.CreateIdOption,
             IncidentHandlerCommandOptions.CreateNameOption,
@@ -1717,22 +1371,49 @@ public static class CommandBuilder
             IncidentHandlerCommandOptions.OwningTeamIdOption,
             IncidentHandlerCommandOptions.MaxAttemptsOption
         };
-        createCommand.SetAction(pr =>
-
-        {
-            if (IsHelpRequested(pr))
-                return ShowFormattedSubcommandHelp("Incident Handler Create", "Create a new incident filter with specified criteria", createCommand,
-                    [
-                        "srectl incidenthandler create --id StorageFilter --name \"Storage Issues\" --title-contains \"storage\"",
-                        "srectl incidenthandler create --id ProdFilter --priority 1 --incident-type LiveSite --handling-agent ProdAgent",
-                        "srectl incidenthandler create --id APIFilter --impacted-service \"Web API\" --max-attempts 5"
-                    ]);
-            return IncidentHandlerCommandHandlers.HandleCreateCommand(pr);
-        });
+        createCommand.SetAction(IncidentHandlerCommandHandlers.HandleCreateCommand);
 
         incidentHandlerCommand.Add(mapAgentCommand);
         incidentHandlerCommand.Add(listCommand);
         incidentHandlerCommand.Add(createCommand);
         return incidentHandlerCommand;
+    }
+
+    private static Command BuildExtensionCommand()
+    {
+        var extensionCommand = new Command("extension", "Extension commands for generating deployment files and configurations");
+
+        var generateEv2Command = new Command("generate-ev2", CommandExamples.Extension.GenerateEv2Description)
+        {
+            ExtensionCommandOptions.ToolsFolderOption,
+            ExtensionCommandOptions.AgentFolderOption,
+            ExtensionCommandOptions.OutputOption,
+            ExtensionCommandOptions.DebugOption
+        };
+
+        generateEv2Command.SetAction(ExtensionCommandHandlers.HandleGenerateEv2Command);
+
+        extensionCommand.Add(generateEv2Command);
+        return extensionCommand;
+    }
+
+    private static Task ShowFormattedExtensionHelp(Command extensionCommand)
+    {
+        var examples = new[]
+        {
+            "srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./ev2-output",
+            "srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./deployment --debug"
+        };
+
+        StandardHelpFormatter.ShowCommandGroupHelp(
+            "Extension Commands",
+            "Generate deployment files and configurations for SRE Agent deployments",
+            ConsoleColor.DarkGreen,
+            extensionCommand,
+            null, // Single group for all commands
+            null, // No group descriptions for single group
+            examples);
+
+        return Task.CompletedTask;
     }
 }

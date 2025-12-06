@@ -6,7 +6,6 @@ using System.Collections;
 using System.Text;
 using Agent.Cli.Models;
 using Agent.Cli.Services;
-using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using YamlDotNet.Core;
@@ -29,28 +28,26 @@ public static class YamlHelper
     }
 
     /// <summary>
-    /// Writes an agent configuration to a YAML file using the v2 API structure.
+    /// Writes an agent configuration to a YAML file in V2 format.
     /// </summary>
-    /// <param name="folder">Folder to write the YAML file to</param>
-    /// <param name="name">Name of the agent (used for filename)</param>
+    /// <param name="folder">Target folder for the YAML file</param>
+    /// <param name="name">Agent name (used as filename)</param>
     /// <param name="agentSpec">Agent specification containing all configuration</param>
     /// <param name="metadata">Optional resource metadata (owner, tags, version, timestamps)</param>
-    public static void WriteAgentYamlFile(string folder, string name, AgentSpec agentSpec, ResourceMetadata? metadata = null)
+    public static void WriteAgentYamlFile(string folder, string name, ExtendedAgentSpecV2 agentSpec, ResourceMetadataModel? metadata = null)
     {
         Directory.CreateDirectory(folder);
 
-        var yamlModel = new AgentYamlModel
+        var finalMetadata = metadata ?? new ResourceMetadataModel();
+        finalMetadata.Name = name;
+
+        var yamlModel = new ExtendedAgentV2
         {
             Spec = agentSpec,
-            Metadata = metadata ?? new ResourceMetadata()
+            Metadata = finalMetadata
         };
 
-        var serializer = new SerializerBuilder()
-            .WithNamingConvention(UnderscoredNamingConvention.Instance)
-            .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
-            .Build();
-
-        var yaml = serializer.Serialize(yamlModel);
+        var yaml = yamlModel.ToYaml();
         File.WriteAllText(Path.Combine(folder, $"{name}.yaml"), yaml, new UTF8Encoding(false));
     }
 
@@ -407,5 +404,4 @@ public class KeepImportantPropertiesVisitor : ChainedObjectGraphVisitor
 
         return base.EnterMapping(key, value, context, serializer);
     }
-
 }

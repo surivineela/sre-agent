@@ -218,68 +218,7 @@ public static class AgentDescriptorValidation
         // when full agent context is available
     }
 
-    /// <summary>
-    /// Enhanced validation for tools including definition completeness.
-    /// </summary>
-    /// <param name="agentDescriptor">The agent descriptor to validate</param>
-    /// <param name="toolAvailabilityService">Service for checking tool existence and definitions</param>
-    /// <param name="errors">List of validation errors</param>
-    public static async Task ValidateToolDefinitionsAsync(IAgentDescriptor agentDescriptor, ToolAvailabilityService toolAvailabilityService, List<string> errors)
-    {
-        if (agentDescriptor.Tools == null || agentDescriptor.Tools.Count == 0) return;
 
-        foreach (var toolName in agentDescriptor.Tools)
-        {
-            try
-            {
-                // Check if tool definition exists and is valid
-                var toolDefinitionValid = await ValidateToolDefinitionAsync(toolName, toolAvailabilityService);
-                if (!toolDefinitionValid)
-                {
-                    errors.Add($"Tool '{toolName}' definition is invalid or incomplete.");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"Failed to validate tool '{toolName}': {ex.Message}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Validates a single tool definition for completeness and correctness.
-    /// </summary>
-    private static async Task<bool> ValidateToolDefinitionAsync(string toolName, ToolAvailabilityService toolAvailabilityService)
-    {
-        try
-        {
-            // Check if tool exists locally first
-            var localTools = toolAvailabilityService.GetLocalTools();
-            if (localTools.Contains(toolName))
-            {
-                // Validate local tool definition
-                var toolFilePath = Path.Combine("tools", $"{toolName}.yaml");
-                if (!File.Exists(toolFilePath))
-                {
-                    toolFilePath = Path.Combine("tools", toolName, $"{toolName}.yaml");
-                }
-
-                if (File.Exists(toolFilePath))
-                {
-                    var toolYamlContent = await File.ReadAllTextAsync(toolFilePath);
-                    return ToolValidation.ValidateToolYaml(toolYamlContent, out var toolErrors);
-                }
-            }
-
-            // Tool might exist on remote server - consider it valid for now
-            // Full remote validation would require additional API calls
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     /// <summary>
     /// Validates that all tools referenced by the agent exist either locally or on the remote server.

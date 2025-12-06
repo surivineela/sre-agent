@@ -96,6 +96,36 @@ Examples:
 
   # Show inline diff
   srectl agent diff --name MyAgent --raw";
+
+        public const string MigrateDescription = @"Migrate V1 agent format to V2
+
+Examples:
+  # Migrate a specific agent
+  srectl agent migrate --name MyAgent
+
+  # Migrate all agents
+  srectl agent migrate --all
+
+  # Preview migration changes (dry run)
+  srectl agent migrate --all --dry-run
+
+  # Migrate specific agent with dry run
+  srectl agent migrate --name MyAgent --dry-run";
+
+        public const string ListDescription = @"List remote extended agents from the server
+
+Examples:
+  # List all agents
+  srectl agent list
+
+  # List all agents with full YAML details
+  srectl agent list --detail
+
+  # Get a specific agent by name (full YAML output)
+  srectl agent list --name MyAgent
+
+  # Search for specific agents
+  srectl agent list --search devops";
     }
 
     #endregion
@@ -107,16 +137,25 @@ Examples:
         public const string CreateDescription = @"Create a new tool YAML configuration file
 
 Examples:
-  # Create a basic Kusto tool (currently only KustoTool is supported)
-  srectl tool create --name QueryMetrics --type KustoTool
+  # Create a KustoTool with all parameters (simple format)
+  srectl tool create --name QueryMetrics --type KustoTool --connector analytics-cluster --database LogsDB --description ""Query performance metrics"" --query ""MyTable | take 10"" --parameter limit --parameter offset
+
+  # Create a KustoTool with parameters including descriptions
+  srectl tool create --name AnalyzeErrors --type KustoTool --connector logs-cluster --database LogsDB --parameter ""hours:Hours to look back"" --parameter ""severity:Error severity level""
+
+  # Create a KustoTool with minimal options (query and parameters are optional)
+  srectl tool create --name GetLogs --type KustoTool --connector logs-cluster --database LogsDB
+
+  # Create a LinkTool with template and parameters
+  srectl tool create --name ServiceDashboard --type LinkTool --description ""Link to service dashboard"" --template ""https://dashboard.example.com/{serviceId}/{region}"" --parameter serviceId --parameter region
+
+  # Create a LinkTool with minimal options (template and parameters are optional)
+  srectl tool create --name DocLink --type LinkTool --description ""Link to documentation""
 
   # Create a tool with custom path organization
-  srectl tool create --name StorageOps --type KustoTool --path ""Storage/Operations""
+  srectl tool create --name StorageOps --type KustoTool --path ""Storage/Operations"" --connector storage-cluster
 
-  # Create a tool with extra parameters
-  srectl tool create --name CustomTool --type KustoTool --extra database:LogsDB cluster:prod-cluster
-
-  # View available tool types first
+  # View available tool types
   srectl tool show-types";
 
         public const string ValidateDescription = @"Validate tool YAML configuration files
@@ -174,10 +213,7 @@ Examples:
 
 Examples:
   # List all available connectors
-  srectl tool show-connectors
-
-  # Show detailed connector information
-  srectl tool show-connectors --verbose";
+  srectl tool show-connectors";
 
         public const string DiffDescription = @"Compare local and remote tool configurations
 
@@ -190,6 +226,100 @@ Examples:
 
   # Show inline diff
   srectl tool diff --name MyTool --raw";
+
+        public const string MigrateDescription = @"Migrate V1 tool configurations to V2 format
+
+Examples:
+  # Migrate a specific tool
+  srectl tool migrate --name MyKustoTool
+
+  # Migrate all V1 tools
+  srectl tool migrate --all
+
+  # Migrate specific tool with dry run
+  srectl tool migrate --name MyKustoTool --dry-run
+
+  # Preview migration without making changes (dry run)
+  srectl tool migrate --all --dry-run";
+
+        public const string ListDescription = @"List all tools from the remote server
+
+Examples:
+  # List all tools
+  srectl tool list
+
+  # List all tools with full YAML details
+  srectl tool list --detail
+
+  # Get a specific tool by name (full YAML output)
+  srectl tool list --name TestMigrate
+
+  # Search for specific tools
+  srectl tool list --search kusto";
+    }
+
+    #endregion
+
+    #region Skill Command Examples
+
+    public static class Skill
+    {
+        public const string CreateDescription = @"Create a new skill directory with template files
+
+Examples:
+  # Create a new skill
+  srectl skill create --name my-skill
+
+  # Create to a custom path
+  srectl skill create --name my-skill --output-path custom/path";
+
+        public const string UploadDescription = @"Upload a custom skill or multiple skills from a directory
+
+Examples:
+  # Upload a single skill directory
+  srectl skill upload --path skills/my-skill
+
+  # Upload all skills from a folder
+  srectl skill upload --folder skills";
+
+        public const string ConvertDescription = @"Convert an existing agent to a skill
+
+Examples:
+  # Convert an agent to a skill
+  srectl skill convert --agent-name my-agent
+
+  # Convert with specific top-level agents for context
+  srectl skill convert --agent-name my-agent --top-level-agents triage-agent support-agent
+
+  # Specify custom output path
+  srectl skill convert --agent-name my-agent --output-path custom/path";
+
+        public const string ListDescription = @"List all available skills
+
+Examples:
+  # List all skills
+  srectl skill list
+
+  # List with pagination
+  srectl skill list --page 2 --limit 25
+
+  # Search for specific skills
+  srectl skill list --search database";
+
+        public const string DownloadDescription = @"Download a skill from the server
+
+Examples:
+  # Download a skill
+  srectl skill download --name my-skill
+
+  # Download to a specific path
+  srectl skill download --name my-skill --output-path custom/path";
+
+        public const string DeleteDescription = @"Delete a skill from the server
+
+Examples:
+  # Delete a skill
+  srectl skill delete --name my-skill";
     }
 
     #endregion
@@ -248,6 +378,14 @@ Examples:
 
   # Start chat with minimal output
   srectl chat --quiet";
+
+        public const string SyncDescription = @"Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+
+Examples:
+  # Sync all remote configurations
+  srectl sync
+
+Note: Requires prior 'srectl init --resource-url <url>'";
     }
 
     #endregion
@@ -389,6 +527,126 @@ Examples:
 
   # Delete with confirmation
   srectl profile delete --name test --debug";
+    }
+
+    #endregion
+
+    #region Scheduled Task Command Examples
+
+    public static class ScheduledTask
+    {
+        public const string CreateDescription = @"Create a new scheduled task for automated agent operations
+
+Examples:
+  # Create a daily task
+  srectl scheduledtask create --name ""Daily Health Check"" --cron ""0 9 * * *"" --prompt ""Check system health""
+
+  # Create a weekly task with limited executions
+  srectl scheduledtask create --name ""Weekly Report"" --cron ""0 9 * * 1"" --prompt ""Generate weekly report"" --max-executions 4
+
+  # Create a task with specific agent
+  srectl scheduledtask create --name ""Agent Task"" --cron ""0 10 * * *"" --prompt ""Run daily checks"" --agent ""ProductionAgent""";
+
+        public const string ListDescription = @"List all scheduled tasks from the remote server
+
+Examples:
+  # List all scheduled tasks
+  srectl scheduledtask list
+
+  # List with detailed information
+  srectl scheduledtask list --verbose
+
+  # List with status filter
+  srectl scheduledtask list --status Active";
+
+        public const string GetDescription = @"Get detailed information about a specific scheduled task
+
+Examples:
+  # Get details of a task
+  srectl scheduledtask get --id task-123
+
+  # Get details by name
+  srectl scheduledtask get --id daily-health-check";
+
+        public const string PauseDescription = @"Pause a scheduled task to stop its execution
+
+Examples:
+  # Pause a task
+  srectl scheduledtask pause --id task-123
+
+  # Pause by name
+  srectl scheduledtask pause --id daily-health-check";
+
+        public const string ResumeDescription = @"Resume a paused scheduled task
+
+Examples:
+  # Resume a task
+  srectl scheduledtask resume --id task-123
+
+  # Resume by name
+  srectl scheduledtask resume --id daily-health-check";
+
+        public const string DeleteDescription = @"Permanently delete a scheduled task
+
+Examples:
+  # Delete a task
+  srectl scheduledtask delete --id task-123
+
+  # Delete an old task
+  srectl scheduledtask delete --id old-maintenance-task";
+    }
+
+    #endregion
+
+    #region Incident Handler Command Examples
+
+    public static class IncidentHandler
+    {
+        public const string CreateDescription = @"Create a new incident filter with specified criteria
+
+Examples:
+  # Create a simple filter
+  srectl incidenthandler create --id StorageFilter --name ""Storage Issues"" --title-contains ""storage""
+
+  # Create a filter with priority and handling agent
+  srectl incidenthandler create --id ProdFilter --priority 1 --incident-type LiveSite --handling-agent ProdAgent
+
+  # Create a filter with impacted service
+  srectl incidenthandler create --id APIFilter --impacted-service ""Web API"" --max-attempts 5";
+
+        public const string MapAgentDescription = @"Map a YAML agent to an incident filter
+
+Examples:
+  # Map an agent to a filter
+  srectl incidenthandler map-agent --name ProductionFilter --handling-agent ProductionAgent
+
+  # Map a specialized agent
+  srectl incidenthandler map-agent --name StorageIssues --handling-agent StorageAgent";
+
+        public const string ListDescription = @"List all incident handlers from the remote server
+
+Examples:
+  # List all incident handlers
+  srectl incidenthandler list
+
+  # List with detailed information
+  srectl incidenthandler list --verbose";
+    }
+
+    #endregion
+
+    #region Extension Command Examples
+
+    public static class Extension
+    {
+        public const string GenerateEv2Description = @"Generate EV2 deployment files by copying templates and processing agent/tool configurations
+
+Examples:
+  # Generate EV2 files from templates
+  srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./ev2-output
+
+  # Generate with debug logging
+  srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./deployment --debug";
     }
 
     #endregion

@@ -4,9 +4,9 @@
 
 using System.CommandLine;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
 using Agent.Cli.Services;
 using Agent.Core.Validation;
-using Agent.Data.DataModels;
 
 namespace Agent.Cli.Commands;
 
@@ -106,10 +106,9 @@ public static class AgentCommandHandlers
             finalMcpTools = [];
         }
 
-        // Create AgentSpec instance with final values
-        var agent = new AgentSpec
+        // Create ExtendedAgentSpecV2 instance with final values
+        var agentSpec = new ExtendedAgentSpecV2
         {
-            Name = name!,
             Instructions = finalInstructions,
             Tools = finalTools,
             Handoffs = handoffs?.ToList() ?? [],
@@ -117,7 +116,7 @@ public static class AgentCommandHandlers
             AllowParallelToolCalls = allowParallelToolCalls,
             MaxReflectionCount = maxReflectionCount,
             CriticPromptPath = criticPromptPath ?? string.Empty,
-            CriticOnHandOff = criticOnHandoff,
+            CriticOnHandoff = criticOnHandoff,
             CustomReflectionNote = customReflectionNote ?? string.Empty,
             CommonPrompts = commonPrompts?.ToList() ?? [],
             Temperature = temperature,
@@ -198,7 +197,8 @@ public static class AgentCommandHandlers
 
         // Write the agent YAML file first
         ProgressService.MultiStepProgress.NextStep("Writing agent configuration");
-        YamlHelper.WriteAgentYamlFile(Path.Combine("agents", name!), name!, agent);
+        var metadata = new ResourceMetadataModel { Name = name };
+        YamlHelper.WriteAgentYamlFile(Path.Combine("agents", name!), name!, agentSpec, metadata);
 
         // Validate using server-side validation (dryRun=true)
         ProgressService.MultiStepProgress.NextStep("Validating agent configuration with server");
@@ -271,7 +271,7 @@ public static class AgentCommandHandlers
             if (resolvedPath == null)
             {
                 ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
-                ConsoleUI.WriteBullet($"Expected: agents/{agentName}/{agentName}.yaml", ConsoleColor.Yellow);
+                ConsoleUI.WriteBullet($"Expected: agents/{agentName}.yaml", ConsoleColor.Yellow);
                 Environment.Exit(1);
                 return;
             }
@@ -476,6 +476,220 @@ public static class AgentCommandHandlers
     }
 
     /// <summary>
+    /// Handles the agent migrate command to migrate V1 agents to V2 format.
+    /// </summary>
+    public static async Task HandleMigrateCommand(ParseResult parseResult)
+    {
+        DebugLogger.Debug("Command", "Starting agent migrate command");
+
+        var agentName = parseResult.GetValue(AgentCommandOptions.MigrateNameOption);
+        var migrateAll = parseResult.GetValue(AgentCommandOptions.MigrateAllOption);
+        var dryRun = parseResult.GetValue(AgentCommandOptions.MigrateDryRunOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {agentName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
+
+        if (!migrateAll && string.IsNullOrWhiteSpace(agentName))
+        {
+            ConsoleUI.WriteStatus(false, "Please specify --name or --all to migrate agents.");
+            Environment.Exit(1);
+            return;
+        }
+
+        if (migrateAll && !string.IsNullOrWhiteSpace(agentName))
+        {
+            ConsoleUI.WriteStatus(false, "Cannot specify both --name and --all. Choose one.");
+            Environment.Exit(1);
+            return;
+        }
+
+        var agentsDir = "agents";
+        if (!Directory.Exists(agentsDir))
+        {
+            ConsoleUI.WriteStatus(false, "No agents directory found.");
+            Environment.Exit(1);
+            return;
+        }
+
+        List<string> filesToMigrate = [];
+
+        if (migrateAll)
+        {
+            filesToMigrate = Directory.GetFiles(agentsDir, "*.yaml", SearchOption.AllDirectories).ToList();
+        }
+        else
+        {
+            var agentFile = FindAgentFile(agentName!);
+            if (agentFile == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
+                ConsoleUI.WriteInfo($"Expected: agents/{agentName}.yaml", ConsoleColor.Gray);
+                Environment.Exit(1);
+                return;
+            }
+            filesToMigrate.Add(agentFile);
+        }
+
+        if (filesToMigrate.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No agent YAML files found to migrate.");
+            Environment.Exit(1);
+            return;
+        }
+
+        ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} agent(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        Console.WriteLine();
+
+        int migratedCount = 0;
+        int skippedCount = 0;
+        int errorCount = 0;
+
+        foreach (var file in filesToMigrate)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(file);
+                var content = await File.ReadAllTextAsync(file);
+
+                // Check if file is already V2
+                if (content.Contains($"api_version: {YamlApiVersion.V2}") || content.Contains($"api_version: \"{YamlApiVersion.V2}\""))
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Already V2 format", ConsoleColor.Gray);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Check if file is V1
+                if (!content.Contains($"api_version: {YamlApiVersion.V1}") && !content.Contains($"api_version: \"{YamlApiVersion.V1}\""))
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Not a V1 agent file", ConsoleColor.Yellow);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Deserialize V1
+                var v1Agent = ExtendedAgentV1.ParseYaml(content);
+                if (v1Agent == null)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Failed to deserialize V1 format", ConsoleColor.Red);
+                    errorCount++;
+                    continue;
+                }
+
+                var v2Agent = Converters.ExtendedAgentConverter.ConvertToV2(v1Agent);
+
+                if (!dryRun)
+                {
+                    await v2Agent.SaveYamlAsync(file);
+                }
+
+                ConsoleUI.WriteBullet($"{fileName}: Migrated to V2", ConsoleColor.Green);
+                migratedCount++;
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteBullet($"{Path.GetFileName(file)}: Error - {ex.Message}", ConsoleColor.Red);
+                errorCount++;
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Migration Summary");
+        ConsoleUI.WriteKeyValue("Total files", filesToMigrate.Count.ToString());
+        ConsoleUI.WriteKeyValue("Migrated", migratedCount.ToString(), valueColor: ConsoleColor.Green);
+        ConsoleUI.WriteKeyValue("Skipped", skippedCount.ToString(), valueColor: ConsoleColor.Gray);
+        ConsoleUI.WriteKeyValue("Errors", errorCount.ToString(), valueColor: errorCount > 0 ? ConsoleColor.Red : ConsoleColor.Gray);
+
+        if (dryRun && migratedCount > 0)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteInfo("This was a dry run. No files were modified.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Run without --dry-run to apply changes.", ConsoleColor.Yellow);
+        }
+
+        if (migratedCount > 0 && !dryRun)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Next Steps");
+            ConsoleUI.WriteCommand("Validate migrated agents", "srectl agent validate --all");
+            ConsoleUI.WriteCommand("Apply to server", "srectl sync");
+        }
+
+        Environment.Exit(errorCount > 0 ? 1 : 0);
+    }
+
+    /// <summary>
+    /// Handles the list agents command.
+    /// </summary>
+    public static async Task HandleListCommand(ParseResult parseResult)
+    {
+        DebugLogger.Debug("Command", "Starting agent list command");
+
+        var search = parseResult.GetValue(AgentCommandOptions.ListSearchOption);
+        var name = parseResult.GetValue(AgentCommandOptions.ListNameOption);
+        var detail = parseResult.GetValue(AgentCommandOptions.ListDetailOption);
+
+        DebugLogger.Debug("Parameters", $"Search: {search}, Name: {name}, Detail: {detail}");
+
+        using var apiService = new ApiService();
+
+        var (agentsList, error) = await apiService.ListExtendedAgentsAsync(search);
+
+        if (error != null)
+        {
+            ConsoleUI.WriteStatus(false, error);
+            Environment.Exit(1);
+        }
+
+        if (agentsList.Count == 0)
+        {
+            ConsoleUI.WriteInfo("No extended agents found on the server.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Use 'srectl agent apply <agent-name>' to add agents to the server.", ConsoleColor.Gray);
+            Environment.Exit(0);
+        }
+
+        // Filter by name if specified
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var agent = agentsList.FirstOrDefault(a =>
+                string.Equals(a.Metadata?.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            if (agent == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Agent '{name}' not found.");
+                Environment.Exit(1);
+            }
+
+            ConsoleUI.WriteSection("Remote Extended Agent");
+            Console.WriteLine(agent.ToYaml());
+            Environment.Exit(0);
+        }
+
+        ConsoleUI.WriteSection("Remote Extended Agents");
+
+        for (int i = 0; i < agentsList.Count; i++)
+        {
+            if (detail)
+            {
+                var yamlOutput = agentsList[i].ToYaml();
+                Console.WriteLine(yamlOutput);
+                if (i < agentsList.Count - 1)
+                {
+                    ConsoleUI.DrawLine();
+                }
+            }
+            else
+            {
+                var agentName = agentsList[i].Metadata?.Name ?? "Unknown";
+                ConsoleUI.WriteBullet(agentName);
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteKeyValue("Total", $"{agentsList.Count} extended agent(s)", 0);
+        Environment.Exit(0);
+    }
+
+    /// <summary>
     /// Handles the agent test command to test an agent with a specific message.
     /// </summary>
     public static async Task HandleTestCommand(ParseResult parseResult)
@@ -602,7 +816,7 @@ public static class AgentCommandHandlers
             if (localPath == null)
             {
                 ConsoleUI.WriteStatus(false, $"Local agent file not found for '{agentName}'");
-                ConsoleUI.WriteInfo($"Expected: agents/{agentName}/{agentName}.yaml", ConsoleColor.Gray);
+                ConsoleUI.WriteInfo($"Expected: agents/{agentName}.yaml", ConsoleColor.Gray);
                 Environment.Exit(1);
                 return;
             }
@@ -611,7 +825,7 @@ public static class AgentCommandHandlers
 
             // Get remote configuration
             using var apiService = new ApiService();
-            var (success, remoteYaml, errorMessage) = await apiService.GetAgentConfigurationAsync(agentName);
+            var (success, remoteYaml, errorMessage) = await apiService.GetExtendedAgentAsync(agentName);
 
             if (!success)
             {
@@ -1038,3 +1252,4 @@ public class CliToolAvailabilityChecker : IToolAvailabilityChecker
         return result;
     }
 }
+

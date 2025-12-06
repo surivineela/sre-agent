@@ -60,6 +60,20 @@ public static class AgentCommandOptions
         Description = "Validate that all referenced tools exist locally or on the remote server"
     };
 
+    // Agent list options
+    public static readonly Option<string?> ListSearchOption = new("--search")
+    {
+        Description = "Search filter for agent names or instructions"
+    };
+    public static readonly Option<string?> ListNameOption = new("--name")
+    {
+        Description = "Get a specific agent by name and output the full YAML"
+    };
+    public static readonly Option<bool> ListDetailOption = new("--detail")
+    {
+        Description = "Output the full YAML for all agents in the list"
+    };
+
     // Agent options for apply
     public static readonly Option<string> ApplyNameOption = new("--name") { Required = true };
     public static readonly Option<bool> ApplyDryRunOption = new("--dry-run")
@@ -153,6 +167,20 @@ public static class AgentCommandOptions
     public static readonly Option<bool> DiffRawOption = new("--raw")
     {
         Description = "Show inline diff instead of launching external tool"
+    };
+
+    // Agent migrate command options
+    public static readonly Option<string?> MigrateNameOption = new("--name")
+    {
+        Description = "Name of specific agent to migrate from V1 to V2 format"
+    };
+    public static readonly Option<bool> MigrateAllOption = new("--all")
+    {
+        Description = "Migrate all V1 agents to V2 format"
+    };
+    public static readonly Option<bool> MigrateDryRunOption = new("--dry-run")
+    {
+        Description = "Preview changes without modifying files"
     };
 
     // skills options
