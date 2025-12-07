@@ -357,7 +357,7 @@ public static class ToolDescriptionHelper
             "Complete" => "Completing the operation...",
 
             // Code Interpreter Plugin tools
-            "ExecutePythonSnippetAsync" => "Running Python code and generating output files...",
+            "ExecutePythonCodeAsync" => "Running Python code and generating output files...",
             "GeneratePdfReportAsync" => "Creating a PDF report using Python...",
             "ListSessionFilesAsync" => "Listing files created by Python execution...",
             "GetSessionFileAsync" => "Validating a generated file for you...",

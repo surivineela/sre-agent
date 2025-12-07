@@ -40,7 +40,7 @@ system_prompt: |
   ## Automatic File Handling
   **You DO NOT need to call any tools to list or download files!**
 
-  After every ExecutePythonSnippet call that generates files:
+  After every ExecutePythonCode call that generates files:
   - <inportant>The system automatically detects all files in /mnt/data/</important>
   - All files are automatically downloaded
   - Images are presented with inline markdown
@@ -245,7 +245,7 @@ handoff_description: |
   - Persists files only under /mnt/data (returned automatically as links)
 
 tools:
-  - ExecutePythonSnippet
+  - ExecutePythonCode
   - GeneratePdfReport
   - RunShellCommand
   - ReadSessionFile

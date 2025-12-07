@@ -15,9 +15,9 @@ public interface ICodeInterpreterPlugin
     Guid? ThreadId { get; set; }
 
     /// <summary>
-    /// Execute an arbitrary (but sandbox‑validated) python snippet and return stdout / stderr summary.
+    /// Execute an arbitrary (but sandbox‑validated) python code and return stdout / stderr summary.
     /// </summary>
-    Task<string> ExecutePythonSnippetAsync(string pythonCode, int timeoutSeconds);
+    Task<string> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds);
 
     /// <summary>
     /// Execute a constrained POSIX shell command (bash) within the code interpreter sandbox.

@@ -38,7 +38,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         _hostEnvironment = hostEnvironment;
     }
 
-    public async Task<string> ExecutePythonSnippetAsync(string pythonCode, int timeoutSeconds)
+    public async Task<string> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
     {
         var validation = ValidatePython(pythonCode);
         if (validation != null)

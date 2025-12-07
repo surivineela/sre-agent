@@ -36,10 +36,10 @@ Examples:
 - Fetching web content
 Avoid: installing packages, spawning processes.")]
     [AgentTool(ToolMode.Manual)]
-    public Task<string> ExecutePythonSnippetAsync(
+    public Task<string> ExecutePythonCodeAsync(
         [Description("Python code to execute (<=20k chars)")] string pythonCode,
         [Description("Timeout in seconds (default 120, max 900)")] int timeoutSeconds = 120)
-        => _plugin.ExecutePythonSnippetAsync(pythonCode, Math.Clamp(timeoutSeconds, 5, 900));
+        => _plugin.ExecutePythonCodeAsync(pythonCode, Math.Clamp(timeoutSeconds, 5, 900));
 
     [Description(@"Generate a PDF report by executing Python code that writes a PDF file.
 Safety & Workflow:

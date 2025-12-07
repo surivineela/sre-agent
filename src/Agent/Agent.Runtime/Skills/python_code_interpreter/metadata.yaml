@@ -13,14 +13,14 @@ description: |
   - Run existing scripts or chain multiple operations with file outputs
   - Parse structured data formats (JSON, XML, HTML, CSV) programmatically
   - Implement custom logic not covered by specialized Azure diagnostic skills
-  
+
   Do NOT load for:
   - Azure resource management requiring ARM tokens or managed identity credentials
   - Direct Azure CLI, kubectl, or cloud-admin CLI operations (defer to specialized skills)
   - Simple Azure resource discovery or configuration queries handled by core system tools
 
 tools:
-  - ExecutePythonSnippet
+  - ExecutePythonCode
   - GeneratePdfReport
   - RunShellCommand
   - ReadSessionFile

@@ -59,7 +59,7 @@ public class ReadSkillFileTool<TContext>(
         User request: "Create pdf file with CPU metrics chart for resource X"
         Assistant: reasoning: (does not have any tools for generating pdf documents, but sees available skill which mentions pdf file generation, called 'document_generation')
         Assistant: read_skill_file(skill_name="document_generation", file_path="SKILL.md")
-        Assistant: reasoning: (now has new tools 'ExecutePythonSnippet' and 'GeneratePdfReport' available)
+        Assistant: reasoning: (now has new tools 'ExecutePythonCode' and 'GeneratePdfReport' available)
         Assistant: <uses new tools per skill instructions to generate the pdf with charts>
       </example>
 
