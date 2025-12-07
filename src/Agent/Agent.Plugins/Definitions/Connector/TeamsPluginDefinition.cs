@@ -36,5 +36,18 @@ namespace Agent.Plugins.Definitions.Connector
         {
             return await _teamsChannelPlugin.GetMessagesFromChannel();
         }
+
+        [Description("Replies to an existing Microsoft Teams channel message using HTML content")]
+        [AgentTool(ToolMode.Auto)]
+        public async Task<PostMessageResult> ReplyToTeamsMessageAsync(
+            [Description("The message ID to reply to. Use GetTeamsMessages to obtain IDs before calling this tool.")]
+            string messageId,
+            [Description("HTML body for the reply. Plain text is not supported.")]
+            string messageHtml,
+            [Description("Optional subject for the reply")]
+            string? subject = null)
+        {
+            return await _teamsChannelPlugin.ReplyToTeamsMessageAsync(messageId, messageHtml, subject);
+        }
     }
 }

@@ -22,5 +22,13 @@ namespace Agent.Plugins.Interface
         /// <param name="message">message in html</param>
         Task<PostMessageResult> PostMessageToChannel(string subject, string message, CancellationToken cancellationToken = default);
         Task<List<TeamsChannelMessage>> GetMessagesFromChannel(CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Reply to a specific message within the configured Teams channel using HTML content.
+        /// </summary>
+        Task<PostMessageResult> ReplyToTeamsMessageAsync(
+            string messageId,
+            string messageHtml,
+            string? subject = null,
+            CancellationToken cancellationToken = default);
     }
 }

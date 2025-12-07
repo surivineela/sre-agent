@@ -114,6 +114,85 @@ namespace Agent.Plugins.Implementation
         }
 
         /// <summary>
+        /// Reply to an existing message within the configured Teams channel.
+        /// </summary>
+        public async Task<PostMessageResult> ReplyToTeamsMessageAsync(
+            string messageId,
+            string messageHtml,
+            string? subject = null,
+            CancellationToken cancellationToken = default)
+        {
+            EnsureInitialized();
+
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                throw new ArgumentException("messageId should not be empty", nameof(messageId));
+            }
+
+            if (string.IsNullOrWhiteSpace(messageHtml))
+            {
+                _logger.LogInternalWarning("[ReplyToTeamsMessageAsync] Message content is empty. Aborting reply.");
+                throw new ArgumentException("messageHtml should not be empty", nameof(messageHtml));
+            }
+
+            var trimmedMessageId = messageId.Trim();
+
+            _logger.LogInternalInformation(
+                "[ReplyToTeamsMessageAsync] Replying to Teams message {MessageId}. Url: {BaseUrl}, GroupId: {GroupId}, ChannelId: {ChannelId}",
+                trimmedMessageId,
+                _teamsApiHubConnector!.ConnectionRuntimeUrl,
+                _teamsApiHubConnector.GroupId,
+                _teamsApiHubConnector.ChannelId);
+
+            var accessToken = await GetAccessTokenAsync(cancellationToken);
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl!, UriKind.Absolute);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var payload = new
+            {
+                subject,
+                body = new
+                {
+                    contentType = "html",
+                    content = messageHtml
+                }
+            };
+
+            var requestPath =
+                $"v2/beta/teams/{_teamsApiHubConnector.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages/{trimmedMessageId}/replies";
+
+            using var response = await httpClient.PostAsJsonAsync(requestPath, payload, _jsonOptions, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogInternalError(
+                    "[ReplyToTeamsMessageAsync] Failed to reply to Teams message {MessageId}. StatusCode: {StatusCode}, Response: {Response}",
+                    trimmedMessageId,
+                    response.StatusCode,
+                    errorContent);
+                throw new HttpRequestException(
+                    $"Failed to reply to Teams message. StatusCode: {response.StatusCode}, Response: {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            var replyMessage = JsonSerializer.Deserialize<TeamsChannelMessage>(responseContent, _jsonOptions);
+
+            if (replyMessage == null)
+            {
+                _logger.LogInternalError("[ReplyToTeamsMessageAsync] Failed to deserialize response from Teams API.");
+                throw new InvalidOperationException("Failed to deserialize response from Teams API.");
+            }
+
+            _logger.LogInternalInformation(
+                "[ReplyToTeamsMessageAsync] Reply sent successfully. MessageId: {MessageId}, WebUrl: {WebUrl}",
+                replyMessage.Id,
+                replyMessage.WebUrl);
+
+            return new PostMessageResult(replyMessage.Id, replyMessage.WebUrl);
+        }
+
+        /// <summary>
         /// Get messages from a specific Teams channel
         /// </summary>
         /// <returns>The most recent message from the channel</returns>

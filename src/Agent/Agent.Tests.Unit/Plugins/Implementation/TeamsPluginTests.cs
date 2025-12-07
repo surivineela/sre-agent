@@ -427,5 +427,141 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.Equal("Bearer", capturedRequest.Headers.Authorization.Scheme);
             Assert.Equal(TestAccessToken, capturedRequest.Headers.Authorization.Parameter);
         }
+
+        [Fact]
+        public async Task ReplyToTeamsMessageAsync_WithValidInput_ReturnsPostMessageResult()
+        {
+            // Arrange
+            var messageId = "msg-123";
+            var subject = "Follow-up";
+            var body = "<p>Reply body</p>";
+            var expectedReplyId = "reply-456";
+            var expectedWebUrl = "https://teams.microsoft.com/reply";
+
+            var responseMessage = new TeamsChannelMessage(
+                Id: expectedReplyId,
+                WebUrl: expectedWebUrl,
+                Subject: subject,
+                From: new From(new User("user-id", "Test User", "user", "tenant-id")),
+                MessageType: "message",
+                Body: new Body("html", body),
+                CreatedDateTime: DateTimeOffset.UtcNow,
+                LastModifiedDateTime: DateTimeOffset.UtcNow,
+                LastEditedDateTime: null);
+
+            var jsonResponse = JsonSerializer.Serialize(responseMessage, new JsonSerializerOptions(JsonSerializerOptions.Web));
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri!.ToString().Contains($"v2/beta/teams/{TestGroupId}/channels/{TestChannelId}/messages/{messageId}/replies")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Created,
+                    Content = new StringContent(jsonResponse)
+                });
+
+            // Act
+            var result = await _teamsPlugin.ReplyToTeamsMessageAsync(messageId, body, subject);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedReplyId, result.Id);
+            Assert.Equal(expectedWebUrl, result.WebUrl);
+        }
+
+        [Fact]
+        public async Task ReplyToTeamsMessageAsync_WithEmptyMessageId_ThrowsArgumentException()
+        {
+            // Arrange
+            var body = "<p>Reply body</p>";
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _teamsPlugin.ReplyToTeamsMessageAsync(" ", body));
+        }
+
+        [Fact]
+        public async Task ReplyToTeamsMessageAsync_WithEmptyBody_ThrowsArgumentException()
+        {
+            // Arrange
+            var messageId = "msg-123";
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                _teamsPlugin.ReplyToTeamsMessageAsync(messageId, ""));
+        }
+
+        [Fact]
+        public async Task ReplyToTeamsMessageAsync_WhenHttpRequestFails_ThrowsHttpRequestException()
+        {
+            // Arrange
+            var messageId = "msg-123";
+            var body = "<p>Reply body</p>";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Content = new StringContent("Bad Request")
+                });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _teamsPlugin.ReplyToTeamsMessageAsync(messageId, body));
+
+            Assert.Contains("Failed to reply to Teams message", exception.Message);
+            Assert.Contains("BadRequest", exception.Message);
+        }
+
+        [Fact]
+        public async Task ReplyToTeamsMessageAsync_IncludesAuthorizationHeader()
+        {
+            // Arrange
+            var messageId = "msg-123";
+            var body = "<p>Reply body</p>";
+            HttpRequestMessage? capturedRequest = null;
+
+            var responseMessage = new TeamsChannelMessage(
+                Id: "reply-123",
+                WebUrl: "https://teams.microsoft.com/reply",
+                Subject: "Follow-up",
+                From: new From(new User("user-id", "Test User", "user", "tenant-id")),
+                MessageType: "message",
+                Body: new Body("html", body),
+                CreatedDateTime: DateTimeOffset.UtcNow,
+                LastModifiedDateTime: DateTimeOffset.UtcNow,
+                LastEditedDateTime: null);
+
+            var jsonResponse = JsonSerializer.Serialize(responseMessage, new JsonSerializerOptions(JsonSerializerOptions.Web));
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.Created,
+                    Content = new StringContent(jsonResponse)
+                });
+
+            // Act
+            await _teamsPlugin.ReplyToTeamsMessageAsync(messageId, body);
+
+            // Assert
+            Assert.NotNull(capturedRequest);
+            Assert.NotNull(capturedRequest.Headers.Authorization);
+            Assert.Equal("Bearer", capturedRequest.Headers.Authorization.Scheme);
+            Assert.Equal(TestAccessToken, capturedRequest.Headers.Authorization.Parameter);
+        }
     }
 }
