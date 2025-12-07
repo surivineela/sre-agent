@@ -798,14 +798,26 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 ExecutionTimeMs: 0,
                 Details: null);
         }
-        var healthy = mcpActive.Status == DataConnectorStatus.Connected;
-        var message = healthy ? "MCP connection established." : $"MCP connection status: {mcpActive.Status}. {mcpActive.ErrorMessage}";
+
+        // Healthy means Connected or Standby (ready to use)
+        var healthy = mcpActive.Status == DataConnectorStatus.Connected || mcpActive.Status == DataConnectorStatus.Standby;
+        var message = mcpActive.Status switch
+        {
+            DataConnectorStatus.Connected => "MCP connection established.",
+            DataConnectorStatus.Standby => "MCP connection established.", // User sees "Connected", internally we track Standby for refresh
+            _ => $"MCP connection status: {mcpActive.Status}. {mcpActive.ErrorMessage}"
+        };
+
+        var userFacingStatus = mcpActive.Status == DataConnectorStatus.Standby
+            ? DataConnectorStatus.Connected.ToString()
+            : mcpActive.Status.ToString();
+
         return new ConnectorStatusResponse(
             Name: connectorName,
             Type: "Mcp",
             Healthy: healthy,
             Message: message,
-            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            Status: userFacingStatus,
             ExecutionTimeMs: 0,
             Details: new
             {
@@ -849,9 +861,17 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         {
             var all = _connectorResolver.GetAllDataConnectors();
             var connector = all.FirstOrDefault(c => c.Name.Equals(connectorName, StringComparison.OrdinalIgnoreCase));
+
             if (connector == null)
             {
-                return new ApiCommandResult<ConnectorStatusResponse>(new NotFoundResult());
+                return new ApiCommandResult<ConnectorStatusResponse>(new ConnectorStatusResponse(
+                    Name: connectorName,
+                    Type: "Unknown",
+                    Healthy: false,
+                    Message: "Connector is being initialized. This may take a few minutes...",
+                    Status: DataConnectorStatus.Initializing.ToString(),
+                    ExecutionTimeMs: 0,
+                    Details: null));
             }
 
             ConnectorStatusResponse response = connector.ConnectorType.ToLowerInvariant() switch

@@ -17,8 +17,9 @@ public interface IMcpConnectionHealthService
     /// </summary>
     /// <param name="connection">The MCP connection to validate</param>
     /// <param name="toolName">The name of the tool being invoked for error reporting</param>
+    /// <returns>The validated connection</returns>
     /// <exception cref="InvalidOperationException">Thrown when the connection is unhealthy and cannot execute tools</exception>
-    Task ValidateConnectionHealthAsync(McpConnection connection, string toolName);
+    Task<McpConnection> ValidateConnectionHealthAsync(McpConnection connection, string toolName);
 
     /// <summary>
     /// Attempts to find an MCP connection by a tool signature.

@@ -24,7 +24,7 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
         _logger = logger;
     }
 
-    public async Task ValidateConnectionHealthAsync(McpConnection connection, string toolName)
+    public async Task<McpConnection> ValidateConnectionHealthAsync(McpConnection connection, string toolName)
     {
         if (connection == null)
         {
@@ -45,18 +45,20 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
                 $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' failed to initialize - {errorMessage}");
         }
 
-        // Check if connection is disconnected - attempt to reconnect
-        if (connection.Status == DataConnectorStatus.Disconnected)
+        // Check if connection is disconnected or in standby - attempt to reconnect
+        if (connection.Status == DataConnectorStatus.Disconnected || connection.Status == DataConnectorStatus.Standby)
         {
             _logger.LogInternalInformation(
-                "Connection '{ConnectionId}' is disconnected, attempting to reconnect before executing tool '{ToolName}'",
+                "Connection '{ConnectionId}' is in '{Status}' state, attempting to reconnect before executing tool '{ToolName}'",
                 connection.Id,
+                connection.Status,
                 toolName);
 
             try
             {
                 // Attempt to refresh/reconnect the connection
-                await _connectionManager.RefreshConnectionAsync(connection.Id);
+                // This creates a NEW connection instance, so we must return it
+                connection = await _connectionManager.RefreshConnectionAsync(connection.Id);
 
                 _logger.LogInternalInformation(
                     "Successfully reconnected connection '{ConnectionId}' for tool '{ToolName}'",
@@ -94,6 +96,8 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
             "Connection health check passed for tool '{ToolName}' on connection '{ConnectionId}'",
             toolName,
             connection.Id);
+
+        return connection;
     }
 
     public McpConnection? FindConnectionByToolSignature(string toolSignature)

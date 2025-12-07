@@ -35,7 +35,8 @@ public class ConnectorStatusResponse
     public object? Details { get; set; }
 
     /// <summary>
-    /// Connector status. Can be one of the following: 'Initializing', 'Connected', 'Failed', 'Disconnected'.
+    /// Connector status. Can be one of the following: 'Initializing', 'Connected', 'Standby', 'Failed', 'Disconnected'.
+    /// 'Standby' indicates the connector is configured and ready to use, but no active session exists.
     /// </summary>
     public string Status { get; set; } = string.Empty;
 

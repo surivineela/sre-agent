@@ -36,6 +36,8 @@ public class McpToolAIFunction : AIFunction
         AIFunctionArguments arguments,
         CancellationToken cancellationToken)
     {
+        var toolToInvoke = _originalTool;
+
         // Check connection health before executing the tool
         // If disconnected, attempt to reconnect
         if (_healthService != null)
@@ -43,13 +45,29 @@ public class McpToolAIFunction : AIFunction
             var connection = _healthService.FindConnectionByToolSignature(_newName);
             if (connection != null)
             {
-                await _healthService.ValidateConnectionHealthAsync(connection, _newName);
+                var validatedConnection = await _healthService.ValidateConnectionHealthAsync(connection, _newName);
+
+                // If reconnection happened, the original tool reference is stale.
+                // We need to get the refreshed tool from the new connection.
+                if (validatedConnection != connection && validatedConnection.Tools != null)
+                {
+                    // Extract the original tool name (without the connection prefix)
+                    // Tool signature format: {connectionId}_{originalToolName}
+                    var originalToolName = _originalTool.Name;
+                    var refreshedTool = validatedConnection.Tools
+                        .OfType<AIFunction>()
+                        .FirstOrDefault(t => t.Name == originalToolName);
+
+                    if (refreshedTool != null)
+                    {
+                        toolToInvoke = refreshedTool;
+                    }
+                }
             }
         }
 
-        // Delegate to the original tool for actual execution
-        // The original tool knows its actual MCP name (without prefix)
-        var rawResult = await _originalTool.InvokeAsync(arguments, cancellationToken);
+        // The tool knows its actual MCP name (without prefix)
+        var rawResult = await toolToInvoke.InvokeAsync(arguments, cancellationToken);
 
         // The result type of the MCP client is handled poorly by the SDK (0.4.0), which is just a JsonElement
         // So we need to deserialize it into CallToolResult and extract the Content

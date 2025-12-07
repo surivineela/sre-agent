@@ -28,6 +28,11 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
     private readonly Channel<JsonRpcMessage> _messageChannel = Channel.CreateUnbounded<JsonRpcMessage>();
 
     /// <summary>
+    /// Callback invoked when the WebSocket connection is lost or closed unexpectedly.
+    /// </summary>
+    public Action<string>? OnDisconnected { get; set; }
+
+    /// <summary>
     /// Gets the name of the transport.
     /// </summary>
     public string Name => _name;
@@ -86,6 +91,8 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
 
         if (_webSocket == null || _webSocket.State != WebSocketState.Open)
         {
+            _logger.LogInternalError("Attempted to send message on closed WebSocket");
+            OnDisconnected?.Invoke("WebSocket not open when attempting to send message");
             throw new InvalidOperationException("Transport is not connected");
         }
 
@@ -180,6 +187,7 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
                 else
                 {
                     _logger.LogInternalInformation("Connection closed by server");
+                    OnDisconnected?.Invoke("Connection closed by server");
                     break;
                 }
             }
@@ -191,10 +199,12 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
         catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
         {
             _logger.LogInternalWarning("Connection closed prematurely");
+            OnDisconnected?.Invoke("WebSocket connection closed prematurely");
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error in receive loop");
+            OnDisconnected?.Invoke($"WebSocket error: {ex.Message}");
         }
         finally
         {

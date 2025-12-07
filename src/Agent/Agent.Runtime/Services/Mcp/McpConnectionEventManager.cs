@@ -314,10 +314,12 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                     return;
                 }
 
-                // STDIO connections don't support ping
-                if (connection.ClientTransport is StdioClientTransport)
+                if (connection.ClientTransport is StdioClientTransport or SessionWebsocketClientTransport)
                 {
-                    _logger.LogTrace("StdioClientTransport does not support ping protocol, updating heartbeat for '{ConnectionId}'", connection.Id);
+                    _logger.LogTrace(
+                        "Skipping periodic verification for connection '{ConnectionId}' (transport: {TransportType})",
+                        connection.Id,
+                        connection.ClientTransport.GetType().Name);
                     connection.UpdateHeartbeat();
                     connection.ResetPingFailures();
                     return;

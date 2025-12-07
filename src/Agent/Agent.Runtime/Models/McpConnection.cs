@@ -4,6 +4,7 @@
 
 using System.Text.RegularExpressions;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
@@ -89,6 +90,30 @@ public class McpConnection
             };
 
             _logger.LogInternalInformation("Attempting to connect to {endpoint}", Id);
+
+            if (ClientTransport is SessionWebsocketClientTransport wsClientTransport)
+            {
+                wsClientTransport.OnDisconnected = reason =>
+                {
+                    if (reason.Contains("closed by server", StringComparison.OrdinalIgnoreCase) ||
+                        reason.Contains("closed prematurely", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInternalInformation(
+                            "MCP connection '{ConnectionId}' WebSocket closed gracefully, transitioning to Standby: {Reason}",
+                            Id,
+                            reason);
+                        MarkAsStandby();
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning(
+                            "MCP connection '{ConnectionId}' WebSocket disconnected with error: {Reason}",
+                            Id,
+                            reason);
+                        MarkAsDisconnected(reason);
+                    }
+                };
+            }
 
             try
             {
@@ -188,6 +213,16 @@ public class McpConnection
         Status = DataConnectorStatus.Failed;
         ErrorMessage = errorMessage;
         ConsecutivePingFailures++;
+    }
+
+    /// <summary>
+    /// Marks the connection as standby (configured and ready, but no active session).
+    /// This is used when the WebSocket closes gracefully or times out.
+    /// </summary>
+    public void MarkAsStandby()
+    {
+        Status = DataConnectorStatus.Standby;
+        ErrorMessage = null;
     }
 
     /// <summary>

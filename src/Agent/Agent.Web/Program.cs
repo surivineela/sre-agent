@@ -907,10 +907,6 @@ public class Program
 
         builder.Services.AddHostedService<TimerService>();
 
-        // Kick off MCP Server Initializer
-        builder.Services.AddSingleton<MCPMetaAgent>();
-        builder.Services.AddHostedService<MCPMetaAgentManagementService>();
-
         // Add new MCP agent services
         builder.Services.AddMcpAgentServices();
 

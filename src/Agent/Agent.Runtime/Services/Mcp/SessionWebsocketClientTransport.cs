@@ -28,6 +28,8 @@ public class SessionWebsocketClientTransport : IClientTransport
     /// </summary>
     public string Name => _options.Name ?? $"SessionPool-{_options.Command}";
 
+    public Action<string>? OnDisconnected { get; set; }
+
     /// <summary>
     /// Initializes a new instance of the McpSessionWebsocketClientTransport class.
     /// </summary>
@@ -148,6 +150,8 @@ public class SessionWebsocketClientTransport : IClientTransport
                 Name,
                 _options.ReceiveBufferSize,
                 _logger);
+
+            transport.OnDisconnected = OnDisconnected;
 
             return transport;
         }
