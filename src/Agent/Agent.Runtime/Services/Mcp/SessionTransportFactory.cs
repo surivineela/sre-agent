@@ -59,6 +59,7 @@ public class SessionTransportFactory : ISessionTransportFactory
         var tokenScopes = new List<string>
         {
             Constants.ArmOboTokenScope,
+            Constants.ArmApiTokenScope,
             Constants.AzureDevopsTokenScope,
             Constants.Ev2ProdTokenScope,
         };
