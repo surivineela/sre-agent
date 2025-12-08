@@ -834,7 +834,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     // Helper: Kusto connector status using TestKustoQueryAsync
     private async Task<ConnectorStatusResponse> BuildKustoConnectorStatusAsync(string connectorName)
     {
-        string standardQuery = "union * | take 1";
+        string standardQuery = "print ConnectionTest=1";
         var testRequest = new KustoQueryTestRequest
         {
             Query = standardQuery,
@@ -846,8 +846,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
 
         var healthy = testResult.Success;
         var message = healthy
-            ? (testResult.RowCount > 0 ? "Kusto connectivity OK. Sample row retrieved." : "Kusto connectivity OK. No rows returned.")
-            : ($"Kusto connectivity failed: {testResult.ErrorMessage}");
+            ? "Kusto connectivity OK."
+            : $"Kusto connectivity failed: {testResult.ErrorMessage}";
 
         return new ConnectorStatusResponse(
             Name: connectorName,
@@ -856,7 +856,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Message: message,
             Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
             ExecutionTimeMs: testResult.ExecutionTimeMs,
-            Details: healthy ? new { sampleRow = testResult.RowCount > 0, rowCount = testResult.RowCount, query = standardQuery } : null);
+            Details: testResult.ErrorMessage);
     }
 
     // Helper: ICM connector status using CheckConnectivity
