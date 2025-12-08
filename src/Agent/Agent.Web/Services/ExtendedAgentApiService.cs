@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Framework;
@@ -30,6 +31,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly ILoggerFactory _loggerFactory;
     private readonly IMcpConnectionEventManager _mcpConnectionManager;
     private readonly IConnectorResolver _connectorResolver;
+    private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -40,7 +42,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         IAuthenticationService authService,
         ILoggerFactory loggerFactory,
         IMcpConnectionEventManager mcpConnectionEventManager,
-        IConnectorResolver connectorResolver)
+        IConnectorResolver connectorResolver,
+        IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -51,6 +54,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _loggerFactory = loggerFactory;
         _mcpConnectionManager = mcpConnectionEventManager;
         _connectorResolver = connectorResolver;
+        _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -855,6 +859,41 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: healthy ? new { sampleRow = testResult.RowCount > 0, rowCount = testResult.RowCount, query = standardQuery } : null);
     }
 
+    // Helper: ICM connector status using CheckConnectivity
+    private async Task<ConnectorStatusResponse> BuildIcmConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message = "Unable to determine status";
+        object? details = null;
+
+        try
+        {
+            var service = _incidentFilterManagementServiceFactory.GetServiceDynamic();
+            healthy = await service.CheckConnectivity();
+            message = healthy ? "ICM connectivity OK." : "ICM connectivity failed.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "BuildIcmConnectorStatusAsync: Exception occurred while checking ICM connectivity for connector: {ConnectorName}", connectorName);
+            message = $"ICM connectivity check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }        
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "Icm",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
     public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
     {
         try
@@ -878,6 +917,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             {
                 "mcp" => BuildMcpConnectorStatus(connectorName),
                 "kusto" => await BuildKustoConnectorStatusAsync(connectorName),
+                "icm" => await BuildIcmConnectorStatusAsync(connectorName),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,
