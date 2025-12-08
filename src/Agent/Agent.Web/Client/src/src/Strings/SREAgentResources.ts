@@ -68,6 +68,18 @@ export const SreAgentResources = defineMessages({
             '{count, plural, one {Failed to delete incident trigger {name}} other {Failed to delete incident triggers}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
         id: '5iE4cZ',
     },
+    deleteIncidentTriggerConfirmationDescription: {
+        defaultMessage: 'Are you sure you want to delete this incident trigger? This action cannot be undone.',
+        id: 'hseqm+',
+    },
+    deleteIncidentTriggerMenuTitle: {
+        defaultMessage: 'Delete Incident Trigger',
+        id: 'Rtd2bs',
+    },
+    deleteScheduledTriggerMenuTitle: {
+        defaultMessage: 'Delete Scheduled Trigger',
+        id: 'b1DYE3',
+    },
 
     deleteScheduledTaskNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete scheduled task} other {Delete scheduled tasks}}',

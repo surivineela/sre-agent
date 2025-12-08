@@ -33,13 +33,17 @@ type PanelHeaderProps = {
     selectedAgent?: ExtendedAgent;
     selectedTool?: ExtendedTool;
     selectedConnector?: ExtendedConnector;
+    selectedTrigger?: ExtendedTrigger;
     selectedSkill?: Skill;
     isDeleting: boolean;
     onEdit: (
         entity: ExtendedTool | ExtendedConnector | ExtendedTrigger | ExtendedAgent | Skill | undefined,
         type: ExtendedEntityType | 'skill'
     ) => void;
-    onDeleteClick: (type: 'agent' | 'tool' | 'skill', entity: ExtendedAgent | ExtendedTool | Skill | undefined) => void;
+    onDeleteClick: (
+        type: 'agent' | 'tool' | 'skill' | 'incidentTrigger' | 'scheduledTrigger',
+        entity: ExtendedAgent | ExtendedTool | Skill | ExtendedTrigger | undefined
+    ) => void;
     onOpenPlaygroundClick: () => void;
     onClose?: () => void;
     onDragHandlePointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
@@ -61,6 +65,7 @@ export const PanelHeader = memo(
         selectedAgent,
         selectedTool,
         selectedConnector,
+        selectedTrigger,
         selectedSkill,
         isDeleting,
         onEdit,
@@ -117,6 +122,7 @@ export const PanelHeader = memo(
                     {((playgroundTarget && showAgentBuilderPlayground) ||
                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                         (headerEditContext?.type === 'tool' && selectedTool) ||
+                        (headerEditContext?.type === 'trigger' && selectedTrigger) ||
                         (headerEditContext?.type === 'skill' && selectedSkill)) && (
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
@@ -145,6 +151,21 @@ export const PanelHeader = memo(
                                             disabled={isDeleting}
                                         >
                                             {intl.formatMessage(SreAgentResources.deleteToolTitle)}
+                                        </MenuItem>
+                                    )}
+                                    {headerEditContext?.type === 'trigger' && selectedTrigger && (
+                                        <MenuItem
+                                            icon={<Delete20Regular />}
+                                            onClick={() => {
+                                                const deleteType =
+                                                    selectedTrigger.type === 'incident' ? 'incidentTrigger' : 'scheduledTrigger';
+                                                onDeleteClick(deleteType, selectedTrigger);
+                                            }}
+                                            disabled={isDeleting}
+                                        >
+                                            {selectedTrigger.type === 'incident'
+                                                ? intl.formatMessage(SreAgentResources.deleteIncidentTriggerMenuTitle)
+                                                : intl.formatMessage(SreAgentResources.deleteScheduledTriggerMenuTitle)}
                                         </MenuItem>
                                     )}
                                     {headerEditContext?.type === 'skill' && selectedSkill && (

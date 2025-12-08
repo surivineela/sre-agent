@@ -19,10 +19,17 @@ import {
 import { CheckmarkCircle20Regular, ErrorCircle20Regular, PanelRightExpandRegular } from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
+import { ScheduledTasksClient } from '../../../Common/Clients/ScheduledTasksClient';
 import { getAgentHeaders } from '../../../Common/Helpers/headers';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
-import { ConnectorsResources, ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import {
+    ConnectorsResources,
+    ExtendedAgentsGraphResources,
+    ScheduledTasksResources,
+    SreAgentResources,
+} from '../../../Strings/SREAgentResources';
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
@@ -75,8 +82,8 @@ type YamlEditorContext = {
 };
 
 type DeleteContext = {
-    type: 'agent' | 'tool' | 'skill';
-    entity: ExtendedAgent | ExtendedTool | Skill;
+    type: 'agent' | 'tool' | 'skill' | 'incidentTrigger' | 'scheduledTrigger';
+    entity: ExtendedAgent | ExtendedTool | Skill | ExtendedTrigger;
 };
 
 const EMPTY_DISPLAY = '-' as const;
@@ -447,7 +454,10 @@ export const ExtendedAgentInfoPanel = memo(
         );
 
         const handleDeleteClick = useCallback(
-            (type: 'agent' | 'tool' | 'skill', entity: ExtendedAgent | ExtendedTool | Skill | undefined) => {
+            (
+                type: 'agent' | 'tool' | 'skill' | 'incidentTrigger' | 'scheduledTrigger',
+                entity: ExtendedAgent | ExtendedTool | Skill | ExtendedTrigger | undefined
+            ) => {
                 if (!entity || isDeleting) return;
                 setDeleteContext({ type, entity });
             },
@@ -461,19 +471,35 @@ export const ExtendedAgentInfoPanel = memo(
             const context = deleteContext;
             setDeleteContext(undefined);
 
-            const endpointSegment = context.type === 'agent' ? 'agents' : context.type === 'tool' ? 'tools' : 'skills';
-            const apiVersion = context.type === 'skill' ? 'v2' : 'v1';
-            const entityName = encodeURIComponent(context.entity.name);
-
             try {
-                const response = await fetch(`${sreAgentEndpoint}/api/${apiVersion}/extendedAgent/${endpointSegment}/${entityName}`, {
-                    method: 'DELETE',
-                    credentials: 'include',
-                    headers: getAgentHeaders(),
-                });
+                if (context.type === 'incidentTrigger') {
+                    const trigger = context.entity as ExtendedTrigger;
+                    const incidentHandlerClient = new IncidentHandlerClient(sreAgentEndpoint);
+                    const response = await incidentHandlerClient.deleteIncidentFilter(trigger.name);
+                    if (!response.isSuccessful) {
+                        throw new Error('Failed to delete incident trigger');
+                    }
+                } else if (context.type === 'scheduledTrigger') {
+                    const trigger = context.entity as ExtendedTrigger;
+                    const scheduledTasksClient = new ScheduledTasksClient(sreAgentEndpoint, () => {});
+                    const response = await scheduledTasksClient.deleteScheduledTask(trigger.id ?? trigger.name);
+                    if (!response.isSuccessful) {
+                        throw new Error('Failed to delete scheduled task');
+                    }
+                } else {
+                    const endpointSegment = context.type === 'agent' ? 'agents' : context.type === 'tool' ? 'tools' : 'skills';
+                    const apiVersion = context.type === 'skill' ? 'v2' : 'v1';
+                    const entityName = encodeURIComponent(context.entity.name);
 
-                if (!response.ok) {
-                    throw new Error(`Failed to delete ${context.type}: ${response.status} ${response.statusText}`);
+                    const response = await fetch(`${sreAgentEndpoint}/api/${apiVersion}/extendedAgent/${endpointSegment}/${entityName}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: getAgentHeaders(),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete ${context.type}: ${response.status} ${response.statusText}`);
+                    }
                 }
 
                 await onRefresh?.();
@@ -484,6 +510,18 @@ export const ExtendedAgentInfoPanel = memo(
                     message = intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { name: context.entity.name });
                 } else if (context.type === 'tool') {
                     message = intl.formatMessage(SreAgentResources.deleteToolNotificationError, { name: context.entity.name });
+                } else if (context.type === 'incidentTrigger') {
+                    message = intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationError, {
+                        name: context.entity.name,
+                        count: 1,
+                        errorMessage: undefined,
+                    });
+                } else if (context.type === 'scheduledTrigger') {
+                    message = intl.formatMessage(SreAgentResources.deleteScheduledTaskNotificationError, {
+                        name: context.entity.name,
+                        count: 1,
+                        errorMessage: undefined,
+                    });
                 } else {
                     message = intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillNotificationError, { name: context.entity.name });
                 }
@@ -707,6 +745,7 @@ export const ExtendedAgentInfoPanel = memo(
                                 selectedAgent={selectedAgent}
                                 selectedTool={selectedTool}
                                 selectedConnector={selectedConnector}
+                                selectedTrigger={selectedTrigger}
                                 selectedSkill={selectedSkill}
                                 isDeleting={isDeleting}
                                 onEdit={onEdit}
@@ -777,7 +816,11 @@ export const ExtendedAgentInfoPanel = memo(
                                     ? intl.formatMessage(SreAgentResources.deleteToolTitle)
                                     : deleteContext?.type === 'skill'
                                       ? intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillTitle)
-                                      : intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
+                                      : deleteContext?.type === 'incidentTrigger'
+                                        ? intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationTitle, { count: 1 })
+                                        : deleteContext?.type === 'scheduledTrigger'
+                                          ? intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationTitleSingle)
+                                          : intl.formatMessage(SreAgentResources.deleteSubagentTitle)}
                             </DialogTitle>
                             <DialogContent>
                                 <Text>
@@ -785,7 +828,11 @@ export const ExtendedAgentInfoPanel = memo(
                                         ? intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedToolWarning)
                                         : deleteContext?.type === 'skill'
                                           ? intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillWarning)
-                                          : intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedAgentWarning)}
+                                          : deleteContext?.type === 'incidentTrigger'
+                                            ? intl.formatMessage(SreAgentResources.deleteIncidentTriggerConfirmationDescription)
+                                            : deleteContext?.type === 'scheduledTrigger'
+                                              ? intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskConfirmationDescriptionSingle)
+                                              : intl.formatMessage(ExtendedAgentsGraphResources.deleteExtendedAgentWarning)}
                                 </Text>
                             </DialogContent>
                             <DialogActions>
