@@ -404,7 +404,7 @@ public class RagEvaluator : IRagEvaluator
         """;
 
         var userInput =
-        $$"""     
+        $$"""
         # Data
 
         QUERY: {{query}}
@@ -441,7 +441,7 @@ public class RagEvaluator : IRagEvaluator
             new(ChatRole.System, OutputInstructions),
         ];
 
-        var result = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
+        var result = await _chatClientProvider.EvalModel.GetResponseAsync<RetrievalEvaluationResult>(evaluationInstructions);
         return result.Result;
     }
 

@@ -217,7 +217,7 @@ public class TrajectoryEvaluator
             // todo: pass in autohandoff from the thread info
             var startAgent = agentContext.AgentHandoffChain.FirstOrDefault(defaultValue: "meta_agent");
             var trajectoryInfo = await TrajectoryExtractor.GenerateTrajectoryAsync_v3(
-                chatClient: _chatClientProvider.GeneralPurposeModel,
+                chatClient: _chatClientProvider.EvalModel,
                 chatMessages: chatMessages,
                 startAgent: startAgent,
                 autoHandOffToStartEnabled: thread.FeatureConfig?.AutoHandoffEnabled ?? false,
@@ -450,7 +450,7 @@ public class TrajectoryEvaluator
             };
 
             var response = await Framework.ChatClientExtensions.GetResponseAsync(
-                client: _chatClientProvider.GeneralPurposeModel,
+                client: _chatClientProvider.EvalModel,
                 messages: prompt,
                 outputType: typeof(InfrastructureKnowledgeEvaluation),
                 options: new ChatOptions

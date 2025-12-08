@@ -153,7 +153,7 @@ Return ONLY the JSON object. No explanation text, no comments, no introduction, 
                 new(ChatRole.User, userPrompt)
             };
 
-            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, cancellationToken: cancellationToken);
+            var response = await _chatClientProvider.EvalModel.GetResponseAsync(messages, cancellationToken: cancellationToken);
             var evaluation = response.Text ?? "No evaluation generated";
 
             _logger.LogInternalInformation("Completed trajectory search relevance evaluation");
