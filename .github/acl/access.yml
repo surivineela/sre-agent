@@ -60,6 +60,8 @@ configuration:
     role: Write
   - member: hanren
     role: Write
+  - member: wangcynthia
+    role: Write
   - team: k4appscore
     role: Read
   - team: antsanchit
