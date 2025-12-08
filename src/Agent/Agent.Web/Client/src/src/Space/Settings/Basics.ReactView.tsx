@@ -110,8 +110,8 @@ const Basics: FC = () => {
     const onDeleteAgent = useCallback(async () => {
         setDeleteDialogOpen(false);
         const notificationId = az.startNotification(
-            intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle),
-            intl.formatMessage(SreAgentResources.deleteAgentNotificationDescription, { name: resourceName })
+            intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle, { count: 1 }),
+            intl.formatMessage(SreAgentResources.deleteAgentNotificationDescription, { count: 1, name: resourceName })
         );
 
         az.log({
@@ -138,7 +138,7 @@ const Basics: FC = () => {
             az.stopNotification(
                 notificationId,
                 true,
-                intl.formatMessage(SreAgentResources.deleteAgentNotificationSuccess, { name: resourceName })
+                intl.formatMessage(SreAgentResources.deleteAgentNotificationSuccess, { count: 1, name: resourceName })
             );
             az.log({
                 action: 'deleteAgent',
@@ -158,7 +158,7 @@ const Basics: FC = () => {
             az.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { name: resourceName })
+                intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { count: 1, name: resourceName })
             );
             az.log({
                 action: 'deleteAgent',

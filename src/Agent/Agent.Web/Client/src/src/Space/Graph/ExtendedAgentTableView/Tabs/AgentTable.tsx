@@ -350,8 +350,9 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
         });
 
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle),
+            intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle, { count: selectedAgents.length }),
             intl.formatMessage(SreAgentResources.deleteAgentNotificationDescription, {
+                count: selectedAgents.length,
                 name:
                     agentNames.length === 1
                         ? agentNames[0]
@@ -381,6 +382,7 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
                     notificationId,
                     true,
                     intl.formatMessage(SreAgentResources.deleteAgentNotificationSuccess, {
+                        count: selectedAgents.length,
                         name:
                             agentNames.length === 1
                                 ? agentNames[0]
@@ -409,6 +411,7 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
                     notificationId,
                     false,
                     intl.formatMessage(SreAgentResources.deleteAgentNotificationError, {
+                        count: failedAgents.length,
                         name:
                             failedAgents.length === 1
                                 ? failedAgents[0]
@@ -436,6 +439,7 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
                 notificationId,
                 false,
                 `${intl.formatMessage(SreAgentResources.deleteAgentNotificationError, {
+                    count: selectedAgents.length,
                     name:
                         agentNames.length === 1
                             ? agentNames[0]

@@ -507,7 +507,7 @@ export const ExtendedAgentInfoPanel = memo(
                 console.error('Error deleting entity:', error);
                 let message: string;
                 if (context.type === 'agent') {
-                    message = intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { name: context.entity.name });
+                    message = intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { count: 1, name: context.entity.name });
                 } else if (context.type === 'tool') {
                     message = intl.formatMessage(SreAgentResources.deleteToolNotificationError, { name: context.entity.name });
                 } else if (context.type === 'incidentTrigger') {
