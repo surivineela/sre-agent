@@ -300,6 +300,11 @@
       "firstPartyOnly": true
     },
     {
+      "name": "ReplyToTeamsMessage",
+      "version": "latest",
+      "firstPartyOnly": true
+    },
+    {
       "name": "ExecutePythonCode",
       "version": "latest"
     }
