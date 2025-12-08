@@ -158,7 +158,8 @@ public class SessionPoolService : ISessionPoolService
         {
             Code = code,
             CodeInputType = "inline",
-            ExecutionType = "synchronous"
+            ExecutionType = "synchronous",
+            StandardMsgLength = 24576
         };
 
         var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions

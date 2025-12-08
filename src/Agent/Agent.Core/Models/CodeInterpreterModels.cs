@@ -16,6 +16,7 @@ public class CodeExecuteRequestProperties
     public string CodeInputType { get; set; } = "inline"; // inline | file (future)
     public string ExecutionType { get; set; } = "synchronous"; // synchronous for now
     public string Code { get; set; } = string.Empty;
+    public int? StandardMsgLength { get; set; }
 }
 
 public class CodeExecutionResponse
