@@ -882,7 +882,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         finally
         {
             stopwatch.Stop();
-        }        
+        }
 
         return new ConnectorStatusResponse(
             Name: connectorName,
