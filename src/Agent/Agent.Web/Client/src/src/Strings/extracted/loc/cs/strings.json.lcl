@@ -162,15 +162,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";+Pmftr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Reset draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Obnovit koncept]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";+S4WAz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom response plan]]></Val>
@@ -243,15 +234,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";+ZdOJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vypínají se naplánované úkoly]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";+bJIWo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent permissions level]]></Val>
@@ -275,15 +257,6 @@
           <Val><![CDATA[Create new subagent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvořit nového podagenta]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";+hJd45" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit data connector]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Upravit datový konektor]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -657,6 +630,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/jp8iL" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to save tool: {error}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepovedlo se uložit nástroj: {error}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/mHau5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create connector]]></Val>
@@ -756,15 +738,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";05Rzkx" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test Agent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testovací agent]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";08bD52" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool created, but attaching to {agentName} failed. Retry link.]]></Val>
@@ -779,6 +752,15 @@
           <Val><![CDATA[Search...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hledat...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0BVwlv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owning team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vlastnící tým]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -842,15 +824,6 @@
           <Val><![CDATA[Quick fixes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Rychlé opravy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";0MhOuN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete task {name}? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Opravdu chcete odstranit úkol {name}? Tato akce je nevratná.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -932,6 +905,15 @@
           <Val><![CDATA[Advanced options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pokročilé možnosti]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0eQHdW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vytvořit nástroj Pythonu]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1152,6 +1134,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1/3fw+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to update scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepodařilo se aktualizovat naplánovanou úlohu.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1/xsyG" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create your agent first to enable testing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pokud chcete povolit testování, nejprve vytvořte agenta.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";12GY0h" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule before generating a cron expression.]]></Val>
@@ -1229,15 +1229,6 @@
           <Val><![CDATA[Add a response plan to automate incident handling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přidejte plán reakce pro automatizaci zpracování incidentů]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1DDIYv" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to resume this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Opravdu chcete tuto naplánovanou úlohu obnovit?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1494,20 +1485,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";1vVgdq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to run scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepodařilo se spustit naplánovanou úlohu.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";1xTayQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter endpoint]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zadejte koncový bod]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";1xZjpU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to pause this scheduled task?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Opravdu chcete tuto naplánovanou úlohu pozastavit?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1566,6 +1557,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";25DrlN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What should this function do?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Co má tato funkce dělat?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";26Vq1R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Leave the field blank if there's no limit]]></Val>
@@ -1598,15 +1598,6 @@
           <Val><![CDATA[Failed to update connector]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nepovedlo se aktualizovat konektor]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";2CSEeq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence—get the cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Popište frekvenci – získejte cron]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1692,15 +1683,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";2YgmBr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaný úkol byl úspěšně vypnut]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";2a+ttj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deep investigation]]></Val>
@@ -1773,6 +1755,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2myhph" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test the function to continue.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pokračujte otestování funkce.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2os8R1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy output]]></Val>
@@ -1827,20 +1818,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3/OG7/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktualizuje se naplánovaná úloha{name, select, undefined {} other { {name}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3/wF0G" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Slash commands]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Příkazy s lomítky]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";30Ap/Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1886,6 +1877,15 @@
           <Val><![CDATA[This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tato operace trvale odebere skupinu prostředků ze skupin spravovaných prostředků agenta. Určitě chcete provést operaci odebrání?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3DC7Da" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter argument]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zadat argument]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2012,15 +2012,6 @@
           <Val><![CDATA[Save Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Uložit změny]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";3Wq8aM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Cron]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2169,15 +2160,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3sjbqq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating Scheduled Task...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytváří se naplánovaná úloha...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3t/IhV" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Can view cost data and configuration (e.g. budgets, exports).]]></Val>
@@ -2192,15 +2174,6 @@
           <Val><![CDATA[Expand navigation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Rozbalit navigaci]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";3y9DGg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Resume]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Znovu spustit]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2255,15 +2228,6 @@
           <Val><![CDATA[Linking Grafana dashboard to SRE Agent in progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Řídicí panel Grafana se propojuje s agentem SRE Agent.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";40gxTJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Prompt]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Výzva pro agenta]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2345,15 +2309,6 @@
           <Val><![CDATA[This agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tento agent]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";493R/T" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Share your draft instructions and we’ll tailor them for a scheduled agent run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Podělte se o své koncepty pokynů a my je přizpůsobíme plánovanému spuštění agenta.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2664,29 +2619,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";53qjcm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Updating scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktualizování naplánovaného úkolu]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";543Ygw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execution details and request]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Podrobnosti spuštění a žádost]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";54UIcW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[We couldn’t polish the instructions. Try again shortly.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se nám vylepšit pokyny. Zkuste to za chvíli znovu.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2862,6 +2799,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5WNvJO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spouští se naplánovaná úloha{name, select, undefined {} other { {name}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";5WWljt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading investigation]]></Val>
@@ -3011,6 +2957,15 @@
           <Val><![CDATA[Unknown]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Neznámé]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5kCFXN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate with AI instead]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Místo toho vygenerovat s využitím AI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3195,15 +3150,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";69sjgc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter Key Vault URI]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte URI služby Key Vault]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6B0Aua" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{score} XP]]></Val>
@@ -3249,6 +3195,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";6GLyN3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generating test cases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Generují se testovací případy.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";6IIC+D" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Grafana dashboard in the same resource group]]></Val>
@@ -3263,6 +3218,15 @@
           <Val><![CDATA[Cleared the composer. Type a new question to begin a fresh chat.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Composer byl vymazán. Pokud chcete začít nový chat, zadejte novou otázku.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6LKCR/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analyzing intent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Analyzuje se záměr.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3366,15 +3330,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6YHhH+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[e.g. */5 * * * *]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[například */5 * * * *]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6YXj/s" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Contribute to Speech service resources.]]></Val>
@@ -3393,15 +3348,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6aH1+U" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytvořte naplánovaný úkol]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6bkNTl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation ID:]]></Val>
@@ -3411,20 +3357,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6dEJ43" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron draft]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Koncept výrazu cron]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6dWeUs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pokud chcete spravovat nasazené prostředky a náklady, vyberte předplatné. Ve skupinách prostředků, jako jsou složky, můžete uspořádat a spravovat všechny prostředky.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6fPJcm" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate Code with AI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Generovat kód pomocí AI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3443,6 +3389,15 @@
           <Val><![CDATA[Generate Session Insights]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Generovat přehledy relací]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6lHI9u" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Send a message to start testing your agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pošlete zprávu pro spuštění testování agenta.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3564,15 +3519,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";75lAeu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select end date for scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vyberte koncové datum naplánované úlohy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";77t9cY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid thread data received from streaming message]]></Val>
@@ -3587,15 +3533,6 @@
           <Val><![CDATA[No agents available for handoff]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nejsou k dispozici žádní agenti pro předání.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";7C0xai" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Data source]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zdroj dat]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4005,6 +3942,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8H0PeE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovanou úlohu se nepodařilo odstranit.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8J3eYt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test live agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Otestovat živého agenta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8LMIGa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[These will be replaced with actual values at runtime.]]></Val>
@@ -4221,20 +4176,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8lQNdb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánované úlohy se odstranily.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8nBFW4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Redis Cache Contributor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přispěvatel služby Redis Cache]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";8ojA9A" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Let AI polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nechte umělou inteligenci vylepšovat pokyny]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4500,11 +4455,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";9G+4ga" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";9DqDnP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Try different search terms or clear your search to see all data connectors.]]></Val>
+          <Val><![CDATA[Generate Tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokud chcete zobrazit všechny datové konektory, zkuste použít jiné hledané termíny nebo vymažte hledání.]]></Val>
+            <Val><![CDATA[Generovat nástroj]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4514,15 +4469,6 @@
           <Val><![CDATA[This overrides the default meta agent to remove general Azure knowledge and provide a more focused experience.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přepíše výchozího metaagenta, aby se odebraly obecné znalosti Azure a zajistilo se cílenější prostředí.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";9MPGF8" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokyny pro agenta]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4568,6 +4514,15 @@
           <Val><![CDATA[Send]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odeslat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";9WyylR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Command]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Příkaz]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4689,15 +4644,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";A0mVzo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Define success / failure signals and required output format if specific.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Definujte signály úspěchu nebo selhání a požadovaný výstupní formát, pokud vyžadujete konkrétní.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";A0rbH+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IcM connected. Your next step is to set up incident response plans.]]></Val>
@@ -4712,15 +4658,6 @@
           <Val><![CDATA[Your annotation is updated successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vaše poznámka se úspěšně aktualizovala.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";A3ptul" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Templates]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Šablony]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4860,15 +4797,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ALkPTF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No data connectors configured]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nejsou nakonfigurované žádné datové konektory]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ASLbZd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export analysis]]></Val>
@@ -4905,24 +4833,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";AaJ/LU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polish the instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vylepšete pokyny]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";AbXVP4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Created at]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytvořeno v]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Abi/u/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand panel]]></Val>
@@ -4932,29 +4842,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";AbleKr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[data connector]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[datový konektor]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";AbpmRv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zadejte pokyny.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Ad7J7h" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to delete task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se odstranit úkol: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5036,6 +4928,15 @@
           <Val><![CDATA[REST API access key]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přístupový klíč k REST API]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";AuUgE1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} byla spuštěna.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5157,15 +5058,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";BLU3k6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit a scheduled task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Upravit naplánovaný úkol]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";BNH9Uy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Quality {score}/100]]></Val>
@@ -5180,6 +5072,15 @@
           <Val><![CDATA[The type of tool functionality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Typ funkce nástroje]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BP5nk0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Standard Output]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Standardní výstup]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5301,15 +5202,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";BmEERa" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting {count} data connectors...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Odstraňování {count} datových konektorů...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Bn/txo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create subagent {agentName}. Error: {errorMessage}]]></Val>
@@ -5324,15 +5216,6 @@
           <Val><![CDATA[Collapse panel]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sbalit panel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";BynA9c" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Optional tweaks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Volitelná vylepšení]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6012,6 +5895,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DtmRJJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SSE]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SSE]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DuejfP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Memory Search Results]]></Val>
@@ -6098,6 +5990,15 @@
           <Val><![CDATA[Example: where SubscriptionId == "##SubscriptionId##"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Příklad: where SubscriptionId == "##SubscriptionId##"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EAGAAs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test your Python function before saving]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Před uložením otestujte funkci Pythonu.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6210,6 +6111,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";EPi9lK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Previous test failed:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Předchozí test neproběhl úspěšně:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EQa6dK" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Built-in Tool]]></Val>
@@ -6224,6 +6134,15 @@
           <Val><![CDATA[Enter filter name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zadejte název filtru.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ESqLtC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run local command or executable]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spustit místní příkaz nebo spustitelný soubor]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6534,6 +6453,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";FGN2ax" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool saved successfully!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nástroj se úspěšně uložil!]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";FGP0Kd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[CPU usage insights]]></Val>
@@ -6570,15 +6498,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";FNQNS1" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Weekdays at 9am Pacific]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[V pracovní dny v 9:00 (tichomořského času)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";FPdoJ3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Define how incidents are detected and reviewed, and the instructions for how the agent responds.]]></Val>
@@ -6593,24 +6512,6 @@
           <Val><![CDATA[No source agent specified]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Není zadaný žádný zdrojový agent.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSYccN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[When should this task run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kdy by se měla tato úloha spustit?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FSZ5F/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Odstraňuje se naplánovaný úkol {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6656,15 +6557,6 @@
           <Val><![CDATA[Disconnected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odpojeno]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FZwBv0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Podrobnosti spuštění]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6737,6 +6629,15 @@
           <Val><![CDATA[Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Znalostní báze je pro tohoto agenta povolená. Automaticky budou zahrnuty nástroj SearchMemory a výzvy znalostní databáze.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FuPxOh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save & Use Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uložit a použít nástroj]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6984,6 +6885,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";GDCPLv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect via URL endpoint]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Připojit přes koncový bod adresy URL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";GGr/yS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Feedback submitted on threads will appear here]]></Val>
@@ -7137,15 +7047,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Gvxoji" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Name is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Název je povinný.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";GzKpRn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count} params detected]]></Val>
@@ -7218,20 +7119,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HHP8Nh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Code generated successfully!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kód se úspěšně vygeneroval!]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HJ7ZeR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Issue Description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Popis problému]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HKlw1J" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tím se tento datový konektor trvale odpojí od agenta. Opravdu chcete odpojit tento datový konektor?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7259,15 +7160,6 @@
           <Val><![CDATA[Build Your Agent Ecosystem]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvoření ekosystému agentů]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HOJNsf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select when the task should stop running]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vyberte, kdy by se měla úloha zastavit]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7407,6 +7299,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Hnv6Ej" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Python Function]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Funkce Pythonu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Hs02Tq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading daily reports]]></Val>
@@ -7493,6 +7394,15 @@
           <Val><![CDATA[String]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Řetězec]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";I3ymC9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Exit code: {code}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ukončovací kód: {code}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7713,11 +7623,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ITzzTV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test nebyl úspěšný]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";IYLPrk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete scheduled task]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odstranit naplánovanou úlohu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";IZFEUg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ready]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Připraveno]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7736,15 +7664,6 @@
           <Val><![CDATA[You do not have permission to add or edit annotations.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[K přidávání nebo úpravám poznámek nemáte oprávnění.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";IbMKy+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use this version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Použít tuto verzi]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7821,11 +7740,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";IoxJ74" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Writing function code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Psaní kódu funkce]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Ip7Gd3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Automaticky použít]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";IpS9Tn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn on scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zapnout naplánované úlohy]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7920,6 +7857,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";J3nUiY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánované úlohy jsou teď vypnuté.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";J6XCfl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[We are updating annotation for your resource {name}]]></Val>
@@ -7934,15 +7880,6 @@
           <Val><![CDATA[Connect existing items]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Připojit existující položky]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";J8u7Xg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Last Modified]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Poslední změna]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8024,6 +7961,15 @@
           <Val><![CDATA[With incident response plans, the agent chooses the tools it needs to manage common types of incidents. Custom response plans replace this capability by giving the agent specific instructions that you provide.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pomocí plánů reakcí na incidenty si agent zvolí nástroje, které potřebuje ke správě běžných typů incidentů. Vlastní plány reakcí nahrazují tuto funkci tím, že agentovi poskytnou konkrétní pokyny, které zadáte.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JSVEZ3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odstraňují se naplánované úlohy.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8181,6 +8127,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Jdy/E7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing function…]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testuje se funkce...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JezZlU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Final Summary:]]></Val>
@@ -8325,15 +8280,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";JzOvG/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Assumptions we made]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Předpoklady, které jsme učinili]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";K1h5xo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled tasks require an upgrade. Contact your administrator to enable them.]]></Val>
@@ -8357,15 +8303,6 @@
           <Val><![CDATA[Show]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zobrazit]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";K7tsik" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task ran successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaná úloha byla úspěšně spuštěna.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8478,15 +8415,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KS5JHs" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution count]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Počet spuštění]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";KXyWfi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Urgency]]></Val>
@@ -8586,11 +8514,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";KiANnA" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";KiXNvz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Turn on scheduled task(s)]]></Val>
+          <Val><![CDATA[Run]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zapnout naplánované úkoly]]></Val>
+            <Val><![CDATA[Spustit]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8600,6 +8528,15 @@
           <Val><![CDATA[Edit incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Upravit plán reakcí na incidenty]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";KlWAix" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn on scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepodařilo se zapnout naplánovanou úlohu.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8712,6 +8649,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";L/BdWN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate with AI ✨]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Generovat s využitím AI ✨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";L/ct40" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in visual view]]></Val>
@@ -8762,15 +8708,6 @@
           <Val><![CDATA[recent activity]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[nedávná aktivita]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";LFn7Ak" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task created successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaná úloha se úspěšně vytvořila.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8919,6 +8856,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LjwVHP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks are now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánované úlohy jsou teď zapnuté.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LkUvu/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Describe the schedule]]></Val>
@@ -8946,11 +8892,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Lq6q6U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to generate code: {message}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepovedlo se vygenerovat kód: {message}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LsGLc0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Direct argument]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přímý argument]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LstsP/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nástroj MCP]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9063,6 +9027,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";M+AZNX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odstranit naplánované úlohy]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";M+QCSD" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter {name}]]></Val>
@@ -9072,29 +9045,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";M/3/kG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions must be a positive number.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Maximální počet spuštění musí být kladné číslo.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";M/zZVx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přidat filtr]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";M0ay1D" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spouštění naplánovaných úloh]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9297,33 +9252,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";MPzBut" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution history]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Historie provádění]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";MQNtQ+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Data Connectors]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Datové konektory]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";MSWnaq" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create a new scheduled task to monitor or perform actions at regular intervals using cron expressions.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytvořte pomocí výrazů cron novou naplánovanou úlohu pro monitorování nebo provádění akcí v pravidelných intervalech.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MUVpbF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The agent generates queries by learning about your logs, telemetry, and time series data.]]></Val>
@@ -9423,15 +9351,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Mx6yYf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned off successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánované úkoly byly úspěšně vypnuty]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";MxYLKu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add SRE Agent Administrator role]]></Val>
@@ -9504,11 +9423,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";N7cqYp" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";N75VIa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Turning off scheduled task {name}]]></Val>
+          <Val><![CDATA[Creating scheduled task{name, select, undefined {} other { {name}}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vypíná se naplánovaný úkol {name}]]></Val>
+            <Val><![CDATA[Vytváří se naplánovaná úloha{name, select, undefined {} other { {name}}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9536,15 +9455,6 @@
           <Val><![CDATA[Authorized]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Autorizováno]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";NBiLYK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Drafting…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytváří se návrh...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9783,6 +9693,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";NzhSBf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit the code below or regenerate with different instructions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Upravte kód níže nebo jej znovu vygenerujte s jinými pokyny.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";O+srpo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review {count, plural, =0 {findings} one {# quick fix} other {# quick fixes}}]]></Val>
@@ -9806,6 +9725,15 @@
           <Val><![CDATA[Overall Quality]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Celková kvalita]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";O25MZU" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vybrat všechny nástroje]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9842,6 +9770,15 @@
           <Val><![CDATA[Fresh]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aktuální]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ODswb7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zapíná se naplánovaná úloha{name, select, undefined {} other { {name}}}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9954,6 +9891,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ORcS+j" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing…]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testování...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";OSMnsR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Any unsaved changes will be lost.]]></Val>
@@ -10022,15 +9968,6 @@
           <Val><![CDATA[Use standard cron syntax (UTC) to control when the agent runs.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pomocí standardní syntaxe Cron (UTC) můžete určit, kdy se má agent spustit.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";OYAXyI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Provide information the agent will reference when analyzing or answering questions.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte informace, na které agent bude odkazovat při analýze nebo odpovídání na otázky.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10377,15 +10314,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PXYq8b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a valid 5-part cron expression (m h dom mon dow).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte platný 5dílný výraz cron (m h den měs dvt).]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PXg8+x" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Virtual Machine Contributor]]></Val>
@@ -10539,15 +10467,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";PxsPJt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zapínají se naplánované úkoly]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";PysW/n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reset changes]]></Val>
@@ -10580,6 +10499,15 @@
           <Val><![CDATA[Decision Time]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Čas rozhodnutí]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Q0B/Lb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams that allow incident assignment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Jenom týmy, které povolují přiřazení incidentů]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10634,15 +10562,6 @@
           <Val><![CDATA[Description]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Popis]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Q9IHxV" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Running scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spouští se naplánovaná úloha {name}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10764,6 +10683,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";QTVz4e" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Describe what your tool should do]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Popište, co by měl váš nástroj dělat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";QW+Q5N" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all]]></Val>
@@ -10823,6 +10751,15 @@
           <Val><![CDATA[Edit annotation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Upravit poznámku]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Qg+chS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Describe in plain English, e.g., "Parse JSON logs and count errors by severity"]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Popište to jednoduchým jazykem, například: „Analyzuj logy JSON a spočítej chyby podle závažnosti“.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10989,6 +10926,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";R56nxF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to create scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepodařilo se vytvořit naplánovanou úlohu.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";R7DP3y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolved by agent]]></Val>
@@ -11003,15 +10949,6 @@
           <Val><![CDATA[Incident threads have moved]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vlákna incidentů se přesunula]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";RA3fki" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Missing context]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Chybějící kontext]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11138,6 +11075,15 @@
           <Val><![CDATA[Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Databáze]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RbWH8Q" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MCP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MCP]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11322,6 +11268,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";S8Rsb6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} byla odstraněna.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SAINuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Azure Managed Grafana]]></Val>
@@ -11358,6 +11313,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SEdSoA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been updated.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} byla aktualizovala.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SFUZOQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident created]]></Val>
@@ -11372,15 +11336,6 @@
           <Val><![CDATA[Threads with Insights ({count})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vlákna s přehledy ({count})]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";SL+c5a" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[—]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[–]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11520,6 +11475,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SjeMma" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spustit naplánované úlohy]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Sjo1P4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom]]></Val>
@@ -11543,6 +11507,15 @@
           <Val><![CDATA[Draft not yet synced]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Koncept ještě není synchronizovaný]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Sn2nYC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Upravit název]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11736,15 +11709,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";TFsGSl" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Leave empty for unlimited executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokud nechcete neomezené spouštění, nechejte prázdné.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";TGc4Lh#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete incident triggers]]></Val>
@@ -11817,6 +11781,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TKNqWx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now active.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} je teď aktivní.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TKmub+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This field is required]]></Val>
@@ -11831,15 +11804,6 @@
           <Val><![CDATA[Across all incidents in {platform}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[V rámci všech incidentů na platformě {platform}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";TKsgZu" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Key alerts]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Upozornění na klíče]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11930,15 +11894,6 @@
           <Val><![CDATA[This insight does not have markdown content.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[V tomto přehledu není žádný obsah ve formátu Markdown.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Tg4Q8g" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Disconnect data connector?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Odpojit datový konektor?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12141,11 +12096,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";UcVdDd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} test cases available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Počet dostupných testovacích případů: {count}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Udeffr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Typ incidentu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Uiw6Xo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vypínají se naplánované úlohy.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12200,6 +12173,15 @@
           <Val><![CDATA[Repository]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Úložiště]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";V4KNjk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[optional]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[nepovinné]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12263,15 +12245,6 @@
           <Val><![CDATA[Hide]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skrýt]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";VB+AjJ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Custom Cron Expression]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vlastní výraz cron]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12434,6 +12407,24 @@
           <Val><![CDATA[Review (Default)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Revize (výchozí)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VfjG62" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Python Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kód Pythonu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Vi21gb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning on scheduled tasks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zapínají se naplánované úlohy.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12654,6 +12645,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";WJ+tyY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter command (e.g. npx, python)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zadejte příkaz (např. npx, python).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";WJj+TP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to check incident management connection.]]></Val>
@@ -12699,6 +12699,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";WUZAzC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now off.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} je teď vypnutá.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";WVTzuw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The action was completed using temporary permissions granted by {name}.]]></Val>
@@ -12713,15 +12722,6 @@
           <Val><![CDATA[Grafana dashboard created successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Řídicí panel Grafany se úspěšně vytvořil]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";WbV0j4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Editing: {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Úpravy: {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12987,15 +12987,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";X5UCWb" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaná úloha se úspěšně odstranila]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";X5yqtT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[PostgreSQL]]></Val>
@@ -13028,15 +13019,6 @@
           <Val><![CDATA[The action was canceled.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Akce byla zrušena.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XCfiZ2" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Draft the cron for me]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytvořit koncept výrazu cron]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13122,15 +13104,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";XJuPK6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Include any resource identifiers (e.g. subscription / resource group) needed each run.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Při každém spuštění zahrňte všechny identifikátory prostředků (například předplatné nebo skupinu prostředků).]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";XKWCS3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Removed the starter agent. Next messages will stay in this thread.]]></Val>
@@ -13145,15 +13118,6 @@
           <Val><![CDATA[The fully autonomous mode. With the required permissions, the agent analyzes incidents and independently performs mitigation or resource modifications.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Plně autonomní režim. S požadovanými oprávněními agent analyzuje incidenty a samostatně provádí zmírnění nebo úpravy prostředků.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";XKvrQy" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Task Details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Podrobnosti úlohy]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13388,15 +13352,6 @@
           <Val><![CDATA[equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[rovná se]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Y3qQB0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turning on scheduled task {name}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zapíná se naplánovaný úkol {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13761,15 +13716,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Z8Y6DE" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Last Synced]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Poslední synchronizace]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Z9TajN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Parsing…]]></Val>
@@ -13784,15 +13730,6 @@
           <Val><![CDATA[Create incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvořit plán reakcí na incidenty]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ZA4OiK" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to create scheduled task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se vytvořit naplánovaný úkol: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13842,15 +13779,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZMa6Rh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Deleting scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Odstraňují se naplánované úkoly]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ZNMCbm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage Logic Apps.]]></Val>
@@ -13874,6 +13802,15 @@
           <Val><![CDATA[Form editing is coming soon for this entity.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pro tuto entitu připravujeme úpravy formuláře.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ZSbKr/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Write code manually instead]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Místo toho napsat kód ručně]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14031,6 +13968,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ZpQ6us" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Result]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Výsledek]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Zq5BCQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to apply changes]]></Val>
@@ -14121,15 +14067,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";a5dT17" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Search data connectors]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Hledat datové konektory]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";a5msuh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Yes]]></Val>
@@ -14144,15 +14081,6 @@
           <Val><![CDATA[Your permissions will be used temporarily to complete this action.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[K dokončení této akce se dočasně použijí vaše oprávnění.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";a7QT/5" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Advanced: Use cron format (minute hour day month day-of-week)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokročilé nastavení: Použijte formát výrazu cron (minuta hodina den měsíc den_v_týdnu)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14364,15 +14292,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";aSipXt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Increase the agent's knowledge of your infrastructure]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zvyšte znalosti agenta o vaší infrastruktuře]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";aWpBzj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show more]]></Val>
@@ -14436,15 +14355,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ajASB/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Keep description short; put detailed run logic here.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Popis musí být krátký. Sem zadejte podrobnou logiku spuštění.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";anSi7M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to load resource groups.]]></Val>
@@ -14486,15 +14396,6 @@
           <Val><![CDATA[Tool test failed but no error details were provided.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Test nástroje neproběhl úspěšně, ale nebyly poskytnuty žádné podrobnosti o chybě.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";auFFJa" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Key Vault URI]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Key Vault URI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14553,24 +14454,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";b3sNCU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn off task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se vypnout úkol: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";b5OEXm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[How often should it run?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Jak často se má spouštět?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";b7D4Lh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage the identities associated with your agent which may be used to communicate with other services]]></Val>
@@ -14616,6 +14499,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bGIW7m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to turn off scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepodařilo se vypnout naplánovanou úlohu.{errorMessage, select, undefined {} other { {errorMessage}}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bICPAQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread Feedback]]></Val>
@@ -14643,11 +14535,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bMqcq2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turning off scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vypíná se naplánovaná úloha{name, select, undefined {} other { {name}}}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bN0x+w" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Device Provisioning Service Data Reader]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Čtenář dat služby Device Provisioning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bO7sKf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Ctrl+Enter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ctrl+Enter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bR/LRB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vybrat všechny nástroje ve skupině {groupName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14756,15 +14675,6 @@
           <Val><![CDATA[Please restart the chat to see your changes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pokud chcete zobrazit změny, restartujte chat.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bjOnWH" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Add your draft instructions before asking for polish.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Než požádáte o vylepšení, přidejte koncept svých pokynů.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15084,6 +14994,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cM9da4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Restart test]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Restartovat test]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";cRTR/A" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Write access to LUIS applications.]]></Val>
@@ -15161,6 +15080,15 @@
           <Val><![CDATA[Kusto tool name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Název nástroje Kusto]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cgh0+/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The executable command to start the MCP server. Must be in your system PATH or an absolute path.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spustitelný příkaz pro spuštění serveru MCP. Musí být v systémové proměnné PATH nebo zadán jako absolutní cesta.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15372,20 +15300,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";dI9gP+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokyny pro agenta]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";dJqE3e" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create scheduled task]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvořit naplánovanou úlohu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dLWrbO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only teams with an on-call rotation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pouze týmy s rotací při hovoru]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15413,15 +15341,6 @@
           <Val><![CDATA[This feature isn't available in this portal yet.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tato funkce ještě není na tomto portálu dostupná.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dQKATf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please enter a name (min 3 characters).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte prosím název (minimálně 3 znaky).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15471,11 +15390,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";daUwAL" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";dbXXhB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Creating scheduled task]]></Val>
+          <Val><![CDATA[Running scheduled tasks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytváření naplánovaného úkolu]]></Val>
+            <Val><![CDATA[Spouští se naplánované úlohy.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15485,15 +15404,6 @@
           <Val><![CDATA[Schedule Preview]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Naplánovat verzi Preview]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dhmpfi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Delete scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Odstranit naplánované úkoly]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15584,15 +15494,6 @@
           <Val><![CDATA[Never]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nikdy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";dw6Z3b" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What it means]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Co to znamená]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15768,11 +15669,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ee4AUg" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";efl/SK" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Scheduled task turned on successfully]]></Val>
+          <Val><![CDATA[Run Test (Cmd+Enter)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaný úkol byl úspěšně zapnut]]></Val>
+            <Val><![CDATA[Spustit test (Cmd+Enter)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15858,15 +15759,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";euBSDU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent instructions are required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pokyny pro agenta je nutné zadat.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";euKVCa" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[System tools are built-in tools provided by the platform]]></Val>
@@ -15890,15 +15782,6 @@
           <Val><![CDATA[Connecting to PagerDuty ...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Připojování k PagerDuty...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";f+cHle" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter connection string or endpoint]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte připojovací řetězec nebo koncový bod.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15953,24 +15836,6 @@
           <Val><![CDATA[Sev1]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Závažnost1]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";f6xT1Y" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) turned on successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánované úkoly byly úspěšně zapnuty]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";f7Zx3L" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Prompt Tips]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tipy k výzvám]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16056,15 +15921,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";fIQSsD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Couldn’t draft the cron yet. Refine the description and try again.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zatím se nepovedlo vytvořit koncept výrazu cron. Upřesněte popis a zkuste to znovu.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";fLkL3F" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleting thread]]></Val>
@@ -16083,11 +15939,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fU7I5j" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run Test]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spustit test]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fUgypu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Access control]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přejít do řízení přístupu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";fZP/Ln" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tento test se provádí vůči verzi vašeho agenta nasazené v době, kdy byl spuštěn. Restartujte test, aby se spustil s nejnovější nasazenou verzí.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16173,6 +16047,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fmrYkd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Parse JSON and extract error messages]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Analyzovat JSON a extrahovat chybové zprávy]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";fn9+0+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Function test failed: {message}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test funkce selhal: {message}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fr6Gnj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Change AAU allocation]]></Val>
@@ -16187,15 +16079,6 @@
           <Val><![CDATA[Connect an MCP server]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Připojte server MCP]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ftDEuE" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select connector type]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vybrat typ konektoru]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16299,6 +16182,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";g6WtKF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timeout (seconds)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Časový limit (sekundy)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";g7HOVb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will permanently delete this report and its information. Are you sure you want to delete this report?]]></Val>
@@ -16344,6 +16236,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";gFrqQf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You have unsaved changes. Are you sure you want to close?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Máte neuložené změny. Opravdu to chcete zavřít?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";gGfQUL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warm-up scenario]]></Val>
@@ -16367,6 +16268,15 @@
           <Val><![CDATA[Choose how to set up this incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zvolte, jak nastavit tento plán reakcí na incidenty.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";gLbYRM" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Calculate percentage from two numbers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vypočítat procento ze dvou čísel]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16434,11 +16344,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gdUWAX" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";gd7vV5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Description should be 140 characters or fewer.]]></Val>
+          <Val><![CDATA[Creating your function…]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Popis by měl obsahovat maximálně 140 znaků.]]></Val>
+            <Val><![CDATA[Vytváří se vaše funkce...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16502,15 +16412,6 @@
           <Val><![CDATA[Enter the database name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zadejte název databáze.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";grgDhd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to load scheduled tasks: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se načíst naplánované úkoly: {errorMessage}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16610,6 +16511,15 @@
           <Val><![CDATA[Tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nástroj]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hCNgyf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saving tool…]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ukládá se nástroj...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16929,6 +16839,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";i/pRlX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click to edit code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kliknutím upravíte kód.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";i3P6ZD" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Created at:]]></Val>
@@ -16974,15 +16893,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";iDPKM0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Filter tasks]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Filtrovat úkoly]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";iDSWYk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to Azure Monitor so that the agent can automatically monitor notifications from the resource groups it manages, without additional provisioning.]]></Val>
@@ -17019,6 +16929,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iJcrHj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No parameters required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nejsou požadovány žádné parametry.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iMaY2Q" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stopping SRE Agent {name} in progress]]></Val>
@@ -17051,6 +16970,15 @@
           <Val><![CDATA[Create a new trigger with custom settings]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvoření nového triggeru s vlastními nastaveními]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";iWNutw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting scheduled task{name, select, undefined {} other { {name}}}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odstraňuje se naplánovaná úloha{name, select, undefined {} other { {name}}}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17523,15 +17451,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";jX6uvW" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to run task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepovedlo se spustit úlohu: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";jXIYLG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to edit response plans.]]></Val>
@@ -17586,11 +17505,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";jlOO/9" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";jqM7Pr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Next execution]]></Val>
+          <Val><![CDATA[Test restarted with your latest agent changes. Send a message to continue testing.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Další spuštění]]></Val>
+            <Val><![CDATA[Test se restartoval s nejnovějšími změnami agenta. Pokud chcete pokračovat v testování, pošlete zprávu.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17618,6 +17537,15 @@
           <Val><![CDATA[Start time (optional)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Čas zahájení (volitelné)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";jvB4W9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Environment variables]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Proměnné prostředí]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17703,11 +17631,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";kG0ZtT" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";kGmr6n" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Other cron ideas]]></Val>
+          <Val><![CDATA[Want to improve it?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Další nápady pro cron]]></Val>
+            <Val><![CDATA[Chcete to vylepšit?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17753,6 +17681,15 @@
           <Val><![CDATA[You do not have permission to rename this thread.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nemáte oprávnění k přejmenování tohoto vlákna.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";kVOq9V" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fill in parameters and click Run to test]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vyplňte parametry a kliknutím na Spustit otestujte.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17820,6 +17757,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";kjUC48" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Function test succeeded.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test funkce byl úspěšný.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";kn+J82" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Correlation Analysis]]></Val>
@@ -17829,20 +17775,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ko0rr4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Update the data connector configuration.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktualizujte konfiguraci datového konektoru.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";koWZK8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add custom response guidance (optional)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Přidat pokyny k vlastním reakcím (nepovinné)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";kopJ66" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Keep Current Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zachovat aktuální kód]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17901,15 +17847,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l+e8nZ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete the selected scheduled task(s)? This action cannot be undone.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Opravdu chcete odstranit vybrané naplánované úkoly? Tato akce je nevratná.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l0UKyP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Data Explorer]]></Val>
@@ -17924,6 +17861,15 @@
           <Val><![CDATA[Create tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vytvořit nástroj]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";l1+Ilp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generating code…]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Generuje se kód...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17955,11 +17901,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l8IRTD" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";lBZfVb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) ran successfully]]></Val>
+          <Val><![CDATA[Timeout in seconds (5-900)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánované úlohy byly úspěšně spuštěny.]]></Val>
+            <Val><![CDATA[Časový limit v sekundách (5–900)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";lCe4Sh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search Icm team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hledat tým ICM]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18000,11 +17955,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";lM2HXD" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";lOaomi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No prompt provided.]]></Val>
+          <Val><![CDATA[Generation failed: {error}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nebyla zadána žádná výzva.]]></Val>
+            <Val><![CDATA[Vygenerování se nezdařilo: {error}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18171,6 +18126,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";m2KQqp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Execution Result]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Výsledek provádění]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";m3Npit" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No tools available. Try creating one or clearing your filters.]]></Val>
@@ -18234,11 +18198,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";mChei1" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";mE7Cg1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Detailed multi-line instructions. Provide: goal, context/resources, constraints, success criteria.]]></Val>
+          <Val><![CDATA[Stdio]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Podrobné pokyny na více řádků Zadejte: cíl, kontext/prostředky, omezení a kritéria úspěchu.]]></Val>
+            <Val><![CDATA[Stdio]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18666,15 +18630,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";nRkusX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Cron expression is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Výraz cron je nutné zadat.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";nUT0Lv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools]]></Val>
@@ -18693,20 +18648,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";nc7Brw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Arguments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Argumenty]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ncB14A" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent invoked]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Agent byl vyvolán]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";nkYx6+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Disconnect {count} data connectors?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Chcete odpojit {count} datových konektorů?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18783,6 +18738,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";nxBEvY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating your Python function…]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vytváří se funkce Pythonu...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";nxmZHP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configuration saved successfully.]]></Val>
@@ -18828,29 +18792,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";o3uElD" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Add data connector]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Přidat datový konektor]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";o7TUwc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to ICM so that the Agent can automatically listen and respond to your Incidents.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Připojte se k ICM, aby agent mohl automaticky naslouchat a reagovat na incidenty.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";o9bCTX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Last execution]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Poslední spuštění]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19017,15 +18963,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";oXd3cw" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Max executions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Maximální počet spuštění]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";oY4j0R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Repository insights]]></Val>
@@ -19134,6 +19071,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";oyZN19" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Running...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spuštěno…]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oyf+bG" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom Python function to extend agent capabilities with AI-assisted code generation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vlastní funkce Pythonu pro rozšíření možností agenta o generování kódu s asistencí AI]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";p/QlSI" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updating connector "{name}"]]></Val>
@@ -19238,6 +19193,15 @@
           <Val><![CDATA[P4]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[P4]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";pByJCZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled tasks have been run.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánované úlohy byly spuštěny.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19359,6 +19323,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";pXPlXr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[*required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[*povinné]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";pbpjik" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[When you finish creating this agent, we'll automatically add it as a handoff for {agentName}.]]></Val>
@@ -19409,6 +19382,15 @@
           <Val><![CDATA[Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Jakmile se řídicí panel Grafana zřídí a propojí, může chvíli trvat, než se zcela naplní prostředky.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";piGAtN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Executed in {milliseconds}ms]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Provedeno za {milliseconds} ms]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19485,11 +19467,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";psUT6S" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";psccqt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Maximum number of times this task should run]]></Val>
+          <Val><![CDATA[Executed in {ms}ms]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Maximální počet spuštění této úlohy]]></Val>
+            <Val><![CDATA[Provedeno za {ms} ms]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19584,6 +19566,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";qQRG87" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Parameters auto-detected from code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Automaticky zjištěné parametry z kódu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";qQh4Xu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The agent references documentation and files to understand your projects and processes.]]></Val>
@@ -19593,11 +19584,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";qavd9Y" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";qTWwGw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Tell us how often your agent should run and we’ll draft the cron expression for you.]]></Val>
+          <Val><![CDATA[Parameters:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Řekněte nám, jak často se má váš agent spouštět, a my vám připravíme koncept výrazu cron.]]></Val>
+            <Val><![CDATA[Parametry:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19634,15 +19625,6 @@
           <Val><![CDATA[A connector with this name already exists]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Konektor s tímto názvem už existuje]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qh9t2U" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connect to agent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Připojit k agentovi]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19773,6 +19755,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";qzMeS2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test Playground]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testovací prostředí]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";r2ZGnB#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[# quick fixes selected]]></Val>
@@ -19895,6 +19886,15 @@
           <Val><![CDATA[Refresh]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aktualizovat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rFU0oo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nástroj Pythonu]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20322,15 +20322,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";s04Z5U" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[This will permanently disconnect {count} data connectors from the agent. Are you sure you want to disconnect these data connectors?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tato operace trvale odpojí {count} datových konektorů od agenta. Opravdu chcete odpojit tyto datové konektory?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";s2GWth" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Intent Match (1-5)]]></Val>
@@ -20583,6 +20574,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";sYCfrb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testovací agent]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";sZIoMy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Send email]]></Val>
@@ -20619,20 +20619,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";sf6hMj" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Heads-up]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Upozornění]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";sjlioi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent invoked]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dílčí agent vyvolán]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";sjq9sr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Validate email addresses]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ověřit e-mailové adresy]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20862,15 +20862,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";tFFMkF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Pause]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pozastavit]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";tFoDh3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Yes, turn on deep investigation]]></Val>
@@ -20988,15 +20979,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";tZmd+w" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connect a data source]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Připojit zdroj dat]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";tb6uBb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{toolName} is already connected to {agentName}.]]></Val>
@@ -21056,24 +21038,6 @@
           <Val><![CDATA[Experiment with your agent's configuration and see real-time results]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Experimentujte s konfigurací agenta a sledujte výsledky v reálném čase]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";tkr5bn" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Turn off scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vypnout naplánované úkoly]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";trPabo" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No scheduled tasks found]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nenašly se žádné naplánované úlohy.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21258,11 +21222,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";uC4R7m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test failed: {message}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test neproběhl úspěšně: {message}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";uCkn4+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All priorities]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Všechny priority]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";uDXk7F" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Python Function Tester]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tester funkcí Pythonu]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21276,11 +21258,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";uFDB/3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Function Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kód funkce]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";uFaAgq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect relationships]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Připojit relace]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";uGPikn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Describe what the function should do]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Popište, co by funkce měla dělat.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21429,6 +21429,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";uYv0At" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Extracting parameters]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Extrahují se parametry.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ubULuu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear description for agents to understand when to use this tool]]></Val>
@@ -21497,15 +21506,6 @@
           <Val><![CDATA[Zoom Out]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Oddálit]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";unj6JR" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create from template]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vytvořit ze šablony]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21582,15 +21582,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";v0CXYP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enter a descriptive name for your task]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zadejte popisný název úlohy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";v0fBOU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse all]]></Val>
@@ -21623,15 +21614,6 @@
           <Val><![CDATA[Kusto tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nástroj Kusto]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";v8cTK0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task updated successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánovaná úloha se úspěšně aktualizovala.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21753,24 +21735,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";vSW3OF" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to update task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se aktualizovat úkol: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";vV67Wm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to turn on task: {errorMessage}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nepodařilo se zapnout úkol: {errorMessage}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";vVpzJQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Suggested instructions]]></Val>
@@ -21794,6 +21758,15 @@
           <Val><![CDATA[Warning actions present]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Byly zjištěny akce upozornění.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vZRYf4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zrušit výběr všech nástrojů]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21933,15 +21906,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";w4Nqlr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Run scheduled task(s)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spustit naplánované úlohy]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";w5FDGY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update scheduled task]]></Val>
@@ -22041,6 +22005,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";wGM2T+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Please provide Python function code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zadejte kód funkce v Pythonu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";wGcWbo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active tasks]]></Val>
@@ -22068,15 +22041,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wNIiXX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The data source must be in the format: {format}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zdroj dat musí používat formát: {format}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wO9wb5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[GitHub]]></Val>
@@ -22100,6 +22064,15 @@
           <Val><![CDATA[Use subagents to automatically run tasks, query data, and respond to incidents.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Pomocí podagentů můžete automaticky spouštět úlohy, dotazovat se na data a reagovat na incidenty.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wPfhmg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Standard Error]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Standardní chyba]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22136,6 +22109,15 @@
           <Val><![CDATA[Submit]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odeslat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wTA9dx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test Your Function]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Otestujte funkci]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22221,15 +22203,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wgyFIG" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polishing…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vylepšování...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wjEBlr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{metric} is at {score}%. Continue refining to move toward the next tier.]]></Val>
@@ -22266,6 +22239,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";wm4GRX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Example: Parse JSON logs and extract error messages]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Příklad: Analyzuj protokoly JSON a vyextrahuj chybové zprávy.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";wru3Di" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authorize repository access]]></Val>
@@ -22298,15 +22280,6 @@
           <Val><![CDATA[Checking trigger setup…]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kontroluje se nastavení triggeru...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";x1YTqM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe the cadence before we can help.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Popište frekvenci, abychom vám mohli pomoct.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22352,6 +22325,15 @@
           <Val><![CDATA[Click here to learn more]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kliknutím sem se dozvíte další informace]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xGK1X2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deselect all tools in {groupName}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zrušit výběr všech nástrojů ve skupině {groupName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22424,6 +22406,15 @@
           <Val><![CDATA[No connectors match your search]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vašemu hledání neodpovídají žádné konektory.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xRpMXP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Try:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vyzkoušejte:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22536,6 +22527,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";xgD8Kv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Python Function Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kód funkce Pythonu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";xmcVZ0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search]]></Val>
@@ -22550,6 +22550,15 @@
           <Val><![CDATA[Operate API Management services.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Provozujte služby API Management.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xpMDZO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test Passed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test byl úspěšný.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22599,20 +22608,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";xu6eM8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Test]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";xvTDgy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search tools…]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hledat nástroje...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";xxoHVE" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent prompt is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Výzvu pro agenta je nutné zadat.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22649,15 +22658,6 @@
           <Val><![CDATA[+{delta} since last run]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[+{delta} od posledního spuštění]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";y3Uu5i" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No data connectors match your search]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vašemu hledání neodpovídají žádné datové konektory]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22716,6 +22716,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";yGVEST" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete these scheduled tasks? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Opravdu chcete odstranit tyto naplánované úlohy? Tato akce je nevratná.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";yJJ/jv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mute this warning]]></Val>
@@ -22757,6 +22766,15 @@
           <Val><![CDATA[Pick a subagent to assist you with tasks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vyberte podagenta, který vám pomůže s úlohami.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ySdJIx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ připojení]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22842,15 +22860,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yf9+0C" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Polished version]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vylepšená verze]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";yh4G7g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[System assigned]]></Val>
@@ -22901,6 +22910,15 @@
           <Val><![CDATA[Managed resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skupiny spravovaných prostředků]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yisTNp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Turn off scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vypnout naplánované úlohy]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23022,15 +23040,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";yzfsFI" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Short one-line summary (<=140 chars)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Krátký jednořádkový souhrn (<= 140 znaků)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";z0uI4M" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run scenario]]></Val>
@@ -23045,24 +23054,6 @@
           <Val><![CDATA[View Knowledge Base]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zobrazit znalostní bázi]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z5cF/O" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Description must be a single line summary.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Popis musí tvořit jednořádkový souhrn.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";z7SGAU" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Scheduled task(s) deleted successfully]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Naplánované úkoly byly úspěšně odstraněny]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23211,20 +23202,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";zZsxcQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[State frequency-sensitive expectations (e.g. "summarize only last 15m of metrics").]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Uveďte očekávání zohledňující frekvenci (například „shrň pouze posledních 15 min metrik“).]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";zaYxwd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incident]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zcksw4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[✓ Test passed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[✓ Test proběhl úspěšně.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23243,6 +23234,15 @@
           <Val><![CDATA[Deleting {count} incidents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odstraňování {count} incidentů]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zefL4U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} is now on.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Naplánovaná úloha{name, select, undefined {} other { {name}}} je teď zapnutá.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
