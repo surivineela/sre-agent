@@ -145,12 +145,6 @@
       "description": "Executes a Geneva Action for a specific incident with extension name, action name, and input parameters. If execution fails due to incorrect parameters, correct them and try again. The inputParameters parameter is a semicolon-delimited list of key-value pairs. Geneva Actions are pre-approved runbook procedures tested and validated for safety, ranging from simple diagnostic actions to complex remediation workflows with multiple steps and safety checks. Actions include diagnostics, restarts, configuration changes, failovers, and custom procedures specific to different services. The platform maintains audit logs of all executions and enforces role-based access controls. Use this for standardized incident response procedures or executing well-defined playbook steps."
     },
     {
-      "name": "ListInputParametersForGenevaAction",
-      "version": "latest",
-      "firstPartyOnly": true,
-      "description": "Lists all required and optional input parameters for a specific Geneva Action, helping you understand exactly what information is needed before executing the action. Each Geneva Action has a defined schema of inputs it requires—resource identifiers, configuration values, options, and flags. This tool retrieves that schema and presents it in a clear format showing parameter names, descriptions, data types, whether each is required or optional, default values, and any validation constraints. Understanding the parameters upfront helps you prepare the correct inputs and avoid execution failures due to missing or invalid parameters. Use this before executing any Geneva Action to ensure you have all necessary information and understand what the action will do."
-    },
-    {
       "name": "CreateGithubIssue",
       "version": "latest",
       "description": "Creates an issue on GitHub to track a problem with a web app which you have diagnosed, especially if you have a solution to fix it. Unless this is a sample issue, make the publisher details comprehensive. Assignees are validated to ensure they are real GitHub users before assignment. If there are credential-related issues, the tool provides a login link to authenticate. You can use Markdown formatting in the description for rich content including code blocks, links, checklists, and images. The tool returns the created issue's URL and number for reference. Use this when you discover problems during investigation that need to be tracked, when creating action items from incident retrospectives, or when documenting bugs found during troubleshooting."
