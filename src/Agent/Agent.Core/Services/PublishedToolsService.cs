@@ -13,8 +13,24 @@ namespace Agent.Core.Services
 {
     public interface IPublishedToolsService
     {
+        /// <summary>
+        /// Gets all published tools with their configurations including custom descriptions.
+        /// </summary>
+        Task<IReadOnlyList<PublishedTool>> GetPublishedToolsAsync();
+
+        /// <summary>
+        /// Gets the names of all published tools as a HashSet for efficient lookup.
+        /// </summary>
         Task<HashSet<string>> GetPublishedToolNamesAsync();
+
+        /// <summary>
+        /// Checks if a tool is in the published tools list.
+        /// </summary>
         Task<bool> IsToolPublishedAsync(string toolName);
+
+        /// <summary>
+        /// Reloads the configuration from disk.
+        /// </summary>
         Task ReloadConfigurationAsync();
     }
 
@@ -24,7 +40,7 @@ namespace Agent.Core.Services
         private readonly IHostEnvironment _hostEnvironment;
         private readonly bool _isFirstPartyTenant;
         private PublishedToolsConfiguration? _configuration;
-        private HashSet<string> _publishedToolNames;
+        private List<PublishedTool> _publishedTools;
         private readonly object _lockObject = new object();
 
         public PublishedToolsService(
@@ -35,8 +51,17 @@ namespace Agent.Core.Services
             _logger = logger;
             _hostEnvironment = hostEnvironment;
             _isFirstPartyTenant = firstPartyTenantProvider.IsFirstPartyTenant();
-            _publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _publishedTools = new List<PublishedTool>();
             _ = Task.Run(LoadConfigurationAsync);
+        }
+
+        public async Task<IReadOnlyList<PublishedTool>> GetPublishedToolsAsync()
+        {
+            await EnsureConfigurationLoadedAsync();
+            lock (_lockObject)
+            {
+                return _publishedTools.ToList().AsReadOnly();
+            }
         }
 
         public async Task<HashSet<string>> GetPublishedToolNamesAsync()
@@ -44,7 +69,9 @@ namespace Agent.Core.Services
             await EnsureConfigurationLoadedAsync();
             lock (_lockObject)
             {
-                return new HashSet<string>(_publishedToolNames, StringComparer.OrdinalIgnoreCase);
+                return new HashSet<string>(
+                    _publishedTools.Select(t => t.GetEffectiveToolName()),
+                    StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -53,7 +80,8 @@ namespace Agent.Core.Services
             await EnsureConfigurationLoadedAsync();
             lock (_lockObject)
             {
-                return _publishedToolNames.Contains(toolName);
+                return _publishedTools.Any(t =>
+                    string.Equals(t.GetEffectiveToolName(), toolName, StringComparison.OrdinalIgnoreCase));
             }
         }
 
@@ -83,7 +111,7 @@ namespace Agent.Core.Services
                     lock (_lockObject)
                     {
                         _configuration = new PublishedToolsConfiguration();
-                        _publishedToolNames.Clear();
+                        _publishedTools.Clear();
                     }
                     return;
                 }
@@ -95,7 +123,7 @@ namespace Agent.Core.Services
                     lock (_lockObject)
                     {
                         _configuration = new PublishedToolsConfiguration();
-                        _publishedToolNames.Clear();
+                        _publishedTools.Clear();
                     }
                     return;
                 }
@@ -114,12 +142,12 @@ namespace Agent.Core.Services
                     lock (_lockObject)
                     {
                         _configuration = new PublishedToolsConfiguration();
-                        _publishedToolNames.Clear();
+                        _publishedTools.Clear();
                     }
                     return;
                 }
 
-                var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var publishedTools = new List<PublishedTool>();
                 foreach (var tool in configuration.Tools)
                 {
                     if (tool.FirstPartyOnly && !_isFirstPartyTenant)
@@ -130,18 +158,19 @@ namespace Agent.Core.Services
                         continue;
                     }
 
-                    var effectiveToolName = tool.GetEffectiveToolName();
-                    publishedToolNames.Add(effectiveToolName);
-                    _logger.LogInternalInformation("LoadConfigurationAsync: Added published tool: {ToolName} (effective: {EffectiveToolName})", tool.Name, effectiveToolName);
+                    publishedTools.Add(tool);
+                    _logger.LogInternalInformation("LoadConfigurationAsync: Added published tool: {ToolName} (effective: {EffectiveToolName})",
+                        tool.Name, tool.GetEffectiveToolName());
                 }
 
                 lock (_lockObject)
                 {
                     _configuration = configuration;
-                    _publishedToolNames = publishedToolNames;
+                    _publishedTools = publishedTools;
                 }
 
-                _logger.LogInternalInformation("LoadConfigurationAsync: Successfully loaded {ToolCount} published tools", publishedToolNames.Count);
+                _logger.LogInternalInformation("LoadConfigurationAsync: Successfully loaded {ToolCount} published tools",
+                    publishedTools.Count);
             }
             catch (Exception ex)
             {
@@ -149,7 +178,7 @@ namespace Agent.Core.Services
                 lock (_lockObject)
                 {
                     _configuration = new PublishedToolsConfiguration();
-                    _publishedToolNames.Clear();
+                    _publishedTools.Clear();
                 }
             }
         }

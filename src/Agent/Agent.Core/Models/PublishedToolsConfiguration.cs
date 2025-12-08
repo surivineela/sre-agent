@@ -17,11 +17,20 @@ namespace Agent.Core.Models
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 
+        [JsonPropertyName("version")]
+        public string? Version { get; set; }
+
         [JsonPropertyName("versions")]
         public Dictionary<string, string>? Versions { get; set; }
 
         [JsonPropertyName("firstPartyOnly")]
         public bool FirstPartyOnly { get; set; }
+
+        /// <summary>
+        /// User-friendly description for UI display. When set, this overrides the default tool description.
+        /// </summary>
+        [JsonPropertyName("description")]
+        public string? Description { get; set; }
 
         /// <summary>
         /// Gets the effective tool name to use.

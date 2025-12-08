@@ -6,10 +6,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Core.Validation;
 using Agent.Data.Tools;
 using Agent.Framework;
@@ -46,6 +48,8 @@ public class ExtendedAgentController : ControllerBase
     private readonly IToolFactory<AgentContext> _toolFactory;
     private readonly AgentToSkillService _agentToSkillService;
     private readonly IExtendedAgentApiService _extendedAgentApiService;
+    private readonly IPublishedToolsService _publishedToolsService;
+    private readonly IncidentManagementSettings _incidentManagementSettings;
 
     public ExtendedAgentController(
         IExtendedAgentService extendedAgentService,
@@ -56,7 +60,9 @@ public class ExtendedAgentController : ControllerBase
         IChatClientProvider chatClientProvider,
         IToolFactory<AgentContext> toolFactory,
         AgentToSkillService agentToSkillService,
-        IExtendedAgentApiService extendedAgentApiService)
+        IExtendedAgentApiService extendedAgentApiService,
+        IPublishedToolsService publishedToolsService,
+        IncidentManagementSettings incidentManagementSettings)
     {
         _resourceDeploymentService = agentService;
         _logger = logger;
@@ -66,7 +72,9 @@ public class ExtendedAgentController : ControllerBase
         _chatClientProvider = chatClientProvider;
         _toolFactory = toolFactory;
         _agentToSkillService = agentToSkillService;
-        _extendedAgentApiService = extendedAgentApiService; // fixed duplicate assignment
+        _extendedAgentApiService = extendedAgentApiService;
+        _publishedToolsService = publishedToolsService;
+        _incidentManagementSettings = incidentManagementSettings;
     }
 
     /// <summary>
@@ -1032,52 +1040,33 @@ User Prompt To Improve (between <<< and >>>):
                 .Where(tool => !extendedToolNames.Contains(tool.Name) && !tool.IsMcp)
                 .ToList();
 
+            // Get published tools configuration (includes names and custom descriptions)
+            var publishedTools = await _publishedToolsService.GetPublishedToolsAsync();
+            var publishedToolsLookup = publishedTools.ToDictionary(
+                t => t.GetEffectiveToolName(),
+                t => t,
+                StringComparer.OrdinalIgnoreCase);
+
             // Filter to stable/published tools if stableOnly is true
             if (stableOnly)
             {
-                // Load published tools from PublishedTools.json
-                var publishedToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                try
+                if (publishedToolsLookup.Count > 0)
                 {
-                    var publishedToolsPath = Path.Combine(AppContext.BaseDirectory, "PublishedTools.json");
-                    if (System.IO.File.Exists(publishedToolsPath))
-                    {
-                        var publishedToolsJson = await System.IO.File.ReadAllTextAsync(publishedToolsPath);
-                        var publishedToolsDoc = JsonDocument.Parse(publishedToolsJson);
+                    // Get the configured incident management platform
+                    var configuredPlatform = _incidentManagementSettings?.Type?.ToString() ?? string.Empty;
 
-                        if (publishedToolsDoc.RootElement.TryGetProperty("tools", out var toolsArray))
-                        {
-                            foreach (var toolElement in toolsArray.EnumerateArray())
-                            {
-                                if (toolElement.TryGetProperty("name", out var nameProperty))
-                                {
-                                    var toolName = nameProperty.GetString();
-                                    if (!string.IsNullOrEmpty(toolName))
-                                    {
-                                        publishedToolNames.Add(toolName);
-                                    }
-                                }
-                            }
-                        }
-
-                        _logger.LogInternalInformation("Loaded {Count} published tools from PublishedTools.json", publishedToolNames.Count);
-                    }
-                    else
-                    {
-                        _logger.LogInternalWarning("PublishedTools.json not found at {Path}, falling back to IsIncidentHandlerTool filter", publishedToolsPath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, "Failed to load PublishedTools.json, falling back to IsIncidentHandlerTool filter");
-                }
-
-                // Filter: if we have published tools list, use it; otherwise fall back to IsIncidentHandlerTool flag
-                if (publishedToolNames.Count > 0)
-                {
+                    // Include published tools + incident handler tools for the configured platform
                     systemTools = systemTools
-                        .Where(tool => publishedToolNames.Contains(tool.Name))
+                        .Where(tool => publishedToolsLookup.ContainsKey(tool.Name) ||
+                            (tool.IsIncidentHandlerTool &&
+                             tool.IncidentHandlerPlatform?.Equals(configuredPlatform, StringComparison.OrdinalIgnoreCase) == true))
                         .ToList();
+
+                    var incidentHandlerToolsCount = systemTools.Count(t => t.IsIncidentHandlerTool);
+                    var publishedToolsCount = systemTools.Count(t => publishedToolsLookup.ContainsKey(t.Name));
+
+                    _logger.LogInternalInformation("Filtered to {PublishedCount} published tools + {IncidentHandlerCount} incident handler tools for platform {Platform}",
+                        publishedToolsCount, incidentHandlerToolsCount, configuredPlatform);
                 }
                 else
                 {
@@ -1085,6 +1074,18 @@ User Prompt To Improve (between <<< and >>>):
                     systemTools = systemTools
                         .Where(tool => !tool.IsIncidentHandlerTool)
                         .ToList();
+
+                    _logger.LogInternalWarning("No published tools found, falling back to IsIncidentHandlerTool filter");
+                }
+            }
+
+            // Override descriptions with user-friendly versions from PublishedTools.json
+            foreach (var tool in systemTools)
+            {
+                if (publishedToolsLookup.TryGetValue(tool.Name, out var publishedTool) &&
+                    !string.IsNullOrWhiteSpace(publishedTool.Description))
+                {
+                    tool.Description = publishedTool.Description;
                 }
             }
 
