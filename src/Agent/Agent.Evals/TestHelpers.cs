@@ -315,6 +315,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<AgentReasoningControlFlowPluginDefinition>();
         builder.Services.AddSingleton<CannotConnectToVmPluginDefinition>();
         builder.Services.AddSingleton<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>();
+        builder.Services.AddSingleton<AggregatedKustoToolsPluginDefinition>();
 
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
