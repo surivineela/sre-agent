@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Dokumen"
     }
   ],
   "/6Fckw": [
@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Waktu mulai"
     }
   ],
   "01lT1B": [
@@ -146,7 +146,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Luaskan"
     }
   ],
   "0te2Ra": [
@@ -158,7 +158,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Memuat operasi..."
     }
   ],
   "1YPTmM": [
@@ -296,7 +296,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Hapus grup sumber daya"
     }
   ],
   "4ii5zj": [
@@ -311,10 +311,16 @@
       "value": "Tindakan buat daftar kredensial admin kluster."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Sebarkan"
     }
   ],
   "5M+hLZ": [
@@ -499,7 +505,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Penyebaran gagal"
     }
   ],
   "ABo5XY": [
@@ -554,6 +560,12 @@
     {
       "type": 0,
       "value": "Pembaca Azure Center for SAP solutions"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -638,6 +650,12 @@
     {
       "type": 0,
       "value": "Memungkinkan Anda membaca dan menguji KB saja."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -756,6 +774,18 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -804,6 +834,12 @@
       "value": "Hidupkan/matikan untuk menampilkan grup sumber daya yang disarankan saja"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -819,7 +855,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Berhasil"
     }
   ],
   "LSaaxU": [
@@ -926,7 +962,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Dibuat"
     }
   ],
   "OTGHHm": [
@@ -935,10 +971,31 @@
       "value": "Sumber daya yang Anda pilih memiliki izin untuk peran ini."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Nama penyebaran"
     }
   ],
   "Oom2N7": [
@@ -1078,7 +1135,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Memperbarui"
     }
   ],
   "SCjiXP": [
@@ -1220,7 +1277,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Ciutkan"
     }
   ],
   "W4H4Z9": [
@@ -1399,6 +1456,12 @@
       "value": "Ya"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1448,6 +1511,12 @@
     {
       "type": 0,
       "value": "Anda dapat memilih maksimum 100 grup sumber daya yang akan dikelola agen."
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
@@ -1516,6 +1585,12 @@
       "value": "Redis Cache"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1531,7 +1606,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Operasi sumber daya"
     }
   ],
   "d2GmfJ": [
@@ -1638,6 +1713,12 @@
       "value": "Penguncian baca-saja"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1683,7 +1764,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Penyebaran sedang dalam proses..."
     }
   ],
   "gzx/k1": [
@@ -1927,7 +2008,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "Berjalan"
     }
   ],
   "nlPgO8": [
@@ -1986,6 +2067,12 @@
       "value": "Agen Anda dalam mode peninjauan. Agen memerlukan izin berikut agar dapat membangun pengetahuan tentang sumber daya Anda. Agen akan menggunakan beberapa izin ini untuk melakukan operasi tulis yang diminta dengan persetujuan Anda."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -1995,7 +2082,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "ID korelasi"
     }
   ],
   "pAFuFx": [
@@ -2228,13 +2315,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Penyebaran berhasil"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Gagal"
     }
   ],
   "vbdOl/": [
@@ -2258,7 +2345,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Tidak menemukan operasi"
     }
   ],
   "wCtBb6": [
@@ -2330,7 +2417,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Membuat"
     }
   ],
   "xmcVZ0": [

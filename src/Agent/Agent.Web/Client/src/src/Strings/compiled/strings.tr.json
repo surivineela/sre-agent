@@ -148,7 +148,7 @@
   "+WRusC": [
     {
       "type": 0,
-      "value": "SRE Agent"
+      "value": "SRE Aracısı"
     }
   ],
   "+XtuWl": [
@@ -377,6 +377,16 @@
       "value": "Temizle"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -439,12 +449,6 @@
     {
       "type": 0,
       "value": "Container Apps Operatörü"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Her dakika"
     }
   ],
   "/Z1fHN": [
@@ -579,6 +583,12 @@
     {
       "type": 0,
       "value": "Ara..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -874,7 +884,7 @@
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " kaynak grubu seçildi."
     }
   ],
   "15GWkT": [
@@ -1066,7 +1076,7 @@
   "1m4VPF": [
     {
       "type": 0,
-      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+      "value": "Aracı karmaşık sorunları araştırır ve olası kök nedenleri doğrulamak için varsayımlar oluşturur."
     }
   ],
   "1o9eJ6": [
@@ -1424,7 +1434,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Beklenmeyen bir hata oluştu"
     }
   ],
   "3JVa6k": [
@@ -1478,7 +1488,7 @@
   "3SsYXO": [
     {
       "type": 0,
-      "value": "Open GitHub issue page with pre-filled information above"
+      "value": "GitHub sorun sayfasını yukarıdaki önceden doldurulmuş bilgilerle açın"
     }
   ],
   "3VI9mt": [
@@ -1502,13 +1512,13 @@
   "3dsWh5": [
     {
       "type": 0,
-      "value": "Add MCP server"
+      "value": "MCP sunucusu ekle"
     }
   ],
   "3h7ZKg": [
     {
       "type": 0,
-      "value": "Review + add"
+      "value": "Gözden geçir ve ekle"
     }
   ],
   "3hmrCJ": [
@@ -1550,7 +1560,7 @@
   "3k7JQw": [
     {
       "type": 0,
-      "value": "Issue description is required."
+      "value": "Sorun açıklaması gereklidir."
     }
   ],
   "3n8o15": [
@@ -1568,7 +1578,7 @@
   "3rvQhx": [
     {
       "type": 0,
-      "value": "You can manage up to "
+      "value": "İzinlerinizin olduğu kaynak gruplarından en fazla "
     },
     {
       "type": 1,
@@ -1576,7 +1586,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. Your agent currently manages "
+      "value": " tanesini yönetebilirsiniz. Aracınız şu anda "
     },
     {
       "type": 1,
@@ -1584,7 +1594,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups."
+      "value": " kaynak grubunu yönetiyor."
     }
   ],
   "3sNyAo": [
@@ -1780,7 +1790,7 @@
   "4IAjnN": [
     {
       "type": 0,
-      "value": "Turn on deep investigation?"
+      "value": "Derin araştırma açılsın mı?"
     }
   ],
   "4MeTpL": [
@@ -1822,7 +1832,7 @@
   "4Rhz/i": [
     {
       "type": 0,
-      "value": "User provided connector"
+      "value": "Kullanıcı tarafından sağlanan bağlayıcı"
     }
   ],
   "4RwjwU": [
@@ -1985,16 +1995,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "Depo erişimini yetkilendirme izniniz yok."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Görevlerde size yardımcı olması için bir genişletilmiş aracı seçin."
     }
   ],
   "5GUtRJ": [
@@ -2364,7 +2382,7 @@
     },
     {
       "type": 0,
-      "value": " sec"
+      "value": " sn"
     }
   ],
   "61e5yQ": [
@@ -2422,7 +2440,7 @@
   "6CrAJC": [
     {
       "type": 0,
-      "value": "Enter custom header key"
+      "value": "Özel üst bilgi anahtarı girin"
     }
   ],
   "6CxEZS": [
@@ -2603,16 +2621,6 @@
     {
       "type": 0,
       "value": "Diğer aracıların, bu uzman aracıya ne zaman iş atayacaklarını anlamalarına yardımcı olan net ve kısa bir açıklama. Bu, aracıya devretme kararlarında ve işbirliği iş akışlarında görünür."
-    }
-  ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "Alt aracı şu hatayla oluşturulamadı: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "6w0QQX": [
@@ -2816,7 +2824,7 @@
   "7Rnjmx": [
     {
       "type": 0,
-      "value": "Expected Behavior"
+      "value": "Beklenen davranış"
     }
   ],
   "7TVRcx": [
@@ -2870,7 +2878,7 @@
   "7kPmO3": [
     {
       "type": 0,
-      "value": "Edit connector"
+      "value": "Bağlayıcıyı düzenle"
     }
   ],
   "7nUCu9": [
@@ -3129,12 +3137,6 @@
       "value": "Hizmet ve API'lere salt okunur erişim."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Bir devir alt aracısı oluştur"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3244,7 +3246,7 @@
   "8urALB": [
     {
       "type": 0,
-      "value": "Delete connector"
+      "value": "Bağlayıcıyı sil"
     }
   ],
   "8v0Pyn": [
@@ -3487,6 +3489,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3639,6 +3653,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3690,7 +3710,7 @@
   "Abi/u/": [
     {
       "type": 0,
-      "value": "Expand panel"
+      "value": "Paneli genişlet"
     }
   ],
   "AbleKr": [
@@ -3776,7 +3796,13 @@
   "AvHD3R": [
     {
       "type": 0,
-      "value": "Teams channel link"
+      "value": "Teams kanal bağlantısı"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -3822,7 +3848,7 @@
   "BBT3jd": [
     {
       "type": 0,
-      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+      "value": "Aracı, sorun izleme ve çekme istekleri dahil olmak üzere GitHub depolarına, özelliklerine ve eylemlerine erişir."
     }
   ],
   "BD+V8L": [
@@ -4118,7 +4144,7 @@
   "CQisjK": [
     {
       "type": 0,
-      "value": "What actually happened?"
+      "value": "Gerçekte ne oldu?"
     }
   ],
   "CTRqZs": [
@@ -4263,6 +4289,12 @@
       "value": "Yanıt alt aracısını seç"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4328,7 +4360,7 @@
   "DK708b": [
     {
       "type": 0,
-      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+      "value": "Ad bir harf ile başlamalıdır ve yalnızca harf, rakam ve kısa çizgi içerebilir. Ad boş olamaz ve "
     },
     {
       "type": 1,
@@ -4336,7 +4368,7 @@
     },
     {
       "type": 0,
-      "value": " characters."
+      "value": " karakterden az olmalıdır."
     }
   ],
   "DMEE1o": [
@@ -4354,7 +4386,7 @@
   "DP0m/y": [
     {
       "type": 0,
-      "value": "Updating Kusto Tool"
+      "value": "Kusto Aracı Güncelleştiriliyor"
     }
   ],
   "DPnEXy": [
@@ -4398,7 +4430,7 @@
     },
     {
       "type": 0,
-      "value": " repository URL"
+      "value": " depo URL’si"
     }
   ],
   "DYp/nK": [
@@ -4446,7 +4478,7 @@
   "DgsR1U": [
     {
       "type": 0,
-      "value": "Channel ID"
+      "value": "Kanal Kimliği"
     }
   ],
   "Dh9oJp": [
@@ -4545,6 +4577,12 @@
       "value": "Seçilen kaynak gruplarından bazılarının gerekli roleAssignments/write ve Microsoft.ManagedIdentity/userAssignedIdentities/write izinleri yok."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4605,6 +4643,12 @@
     {
       "type": 0,
       "value": "Abonelikler yüklenemedi."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -4702,7 +4746,7 @@
   "EcglP9": [
     {
       "type": 0,
-      "value": "Key"
+      "value": "Anahtar"
     }
   ],
   "EdEthU": [
@@ -4760,7 +4804,7 @@
   "ErUgLz": [
     {
       "type": 0,
-      "value": "Teams group ID"
+      "value": "Teams grup kimliği"
     }
   ],
   "Erci0g": [
@@ -4894,7 +4938,7 @@
   "FMDuHb": [
     {
       "type": 0,
-      "value": "Enter your PAT or API key"
+      "value": "PAT veya API anahtarınızı girin"
     }
   ],
   "FNQNS1": [
@@ -5130,7 +5174,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": " kaynak grubu seçildi."
     }
   ],
   "G5JMSn": [
@@ -5146,7 +5190,7 @@
   "G6XRkU": [
     {
       "type": 0,
-      "value": "Steps to Reproduce"
+      "value": "Yeniden Oluşturma Adımları"
     }
   ],
   "G6vaGg": [
@@ -5177,7 +5221,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "belge"
             }
           ]
         },
@@ -5185,7 +5229,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "belge"
             }
           ]
         }
@@ -5350,7 +5394,7 @@
   "GufXy5": [
     {
       "type": 0,
-      "value": "Value"
+      "value": "Değer"
     }
   ],
   "Gvxoji": [
@@ -5414,7 +5458,7 @@
   "HJ7ZeR": [
     {
       "type": 0,
-      "value": "Issue Description"
+      "value": "Sorun Açıklaması"
     }
   ],
   "HKlw1J": [
@@ -5511,6 +5555,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5544,7 +5602,7 @@
   "HtVpjg": [
     {
       "type": 0,
-      "value": "You can select up to "
+      "value": "Bu aracı için en fazla "
     },
     {
       "type": 1,
@@ -5552,7 +5610,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups for this agent. Agents can manage a total of "
+      "value": " kaynak grubu seçebilirsiniz. Aracılar toplamda "
     },
     {
       "type": 1,
@@ -5560,7 +5618,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups, and your agent currently manages "
+      "value": " kaynak grubu yönetebilir ve aracınız şu anda "
     },
     {
       "type": 1,
@@ -5568,7 +5626,7 @@
     },
     {
       "type": 0,
-      "value": ". You've selected "
+      "value": " kaynak grubunu yönetiyor. "
     },
     {
       "type": 1,
@@ -5576,7 +5634,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " tane seçtiniz."
     }
   ],
   "HtpD+z": [
@@ -5699,6 +5757,54 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -5755,12 +5861,6 @@
     {
       "type": 0,
       "value": "Yeni yazışma"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Alt Aracı Oluşturuluyor"
     }
   ],
   "IYLPrk": [
@@ -5898,13 +5998,13 @@
   "J0rs+f": [
     {
       "type": 0,
-      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
+      "value": "SRE Aracısı portalından iş parçacığı kimliğini yapıştırın. (ör. 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J2Lcsz": [
     {
       "type": 0,
-      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+      "value": "Bu yanıt planında işlenen her olay için bir derin araştırma yapılacak. Her bir derin araştırmanın yürütülmesi önemli ölçüde zaman gerektirir ve yüksek AAU tüketimi ile sonuçlanabilir."
     }
   ],
   "J3Y8Sm": [
@@ -5944,7 +6044,7 @@
   "JA/VO+": [
     {
       "type": 0,
-      "value": "Starts a task at a defined time or interval."
+      "value": "Görev tanımlı bir zamanda veya aralıkta başlar."
     }
   ],
   "JAtEuU": [
@@ -6190,7 +6290,7 @@
   "JvYXxh": [
     {
       "type": 0,
-      "value": "MCP server"
+      "value": "MCP sunucusu"
     }
   ],
   "JwHSD6": [
@@ -6238,7 +6338,7 @@
   "K7tsik": [
     {
       "type": 0,
-      "value": "Scheduled task ran successfully"
+      "value": "Zamanlanmış görev başarıyla çalıştırıldı"
     }
   ],
   "K9q4Xw": [
@@ -6404,7 +6504,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Destek alın"
     }
   ],
   "KoJ1C+": [
@@ -6478,7 +6578,7 @@
   "L/ct40": [
     {
       "type": 0,
-      "value": "Open in visual view"
+      "value": "Görsel görünümünde aç"
     }
   ],
   "L/i6dy": [
@@ -6592,7 +6692,7 @@
   "LSqcaU": [
     {
       "type": 0,
-      "value": "Maximum 200,000 AAUs"
+      "value": "En fazla 200.000 AAU"
     }
   ],
   "LTDPn/": [
@@ -6642,19 +6742,13 @@
   "Li/Qrf": [
     {
       "type": 0,
-      "value": "Custom headers"
+      "value": "Özel üst bilgiler"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Zamanlamayı açıklayın"
-    }
-  ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Bir olay seçin."
     }
   ],
   "LnglaU": [
@@ -6678,7 +6772,7 @@
   "LuHM0/": [
     {
       "type": 0,
-      "value": "Actual Behavior"
+      "value": "Asıl davranış"
     }
   ],
   "LupnQU": [
@@ -6725,6 +6819,12 @@
       "value": "Önem düzeyi"
     }
   ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
@@ -6762,7 +6862,7 @@
   "M0ay1D": [
     {
       "type": 0,
-      "value": "Running scheduled task(s)"
+      "value": "Zamanlanmış görevler çalıştırılıyor"
     }
   ],
   "M3159R": [
@@ -7066,7 +7166,7 @@
   "N2IrpM": [
     {
       "type": 0,
-      "value": "Confirm"
+      "value": "Onayla"
     }
   ],
   "N7cqYp": [
@@ -7181,6 +7281,12 @@
       "value": "Anladım"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7251,16 +7357,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " dakikada bir"
-    }
-  ],
   "O+srpo": [
     {
       "offset": 0,
@@ -7327,12 +7423,6 @@
     {
       "type": 0,
       "value": "Yeni iletiler"
-    }
-  ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Bu SRE aracısını silmek istediğinizden emin misiniz? Bu eylem geri alınamaz."
     }
   ],
   "O9C6j/": [
@@ -7410,13 +7500,19 @@
   "OP7f9a": [
     {
       "type": 0,
-      "value": "Compiled connection string"
+      "value": "Derlenmiş bağlantı dizesi"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
       "value": "İzleme verileri hatalarla ayrıştırıldı."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -7748,7 +7844,7 @@
   "PZvrnY": [
     {
       "type": 0,
-      "value": "Title is required."
+      "value": "Başlık gereklidir."
     }
   ],
   "Pa1S0J": [
@@ -7781,20 +7877,6 @@
       "value": "Sağlık Hizmetleri API'leri aracı yapılandırmalarını düzenleyin."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "\""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" alt aracısı oluşturuluyor"
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -7810,7 +7892,7 @@
   "PpdTYy": [
     {
       "type": 0,
-      "value": "Failed to update tool"
+      "value": "Araç güncelleştirilemedi"
     }
   ],
   "PrFU82": [
@@ -7877,6 +7959,12 @@
     {
       "type": 0,
       "value": "Karar Zamanı"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -7949,12 +8037,12 @@
   ],
   "Q9IHxV": [
     {
-      "type": 0,
-      "value": "Running scheduled task "
-    },
-    {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " adlı zamanlanmış görev çalıştırılıyor"
     }
   ],
   "Q9Zp/n": [
@@ -8061,16 +8149,6 @@
       "value": "Tümünü temizle"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " saatte bir"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8080,7 +8158,13 @@
   "QYiU4f": [
     {
       "type": 0,
-      "value": "1. Describe the action you took 2. Mention the resource or service involved"
+      "value": "1. Yaptığınız eylemi açıklayın 2. İlgili kaynağı veya hizmeti belirtin"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -8608,7 +8692,7 @@
   "SeZ8eZ": [
     {
       "type": 0,
-      "value": "AAU consumption reminder"
+      "value": "AAU tüketim hatırlatıcısı"
     }
   ],
   "Seanpx": [
@@ -8644,7 +8728,7 @@
   "SoBWeV": [
     {
       "type": 0,
-      "value": "Monthly active flow AAUs"
+      "value": "Aylık etkin akış AAU’ları"
     }
   ],
   "Sr4IbA": [
@@ -8868,7 +8952,7 @@
   "TP/cMX": [
     {
       "type": 0,
-      "value": "Ended"
+      "value": "Sona erdi"
     }
   ],
   "TQ0n+a": [
@@ -9006,7 +9090,7 @@
   "UImEMW": [
     {
       "type": 0,
-      "value": "Briefly describe the problem or request."
+      "value": "Sorunu veya isteği kısaca açıklayın."
     }
   ],
   "UKMPBH": [
@@ -9191,12 +9275,6 @@
       "value": "Sohbet önizlemesi"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Alt aracı yapılandırılmadı"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9276,7 +9354,7 @@
   "Vaj9nj": [
     {
       "type": 0,
-      "value": "Don't show this message again"
+      "value": "Bu iletiyi bir daha gösterme"
     }
   ],
   "Vb+qQ4": [
@@ -9350,7 +9428,7 @@
   "Vs3jMi": [
     {
       "type": 0,
-      "value": "Authentication method"
+      "value": "Kimlik doğrulama yöntemi"
     }
   ],
   "VtBCjG": [
@@ -9419,12 +9497,6 @@
       "value": "Lütfen tekrar deneyin veya ayrıntılar için konsolu kontrol edin."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Önizleme Yükseltme Kanalı"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9465,12 +9537,6 @@
     {
       "type": 0,
       "value": "Olay yönetimi bağlantısını kontrol etme izniniz yok."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10156,12 +10222,6 @@
       "value": "Stres testi"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "Alt aracı oluşturulamadı"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10344,6 +10404,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -10470,6 +10536,54 @@
     {
       "type": 0,
       "value": "Bağlanmak için aşağıdan mevcut bir aracı seçin."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -10880,7 +10994,7 @@
   "bDbbX7": [
     {
       "type": 0,
-      "value": "Edit Kusto tool"
+      "value": "Kusto aracını düzenle"
     }
   ],
   "bICPAQ": [
@@ -10943,12 +11057,6 @@
     {
       "type": 0,
       "value": " karakter uzunluğunda veya daha kısa olmalıdır."
-    }
-  ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Kararlı - Güncelleştirmeleri ayda bir alır"
     }
   ],
   "bjDKAe": [
@@ -11107,12 +11215,6 @@
     {
       "type": 0,
       "value": "Seçili"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "Yapılacaklar planı:"
     }
   ],
   "c/KktL": [
@@ -11422,7 +11524,7 @@
   "dF2h2y": [
     {
       "type": 0,
-      "value": "Filter by incident id or title"
+      "value": "Olay kimliğine veya başlığına göre filtrele"
     }
   ],
   "dG8VrM": [
@@ -11449,10 +11551,10 @@
       "value": "Zamanlanan görev oluştur"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "Yönergeler ve araçlar içeren bir AI destekli alt aracı"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -11588,7 +11690,7 @@
   "dqkJF6": [
     {
       "type": 0,
-      "value": "Delete subagent"
+      "value": "Alt ajanı silin"
     }
   ],
   "dtQgfG": [
@@ -11618,7 +11720,7 @@
   "dzy0ND": [
     {
       "type": 0,
-      "value": "Run scheduled task"
+      "value": "Zamanlanmış görevi çalıştır"
     }
   ],
   "e0a3XV": [
@@ -11791,12 +11893,6 @@
       "value": "Özel yanıt kılavuzu"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "Yeni devir alt aracıları Otonom olarak başlar. Araçları ve diğer ayrıntıları daha sonra bağlayabilirsiniz."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -11883,6 +11979,12 @@
     {
       "type": 0,
       "value": "Yükselen Uzman"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -11979,12 +12081,6 @@
       "value": "Tüm önem düzeyleri"
     }
   ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Bu ada sahip bir alt aracı zaten var"
-    }
-  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -12070,13 +12166,13 @@
   "fvSiRs": [
     {
       "type": 0,
-      "value": "Tool updated successfully"
+      "value": "Araç başarıyla güncelleştirildi"
     }
   ],
   "fyaE5g": [
     {
       "type": 0,
-      "value": "Please provide a channel link"
+      "value": "Lütfen bir kanal bağlantısı sağlayın"
     }
   ],
   "g+9csc": [
@@ -12396,7 +12492,7 @@
   "hGnjdE": [
     {
       "type": 0,
-      "value": "Learn more about AAU consumption and cost"
+      "value": "AAU tüketimi ve maliyeti hakkında daha fazla bilgi edinin"
     }
   ],
   "hHz/bk": [
@@ -12409,12 +12505,6 @@
     {
       "type": 0,
       "value": "Seçili yönetilen kaynak grupları silinemedi"
-    }
-  ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Alt Aracı"
     }
   ],
   "hO1Iog": [
@@ -12474,7 +12564,7 @@
   "hdfKe+": [
     {
       "type": 0,
-      "value": "Automatically starts a subagent in response to an incident or alert."
+      "value": "Bir olaya veya uyarıya yanıt olarak alt aracı otomatik başlatılır."
     }
   ],
   "heMr0D": [
@@ -12547,6 +12637,12 @@
     {
       "type": 0,
       "value": "RCA kategorisi"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -12676,7 +12772,7 @@
   "iYJ/Ha": [
     {
       "type": 0,
-      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
+      "value": "Alt aracının Azure Veri Gezgini’nden veri toplamak için kullandığı aracıyı sorgula."
     }
   ],
   "iZDRGO": [
@@ -12744,7 +12840,7 @@
   "ioRcwS": [
     {
       "type": 0,
-      "value": "Scheduled task trigger"
+      "value": "Zamanlanmış görev tetikleyicisi"
     }
   ],
   "ipsqxO": [
@@ -12838,7 +12934,7 @@
   "j0Ifob": [
     {
       "type": 0,
-      "value": "Do you want to proceed?"
+      "value": "Devam etmek istiyor musunuz?"
     }
   ],
   "j0bMX6": [
@@ -12970,7 +13066,7 @@
   "jSgRib": [
     {
       "type": 0,
-      "value": "Your knowledge base has "
+      "value": "Bilgi bankanızda "
     },
     {
       "type": 1,
@@ -12987,7 +13083,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "belge"
             }
           ]
         },
@@ -12995,7 +13091,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "belge"
             }
           ]
         }
@@ -13006,7 +13102,7 @@
     },
     {
       "type": 0,
-      "value": ". Add more?"
+      "value": " var. Başka belge eklemek ister misiniz?"
     }
   ],
   "jTQZpk": [
@@ -13015,16 +13111,10 @@
       "value": "Grafana kaynağı kaynak grubu içinde benzersiz olmalıdır."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Alt aracı adını girin"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
-      "value": "Failed to run task: "
+      "value": "Görev çalıştırılamadı: "
     },
     {
       "type": 1,
@@ -13364,7 +13454,13 @@
   "l8IRTD": [
     {
       "type": 0,
-      "value": "Scheduled task(s) ran successfully"
+      "value": "Zamanlanmış görevler başarıyla çalıştırıldı"
+    }
+  ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
     }
   ],
   "lCsNuL": [
@@ -13425,6 +13521,12 @@
       "value": "Özel yanıt planını silmek istediğinizden emin misiniz?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -13467,6 +13569,12 @@
     {
       "type": 0,
       "value": "Sistem araçlarını ada, kategoriye veya açıklamaya göre ara"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -13728,7 +13836,7 @@
   "mg8UeB": [
     {
       "type": 0,
-      "value": "Filter by response plan name"
+      "value": "Yanıt planı adına göre filtrele"
     }
   ],
   "mgYBYo": [
@@ -13821,6 +13929,12 @@
       "value": "Grafana logosu"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -13830,7 +13944,7 @@
   "n25S4d": [
     {
       "type": 0,
-      "value": "Update Kusto Tool"
+      "value": "Kusto Aracını Güncelle"
     }
   ],
   "n2h/5e": [
@@ -13905,12 +14019,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Önizleme - Güncelleştirmeleri haftada iki kez alır"
     }
   ],
   "nQpONp": [
@@ -14110,7 +14218,7 @@
   "oIm1Fb": [
     {
       "type": 0,
-      "value": "GitHub logo"
+      "value": "GitHub logosu"
     }
   ],
   "oKJ0fm": [
@@ -14200,7 +14308,7 @@
   "ocQGCd": [
     {
       "type": 0,
-      "value": "Allow subagent capabilities to override the SRE Agent."
+      "value": "Alt aracının SRE Aracısını geçersiz kılma yeteneklerine izin verin."
     }
   ],
   "ocQXDt": [
@@ -14228,7 +14336,7 @@
   "ooDMAp": [
     {
       "type": 0,
-      "value": "Personal access token (PAT) or API key"
+      "value": "Kişisel erişim belirteci (PAT) veya API anahtarı"
     }
   ],
   "osuyeD": [
@@ -14423,6 +14531,12 @@
       "value": "Anahtarı değiştir"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -14570,7 +14684,7 @@
   "q3e4cf": [
     {
       "type": 0,
-      "value": "Bearer token"
+      "value": "Taşıyıcı belirteci"
     }
   ],
   "q4EmsW": [
@@ -14778,7 +14892,7 @@
   "r5UlDs": [
     {
       "type": 0,
-      "value": "Enter custom header value"
+      "value": "Özel üst bilgi değeri girin"
     }
   ],
   "r8XsCU": [
@@ -14897,6 +15011,12 @@
     {
       "type": 0,
       "value": "Tarih aralığı:"
+    }
+  ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
     }
   ],
   "rQAyD6": [
@@ -15104,7 +15224,7 @@
   "ryAzxy": [
     {
       "type": 0,
-      "value": "Issue"
+      "value": "Sorun"
     }
   ],
   "ryPHA8": [
@@ -15259,12 +15379,6 @@
     {
       "type": 0,
       "value": "Düğüm bulunamadı"
-    }
-  ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "Bu liste genişletilmiş aracılarınızı, araçlarınızı ve bağlayıcılarınızı kategorilere göre düzenlenmiş olarak gösterir. Yeteneklerinizi genişletmek için alt aracılar oluşturun ve bunları yönetin, belirli görevler için özel araçlar ekleyin ve dış kaynaklara erişmek üzere bağlayıcıları yapılandırın."
     }
   ],
   "sQkhYk": [
@@ -15442,13 +15556,7 @@
   "stbbGt": [
     {
       "type": 0,
-      "value": "Performs specialized tasks on behalf of the SRE Agent."
-    }
-  ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Saatte bir"
+      "value": "SRE Aracısı adına özel görevler yapar."
     }
   ],
   "swRudj": [
@@ -15554,7 +15662,7 @@
   "tFoDh3": [
     {
       "type": 0,
-      "value": "Yes, turn on deep investigation"
+      "value": "Evet, derin araştırmayı aç"
     }
   ],
   "tGHG7q": [
@@ -15609,6 +15717,12 @@
     {
       "type": 0,
       "value": "Çalıştırma sınırı belirle"
+    }
+  ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
     }
   ],
   "tU3A8E": [
@@ -15675,20 +15789,6 @@
     {
       "type": 0,
       "value": "Aracının, yönetici bilgilendirme notları için riskleri ve izlenecek adımları özetleme yöntemini doğrulayın."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "\""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" alt aracısı başarıyla oluşturuldu"
     }
   ],
   "thOyk5": [
@@ -15837,6 +15937,12 @@
     {
       "type": 0,
       "value": "İlk 1000 sonuç gösteriliyor. Listeyi daraltmak için filtreleyin."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16132,7 +16238,7 @@
   "v1LtqB": [
     {
       "type": 0,
-      "value": "Select authentication method"
+      "value": "Kimlik doğrulama yöntemini seçin"
     }
   ],
   "v3xWf6": [
@@ -16193,6 +16299,12 @@
     {
       "type": 0,
       "value": "Zengin aracı özellikleri için Kusto gibi veri kaynaklarına bağlanın"
+    }
+  ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
     }
   ],
   "vDbj1h": [
@@ -16278,7 +16390,7 @@
   "vb6deF": [
     {
       "type": 0,
-      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
+      "value": "Derin araştırmaların yürütülmesi önemli ölçüde zaman gerektirir ve yüksek AAU tüketimi ile sonuçlanabilir."
     }
   ],
   "vbdOl/": [
@@ -16360,7 +16472,7 @@
   "w4Nqlr": [
     {
       "type": 0,
-      "value": "Run scheduled task(s)"
+      "value": "Zamanlanmış görevleri çalıştır"
     }
   ],
   "w5FDGY": [
@@ -16415,6 +16527,12 @@
     {
       "type": 0,
       "value": "Maliyet hesaplaması beklemede"
+    }
+  ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
     }
   ],
   "wGLrHW": [
@@ -16481,6 +16599,12 @@
     {
       "type": 0,
       "value": "Yeni bir devir aracısı oluştur"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -16637,12 +16761,6 @@
     {
       "type": 0,
       "value": "Henüz çalıştırma yok"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Alt Aracı Oluşturucu"
     }
   ],
   "xDYr9m": [
@@ -16870,7 +16988,7 @@
   "y/m6Ep": [
     {
       "type": 0,
-      "value": "GitHub MCP server"
+      "value": "GitHub MCP sunucusu"
     }
   ],
   "y0KXuM": [
@@ -16939,12 +17057,6 @@
       "value": "Bu uyarıyı sessize alın"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Alt Aracı Oluştur"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -16960,7 +17072,13 @@
   "yRKsn1": [
     {
       "type": 0,
-      "value": "Learn more about deep investigations"
+      "value": "Derin araştırmalar hakkında daha fazla bilgi edinin"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17057,6 +17175,12 @@
     {
       "type": 0,
       "value": "Yönetilen kaynak grupları"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -17264,7 +17388,7 @@
   "zRv1ks": [
     {
       "type": 0,
-      "value": "What should happen?"
+      "value": "Ne olması gerekiyor?"
     }
   ],
   "zUNfOA": [
@@ -17329,6 +17453,18 @@
     {
       "type": 0,
       "value": "Gelişmiş ayarlar"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

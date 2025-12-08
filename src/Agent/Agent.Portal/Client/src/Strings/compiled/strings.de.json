@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Dokumente"
     }
   ],
   "/6Fckw": [
@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Startzeit"
     }
   ],
   "01lT1B": [
@@ -146,7 +146,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Erweitern"
     }
   ],
   "0te2Ra": [
@@ -158,7 +158,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Vorgänge werden geladen..."
     }
   ],
   "1YPTmM": [
@@ -296,7 +296,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Ressourcengruppe entfernen"
     }
   ],
   "4ii5zj": [
@@ -311,10 +311,16 @@
       "value": "Aktion zum Auflisten der Anmeldeinformationen für den Clusteradministrator."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Bereitstellen"
     }
   ],
   "5M+hLZ": [
@@ -526,7 +532,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Bereitstellung fehlgeschlagen"
     }
   ],
   "ABo5XY": [
@@ -581,6 +587,12 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions-Leser"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -665,6 +677,12 @@
     {
       "type": 0,
       "value": "Mit dieser Rolle können Sie nur eine Wissensdatenbank lesen und testen."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -783,6 +801,18 @@
       "value": "Azure SRE Agents"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -831,6 +861,12 @@
       "value": "Umschalten, um nur empfohlene Ressourcengruppen anzuzeigen"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -846,7 +882,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Erfolgreich"
     }
   ],
   "LSaaxU": [
@@ -972,7 +1008,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Erstellt"
     }
   ],
   "OTGHHm": [
@@ -981,10 +1017,42 @@
       "value": "Die ausgewählten Ressourcen verfügen über Berechtigungen für diese Rollen."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Bereitstellungsname"
     }
   ],
   "Oom2N7": [
@@ -1124,7 +1192,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Wird aktualisiert"
     }
   ],
   "SCjiXP": [
@@ -1266,7 +1334,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Zuklappen"
     }
   ],
   "W4H4Z9": [
@@ -1445,6 +1513,12 @@
       "value": "Ja"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1515,6 +1589,12 @@
       "value": "Sie können maximal 100 Ressourcengruppen auswählen, die vom Agent verwaltet werden."
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b43a5F": [
     {
       "type": 0,
@@ -1581,6 +1661,12 @@
       "value": "Redis Cache"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1596,7 +1682,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Ressourcenvorgänge"
     }
   ],
   "d2GmfJ": [
@@ -1703,6 +1789,12 @@
       "value": "Schreibschutzsperre"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1748,7 +1840,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Bereitstellung in Arbeit..."
     }
   ],
   "gzx/k1": [
@@ -1992,7 +2084,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "Wird ausgeführt"
     }
   ],
   "nlPgO8": [
@@ -2051,6 +2143,12 @@
       "value": "Ihr Agent befindet sich im Überprüfungsmodus. Die folgenden Berechtigungen sind erforderlich, damit der Agent Wissen über Ihre Ressourcen aufbauen kann. Einige dieser Berechtigungen nutzt der Agent, um basierend auf Ihren Anforderungen mit Ihrer Genehmigung Schreibvorgänge auszuführen."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -2060,7 +2158,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "Korrelations-ID"
     }
   ],
   "pAFuFx": [
@@ -2312,13 +2410,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Bereitstellung erfolgreich"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Fehlgeschlagen"
     }
   ],
   "vbdOl/": [
@@ -2342,7 +2440,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Keine Vorgänge gefunden"
     }
   ],
   "wCtBb6": [
@@ -2414,7 +2512,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Wird erstellt"
     }
   ],
   "xmcVZ0": [

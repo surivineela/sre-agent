@@ -389,6 +389,16 @@
       "value": "Cancella"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -451,12 +461,6 @@
     {
       "type": 0,
       "value": "Operatore App contenitore"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Ogni minuto"
     }
   ],
   "/Z1fHN": [
@@ -591,6 +595,12 @@
     {
       "type": 0,
       "value": "Cerca..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -2036,16 +2046,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "Non sono disponibili le autorizzazioni per autorizzare l'accesso al repository."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Selezionare un agente esteso per assistenza con le attività."
     }
   ],
   "5GUtRJ": [
@@ -2668,16 +2686,6 @@
       "value": "Descrizione chiara e concisa che consente ad altri agenti di comprendere quando delegare il lavoro a questo agente specializzato. Compare nelle decisioni per l'handoff dell'agente e nei flussi di lavoro di collaborazione."
     }
   ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "Non è stato possibile creare un agente secondario con l'errore: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "6w0QQX": [
     {
       "type": 0,
@@ -3223,12 +3231,6 @@
       "value": "Accesso di sola lettura al servizio e alle API."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Crea un agente secondario passaggio"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3589,6 +3591,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3749,6 +3763,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3887,6 +3907,12 @@
     {
       "type": 0,
       "value": "Teams channel link"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -4393,6 +4419,12 @@
       "value": "Selezionare un sottoagente di risposta"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4675,6 +4707,12 @@
       "value": "Alcuni dei gruppi di risorse selezionati non dispongono delle autorizzazioni roleAssignments/write e Microsoft.ManagedIdentity/userAssignedIdentities/write necessarie."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4735,6 +4773,12 @@
     {
       "type": 0,
       "value": "Non è stato possibile caricare le sottoscrizioni."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -5657,6 +5701,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5849,6 +5907,69 @@
       "value": "Grafana con gestione Azure"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -5905,12 +6026,6 @@
     {
       "type": 0,
       "value": "Nuovo thread"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Creazione dell'agente secondario"
     }
   ],
   "IYLPrk": [
@@ -6821,12 +6936,6 @@
       "value": "Descrivere la pianificazione"
     }
   ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Selezionare un incidente."
-    }
-  ],
   "LnglaU": [
     {
       "type": 0,
@@ -6904,6 +7013,12 @@
     {
       "type": 0,
       "value": "Livello di gravità"
+    }
+  ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
     }
   ],
   "LyHqqV": [
@@ -7370,6 +7485,12 @@
       "value": "OK"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7452,20 +7573,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "Ogni "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " minuti"
-    }
-  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7532,12 +7639,6 @@
     {
       "type": 0,
       "value": "Nuovi messaggi"
-    }
-  ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Eliminare questo agente SRE? L'azione non può essere annullata."
     }
   ],
   "O9C6j/": [
@@ -7626,6 +7727,12 @@
     {
       "type": 0,
       "value": "Dati di traccia analizzati con errori."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -7990,20 +8097,6 @@
       "value": "Modificare le configurazioni dell'agente delle API per il settore sanitario."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "Creazione dell'agente secondario \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -8086,6 +8179,12 @@
     {
       "type": 0,
       "value": "Ora della decisione"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -8274,20 +8373,6 @@
       "value": "Cancella tutto"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "Ogni "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " ore"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8298,6 +8383,12 @@
     {
       "type": 0,
       "value": "1. Describe the action you took 2. Mention the resource or service involved"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -9436,12 +9527,6 @@
       "value": "Anteprima chat"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Nessun agente secondario configurato"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9660,12 +9745,6 @@
       "value": "Riprovare o controllare la console per i dettagli."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Anteprima canale di aggiornamento"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9706,12 +9785,6 @@
     {
       "type": 0,
       "value": "Non si è autorizzati a controllare la connessione di gestione degli incidenti."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10417,12 +10490,6 @@
       "value": "Stress test"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "Non è stato possibile creare un agente secondario"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10609,6 +10676,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -10735,6 +10808,69 @@
     {
       "type": 0,
       "value": "Selezionare uno strumento esistente di seguito per connetterlo."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -11229,12 +11365,6 @@
       "value": " caratteri."
     }
   ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Stabile - Riceve gli aggiornamenti una volta al mese"
-    }
-  ],
   "bjDKAe": [
     {
       "offset": 0,
@@ -11399,12 +11529,6 @@
     {
       "type": 0,
       "value": "Selezionato"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "Ecco il piano ToDo:"
     }
   ],
   "c/KktL": [
@@ -11741,10 +11865,10 @@
       "value": "Crea attività pianificata"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "Un agente IA secondario con istruzioni e strumenti"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -12079,12 +12203,6 @@
       "value": "Indicazioni risposta personalizzata"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "I nuovi agenti secondari di passaggio sono inizialmente autonomi. È possibile connettere strumenti e altri dettagli in un secondo momento."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -12171,6 +12289,12 @@
     {
       "type": 0,
       "value": "Specialista emergente"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -12265,12 +12389,6 @@
     {
       "type": 0,
       "value": "Tutti i livelli di gravità"
-    }
-  ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Esiste già un agente secondario con questo nome"
     }
   ],
   "fiLH5L": [
@@ -12707,12 +12825,6 @@
       "value": "Non è stato possibile eliminare i gruppi di risorse gestite selezionati"
     }
   ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Agente secondario"
-    }
-  ],
   "hO1Iog": [
     {
       "type": 0,
@@ -12843,6 +12955,12 @@
     {
       "type": 0,
       "value": "Categoria RCA"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -13327,12 +13445,6 @@
       "value": "La risorsa di Grafana deve essere univoca all'interno del gruppo di risorse."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Immettere il nome dell'agente secondario"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
@@ -13675,6 +13787,12 @@
       "value": "Scheduled task(s) ran successfully"
     }
   ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
+    }
+  ],
   "lCsNuL": [
     {
       "type": 0,
@@ -13733,6 +13851,12 @@
       "value": "Eliminare il piano di risposta personalizzato?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -13775,6 +13899,12 @@
     {
       "type": 0,
       "value": "Cerca gli strumenti di sistema per nome, categoria o descrizione"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -14129,6 +14259,12 @@
       "value": "Logo di Grafana"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -14213,12 +14349,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Anteprima - Riceve gli aggiornamenti due volte a settimana"
     }
   ],
   "nQpONp": [
@@ -14735,6 +14865,12 @@
       "value": "Modifica chiave"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -15238,6 +15374,12 @@
       "value": "Intervallo di date:"
     }
   ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
+    }
+  ],
   "rQAyD6": [
     {
       "type": 0,
@@ -15596,12 +15738,6 @@
       "value": "Nessun nodo trovato"
     }
   ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "Questo elenco mostra gli agenti, gli strumenti e i connettori estesi organizzati per categoria. Creare e gestire agenti secondari per estendere le funzionalità, aggiungere strumenti personalizzati per attività specifiche e configurare i connettori per accedere alle risorse esterne."
-    }
-  ],
   "sQkhYk": [
     {
       "type": 0,
@@ -15780,12 +15916,6 @@
       "value": "Performs specialized tasks on behalf of the SRE Agent."
     }
   ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Ogni ora"
-    }
-  ],
   "swRudj": [
     {
       "type": 0,
@@ -15946,6 +16076,12 @@
       "value": "Impostare un limite di esecuzione"
     }
   ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
+    }
+  ],
   "tU3A8E": [
     {
       "type": 0,
@@ -16010,20 +16146,6 @@
     {
       "type": 0,
       "value": "Verificare il modo in cui l'agente riepiloga i rischi e i passaggi successivi per gli aggiornamenti della dirigenza."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "Creazione dell'agente secondario \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" completata"
     }
   ],
   "thOyk5": [
@@ -16172,6 +16294,12 @@
     {
       "type": 0,
       "value": "Visualizzazione dei primi 1000 risultati. Filtrare per limitare l'elenco."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16545,6 +16673,12 @@
       "value": "Connettersi a origini dati come Kusto per funzionalità avanzate dell'agente"
     }
   ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
+    }
+  ],
   "vDbj1h": [
     {
       "type": 0,
@@ -16767,6 +16901,12 @@
       "value": "Calcolo dei costi in sospeso"
     }
   ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
+    }
+  ],
   "wGLrHW": [
     {
       "type": 0,
@@ -16835,6 +16975,12 @@
     {
       "type": 0,
       "value": "Crea un nuovo agente di handoff"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -16991,12 +17137,6 @@
     {
       "type": 0,
       "value": "Non ci sono ancora esecuzioni"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Generatore di agenti secondari"
     }
   ],
   "xDYr9m": [
@@ -17301,12 +17441,6 @@
       "value": "Disattiva l'audio di questo avviso"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Crea agente secondario"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -17323,6 +17457,12 @@
     {
       "type": 0,
       "value": "Learn more about deep investigations"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17419,6 +17559,12 @@
     {
       "type": 0,
       "value": "Gruppi di risorse gestite"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -17703,6 +17849,18 @@
     {
       "type": 0,
       "value": "Impostazioni avanzate"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

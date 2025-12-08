@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Ora di inizio"
     }
   ],
   "01lT1B": [
@@ -146,7 +146,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Espandi"
     }
   ],
   "0te2Ra": [
@@ -158,7 +158,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Caricamento delle operazioni in corso.."
     }
   ],
   "1YPTmM": [
@@ -296,7 +296,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Rimuovi gruppo di risorse"
     }
   ],
   "4ii5zj": [
@@ -311,10 +311,16 @@
       "value": "Azione per elencare le credenziali dell'amministratore del cluster."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Distribuisci"
     }
   ],
   "5M+hLZ": [
@@ -521,7 +527,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Distribuzione non riuscita"
     }
   ],
   "ABo5XY": [
@@ -576,6 +582,12 @@
     {
       "type": 0,
       "value": "Lettore di Centro di Azure per soluzioni SAP"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -660,6 +672,12 @@
     {
       "type": 0,
       "value": "Consente di leggere e testare solo una knowledge base."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -778,6 +796,18 @@
       "value": "Agenti SRE di Azure"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -826,6 +856,12 @@
       "value": "Attivare/disattivare per visualizzare solo i gruppi di risorse consigliati"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -841,7 +877,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Operazione completata"
     }
   ],
   "LSaaxU": [
@@ -970,7 +1006,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Creato"
     }
   ],
   "OTGHHm": [
@@ -979,10 +1015,53 @@
       "value": "Le risorse selezionate dispongono delle autorizzazioni per questi ruoli."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Nome distribuzione"
     }
   ],
   "Oom2N7": [
@@ -1122,7 +1201,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Aggiornamento"
     }
   ],
   "SCjiXP": [
@@ -1264,7 +1343,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Comprimi"
     }
   ],
   "W4H4Z9": [
@@ -1443,6 +1522,12 @@
       "value": "Sì"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1516,6 +1601,12 @@
       "value": "È possibile scegliere un massimo di 100 gruppi di risorse che verranno gestiti dall'agente."
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b43a5F": [
     {
       "type": 0,
@@ -1582,6 +1673,12 @@
       "value": "Cache Redis"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1597,7 +1694,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Operazioni sulle risorse"
     }
   ],
   "d2GmfJ": [
@@ -1704,6 +1801,12 @@
       "value": "Blocco di sola lettura"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1749,7 +1852,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Distribuzione in corso..."
     }
   ],
   "gzx/k1": [
@@ -1993,7 +2096,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "In esecuzione"
     }
   ],
   "nlPgO8": [
@@ -2052,6 +2155,12 @@
       "value": "L'agente è in modalità di revisione. Sono necessarie le seguenti autorizzazioni affinché l'agente possa acquisire informazioni sulle risorse. L'agente userà alcune di queste autorizzazioni per eseguire operazioni di scrittura con l'approvazione dell'utente in base alle sue richieste."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -2061,7 +2170,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "ID di correlazione"
     }
   ],
   "pAFuFx": [
@@ -2316,13 +2425,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Distribuzione completata"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Operazione non riuscita"
     }
   ],
   "vbdOl/": [
@@ -2346,7 +2455,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Nessuna operazione trovata"
     }
   ],
   "wCtBb6": [
@@ -2418,7 +2527,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Creazione in corso"
     }
   ],
   "xmcVZ0": [

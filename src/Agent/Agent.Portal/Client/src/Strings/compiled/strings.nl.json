@@ -2,19 +2,19 @@
   "+/nU/s": [
     {
       "type": 0,
-      "value": "Gives you read access to management and content operations, but does not allow making changes."
+      "value": "Geeft je leestoegang tot beheer- en inhoudsbewerkingen, maar maakt geen wijzigingen mogelijk."
     }
   ],
   "+CwN9C": [
     {
       "type": 0,
-      "value": "System"
+      "value": "Systeem"
     }
   ],
   "+Ov1f1": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have policies that will cause the deployment to fail."
+      "value": "Sommige van de geselecteerde resourcegroepen hebben beleidsregels waardoor de implementatie zal mislukken."
     }
   ],
   "+TlNdm": [
@@ -26,25 +26,25 @@
   "+YDzOd": [
     {
       "type": 0,
-      "value": "Name must be between 2 and 32 characters"
+      "value": "De naam moet tussen de 2 en 32 tekens bevatten"
     }
   ],
   "+bJIWo": [
     {
       "type": 0,
-      "value": "Agent permissions level"
+      "value": "Machtigingsniveau van agent"
     }
   ],
   "+k5t/y": [
     {
       "type": 0,
-      "value": "Contributor"
+      "value": "Inzender"
     }
   ],
   "+l+XEu": [
     {
       "type": 0,
-      "value": "Can read workbooks."
+      "value": "Kan werkmappen lezen."
     }
   ],
   "+uAdUZ": [
@@ -56,25 +56,25 @@
   "+zgzmq": [
     {
       "type": 0,
-      "value": "Cosmos DB Accounts"
+      "value": "Cosmos DB-accounts"
     }
   ],
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Documenten"
     }
   ],
   "/6Fckw": [
     {
       "type": 0,
-      "value": "Provisioning SRE Agent"
+      "value": "SRE-agent inrichten"
     }
   ],
   "/8MshI": [
     {
       "type": 0,
-      "value": "Manage SQL Managed Instances."
+      "value": "Beheerde SQL-exemplaren beheren."
     }
   ],
   "/WrP/v": [
@@ -86,25 +86,25 @@
   "/dxZCE": [
     {
       "type": 0,
-      "value": "Your agent is in autonomous mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations autonomously based on your requests."
+      "value": "Je agent bevindt zich in de autonome modus. De volgende machtigingen zijn nodig zodat de agent kennis kan opbouwen over je resources. De agent gebruikt een deel van deze machtigingen om zelfstandig schrijfbewerkingen uit te voeren op basis van jouw verzoeken."
     }
   ],
   "/gCtdO": [
     {
       "type": 0,
-      "value": "Manage Custom Vision projects."
+      "value": "Beheer Custom Vision-projecten."
     }
   ],
   "/wY7pG": [
     {
       "type": 0,
-      "value": "PostgreSQL Servers"
+      "value": "PostgreSQL-servers"
     }
   ],
   "/ytgXm": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "Filter van "
     },
     {
       "type": 1,
@@ -112,19 +112,19 @@
     },
     {
       "type": 0,
-      "value": " filter"
+      "value": " verwijderen"
     }
   ],
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Begintijd"
     }
   ],
   "01lT1B": [
     {
       "type": 0,
-      "value": "Lets you read, enable and disable logic app."
+      "value": "Hiermee kunt u logische apps lezen, inschakelen en uitschakelen."
     }
   ],
   "01sZoP": [
@@ -134,7 +134,7 @@
     },
     {
       "type": 0,
-      "value": " of "
+      "value": " van "
     },
     {
       "type": 1,
@@ -144,73 +144,73 @@
   "0Dhe75": [
     {
       "type": 0,
-      "value": "Manage SQL servers and their security policies."
+      "value": "Beheer SQL-servers en hun beveiligingsbeleid."
     }
   ],
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Uitvouwen"
     }
   ],
   "0te2Ra": [
     {
       "type": 0,
-      "value": "Manage Azure Data Factory instances."
+      "value": "Beheer Azure Data Factory-instanties."
     }
   ],
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Bewerkingen laden..."
     }
   ],
   "1YPTmM": [
     {
       "type": 0,
-      "value": "Web Plan Contributor"
+      "value": "Inzender voor webabonnementen"
     }
   ],
   "1ZgrhW": [
     {
       "type": 0,
-      "value": "Role"
+      "value": "Rol"
     }
   ],
   "1myzs4": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Servers"
+      "value": "Flexibele PostgreSQL-servers"
     }
   ],
   "1t2BaF": [
     {
       "type": 0,
-      "value": "Geneva actions configuration"
+      "value": "Configuratie van Geneva Actions"
     }
   ],
   "2/2yg+": [
     {
       "type": 0,
-      "value": "Add"
+      "value": "Toevoegen"
     }
   ],
   "2GuZPR": [
     {
       "type": 0,
-      "value": "Portal feedback"
+      "value": "Portalfeedback"
     }
   ],
   "2LQx4N": [
     {
       "type": 0,
-      "value": "Manage App Configuration stores."
+      "value": "Beheer App Configuration-winkels."
     }
   ],
   "2PnnDB": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device registry."
+      "value": "Beheer het apparaatregister van IoT Hub."
     }
   ],
   "2do8JC": [
@@ -222,7 +222,7 @@
   "2xRon3": [
     {
       "type": 0,
-      "value": "Select resource groups dialog"
+      "value": "Dialoogvenster Resourcegroepen selecteren"
     }
   ],
   "3IKub9": [
@@ -234,133 +234,139 @@
   "3cc4Ct": [
     {
       "type": 0,
-      "value": "Light"
+      "value": "Licht"
     }
   ],
   "3nhWFW": [
     {
       "type": 0,
-      "value": "Reader"
+      "value": "Lezer"
     }
   ],
   "3t/IhV": [
     {
       "type": 0,
-      "value": "Can view cost data and configuration (e.g. budgets, exports)."
+      "value": "Kan kostengegevens en configuratie weergeven (bijvoorbeeld budgetten, exports)."
     }
   ],
   "3tJfza": [
     {
       "type": 0,
-      "value": "The agent has permissions to take approved actions on resources and resource types detected in its assigned resource groups."
+      "value": "De agent heeft machtigingen om goedgekeurde acties uit te voeren op resources en resourcetypen die zijn gedetecteerd in zijn toegewezen resourcegroepen."
     }
   ],
   "3zLsNR": [
     {
       "type": 0,
-      "value": "Manage websites, but not web plans. Does not allow you to assign roles."
+      "value": "Beheer websites, maar geen webplannen. Hiermee kun je geen rollen toewijzen."
     }
   ],
   "43mD/Y": [
     {
       "type": 0,
-      "value": "Storage Blob Containers"
+      "value": "Opslagblobcontainers"
     }
   ],
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "Geen"
     }
   ],
   "456ixe": [
     {
       "type": 0,
-      "value": "All regions"
+      "value": "Alle regio's"
     }
   ],
   "47FYwb": [
     {
       "type": 0,
-      "value": "Cancel"
+      "value": "Annuleren"
     }
   ],
   "4MeTpL": [
     {
       "type": 0,
-      "value": "Workbook Contributor"
+      "value": "Workbook-inzender"
     }
   ],
   "4TnjxL": [
     {
       "type": 0,
-      "value": "API Management Service Reader Role"
+      "value": "Lezerrol voor de API Management-service"
     }
   ],
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Resourcegroep verwijderen"
     }
   ],
   "4ii5zj": [
     {
       "type": 0,
-      "value": "Allows for read access to Azure Storage blob containers and data."
+      "value": "Hiermee wordt leestoegang verleend voor Azure Storage-blobcontainers en -gegevens."
     }
   ],
   "4kCXiz": [
     {
       "type": 0,
-      "value": "List cluster admin credential action."
+      "value": "Referentieactie voor clusterbeheer weergeven."
+    }
+  ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
     }
   ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Implementeren"
     }
   ],
   "5M+hLZ": [
     {
       "type": 0,
-      "value": "User permissions"
+      "value": "Gebruikersmachtigingen"
     }
   ],
   "5Sc5rT": [
     {
       "type": 0,
-      "value": "IoT Hub Twin Contributor"
+      "value": "Inzender voor IoT Hub Twin"
     }
   ],
   "5UUKxL": [
     {
       "type": 0,
-      "value": "Storage Accounts"
+      "value": "Opslagaccounts"
     }
   ],
   "5UfRjw": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Contributor"
+      "value": "Gegevensinzender van Device Provisioning Service"
     }
   ],
   "5V+Txp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster User Role"
+      "value": "Clustergebruikersrol voor Azure Kubernetes Service"
     }
   ],
   "5WK7jL": [
     {
       "type": 0,
-      "value": "Create new"
+      "value": "Nieuw item maken"
     }
   ],
   "5j5HnL": [
     {
       "type": 0,
-      "value": "Editor to filter the results by column value. "
+      "value": "Editor om de resultaten te filteren op kolomwaarde. "
     },
     {
       "type": 1,
@@ -382,13 +388,13 @@
   "5wGcN7": [
     {
       "type": 0,
-      "value": "Cost Management Reader"
+      "value": "Lezer van kostenbeheer"
     }
   ],
   "64zSh3": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Writer"
+      "value": "LUIS-schrijver voor Cognitive Services"
     }
   ],
   "69g7If": [
@@ -400,31 +406,31 @@
   "6B5Jtu": [
     {
       "type": 0,
-      "value": "This field is required."
+      "value": "Dit veld is verplicht."
     }
   ],
   "6YXj/s": [
     {
       "type": 0,
-      "value": "Contribute to Speech service resources."
+      "value": "Draag bij aan spraakservicebronnen."
     }
   ],
   "6zUWZ/": [
     {
       "type": 0,
-      "value": "Read all monitoring data and edit monitoring settings."
+      "value": "Alle bewakingsgegevens lezen en bewakingsinstellingen bewerken."
     }
   ],
   "7+b0J0": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Contributor"
+      "value": "Aangepaste visiebijdrager Cognitive Services"
     }
   ],
   "75IWbW": [
     {
       "type": 0,
-      "value": "Deployment to this resource group will be blocked by policy: {field} not allowed. Policy Assignment ID: "
+      "value": "Implementatie naar deze resourcegroep wordt geblokkeerd door beleid: {field} niet toegestaan. Beleidstoewijzings-id: "
     },
     {
       "type": 1,
@@ -434,19 +440,19 @@
   "7N87nD": [
     {
       "type": 0,
-      "value": "Manage Device Provisioning Service data."
+      "value": "Apparaatinrichtingsservicegegevens beheren."
     }
   ],
   "87v+WY": [
     {
       "type": 0,
-      "value": "Full access to Azure Digital Twins data."
+      "value": "Volledige toegang tot Azure Digital Twins-gegevens."
     }
   ],
   "8NHZQV": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Reader"
+      "value": "Taallezer voor Cognitive Services"
     }
   ],
   "8OCpdQ": [
@@ -484,13 +490,13 @@
   "8aHHLj": [
     {
       "type": 0,
-      "value": "Read-only access to service and APIs."
+      "value": "Alleen-lezentoegang tot de service en API's."
     }
   ],
   "8nBFW4": [
     {
       "type": 0,
-      "value": "Redis Cache Contributor"
+      "value": "Inzender voor Redis Cache"
     }
   ],
   "8yyU6n": [
@@ -502,127 +508,133 @@
   "9+Ddtu": [
     {
       "type": 0,
-      "value": "Next"
+      "value": "Volgende"
     }
   ],
   "94Fg25": [
     {
       "type": 0,
-      "value": "Select all"
+      "value": "Alles selecteren"
     }
   ],
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "De implementatie is mislukt"
     }
   ],
   "ABo5XY": [
     {
       "type": 0,
-      "value": "DocumentDB Account Contributor"
+      "value": "Bijdrager voor het DocumentDB-account"
     }
   ],
   "ASEuj4": [
     {
       "type": 0,
-      "value": "Denied by policy"
+      "value": "Geweigerd door beleid"
     }
   ],
   "AVMCsG": [
     {
       "type": 0,
-      "value": "Machine Learning Workspaces"
+      "value": "Machine Learning-werkruimten"
     }
   ],
   "Ab4TgE": [
     {
       "type": 0,
-      "value": "Agent permissions and roles table"
+      "value": "Tabel met agentmachtigingen en -rollen"
     }
   ],
   "AeWmvh": [
     {
       "type": 0,
-      "value": "Lets you manage virtual machines, but not access to them, and not the virtual network or storage account they are connected to."
+      "value": "Hiermee beheer je virtuele machines, maar heb je geen toegang tot de virtuele machines of het virtuele netwerk of opslagaccount waaraan de virtuele machines zijn gekoppeld."
     }
   ],
   "AhdXRl": [
     {
       "type": 0,
-      "value": "Max agent count"
+      "value": "Maximaal aantal agents"
     }
   ],
   "Avsnjl": [
     {
       "type": 0,
-      "value": "Themes"
+      "value": "Thema's"
     }
   ],
   "B6aNdQ": [
     {
       "type": 0,
-      "value": "The name must begin and end with a lowercase letter, and contain only lowercase letters, numbers, and hyphens. It cannot contain consecutive hyphens."
+      "value": "De naam moet beginnen en eindigen met een kleine letter en mag alleen kleine letters, cijfers en afbreekstreepjes bevatten. Het mag geen opeenvolgende afbreekstreepjes bevatten."
     }
   ],
   "BKSv0l": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions reader"
+      "value": "Lezer van Azure Center voor SAP-oplossingen"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
     {
       "type": 0,
-      "value": "List cluster user credential action."
+      "value": "Referentieactie voor clustergebruiker weergeven."
     }
   ],
   "C0ZRdE": [
     {
       "type": 0,
-      "value": "The agent has read-only permissions on the resource groups it manages. It takes the user's permissions temporarily for approved actions."
+      "value": "De agent heeft alleen-lezen machtigingen voor de resourcegroepen die hij beheert. Voor goedgekeurde acties neemt hij tijdelijk de machtigingen van de gebruiker over."
     }
   ],
   "C3PGqj": [
     {
       "type": 0,
-      "value": "Logic App Contributor"
+      "value": "Bijdrager voor logische apps"
     }
   ],
   "C8z3QQ": [
     {
       "type": 0,
-      "value": "Data Factories"
+      "value": "Data factory's"
     }
   ],
   "CFJ1OD": [
     {
       "type": 0,
-      "value": "Read-only role for Digital Twins data-plane properties."
+      "value": "Alleen-lezenrol voor eigenschappen van Digital Twins-gegevensvlak."
     }
   ],
   "CMaDRa": [
     {
       "type": 0,
-      "value": "Write access to Language service resources."
+      "value": "Schrijftoegang tot Language-servicebronnen."
     }
   ],
   "CfGC/2": [
     {
       "type": 0,
-      "value": "Select resource groups to monitor"
+      "value": "Selecteer de resourcegroepen die je wilt bewaken"
     }
   ],
   "Ch3IdZ": [
     {
       "type": 0,
-      "value": "View popular skills"
+      "value": "Populaire vaardigheden weergeven"
     }
   ],
   "CrmeG3": [
     {
       "type": 0,
-      "value": "This resource group contains resources supported by SRE Agent"
+      "value": "Deze resourcegroep bevat resources die worden ondersteund door de SRE-agent"
     }
   ],
   "D3idYv": [
@@ -634,43 +646,49 @@
   "DdD2hE": [
     {
       "type": 0,
-      "value": "Filter items..."
+      "value": "Items filteren..."
     }
   ],
   "DdnNXo": [
     {
       "type": 0,
-      "value": "Privacy & cookies"
+      "value": "Privacy en cookies"
     }
   ],
   "Dff3ms": [
     {
       "type": 0,
-      "value": "Cognitive Services Contributor"
+      "value": "Cognitive Services-bijdrager"
     }
   ],
   "Dx3Xj3": [
     {
       "type": 0,
-      "value": "Let's you read and test a KB only."
+      "value": "Laat je alleen een KB lezen en testen."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
     {
       "type": 0,
-      "value": "Grants permission for read operations for App Configuration resources."
+      "value": "Verleent toestemming voor leesbewerkingen voor App Configuration-resources."
     }
   ],
   "EWw/tK": [
     {
       "type": 0,
-      "value": "Apply"
+      "value": "Toepassen"
     }
   ],
   "EdEthU": [
     {
       "type": 0,
-      "value": "API Management Workspace Contributor"
+      "value": "Inzender voor API Management-werkruimte"
     }
   ],
   "Erci0g": [
@@ -682,19 +700,19 @@
   "FqRdvb": [
     {
       "type": 0,
-      "value": "AKS Clusters"
+      "value": "AKS-clusters"
     }
   ],
   "G1xeUt": [
     {
       "type": 0,
-      "value": "Approval Required"
+      "value": "Goedkeuring is vereist"
     }
   ],
   "G7yB8N": [
     {
       "type": 0,
-      "value": "Registration failed"
+      "value": "Registratie is mislukt"
     }
   ],
   "GBnvl1": [
@@ -706,7 +724,7 @@
   "GDEEBE": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Kan de URL "
     },
     {
       "type": 1,
@@ -714,37 +732,37 @@
     },
     {
       "type": 0,
-      "value": ". We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent."
+      "value": " niet laden. We hebben ontdekt dat jouw organisatie Zscaler gebruikt om je te beschermen tegen onbekende domeinen. Neem contact op met je netwerkbeheerder om de beperking voor dit domein te verwijderen, zodat je verder kunt met je agent."
     }
   ],
   "GWson9": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have deny assignments that prevent deployments."
+      "value": "Sommige van de geselecteerde resourcegroepen hebben weigeringstoewijzingen die implementaties voorkomen."
     }
   ],
   "GmzN3r": [
     {
       "type": 0,
-      "value": "We were unable to register the Microsoft.App RP due to a lack of permissions which may cause your deployment to fail. Ensure that you have Contributor permissions to this subscription or have your subscription administrator register the RP for you."
+      "value": "We kunnen de Microsoft.App RP niet registreren vanwege ontbrekende machtigingen, waardoor uw implementatie kan mislukken. Zorg dat u inzendersmachtigingen hebt voor dit abonnement of laat uw abonnementsbeheerder de RP voor u registreren."
     }
   ],
   "GoSIa4": [
     {
       "type": 0,
-      "value": "Minimal permission to view Cognitive Services usages."
+      "value": "Minimale machtiging om Cognitive Services-gebruiksgegevens weer te geven."
     }
   ],
   "H/i1A+": [
     {
       "type": 0,
-      "value": "Create your first Azure SRE Agent"
+      "value": "Maak je eerste Azure SRE Agent"
     }
   ],
   "H3ooTI": [
     {
       "type": 0,
-      "value": "Azure Service Bus Data Owner"
+      "value": "Eigenaar van Azure Service Bus-gegevens"
     }
   ],
   "HAlOn1": [
@@ -762,13 +780,25 @@
   "HQhDfV": [
     {
       "type": 0,
-      "value": "Cognitive Services OpenAI Contributor"
+      "value": "Cognitive Services OpenAI-inzender"
     }
   ],
   "He4/qi": [
     {
       "type": 0,
       "value": "Azure SRE Agents"
+    }
+  ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
     }
   ],
   "I6cq17": [
@@ -780,25 +810,25 @@
   "IEFW3Y": [
     {
       "type": 0,
-      "value": "App Configuration Contributor"
+      "value": "App Configuration-inzender"
     }
   ],
   "IQaKwH": [
     {
       "type": 0,
-      "value": "Lets you read Cognitive Services data."
+      "value": "Hiermee kunt gegevens van Cognitive Services lezen"
     }
   ],
   "If+Q1B": [
     {
       "type": 0,
-      "value": "A resource group with this name already exists in the selected subscription."
+      "value": "Er bestaat al een resourcegroep met deze naam in het geselecteerde abonnement."
     }
   ],
   "KAYpG9": [
     {
       "type": 0,
-      "value": "Allows for full read access to IoT Hub data-plane properties."
+      "value": "Hiermee heb je volledige leestoegang tot IoT Hub-eigenschappen van het gegevensvlak."
     }
   ],
   "KJGQ1f": [
@@ -810,49 +840,55 @@
   "Kbdzt3": [
     {
       "type": 0,
-      "value": "This subscription is not currently whitelisted to use SRE Agent. Please contact your administrator or support team to request access."
+      "value": "Dit abonnement staat momenteel niet op de whitelist om SRE Agent te gebruiken. Neem contact op met je beheerder of het ondersteuningsteam om toegang aan te vragen."
     }
   ],
   "Kg6ebk": [
     {
       "type": 0,
-      "value": "Toggle to show only recommended resource groups"
+      "value": "Schakelen om alleen aanbevolen resourcegroepen weer te geven"
+    }
+  ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Grants full access to manage all resources, but does not allow you to assign roles in Azure RBAC, manage assignments in Azure Blueprints, or share image galleries."
+      "value": "Hiermee wordt volledige toegang verleend voor het beheren van alle resources, maar u kunt geen rollen toewijzen in Azure RBAC, toewijzingen beheren in Azure Blueprints of afbeeldingsgalerijen delen."
     }
   ],
   "L31yBb": [
     {
       "type": 0,
-      "value": "Function Apps"
+      "value": "Functie-apps"
     }
   ],
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Geslaagd"
     }
   ],
   "LSaaxU": [
     {
       "type": 0,
-      "value": "View all resources, but does not allow you to make any changes."
+      "value": "Hiermee kunt u alle resources weergeven, maar u kunt geen wijzigingen aanbrengen."
     }
   ],
   "LkSPVW": [
     {
       "type": 0,
-      "value": "Select an existing resource group"
+      "value": "Selecteer een bestaande resourcegroep"
     }
   ],
   "LrnSHG": [
     {
       "type": 0,
-      "value": "Select a subscription"
+      "value": "Een abonnement selecteren"
     }
   ],
   "LupnQU": [
@@ -890,25 +926,25 @@
   "Mnvpbx": [
     {
       "type": 0,
-      "value": "Full management of Container Apps, including creation, deletion, and updates."
+      "value": "Volledig beheer van Container Apps, inclusief maken, verwijderen en updates."
     }
   ],
   "NAAdaF": [
     {
       "type": 0,
-      "value": "This role provides read access to all capabilities of Azure Center for SAP solutions."
+      "value": "Deze rol geeft leesrechten voor alle mogelijkheden van Azure Center for SAP-oplossingen."
     }
   ],
   "NAidKb": [
     {
       "type": 0,
-      "value": "Notifications"
+      "value": "Meldingen"
     }
   ],
   "NCTGGm": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "Het maken van SRE-agent "
     },
     {
       "type": 1,
@@ -916,139 +952,171 @@
     },
     {
       "type": 0,
-      "value": " creation validation succeeded"
+      "value": " is gevalideerd"
     }
   ],
   "ND2EUR": [
     {
       "type": 0,
-      "value": "Storage Blob Data Contributor"
+      "value": "Bijdrager voor opslagblobgegevens"
     }
   ],
   "NcxGiD": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Admin"
+      "value": "HDInsight op AKS-clusterbeheerder"
     }
   ],
   "Ngsqgf": [
     {
       "type": 0,
-      "value": "Resource groups list"
+      "value": "Lijst met resourcegroepen"
     }
   ],
   "Nrc9ba": [
     {
       "type": 0,
-      "value": "Thank you for your feedback!"
+      "value": "Hartelijk dank voor uw feedback."
     }
   ],
   "OJ2u8k": [
     {
       "type": 0,
-      "value": "Enter name"
+      "value": "Naam invoeren"
     }
   ],
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Gemaakt"
     }
   ],
   "OTGHHm": [
     {
       "type": 0,
-      "value": "The resources you picked have permissions for these roles."
+      "value": "De resources die je hebt gekozen, hebben machtigingen voor deze rollen."
+    }
+  ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Implementatienaam"
     }
   ],
   "Oom2N7": [
     {
       "type": 0,
-      "value": "View and search all monitoring data as well as view monitoring settings, including viewing the configuration of Azure diagnostics on all Azure resources."
+      "value": "Bekijk en doorzoek alle controlegegevens en bekijk de controle-instellingen, inclusief de configuratie van Azure Diagnostics op alle Azure-resources."
     }
   ],
   "OsTw6c": [
     {
       "type": 0,
-      "value": "Validating SRE Agent creation"
+      "value": "Het maken van de SRE-agent wordt gevalideerd"
     }
   ],
   "P/DTRU": [
     {
       "type": 0,
-      "value": "Dismiss completed"
+      "value": "Sluiten is voltooid"
     }
   ],
   "P3qxV2": [
     {
       "type": 0,
-      "value": "Search Service Contributor"
+      "value": "Inzender voor Search-services"
     }
   ],
   "P9odAr": [
     {
       "type": 0,
-      "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
+      "value": "Je agent staat in de alleen-lezen modus. De volgende machtigingen zijn nodig zodat de agent kennis kan opbouwen over je resources. De rollen voor bijdrager voor specifieke services worden niet gebruikt voor schrijfbewerkingen."
     }
   ],
   "PXg8+x": [
     {
       "type": 0,
-      "value": "Virtual Machine Contributor"
+      "value": "Inzender voor virtuele machines"
     }
   ],
   "Phji5P": [
     {
       "type": 0,
-      "value": "Edit Healthcare APIs agent configurations."
+      "value": "Configuraties van de gezondheidszorg-API's-agent bewerken."
     }
   ],
   "PrFU82": [
     {
       "type": 0,
-      "value": "Can read all monitoring data and update monitoring settings."
+      "value": "Kan alle controlegegevens lezen en de controle-instellingen bijwerken."
     }
   ],
   "Pwen/L": [
     {
       "type": 0,
-      "value": "Cognitive Services LUIS Reader"
+      "value": "LUIS-lezer voor Cognitive Services"
     }
   ],
   "Q3p3sz": [
     {
       "type": 0,
-      "value": "Storage Blob Data Reader"
+      "value": "Lezer voor opslagblobgegevens"
     }
   ],
   "Q8Qw5B": [
     {
       "type": 0,
-      "value": "Description"
+      "value": "Beschrijving"
     }
   ],
   "QIY3dQ": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Owner"
+      "value": "Azure Digital Twins-gegevenseigenaar (preview-versie)"
     }
   ],
   "Qly58H": [
     {
       "type": 0,
-      "value": "To view the roles and permissions the agent will have, choose resource groups for the agent to manage."
+      "value": "Kies resourcegroepen die de agent moet beheren om de rollen en machtigingen te bekijken die de agent krijgt."
     }
   ],
   "QwVQbw": [
     {
       "type": 0,
-      "value": "Failed to register Microsoft.App RP for SRE Agent "
+      "value": "Kan de Microsoft.App RP voor het maken van SRE-agent "
     },
     {
       "type": 1,
@@ -1056,13 +1124,13 @@
     },
     {
       "type": 0,
-      "value": " creation. Please ensure you have Contributor permissions on the subscription or contact your subscription administrator to register the RP for you."
+      "value": " niet registreren. Zorg dat u inzendersmachtigingen hebt voor het abonnement of neem contact op met uw abonnementsbeheerder om de RP voor u te registreren."
     }
   ],
   "R+J5ox": [
     {
       "type": 0,
-      "value": "Review"
+      "value": "Controleren"
     }
   ],
   "R/6nsx": [
@@ -1074,19 +1142,19 @@
   "R1RX2a": [
     {
       "type": 0,
-      "value": "Full access to IoT Hub data."
+      "value": "Volledige toegang tot IoT Hub-gegevens."
     }
   ],
   "RDwKyy": [
     {
       "type": 0,
-      "value": "Directory"
+      "value": "Map"
     }
   ],
   "RStTJp": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service Cluster Admin"
+      "value": "Azure Kubernetes Service-clusterbeheerder"
     }
   ],
   "RVf7gC": [
@@ -1098,55 +1166,55 @@
   "RrsyUh": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Reader"
+      "value": "Azure Kubernetes Service RBAC-lezer"
     }
   ],
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Bijwerken"
     }
   ],
   "SCjiXP": [
     {
       "type": 0,
-      "value": "Cognitive Services Data Reader"
+      "value": "Cognitive Services-gegevenslezer"
     }
   ],
   "SQJto2": [
     {
       "type": 0,
-      "value": "Sign in"
+      "value": "Aanmelden"
     }
   ],
   "Sr4IbA": [
     {
       "type": 0,
-      "value": "Monitoring Reader"
+      "value": "Lezer bewaken"
     }
   ],
   "SuVToZ": [
     {
       "type": 0,
-      "value": "SQL Managed Instance Contributor"
+      "value": "Inzender voor beheerd SQL-exemplaar"
     }
   ],
   "T5+AEf": [
     {
       "type": 0,
-      "value": "Logic App Operator"
+      "value": "Logische app-operator"
     }
   ],
   "TAm7bB": [
     {
       "type": 0,
-      "value": "Monitoring Contributor"
+      "value": "Inzender voor bewaking"
     }
   ],
   "TB6bkn": [
     {
       "type": 0,
-      "value": "Get more info"
+      "value": "Meer informatie ophalen"
     }
   ],
   "TDaF6J": [
@@ -1158,13 +1226,13 @@
   "TDoBlx": [
     {
       "type": 0,
-      "value": "Privileged"
+      "value": "Gemachtigd"
     }
   ],
   "TleXgd": [
     {
       "type": 0,
-      "value": "Azure SRE Agents reduce site reliability costs by proactively identifying issues, automating tasks, and preventing downtime."
+      "value": "Azure SRE Agents verlagen kosten voor sitebetrouwbaarheid door proactief problemen te signaleren, taken te automatiseren en downtime te voorkomen."
     }
   ],
   "TzxmIN": [
@@ -1176,7 +1244,7 @@
   "U5+MBC": [
     {
       "type": 0,
-      "value": "Client ID"
+      "value": "Client-id"
     }
   ],
   "UQUIP7": [
@@ -1194,13 +1262,13 @@
   "UZS12+": [
     {
       "type": 0,
-      "value": "Has read-only access to entities in the workspace. This role should be assigned on the workspace scope."
+      "value": "Heeft alleen-lezentoegang tot entiteiten in de werkruimte. Deze rol moet worden toegewezen aan het werkruimtebereik."
     }
   ],
   "UoL653": [
     {
       "type": 0,
-      "value": "Show only recommended"
+      "value": "Alleen aanbevolen weergeven"
     }
   ],
   "UrGI9K": [
@@ -1212,7 +1280,7 @@
   "UuzObe": [
     {
       "type": 0,
-      "value": "Failed to setup Managed Identity with the error: "
+      "value": "Kan de beheerde identiteit niet instellen vanwege de fout: "
     },
     {
       "type": 1,
@@ -1222,43 +1290,43 @@
   "V/rQci": [
     {
       "type": 0,
-      "value": "Managed resource groups table"
+      "value": "Tabel met beheerde resourcegroepen"
     }
   ],
   "VlBNux": [
     {
       "type": 0,
-      "value": "Application Insights Component Contributor"
+      "value": "Inzender voor Application Insights-onderdelen"
     }
   ],
   "VssvTa": [
     {
       "type": 0,
-      "value": "Invalid template or unable to fetch the template."
+      "value": "Ongeldige sjabloon of kan de sjabloon niet ophalen."
     }
   ],
   "VzzYJk": [
     {
       "type": 0,
-      "value": "Create"
+      "value": "Maken"
     }
   ],
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Samenvouwen"
     }
   ],
   "W4H4Z9": [
     {
       "type": 0,
-      "value": "Notifications will appear here when actions are performed"
+      "value": "Meldingen verschijnen hier wanneer acties worden uitgevoerd"
     }
   ],
   "WE+M5j": [
     {
       "type": 0,
-      "value": "Failed to load SRE Agent locations. Please try again later."
+      "value": "Kan de locaties van de SRE-agent niet laden. Probeer het later opnieuw."
     }
   ],
   "WFo96A": [
@@ -1270,13 +1338,13 @@
   "WLw9E7": [
     {
       "type": 0,
-      "value": "PostgreSQL Flexible Server Long Term Retention Backup Role"
+      "value": "PostgreSQL Flexible Server-rol voor back-ups met langetermijnretentie"
     }
   ],
   "WODKUB": [
     {
       "type": 0,
-      "value": "SRE Agent "
+      "value": "SRE-agent "
     },
     {
       "type": 1,
@@ -1284,37 +1352,37 @@
     },
     {
       "type": 0,
-      "value": " creation succeeded"
+      "value": " is gemaakt"
     }
   ],
   "Wc5b/J": [
     {
       "type": 0,
-      "value": "AzureML Compute Operator"
+      "value": "AzureML-rekenoperator"
     }
   ],
   "Wf6bDe": [
     {
       "type": 0,
-      "value": "Agent details"
+      "value": "Agentgegevens"
     }
   ],
   "WlHVBb": [
     {
       "type": 0,
-      "value": "Log Analytics Workspaces"
+      "value": "Log Analytics-werkruimten"
     }
   ],
   "Wtf3vL": [
     {
       "type": 0,
-      "value": "Data Factory Contributor"
+      "value": "Inzender van Data Factory"
     }
   ],
   "WygVDv": [
     {
       "type": 0,
-      "value": "Administer HDInsight cluster pools."
+      "value": "Beheer HDInsight-clustergroepen."
     }
   ],
   "X0e0bZ": [
@@ -1326,37 +1394,37 @@
   "XJ+Lww": [
     {
       "type": 0,
-      "value": "Lets you read and modify HDInsight cluster configurations."
+      "value": "Hiermee kunt u HDInsight-clusterconfiguraties lezen en wijzigen."
     }
   ],
   "XYSJsS": [
     {
       "type": 0,
-      "value": "API Management Workspace Reader"
+      "value": "API Management-werkruimtelezer"
     }
   ],
   "Xh85Ml": [
     {
       "type": 0,
-      "value": "Current agent count"
+      "value": "Huidig aantal agents"
     }
   ],
   "XtnlO8": [
     {
       "type": 0,
-      "value": "Manage long-term retention backups for PostgreSQL Flexible Server."
+      "value": "Beheer back-ups met langetermijnretentie voor de PostgreSQL Flexible Server."
     }
   ],
   "Y2QRpS": [
     {
       "type": 0,
-      "value": "equals"
+      "value": "is gelijk aan"
     }
   ],
   "YYWhEp": [
     {
       "type": 0,
-      "value": "Failed to create the SRE agent "
+      "value": "Kan de SRE-agent "
     },
     {
       "type": 1,
@@ -1364,7 +1432,7 @@
     },
     {
       "type": 0,
-      "value": " with the error: "
+      "value": " niet maken vanwege de fout: "
     },
     {
       "type": 1,
@@ -1374,61 +1442,67 @@
   "YYx7ap": [
     {
       "type": 0,
-      "value": "Some of the selected resource groups have a read only lock on the resource group."
+      "value": "Sommige van de geselecteerde resourcegroepen hebben een alleen-lezen vergrendeling op de resourcegroep."
     }
   ],
   "YZIFAO": [
     {
       "type": 0,
-      "value": "Azure Kubernetes Service RBAC Cluster Admin"
+      "value": "Azure Kubernetes Service RBAC-clusterbeheer"
     }
   ],
   "Yk6Co7": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Reader"
+      "value": "Cognitive Services QnA Maker-lezer"
     }
   ],
   "Yp7NCi": [
     {
       "type": 0,
-      "value": "Azure Center for SAP solutions administrator"
+      "value": "Beheerder van Azure Center voor SAP-oplossingen"
     }
   ],
   "Z2WgoK": [
     {
       "type": 0,
-      "value": "Authentication mode"
+      "value": "Verificatiemodus"
     }
   ],
   "Z7Aj91": [
     {
       "type": 0,
-      "value": "Manage Azure Monitor workbooks."
+      "value": "Beheer Azure Monitor-werkmappen."
     }
   ],
   "ZNMCbm": [
     {
       "type": 0,
-      "value": "Manage Logic Apps."
+      "value": "Beheer Logic Apps."
     }
   ],
   "ZsLOg3": [
     {
       "type": 0,
-      "value": "Manage Azure OpenAI resources."
+      "value": "Beheer Azure OpenAI-resources."
     }
   ],
   "a5msuh": [
     {
       "type": 0,
-      "value": "Yes"
+      "value": "Ja"
+    }
+  ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
     }
   ],
   "aGL+Qo": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under LUIS."
+      "value": "Heeft toegang tot lees- en testfuncties onder LUIS."
     }
   ],
   "aIRWQB": [
@@ -1472,43 +1546,49 @@
   "aqNZbD": [
     {
       "type": 0,
-      "value": "Cognitive Services Language Writer"
+      "value": "Taalschrijver voor Cognitive Services"
     }
   ],
   "arLfuy": [
     {
       "type": 0,
-      "value": "Chat with agent"
+      "value": "Chatten met agent"
     }
   ],
   "axbDHG": [
     {
       "type": 0,
-      "value": "You can choose a maximum of 100 resource groups that the agent will manage."
+      "value": "U kunt maximaal 100 resourcegroepen kiezen die de agent zal beheren."
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
     {
       "type": 0,
-      "value": "SAP Virtual Instances"
+      "value": "Virtuele SAP-exemplaren"
     }
   ],
   "bN0x+w": [
     {
       "type": 0,
-      "value": "Device Provisioning Service Data Reader"
+      "value": "Gegevenslezer voor Device Provisioning Service"
     }
   ],
   "bPyOFk": [
     {
       "type": 0,
-      "value": "Terms & conditions"
+      "value": "Voorwaarden"
     }
   ],
   "bXkiU5": [
     {
       "type": 0,
-      "value": "SQL Databases"
+      "value": "SQL-databases"
     }
   ],
   "bxv59V": [
@@ -1520,67 +1600,73 @@
   "c1EiBR": [
     {
       "type": 0,
-      "value": "Cognitive Services Usages Reader"
+      "value": "Lezer van Cognitive Services-gebruik"
     }
   ],
   "cRTR/A": [
     {
       "type": 0,
-      "value": "Write access to LUIS applications."
+      "value": "Schrijftoegang tot LUIS-toepassingen."
     }
   ],
   "cTzjJg": [
     {
       "type": 0,
-      "value": "Storage Account Contributor"
+      "value": "Inzender voor opslagaccounts"
     }
   ],
   "ceCESY": [
     {
       "type": 0,
-      "value": "An agent with this name already exists in the selected resource group."
+      "value": "Er bestaat al een agent met deze naam in de geselecteerde resourcegroep."
     }
   ],
   "ciB+oy": [
     {
       "type": 0,
-      "value": "Operate Azure Machine Learning compute resources."
+      "value": "Gebruik Azure Machine Learning-rekenresources."
     }
   ],
   "cmUVb9": [
     {
       "type": 0,
-      "value": "Redis Cache"
+      "value": "Redis-cache"
+    }
+  ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
     }
   ],
   "ctcA0c": [
     {
       "type": 0,
-      "value": "Agent name"
+      "value": "Naam van agent"
     }
   ],
   "cyR7Kh": [
     {
       "type": 0,
-      "value": "Back"
+      "value": "Terug"
     }
   ],
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Resourcebewerkingen"
     }
   ],
   "d2GmfJ": [
     {
       "type": 0,
-      "value": "Manage API Management workspaces."
+      "value": "Beheer API Management-werkruimten."
     }
   ],
   "d8dECB": [
     {
       "type": 0,
-      "value": "IoT Hub Data Reader"
+      "value": "IoT Hub-gegevenslezer"
     }
   ],
   "dDk23i": [
@@ -1590,67 +1676,67 @@
     },
     {
       "type": 0,
-      "value": " options"
+      "value": "-opties"
     }
   ],
   "dHVUaP": [
     {
       "type": 0,
-      "value": "Positive"
+      "value": "Positief"
     }
   ],
   "dKhdkO": [
     {
       "type": 0,
-      "value": "Select up to 100 resource groups to monitor"
+      "value": "Selecteer maximaal 100 resourcegroepen om te bewaken"
     }
   ],
   "dQ5/dh": [
     {
       "type": 0,
-      "value": "Allows for full read access to Device Provisioning Service data-plane properties."
+      "value": "Hiermee wordt volledige leestoegang tot de eigenschappen van het gegevensvlak van Device Provisioning Service toegestaan."
     }
   ],
   "dR8VUW": [
     {
       "type": 0,
-      "value": "Manage API Management services."
+      "value": "Beheer API Management-services."
     }
   ],
   "e0a3XV": [
     {
       "type": 0,
-      "value": "Log Analytics Contributor"
+      "value": "Inzender van Log Analytics"
     }
   ],
   "e3itcX": [
     {
       "type": 0,
-      "value": "Device Update Administrator"
+      "value": "Beheerder van apparaatupdate"
     }
   ],
   "eBvTo6": [
     {
       "type": 0,
-      "value": "Read-only actions in the project. Readers can't create or update the project."
+      "value": "Alleen-lezen acties in het project. Lezers kunnen het project niet maken of bijwerken."
     }
   ],
   "eHNXXp": [
     {
       "type": 0,
-      "value": "Dismiss all"
+      "value": "Alles sluiten"
     }
   ],
   "eKpamp": [
     {
       "type": 0,
-      "value": "Template error"
+      "value": "Sjabloonfout"
     }
   ],
   "ecG+OD": [
     {
       "type": 0,
-      "value": "Manage Azure Search services."
+      "value": "Beheer Azure Search-services."
     }
   ],
   "egr0Oj": [
@@ -1660,19 +1746,25 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected"
+      "value": " resourcegroepen geselecteerd"
     }
   ],
   "fFyuVF": [
     {
       "type": 0,
-      "value": "Cognitive Services Speech Contributor"
+      "value": "Inzender voor Cognitive Services-spraak"
     }
   ],
   "fIp46f": [
     {
       "type": 0,
-      "value": "Read only lock"
+      "value": "Alleen-lezen vergrendeling"
+    }
+  ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
     }
   ],
   "fSFDgd": [
@@ -1684,55 +1776,55 @@
   "fpexn2": [
     {
       "type": 0,
-      "value": "No notifications"
+      "value": "Geen meldingen"
     }
   ],
   "ftfFhS": [
     {
       "type": 0,
-      "value": "Select resource groups"
+      "value": "Resourcegroepen selecteren"
     }
   ],
   "g82HU6": [
     {
       "type": 0,
-      "value": "Operation cancelled"
+      "value": "Bewerking is geannuleerd"
     }
   ],
   "gC4xMY": [
     {
       "type": 0,
-      "value": "Allows read-only access to see most objects in a namespace. It does not allow viewing roles or role bindings. This role does not allow viewing Secrets, since reading the contents of Secrets enables access to ServiceAccount credentials in the namespace, which would allow API access as any ServiceAccount in the namespace (a form of privilege escalation). Applying this role at cluster scope will give access across all namespaces."
+      "value": "Hiermee wordt alleen-lezen toegang gegeven om de meeste objecten in een naamruimte te bekijken. Het weergeven van rollen of rolbindingen is niet toegestaan. Deze rol staat geen weergave van geheimen toe, aangezien het lezen van de inhoud van geheimen toegang biedt tot ServiceAccount-referenties in de naamruimte, waardoor API-toegang kan worden verleend als ServiceAccount in de naamruimte (een vorm van bevoegdhedenescalatie). Als u deze rol clusterbreed toepast, krijgt u toegang tot alle naamruimten."
     }
   ],
   "gZ5fZs": [
     {
       "type": 0,
-      "value": "Manage IoT Hub device twins."
+      "value": "Beheer IoT Hub-apparaatdubbels."
     }
   ],
   "gn/nvJ": [
     {
       "type": 0,
-      "value": "Read, logstream and exec into Container Apps."
+      "value": "Lezen, logstream en exec in Container Apps."
     }
   ],
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "De implementatie wordt uitgevoerd..."
     }
   ],
   "gzx/k1": [
     {
       "type": 0,
-      "value": "PostgreSQL Contributor"
+      "value": "PostgreSQL-inzender"
     }
   ],
   "hF5T80": [
     {
       "type": 0,
-      "value": "Administer Device Update accounts."
+      "value": "Beheer accounts voor apparaatupdates."
     }
   ],
   "hGmeVK": [
@@ -1744,73 +1836,73 @@
   "hO1Iog": [
     {
       "type": 0,
-      "value": "Manage without access."
+      "value": "Beheren zonder toegang."
     }
   ],
   "hPj49L": [
     {
       "type": 0,
-      "value": "Workbook Reader"
+      "value": "Workbook-lezer"
     }
   ],
   "hX5PAb": [
     {
       "type": 0,
-      "value": "No results found"
+      "value": "Geen resultaten gevonden"
     }
   ],
   "hfIdUs": [
     {
       "type": 0,
-      "value": "SQL DB Contributor"
+      "value": "Inzender voor SQL-databases"
     }
   ],
   "hrdmcd": [
     {
       "type": 0,
-      "value": "Azure Digital Twins Data Reader"
+      "value": "Azure Digital Twins-gegevenslezer (preview-versie)"
     }
   ],
   "hswM/b": [
     {
       "type": 0,
-      "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+      "value": "Wijs de agent een machtigingsniveau toe voor de resourcegroepen die hij beheert. De agent kan zijn toegewezen resources nog steeds beheren met lezersmachtigingen."
     }
   ],
   "i50Kb0": [
     {
       "type": 0,
-      "value": "Explore agent skills"
+      "value": "Agentvaardigheden verkennen"
     }
   ],
   "i5OUQE": [
     {
       "type": 0,
-      "value": "Container Apps Contributor"
+      "value": "Inzender voor Container Apps"
     }
   ],
   "i6cLLM": [
     {
       "type": 0,
-      "value": "Perform data science tasks in Azure Machine Learning."
+      "value": "Voer data science-taken uit in Azure Machine Learning."
     }
   ],
   "iFsDVR": [
     {
       "type": 0,
-      "value": "Loading"
+      "value": "Laden..."
     }
   ],
   "iM9JZL": [
     {
       "type": 0,
-      "value": "Deny assignments"
+      "value": "Weigeringstoewijzingen"
     }
   ],
   "itC9lG": [
     {
       "type": 0,
-      "value": "Basics"
+      "value": "Basisinformatie"
     }
   ],
   "iv5NrP": [
@@ -1822,55 +1914,55 @@
   "ixb1SP": [
     {
       "type": 0,
-      "value": "Administer HDInsight clusters on AKS."
+      "value": "Beheer HDInsight-clusters op AKS."
     }
   ],
   "j5Yfyr": [
     {
       "type": 0,
-      "value": "Search Index Data Reader"
+      "value": "Gegevenslezer voor zoekindex"
     }
   ],
   "jEU2gk": [
     {
       "type": 0,
-      "value": "All resource groups"
+      "value": "Alle brongroepen"
     }
   ],
   "jHJmjf": [
     {
       "type": 0,
-      "value": "No results"
+      "value": "Geen resultaten"
     }
   ],
   "jJE3xY": [
     {
       "type": 0,
-      "value": "Lets you manage the web plans for websites, but not access to them."
+      "value": "Hiermee beheert u de webabonnementen voor websites, maar kunt u niet de toegang tot de abonnementen beheren."
     }
   ],
   "jjUD0v": [
     {
       "type": 0,
-      "value": "Resource group creation failed."
+      "value": "Kan de resourcegroep niet maken."
     }
   ],
   "jvo0vs": [
     {
       "type": 0,
-      "value": "Save"
+      "value": "Opslaan"
     }
   ],
   "kVQ1fo": [
     {
       "type": 0,
-      "value": "Negative"
+      "value": "Negatief"
     }
   ],
   "kbQZUj": [
     {
       "type": 0,
-      "value": "We were unable to load the URL "
+      "value": "Kan de URL "
     },
     {
       "type": 1,
@@ -1878,25 +1970,25 @@
     },
     {
       "type": 0,
-      "value": ". This may be due to the existence of a firewall or network restrictions placed on the domain of your agent. Please speak to your network administrator to remove this restriction in order to proceed with interacting with your agent."
+      "value": " niet laden. Dit kan worden veroorzaakt door een firewall of netwerkbeperkingen die zijn ingesteld op het domein van je agent. Neem contact op met je netwerkbeheerder om deze beperking te verwijderen, zodat je verder kunt met je agent."
     }
   ],
   "kyVg+J": [
     {
       "type": 0,
-      "value": "Choose at least 1 resource group that you have Owner or User Access Administrator permissions on."
+      "value": "Kies ten minste 1 resourcegroep waarvoor u de machtiging Eigenaar of Beheerder van gebruikerstoegang hebt."
     }
   ],
   "l5sNim": [
     {
       "type": 0,
-      "value": "AzureML Data Scientist"
+      "value": "AzureML-datawetenschapper"
     }
   ],
   "lNehTG": [
     {
       "type": 0,
-      "value": "Failed to validate SRE Agent "
+      "value": "Kan het maken van SRE-agent "
     },
     {
       "type": 1,
@@ -1904,7 +1996,7 @@
     },
     {
       "type": 0,
-      "value": " creation with the error: "
+      "value": " niet valideren vanwege de fout: "
     },
     {
       "type": 1,
@@ -1914,7 +2006,7 @@
   "lcvC4k": [
     {
       "type": 0,
-      "value": "Validating SRE Agent "
+      "value": "De validatie van het maken van SRE-agent "
     },
     {
       "type": 1,
@@ -1922,7 +2014,7 @@
     },
     {
       "type": 0,
-      "value": " creation in progress"
+      "value": " is in voortgang"
     }
   ],
   "lnaWo/": [
@@ -1934,37 +2026,37 @@
   "lvNWLS": [
     {
       "type": 0,
-      "value": "IoT Hub Registry Contributor"
+      "value": "IoT Hub-registerbijdrager"
     }
   ],
   "mAyw3x": [
     {
       "type": 0,
-      "value": "Edit QnA Maker knowledge bases."
+      "value": "Bewerk de QnA Maker-kennisdatabase."
     }
   ],
   "mkhNnB": [
     {
       "type": 0,
-      "value": "Read and write Azure Monitor monitoring settings and data."
+      "value": "Lees en schrijf Azure Monitor-bewakingsinstellingen en -gegevens."
     }
   ],
   "n/e5Mg": [
     {
       "type": 0,
-      "value": "Allowed Actions"
+      "value": "Toegestane acties"
     }
   ],
   "nBPow3": [
     {
       "type": 0,
-      "value": "Lets you manage all resources in the cluster."
+      "value": "Hiermee beheert u alle resources in het cluster."
     }
   ],
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "In uitvoering"
     }
   ],
   "nlPgO8": [
@@ -1974,13 +2066,13 @@
     },
     {
       "type": 0,
-      "value": " resource group selected"
+      "value": " resourcegroep geselecteerd"
     }
   ],
   "nrAnZy": [
     {
       "type": 0,
-      "value": "Full access to Azure Service Bus data."
+      "value": "Volledige toegang tot Azure Service Bus-gegevens."
     }
   ],
   "oHGFwy": [
@@ -1992,19 +2084,19 @@
   "oIiHqo": [
     {
       "type": 0,
-      "value": "Extension name"
+      "value": "Extensienaam"
     }
   ],
   "oQ/TUW": [
     {
       "type": 0,
-      "value": "Cost Management Contributor"
+      "value": "Cost Management-inzender"
     }
   ],
   "oThNc4": [
     {
       "type": 0,
-      "value": "Failed to setup Log Analytics Workspace with the error: "
+      "value": "Kan de Log Analytics-werkruimte niet instellen vanwege de fout: "
     },
     {
       "type": 1,
@@ -2014,61 +2106,67 @@
   "oUWADl": [
     {
       "type": 0,
-      "value": "No"
+      "value": "Nee"
     }
   ],
   "p/xAmY": [
     {
       "type": 0,
-      "value": "Your agent is in review mode. The following permissions are required for the agent to build knowledge about your resources. The agent will use some of these permissions to perform write operations with your approval based on your requests."
+      "value": "Je agent bevindt zich in de beoordelingsmodus. De volgende machtigingen zijn nodig zodat de agent kennis kan opbouwen over je resources. De agent gebruikt een deel van deze machtigingen om met jouw goedkeuring schrijfbewerkingen uit te voeren op basis van je verzoeken."
+    }
+  ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
     }
   ],
   "p5T+zv": [
     {
       "type": 0,
-      "value": "Manage without access. Can't manage security policies or parent SQL servers."
+      "value": "Beheren zonder toegang. Kan geen beveiligingsbeleid of bovenliggende SQL-servers beheren."
     }
   ],
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "Correlatie-id"
     }
   ],
   "pAFuFx": [
     {
       "type": 0,
-      "value": "HDInsight on AKS Cluster Pool Admin"
+      "value": "Beheer van HDInsight op AKS-clustergroep"
     }
   ],
   "pDUFq5": [
     {
       "type": 0,
-      "value": "App Configuration Reader"
+      "value": "App Configuration-lezer"
     }
   ],
   "pM3DKw": [
     {
       "type": 0,
-      "value": "ACIS endpoint"
+      "value": "ACIS-eindpunt"
     }
   ],
   "pMlVvA": [
     {
       "type": 0,
-      "value": "Search resource groups"
+      "value": "Resourcegroepen zoeken"
     }
   ],
   "pSfQh6": [
     {
       "type": 0,
-      "value": "Grants read access to Azure Cognitive Search index data."
+      "value": "Verleent leestoegang tot Azure Cognitive Search-indexgegevens."
     }
   ],
   "pVF2EE": [
     {
       "type": 0,
-      "value": "We've started provisioning your SRE Agent "
+      "value": "We zijn begonnen met het inrichten van uw SRE-agent "
     },
     {
       "type": 1,
@@ -2076,43 +2174,43 @@
     },
     {
       "type": 0,
-      "value": " to manage your selected resource groups."
+      "value": " om uw geselecteerde resourcegroepen te beheren."
     }
   ],
   "pW5vuU": [
     {
       "type": 0,
-      "value": "Resource group creation"
+      "value": "Resourcegroep maken"
     }
   ],
   "pqgzm0": [
     {
       "type": 0,
-      "value": "Manage Application Insights components."
+      "value": "Beheer Application Insights-onderdelen."
     }
   ],
   "q7CVBv": [
     {
       "type": 0,
-      "value": "Loading resource types..."
+      "value": "Resourcetypen laden..."
     }
   ],
   "qGXY+e": [
     {
       "type": 0,
-      "value": "Agent permissions"
+      "value": "Agentmachtigingen"
     }
   ],
   "r0gBch": [
     {
       "type": 0,
-      "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
+      "value": "Het abonnement dat u hebt geselecteerd, is niet geregistreerd voor het gebruik van de SRE-agent. Stuur een e-mail met uw abonnements-id naar sreagentteam@microsoft.com om u te laten registreren."
     }
   ],
   "rZaqtB": [
     {
       "type": 0,
-      "value": "API Management Service Contributor"
+      "value": "Inzender voor API Management-services"
     }
   ],
   "rbrahO": [
@@ -2124,13 +2222,13 @@
   "rjgOC5": [
     {
       "type": 0,
-      "value": "Cognitive Services QnA Maker Editor"
+      "value": "Cognitive Services QnA Maker-bewerker"
     }
   ],
   "ru0BPw": [
     {
       "type": 0,
-      "value": "Learn more about permissions for managed resource groups"
+      "value": "Krijg meer informatie over machtigingen voor beheerde resourcegroepen"
     }
   ],
   "s0xRD+": [
@@ -2142,31 +2240,31 @@
   "s2jhon": [
     {
       "type": 0,
-      "value": "Certificate SAN"
+      "value": "Certificaat-SAN"
     }
   ],
   "s7mQCK": [
     {
       "type": 0,
-      "value": "Reduce site reliability expenses with Azure SRE Agents"
+      "value": "Verminder de kosten voor sitebetrouwbaarheid met Azure SRE Agents"
     }
   ],
   "sI+CCC": [
     {
       "type": 0,
-      "value": "Log Analytics Reader"
+      "value": "Lezer van Log Analytics"
     }
   ],
   "sRU00i": [
     {
       "type": 0,
-      "value": "To assign the agent managed resource groups across subscriptions, you need Owner or User Access Administrator permissions on those resource groups. The agent resource and managed resource groups can be in different regions and subscriptions."
+      "value": "Om de door de agent beheerde resourcegroepen over abonnementen toe te wijzen, heb je eigenaar- of gebruikerstoegang-beheerdermachtigingen nodig voor die resourcegroepen. De agentresource en beheerde resourcegroepen kunnen zich in verschillende regio's en abonnementen bevinden."
     }
   ],
   "sRb5P9": [
     {
       "type": 0,
-      "value": "Manage cost analysis and budgets."
+      "value": "Kostenanalyse en budgetten beheren."
     }
   ],
   "sYoT7W": [
@@ -2180,7 +2278,7 @@
             },
             {
               "type": 0,
-              "value": " second ago"
+              "value": " seconde geleden"
             }
           ]
         },
@@ -2191,7 +2289,7 @@
             },
             {
               "type": 0,
-              "value": " seconds ago"
+              "value": " seconden geleden"
             }
           ]
         }
@@ -2204,61 +2302,61 @@
   "ss/NWY": [
     {
       "type": 0,
-      "value": "SQL Server Contributor"
+      "value": "Inzender voor SQL Server"
     }
   ],
   "t3D4PH": [
     {
       "type": 0,
-      "value": "Device Update Reader"
+      "value": "Apparaatupdatelezer"
     }
   ],
   "t9I1dY": [
     {
       "type": 0,
-      "value": "Healthcare Agent Editor"
+      "value": "Editor voor gezondheidszorgagent"
     }
   ],
   "tOdNiY": [
     {
       "type": 0,
-      "value": "Dark"
+      "value": "Donker"
     }
   ],
   "tYoDsC": [
     {
       "type": 0,
-      "value": "Share your thoughts about the portal..."
+      "value": "Deel uw mening over de portal..."
     }
   ],
   "tffS9r": [
     {
       "type": 0,
-      "value": "Open resource group"
+      "value": "Resourcegroep openen"
     }
   ],
   "tshYzs": [
     {
       "type": 0,
-      "value": "Select region"
+      "value": "Regio selecteren"
     }
   ],
   "u0xiAh": [
     {
       "type": 0,
-      "value": "Cognitive Services Custom Vision Reader"
+      "value": "Aangepaste visielezer voor Cognitive Services"
     }
   ],
   "uRMqBi": [
     {
       "type": 0,
-      "value": "Read, write, and delete Azure Storage containers and blobs."
+      "value": "Lees, schrijf en verwijder Azure Storage-containers en -blobs."
     }
   ],
   "ufonOZ": [
     {
       "type": 0,
-      "value": "Search Services"
+      "value": "Zoekservices"
     }
   ],
   "uh732n": [
@@ -2270,43 +2368,43 @@
   "uqyJPP": [
     {
       "type": 0,
-      "value": "You do not have permission to create resource groups under the currently selected subscription."
+      "value": "Je hebt geen toestemming om resourcegroepen te maken onder het momenteel geselecteerde abonnement."
     }
   ],
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "De implementatie is voltooid"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Mislukt"
     }
   ],
   "vbdOl/": [
     {
       "type": 0,
-      "value": "Has access to Read and Test functions under Language portal."
+      "value": "Heeft toegang tot de functies Lezen en Testen in de taalportal."
     }
   ],
   "vfndow": [
     {
       "type": 0,
-      "value": "Can read Azure Cosmos DB account data."
+      "value": "Kan Azure Cosmos DB-accountgegevens lezen."
     }
   ],
   "vu2LMl": [
     {
       "type": 0,
-      "value": "Learn more about Reader and Privileged permissions"
+      "value": "Krijg meer informatie over lezers- en bevoorrechte machtigingen"
     }
   ],
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Geen bewerkingen gevonden"
     }
   ],
   "wCtBb6": [
@@ -2318,67 +2416,67 @@
   "wSZR47": [
     {
       "type": 0,
-      "value": "Submit"
+      "value": "Verzenden"
     }
   ],
   "wbigtI": [
     {
       "type": 0,
-      "value": "Administer SAP workloads on Azure."
+      "value": "SAP-workloads beheren in Azure."
     }
   ],
   "wxlJSs": [
     {
       "type": 0,
-      "value": "Manage Cognitive Services accounts."
+      "value": "Beheer Cognitive Services-accounts."
     }
   ],
   "x2Qj1F": [
     {
       "type": 0,
-      "value": "Geneva Actions Certificate Name"
+      "value": "Certificaatnaam van Geneva Actions"
     }
   ],
   "xGPsyJ": [
     {
       "type": 0,
-      "value": "HDInsight Cluster Operator"
+      "value": "HDInsight-clusteroperator"
     }
   ],
   "xHDoP8": [
     {
       "type": 0,
-      "value": "Do you want to continue?"
+      "value": "Wilt u doorgaan?"
     }
   ],
   "xVPoso": [
     {
       "type": 0,
-      "value": "Resource group name"
+      "value": "Naam van brongroep"
     }
   ],
   "xXbJso": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Afmelden"
     }
   ],
   "xXhn+h": [
     {
       "type": 0,
-      "value": "Lets you manage storage accounts, including accessing storage account keys which provide full access to storage account data."
+      "value": "Hiermee kunt u opslagaccounts beheren, met inbegrip van opslagaccountsleutels die volledige toegang bieden tot gegevens van het opslagaccount."
     }
   ],
   "xdMkcg": [
     {
       "type": 0,
-      "value": "Can read all monitoring data."
+      "value": "Kan alle controlegegevens lezen."
     }
   ],
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Maken"
     }
   ],
   "xmcVZ0": [
@@ -2390,49 +2488,49 @@
   "xmsrBu": [
     {
       "type": 0,
-      "value": "Operate API Management services."
+      "value": "Gebruik API Management-services."
     }
   ],
   "xqwf/7": [
     {
       "type": 0,
-      "value": "IoT Hub Data Contributor"
+      "value": "IoT Hub-gegevensbijdrager"
     }
   ],
   "xtkizV": [
     {
       "type": 0,
-      "value": "Website Contributor"
+      "value": "Inzender voor websites"
     }
   ],
   "y1Z3or": [
     {
       "type": 0,
-      "value": "Language"
+      "value": "Taal"
     }
   ],
   "yV5oYe": [
     {
       "type": 0,
-      "value": "Policies"
+      "value": "Beleid"
     }
   ],
   "yilQrD": [
     {
       "type": 0,
-      "value": "Managed resource groups"
+      "value": "Beheerde resourcegroepen"
     }
   ],
   "yo67XU": [
     {
       "type": 0,
-      "value": "API Management Service Operator Role"
+      "value": "Operator-rol voor de API Management-service"
     }
   ],
   "zEk9h3": [
     {
       "type": 0,
-      "value": "Virtual Machines"
+      "value": "Virtuele machines"
     }
   ],
   "zJ+8HW": [
@@ -2448,19 +2546,19 @@
   "zQvVDJ": [
     {
       "type": 0,
-      "value": "All"
+      "value": "Alle"
     }
   ],
   "zacv31": [
     {
       "type": 0,
-      "value": "Detected resource types"
+      "value": "Gedetecteerde resourcetypen"
     }
   ],
   "zhHihn": [
     {
       "type": 0,
-      "value": "SQL Servers"
+      "value": "SQL-servers"
     }
   ]
 }

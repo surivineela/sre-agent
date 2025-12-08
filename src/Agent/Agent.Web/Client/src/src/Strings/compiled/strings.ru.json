@@ -148,7 +148,7 @@
   "+WRusC": [
     {
       "type": 0,
-      "value": "SRE Agent"
+      "value": "Агент SRE"
     }
   ],
   "+XtuWl": [
@@ -393,6 +393,16 @@
       "value": "Очистить"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -455,12 +465,6 @@
     {
       "type": 0,
       "value": "Оператор Контейнеров приложений"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Каждую минуту"
     }
   ],
   "/Z1fHN": [
@@ -595,6 +599,12 @@
     {
       "type": 0,
       "value": "Поиск..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -913,12 +923,16 @@
   ],
   "13KTIN": [
     {
+      "type": 0,
+      "value": "Выбрана "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " группа ресурсов."
     }
   ],
   "15GWkT": [
@@ -1114,7 +1128,7 @@
   "1m4VPF": [
     {
       "type": 0,
-      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+      "value": "Агент исследует сложные проблемы и формирует гипотезы для проверки возможных первопричин."
     }
   ],
   "1o9eJ6": [
@@ -1506,7 +1520,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Произошла неожиданная ошибка"
     }
   ],
   "3JVa6k": [
@@ -1560,7 +1574,7 @@
   "3SsYXO": [
     {
       "type": 0,
-      "value": "Open GitHub issue page with pre-filled information above"
+      "value": "Откройте страницу проблемы GitHub с предварительно заполненной информацией, приведенной выше"
     }
   ],
   "3VI9mt": [
@@ -1584,13 +1598,13 @@
   "3dsWh5": [
     {
       "type": 0,
-      "value": "Add MCP server"
+      "value": "Добавить сервер MCP"
     }
   ],
   "3h7ZKg": [
     {
       "type": 0,
-      "value": "Review + add"
+      "value": "Проверить и добавить"
     }
   ],
   "3hmrCJ": [
@@ -1648,7 +1662,7 @@
   "3k7JQw": [
     {
       "type": 0,
-      "value": "Issue description is required."
+      "value": "Требуется ввести описание проблемы."
     }
   ],
   "3n8o15": [
@@ -1666,7 +1680,7 @@
   "3rvQhx": [
     {
       "type": 0,
-      "value": "You can manage up to "
+      "value": "Вы можете управлять группами ресурсов (до "
     },
     {
       "type": 1,
@@ -1674,7 +1688,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. Your agent currently manages "
+      "value": "), на которые у вас есть разрешения. В настоящее время агент управляет несколькими ("
     },
     {
       "type": 1,
@@ -1682,7 +1696,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups."
+      "value": ") группами ресурсов."
     }
   ],
   "3sNyAo": [
@@ -1882,7 +1896,7 @@
   "4IAjnN": [
     {
       "type": 0,
-      "value": "Turn on deep investigation?"
+      "value": "Включить глубокое исследование?"
     }
   ],
   "4MeTpL": [
@@ -1924,7 +1938,7 @@
   "4Rhz/i": [
     {
       "type": 0,
-      "value": "User provided connector"
+      "value": "Соединитель, указанный пользователем"
     }
   ],
   "4RwjwU": [
@@ -2087,16 +2101,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "У вас нет разрешения на авторизацию доступа к репозиторию."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Выберите расширенный агент для помощи в выполнении задач."
     }
   ],
   "5GUtRJ": [
@@ -2482,7 +2504,7 @@
     },
     {
       "type": 0,
-      "value": " sec"
+      "value": " с"
     }
   ],
   "61e5yQ": [
@@ -2540,7 +2562,7 @@
   "6CrAJC": [
     {
       "type": 0,
-      "value": "Enter custom header key"
+      "value": "Введите значение настраиваемого ключа"
     }
   ],
   "6CxEZS": [
@@ -2725,16 +2747,6 @@
     {
       "type": 0,
       "value": "Четкое и краткое описание, которое помогает другим агентам понять, когда следует делегировать работу этому специализированному агенту. Это отображается в решениях о передаче агента и в рабочих процессах взаимодействия."
-    }
-  ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "Не удалось создать вложенный агент. Ошибка: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "6w0QQX": [
@@ -2972,7 +2984,7 @@
   "7Rnjmx": [
     {
       "type": 0,
-      "value": "Expected Behavior"
+      "value": "Ожидаемое поведение"
     }
   ],
   "7TVRcx": [
@@ -3026,7 +3038,7 @@
   "7kPmO3": [
     {
       "type": 0,
-      "value": "Edit connector"
+      "value": "Изменить соединитель"
     }
   ],
   "7nUCu9": [
@@ -3335,12 +3347,6 @@
       "value": "Доступ к службе и API-интерфейсам в режиме \"только для чтения\"."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Создать вложенного агента передачи"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3450,7 +3456,7 @@
   "8urALB": [
     {
       "type": 0,
-      "value": "Delete connector"
+      "value": "Удалить соединитель"
     }
   ],
   "8v0Pyn": [
@@ -3709,6 +3715,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3877,6 +3895,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3928,7 +3952,7 @@
   "Abi/u/": [
     {
       "type": 0,
-      "value": "Expand panel"
+      "value": "Развернуть панель"
     }
   ],
   "AbleKr": [
@@ -4014,7 +4038,13 @@
   "AvHD3R": [
     {
       "type": 0,
-      "value": "Teams channel link"
+      "value": "Ссылка на канал Teams"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -4064,7 +4094,7 @@
   "BBT3jd": [
     {
       "type": 0,
-      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+      "value": "Агент получает доступ к репозиториям, функциям и действиям GitHub, включая отслеживание вопросов и запросы на вытягивание."
     }
   ],
   "BD+V8L": [
@@ -4372,7 +4402,7 @@
   "CQisjK": [
     {
       "type": 0,
-      "value": "What actually happened?"
+      "value": "Что произошло?"
     }
   ],
   "CTRqZs": [
@@ -4517,6 +4547,12 @@
       "value": "Выберите субагента ответа"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4582,7 +4618,7 @@
   "DK708b": [
     {
       "type": 0,
-      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+      "value": "Имя должно начинаться с буквы и может содержать только буквы, цифры и дефисы. Имя не должно быть пустым и должно содержать менее "
     },
     {
       "type": 1,
@@ -4590,7 +4626,7 @@
     },
     {
       "type": 0,
-      "value": " characters."
+      "value": " симв."
     }
   ],
   "DMEE1o": [
@@ -4608,7 +4644,7 @@
   "DP0m/y": [
     {
       "type": 0,
-      "value": "Updating Kusto Tool"
+      "value": "Обновление инструмента Kusto"
     }
   ],
   "DPnEXy": [
@@ -4647,12 +4683,12 @@
   ],
   "DXm10s": [
     {
-      "type": 1,
-      "value": "0"
+      "type": 0,
+      "value": "URL-адрес репозитория "
     },
     {
-      "type": 0,
-      "value": " repository URL"
+      "type": 1,
+      "value": "0"
     }
   ],
   "DYp/nK": [
@@ -4700,7 +4736,7 @@
   "DgsR1U": [
     {
       "type": 0,
-      "value": "Channel ID"
+      "value": "Идентификатор канала"
     }
   ],
   "Dh9oJp": [
@@ -4799,6 +4835,12 @@
       "value": "Некоторые из выбранных групп ресурсов не обладают необходимыми разрешениями roleAssignments/write и Microsoft.ManagedIdentity/userAssignedIdentities/write."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4859,6 +4901,12 @@
     {
       "type": 0,
       "value": "Не удалось загрузить подписки."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -4956,7 +5004,7 @@
   "EcglP9": [
     {
       "type": 0,
-      "value": "Key"
+      "value": "Ключ"
     }
   ],
   "EdEthU": [
@@ -5014,7 +5062,7 @@
   "ErUgLz": [
     {
       "type": 0,
-      "value": "Teams group ID"
+      "value": "ИД группы Teams"
     }
   ],
   "Erci0g": [
@@ -5148,7 +5196,7 @@
   "FMDuHb": [
     {
       "type": 0,
-      "value": "Enter your PAT or API key"
+      "value": "Введите PAT или ключ API"
     }
   ],
   "FNQNS1": [
@@ -5395,12 +5443,16 @@
   ],
   "G4mray": [
     {
+      "type": 0,
+      "value": "Выбраны группы ресурсов: "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": "."
     }
   ],
   "G5JMSn": [
@@ -5416,7 +5468,7 @@
   "G6XRkU": [
     {
       "type": 0,
-      "value": "Steps to Reproduce"
+      "value": "Шаги для воспроизведения"
     }
   ],
   "G6vaGg": [
@@ -5443,11 +5495,27 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "документа"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "документов"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "документ"
             }
           ]
         },
@@ -5455,7 +5523,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "документа"
             }
           ]
         }
@@ -5628,7 +5696,7 @@
   "GufXy5": [
     {
       "type": 0,
-      "value": "Value"
+      "value": "Значение"
     }
   ],
   "Gvxoji": [
@@ -5704,7 +5772,7 @@
   "HJ7ZeR": [
     {
       "type": 0,
-      "value": "Issue Description"
+      "value": "Описание проблемы"
     }
   ],
   "HKlw1J": [
@@ -5801,6 +5869,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5834,7 +5916,7 @@
   "HtVpjg": [
     {
       "type": 0,
-      "value": "You can select up to "
+      "value": "Вы можете выбрать до "
     },
     {
       "type": 1,
@@ -5842,7 +5924,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups for this agent. Agents can manage a total of "
+      "value": " групп ресурсов для этого агента. Агенты могут управлять в общей сложности "
     },
     {
       "type": 1,
@@ -5850,7 +5932,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups, and your agent currently manages "
+      "value": " группами ресурсов, а ваш агент в настоящее время управляет "
     },
     {
       "type": 1,
@@ -5858,7 +5940,7 @@
     },
     {
       "type": 0,
-      "value": ". You've selected "
+      "value": ". Вы выбрали "
     },
     {
       "type": 1,
@@ -5993,6 +6075,84 @@
       "value": "Управление Azure для Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -6049,12 +6209,6 @@
     {
       "type": 0,
       "value": "Новый поток"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Создание вложенного агента"
     }
   ],
   "IYLPrk": [
@@ -6192,13 +6346,13 @@
   "J0rs+f": [
     {
       "type": 0,
-      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
+      "value": "Вставьте идентификатор потока с портала Агента SRE. (например, 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J2Lcsz": [
     {
       "type": 0,
-      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+      "value": "Для каждого инцидента, обработанного в этом плане реагирования, будет выполнено глубокое исследование. Каждое глубокое исследование требует значительного времени на выполнение и может привести к высокому потреблению AAU."
     }
   ],
   "J3Y8Sm": [
@@ -6238,7 +6392,7 @@
   "JA/VO+": [
     {
       "type": 0,
-      "value": "Starts a task at a defined time or interval."
+      "value": "Запускает задачу в определенное время или с заданным интервалом."
     }
   ],
   "JAtEuU": [
@@ -6512,7 +6666,7 @@
   "JvYXxh": [
     {
       "type": 0,
-      "value": "MCP server"
+      "value": "Сервер MCP"
     }
   ],
   "JwHSD6": [
@@ -6560,7 +6714,7 @@
   "K7tsik": [
     {
       "type": 0,
-      "value": "Scheduled task ran successfully"
+      "value": "Запланированная задача выполнена"
     }
   ],
   "K9q4Xw": [
@@ -6742,7 +6896,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Получить поддержку"
     }
   ],
   "KoJ1C+": [
@@ -6816,7 +6970,7 @@
   "L/ct40": [
     {
       "type": 0,
-      "value": "Open in visual view"
+      "value": "Открыть в визуальном представлении"
     }
   ],
   "L/i6dy": [
@@ -6934,7 +7088,7 @@
   "LSqcaU": [
     {
       "type": 0,
-      "value": "Maximum 200,000 AAUs"
+      "value": "Максимум 200 000 AAU"
     }
   ],
   "LTDPn/": [
@@ -6980,19 +7134,13 @@
   "Li/Qrf": [
     {
       "type": 0,
-      "value": "Custom headers"
+      "value": "Настраиваемые заголовки"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Опишите расписание"
-    }
-  ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Выберите инцидент."
     }
   ],
   "LnglaU": [
@@ -7016,7 +7164,7 @@
   "LuHM0/": [
     {
       "type": 0,
-      "value": "Actual Behavior"
+      "value": "Фактическое поведение"
     }
   ],
   "LupnQU": [
@@ -7085,6 +7233,12 @@
       "value": "Уровень серьезности"
     }
   ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
@@ -7122,7 +7276,7 @@
   "M0ay1D": [
     {
       "type": 0,
-      "value": "Running scheduled task(s)"
+      "value": "Выполнение запланированных задач"
     }
   ],
   "M3159R": [
@@ -7446,7 +7600,7 @@
   "N2IrpM": [
     {
       "type": 0,
-      "value": "Confirm"
+      "value": "Подтвердить"
     }
   ],
   "N7cqYp": [
@@ -7561,6 +7715,12 @@
       "value": "Понятно"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7671,20 +7831,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "Каждые "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " мин."
-    }
-  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7775,12 +7921,6 @@
       "value": "Новые сообщения"
     }
   ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Действительно удалить этот агент SRE? Это необратимое действие."
-    }
-  ],
   "O9C6j/": [
     {
       "type": 0,
@@ -7860,13 +8000,19 @@
   "OP7f9a": [
     {
       "type": 0,
-      "value": "Compiled connection string"
+      "value": "Скомпилированная строка подключения"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
       "value": "Данные трассировки проанализированы с ошибками."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -8198,7 +8344,7 @@
   "PZvrnY": [
     {
       "type": 0,
-      "value": "Title is required."
+      "value": "Требуется указать заголовок."
     }
   ],
   "Pa1S0J": [
@@ -8231,20 +8377,6 @@
       "value": "Правка конфигураций агентов API для здравоохранения."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "Создание вложенного агента \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\""
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -8260,7 +8392,7 @@
   "PpdTYy": [
     {
       "type": 0,
-      "value": "Failed to update tool"
+      "value": "Не удалось обновить инструмент"
     }
   ],
   "PrFU82": [
@@ -8327,6 +8459,12 @@
     {
       "type": 0,
       "value": "Время решения"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -8400,7 +8538,7 @@
   "Q9IHxV": [
     {
       "type": 0,
-      "value": "Running scheduled task "
+      "value": "Выполнение запланированной задачи "
     },
     {
       "type": 1,
@@ -8511,20 +8649,6 @@
       "value": "Очистить все"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "Каждые "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " часов"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8534,7 +8658,13 @@
   "QYiU4f": [
     {
       "type": 0,
-      "value": "1. Describe the action you took 2. Mention the resource or service involved"
+      "value": "1. Опишите выполненное действие 2. Укажите затронутый ресурс или службу"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -9098,7 +9228,7 @@
   "SeZ8eZ": [
     {
       "type": 0,
-      "value": "AAU consumption reminder"
+      "value": "Напоминание о потреблении AAU"
     }
   ],
   "Seanpx": [
@@ -9134,7 +9264,7 @@
   "SoBWeV": [
     {
       "type": 0,
-      "value": "Monthly active flow AAUs"
+      "value": "Ежемесячные активные AAU потока"
     }
   ],
   "Sr4IbA": [
@@ -9382,7 +9512,7 @@
   "TP/cMX": [
     {
       "type": 0,
-      "value": "Ended"
+      "value": "Завершено"
     }
   ],
   "TQ0n+a": [
@@ -9520,7 +9650,7 @@
   "UImEMW": [
     {
       "type": 0,
-      "value": "Briefly describe the problem or request."
+      "value": "Кратко опишите проблему или запрос."
     }
   ],
   "UKMPBH": [
@@ -9701,12 +9831,6 @@
       "value": "Чат (предварительная версия)"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Вложенные агенты не настроены"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9786,7 +9910,7 @@
   "Vaj9nj": [
     {
       "type": 0,
-      "value": "Don't show this message again"
+      "value": "Больше не показывать это сообщение"
     }
   ],
   "Vb+qQ4": [
@@ -9856,7 +9980,7 @@
   "Vs3jMi": [
     {
       "type": 0,
-      "value": "Authentication method"
+      "value": "Метод проверки подлинности"
     }
   ],
   "VtBCjG": [
@@ -9925,12 +10049,6 @@
       "value": "Повторите попытку или проверьте консоль для получения подробностей."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Предварительный просмотр канала обновления"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9971,12 +10089,6 @@
     {
       "type": 0,
       "value": "У вас нет разрешения на проверку подключения управления инцидентами."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10712,12 +10824,6 @@
       "value": "Стресс-тест"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "Не удалось создать вложенный агент"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10904,6 +11010,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -11030,6 +11142,84 @@
     {
       "type": 0,
       "value": "Выберите существующее средство ниже для подключения."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -11470,7 +11660,7 @@
   "bDbbX7": [
     {
       "type": 0,
-      "value": "Edit Kusto tool"
+      "value": "Изменить инструмент Kusto"
     }
   ],
   "bICPAQ": [
@@ -11506,7 +11696,7 @@
   "bWjdfa": [
     {
       "type": 0,
-      "value": "URL"
+      "value": "URL-адрес"
     }
   ],
   "baRFiF": [
@@ -11533,12 +11723,6 @@
     {
       "type": 0,
       "value": " символов."
-    }
-  ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Стабильный — получает обновления раз в месяц"
     }
   ],
   "bjDKAe": [
@@ -11713,12 +11897,6 @@
     {
       "type": 0,
       "value": "Выбрано"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "План To-Do:"
     }
   ],
   "c/KktL": [
@@ -12032,7 +12210,7 @@
   "dF2h2y": [
     {
       "type": 0,
-      "value": "Filter by incident id or title"
+      "value": "Фильтровать по идентификатору или названию инцидента"
     }
   ],
   "dG8VrM": [
@@ -12059,10 +12237,10 @@
       "value": "Создать запланированную задачу"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "Вложенный агент ИИ с инструкциями и инструментами"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -12198,7 +12376,7 @@
   "dqkJF6": [
     {
       "type": 0,
-      "value": "Delete subagent"
+      "value": "Удалить субагент"
     }
   ],
   "dtQgfG": [
@@ -12228,7 +12406,7 @@
   "dzy0ND": [
     {
       "type": 0,
-      "value": "Run scheduled task"
+      "value": "Выполнить запланированную задачу"
     }
   ],
   "e0a3XV": [
@@ -12401,12 +12579,6 @@
       "value": "Пользовательское руководство по ответам"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "Новые вложенные агенты передачи запускаются как автономные. Инструменты и другие детали можно подключить позже."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -12493,6 +12665,12 @@
     {
       "type": 0,
       "value": "Перспективный специалист"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -12589,12 +12767,6 @@
       "value": "Все уровни серьезности"
     }
   ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Вложенный агент с таким именем уже существует"
-    }
-  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -12680,13 +12852,13 @@
   "fvSiRs": [
     {
       "type": 0,
-      "value": "Tool updated successfully"
+      "value": "Инструмент обновлен"
     }
   ],
   "fyaE5g": [
     {
       "type": 0,
-      "value": "Please provide a channel link"
+      "value": "Укажите ссылку на канал"
     }
   ],
   "g+9csc": [
@@ -13044,7 +13216,7 @@
   "hGnjdE": [
     {
       "type": 0,
-      "value": "Learn more about AAU consumption and cost"
+      "value": "Подробнее о потреблении и стоимости AAU"
     }
   ],
   "hHz/bk": [
@@ -13057,12 +13229,6 @@
     {
       "type": 0,
       "value": "Не удалось удалить выбранные группы управляемых ресурсов"
-    }
-  ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Вложенный агент"
     }
   ],
   "hO1Iog": [
@@ -13122,7 +13288,7 @@
   "hdfKe+": [
     {
       "type": 0,
-      "value": "Automatically starts a subagent in response to an incident or alert."
+      "value": "Автоматически запускает субагент в ответ на инцидент или оповещение."
     }
   ],
   "heMr0D": [
@@ -13195,6 +13361,12 @@
     {
       "type": 0,
       "value": "Категория RCA"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -13324,7 +13496,7 @@
   "iYJ/Ha": [
     {
       "type": 0,
-      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
+      "value": "Инструмент запросов, который субагент использует для сбора данных из Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -13392,7 +13564,7 @@
   "ioRcwS": [
     {
       "type": 0,
-      "value": "Scheduled task trigger"
+      "value": "Триггер запланированной задачи"
     }
   ],
   "ipsqxO": [
@@ -13490,7 +13662,7 @@
   "j0Ifob": [
     {
       "type": 0,
-      "value": "Do you want to proceed?"
+      "value": "Вы хотите продолжить?"
     }
   ],
   "j0bMX6": [
@@ -13638,7 +13810,7 @@
   "jSgRib": [
     {
       "type": 0,
-      "value": "Your knowledge base has "
+      "value": "В вашей базе знаний "
     },
     {
       "type": 1,
@@ -13651,11 +13823,27 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "документа"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "документов"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "документ"
             }
           ]
         },
@@ -13663,7 +13851,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "документа"
             }
           ]
         }
@@ -13674,7 +13862,7 @@
     },
     {
       "type": 0,
-      "value": ". Add more?"
+      "value": ". Добавить еще?"
     }
   ],
   "jTQZpk": [
@@ -13683,16 +13871,10 @@
       "value": "Ресурс Grafana должен быть уникальным в пределах группы ресурсов."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Введите имя вложенного агента"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
-      "value": "Failed to run task: "
+      "value": "Не удалось выполнить задачу: "
     },
     {
       "type": 1,
@@ -14028,7 +14210,13 @@
   "l8IRTD": [
     {
       "type": 0,
-      "value": "Scheduled task(s) ran successfully"
+      "value": "Запланированные задачи выполнены"
+    }
+  ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
     }
   ],
   "lCsNuL": [
@@ -14089,6 +14277,12 @@
       "value": "Действительно удалить настраиваемый план реагирования?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -14131,6 +14325,12 @@
     {
       "type": 0,
       "value": "Поиск системных инструментов по имени, категории или описанию"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -14392,7 +14592,7 @@
   "mg8UeB": [
     {
       "type": 0,
-      "value": "Filter by response plan name"
+      "value": "Фильтровать по имени плана реагирования"
     }
   ],
   "mgYBYo": [
@@ -14489,6 +14689,12 @@
       "value": "Логотип Grafana"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -14498,7 +14704,7 @@
   "n25S4d": [
     {
       "type": 0,
-      "value": "Update Kusto Tool"
+      "value": "Обновить инструмент Kusto"
     }
   ],
   "n2h/5e": [
@@ -14573,12 +14779,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Предварительная версия — получает обновления дважды в неделю"
     }
   ],
   "nQpONp": [
@@ -14782,7 +14982,7 @@
   "oIm1Fb": [
     {
       "type": 0,
-      "value": "GitHub logo"
+      "value": "Логотип GitHub"
     }
   ],
   "oKJ0fm": [
@@ -14872,7 +15072,7 @@
   "ocQGCd": [
     {
       "type": 0,
-      "value": "Allow subagent capabilities to override the SRE Agent."
+      "value": "Разрешить возможности субагентов по переопределению Агента SRE."
     }
   ],
   "ocQXDt": [
@@ -14900,7 +15100,7 @@
   "ooDMAp": [
     {
       "type": 0,
-      "value": "Personal access token (PAT) or API key"
+      "value": "Личный маркер доступа (PAT) или ключ API"
     }
   ],
   "osuyeD": [
@@ -15095,6 +15295,12 @@
       "value": "Изменить ключ"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -15246,7 +15452,7 @@
   "q3e4cf": [
     {
       "type": 0,
-      "value": "Bearer token"
+      "value": "Токен носителя"
     }
   ],
   "q4EmsW": [
@@ -15480,7 +15686,7 @@
   "r5UlDs": [
     {
       "type": 0,
-      "value": "Enter custom header value"
+      "value": "Введите значение настраиваемого заголовка"
     }
   ],
   "r8XsCU": [
@@ -15619,6 +15825,12 @@
     {
       "type": 0,
       "value": "Диапазон дат:"
+    }
+  ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
     }
   ],
   "rQAyD6": [
@@ -15826,7 +16038,7 @@
   "ryAzxy": [
     {
       "type": 0,
-      "value": "Issue"
+      "value": "Проблема"
     }
   ],
   "ryPHA8": [
@@ -15985,12 +16197,6 @@
     {
       "type": 0,
       "value": "Узлы не найдены"
-    }
-  ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "В этом списке показаны ваши расширенные агенты, инструменты и соединители, организованные по категориям. Создавайте и управляйте вложенными агентами, чтобы расширить свои возможности, добавлять специальные инструменты для выполнения конкретных задач и настраивать соединители для доступа к внешним ресурсам."
     }
   ],
   "sQkhYk": [
@@ -16168,13 +16374,7 @@
   "stbbGt": [
     {
       "type": 0,
-      "value": "Performs specialized tasks on behalf of the SRE Agent."
-    }
-  ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Каждый час"
+      "value": "Выполняет специализированные задачи от имени Агента SRE."
     }
   ],
   "swRudj": [
@@ -16280,7 +16480,7 @@
   "tFoDh3": [
     {
       "type": 0,
-      "value": "Yes, turn on deep investigation"
+      "value": "Да, включить глубокое исследование"
     }
   ],
   "tGHG7q": [
@@ -16335,6 +16535,12 @@
     {
       "type": 0,
       "value": "Установить ограничение на количество запусков"
+    }
+  ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
     }
   ],
   "tU3A8E": [
@@ -16401,20 +16607,6 @@
     {
       "type": 0,
       "value": "Проверьте, насколько точно агент обобщает информацию о рисках и дальнейших шагах для предоставления отчетов руководству."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "Вложенный агент \""
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "\" создан"
     }
   ],
   "thOyk5": [
@@ -16563,6 +16755,12 @@
     {
       "type": 0,
       "value": "Показаны первые 1000 результатов. Воспользуйтесь фильтрацией, чтобы сузить список."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16914,7 +17112,7 @@
   "v1LtqB": [
     {
       "type": 0,
-      "value": "Select authentication method"
+      "value": "Выберите метод проверки подлинности"
     }
   ],
   "v3xWf6": [
@@ -16975,6 +17173,12 @@
     {
       "type": 0,
       "value": "Подключитесь к источникам данных, например к Kusto, чтобы расширить возможности агента"
+    }
+  ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
     }
   ],
   "vDbj1h": [
@@ -17060,7 +17264,7 @@
   "vb6deF": [
     {
       "type": 0,
-      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
+      "value": "Глубокие исследования требуют значительного времени на выполнение и могут привести к высокому потреблению AAU."
     }
   ],
   "vbdOl/": [
@@ -17142,7 +17346,7 @@
   "w4Nqlr": [
     {
       "type": 0,
-      "value": "Run scheduled task(s)"
+      "value": "Выполнить запланированные задачи"
     }
   ],
   "w5FDGY": [
@@ -17197,6 +17401,12 @@
     {
       "type": 0,
       "value": "Ожидается вычисление затрат"
+    }
+  ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
     }
   ],
   "wGLrHW": [
@@ -17267,6 +17477,12 @@
     {
       "type": 0,
       "value": "Создать нового агента передачи"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -17423,12 +17639,6 @@
     {
       "type": 0,
       "value": "Пока нет выполнений"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Построитель вложенных агентов"
     }
   ],
   "xDYr9m": [
@@ -17656,7 +17866,7 @@
   "y/m6Ep": [
     {
       "type": 0,
-      "value": "GitHub MCP server"
+      "value": "Сервер MCP GitHub"
     }
   ],
   "y0KXuM": [
@@ -17733,12 +17943,6 @@
       "value": "Отключить это предупреждение"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Создать вложенный агент"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -17754,7 +17958,13 @@
   "yRKsn1": [
     {
       "type": 0,
-      "value": "Learn more about deep investigations"
+      "value": "Подробнее о глубоких исследованиях"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17851,6 +18061,12 @@
     {
       "type": 0,
       "value": "Группы управляемых ресурсов"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -18074,7 +18290,7 @@
   "zRv1ks": [
     {
       "type": 0,
-      "value": "What should happen?"
+      "value": "Что должно произойти?"
     }
   ],
   "zUNfOA": [
@@ -18143,6 +18359,18 @@
     {
       "type": 0,
       "value": "Расширенные параметры"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

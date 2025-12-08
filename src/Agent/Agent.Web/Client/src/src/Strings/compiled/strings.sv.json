@@ -148,7 +148,7 @@
   "+WRusC": [
     {
       "type": 0,
-      "value": "SRE Agent"
+      "value": "SRE-agent"
     }
   ],
   "+XtuWl": [
@@ -377,6 +377,16 @@
       "value": "Rensa"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -439,12 +449,6 @@
     {
       "type": 0,
       "value": "Operatör för containerappar"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Varje minut"
     }
   ],
   "/Z1fHN": [
@@ -579,6 +583,12 @@
     {
       "type": 0,
       "value": "Sök..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -878,7 +888,7 @@
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " resursgrupp har valts."
     }
   ],
   "15GWkT": [
@@ -1074,7 +1084,7 @@
   "1m4VPF": [
     {
       "type": 0,
-      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+      "value": "Agenten undersöker komplexa problem och bildar hypoteser för att verifiera potentiella rotorsaker."
     }
   ],
   "1o9eJ6": [
@@ -1428,7 +1438,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Det uppstod ett oväntat fel"
     }
   ],
   "3JVa6k": [
@@ -1482,7 +1492,7 @@
   "3SsYXO": [
     {
       "type": 0,
-      "value": "Open GitHub issue page with pre-filled information above"
+      "value": "Öppna GitHub-problemsidan med förifylld information ovan"
     }
   ],
   "3VI9mt": [
@@ -1506,13 +1516,13 @@
   "3dsWh5": [
     {
       "type": 0,
-      "value": "Add MCP server"
+      "value": "Lägg till MCP-server"
     }
   ],
   "3h7ZKg": [
     {
       "type": 0,
-      "value": "Review + add"
+      "value": "Granska och lägg till"
     }
   ],
   "3hmrCJ": [
@@ -1554,7 +1564,7 @@
   "3k7JQw": [
     {
       "type": 0,
-      "value": "Issue description is required."
+      "value": "Problembeskrivning krävs."
     }
   ],
   "3n8o15": [
@@ -1572,7 +1582,7 @@
   "3rvQhx": [
     {
       "type": 0,
-      "value": "You can manage up to "
+      "value": "Du kan hantera upp till "
     },
     {
       "type": 1,
@@ -1580,7 +1590,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. Your agent currently manages "
+      "value": " resursgrupper som du har behörighet för. Din agent hanterar för närvarande "
     },
     {
       "type": 1,
@@ -1588,7 +1598,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups."
+      "value": " resursgrupper."
     }
   ],
   "3sNyAo": [
@@ -1788,7 +1798,7 @@
   "4IAjnN": [
     {
       "type": 0,
-      "value": "Turn on deep investigation?"
+      "value": "Vill du aktivera djup undersökning?"
     }
   ],
   "4MeTpL": [
@@ -1830,7 +1840,7 @@
   "4Rhz/i": [
     {
       "type": 0,
-      "value": "User provided connector"
+      "value": "Anslutning angiven av användaren"
     }
   ],
   "4RwjwU": [
@@ -1993,16 +2003,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "Du har inte behörighet att bevilja åtkomst till lagringsplatsen."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Välj en utökad agent som hjälper dig med dina uppgifter."
     }
   ],
   "5GUtRJ": [
@@ -2372,7 +2390,7 @@
     },
     {
       "type": 0,
-      "value": " sec"
+      "value": " sek"
     }
   ],
   "61e5yQ": [
@@ -2430,7 +2448,7 @@
   "6CrAJC": [
     {
       "type": 0,
-      "value": "Enter custom header key"
+      "value": "Ange anpassad rubriknyckel"
     }
   ],
   "6CxEZS": [
@@ -2615,16 +2633,6 @@
     {
       "type": 0,
       "value": "En tydlig och kortfattad beskrivning som hjälper andra agenter att förstå när de ska delegera arbete till den här specialistagenten. Den visas vid beslut om agentöverlämning och i samarbetsarbetsflöden."
-    }
-  ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "Det gick inte att skapa underagenten. Fel: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "6w0QQX": [
@@ -2824,7 +2832,7 @@
   "7Rnjmx": [
     {
       "type": 0,
-      "value": "Expected Behavior"
+      "value": "Förväntat beteende"
     }
   ],
   "7TVRcx": [
@@ -2878,7 +2886,7 @@
   "7kPmO3": [
     {
       "type": 0,
-      "value": "Edit connector"
+      "value": "Redigera anslutning"
     }
   ],
   "7nUCu9": [
@@ -3141,12 +3149,6 @@
       "value": "Skrivskyddad åtkomst till tjänst och API:er."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Skapa en underagent för överlämning"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3256,7 +3258,7 @@
   "8urALB": [
     {
       "type": 0,
-      "value": "Delete connector"
+      "value": "Ta bort anslutningsprogram"
     }
   ],
   "8v0Pyn": [
@@ -3499,6 +3501,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3651,6 +3665,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3702,7 +3722,7 @@
   "Abi/u/": [
     {
       "type": 0,
-      "value": "Expand panel"
+      "value": "Visa panel"
     }
   ],
   "AbleKr": [
@@ -3788,7 +3808,13 @@
   "AvHD3R": [
     {
       "type": 0,
-      "value": "Teams channel link"
+      "value": "Teams-kanallänk"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -3838,7 +3864,7 @@
   "BBT3jd": [
     {
       "type": 0,
-      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+      "value": "Agenten kommer åt GitHub-lagringsplatser, funktioner och åtgärder, inklusive ärendespårning och pull-begäranden."
     }
   ],
   "BD+V8L": [
@@ -4150,7 +4176,7 @@
   "CQisjK": [
     {
       "type": 0,
-      "value": "What actually happened?"
+      "value": "Vad hände egentligen?"
     }
   ],
   "CTRqZs": [
@@ -4295,6 +4321,12 @@
       "value": "Välj en underagent för svar"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4360,7 +4392,7 @@
   "DK708b": [
     {
       "type": 0,
-      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+      "value": "Namnet måste börja med en bokstav och det får bara innehålla bokstäver, siffror och bindestreck Namnet får inte vara tomt och måste vara kortare än "
     },
     {
       "type": 1,
@@ -4368,7 +4400,7 @@
     },
     {
       "type": 0,
-      "value": " characters."
+      "value": " tecken."
     }
   ],
   "DMEE1o": [
@@ -4386,7 +4418,7 @@
   "DP0m/y": [
     {
       "type": 0,
-      "value": "Updating Kusto Tool"
+      "value": "Uppdaterar Kusto-verktyget"
     }
   ],
   "DPnEXy": [
@@ -4425,12 +4457,16 @@
   ],
   "DXm10s": [
     {
+      "type": 0,
+      "value": "URL för"
+    },
+    {
       "type": 1,
       "value": "0"
     },
     {
       "type": 0,
-      "value": " repository URL"
+      "value": " -lagringsplats"
     }
   ],
   "DYp/nK": [
@@ -4478,7 +4514,7 @@
   "DgsR1U": [
     {
       "type": 0,
-      "value": "Channel ID"
+      "value": "Kanal-id"
     }
   ],
   "Dh9oJp": [
@@ -4577,6 +4613,12 @@
       "value": "Vissa av de valda resursgrupperna har inte nödvändiga roleAssignments/write- och Microsoft.ManagedIdentity/userAssignedIdentities/write-behörigheter."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4633,6 +4675,12 @@
     {
       "type": 0,
       "value": "Det gick inte att läsa in prenumerationer."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -4730,7 +4778,7 @@
   "EcglP9": [
     {
       "type": 0,
-      "value": "Key"
+      "value": "Nyckel"
     }
   ],
   "EdEthU": [
@@ -4788,7 +4836,7 @@
   "ErUgLz": [
     {
       "type": 0,
-      "value": "Teams group ID"
+      "value": "Teams-grupp-ID"
     }
   ],
   "Erci0g": [
@@ -4922,7 +4970,7 @@
   "FMDuHb": [
     {
       "type": 0,
-      "value": "Enter your PAT or API key"
+      "value": "Ange din PAT- eller API-nyckel"
     }
   ],
   "FNQNS1": [
@@ -5162,7 +5210,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": " resursgrupper har valts."
     }
   ],
   "G5JMSn": [
@@ -5178,7 +5226,7 @@
   "G6XRkU": [
     {
       "type": 0,
-      "value": "Steps to Reproduce"
+      "value": "Steg för att återskapa"
     }
   ],
   "G6vaGg": [
@@ -5209,7 +5257,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "dokument"
             }
           ]
         },
@@ -5217,7 +5265,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "dokument"
             }
           ]
         }
@@ -5386,7 +5434,7 @@
   "GufXy5": [
     {
       "type": 0,
-      "value": "Value"
+      "value": "Värde"
     }
   ],
   "Gvxoji": [
@@ -5458,7 +5506,7 @@
   "HJ7ZeR": [
     {
       "type": 0,
-      "value": "Issue Description"
+      "value": "Problembeskrivning"
     }
   ],
   "HKlw1J": [
@@ -5555,6 +5603,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5588,7 +5650,7 @@
   "HtVpjg": [
     {
       "type": 0,
-      "value": "You can select up to "
+      "value": "Du kan välja upp till "
     },
     {
       "type": 1,
@@ -5596,7 +5658,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups for this agent. Agents can manage a total of "
+      "value": " resursgrupper för den här agenten. Agenter kan hantera totalt "
     },
     {
       "type": 1,
@@ -5604,7 +5666,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups, and your agent currently manages "
+      "value": " resursgrupper och din agent hanterar för närvarande "
     },
     {
       "type": 1,
@@ -5612,7 +5674,7 @@
     },
     {
       "type": 0,
-      "value": ". You've selected "
+      "value": ". Du har valt "
     },
     {
       "type": 1,
@@ -5747,6 +5809,54 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -5803,12 +5913,6 @@
     {
       "type": 0,
       "value": "Ny tråd"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Skapar underagent"
     }
   ],
   "IYLPrk": [
@@ -5946,13 +6050,13 @@
   "J0rs+f": [
     {
       "type": 0,
-      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
+      "value": "Klistra in tråd-ID:t från SRE-agentportalen. (t.ex. 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J2Lcsz": [
     {
       "type": 0,
-      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+      "value": "En djupgående undersökning kommer att köras för varje incident som hanteras i den här svarsplanen. Varje djup undersökning kräver betydande tid att köra och kan resultera i hög AAU-förbrukning."
     }
   ],
   "J3Y8Sm": [
@@ -5992,7 +6096,7 @@
   "JA/VO+": [
     {
       "type": 0,
-      "value": "Starts a task at a defined time or interval."
+      "value": "Startar en aktivitet vid en definierad tid eller ett definierat intervall."
     }
   ],
   "JAtEuU": [
@@ -6242,7 +6346,7 @@
   "JvYXxh": [
     {
       "type": 0,
-      "value": "MCP server"
+      "value": "MCP-server"
     }
   ],
   "JwHSD6": [
@@ -6290,7 +6394,7 @@
   "K7tsik": [
     {
       "type": 0,
-      "value": "Scheduled task ran successfully"
+      "value": "Den schemalagda aktiviteten har slutförts"
     }
   ],
   "K9q4Xw": [
@@ -6456,7 +6560,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Få support"
     }
   ],
   "KoJ1C+": [
@@ -6530,7 +6634,7 @@
   "L/ct40": [
     {
       "type": 0,
-      "value": "Open in visual view"
+      "value": "Öppna i visuell vy"
     }
   ],
   "L/i6dy": [
@@ -6644,7 +6748,7 @@
   "LSqcaU": [
     {
       "type": 0,
-      "value": "Maximum 200,000 AAUs"
+      "value": "Max 200 000 AAU:er"
     }
   ],
   "LTDPn/": [
@@ -6690,19 +6794,13 @@
   "Li/Qrf": [
     {
       "type": 0,
-      "value": "Custom headers"
+      "value": "Anpassade sidhuvuden"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Beskriv schemat"
-    }
-  ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Välj en incident."
     }
   ],
   "LnglaU": [
@@ -6726,7 +6824,7 @@
   "LuHM0/": [
     {
       "type": 0,
-      "value": "Actual Behavior"
+      "value": "Faktiskt beteende"
     }
   ],
   "LupnQU": [
@@ -6773,6 +6871,12 @@
       "value": "Säkerhetsnivå"
     }
   ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
@@ -6810,7 +6914,7 @@
   "M0ay1D": [
     {
       "type": 0,
-      "value": "Running scheduled task(s)"
+      "value": "Kör schemalagda aktiviteter"
     }
   ],
   "M3159R": [
@@ -7118,7 +7222,7 @@
   "N2IrpM": [
     {
       "type": 0,
-      "value": "Confirm"
+      "value": "Bekräfta"
     }
   ],
   "N7cqYp": [
@@ -7233,6 +7337,12 @@
       "value": "Jag fattar"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7303,20 +7413,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "Var "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": ":e minut"
-    }
-  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7383,12 +7479,6 @@
     {
       "type": 0,
       "value": "Nya meddelanden"
-    }
-  ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Vill du ta bort den här SRE-agenten? Du kan inte ångra den här åtgärden."
     }
   ],
   "O9C6j/": [
@@ -7466,13 +7556,19 @@
   "OP7f9a": [
     {
       "type": 0,
-      "value": "Compiled connection string"
+      "value": "Ogiltig anslutningssträng"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
       "value": "Spåra data som parsas med fel."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -7808,7 +7904,7 @@
   "PZvrnY": [
     {
       "type": 0,
-      "value": "Title is required."
+      "value": "Rubrik måste anges."
     }
   ],
   "Pa1S0J": [
@@ -7841,16 +7937,6 @@
       "value": "Redigera agentkonfigurationer för Healthcare-API:er."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "Skapar underagenten "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -7866,7 +7952,7 @@
   "PpdTYy": [
     {
       "type": 0,
-      "value": "Failed to update tool"
+      "value": "Det gick inte att uppdatera verktyget"
     }
   ],
   "PrFU82": [
@@ -7933,6 +8019,12 @@
     {
       "type": 0,
       "value": "Beslutstid"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -8006,7 +8098,7 @@
   "Q9IHxV": [
     {
       "type": 0,
-      "value": "Running scheduled task "
+      "value": "Kör den schemalagda uppgiften "
     },
     {
       "type": 1,
@@ -8121,20 +8213,6 @@
       "value": "Rensa allt"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "Var "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": ":e timme"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8144,7 +8222,13 @@
   "QYiU4f": [
     {
       "type": 0,
-      "value": "1. Describe the action you took 2. Mention the resource or service involved"
+      "value": "1. Beskriv vilken åtgärd du vidtog 2. Ange vilken resurs eller tjänst som berörs"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -8680,7 +8764,7 @@
   "SeZ8eZ": [
     {
       "type": 0,
-      "value": "AAU consumption reminder"
+      "value": "Påminnelse om AAU-förbrukning"
     }
   ],
   "Seanpx": [
@@ -8716,7 +8800,7 @@
   "SoBWeV": [
     {
       "type": 0,
-      "value": "Monthly active flow AAUs"
+      "value": "AUS:er för månatligt aktivt flöde"
     }
   ],
   "Sr4IbA": [
@@ -8800,11 +8884,11 @@
   "T0e6Lh": [
     {
       "type": 0,
-      "value": "Remove "
+      "value": "Ta bort "
     },
     {
       "type": 1,
-      "value": "name"
+      "value": "Name"
     }
   ],
   "T5+AEf": [
@@ -8948,7 +9032,7 @@
   "TP/cMX": [
     {
       "type": 0,
-      "value": "Ended"
+      "value": "Avslutat"
     }
   ],
   "TQ0n+a": [
@@ -9086,7 +9170,7 @@
   "UImEMW": [
     {
       "type": 0,
-      "value": "Briefly describe the problem or request."
+      "value": "Beskriv kortfattat problemet eller önskemålet."
     }
   ],
   "UKMPBH": [
@@ -9267,12 +9351,6 @@
       "value": "Förhandsvisning av chatt"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Inga underagenter har konfigurerats"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9352,7 +9430,7 @@
   "Vaj9nj": [
     {
       "type": 0,
-      "value": "Don't show this message again"
+      "value": "Visa inte det här meddelandet igen"
     }
   ],
   "Vb+qQ4": [
@@ -9422,7 +9500,7 @@
   "Vs3jMi": [
     {
       "type": 0,
-      "value": "Authentication method"
+      "value": "Autentiseringsmetod"
     }
   ],
   "VtBCjG": [
@@ -9491,12 +9569,6 @@
       "value": "Försök igen eller se efter i konsolen om du vill ha mer information."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Förhandsgranska uppgraderingskanal"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9537,12 +9609,6 @@
     {
       "type": 0,
       "value": "Du har inte behörighet att kontrollera incidenthanteringsanslutningen."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10240,12 +10306,6 @@
       "value": "Stresstest"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "Det gick inte att skapa underagent"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10432,6 +10492,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -10558,6 +10624,54 @@
     {
       "type": 0,
       "value": "Välj ett befintligt verktyg nedan för att ansluta."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -10976,7 +11090,7 @@
   "bDbbX7": [
     {
       "type": 0,
-      "value": "Edit Kusto tool"
+      "value": "Redigera Kusto-verktyget"
     }
   ],
   "bICPAQ": [
@@ -11012,7 +11126,7 @@
   "bWjdfa": [
     {
       "type": 0,
-      "value": "URL"
+      "value": "Webbadress"
     }
   ],
   "baRFiF": [
@@ -11039,12 +11153,6 @@
     {
       "type": 0,
       "value": " tecken."
-    }
-  ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Stabil – Får uppdateringar en gång i månaden"
     }
   ],
   "bjDKAe": [
@@ -11203,12 +11311,6 @@
     {
       "type": 0,
       "value": "Valt"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "Här är att göra-planen:"
     }
   ],
   "c/KktL": [
@@ -11518,7 +11620,7 @@
   "dF2h2y": [
     {
       "type": 0,
-      "value": "Filter by incident id or title"
+      "value": "Filtrera efter incident-ID eller rubrik"
     }
   ],
   "dG8VrM": [
@@ -11545,10 +11647,10 @@
       "value": "Skapa schemalagd uppgift"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "En AI-underagent med instruktioner och verktyg"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -11688,7 +11790,7 @@
   "dqkJF6": [
     {
       "type": 0,
-      "value": "Delete subagent"
+      "value": "Ta bort underagent"
     }
   ],
   "dtQgfG": [
@@ -11718,7 +11820,7 @@
   "dzy0ND": [
     {
       "type": 0,
-      "value": "Run scheduled task"
+      "value": "Kör schemalagd uppgift"
     }
   ],
   "e0a3XV": [
@@ -11887,12 +11989,6 @@
       "value": "Anpassad svarsvägledning"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "Nya underagenter för överlämning börjar som autonoma. Du kan ansluta verktyg och annan information senare."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -11979,6 +12075,12 @@
     {
       "type": 0,
       "value": "Kommande specialist"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -12075,12 +12177,6 @@
       "value": "Alla allvarlighetsgrader"
     }
   ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Det finns redan en underagent med det här namnet"
-    }
-  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -12166,13 +12262,13 @@
   "fvSiRs": [
     {
       "type": 0,
-      "value": "Tool updated successfully"
+      "value": "Verktyget har uppdaterats"
     }
   ],
   "fyaE5g": [
     {
       "type": 0,
-      "value": "Please provide a channel link"
+      "value": "Ange en kanallänk"
     }
   ],
   "g+9csc": [
@@ -12492,7 +12588,7 @@
   "hGnjdE": [
     {
       "type": 0,
-      "value": "Learn more about AAU consumption and cost"
+      "value": "Läs mer om AAU-förbrukning och kostnad"
     }
   ],
   "hHz/bk": [
@@ -12505,12 +12601,6 @@
     {
       "type": 0,
       "value": "Det gick inte att ta bort de valda hanterade resursgrupperna"
-    }
-  ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Sub-Agent"
     }
   ],
   "hO1Iog": [
@@ -12570,7 +12660,7 @@
   "hdfKe+": [
     {
       "type": 0,
-      "value": "Automatically starts a subagent in response to an incident or alert."
+      "value": "Startar automatiskt en underagent som svar på en incident eller avisering."
     }
   ],
   "heMr0D": [
@@ -12643,6 +12733,12 @@
     {
       "type": 0,
       "value": "RCA-kategori"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -12776,7 +12872,7 @@
   "iYJ/Ha": [
     {
       "type": 0,
-      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
+      "value": "Frågeverktyg som underagenten använder för att samla in data från Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -12844,7 +12940,7 @@
   "ioRcwS": [
     {
       "type": 0,
-      "value": "Scheduled task trigger"
+      "value": "Utlösare för schemalagd aktivitet"
     }
   ],
   "ipsqxO": [
@@ -12942,7 +13038,7 @@
   "j0Ifob": [
     {
       "type": 0,
-      "value": "Do you want to proceed?"
+      "value": "Vill du fortsätta?"
     }
   ],
   "j0bMX6": [
@@ -13074,7 +13170,7 @@
   "jSgRib": [
     {
       "type": 0,
-      "value": "Your knowledge base has "
+      "value": "Din kunskapsbas har "
     },
     {
       "type": 1,
@@ -13091,7 +13187,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "dokument"
             }
           ]
         },
@@ -13099,7 +13195,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "dokument"
             }
           ]
         }
@@ -13110,7 +13206,7 @@
     },
     {
       "type": 0,
-      "value": ". Add more?"
+      "value": ". Vill du lägga till fler?"
     }
   ],
   "jTQZpk": [
@@ -13119,16 +13215,10 @@
       "value": "Grafana-resursen måste vara unik i resursgruppen."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Ange namn på underagent"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
-      "value": "Failed to run task: "
+      "value": "Det gick inte att köra aktiviteten: "
     },
     {
       "type": 1,
@@ -13464,7 +13554,13 @@
   "l8IRTD": [
     {
       "type": 0,
-      "value": "Scheduled task(s) ran successfully"
+      "value": "Schemalagda aktiviteter har körts"
+    }
+  ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
     }
   ],
   "lCsNuL": [
@@ -13525,6 +13621,12 @@
       "value": "Vill du ta bort den anpassade svarsplanen?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -13567,6 +13669,12 @@
     {
       "type": 0,
       "value": "Sök systemverktyg efter namn, kategori eller beskrivning"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -13828,7 +13936,7 @@
   "mg8UeB": [
     {
       "type": 0,
-      "value": "Filter by response plan name"
+      "value": "Filtrera efter namn på svarsplan"
     }
   ],
   "mgYBYo": [
@@ -13925,6 +14033,12 @@
       "value": "Grafana-logotyp"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -13934,7 +14048,7 @@
   "n25S4d": [
     {
       "type": 0,
-      "value": "Update Kusto Tool"
+      "value": "Uppdatera Kusto-verktyget"
     }
   ],
   "n2h/5e": [
@@ -14009,12 +14123,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Förhandsversion – Får uppdateringar två gånger i veckan"
     }
   ],
   "nQpONp": [
@@ -14218,7 +14326,7 @@
   "oIm1Fb": [
     {
       "type": 0,
-      "value": "GitHub logo"
+      "value": "GitHub-logotyp"
     }
   ],
   "oKJ0fm": [
@@ -14308,7 +14416,7 @@
   "ocQGCd": [
     {
       "type": 0,
-      "value": "Allow subagent capabilities to override the SRE Agent."
+      "value": "Tillåt att subagentfunktioner åsidosätter SRE-agenten."
     }
   ],
   "ocQXDt": [
@@ -14336,7 +14444,7 @@
   "ooDMAp": [
     {
       "type": 0,
-      "value": "Personal access token (PAT) or API key"
+      "value": "Personlig åtkomsttoken (PAT) eller API-nyckel"
     }
   ],
   "osuyeD": [
@@ -14531,6 +14639,12 @@
       "value": "Ändra nyckel"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -14678,7 +14792,7 @@
   "q3e4cf": [
     {
       "type": 0,
-      "value": "Bearer token"
+      "value": "Ägartoken"
     }
   ],
   "q4EmsW": [
@@ -14882,7 +14996,7 @@
   "r5UlDs": [
     {
       "type": 0,
-      "value": "Enter custom header value"
+      "value": "Ange anpassat rubrikvärde"
     }
   ],
   "r8XsCU": [
@@ -15005,6 +15119,12 @@
     {
       "type": 0,
       "value": "Datumintervall:"
+    }
+  ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
     }
   ],
   "rQAyD6": [
@@ -15212,7 +15332,7 @@
   "ryAzxy": [
     {
       "type": 0,
-      "value": "Issue"
+      "value": "Problem"
     }
   ],
   "ryPHA8": [
@@ -15371,12 +15491,6 @@
     {
       "type": 0,
       "value": "Inga noder hittades"
-    }
-  ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "Den här listan visar dina utökade agenter, verktyg och anslutningar ordnade efter kategori. Skapa och hantera underagenter för att utöka dina funktioner, lägga till anpassade verktyg för specifika uppgifter och konfigurera anslutningar för åtkomst till externa resurser."
     }
   ],
   "sQkhYk": [
@@ -15554,13 +15668,7 @@
   "stbbGt": [
     {
       "type": 0,
-      "value": "Performs specialized tasks on behalf of the SRE Agent."
-    }
-  ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Varje timme"
+      "value": "Utför specialiserade uppgifter åt SRE-agenten."
     }
   ],
   "swRudj": [
@@ -15666,7 +15774,7 @@
   "tFoDh3": [
     {
       "type": 0,
-      "value": "Yes, turn on deep investigation"
+      "value": "Ja, aktivera djup undersökning"
     }
   ],
   "tGHG7q": [
@@ -15721,6 +15829,12 @@
     {
       "type": 0,
       "value": "Ange en körningsgräns"
+    }
+  ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
     }
   ],
   "tU3A8E": [
@@ -15787,20 +15901,6 @@
     {
       "type": 0,
       "value": "Validera hur agenten sammanfattar risker och nästa steg för ledarskapsuppdateringar."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "Underagenten "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " har skapats"
     }
   ],
   "thOyk5": [
@@ -15949,6 +16049,12 @@
     {
       "type": 0,
       "value": "Visar de första 1 000 resultaten. Filtrera för att begränsa listan."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16240,7 +16346,7 @@
   "v1LtqB": [
     {
       "type": 0,
-      "value": "Select authentication method"
+      "value": "Välj autentiseringsmetod"
     }
   ],
   "v3xWf6": [
@@ -16301,6 +16407,12 @@
     {
       "type": 0,
       "value": "Anslut till datakällor som Kusto för avancerade agentfunktioner"
+    }
+  ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
     }
   ],
   "vDbj1h": [
@@ -16386,7 +16498,7 @@
   "vb6deF": [
     {
       "type": 0,
-      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
+      "value": "Djupgående undersökningar kräver lång tid att köra och kan leda till hög AAU-förbrukning."
     }
   ],
   "vbdOl/": [
@@ -16468,7 +16580,7 @@
   "w4Nqlr": [
     {
       "type": 0,
-      "value": "Run scheduled task(s)"
+      "value": "Kör schemalagda aktiviteter"
     }
   ],
   "w5FDGY": [
@@ -16523,6 +16635,12 @@
     {
       "type": 0,
       "value": "Kostnadsberäkning väntar"
+    }
+  ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
     }
   ],
   "wGLrHW": [
@@ -16593,6 +16711,12 @@
     {
       "type": 0,
       "value": "Skapa en ny överlämningsagent"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -16749,12 +16873,6 @@
     {
       "type": 0,
       "value": "Inga körningar ännu"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Underagentverktyget"
     }
   ],
   "xDYr9m": [
@@ -16982,7 +17100,7 @@
   "y/m6Ep": [
     {
       "type": 0,
-      "value": "GitHub MCP server"
+      "value": "GitHub MCP-server"
     }
   ],
   "y0KXuM": [
@@ -17059,12 +17177,6 @@
       "value": "Stäng av den här varningen"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Skapa underagent"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -17080,7 +17192,13 @@
   "yRKsn1": [
     {
       "type": 0,
-      "value": "Learn more about deep investigations"
+      "value": "Läs mer om djupgående undersökningar"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17177,6 +17295,12 @@
     {
       "type": 0,
       "value": "Hanterade resursgrupper"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -17384,7 +17508,7 @@
   "zRv1ks": [
     {
       "type": 0,
-      "value": "What should happen?"
+      "value": "Vad ska hända?"
     }
   ],
   "zUNfOA": [
@@ -17453,6 +17577,18 @@
     {
       "type": 0,
       "value": "Avancerade inställningar"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

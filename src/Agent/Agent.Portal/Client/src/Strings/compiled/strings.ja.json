@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "ドキュメント"
     }
   ],
   "/6Fckw": [
@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "開始時刻"
     }
   ],
   "01lT1B": [
@@ -150,7 +150,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "展開"
     }
   ],
   "0te2Ra": [
@@ -162,7 +162,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "操作を読み込んでいます..."
     }
   ],
   "1YPTmM": [
@@ -300,7 +300,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "リソース グループの削除"
     }
   ],
   "4ii5zj": [
@@ -315,10 +315,16 @@
       "value": "クラスター管理者資格情報のアクションを一覧表示します。"
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "デプロイ"
     }
   ],
   "5M+hLZ": [
@@ -503,7 +509,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "デプロイに失敗しました"
     }
   ],
   "ABo5XY": [
@@ -558,6 +564,12 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions 閲覧者"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -642,6 +654,12 @@
     {
       "type": 0,
       "value": "KB のみを読み取り、テストできます。"
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -760,6 +778,18 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -808,6 +838,12 @@
       "value": "推奨されるリソース グループのみの表示に切り替える"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -823,7 +859,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "成功"
     }
   ],
   "LSaaxU": [
@@ -930,7 +966,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "作成済み"
     }
   ],
   "OTGHHm": [
@@ -939,10 +975,31 @@
       "value": "選択したリソースには、これらのロールに対するアクセス許可があります。"
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "デプロイ名"
     }
   ],
   "Oom2N7": [
@@ -1082,7 +1139,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "更新中"
     }
   ],
   "SCjiXP": [
@@ -1224,7 +1281,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "折りたたむ"
     }
   ],
   "W4H4Z9": [
@@ -1403,6 +1460,12 @@
       "value": "はい"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1452,6 +1515,12 @@
     {
       "type": 0,
       "value": "エージェントが管理するリソース グループを最大 100 個まで選択できます。"
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
@@ -1520,6 +1589,12 @@
       "value": "Redis Cache"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1535,7 +1610,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "リソース操作"
     }
   ],
   "d2GmfJ": [
@@ -1642,6 +1717,12 @@
       "value": "読み取り専用ロック"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1687,7 +1768,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "デプロイが進行中です..."
     }
   ],
   "gzx/k1": [
@@ -1931,7 +2012,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "実行中"
     }
   ],
   "nlPgO8": [
@@ -1990,6 +2071,12 @@
       "value": "エージェントはレビュー モードです。リソースに関する知識をエージェントで構築するために、以下のアクセス許可が必要です。エージェントはこれらのアクセス許可の一部を使用し、要求に基づいて、承認後に書き込み操作を実行します。"
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -1999,7 +2086,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "関連付け ID"
     }
   ],
   "pAFuFx": [
@@ -2232,13 +2319,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "デプロイが成功しました"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "失敗"
     }
   ],
   "vbdOl/": [
@@ -2262,7 +2349,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "操作が見つかりません"
     }
   ],
   "wCtBb6": [
@@ -2334,7 +2421,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "作成中"
     }
   ],
   "xmcVZ0": [

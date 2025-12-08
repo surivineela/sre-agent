@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Documents"
     }
   ],
   "/6Fckw": [
@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Heure de début"
     }
   ],
   "01lT1B": [
@@ -146,7 +146,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Développer"
     }
   ],
   "0te2Ra": [
@@ -158,7 +158,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Chargement des opérations..."
     }
   ],
   "1YPTmM": [
@@ -296,7 +296,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Supprimer un groupe de ressources"
     }
   ],
   "4ii5zj": [
@@ -311,10 +311,16 @@
       "value": "Action Répertorier les informations d'identification du cluster."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Déployer"
     }
   ],
   "5M+hLZ": [
@@ -541,7 +547,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Nous n’avons pas pu effectuer le déploiement"
     }
   ],
   "ABo5XY": [
@@ -596,6 +602,12 @@
     {
       "type": 0,
       "value": "Lecteur de Centre Azure pour les solutions SAP"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -680,6 +692,12 @@
     {
       "type": 0,
       "value": "Vous permet de lire et tester une base de connaissances uniquement."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -798,6 +816,18 @@
       "value": "Agent SRE Azure"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -846,6 +876,12 @@
       "value": "Activer/Désactiver l’affichage des groupes de ressources recommandés uniquement"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -861,7 +897,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Réussite"
     }
   ],
   "LSaaxU": [
@@ -998,7 +1034,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Créé"
     }
   ],
   "OTGHHm": [
@@ -1007,10 +1043,53 @@
       "value": "Les ressources que vous avez sélectionnées disposent d’autorisations pour ces rôles."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Nom du déploiement"
     }
   ],
   "Oom2N7": [
@@ -1150,7 +1229,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Mise à jour"
     }
   ],
   "SCjiXP": [
@@ -1292,7 +1371,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Réduire"
     }
   ],
   "W4H4Z9": [
@@ -1471,6 +1550,12 @@
       "value": "Oui"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1556,6 +1641,12 @@
       "value": "Vous pouvez choisir un maximum de 100 groupes de ressources qui seront gérés par l’agent."
     }
   ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
+    }
+  ],
   "b43a5F": [
     {
       "type": 0,
@@ -1622,6 +1713,12 @@
       "value": "Cache Redis"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1637,7 +1734,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Opérations sur les ressources"
     }
   ],
   "d2GmfJ": [
@@ -1744,6 +1841,12 @@
       "value": "Verrouillage en lecture seule"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1789,7 +1892,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Le déploiement est en cours... Merci de patienter."
     }
   ],
   "gzx/k1": [
@@ -2033,7 +2136,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "Exécution"
     }
   ],
   "nlPgO8": [
@@ -2096,6 +2199,12 @@
       "value": "Votre agent est en mode révision. Les autorisations suivantes sont requises pour que l’agent développe des connaissances sur vos ressources. L’agent utilisera certaines de ces autorisations pour effectuer des opérations d’écriture avec votre approbation en fonction de vos demandes."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -2105,7 +2214,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "ID de corrélation"
     }
   ],
   "pAFuFx": [
@@ -2372,13 +2481,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Le déploiement a été effectué"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Échec"
     }
   ],
   "vbdOl/": [
@@ -2402,7 +2511,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Aucune opération trouvée"
     }
   ],
   "wCtBb6": [
@@ -2474,7 +2583,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Création en cours"
     }
   ],
   "xmcVZ0": [

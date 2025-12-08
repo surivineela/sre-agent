@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Dokumentáció"
     }
   ],
   "/6Fckw": [
@@ -118,7 +118,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Kezdés időpontja"
     }
   ],
   "01lT1B": [
@@ -150,7 +150,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Kibontás"
     }
   ],
   "0te2Ra": [
@@ -162,7 +162,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "Műveletek betöltése..."
     }
   ],
   "1YPTmM": [
@@ -300,7 +300,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Erőforráscsoport eltávolítása"
     }
   ],
   "4ii5zj": [
@@ -315,10 +315,16 @@
       "value": "Fürtfelügyelői hitelesítő művelet listázása."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Üzembe helyezés"
     }
   ],
   "5M+hLZ": [
@@ -522,7 +528,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Az üzembe helyezés nem sikerült"
     }
   ],
   "ABo5XY": [
@@ -577,6 +583,12 @@
     {
       "type": 0,
       "value": "Az Azure Center for SAP solutions olvasója"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -661,6 +673,12 @@
     {
       "type": 0,
       "value": "Csak a tudásbázisok olvasását és tesztelését teszi lehetővé."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -779,6 +797,18 @@
       "value": "Azure SRE Agent ügynökök"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -827,6 +857,12 @@
       "value": "Váltás csak az ajánlott erőforráscsoportok megjelenítéséhez"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -842,7 +878,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Sikeres"
     }
   ],
   "LSaaxU": [
@@ -960,7 +996,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Létrehozva"
     }
   ],
   "OTGHHm": [
@@ -969,10 +1005,42 @@
       "value": "Az Ön által kiválasztott erőforrások rendelkeznek engedélyekkel ezekhez a szerepkörökhöz."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Üzemelő példány neve"
     }
   ],
   "Oom2N7": [
@@ -1112,7 +1180,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Frissítés folyamatban"
     }
   ],
   "SCjiXP": [
@@ -1254,7 +1322,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Összecsukás"
     }
   ],
   "W4H4Z9": [
@@ -1433,6 +1501,12 @@
       "value": "Igen"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1493,6 +1567,12 @@
     {
       "type": 0,
       "value": "Legfeljebb 100 erőforráscsoportot választhat ki, amelyeket az ügynök kezelni fog."
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
@@ -1561,6 +1641,12 @@
       "value": "Redis Cache"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1576,7 +1662,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Erőforrás-műveletek"
     }
   ],
   "d2GmfJ": [
@@ -1683,6 +1769,12 @@
       "value": "Írásvédett zárolás"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1728,7 +1820,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Üzembe helyezés folyamatban..."
     }
   ],
   "gzx/k1": [
@@ -1972,7 +2064,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "Fut"
     }
   ],
   "nlPgO8": [
@@ -2031,6 +2123,12 @@
       "value": "Az ügynök felülvizsgálati módban van. Az alábbi engedélyek szükségesek ahhoz, hogy az ügynök tudást építsen az Ön erőforrásairól. Az ügynök ezek közül néhány engedélyt arra használ, hogy az Ön kérései alapján az Ön jóváhagyásával végezzen írási műveleteket."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -2040,7 +2138,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "Korrelációs azonosító"
     }
   ],
   "pAFuFx": [
@@ -2284,13 +2382,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Sikeres üzembe helyezés"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Hibás"
     }
   ],
   "vbdOl/": [
@@ -2314,7 +2412,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "Nem találhatók műveletek"
     }
   ],
   "wCtBb6": [
@@ -2386,7 +2484,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Létrehozás folyamatban"
     }
   ],
   "xmcVZ0": [

@@ -62,7 +62,7 @@
   "/6/sPX": [
     {
       "type": 0,
-      "value": "Docs"
+      "value": "Belgeler"
     }
   ],
   "/6Fckw": [
@@ -114,7 +114,7 @@
   "/zFP1/": [
     {
       "type": 0,
-      "value": "Start time"
+      "value": "Başlangıç zamanı"
     }
   ],
   "01lT1B": [
@@ -146,7 +146,7 @@
   "0oLj/t": [
     {
       "type": 0,
-      "value": "Expand"
+      "value": "Genişlet"
     }
   ],
   "0te2Ra": [
@@ -158,7 +158,7 @@
   "1Lx9q5": [
     {
       "type": 0,
-      "value": "Loading operations..."
+      "value": "İşlemler yükleniyor..."
     }
   ],
   "1YPTmM": [
@@ -296,7 +296,7 @@
   "4USxEK": [
     {
       "type": 0,
-      "value": "Remove resource group"
+      "value": "Kaynak grubunu kaldır"
     }
   ],
   "4ii5zj": [
@@ -311,10 +311,16 @@
       "value": "Küme yöneticisi kimlik bilgileri eylemini listele."
     }
   ],
+  "4l6vz1": [
+    {
+      "type": 0,
+      "value": "Copy"
+    }
+  ],
   "556JQK": [
     {
       "type": 0,
-      "value": "Deploy"
+      "value": "Dağıt"
     }
   ],
   "5M+hLZ": [
@@ -510,7 +516,7 @@
   "9M3sYh": [
     {
       "type": 0,
-      "value": "Deployment failed"
+      "value": "Dağıtım başarısız oldu"
     }
   ],
   "ABo5XY": [
@@ -565,6 +571,12 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions okuyucusu"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -649,6 +661,12 @@
     {
       "type": 0,
       "value": "Yalnızca KB'yi okuyup test etmenize olanak tanır."
+    }
+  ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
     }
   ],
   "ENnkRe": [
@@ -763,6 +781,18 @@
       "value": "Azure SRE Aracıları"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -811,6 +841,12 @@
       "value": "Yalnızca önerilen kaynak gruplarını göstermek için aç/kapat"
     }
   ],
+  "Km7x3v": [
+    {
+      "type": 0,
+      "value": "Get support"
+    }
+  ],
   "KzMCPo": [
     {
       "type": 0,
@@ -826,7 +862,7 @@
   "LOghU6": [
     {
       "type": 0,
-      "value": "Succeeded"
+      "value": "Başarılı"
     }
   ],
   "LSaaxU": [
@@ -944,7 +980,7 @@
   "ORGv1Q": [
     {
       "type": 0,
-      "value": "Created"
+      "value": "Oluşturuldu"
     }
   ],
   "OTGHHm": [
@@ -953,10 +989,42 @@
       "value": "Seçtiğiniz kaynaklar bu roller için izinlere sahip."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
-      "value": "Deployment name"
+      "value": "Dağıtım adı"
     }
   ],
   "Oom2N7": [
@@ -1096,7 +1164,7 @@
   "S8snIe": [
     {
       "type": 0,
-      "value": "Updating"
+      "value": "Güncelleştiriliyor"
     }
   ],
   "SCjiXP": [
@@ -1242,7 +1310,7 @@
   "W/V6+Y": [
     {
       "type": 0,
-      "value": "Collapse"
+      "value": "Daralt"
     }
   ],
   "W4H4Z9": [
@@ -1425,6 +1493,12 @@
       "value": "Evet"
     }
   ],
+  "aCdAsI": [
+    {
+      "type": 0,
+      "value": "Copy to clipboard"
+    }
+  ],
   "aGL+Qo": [
     {
       "type": 0,
@@ -1485,6 +1559,12 @@
     {
       "type": 0,
       "value": "Aracının yöneteceği maksimum 100 kaynak grubu seçebilirsiniz."
+    }
+  ],
+  "b0v+Pu": [
+    {
+      "type": 0,
+      "value": "Session ID"
     }
   ],
   "b43a5F": [
@@ -1553,6 +1633,12 @@
       "value": "Redis Cache"
     }
   ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
+    }
+  ],
   "ctcA0c": [
     {
       "type": 0,
@@ -1568,7 +1654,7 @@
   "czVHN2": [
     {
       "type": 0,
-      "value": "Resource operations"
+      "value": "Kaynak işlemleri"
     }
   ],
   "d2GmfJ": [
@@ -1675,6 +1761,12 @@
       "value": "Salt okunur kilit"
     }
   ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
+    }
+  ],
   "fSFDgd": [
     {
       "type": 0,
@@ -1720,7 +1812,7 @@
   "gty4jJ": [
     {
       "type": 0,
-      "value": "Deployment in progress..."
+      "value": "Dağıtım devam ediyor..."
     }
   ],
   "gzx/k1": [
@@ -1964,7 +2056,7 @@
   "nDyaq/": [
     {
       "type": 0,
-      "value": "Running"
+      "value": "Çalışıyor"
     }
   ],
   "nlPgO8": [
@@ -2027,6 +2119,12 @@
       "value": "Aracınız gözden geçirme modunda. Aracının kaynaklarınız hakkında bilgi oluşturması için aşağıdaki izinler gereklidir. Aracı, isteklerinize göre sizin onayınızla yazma işlemlerini gerçekleştirmek için bu izinlerin bir kısmını kullanacak."
     }
   ],
+  "p556q3": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "p5T+zv": [
     {
       "type": 0,
@@ -2036,7 +2134,7 @@
   "p849eW": [
     {
       "type": 0,
-      "value": "Correlation ID"
+      "value": "Bağıntı Kimliği"
     }
   ],
   "pAFuFx": [
@@ -2280,13 +2378,13 @@
   "v90qT8": [
     {
       "type": 0,
-      "value": "Deployment succeeded"
+      "value": "Dağıtım başarılı"
     }
   ],
   "vXCeIi": [
     {
       "type": 0,
-      "value": "Failed"
+      "value": "Başarısız"
     }
   ],
   "vbdOl/": [
@@ -2310,7 +2408,7 @@
   "vxVGav": [
     {
       "type": 0,
-      "value": "No operations found"
+      "value": "İşlem bulunamadı"
     }
   ],
   "wCtBb6": [
@@ -2382,7 +2480,7 @@
   "xhfdqv": [
     {
       "type": 0,
-      "value": "Creating"
+      "value": "Oluşturuluyor"
     }
   ],
   "xmcVZ0": [

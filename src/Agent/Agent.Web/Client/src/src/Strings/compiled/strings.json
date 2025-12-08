@@ -187,12 +187,6 @@
       "value": "Create new subagent"
     }
   ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "Edit data connector"
-    }
-  ],
   "+hOwpi": [
     {
       "type": 0,
@@ -485,6 +479,12 @@
       "value": "Failed to create connector"
     }
   ],
+  "/mPnOR": [
+    {
+      "type": 0,
+      "value": "Skills Enabled"
+    }
+  ],
   "/qCaiZ": [
     {
       "type": 0,
@@ -561,12 +561,6 @@
       "value": "View AI suggestions"
     }
   ],
-  "05Rzkx": [
-    {
-      "type": 0,
-      "value": "Test Agent"
-    }
-  ],
   "08bD52": [
     {
       "type": 0,
@@ -641,6 +635,12 @@
     {
       "type": 0,
       "value": "Quick fixes"
+    }
+  ],
+  "0L2J5T": [
+    {
+      "type": 0,
+      "value": "New file"
     }
   ],
   "0Qocmw": [
@@ -889,6 +889,12 @@
       },
       "type": 5,
       "value": "errorMessage"
+    }
+  ],
+  "1/xsyG": [
+    {
+      "type": 0,
+      "value": "Create your agent first to enable testing."
     }
   ],
   "12GY0h": [
@@ -1477,6 +1483,12 @@
       "value": "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?"
     }
   ],
+  "3DC7Da": [
+    {
+      "type": 0,
+      "value": "Enter argument"
+    }
+  ],
   "3DzXFS": [
     {
       "type": 0,
@@ -1689,6 +1701,12 @@
     {
       "type": 0,
       "value": "Expand navigation"
+    }
+  ],
+  "3xD7BQ": [
+    {
+      "type": 0,
+      "value": "Add additional files to include with this skill."
     }
   ],
   "3yurtF": [
@@ -2215,6 +2233,12 @@
       "value": "errorMessage"
     }
   ],
+  "5X7NpJ": [
+    {
+      "type": 0,
+      "value": "Upload folder"
+    }
+  ],
   "5XRsWa": [
     {
       "type": 0,
@@ -2479,12 +2503,6 @@
       "value": "Preview incidents"
     }
   ],
-  "69sjgc": [
-    {
-      "type": 0,
-      "value": "Enter Key Vault URI"
-    }
-  ],
   "6B0Aua": [
     {
       "type": 1,
@@ -2655,6 +2673,12 @@
       "value": "Generate Session Insights"
     }
   ],
+  "6lHI9u": [
+    {
+      "type": 0,
+      "value": "Send a message to start testing your agent."
+    }
+  ],
   "6m5Ba0": [
     {
       "type": 0,
@@ -2761,12 +2785,6 @@
       "value": "No agents available for handoff"
     }
   ],
-  "7C0xai": [
-    {
-      "type": 0,
-      "value": "Data source"
-    }
-  ],
   "7Cy5xk": [
     {
       "type": 0,
@@ -2777,6 +2795,12 @@
     {
       "type": 0,
       "value": "Review mode"
+    }
+  ],
+  "7JgdFw": [
+    {
+      "type": 0,
+      "value": "Comma-separated tool names, e.g., SearchKusto, GetLogs"
     }
   ],
   "7K6W8s": [
@@ -3113,6 +3137,12 @@
       "value": "errorMessage"
     }
   ],
+  "8J3eYt": [
+    {
+      "type": 0,
+      "value": "Test live agent"
+    }
+  ],
   "8LMIGa": [
     {
       "type": 0,
@@ -3289,6 +3319,12 @@
     {
       "type": 0,
       "value": "Try different search terms or clear your search to see all connectors."
+    }
+  ],
+  "8jD/lL": [
+    {
+      "type": 0,
+      "value": "Create skill"
     }
   ],
   "8lCjAM": [
@@ -3503,12 +3539,6 @@
       "value": "Generate Tool"
     }
   ],
-  "9G+4ga": [
-    {
-      "type": 0,
-      "value": "Try different search terms or clear your search to see all data connectors."
-    }
-  ],
   "9GSKOR": [
     {
       "type": 0,
@@ -3543,6 +3573,12 @@
     {
       "type": 0,
       "value": "Send"
+    }
+  ],
+  "9WyylR": [
+    {
+      "type": 0,
+      "value": "Command"
     }
   ],
   "9X3VEw": [
@@ -3743,22 +3779,10 @@
       "value": "Monthly AAU limit:"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "No data connectors configured"
-    }
-  ],
   "ASLbZd": [
     {
       "type": 0,
       "value": "Export analysis"
-    }
-  ],
-  "ATXGa+": [
-    {
-      "type": 0,
-      "value": "Agent Name"
     }
   ],
   "ATYp8z": [
@@ -3777,12 +3801,6 @@
     {
       "type": 0,
       "value": "Expand panel"
-    }
-  ],
-  "AbleKr": [
-    {
-      "type": 0,
-      "value": "data connector"
     }
   ],
   "AbpmRv": [
@@ -4093,20 +4111,6 @@
     {
       "type": 0,
       "value": "Data type and requirement for validation"
-    }
-  ],
-  "BmEERa": [
-    {
-      "type": 0,
-      "value": "Deleting "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " data connectors..."
     }
   ],
   "Bn/txo": [
@@ -4499,6 +4503,12 @@
       "value": "Output type"
     }
   ],
+  "DS/6lY": [
+    {
+      "type": 0,
+      "value": "Collapse to show less"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
@@ -4627,6 +4637,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "DtmRJJ": [
+    {
+      "type": 0,
+      "value": "SSE"
+    }
+  ],
   "DuejfP": [
     {
       "type": 0,
@@ -4743,6 +4759,12 @@
       "value": "Can you analyze my resource's availability over the last 24 hours?"
     }
   ],
+  "EJSVsO": [
+    {
+      "type": 0,
+      "value": "Skills"
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -4773,6 +4795,12 @@
       "value": "Full workflow with quality evaluation"
     }
   ],
+  "EPi9lK": [
+    {
+      "type": 0,
+      "value": "Previous test failed:"
+    }
+  ],
   "EQa6dK": [
     {
       "type": 0,
@@ -4783,6 +4811,12 @@
     {
       "type": 0,
       "value": "Enter filter name"
+    }
+  ],
+  "ESqLtC": [
+    {
+      "type": 0,
+      "value": "Run local command or executable"
     }
   ],
   "ETRyBL": [
@@ -4891,6 +4925,12 @@
     {
       "type": 0,
       "value": "Trace data parsed with warnings."
+    }
+  ],
+  "Eo9M+K": [
+    {
+      "type": 0,
+      "value": "Select a file to edit"
     }
   ],
   "Ep74wA": [
@@ -5107,6 +5147,12 @@
     {
       "type": 0,
       "value": "Probe for multi-step diagnostics to see if the agent can orchestrate tools effectively."
+    }
+  ],
+  "FiXNt1": [
+    {
+      "type": 0,
+      "value": "default"
     }
   ],
   "FitglU": [
@@ -5375,6 +5421,18 @@
       "value": "Back to commands"
     }
   ],
+  "GDCPLv": [
+    {
+      "type": 0,
+      "value": "Connect via URL endpoint"
+    }
+  ],
+  "GFhSwY": [
+    {
+      "type": 0,
+      "value": "Skill"
+    }
+  ],
   "GGr/yS": [
     {
       "type": 0,
@@ -5561,12 +5619,6 @@
       "value": "Issue Description"
     }
   ],
-  "HKlw1J": [
-    {
-      "type": 0,
-      "value": "This will permanently disconnect this data connector from the agent. Are you sure you want to disconnect this data connector?"
-    }
-  ],
   "HMZIeG": [
     {
       "type": 0,
@@ -5631,6 +5683,12 @@
     {
       "type": 0,
       "value": "Pending approvals"
+    }
+  ],
+  "HeFlq1": [
+    {
+      "type": 0,
+      "value": "Skill name is required"
     }
   ],
   "Hgs+WM": [
@@ -5974,6 +6032,12 @@
       "value": "Delete scheduled task"
     }
   ],
+  "IZFEUg": [
+    {
+      "type": 0,
+      "value": "Ready"
+    }
+  ],
   "IZYDgM": [
     {
       "type": 0,
@@ -6146,12 +6210,6 @@
       "value": "Connect existing items"
     }
   ],
-  "J8u7Xg": [
-    {
-      "type": 0,
-      "value": "Last Modified"
-    }
-  ],
   "J8uEym": [
     {
       "type": 0,
@@ -6222,6 +6280,16 @@
     {
       "type": 0,
       "value": "Tip:"
+    }
+  ],
+  "JTS+Zf": [
+    {
+      "type": 0,
+      "value": "Failed to delete skill "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -6598,6 +6666,12 @@
       "value": "Yes/No"
     }
   ],
+  "KiXNvz": [
+    {
+      "type": 0,
+      "value": "Run"
+    }
+  ],
   "Kkc3/u": [
     {
       "type": 0,
@@ -6782,12 +6856,6 @@
       "value": "Review resource groups"
     }
   ],
-  "LPz7Qc": [
-    {
-      "type": 0,
-      "value": "Tool Type"
-    }
-  ],
   "LQ2AtR": [
     {
       "type": 0,
@@ -6866,6 +6934,12 @@
       "value": "Creating Kusto Tool"
     }
   ],
+  "LbYKes": [
+    {
+      "type": 0,
+      "value": "Failed to save skill"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -6916,6 +6990,12 @@
     {
       "type": 0,
       "value": "Direct argument"
+    }
+  ],
+  "LstsP/": [
+    {
+      "type": 0,
+      "value": "MCP Tool"
     }
   ],
   "LuHM0/": [
@@ -7152,12 +7232,6 @@
     {
       "type": 0,
       "value": "Yes, override with custom meta agent"
-    }
-  ],
-  "MQNtQ+": [
-    {
-      "type": 0,
-      "value": "Data Connectors"
     }
   ],
   "MUVpbF": [
@@ -7560,6 +7634,12 @@
       "value": "Overall Quality"
     }
   ],
+  "O25MZU": [
+    {
+      "type": 0,
+      "value": "Select all tools"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -7758,12 +7838,6 @@
       "value": "Use standard cron syntax (UTC) to control when the agent runs."
     }
   ],
-  "OYAXyI": [
-    {
-      "type": 0,
-      "value": "Provide information the agent will reference when analyzing or answering questions."
-    }
-  ],
   "OYKAqF": [
     {
       "type": 0,
@@ -7798,6 +7872,12 @@
     {
       "type": 0,
       "value": "Moderate"
+    }
+  ],
+  "OmDQWM": [
+    {
+      "type": 0,
+      "value": "Cannot create skills when subagents exist"
     }
   ],
   "Oom2N7": [
@@ -8118,24 +8198,6 @@
       "value": "Total tasks"
     }
   ],
-  "PxsPJt": [
-    {
-      "type": 0,
-      "value": "Turning on scheduled task(s)"
-    }
-  ],
-  "Py7h0n": [
-    {
-      "type": 0,
-      "value": "Python tool"
-    }
-  ],
-  "PyT00l": [
-    {
-      "type": 0,
-      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -8356,6 +8418,36 @@
       "value": "1. Describe the action you took 2. Mention the resource or service involved"
     }
   ],
+  "QZnXvZ": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 tool"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Qcakd7": [
     {
       "type": 0,
@@ -8440,6 +8532,12 @@
     {
       "type": 0,
       "value": "e.g., 0 9 * * 1-5"
+    }
+  ],
+  "QozEE6": [
+    {
+      "type": 0,
+      "value": "Additional files"
     }
   ],
   "QpCzB2": [
@@ -8656,6 +8754,12 @@
     {
       "type": 0,
       "value": "Databases"
+    }
+  ],
+  "RbWH8Q": [
+    {
+      "type": 0,
+      "value": "MCP"
     }
   ],
   "Rfvi9/": [
@@ -8900,6 +9004,28 @@
       "value": "errorMessage"
     }
   ],
+  "SM/hWJ": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " skills, but "
+    },
+    {
+      "type": 1,
+      "value": "failureCount"
+    },
+    {
+      "type": 0,
+      "value": " failed to delete"
+    }
+  ],
   "SMrXWc": [
     {
       "type": 0,
@@ -9006,6 +9132,44 @@
     {
       "type": 0,
       "value": "Custom"
+    }
+  ],
+  "SllKh/": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Skill \""
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": "\" deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Slnpm8": [
@@ -9272,6 +9436,12 @@
       "value": "Grafana Admin"
     }
   ],
+  "TMjYpD": [
+    {
+      "type": 0,
+      "value": "Brief description of what this skill does"
+    }
+  ],
   "TO55dt": [
     {
       "type": 0,
@@ -9338,16 +9508,16 @@
       "value": "This insight does not have markdown content."
     }
   ],
-  "Tg4Q8g": [
-    {
-      "type": 0,
-      "value": "Disconnect data connector?"
-    }
-  ],
   "ThSX0k": [
     {
       "type": 0,
       "value": "Delete SRE Agent"
+    }
+  ],
+  "TiR/Hq": [
+    {
+      "type": 0,
+      "value": "Saving..."
     }
   ],
   "TkWiD5": [
@@ -9462,6 +9632,12 @@
       "value": "Website Contributor/Operator"
     }
   ],
+  "UWZEBA": [
+    {
+      "type": 0,
+      "value": "Edit Skill"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -9550,6 +9726,12 @@
       "value": "Repository"
     }
   ],
+  "V4KNjk": [
+    {
+      "type": 0,
+      "value": "optional"
+    }
+  ],
   "V4yeoh": [
     {
       "type": 0,
@@ -9602,6 +9784,12 @@
     {
       "type": 0,
       "value": "Select subagents for handoff"
+    }
+  ],
+  "VCHJad": [
+    {
+      "type": 0,
+      "value": "New folder"
     }
   ],
   "VIYXlx": [
@@ -9702,6 +9890,12 @@
     {
       "type": 0,
       "value": "Review (Default)"
+    }
+  ],
+  "VfjG62": [
+    {
+      "type": 0,
+      "value": "Python Code"
     }
   ],
   "Vi21gb": [
@@ -9844,6 +10038,12 @@
       "value": "Resolved"
     }
   ],
+  "W7GhBB": [
+    {
+      "type": 0,
+      "value": "Cannot create subagents when skills are enabled"
+    }
+  ],
   "W8LUUc": [
     {
       "type": 0,
@@ -9872,6 +10072,12 @@
     {
       "type": 0,
       "value": "Last data capture time"
+    }
+  ],
+  "WJ+tyY": [
+    {
+      "type": 0,
+      "value": "Enter command (e.g. npx, python)"
     }
   ],
   "WJj+TP": [
@@ -10673,6 +10879,40 @@
       "value": "Insights not yet analysed"
     }
   ],
+  "Yymgt5": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting skill..."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
@@ -10719,12 +10959,6 @@
     {
       "type": 0,
       "value": "Agent ID"
-    }
-  ],
-  "Z8Y6DE": [
-    {
-      "type": 0,
-      "value": "Last Synced"
     }
   ],
   "Z9TajN": [
@@ -10993,12 +11227,6 @@
       "value": " active flow AAUs"
     }
   ],
-  "a5dT17": [
-    {
-      "type": 0,
-      "value": "Search data connectors"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -11145,12 +11373,6 @@
       "value": "Failed to update upgrade channel"
     }
   ],
-  "aSipXt": [
-    {
-      "type": 0,
-      "value": "Increase the agent's knowledge of your infrastructure"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -11221,12 +11443,6 @@
     {
       "type": 0,
       "value": "Tool test failed but no error details were provided."
-    }
-  ],
-  "auFFJa": [
-    {
-      "type": 0,
-      "value": "Key Vault URI"
     }
   ],
   "ayDbML": [
@@ -11385,6 +11601,22 @@
     {
       "type": 0,
       "value": "Device Provisioning Service Data Reader"
+    }
+  ],
+  "bO7sKf": [
+    {
+      "type": 0,
+      "value": "Ctrl+Enter"
+    }
+  ],
+  "bR/LRB": [
+    {
+      "type": 0,
+      "value": "Select all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
     }
   ],
   "bW7B87": [
@@ -11687,6 +11919,12 @@
       "value": "Connector status"
     }
   ],
+  "cM9da4": [
+    {
+      "type": 0,
+      "value": "Restart test"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -11743,6 +11981,12 @@
     {
       "type": 0,
       "value": "Kusto tool name"
+    }
+  ],
+  "cgh0+/": [
+    {
+      "type": 0,
+      "value": "The executable command to start the MCP server. Must be in your system PATH or an absolute path."
     }
   ],
   "ciB+oy": [
@@ -12165,12 +12409,6 @@
       "value": "Manage Azure Search services."
     }
   ],
-  "ee4AUg": [
-    {
-      "type": 0,
-      "value": "Scheduled task turned on successfully"
-    }
-  ],
   "efl/SK": [
     {
       "type": 0,
@@ -12255,12 +12493,6 @@
     {
       "type": 0,
       "value": "Connecting to PagerDuty ..."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "Enter connection string or endpoint"
     }
   ],
   "f04POI": [
@@ -12381,6 +12613,12 @@
       "value": "Go to Access control"
     }
   ],
+  "fZP/Ln": [
+    {
+      "type": 0,
+      "value": "This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version."
+    }
+  ],
   "fblXmJ": [
     {
       "type": 0,
@@ -12465,12 +12703,6 @@
     {
       "type": 0,
       "value": "Connect an MCP server"
-    }
-  ],
-  "ftDEuE": [
-    {
-      "type": 0,
-      "value": "Select connector type"
     }
   ],
   "ftfFhS": [
@@ -12653,12 +12885,6 @@
       "value": "Creating your function…"
     }
   ],
-  "gdUWAX": [
-    {
-      "type": 0,
-      "value": "Description should be 140 characters or fewer."
-    }
-  ],
   "ggVnjB": [
     {
       "type": 0,
@@ -12681,6 +12907,12 @@
     {
       "type": 0,
       "value": "Loading..."
+    }
+  ],
+  "gmo2Su": [
+    {
+      "type": 0,
+      "value": "Skill Content (SKILL.md)"
     }
   ],
   "gn/nvJ": [
@@ -13097,6 +13329,12 @@
       "value": "Not yet published"
     }
   ],
+  "iJcrHj": [
+    {
+      "type": 0,
+      "value": "No parameters required"
+    }
+  ],
   "iMaY2Q": [
     {
       "type": 0,
@@ -13259,6 +13497,12 @@
       "value": "New custom response plan"
     }
   ],
+  "iqsZgT": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -13299,6 +13543,12 @@
     {
       "type": 0,
       "value": "SRE Agent Space"
+    }
+  ],
+  "ix9hVm": [
+    {
+      "type": 0,
+      "value": "Expand to show more"
     }
   ],
   "ixb1SP": [
@@ -13559,6 +13809,12 @@
       "value": "Database"
     }
   ],
+  "jqM7Pr": [
+    {
+      "type": 0,
+      "value": "Test restarted with your latest agent changes. Send a message to continue testing."
+    }
+  ],
   "jqpolM": [
     {
       "type": 0,
@@ -13575,6 +13831,12 @@
     {
       "type": 0,
       "value": "Start time (optional)"
+    }
+  ],
+  "jvB4W9": [
+    {
+      "type": 0,
+      "value": "Environment variables"
     }
   ],
   "jvo0vs": [
@@ -13603,6 +13865,12 @@
     {
       "type": 0,
       "value": "Bar chart"
+    }
+  ],
+  "k+phZu": [
+    {
+      "type": 0,
+      "value": "Delete skill"
     }
   ],
   "k0VNHX": [
@@ -13647,6 +13915,12 @@
       "value": "Number"
     }
   ],
+  "kGmr6n": [
+    {
+      "type": 0,
+      "value": "Want to improve it?"
+    }
+  ],
   "kHIJzq": [
     {
       "type": 0,
@@ -13675,6 +13949,12 @@
     {
       "type": 0,
       "value": "You do not have permission to rename this thread."
+    }
+  ],
+  "kVOq9V": [
+    {
+      "type": 0,
+      "value": "Fill in parameters and click Run to test"
     }
   ],
   "kWBrry": [
@@ -13735,16 +14015,16 @@
       "value": "Correlation Analysis"
     }
   ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "Update the data connector configuration."
-    }
-  ],
   "koWZK8": [
     {
       "type": 0,
       "value": "Add custom response guidance (optional)"
+    }
+  ],
+  "kopJ66": [
+    {
+      "type": 0,
+      "value": "Keep Current Code"
     }
   ],
   "kq7D3O": [
@@ -13839,6 +14119,12 @@
       "value": "AzureML Data Scientist"
     }
   ],
+  "lBZfVb": [
+    {
+      "type": 0,
+      "value": "Timeout in seconds (5-900)"
+    }
+  ],
   "lCe4Sh": [
     {
       "type": 0,
@@ -13873,12 +14159,6 @@
       "value": "Default"
     }
   ],
-  "lM2HXD": [
-    {
-      "type": 0,
-      "value": "No prompt provided."
-    }
-  ],
   "lOaomi": [
     {
       "type": 0,
@@ -13899,6 +14179,12 @@
     {
       "type": 0,
       "value": "Subagents"
+    }
+  ],
+  "lR/7o8": [
+    {
+      "type": 0,
+      "value": "Folder name"
     }
   ],
   "lUAfdH": [
@@ -14059,6 +14345,12 @@
     {
       "type": 0,
       "value": "Edit QnA Maker knowledge bases."
+    }
+  ],
+  "mE7Cg1": [
+    {
+      "type": 0,
+      "value": "Stdio"
     }
   ],
   "mGh+K0": [
@@ -14423,6 +14715,12 @@
       "value": "Primary resource type"
     }
   ],
+  "nR0FVC": [
+    {
+      "type": 0,
+      "value": "Reusable knowledge and instructions that enhance agent capabilities."
+    }
+  ],
   "nUT0Lv": [
     {
       "type": 0,
@@ -14439,24 +14737,16 @@
       "value": "name"
     }
   ],
+  "nc7Brw": [
+    {
+      "type": 0,
+      "value": "Arguments"
+    }
+  ],
   "ncB14A": [
     {
       "type": 0,
       "value": "Agent invoked"
-    }
-  ],
-  "nkYx6+": [
-    {
-      "type": 0,
-      "value": "Disconnect "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " data connectors?"
     }
   ],
   "nmpevl": [
@@ -14543,12 +14833,6 @@
       "value": "No tools linked yet. Add tools so this agent can take action."
     }
   ],
-  "o3uElD": [
-    {
-      "type": 0,
-      "value": "Add data connector"
-    }
-  ],
   "o7TUwc": [
     {
       "type": 0,
@@ -14573,6 +14857,12 @@
     {
       "type": 0,
       "value": " data connectors"
+    }
+  ],
+  "oDH12O": [
+    {
+      "type": 0,
+      "value": "Tool name"
     }
   ],
   "oDI/Rp": [
@@ -14759,6 +15049,18 @@
       "value": "High risk"
     }
   ],
+  "oyZN19": [
+    {
+      "type": 0,
+      "value": "Running..."
+    }
+  ],
+  "oyf+bG": [
+    {
+      "type": 0,
+      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
+    }
+  ],
   "p/QlSI": [
     {
       "type": 0,
@@ -14935,6 +15237,12 @@
       "value": "Enable the preview channel to test out new features early, however they may be less stable."
     }
   ],
+  "pXPlXr": [
+    {
+      "type": 0,
+      "value": "*required"
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -15033,6 +15341,12 @@
       "value": "Updating upgrade channel"
     }
   ],
+  "ppAn7O": [
+    {
+      "type": 0,
+      "value": "File name"
+    }
+  ],
   "ppzeDo": [
     {
       "type": 0,
@@ -15055,12 +15369,6 @@
     {
       "type": 0,
       "value": "Alert title"
-    }
-  ],
-  "psUT6S": [
-    {
-      "type": 0,
-      "value": "Maximum number of times this task should run"
     }
   ],
   "psccqt": [
@@ -15153,6 +15461,12 @@
       "value": "The agent references documentation and files to understand your projects and processes."
     }
   ],
+  "qTWwGw": [
+    {
+      "type": 0,
+      "value": "Parameters:"
+    }
+  ],
   "qdAlfY": [
     {
       "type": 0,
@@ -15165,6 +15479,16 @@
       "value": "Error details"
     }
   ],
+  "qdxZys": [
+    {
+      "type": 0,
+      "value": "Last heartbeat: "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -15175,12 +15499,6 @@
     {
       "type": 0,
       "value": "A connector with this name already exists"
-    }
-  ],
-  "qh9t2U": [
-    {
-      "type": 0,
-      "value": "Connect to agent"
     }
   ],
   "qhApmK": [
@@ -15275,6 +15593,12 @@
       "value": "The custom incident response plan was successfully deleted"
     }
   ],
+  "qzMeS2": [
+    {
+      "type": 0,
+      "value": "Test Playground"
+    }
+  ],
   "r2ZGnB": [
     {
       "offset": 0,
@@ -15353,6 +15677,12 @@
     {
       "type": 0,
       "value": "Refresh"
+    }
+  ],
+  "rFU0oo": [
+    {
+      "type": 0,
+      "value": "Python tool"
     }
   ],
   "rFlkvY": [
@@ -15533,6 +15863,12 @@
       "value": "Close"
     }
   ],
+  "rc7ZT2": [
+    {
+      "type": 0,
+      "value": "Enter the skill markdown content..."
+    }
+  ],
   "rd6YZk": [
     {
       "type": 0,
@@ -15677,20 +16013,6 @@
     {
       "type": 0,
       "value": "Learn more about knowledge sources"
-    }
-  ],
-  "s04Z5U": [
-    {
-      "type": 0,
-      "value": "This will permanently disconnect "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " data connectors from the agent. Are you sure you want to disconnect these data connectors?"
     }
   ],
   "s2GWth": [
@@ -15887,6 +16209,12 @@
     {
       "type": 0,
       "value": "Add file"
+    }
+  ],
+  "sYCfrb": [
+    {
+      "type": 0,
+      "value": "Test agent"
     }
   ],
   "sZIoMy": [
@@ -16177,12 +16505,6 @@
       "value": "Add to favorites"
     }
   ],
-  "tZmd+w": [
-    {
-      "type": 0,
-      "value": "Connect a data source"
-    }
-  ],
   "tb6uBb": [
     {
       "type": 1,
@@ -16239,6 +16561,16 @@
     {
       "type": 0,
       "value": "Experiment with your agent's configuration and see real-time results"
+    }
+  ],
+  "tpD3Ax": [
+    {
+      "type": 0,
+      "value": "Tools: "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "trhBLG": [
@@ -16537,6 +16869,12 @@
       "value": "delta"
     }
   ],
+  "uQ/yKk": [
+    {
+      "type": 0,
+      "value": "Search by skill"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -16745,6 +17083,12 @@
       "value": "Authorized by"
     }
   ],
+  "vEPakK": [
+    {
+      "type": 0,
+      "value": "Additional Files"
+    }
+  ],
   "vG08m6": [
     {
       "type": 0,
@@ -16785,6 +17129,12 @@
     {
       "type": 0,
       "value": "Warning actions present"
+    }
+  ],
+  "vZRYf4": [
+    {
+      "type": 0,
+      "value": "Deselect all tools"
     }
   ],
   "vZWQHk": [
@@ -16973,16 +17323,6 @@
     {
       "type": 0,
       "value": "Actions"
-    }
-  ],
-  "wNIiXX": [
-    {
-      "type": 0,
-      "value": "The data source must be in the format: "
-    },
-    {
-      "type": 1,
-      "value": "format"
     }
   ],
   "wO9wb5": [
@@ -17197,6 +17537,16 @@
       "value": "Click here to learn more"
     }
   ],
+  "xGK1X2": [
+    {
+      "type": 0,
+      "value": "Deselect all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
+    }
+  ],
   "xGPsyJ": [
     {
       "type": 0,
@@ -17349,6 +17699,16 @@
       "value": "Python Function Code"
     }
   ],
+  "xjZrbx": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -17359,6 +17719,12 @@
     {
       "type": 0,
       "value": "Operate API Management services."
+    }
+  ],
+  "xpMDZO": [
+    {
+      "type": 0,
+      "value": "Test Passed"
     }
   ],
   "xqwf/7": [
@@ -17437,12 +17803,6 @@
     {
       "type": 0,
       "value": " since last run"
-    }
-  ],
-  "y3Uu5i": [
-    {
-      "type": 0,
-      "value": "No data connectors match your search"
     }
   ],
   "y5oInX": [
@@ -17527,6 +17887,12 @@
     {
       "type": 0,
       "value": "Pick a subagent to assist you with tasks."
+    }
+  ],
+  "ySdJIx": [
+    {
+      "type": 0,
+      "value": "Connection type"
     }
   ],
   "yVc78v": [
@@ -17727,6 +18093,12 @@
     {
       "type": 0,
       "value": "View Knowledge Base"
+    }
+  ],
+  "z4NnlT": [
+    {
+      "type": 0,
+      "value": "No skills found"
     }
   ],
   "z8ZYoc": [

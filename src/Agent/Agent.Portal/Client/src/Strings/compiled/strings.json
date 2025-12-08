@@ -95,6 +95,12 @@
       "value": "Manage Custom Vision projects."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Failed to delete some agents"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -285,6 +291,18 @@
       "value": "Cancel"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Select all agents"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Select all agent links"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -443,6 +461,12 @@
       "value": "Manage Device Provisioning Service data."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected agent links?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -523,6 +547,34 @@
       "value": "Deployment failed"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Deleting \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -575,6 +627,12 @@
     {
       "type": 0,
       "value": "Azure Center for SAP solutions reader"
+    }
+  ],
+  "BMjugG": [
+    {
+      "type": 0,
+      "value": "Default selected subscriptions"
     }
   ],
   "Bcx/Gz": [
@@ -661,6 +719,12 @@
       "value": "Let's you read and test a KB only."
     }
   ],
+  "E7zWqc": [
+    {
+      "type": 0,
+      "value": "Select subscriptions..."
+    }
+  ],
   "ENnkRe": [
     {
       "type": 0,
@@ -685,6 +749,22 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Delete agent"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI must start with "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -695,6 +775,16 @@
     {
       "type": 0,
       "value": "Approval Required"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -777,6 +867,18 @@
       "value": "Azure SRE Agents"
     }
   ],
+  "I5NZ9z": [
+    {
+      "type": 0,
+      "value": "Application Insights name"
+    }
+  ],
+  "I5k4g/": [
+    {
+      "type": 0,
+      "value": "Use existing"
+    }
+  ],
   "I6cq17": [
     {
       "type": 0,
@@ -799,6 +901,12 @@
     {
       "type": 0,
       "value": "A resource group with this name already exists in the selected subscription."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Delete"
     }
   ],
   "KAYpG9": [
@@ -973,6 +1081,44 @@
       "value": "The resources you picked have permissions for these roles."
     }
   ],
+  "OZJBlx": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscription"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " subscriptions"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Search agent links"
+    }
+  ],
   "OjYIuI": [
     {
       "type": 0,
@@ -1009,6 +1155,12 @@
       "value": "Your agent is in read-only mode. The following permissions are required for the agent to build knowledge about your resources. The contributor roles for specific services will not be used to perform any write operations."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Add agent link"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1043,6 +1195,12 @@
     {
       "type": 0,
       "value": "Description"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1191,6 +1349,20 @@
       "value": "Client ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1229,6 +1401,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1419,10 +1597,26 @@
       "value": "Manage Azure Monitor workbooks."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agent links"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Manage Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents deleted successfully"
     }
   ],
   "ZsLOg3": [
@@ -1547,6 +1741,12 @@
       "value": "Cognitive Services Usages Reader"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Delete agent links"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1575,6 +1775,12 @@
     {
       "type": 0,
       "value": "Redis Cache"
+    }
+  ],
+  "cqGvFd": [
+    {
+      "type": 0,
+      "value": "Select an Application Insights resource"
     }
   ],
   "ctcA0c": [
@@ -1627,6 +1833,12 @@
     {
       "type": 0,
       "value": "Select up to 100 resource groups to monitor"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Display name"
     }
   ],
   "dQ5/dh": [
@@ -1687,6 +1899,20 @@
       "value": " resource groups selected"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1697,6 +1923,12 @@
     {
       "type": 0,
       "value": "Read only lock"
+    }
+  ],
+  "fLcQXf": [
+    {
+      "type": 0,
+      "value": "Application Insights subscription"
     }
   ],
   "fSFDgd": [
@@ -1735,6 +1967,12 @@
       "value": "Manage IoT Hub device twins."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "This URI already exists"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1763,6 +2001,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "External agents"
     }
   ],
   "hO1Iog": [
@@ -1799,6 +2043,38 @@
     {
       "type": 0,
       "value": "Assign the agent a level of permissions for the resource groups it manages. The agent can still manage its assigned resources with Reader permissions."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" deleted successfully"
     }
   ],
   "i50Kb0": [
@@ -1949,6 +2225,12 @@
       "value": " creation in progress"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Delete agents"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -1973,6 +2255,12 @@
       "value": "Read and write Azure Monitor monitoring settings and data."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Delete agent link"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -1989,6 +2277,20 @@
     {
       "type": 0,
       "value": "Running"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"?"
     }
   ],
   "nlPgO8": [
@@ -2139,6 +2441,12 @@
       "value": "The subscription you have selected has not been registered to use SRE Agent. Please email us with your subscription ID on sreagentteam@microsoft.com for getting registered."
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Refresh"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2229,6 +2537,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI must end with "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2367,6 +2685,20 @@
     {
       "type": 0,
       "value": "Geneva Actions Certificate Name"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " link"
     }
   ],
   "xGPsyJ": [

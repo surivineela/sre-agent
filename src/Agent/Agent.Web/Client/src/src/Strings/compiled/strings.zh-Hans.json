@@ -152,7 +152,7 @@
   "+WRusC": [
     {
       "type": 0,
-      "value": "SRE Agent"
+      "value": "SRE 代理"
     }
   ],
   "+XtuWl": [
@@ -373,6 +373,16 @@
       "value": "清除"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -435,12 +445,6 @@
     {
       "type": 0,
       "value": "容器应用操作员"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "每分钟"
     }
   ],
   "/Z1fHN": [
@@ -579,6 +583,12 @@
     {
       "type": 0,
       "value": "搜索..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -861,12 +871,16 @@
   ],
   "13KTIN": [
     {
+      "type": 0,
+      "value": "已选择 "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " 个资源组。"
     }
   ],
   "15GWkT": [
@@ -1062,7 +1076,7 @@
   "1m4VPF": [
     {
       "type": 0,
-      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+      "value": "智能体调查复杂问题并提出假设，以验证潜在根本原因。"
     }
   ],
   "1o9eJ6": [
@@ -1409,7 +1423,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "出现了意外错误"
     }
   ],
   "3JVa6k": [
@@ -1463,7 +1477,7 @@
   "3SsYXO": [
     {
       "type": 0,
-      "value": "Open GitHub issue page with pre-filled information above"
+      "value": "打开预填充上述信息的 GitHub 问题页面"
     }
   ],
   "3VI9mt": [
@@ -1487,13 +1501,13 @@
   "3dsWh5": [
     {
       "type": 0,
-      "value": "Add MCP server"
+      "value": "添加 MCP 服务器"
     }
   ],
   "3h7ZKg": [
     {
       "type": 0,
-      "value": "Review + add"
+      "value": "查看 + 添加"
     }
   ],
   "3hmrCJ": [
@@ -1523,7 +1537,7 @@
   "3k7JQw": [
     {
       "type": 0,
-      "value": "Issue description is required."
+      "value": "需要提供问题说明。"
     }
   ],
   "3n8o15": [
@@ -1541,7 +1555,7 @@
   "3rvQhx": [
     {
       "type": 0,
-      "value": "You can manage up to "
+      "value": "最多可以管理 "
     },
     {
       "type": 1,
@@ -1549,7 +1563,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. Your agent currently manages "
+      "value": " 个你有权限的资源组。智能体当前管理 "
     },
     {
       "type": 1,
@@ -1557,7 +1571,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups."
+      "value": " 个资源组。"
     }
   ],
   "3sNyAo": [
@@ -1757,7 +1771,7 @@
   "4IAjnN": [
     {
       "type": 0,
-      "value": "Turn on deep investigation?"
+      "value": "是否启用深度调查?"
     }
   ],
   "4MeTpL": [
@@ -1799,7 +1813,7 @@
   "4Rhz/i": [
     {
       "type": 0,
-      "value": "User provided connector"
+      "value": "用户提供的连接器"
     }
   ],
   "4RwjwU": [
@@ -1962,16 +1976,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "你没有授予存储库访问权限的权限。"
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "请选择扩展代理来帮助你完成任务。"
     }
   ],
   "5GUtRJ": [
@@ -2333,7 +2355,7 @@
     },
     {
       "type": 0,
-      "value": " sec"
+      "value": " 秒"
     }
   ],
   "61e5yQ": [
@@ -2391,7 +2413,7 @@
   "6CrAJC": [
     {
       "type": 0,
-      "value": "Enter custom header key"
+      "value": "输入自定义标头键"
     }
   ],
   "6CxEZS": [
@@ -2578,16 +2600,6 @@
       "value": "清晰简明的说明，帮助其他智能体了解何时将工作委派给该专家智能体。这会显示在智能体交接决策和协作工作流中。"
     }
   ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "未能创建子智能体，错误: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "6w0QQX": [
     {
       "type": 0,
@@ -2769,7 +2781,7 @@
   "7Rnjmx": [
     {
       "type": 0,
-      "value": "Expected Behavior"
+      "value": "预期行为"
     }
   ],
   "7TVRcx": [
@@ -2823,7 +2835,7 @@
   "7kPmO3": [
     {
       "type": 0,
-      "value": "Edit connector"
+      "value": "编辑连接器"
     }
   ],
   "7nUCu9": [
@@ -3067,12 +3079,6 @@
       "value": "对服务和 API 的只读访问权限。"
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "创建转接子智能体"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3182,7 +3188,7 @@
   "8urALB": [
     {
       "type": 0,
-      "value": "Delete connector"
+      "value": "删除连接器"
     }
   ],
   "8v0Pyn": [
@@ -3413,6 +3419,18 @@
       "value": " 个"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3553,6 +3571,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3604,7 +3628,7 @@
   "Abi/u/": [
     {
       "type": 0,
-      "value": "Expand panel"
+      "value": "展开面板"
     }
   ],
   "AbleKr": [
@@ -3690,7 +3714,13 @@
   "AvHD3R": [
     {
       "type": 0,
-      "value": "Teams channel link"
+      "value": "Teams 频道链接"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -3740,7 +3770,7 @@
   "BBT3jd": [
     {
       "type": 0,
-      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+      "value": "智能体访问 GitHub 存储库、功能和操作，包括问题跟踪和拉取请求。"
     }
   ],
   "BD+V8L": [
@@ -4048,7 +4078,7 @@
   "CQisjK": [
     {
       "type": 0,
-      "value": "What actually happened?"
+      "value": "实际发生了什么?"
     }
   ],
   "CTRqZs": [
@@ -4193,6 +4223,12 @@
       "value": "选择响应子智能体"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4258,7 +4294,7 @@
   "DK708b": [
     {
       "type": 0,
-      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+      "value": "名称必须以字母开头，且只能包含字母、数字和连字符。名称不得为空，且长度必须少于 "
     },
     {
       "type": 1,
@@ -4266,7 +4302,7 @@
     },
     {
       "type": 0,
-      "value": " characters."
+      "value": " 个字符。"
     }
   ],
   "DMEE1o": [
@@ -4284,7 +4320,7 @@
   "DP0m/y": [
     {
       "type": 0,
-      "value": "Updating Kusto Tool"
+      "value": "正在更新 Kusto 工具"
     }
   ],
   "DPnEXy": [
@@ -4328,7 +4364,7 @@
     },
     {
       "type": 0,
-      "value": " repository URL"
+      "value": " 存储库 URL"
     }
   ],
   "DYp/nK": [
@@ -4376,7 +4412,7 @@
   "DgsR1U": [
     {
       "type": 0,
-      "value": "Channel ID"
+      "value": "频道 ID"
     }
   ],
   "Dh9oJp": [
@@ -4475,6 +4511,12 @@
       "value": "选择的某些资源组没有所需的 roleAssignments/write 和 Microsoft.ManagedIdentity/userAssignedIdentities/write 权限。"
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4535,6 +4577,12 @@
     {
       "type": 0,
       "value": "无法加载订阅。"
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -4632,7 +4680,7 @@
   "EcglP9": [
     {
       "type": 0,
-      "value": "Key"
+      "value": "键"
     }
   ],
   "EdEthU": [
@@ -4690,7 +4738,7 @@
   "ErUgLz": [
     {
       "type": 0,
-      "value": "Teams group ID"
+      "value": "Teams 群组 ID"
     }
   ],
   "Erci0g": [
@@ -4820,7 +4868,7 @@
   "FMDuHb": [
     {
       "type": 0,
-      "value": "Enter your PAT or API key"
+      "value": "输入 PAT 或 API 密钥"
     }
   ],
   "FNQNS1": [
@@ -5039,12 +5087,16 @@
   ],
   "G4mray": [
     {
+      "type": 0,
+      "value": "已选择 "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": " 个资源组。"
     }
   ],
   "G5JMSn": [
@@ -5064,7 +5116,7 @@
   "G6XRkU": [
     {
       "type": 0,
-      "value": "Steps to Reproduce"
+      "value": "重现步骤"
     }
   ],
   "G6vaGg": [
@@ -5095,7 +5147,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "文档"
             }
           ]
         },
@@ -5103,7 +5155,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "文档"
             }
           ]
         }
@@ -5276,7 +5328,7 @@
   "GufXy5": [
     {
       "type": 0,
-      "value": "Value"
+      "value": "值"
     }
   ],
   "Gvxoji": [
@@ -5344,7 +5396,7 @@
   "HJ7ZeR": [
     {
       "type": 0,
-      "value": "Issue Description"
+      "value": "问题说明"
     }
   ],
   "HKlw1J": [
@@ -5441,6 +5493,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5474,7 +5540,7 @@
   "HtVpjg": [
     {
       "type": 0,
-      "value": "You can select up to "
+      "value": "最多可以为此智能体选择 "
     },
     {
       "type": 1,
@@ -5482,7 +5548,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups for this agent. Agents can manage a total of "
+      "value": " 个资源组。智能体可管理总共 "
     },
     {
       "type": 1,
@@ -5490,7 +5556,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups, and your agent currently manages "
+      "value": " 个资源组，你的智能体当前管理 "
     },
     {
       "type": 1,
@@ -5498,7 +5564,7 @@
     },
     {
       "type": 0,
-      "value": ". You've selected "
+      "value": " 个。你已选择 "
     },
     {
       "type": 1,
@@ -5506,7 +5572,7 @@
     },
     {
       "type": 0,
-      "value": "."
+      "value": " 个。"
     }
   ],
   "HtpD+z": [
@@ -5633,6 +5699,39 @@
       "value": "Azure 托管 Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -5689,12 +5788,6 @@
     {
       "type": 0,
       "value": "新会话"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "正在创建子智能体"
     }
   ],
   "IYLPrk": [
@@ -5832,13 +5925,13 @@
   "J0rs+f": [
     {
       "type": 0,
-      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
+      "value": "从 SRE 智能体门户粘贴线程 ID。(例如 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J2Lcsz": [
     {
       "type": 0,
-      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+      "value": "此响应计划中处理的每个事件都会进行深度调查。每次深度调查都需要较长运行时间，可能导致高 AAU 消耗。"
     }
   ],
   "J3Y8Sm": [
@@ -5882,7 +5975,7 @@
   "JA/VO+": [
     {
       "type": 0,
-      "value": "Starts a task at a defined time or interval."
+      "value": "按指定时间或间隔启动任务。"
     }
   ],
   "JAtEuU": [
@@ -6128,7 +6221,7 @@
   "JvYXxh": [
     {
       "type": 0,
-      "value": "MCP server"
+      "value": "MCP 服务器"
     }
   ],
   "JwHSD6": [
@@ -6176,7 +6269,7 @@
   "K7tsik": [
     {
       "type": 0,
-      "value": "Scheduled task ran successfully"
+      "value": "计划任务已成功运行"
     }
   ],
   "K9q4Xw": [
@@ -6330,7 +6423,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "获取支持"
     }
   ],
   "KoJ1C+": [
@@ -6404,7 +6497,7 @@
   "L/ct40": [
     {
       "type": 0,
-      "value": "Open in visual view"
+      "value": "在视觉视图中打开"
     }
   ],
   "L/i6dy": [
@@ -6518,7 +6611,7 @@
   "LSqcaU": [
     {
       "type": 0,
-      "value": "Maximum 200,000 AAUs"
+      "value": "最多 200,000 个 AAU"
     }
   ],
   "LTDPn/": [
@@ -6564,19 +6657,13 @@
   "Li/Qrf": [
     {
       "type": 0,
-      "value": "Custom headers"
+      "value": "自定义标头"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "描述计划"
-    }
-  ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "选择事件。"
     }
   ],
   "LnglaU": [
@@ -6600,7 +6687,7 @@
   "LuHM0/": [
     {
       "type": 0,
-      "value": "Actual Behavior"
+      "value": "实际行为"
     }
   ],
   "LupnQU": [
@@ -6634,6 +6721,12 @@
     {
       "type": 0,
       "value": "严重性级别"
+    }
+  ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
     }
   ],
   "LyHqqV": [
@@ -6673,7 +6766,7 @@
   "M0ay1D": [
     {
       "type": 0,
-      "value": "Running scheduled task(s)"
+      "value": "正在运行计划任务"
     }
   ],
   "M3159R": [
@@ -6973,7 +7066,7 @@
   "N2IrpM": [
     {
       "type": 0,
-      "value": "Confirm"
+      "value": "确认"
     }
   ],
   "N7cqYp": [
@@ -7088,6 +7181,12 @@
       "value": "明白了"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7148,20 +7247,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "每 "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " 分钟"
     }
   ],
   "O+srpo": [
@@ -7230,12 +7315,6 @@
     {
       "type": 0,
       "value": "新消息"
-    }
-  ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "是否确定要删除此 SRE 代理?此操作无法撤消。"
     }
   ],
   "O9C6j/": [
@@ -7317,13 +7396,19 @@
   "OP7f9a": [
     {
       "type": 0,
-      "value": "Compiled connection string"
+      "value": "已编译的连接字符串"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
       "value": "已解析跟踪数据，但出现错误。"
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -7659,7 +7744,7 @@
   "PZvrnY": [
     {
       "type": 0,
-      "value": "Title is required."
+      "value": "需要提供标题。"
     }
   ],
   "Pa1S0J": [
@@ -7692,20 +7777,6 @@
       "value": "编辑医疗保健 API 智能体配置。"
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "正在创建子智能体“"
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "”"
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -7721,7 +7792,7 @@
   "PpdTYy": [
     {
       "type": 0,
-      "value": "Failed to update tool"
+      "value": "未能更新工具"
     }
   ],
   "PrFU82": [
@@ -7788,6 +7859,12 @@
     {
       "type": 0,
       "value": "判定时间"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -7861,7 +7938,7 @@
   "Q9IHxV": [
     {
       "type": 0,
-      "value": "Running scheduled task "
+      "value": "正在运行计划任务 "
     },
     {
       "type": 1,
@@ -7972,20 +8049,6 @@
       "value": "全部清除"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "每 "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " 小时"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -7995,7 +8058,13 @@
   "QYiU4f": [
     {
       "type": 0,
-      "value": "1. Describe the action you took 2. Mention the resource or service involved"
+      "value": "1. 描述你采取的操作 2. 提及所涉及的资源或服务"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -8523,7 +8592,7 @@
   "SeZ8eZ": [
     {
       "type": 0,
-      "value": "AAU consumption reminder"
+      "value": "AAU 消耗提醒"
     }
   ],
   "Seanpx": [
@@ -8559,7 +8628,7 @@
   "SoBWeV": [
     {
       "type": 0,
-      "value": "Monthly active flow AAUs"
+      "value": "每月活跃流 AAU"
     }
   ],
   "Sr4IbA": [
@@ -8787,7 +8856,7 @@
   "TP/cMX": [
     {
       "type": 0,
-      "value": "Ended"
+      "value": "已结束"
     }
   ],
   "TQ0n+a": [
@@ -8925,7 +8994,7 @@
   "UImEMW": [
     {
       "type": 0,
-      "value": "Briefly describe the problem or request."
+      "value": "简要描述问题或请求。"
     }
   ],
   "UKMPBH": [
@@ -9110,12 +9179,6 @@
       "value": "聊天预览"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "未配置子智能体"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9199,7 +9262,7 @@
   "Vaj9nj": [
     {
       "type": 0,
-      "value": "Don't show this message again"
+      "value": "不再显示此消息"
     }
   ],
   "Vb+qQ4": [
@@ -9273,7 +9336,7 @@
   "Vs3jMi": [
     {
       "type": 0,
-      "value": "Authentication method"
+      "value": "身份验证方法"
     }
   ],
   "VtBCjG": [
@@ -9342,12 +9405,6 @@
       "value": "请重试或在控制台查看详细信息。"
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "预览升级通道"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9388,12 +9445,6 @@
     {
       "type": 0,
       "value": "你无权检查事件管理连接。"
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10083,12 +10134,6 @@
       "value": "压力测试"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "未能创建子智能体"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10275,6 +10320,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -10401,6 +10452,39 @@
     {
       "type": 0,
       "value": "选择下面的现有工具来进行连接。"
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -10808,7 +10892,7 @@
   "bDbbX7": [
     {
       "type": 0,
-      "value": "Edit Kusto tool"
+      "value": "编辑 Kusto 工具"
     }
   ],
   "bICPAQ": [
@@ -10871,12 +10955,6 @@
     {
       "type": 0,
       "value": " 个字符。"
-    }
-  ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "稳定 - 每月接收一次更新"
     }
   ],
   "bjDKAe": [
@@ -11027,12 +11105,6 @@
     {
       "type": 0,
       "value": "已选择"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "以下是待办事项计划:"
     }
   ],
   "c/KktL": [
@@ -11342,7 +11414,7 @@
   "dF2h2y": [
     {
       "type": 0,
-      "value": "Filter by incident id or title"
+      "value": "按事件 ID 或标题筛选"
     }
   ],
   "dG8VrM": [
@@ -11369,10 +11441,10 @@
       "value": "创建计划任务"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "包含指令和工具的 AI 子智能体"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -11512,7 +11584,7 @@
   "dqkJF6": [
     {
       "type": 0,
-      "value": "Delete subagent"
+      "value": "删除子智能体"
     }
   ],
   "dtQgfG": [
@@ -11542,7 +11614,7 @@
   "dzy0ND": [
     {
       "type": 0,
-      "value": "Run scheduled task"
+      "value": "运行计划任务"
     }
   ],
   "e0a3XV": [
@@ -11711,12 +11783,6 @@
       "value": "自定义响应指导"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "新的转接子智能体以“自主”形式启动。稍后可以连接工具和其他详细信息。"
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -11803,6 +11869,12 @@
     {
       "type": 0,
       "value": "新晋专家"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -11899,12 +11971,6 @@
       "value": "所有严重性级别"
     }
   ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "具有此名称的子智能体已经存在"
-    }
-  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -11990,13 +12056,13 @@
   "fvSiRs": [
     {
       "type": 0,
-      "value": "Tool updated successfully"
+      "value": "已成功更新工具"
     }
   ],
   "fyaE5g": [
     {
       "type": 0,
-      "value": "Please provide a channel link"
+      "value": "请提供频道链接"
     }
   ],
   "g+9csc": [
@@ -12316,7 +12382,7 @@
   "hGnjdE": [
     {
       "type": 0,
-      "value": "Learn more about AAU consumption and cost"
+      "value": "详细了解 AAU 消耗和成本"
     }
   ],
   "hHz/bk": [
@@ -12329,12 +12395,6 @@
     {
       "type": 0,
       "value": "未能删除选定的受管理资源组"
-    }
-  ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "子智能体"
     }
   ],
   "hO1Iog": [
@@ -12394,7 +12454,7 @@
   "hdfKe+": [
     {
       "type": 0,
-      "value": "Automatically starts a subagent in response to an incident or alert."
+      "value": "自动启动子智能体以响应事件或警报。"
     }
   ],
   "heMr0D": [
@@ -12467,6 +12527,12 @@
     {
       "type": 0,
       "value": "RCA 类别"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -12596,7 +12662,7 @@
   "iYJ/Ha": [
     {
       "type": 0,
-      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
+      "value": "子智能体用于从 Azure 数据资源管理器收集数据的查询工具。"
     }
   ],
   "iZDRGO": [
@@ -12664,7 +12730,7 @@
   "ioRcwS": [
     {
       "type": 0,
-      "value": "Scheduled task trigger"
+      "value": "计划任务触发器"
     }
   ],
   "ipsqxO": [
@@ -12762,7 +12828,7 @@
   "j0Ifob": [
     {
       "type": 0,
-      "value": "Do you want to proceed?"
+      "value": "是否继续?"
     }
   ],
   "j0bMX6": [
@@ -12882,7 +12948,7 @@
   "jSgRib": [
     {
       "type": 0,
-      "value": "Your knowledge base has "
+      "value": "你的知识库有 "
     },
     {
       "type": 1,
@@ -12890,7 +12956,7 @@
     },
     {
       "type": 0,
-      "value": " "
+      "value": " 篇 "
     },
     {
       "offset": 0,
@@ -12899,7 +12965,7 @@
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "文档"
             }
           ]
         },
@@ -12907,7 +12973,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "文档"
             }
           ]
         }
@@ -12918,7 +12984,7 @@
     },
     {
       "type": 0,
-      "value": ". Add more?"
+      "value": "。添加更多?"
     }
   ],
   "jTQZpk": [
@@ -12927,16 +12993,10 @@
       "value": "Grafana 资源在资源组中必须是唯一的。"
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "输入子智能体名称"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
-      "value": "Failed to run task: "
+      "value": "未能运行任务: "
     },
     {
       "type": 1,
@@ -13272,7 +13332,13 @@
   "l8IRTD": [
     {
       "type": 0,
-      "value": "Scheduled task(s) ran successfully"
+      "value": "计划任务已成功运行"
+    }
+  ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
     }
   ],
   "lCsNuL": [
@@ -13333,6 +13399,12 @@
       "value": "是否确实要删除自定义响应计划?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -13375,6 +13447,12 @@
     {
       "type": 0,
       "value": "按名称、类别或说明搜索系统工具"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -13640,7 +13718,7 @@
   "mg8UeB": [
     {
       "type": 0,
-      "value": "Filter by response plan name"
+      "value": "按响应计划名称筛选"
     }
   ],
   "mgYBYo": [
@@ -13737,6 +13815,12 @@
       "value": "Grafana 徽标"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -13746,7 +13830,7 @@
   "n25S4d": [
     {
       "type": 0,
-      "value": "Update Kusto Tool"
+      "value": "更新 Kusto 工具"
     }
   ],
   "n2h/5e": [
@@ -13821,12 +13905,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "预览 - 每周接收两次更新"
     }
   ],
   "nQpONp": [
@@ -14034,7 +14112,7 @@
   "oIm1Fb": [
     {
       "type": 0,
-      "value": "GitHub logo"
+      "value": "GitHub 徽标"
     }
   ],
   "oKJ0fm": [
@@ -14124,7 +14202,7 @@
   "ocQGCd": [
     {
       "type": 0,
-      "value": "Allow subagent capabilities to override the SRE Agent."
+      "value": "允许子智能体功能替代 SRE 智能体。"
     }
   ],
   "ocQXDt": [
@@ -14152,7 +14230,7 @@
   "ooDMAp": [
     {
       "type": 0,
-      "value": "Personal access token (PAT) or API key"
+      "value": "个人访问令牌(PAT)或 API 密钥"
     }
   ],
   "osuyeD": [
@@ -14351,6 +14429,12 @@
       "value": "更改密钥"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -14502,7 +14586,7 @@
   "q3e4cf": [
     {
       "type": 0,
-      "value": "Bearer token"
+      "value": "持有者令牌"
     }
   ],
   "q4EmsW": [
@@ -14703,7 +14787,7 @@
   "r5UlDs": [
     {
       "type": 0,
-      "value": "Enter custom header value"
+      "value": "输入自定义标头值"
     }
   ],
   "r8XsCU": [
@@ -14810,6 +14894,12 @@
     {
       "type": 0,
       "value": "日期范围:"
+    }
+  ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
     }
   ],
   "rQAyD6": [
@@ -15017,7 +15107,7 @@
   "ryAzxy": [
     {
       "type": 0,
-      "value": "Issue"
+      "value": "问题"
     }
   ],
   "ryPHA8": [
@@ -15176,12 +15266,6 @@
     {
       "type": 0,
       "value": "未找到节点"
-    }
-  ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "此列表显示按类别整理的扩展智能体、工具和连接器。创建和管理子智能体以扩展你的功能，添加用于特定任务的自定义工具，并配置连接器以访问外部资源。"
     }
   ],
   "sQkhYk": [
@@ -15359,13 +15443,7 @@
   "stbbGt": [
     {
       "type": 0,
-      "value": "Performs specialized tasks on behalf of the SRE Agent."
-    }
-  ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "每小时"
+      "value": "代表 SRE 智能体执行专门任务。"
     }
   ],
   "swRudj": [
@@ -15471,7 +15549,7 @@
   "tFoDh3": [
     {
       "type": 0,
-      "value": "Yes, turn on deep investigation"
+      "value": "是，启用深度调查"
     }
   ],
   "tGHG7q": [
@@ -15526,6 +15604,12 @@
     {
       "type": 0,
       "value": "设置运行限制"
+    }
+  ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
     }
   ],
   "tU3A8E": [
@@ -15596,20 +15680,6 @@
     {
       "type": 0,
       "value": "验证智能体如何汇总风险及后续步骤以供领导层更新。"
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "已成功创建子智能体“"
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "”"
     }
   ],
   "thOyk5": [
@@ -15762,6 +15832,12 @@
     {
       "type": 0,
       "value": "显示前 1000 个结果。筛选以缩小列表范围。"
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16042,7 +16118,7 @@
   "v1LtqB": [
     {
       "type": 0,
-      "value": "Select authentication method"
+      "value": "选择身份验证方法"
     }
   ],
   "v3xWf6": [
@@ -16103,6 +16179,12 @@
     {
       "type": 0,
       "value": "连接到 Kusto 等数据源以使用丰富的智能体功能"
+    }
+  ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
     }
   ],
   "vDbj1h": [
@@ -16188,7 +16270,7 @@
   "vb6deF": [
     {
       "type": 0,
-      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
+      "value": "深度调查需要较长运行时间，可能导致高 AAU 消耗。"
     }
   ],
   "vbdOl/": [
@@ -16270,7 +16352,7 @@
   "w4Nqlr": [
     {
       "type": 0,
-      "value": "Run scheduled task(s)"
+      "value": "运行计划任务"
     }
   ],
   "w5FDGY": [
@@ -16325,6 +16407,12 @@
     {
       "type": 0,
       "value": "成本计算挂起"
+    }
+  ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
     }
   ],
   "wGLrHW": [
@@ -16395,6 +16483,12 @@
     {
       "type": 0,
       "value": "创建新的转接智能体"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -16551,12 +16645,6 @@
     {
       "type": 0,
       "value": "尚无运行"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "子智能体生成器"
     }
   ],
   "xDYr9m": [
@@ -16788,7 +16876,7 @@
   "y/m6Ep": [
     {
       "type": 0,
-      "value": "GitHub MCP server"
+      "value": "GitHub MCP 服务器"
     }
   ],
   "y0KXuM": [
@@ -16865,12 +16953,6 @@
       "value": "将此警告静音"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "创建子智能体"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -16886,7 +16968,13 @@
   "yRKsn1": [
     {
       "type": 0,
-      "value": "Learn more about deep investigations"
+      "value": "详细了解深度调查"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -16983,6 +17071,12 @@
     {
       "type": 0,
       "value": "托管资源组"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -17178,7 +17272,7 @@
   "zRv1ks": [
     {
       "type": 0,
-      "value": "What should happen?"
+      "value": "应该发生什么?"
     }
   ],
   "zUNfOA": [
@@ -17247,6 +17341,18 @@
     {
       "type": 0,
       "value": "高级设置"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

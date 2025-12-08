@@ -397,6 +397,16 @@
       "value": "Vymazat"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -459,12 +469,6 @@
     {
       "type": 0,
       "value": "Operátor Container Apps"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Každou minutu"
     }
   ],
   "/Z1fHN": [
@@ -599,6 +603,12 @@
     {
       "type": 0,
       "value": "Hledat..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -917,12 +927,16 @@
   ],
   "13KTIN": [
     {
+      "type": 0,
+      "value": "Vybrána "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource group selected."
+      "value": " skupina prostředků."
     }
   ],
   "15GWkT": [
@@ -1118,7 +1132,7 @@
   "1m4VPF": [
     {
       "type": 0,
-      "value": "The agent investigates complex issues and forms hypotheses to validate potential root causes."
+      "value": "Agent prověřuje složité problémy a vytváří hypotézy k ověření možných původních příčin."
     }
   ],
   "1o9eJ6": [
@@ -1494,7 +1508,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Došlo k neočekávané chybě."
     }
   ],
   "3JVa6k": [
@@ -1548,7 +1562,7 @@
   "3SsYXO": [
     {
       "type": 0,
-      "value": "Open GitHub issue page with pre-filled information above"
+      "value": "Otevřete stránku problému na GitHubu s předvyplněnými výše uvedenými informacemi"
     }
   ],
   "3VI9mt": [
@@ -1572,13 +1586,13 @@
   "3dsWh5": [
     {
       "type": 0,
-      "value": "Add MCP server"
+      "value": "Přidat server MCP"
     }
   ],
   "3h7ZKg": [
     {
       "type": 0,
-      "value": "Review + add"
+      "value": "Zkontrolovat a přidat"
     }
   ],
   "3hmrCJ": [
@@ -1636,7 +1650,7 @@
   "3k7JQw": [
     {
       "type": 0,
-      "value": "Issue description is required."
+      "value": "Popis problému je povinný."
     }
   ],
   "3n8o15": [
@@ -1654,7 +1668,7 @@
   "3rvQhx": [
     {
       "type": 0,
-      "value": "You can manage up to "
+      "value": "Můžete spravovat až "
     },
     {
       "type": 1,
@@ -1662,7 +1676,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups you have permissions on. Your agent currently manages "
+      "value": " skupin(y) prostředků, ke kterým máte oprávnění. Váš agent v současnosti spravuje "
     },
     {
       "type": 1,
@@ -1670,7 +1684,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups."
+      "value": " skupin(y) prostředků."
     }
   ],
   "3sNyAo": [
@@ -1874,7 +1888,7 @@
   "4IAjnN": [
     {
       "type": 0,
-      "value": "Turn on deep investigation?"
+      "value": "Zapnout hloubkové prověřování?"
     }
   ],
   "4MeTpL": [
@@ -1916,7 +1930,7 @@
   "4Rhz/i": [
     {
       "type": 0,
-      "value": "User provided connector"
+      "value": "Uživatelem zadaný konektor"
     }
   ],
   "4RwjwU": [
@@ -2083,16 +2097,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "K autorizaci přístupu k úložišti nemáte oprávnění."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Vyberte rozšířeného agenta, který vám pomůže s úkoly."
     }
   ],
   "5GUtRJ": [
@@ -2478,7 +2500,7 @@
     },
     {
       "type": 0,
-      "value": " sec"
+      "value": " s"
     }
   ],
   "61e5yQ": [
@@ -2536,7 +2558,7 @@
   "6CrAJC": [
     {
       "type": 0,
-      "value": "Enter custom header key"
+      "value": "Zadejte klíč vlastního záhlaví"
     }
   ],
   "6CxEZS": [
@@ -2721,16 +2743,6 @@
     {
       "type": 0,
       "value": "Jasný a stručný popis, který ostatním agentům pomůže pochopit, kdy mají delegovat práci na tohoto specializovaného agenta. Tento popis se zobrazí při rozhodnutích o předání mezi agenty a v pracovních postupech spolupráce."
-    }
-  ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "Nepovedlo se vytvořit dílčího agenta. Chyba: "
-    },
-    {
-      "type": 1,
-      "value": "error"
     }
   ],
   "6w0QQX": [
@@ -2946,7 +2958,7 @@
   "7Rnjmx": [
     {
       "type": 0,
-      "value": "Expected Behavior"
+      "value": "Očekávané chování"
     }
   ],
   "7TVRcx": [
@@ -3000,7 +3012,7 @@
   "7kPmO3": [
     {
       "type": 0,
-      "value": "Edit connector"
+      "value": "Upravit konektor"
     }
   ],
   "7nUCu9": [
@@ -3329,12 +3341,6 @@
       "value": "Přístup ke službě a rozhraním API jen ke čtení."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Vytvořit dílčího agenta pro předání"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3444,7 +3450,7 @@
   "8urALB": [
     {
       "type": 0,
-      "value": "Delete connector"
+      "value": "Odstranit konektor"
     }
   ],
   "8v0Pyn": [
@@ -3703,6 +3709,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3871,6 +3889,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3922,7 +3946,7 @@
   "Abi/u/": [
     {
       "type": 0,
-      "value": "Expand panel"
+      "value": "Rozbalit panel"
     }
   ],
   "AbleKr": [
@@ -4008,7 +4032,13 @@
   "AvHD3R": [
     {
       "type": 0,
-      "value": "Teams channel link"
+      "value": "Odkaz na kanál Teams"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -4058,7 +4088,7 @@
   "BBT3jd": [
     {
       "type": 0,
-      "value": "The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests."
+      "value": "Agent přistupuje k úložištím, funkcím a akcím GitHubu, včetně sledování problémů a žádostí o přijetí změn."
     }
   ],
   "BD+V8L": [
@@ -4370,7 +4400,7 @@
   "CQisjK": [
     {
       "type": 0,
-      "value": "What actually happened?"
+      "value": "Co se vlastně stalo?"
     }
   ],
   "CTRqZs": [
@@ -4515,6 +4545,12 @@
       "value": "Vyberte subagenta odpovědi"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4580,7 +4616,7 @@
   "DK708b": [
     {
       "type": 0,
-      "value": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than "
+      "value": "Název musí začínat písmenem a může obsahovat jenom písmena, číslice a spojovníky. Název nesmí být prázdný a musí mít méně než "
     },
     {
       "type": 1,
@@ -4588,7 +4624,7 @@
     },
     {
       "type": 0,
-      "value": " characters."
+      "value": " znaků."
     }
   ],
   "DMEE1o": [
@@ -4606,7 +4642,7 @@
   "DP0m/y": [
     {
       "type": 0,
-      "value": "Updating Kusto Tool"
+      "value": "Aktualizuje se nástroj Kusto"
     }
   ],
   "DPnEXy": [
@@ -4645,12 +4681,12 @@
   ],
   "DXm10s": [
     {
-      "type": 1,
-      "value": "0"
+      "type": 0,
+      "value": "Adresa URL úložiště "
     },
     {
-      "type": 0,
-      "value": " repository URL"
+      "type": 1,
+      "value": "0"
     }
   ],
   "DYp/nK": [
@@ -4698,7 +4734,7 @@
   "DgsR1U": [
     {
       "type": 0,
-      "value": "Channel ID"
+      "value": "ID kanálu"
     }
   ],
   "Dh9oJp": [
@@ -4797,6 +4833,12 @@
       "value": "Některé z vybraných skupin prostředků nemají požadovaná oprávnění roleAssignments/write a Microsoft.ManagedIdentity/userAssignedIdentities/write."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4853,6 +4895,12 @@
     {
       "type": 0,
       "value": "Nepovedlo se načíst předplatná."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -4950,7 +4998,7 @@
   "EcglP9": [
     {
       "type": 0,
-      "value": "Key"
+      "value": "Klíč"
     }
   ],
   "EdEthU": [
@@ -5008,7 +5056,7 @@
   "ErUgLz": [
     {
       "type": 0,
-      "value": "Teams group ID"
+      "value": "ID skupiny Teams"
     }
   ],
   "Erci0g": [
@@ -5142,7 +5190,7 @@
   "FMDuHb": [
     {
       "type": 0,
-      "value": "Enter your PAT or API key"
+      "value": "Zadejte svůj PAT nebo klíč rozhraní API"
     }
   ],
   "FNQNS1": [
@@ -5393,12 +5441,16 @@
   ],
   "G4mray": [
     {
+      "type": 0,
+      "value": "Vybrané skupiny prostředků: "
+    },
+    {
       "type": 1,
       "value": "count"
     },
     {
       "type": 0,
-      "value": " resource groups selected."
+      "value": "."
     }
   ],
   "G5JMSn": [
@@ -5414,7 +5466,7 @@
   "G6XRkU": [
     {
       "type": 0,
-      "value": "Steps to Reproduce"
+      "value": "Kroky ke zreprodukování problému"
     }
   ],
   "G6vaGg": [
@@ -5441,11 +5493,19 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "dokumenty"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "dokument"
             }
           ]
         },
@@ -5453,7 +5513,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "dokumentů"
             }
           ]
         }
@@ -5626,7 +5686,7 @@
   "GufXy5": [
     {
       "type": 0,
-      "value": "Value"
+      "value": "Hodnota"
     }
   ],
   "Gvxoji": [
@@ -5698,7 +5758,7 @@
   "HJ7ZeR": [
     {
       "type": 0,
-      "value": "Issue Description"
+      "value": "Popis problému"
     }
   ],
   "HKlw1J": [
@@ -5795,6 +5855,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5828,7 +5902,7 @@
   "HtVpjg": [
     {
       "type": 0,
-      "value": "You can select up to "
+      "value": "Pro tohoto agenta můžete vybrat až "
     },
     {
       "type": 1,
@@ -5836,7 +5910,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups for this agent. Agents can manage a total of "
+      "value": " skupin(y) prostředků. Agenti můžou spravovat celkem "
     },
     {
       "type": 1,
@@ -5844,7 +5918,7 @@
     },
     {
       "type": 0,
-      "value": " resource groups, and your agent currently manages "
+      "value": " skupin(y) a váš agent v současnosti spravuje "
     },
     {
       "type": 1,
@@ -5852,7 +5926,7 @@
     },
     {
       "type": 0,
-      "value": ". You've selected "
+      "value": ". Vybrali jste: "
     },
     {
       "type": 1,
@@ -5987,6 +6061,84 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -6043,12 +6195,6 @@
     {
       "type": 0,
       "value": "Nové vlákno"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Vytváří se dílčí agent"
     }
   ],
   "IYLPrk": [
@@ -6186,13 +6332,13 @@
   "J0rs+f": [
     {
       "type": 0,
-      "value": "Paste the thread ID from the SRE Agent portal. (e.g., 50f7521d-dfee-487e-9188-5abdc8adde91)"
+      "value": "Vložte ID vlákna z portálu agenta SRE. (například 50f7521d-dfee-487e-9188-5abdc8adde91)"
     }
   ],
   "J2Lcsz": [
     {
       "type": 0,
-      "value": "A deep investigation will be run for every incident handled in this response plan. Each deep investigation requires significant time to run and might result in high AAU consumption."
+      "value": "Pro každý incident zpracovaný v tomto plánu reakce se spustí hloubkové prověřování. Každé hloubkové prověřování vyžaduje významnou dobu běhu a může vést k vysoké spotřebě jednotek AAU."
     }
   ],
   "J3Y8Sm": [
@@ -6236,7 +6382,7 @@
   "JA/VO+": [
     {
       "type": 0,
-      "value": "Starts a task at a defined time or interval."
+      "value": "Spustí úkol v definovaném čase nebo intervalu."
     }
   ],
   "JAtEuU": [
@@ -6510,7 +6656,7 @@
   "JvYXxh": [
     {
       "type": 0,
-      "value": "MCP server"
+      "value": "Server MCP"
     }
   ],
   "JwHSD6": [
@@ -6558,7 +6704,7 @@
   "K7tsik": [
     {
       "type": 0,
-      "value": "Scheduled task ran successfully"
+      "value": "Naplánovaná úloha byla úspěšně spuštěna."
     }
   ],
   "K9q4Xw": [
@@ -6736,7 +6882,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Získat podporu"
     }
   ],
   "KoJ1C+": [
@@ -6810,7 +6956,7 @@
   "L/ct40": [
     {
       "type": 0,
-      "value": "Open in visual view"
+      "value": "Otevřít ve vizuálním zobrazení"
     }
   ],
   "L/i6dy": [
@@ -6924,7 +7070,7 @@
   "LSqcaU": [
     {
       "type": 0,
-      "value": "Maximum 200,000 AAUs"
+      "value": "Maximálně 200 000 AAU"
     }
   ],
   "LTDPn/": [
@@ -6974,19 +7120,13 @@
   "Li/Qrf": [
     {
       "type": 0,
-      "value": "Custom headers"
+      "value": "Vlastní záhlaví"
     }
   ],
   "LkUvu/": [
     {
       "type": 0,
       "value": "Popište plán"
-    }
-  ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Vyberte incident."
     }
   ],
   "LnglaU": [
@@ -7010,7 +7150,7 @@
   "LuHM0/": [
     {
       "type": 0,
-      "value": "Actual Behavior"
+      "value": "Skutečné chování"
     }
   ],
   "LupnQU": [
@@ -7095,6 +7235,12 @@
       "value": "Úroveň závažnosti"
     }
   ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
+    }
+  ],
   "LyHqqV": [
     {
       "type": 0,
@@ -7132,7 +7278,7 @@
   "M0ay1D": [
     {
       "type": 0,
-      "value": "Running scheduled task(s)"
+      "value": "Spouštění naplánovaných úloh"
     }
   ],
   "M3159R": [
@@ -7456,7 +7602,7 @@
   "N2IrpM": [
     {
       "type": 0,
-      "value": "Confirm"
+      "value": "Potvrdit"
     }
   ],
   "N7cqYp": [
@@ -7571,6 +7717,12 @@
       "value": "Rozumím"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7665,20 +7817,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "Každých "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " minut"
-    }
-  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7758,12 +7896,6 @@
       "value": "Nové zprávy"
     }
   ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Opravdu chcete odstranit tohoto agenta SRE Agent? Tato akce je nevratná."
-    }
-  ],
   "O9C6j/": [
     {
       "type": 0,
@@ -7839,13 +7971,19 @@
   "OP7f9a": [
     {
       "type": 0,
-      "value": "Compiled connection string"
+      "value": "Zkompilovaný připojovací řetězec"
     }
   ],
   "OPBqEN": [
     {
       "type": 0,
       "value": "Data trasování byla analyzována s chybami."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -8177,7 +8315,7 @@
   "PZvrnY": [
     {
       "type": 0,
-      "value": "Title is required."
+      "value": "Název je povinný."
     }
   ],
   "Pa1S0J": [
@@ -8210,16 +8348,6 @@
       "value": "Upravujte konfigurace agenta rozhraní API pro zdravotnictví."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "Vytváří se dílčí agent "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -8235,7 +8363,7 @@
   "PpdTYy": [
     {
       "type": 0,
-      "value": "Failed to update tool"
+      "value": "Nepodařilo se aktualizovat nástroj"
     }
   ],
   "PrFU82": [
@@ -8302,6 +8430,12 @@
     {
       "type": 0,
       "value": "Čas rozhodnutí"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -8375,11 +8509,15 @@
   "Q9IHxV": [
     {
       "type": 0,
-      "value": "Running scheduled task "
+      "value": "Spouští se naplánovaná úloha "
     },
     {
       "type": 1,
       "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "Q9Zp/n": [
@@ -8490,20 +8628,6 @@
       "value": "Vymazat vše"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "Každých "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " hodin"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8513,7 +8637,13 @@
   "QYiU4f": [
     {
       "type": 0,
-      "value": "1. Describe the action you took 2. Mention the resource or service involved"
+      "value": "1. Popište akci, kterou jste provedli 2. Uveďte prostředek nebo službu, kterých se to týká."
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -9077,7 +9207,7 @@
   "SeZ8eZ": [
     {
       "type": 0,
-      "value": "AAU consumption reminder"
+      "value": "Připomenutí spotřeby AAU"
     }
   ],
   "Seanpx": [
@@ -9113,7 +9243,7 @@
   "SoBWeV": [
     {
       "type": 0,
-      "value": "Monthly active flow AAUs"
+      "value": "Měsíční aktivní AAU toku"
     }
   ],
   "Sr4IbA": [
@@ -9361,7 +9491,7 @@
   "TP/cMX": [
     {
       "type": 0,
-      "value": "Ended"
+      "value": "Ukončeno"
     }
   ],
   "TQ0n+a": [
@@ -9499,7 +9629,7 @@
   "UImEMW": [
     {
       "type": 0,
-      "value": "Briefly describe the problem or request."
+      "value": "Stručně popište problém nebo žádost."
     }
   ],
   "UKMPBH": [
@@ -9684,12 +9814,6 @@
       "value": "Náhled chatu"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Nenakonfigurovali se žádní dílčí agenti"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9769,7 +9893,7 @@
   "Vaj9nj": [
     {
       "type": 0,
-      "value": "Don't show this message again"
+      "value": "Tuto zprávu už příště nezobrazovat"
     }
   ],
   "Vb+qQ4": [
@@ -9847,7 +9971,7 @@
   "Vs3jMi": [
     {
       "type": 0,
-      "value": "Authentication method"
+      "value": "Metoda ověřování"
     }
   ],
   "VtBCjG": [
@@ -9916,12 +10040,6 @@
       "value": "Zkuste to znovu nebo zkontrolujte podrobnosti v konzole."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Upgradovací kanál verze Preview"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9962,12 +10080,6 @@
     {
       "type": 0,
       "value": "Nemáte oprávnění ke kontrole připojení ke správě incidentů."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10711,12 +10823,6 @@
       "value": "Zátěžový test"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "Dílčího agenta se nepovedlo vytvořit."
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10903,6 +11009,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -11029,6 +11141,84 @@
     {
       "type": 0,
       "value": "Níže vyberte existující nástroj, který chcete připojit."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -11485,7 +11675,7 @@
   "bDbbX7": [
     {
       "type": 0,
-      "value": "Edit Kusto tool"
+      "value": "Upravit nástroj Kusto"
     }
   ],
   "bICPAQ": [
@@ -11521,7 +11711,7 @@
   "bWjdfa": [
     {
       "type": 0,
-      "value": "URL"
+      "value": "Adresa URL"
     }
   ],
   "baRFiF": [
@@ -11548,12 +11738,6 @@
     {
       "type": 0,
       "value": "."
-    }
-  ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Stabilní: Aktualizace e doručují jednou za měsíc."
     }
   ],
   "bjDKAe": [
@@ -11728,12 +11912,6 @@
     {
       "type": 0,
       "value": "Vybráno"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "Tady je plán To-Do:"
     }
   ],
   "c/KktL": [
@@ -12043,7 +12221,7 @@
   "dF2h2y": [
     {
       "type": 0,
-      "value": "Filter by incident id or title"
+      "value": "Filtrovat podle ID incidentu nebo názvu"
     }
   ],
   "dG8VrM": [
@@ -12070,10 +12248,10 @@
       "value": "Vytvořit naplánovanou úlohu"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "Dílčí agent AI s pokyny a nástroji"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -12209,7 +12387,7 @@
   "dqkJF6": [
     {
       "type": 0,
-      "value": "Delete subagent"
+      "value": "Odstranit dílčího agenta"
     }
   ],
   "dtQgfG": [
@@ -12239,7 +12417,7 @@
   "dzy0ND": [
     {
       "type": 0,
-      "value": "Run scheduled task"
+      "value": "Spustit naplánovanou úlohu"
     }
   ],
   "e0a3XV": [
@@ -12412,12 +12590,6 @@
       "value": "Pokyny k vlastním reakcím"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "Noví dílčí agenti předání začínají jako autonomní. Nástroje a další podrobnosti můžete připojit později."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -12504,6 +12676,12 @@
     {
       "type": 0,
       "value": "Nastupující specialista"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -12600,12 +12778,6 @@
       "value": "Všechny úrovně závažnosti"
     }
   ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Dílčí agent s tímto názvem už existuje."
-    }
-  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -12691,13 +12863,13 @@
   "fvSiRs": [
     {
       "type": 0,
-      "value": "Tool updated successfully"
+      "value": "Nástroj byl úspěšně aktualizován"
     }
   ],
   "fyaE5g": [
     {
       "type": 0,
-      "value": "Please provide a channel link"
+      "value": "Zadejte odkaz na kanál"
     }
   ],
   "g+9csc": [
@@ -13028,7 +13200,7 @@
   "hGnjdE": [
     {
       "type": 0,
-      "value": "Learn more about AAU consumption and cost"
+      "value": "Další informace o spotřebě AAU a nákladech"
     }
   ],
   "hHz/bk": [
@@ -13041,12 +13213,6 @@
     {
       "type": 0,
       "value": "Vybrané skupiny spravovaných prostředků se nepovedlo odstranit."
-    }
-  ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Dílčí agent"
     }
   ],
   "hO1Iog": [
@@ -13106,7 +13272,7 @@
   "hdfKe+": [
     {
       "type": 0,
-      "value": "Automatically starts a subagent in response to an incident or alert."
+      "value": "Automaticky spustí dílčího agenta v reakci na incident nebo upozornění."
     }
   ],
   "heMr0D": [
@@ -13179,6 +13345,12 @@
     {
       "type": 0,
       "value": "Kategorie RCA"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -13312,7 +13484,7 @@
   "iYJ/Ha": [
     {
       "type": 0,
-      "value": "Query tool the subagent uses to collect data from Azure Data Explorer."
+      "value": "Nástroj pro dotazy, který dílčí agent používá ke sběru dat ze služby Azure Data Explorer."
     }
   ],
   "iZDRGO": [
@@ -13380,7 +13552,7 @@
   "ioRcwS": [
     {
       "type": 0,
-      "value": "Scheduled task trigger"
+      "value": "Trigger naplánovaného úkolu"
     }
   ],
   "ipsqxO": [
@@ -13478,7 +13650,7 @@
   "j0Ifob": [
     {
       "type": 0,
-      "value": "Do you want to proceed?"
+      "value": "Chcete pokračovat?"
     }
   ],
   "j0bMX6": [
@@ -13626,7 +13798,7 @@
   "jSgRib": [
     {
       "type": 0,
-      "value": "Your knowledge base has "
+      "value": "Vaše znalostní databáze obsahuje "
     },
     {
       "type": 1,
@@ -13639,11 +13811,19 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "dokumenty"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "document"
+              "value": "dokument"
             }
           ]
         },
@@ -13651,7 +13831,7 @@
           "value": [
             {
               "type": 0,
-              "value": "documents"
+              "value": "dokumentů"
             }
           ]
         }
@@ -13662,7 +13842,7 @@
     },
     {
       "type": 0,
-      "value": ". Add more?"
+      "value": ". Chcete přidat další?"
     }
   ],
   "jTQZpk": [
@@ -13671,16 +13851,10 @@
       "value": "Prostředek Grafana musí být v rámci skupiny prostředků jedinečný."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Zadejte název dílčího agenta"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
-      "value": "Failed to run task: "
+      "value": "Nepovedlo se spustit úlohu: "
     },
     {
       "type": 1,
@@ -14028,7 +14202,13 @@
   "l8IRTD": [
     {
       "type": 0,
-      "value": "Scheduled task(s) ran successfully"
+      "value": "Naplánované úlohy byly úspěšně spuštěny."
+    }
+  ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
     }
   ],
   "lCsNuL": [
@@ -14089,6 +14269,12 @@
       "value": "Opravdu chcete odstranit vlastní plán reakcí?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -14131,6 +14317,12 @@
     {
       "type": 0,
       "value": "Hledat systémové nástroje podle názvu, kategorie nebo popisu"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -14400,7 +14592,7 @@
   "mg8UeB": [
     {
       "type": 0,
-      "value": "Filter by response plan name"
+      "value": "Filtrovat podle názvu plánu reakce"
     }
   ],
   "mgYBYo": [
@@ -14497,6 +14689,12 @@
       "value": "Logo Grafana"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -14506,7 +14704,7 @@
   "n25S4d": [
     {
       "type": 0,
-      "value": "Update Kusto Tool"
+      "value": "Aktualizovat nástroj Kusto"
     }
   ],
   "n2h/5e": [
@@ -14581,12 +14779,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Preview: Aktualizace se doručují dvakrát týdně."
     }
   ],
   "nQpONp": [
@@ -14794,7 +14986,7 @@
   "oIm1Fb": [
     {
       "type": 0,
-      "value": "GitHub logo"
+      "value": "Logo GitHubu"
     }
   ],
   "oKJ0fm": [
@@ -14884,7 +15076,7 @@
   "ocQGCd": [
     {
       "type": 0,
-      "value": "Allow subagent capabilities to override the SRE Agent."
+      "value": "Povolte schopnostem dílčího agenta přepsat agenta SRE."
     }
   ],
   "ocQXDt": [
@@ -14912,7 +15104,7 @@
   "ooDMAp": [
     {
       "type": 0,
-      "value": "Personal access token (PAT) or API key"
+      "value": "Token PAT (Personal Access Token) nebo klíč rozhraní API"
     }
   ],
   "osuyeD": [
@@ -15103,6 +15295,12 @@
       "value": "Změnit klíč"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -15250,7 +15448,7 @@
   "q3e4cf": [
     {
       "type": 0,
-      "value": "Bearer token"
+      "value": "Nosný token"
     }
   ],
   "q4EmsW": [
@@ -15480,7 +15678,7 @@
   "r5UlDs": [
     {
       "type": 0,
-      "value": "Enter custom header value"
+      "value": "Zadejte hodnotu vlastního záhlaví"
     }
   ],
   "r8XsCU": [
@@ -15619,6 +15817,12 @@
     {
       "type": 0,
       "value": "Rozsah dat:"
+    }
+  ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
     }
   ],
   "rQAyD6": [
@@ -15822,7 +16026,7 @@
   "ryAzxy": [
     {
       "type": 0,
-      "value": "Issue"
+      "value": "Problém"
     }
   ],
   "ryPHA8": [
@@ -15981,12 +16185,6 @@
     {
       "type": 0,
       "value": "Nenašly se žádné uzly"
-    }
-  ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "Tento seznam obsahuje rozšířené agenty, nástroje a konektory uspořádané podle kategorií. Vytvářejte a spravujte dílčí agenty, kteří rozšiřují vaše možnosti, přidávají vlastní nástroje pro konkrétní úlohy a konfigurují konektory pro přístup k externím prostředkům."
     }
   ],
   "sQkhYk": [
@@ -16160,13 +16358,7 @@
   "stbbGt": [
     {
       "type": 0,
-      "value": "Performs specialized tasks on behalf of the SRE Agent."
-    }
-  ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Každou hodinu"
+      "value": "Provádí specializované úkoly jménem agenta SRE."
     }
   ],
   "swRudj": [
@@ -16272,7 +16464,7 @@
   "tFoDh3": [
     {
       "type": 0,
-      "value": "Yes, turn on deep investigation"
+      "value": "Ano, zapnout hloubkové prověřování"
     }
   ],
   "tGHG7q": [
@@ -16327,6 +16519,12 @@
     {
       "type": 0,
       "value": "Nastavit limit spuštění"
+    }
+  ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
     }
   ],
   "tU3A8E": [
@@ -16397,20 +16595,6 @@
     {
       "type": 0,
       "value": "Ověřte, jak agent shrnuje rizika a další kroky pro aktualizace pro vedení."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "Dílčí agent "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " se úspěšně vytvořil."
     }
   ],
   "thOyk5": [
@@ -16559,6 +16743,12 @@
     {
       "type": 0,
       "value": "Zobrazuje se prvních 1 000 výsledků. Pokud chcete seznam upřesnit, použijte filtr."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16888,7 +17078,7 @@
   "v1LtqB": [
     {
       "type": 0,
-      "value": "Select authentication method"
+      "value": "Vyberte metodu ověřování"
     }
   ],
   "v3xWf6": [
@@ -16949,6 +17139,12 @@
     {
       "type": 0,
       "value": "Připojte se ke zdrojům dat, jako je Kusto, a získejte pokročilé funkce agentů."
+    }
+  ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
     }
   ],
   "vDbj1h": [
@@ -17034,7 +17230,7 @@
   "vb6deF": [
     {
       "type": 0,
-      "value": "Deep investigations require significant time to run and might result in high AAU consumption."
+      "value": "Hloubkové prověřování vyžaduje významnou dobu běhu a může vést k vysoké spotřebě AAU."
     }
   ],
   "vbdOl/": [
@@ -17116,7 +17312,7 @@
   "w4Nqlr": [
     {
       "type": 0,
-      "value": "Run scheduled task(s)"
+      "value": "Spustit naplánované úlohy"
     }
   ],
   "w5FDGY": [
@@ -17171,6 +17367,12 @@
     {
       "type": 0,
       "value": "Čeká se na výpočet nákladů."
+    }
+  ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
     }
   ],
   "wGLrHW": [
@@ -17241,6 +17443,12 @@
     {
       "type": 0,
       "value": "Vytvoření nového agenta předání"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -17397,12 +17605,6 @@
     {
       "type": 0,
       "value": "Zatím žádná spuštění"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Tvůrce dílčích agentů"
     }
   ],
   "xDYr9m": [
@@ -17634,7 +17836,7 @@
   "y/m6Ep": [
     {
       "type": 0,
-      "value": "GitHub MCP server"
+      "value": "[GitHub] MCP Server"
     }
   ],
   "y0KXuM": [
@@ -17711,12 +17913,6 @@
       "value": "Ztlumit toto upozornění"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Vytvořit dílčího agenta"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -17732,7 +17928,13 @@
   "yRKsn1": [
     {
       "type": 0,
-      "value": "Learn more about deep investigations"
+      "value": "Další informace o hloubkových prověřováních"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17829,6 +18031,12 @@
     {
       "type": 0,
       "value": "Skupiny spravovaných prostředků"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -18048,7 +18256,7 @@
   "zRv1ks": [
     {
       "type": 0,
-      "value": "What should happen?"
+      "value": "Co by se mělo stát?"
     }
   ],
   "zUNfOA": [
@@ -18117,6 +18325,18 @@
     {
       "type": 0,
       "value": "Rozšířená nastavení"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [

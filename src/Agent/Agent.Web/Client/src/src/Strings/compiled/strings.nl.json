@@ -381,6 +381,16 @@
       "value": "Wissen"
     }
   ],
+  "/HeRX5": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent with error: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/N0Usl": [
     {
       "type": 0,
@@ -443,12 +453,6 @@
     {
       "type": 0,
       "value": "Container Apps Operator"
-    }
-  ],
-  "/XIuIr": [
-    {
-      "type": 0,
-      "value": "Elke minuut"
     }
   ],
   "/Z1fHN": [
@@ -587,6 +591,12 @@
     {
       "type": 0,
       "value": "Zoeken..."
+    }
+  ],
+  "0BVwlv": [
+    {
+      "type": 0,
+      "value": "Owning team"
     }
   ],
   "0D+7fr": [
@@ -2005,16 +2015,24 @@
       "value": "error"
     }
   ],
+  "5AvgDc": [
+    {
+      "type": 0,
+      "value": "Creating subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "5CX32Z": [
     {
       "type": 0,
       "value": "U bent niet gemachtigd om toegang tot de opslagplaats te autoriseren."
-    }
-  ],
-  "5DqOua": [
-    {
-      "type": 0,
-      "value": "Kies een uitgebreide agent om je te helpen met taken."
     }
   ],
   "5GUtRJ": [
@@ -2633,16 +2651,6 @@
       "value": "Een duidelijke, beknopte beschrijving die andere agents helpt om te begrijpen wanneer ze werk aan deze specialistische agent moeten delegeren. Dit wordt weergegeven bij beslissingen over de overdracht van agenten en samenwerkingswerkstromen."
     }
   ],
-  "6v8Uj+": [
-    {
-      "type": 0,
-      "value": "De subagent is niet gemaakt vanwege deze fout: "
-    },
-    {
-      "type": 1,
-      "value": "error"
-    }
-  ],
   "6w0QQX": [
     {
       "type": 0,
@@ -3161,12 +3169,6 @@
       "value": "Alleen-lezentoegang tot de service en API's."
     }
   ],
-  "8dASTJ": [
-    {
-      "type": 0,
-      "value": "Maak een subagent voor handoff"
-    }
-  ],
   "8dTxSy": [
     {
       "type": 0,
@@ -3519,6 +3521,18 @@
       "value": "count"
     }
   ],
+  "9jqvi3": [
+    {
+      "type": 0,
+      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+    }
+  ],
+  "9jut5b": [
+    {
+      "type": 0,
+      "value": "Cron expression (UTC)"
+    }
+  ],
   "9q75fe": [
     {
       "type": 0,
@@ -3675,6 +3689,12 @@
       "value": "count"
     }
   ],
+  "AHQWDT": [
+    {
+      "type": 0,
+      "value": "Thinking"
+    }
+  ],
   "AHQdRU": [
     {
       "type": 0,
@@ -3813,6 +3833,12 @@
     {
       "type": 0,
       "value": "Teams channel link"
+    }
+  ],
+  "Aw3qRf": [
+    {
+      "type": 0,
+      "value": "Reasoning"
     }
   ],
   "AxMhQr": [
@@ -4315,6 +4341,12 @@
       "value": "Selecteer een antwoordsubagent"
     }
   ],
+  "D9WytX": [
+    {
+      "type": 0,
+      "value": "Search for an incident by name"
+    }
+  ],
   "DD2Wjk": [
     {
       "type": 0,
@@ -4597,6 +4629,12 @@
       "value": "Sommige geselecteerde resourcegroepen hebben niet de vereiste roleAssignments/write en Microsoft.ManagedIdentity/userAssignedIdentities/write machtigingen."
     }
   ],
+  "E7aYCD": [
+    {
+      "type": 0,
+      "value": "Search for a resource by name"
+    }
+  ],
   "E9CWuE": [
     {
       "type": 0,
@@ -4657,6 +4695,12 @@
     {
       "type": 0,
       "value": "Kan de abonnementen niet laden."
+    }
+  ],
+  "EN0CPQ": [
+    {
+      "type": 0,
+      "value": "Subagent builder"
     }
   ],
   "EN5iMk": [
@@ -5583,6 +5627,20 @@
       "value": "errorMessage"
     }
   ],
+  "Hh4t4o": [
+    {
+      "type": 0,
+      "value": "Subagent \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" has been created successfully"
+    }
+  ],
   "Hh8It5": [
     {
       "type": 0,
@@ -5775,6 +5833,54 @@
       "value": "Azure Managed Grafana"
     }
   ],
+  "IIK54g": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every hour"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " hours"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "hours"
+    }
+  ],
   "IIfj4G": [
     {
       "type": 0,
@@ -5831,12 +5937,6 @@
     {
       "type": 0,
       "value": "Nieuwe thread"
-    }
-  ],
-  "IYK6q+": [
-    {
-      "type": 0,
-      "value": "Subagent maken..."
     }
   ],
   "IYLPrk": [
@@ -6727,12 +6827,6 @@
       "value": "Beschrijf de planning"
     }
   ],
-  "Lm9kBB": [
-    {
-      "type": 0,
-      "value": "Selecteer een incident."
-    }
-  ],
   "LnglaU": [
     {
       "type": 0,
@@ -6799,6 +6893,12 @@
     {
       "type": 0,
       "value": "Ernstniveau"
+    }
+  ],
+  "LxHm7z": [
+    {
+      "type": 0,
+      "value": "An AI subagent with instructions and tools"
     }
   ],
   "LyHqqV": [
@@ -7265,6 +7365,12 @@
       "value": "Begrepen"
     }
   ],
+  "NZ4EtH": [
+    {
+      "type": 0,
+      "value": "A subagent with this name already exists"
+    }
+  ],
   "NcxGiD": [
     {
       "type": 0,
@@ -7335,20 +7441,6 @@
       "value": "count"
     }
   ],
-  "NwAgjY": [
-    {
-      "type": 0,
-      "value": "Elke "
-    },
-    {
-      "type": 1,
-      "value": "minutes"
-    },
-    {
-      "type": 0,
-      "value": " minuten"
-    }
-  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7415,12 +7507,6 @@
     {
       "type": 0,
       "value": "Nieuwe berichten"
-    }
-  ],
-  "O8zbbB": [
-    {
-      "type": 0,
-      "value": "Weet je zeker dat je deze SRE-agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "O9C6j/": [
@@ -7509,6 +7595,12 @@
     {
       "type": 0,
       "value": "Traceringsgegevens geparseerd met fouten."
+    }
+  ],
+  "OQMatj": [
+    {
+      "type": 0,
+      "value": "Failed to create subagent"
     }
   ],
   "ORGv1Q": [
@@ -7873,20 +7965,6 @@
       "value": "Configuraties van de gezondheidszorg-API's-agent bewerken."
     }
   ],
-  "PiNeyx": [
-    {
-      "type": 0,
-      "value": "De subagent "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " maken..."
-    }
-  ],
   "PipPB3": [
     {
       "type": 0,
@@ -7969,6 +8047,12 @@
     {
       "type": 0,
       "value": "Beslissingstijd"
+    }
+  ],
+  "Q0B/Lb": [
+    {
+      "type": 0,
+      "value": "Only teams that allow incident assignment"
     }
   ],
   "Q2CgqG": [
@@ -8157,20 +8241,6 @@
       "value": "Alles wissen"
     }
   ],
-  "QWEHW2": [
-    {
-      "type": 0,
-      "value": "Elke "
-    },
-    {
-      "type": 1,
-      "value": "hours"
-    },
-    {
-      "type": 0,
-      "value": " uur"
-    }
-  ],
   "QY3CEK": [
     {
       "type": 0,
@@ -8181,6 +8251,12 @@
     {
       "type": 0,
       "value": "1. Describe the action you took 2. Mention the resource or service involved"
+    }
+  ],
+  "Qcakd7": [
+    {
+      "type": 0,
+      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
     }
   ],
   "QdDYGR": [
@@ -9299,12 +9375,6 @@
       "value": "Chatvoorbeeld"
     }
   ],
-  "VIgoaE": [
-    {
-      "type": 0,
-      "value": "Geen subagents geconfigureerd"
-    }
-  ],
   "VKbBsK": [
     {
       "type": 0,
@@ -9527,12 +9597,6 @@
       "value": "Probeer het opnieuw of controleer de console voor meer informatie."
     }
   ],
-  "W6NO8g": [
-    {
-      "type": 0,
-      "value": "Preview van upgradekanaal"
-    }
-  ],
   "W6nSYE": [
     {
       "type": 0,
@@ -9573,12 +9637,6 @@
     {
       "type": 0,
       "value": "U bent niet gemachtigd om de verbinding met incidentbeheer te controleren."
-    }
-  ],
-  "WK8csJ": [
-    {
-      "type": 0,
-      "value": "When an agent is stoppped, it cannot monitor or interact, but it still incurs a fixed cost."
     }
   ],
   "WLw9E7": [
@@ -10276,12 +10334,6 @@
       "value": "Stresstest"
     }
   ],
-  "YP06jq": [
-    {
-      "type": 0,
-      "value": "De subagent is niet gemaakt"
-    }
-  ],
   "YT6JU9": [
     {
       "type": 0,
@@ -10464,6 +10516,12 @@
       "value": "errorMessage"
     }
   ],
+  "ZAkVKt": [
+    {
+      "type": 0,
+      "value": "Create a handoff subagent"
+    }
+  ],
   "ZBKZDe": [
     {
       "type": 0,
@@ -10594,6 +10652,54 @@
     {
       "type": 0,
       "value": "Selecteer hieronder een bestaand hulpprogramma om verbinding te maken."
+    }
+  ],
+  "ZolojY": [
+    {
+      "offset": 0,
+      "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every minute"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Every "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " minutes"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "minutes"
     }
   ],
   "Zq5BCQ": [
@@ -11077,12 +11183,6 @@
       "value": " tekens lang zijn."
     }
   ],
-  "bect+9": [
-    {
-      "type": 0,
-      "value": "Stabiel - Ontvangt eenmaal per maand updates"
-    }
-  ],
   "bjDKAe": [
     {
       "offset": 0,
@@ -11239,12 +11339,6 @@
     {
       "type": 0,
       "value": "Geselecteerd"
-    }
-  ],
-  "c/8Uhj": [
-    {
-      "type": 0,
-      "value": "Dit is het To-Do plan:"
     }
   ],
   "c/KktL": [
@@ -11581,10 +11675,10 @@
       "value": "Geplande taak maken"
     }
   ],
-  "dLWTUk": [
+  "dLWrbO": [
     {
       "type": 0,
-      "value": "Een AI-subagent met instructies en hulpprogramma's"
+      "value": "Only teams with an on-call rotation"
     }
   ],
   "dO3eHj": [
@@ -11923,12 +12017,6 @@
       "value": "Aangepaste richtlijnen voor antwoorden"
     }
   ],
-  "et3seW": [
-    {
-      "type": 0,
-      "value": "Nieuwe subagenten voor handoff starten als autonoom. Je kunt later hulpprogramma's en andere details koppelen."
-    }
-  ],
   "euBSDU": [
     {
       "type": 0,
@@ -12015,6 +12103,12 @@
     {
       "type": 0,
       "value": "Opkomende specialist"
+    }
+  ],
+  "fBeNkx": [
+    {
+      "type": 0,
+      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
     }
   ],
   "fCiXKq": [
@@ -12109,12 +12203,6 @@
     {
       "type": 0,
       "value": "Alle ernstniveaus"
-    }
-  ],
-  "ffkuNo": [
-    {
-      "type": 0,
-      "value": "Er bestaat al een subagent met deze naam"
     }
   ],
   "fiLH5L": [
@@ -12543,12 +12631,6 @@
       "value": "Kan de geselecteerde beheerde resourcegroepen niet verwijderen"
     }
   ],
-  "hNKm4/": [
-    {
-      "type": 0,
-      "value": "Subagent"
-    }
-  ],
   "hO1Iog": [
     {
       "type": 0,
@@ -12679,6 +12761,12 @@
     {
       "type": 0,
       "value": "RCA-categorie"
+    }
+  ],
+  "hqoTIz": [
+    {
+      "type": 0,
+      "value": "Search for a subagent by name"
     }
   ],
   "hrdmcd": [
@@ -13155,12 +13243,6 @@
       "value": "De Grafana-resource moet uniek zijn binnen de resourcegroep."
     }
   ],
-  "jVHoU8": [
-    {
-      "type": 0,
-      "value": "Naam van subagent invoeren"
-    }
-  ],
   "jX6uvW": [
     {
       "type": 0,
@@ -13511,6 +13593,12 @@
       "value": "Scheduled task(s) ran successfully"
     }
   ],
+  "lCe4Sh": [
+    {
+      "type": 0,
+      "value": "Search Icm team"
+    }
+  ],
   "lCsNuL": [
     {
       "type": 0,
@@ -13569,6 +13657,12 @@
       "value": "Weet je zeker dat je het aangepaste reactieplan wilt verwijderen?"
     }
   ],
+  "lbah5J": [
+    {
+      "type": 0,
+      "value": "List all agent-managed resources"
+    }
+  ],
   "lcOT8X": [
     {
       "type": 0,
@@ -13611,6 +13705,12 @@
     {
       "type": 0,
       "value": "Systeemhulpprogramma's op naam, categorie of beschrijving doorzoeken"
+    }
+  ],
+  "lpYK4u": [
+    {
+      "type": 0,
+      "value": "Enter subagent name"
     }
   ],
   "lqgE72": [
@@ -13969,6 +14069,12 @@
       "value": "Grafana-logo"
     }
   ],
+  "n/WueE": [
+    {
+      "type": 0,
+      "value": "List all incidents"
+    }
+  ],
   "n0JssX": [
     {
       "type": 0,
@@ -14053,12 +14159,6 @@
     {
       "type": 1,
       "value": "errorMessage"
-    }
-  ],
-  "nOrKIK": [
-    {
-      "type": 0,
-      "value": "Preview - Ontvangt twee keer per week updates"
     }
   ],
   "nQpONp": [
@@ -14575,6 +14675,12 @@
       "value": "Sleutel wijzigen"
     }
   ],
+  "pU0SQw": [
+    {
+      "type": 0,
+      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -15051,6 +15157,12 @@
       "value": "Datumbereik:"
     }
   ],
+  "rPdyc5": [
+    {
+      "type": 0,
+      "value": "Current status: Stable - Receives updates once a month"
+    }
+  ],
   "rQAyD6": [
     {
       "type": 0,
@@ -15413,12 +15525,6 @@
       "value": "Geen knooppunten gevonden"
     }
   ],
-  "sQZhm1": [
-    {
-      "type": 0,
-      "value": "In deze lijst worden uw uitgebreide agents, hulpprogramma's en connectors weergegeven die zijn ingedeeld per categorie. Subagents maken en beheren om uw mogelijkheden uit te breiden, aangepaste hulpprogramma's voor specifieke taken toe te voegen en connectors te configureren voor toegang tot externe resources."
-    }
-  ],
   "sQkhYk": [
     {
       "type": 0,
@@ -15597,12 +15703,6 @@
       "value": "Performs specialized tasks on behalf of the SRE Agent."
     }
   ],
-  "strvmG": [
-    {
-      "type": 0,
-      "value": "Elk uur"
-    }
-  ],
   "swRudj": [
     {
       "type": 0,
@@ -15763,6 +15863,12 @@
       "value": "Stel een uitvoeringslimiet in"
     }
   ],
+  "tTjB+b": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
+    }
+  ],
   "tU3A8E": [
     {
       "type": 0,
@@ -15827,20 +15933,6 @@
     {
       "type": 0,
       "value": "Controleer hoe de agent risico en volgende stappen samenvat voor updates aan het management."
-    }
-  ],
-  "tfuXMw": [
-    {
-      "type": 0,
-      "value": "De subagent "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " is gemaakt"
     }
   ],
   "thOyk5": [
@@ -15989,6 +16081,12 @@
     {
       "type": 0,
       "value": "De eerste 1000 resultaten worden weergegeven. Filter om de lijst te beperken."
+    }
+  ],
+  "uBPOyN": [
+    {
+      "type": 0,
+      "value": "Early access to features"
     }
   ],
   "uCkn4+": [
@@ -16343,6 +16441,12 @@
       "value": "Maak verbinding met gegevensbronnen zoals Kusto voor uitgebreide agentmogelijkheden"
     }
   ],
+  "vCyJXp": [
+    {
+      "type": 0,
+      "value": "No subagents configured"
+    }
+  ],
   "vDbj1h": [
     {
       "type": 0,
@@ -16565,6 +16669,12 @@
       "value": "Kostenberekening in behandeling"
     }
   ],
+  "wFcmSl": [
+    {
+      "type": 0,
+      "value": "Creating Subagent"
+    }
+  ],
   "wGLrHW": [
     {
       "type": 0,
@@ -16633,6 +16743,12 @@
     {
       "type": 0,
       "value": "Maak een nieuwe handoff-agent"
+    }
+  ],
+  "wRi+GV": [
+    {
+      "type": 0,
+      "value": "Create Subagent"
     }
   ],
   "wSLRfB": [
@@ -16789,12 +16905,6 @@
     {
       "type": 0,
       "value": "Nog geen uitvoeringen"
-    }
-  ],
-  "x4OHX9": [
-    {
-      "type": 0,
-      "value": "Subagentopbouwfunctie"
     }
   ],
   "xDYr9m": [
@@ -17099,12 +17209,6 @@
       "value": "Deze waarschuwing dempen"
     }
   ],
-  "yJSwfQ": [
-    {
-      "type": 0,
-      "value": "Subagent maken"
-    }
-  ],
   "yLRKP5": [
     {
       "type": 0,
@@ -17121,6 +17225,12 @@
     {
       "type": 0,
       "value": "Learn more about deep investigations"
+    }
+  ],
+  "yRTBrP": [
+    {
+      "type": 0,
+      "value": "Pick a subagent to assist you with tasks."
     }
   ],
   "yVc78v": [
@@ -17217,6 +17327,12 @@
     {
       "type": 0,
       "value": "Beheerde resourcegroepen"
+    }
+  ],
+  "ymiZvr": [
+    {
+      "type": 0,
+      "value": "Subagent Builder"
     }
   ],
   "ynVolH": [
@@ -17485,6 +17601,18 @@
     {
       "type": 0,
       "value": "Geavanceerde instellingen"
+    }
+  ],
+  "zl6fNb": [
+    {
+      "type": 0,
+      "value": "Thought process"
+    }
+  ],
+  "znSLJS": [
+    {
+      "type": 0,
+      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
     }
   ],
   "zpENeF": [
