@@ -82,7 +82,10 @@ export const useConnectorsStyles = makeStyles({
         marginTop: '12px',
     },
     emptyStateContainer: {
-        marginTop: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '400px',
     },
     shimmerContainer: {
         marginTop: '14px',

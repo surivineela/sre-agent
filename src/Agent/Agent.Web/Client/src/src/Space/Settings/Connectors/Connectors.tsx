@@ -12,6 +12,7 @@ import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescripto
 import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IdentityKeys } from '../../Contracts/Identity';
+import { ServiceTypeFilter, ServiceTypeFilterKey } from '../DataConnectorsUtilities';
 import { useAgentConnectors } from '../Hooks/useAgentConnectors';
 import { useSreAgent } from '../Hooks/useSreAgent';
 import DeleteConfirmationDialog from '../KnowledgeBaseComponents/DeleteConfirmationDialog';
@@ -47,6 +48,7 @@ export const Connectors = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [selectedConnector, setSelectedConnector] = useState<Connector | undefined>();
+    const [serviceTypeFilter, setServiceTypeFilter] = useState<ServiceTypeFilter>(ServiceTypeFilterKey.All);
 
     const { agent, refresh: refreshAgent } = useSreAgent(resourceId);
     const { connectors, isConnectorsLoading, putConnector, deleteConnector, refreshConnectors, connectionMap, isStatusLoading } =
@@ -293,17 +295,24 @@ export const Connectors = () => {
     }, []);
 
     const filteredConnectors = useMemo(() => {
-        if (!searchTerm) {
-            return connectors;
+        let result = connectors;
+
+        if (serviceTypeFilter !== ServiceTypeFilterKey.All) {
+            result = result.filter(connector => connector.dataConnectorType === serviceTypeFilter);
         }
-        const searchLower = searchTerm.toLowerCase();
-        return connectors.filter(
-            connector =>
-                connector.name.toLowerCase().includes(searchLower) ||
-                connector.dataConnectorType.toLowerCase().includes(searchLower) ||
-                (connector.source && connector.source.toLowerCase().includes(searchLower))
-        );
-    }, [connectors, searchTerm]);
+
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            result = result.filter(
+                connector =>
+                    connector.name.toLowerCase().includes(searchLower) ||
+                    connector.dataConnectorType.toLowerCase().includes(searchLower) ||
+                    (connector.source && connector.source.toLowerCase().includes(searchLower))
+            );
+        }
+
+        return result;
+    }, [connectors, searchTerm, serviceTypeFilter]);
 
     const selectedConnectorTypes = useMemo(() => {
         const itemsToCheck = Array.from(selectedKeys);
@@ -348,6 +357,8 @@ export const Connectors = () => {
                 selectedCount={selectedKeys.size}
                 isOperationInProgress={isOperationInProgress || isRefreshing}
                 setSearchTerm={setSearchTerm}
+                serviceTypeFilter={serviceTypeFilter}
+                setServiceTypeFilter={setServiceTypeFilter}
             />
             <ConnectorsDataGrid
                 connectors={filteredConnectors}
