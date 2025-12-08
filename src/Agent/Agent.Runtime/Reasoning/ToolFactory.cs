@@ -41,6 +41,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly ISkillRegistry _skillRegistry;
     private readonly bool _handoffReasoningEnabled;
+    private readonly bool _enableAggregateToolFunction;
 
     public int RegisteredToolCount => _tools.Count;
 
@@ -68,6 +69,12 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
         _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment();
+
+        // Get aggregate tool function setting from environment variable
+        var enableAggregateToolEnv = Environment.GetEnvironmentVariable("ENABLE_AGGREGATE_TOOL_FUNCTION");
+        _enableAggregateToolFunction = !string.IsNullOrEmpty(enableAggregateToolEnv) &&
+            (enableAggregateToolEnv.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+             enableAggregateToolEnv.Equals("1", StringComparison.OrdinalIgnoreCase));
     }
 
     protected override Task InitializeAsyncCore()
@@ -266,9 +273,10 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                     continue;
                 }
 
-                // Cache aggregate plugin definitions
+                // Cache aggregate plugin definitions (only if aggregate function is enabled)
                 // This needs to happen before we register the methods so they can be wrapped in AggregateDeferredToolFunction
-                var isAggregatePlugin = typeof(AggregateToolCallPluginDefinitionBase).IsAssignableFrom(pluginType);
+                var isAggregatePlugin = _enableAggregateToolFunction &&
+                                          typeof(AggregateToolCallPluginDefinitionBase).IsAssignableFrom(pluginType);
                 if (isAggregatePlugin)
                 {
                     // Get or create the instance and cache it by aggregate type
@@ -420,36 +428,22 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             return false;
         }
 
-        // Check if this is a YamlToolFunction with an aggregate type
-        if (function is YamlToolFunction<TContext> yamlFunction)
+        // Check if this is a YamlToolFunction with an aggregate type and if aggregate function is enabled
+        if (_enableAggregateToolFunction && function is YamlToolFunction<TContext> yamlFunction)
         {
-            var aggregateType = yamlFunction.GetToolType(); // Tool type for YAML tools
+            var aggregateType = yamlFunction.GetAggregateToolType(); // Tool type for YAML tools
 
             if (!string.IsNullOrEmpty(aggregateType) &&
                 _aggregatePluginDefinitionsByType.TryGetValue(aggregateType, out var aggregateDefinition))
             {
-                // Check if the tool has "aggregate" attribute
-                var yamlToolDef = yamlFunction.GetType()
-                    .GetField("_toolDef", BindingFlags.NonPublic | BindingFlags.Instance)
-                    ?.GetValue(yamlFunction) as YamlToolDefinitionBase;
+                // Register with the aggregate plugin definition instead of _tools
+                aggregateDefinition.RegisterTool(aggregateType, name, function);
+                _logger.LogInternalInformation("Function '{functionName}' registered with aggregate plugin for type '{aggregateType}'.", name, aggregateType);
 
-                var hasAggregateAttribute = yamlToolDef?.Attributes?.Contains("aggregate", StringComparer.OrdinalIgnoreCase) ?? false;
-                if (hasAggregateAttribute)
-                {
-                    // Register with the aggregate plugin definition instead of _tools
-                    aggregateDefinition.RegisterTool(aggregateType, name, function);
-                    _logger.LogInternalInformation("Function '{functionName}' registered with aggregate plugin for type '{aggregateType}'.", name, aggregateType);
+                // Update the aggregate tool's description with the new aggregated description
+                UpdateAggregateToolDescription(aggregateType, aggregateDefinition);
 
-                    // Update the aggregate tool's description with the new aggregated description
-                    UpdateAggregateToolDescription(aggregateType, aggregateDefinition);
-
-                    return true;
-                }
-                else
-                {
-                    // No "aggregate" attribute - proceed with normal registration below
-                    _logger.LogInternalInformation("Function '{functionName}' does not have 'aggregate' attribute. Proceeding with normal registration.", name);
-                }
+                return true;
             }
         }
 

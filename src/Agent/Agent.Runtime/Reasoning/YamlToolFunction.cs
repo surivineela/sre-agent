@@ -252,7 +252,7 @@ public class YamlToolFunction<TContext> : IDeferredToolFunction<TContext> where 
         return _toolDef.Type;
     }
 
-    public string GetToolType()
+    public string GetAggregateToolType()
     {
         return _toolDef.Type;
     }
