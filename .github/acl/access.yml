@@ -21,11 +21,11 @@ configuration:
   - member: jijohn
     role: Maintain
   - member: ebcarek
-    role: Write
+    role: Maintain
   - member: travisharris
     role: Write
   - member: visagarwal
-    role: Write
+    role: Maintain
   - member: yashnisar
     role: Write
   - member: zhaoziqi
