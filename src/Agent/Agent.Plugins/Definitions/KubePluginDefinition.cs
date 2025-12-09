@@ -747,6 +747,8 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
         @"Performs CPU profiling for an application running in a specific pod and container.
             The analysis ('topN' report) is also performed inside the container, and its result is returned.
 
+            For Java applications, the tool may provide further instructions on the next diagnostic steps the SRE agent should take to perform an analysis.
+
             Failures during tool installation or profiling will be reported in the output.
             eg: 'Profile CPU of 'my-app-pod' in 'default' for 60s.'"
         )]
@@ -766,6 +768,9 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
     @"Performs memory analysis for an application running in a specific pod and container within an AKS cluster.
     This involves collecting a memory dump, running an analyzer tool inside the container, and returning the analysis results.
     This tool can help identify memory leaks, high memory usage patterns, and other memory-related issues in applications.
+
+    For Java applications, the tool may provide further instructions on the next diagnostic steps the SRE agent should take to perform an analysis.
+
     Use this when investigating memory problems for an app in AKS.
     eg: 'Analyze the memory of the app in pod 'cart-service-pod-abc789' in the 'e-commerce' namespace.'
     eg: 'My app 'order-processor' in pod 'proc-pod-123' seems to be using too much memory, can you analyze it?'"
@@ -779,6 +784,24 @@ eg: show me all revisions of the 'nginx' deployment in the 'default' namespace."
             [Description("Optional: The name of the specific container within the pod. If not provided, the plugin will attempt to select an appropriate container (e.g., the first one).")] string? targetContainerName = null)
         {
             return await _kubePlugin.AnalyzeAppMemoryInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName);
+        }
+
+        [Description(
+    @"Performs a performance analysis for a Java application running in a specific pod and container within an AKS cluster.
+    This will run an analyzer tool inside the target pod, and return a performance analysis report.
+    This tool can help identify cpu, memory and threading related issues in Java applications.
+    Use this when investigating performance problems for a Java application running in AKS."
+    )]
+        [OboContext(scope: Constants.AksOboTokenScope)]
+        [AgentTool(ToolMode.Manual)]
+        [RequiresApproval("Requires approval to execute performance analysis tools within the specified pod and container. This involves running an ephemeral container inside the pod which has elevated permissions that can access the application's runtime environment and collect detailed performance data.")]
+        public async Task<string> AnalyzeJavaAppInAKSContainerAsync(
+            [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
+            [Description("Kubernetes namespace where the pod is located.")] string _namespace,
+            [Description("The name of the Kubernetes pod running the application.")] string podName,
+            [Description("Optional: The name of the specific container within the pod. If not provided, the plugin will attempt to select an appropriate container (e.g., the first one).")] string? targetContainerName = null)
+        {
+            return await _kubePlugin.AnalyzeJavaAppInAKSContainerAsync(AKSClusterResourceId, _namespace, podName, targetContainerName);
         }
     }
 }

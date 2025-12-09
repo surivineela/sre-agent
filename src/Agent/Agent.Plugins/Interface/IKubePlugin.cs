@@ -43,4 +43,5 @@ public interface IKubePlugin
     Task<string> ProfileAppCpuInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName, int durationSeconds = 30);
     Task<string> AnalyzeAppMemoryInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
     Task<CliExecutionResult> ExecuteKubectlCommandSafely(string resourceId, string command, string stdin = "", TimeSpan? timeoutMin = null);
+    Task<string> AnalyzeJavaAppInAKSContainerAsync(string aksResourceId, string _namespace, string podName, string? targetContainerName);
 }

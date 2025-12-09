@@ -158,6 +158,15 @@ public class MockKubePlugin : IKubePlugin
         Console.WriteLine($"MockKubePlugin configured Deployment Revisions for {key}");
     }
 
+    public Task<string> AnalyzeJavaAppInAKSContainerAsync(
+            string AKSClusterResourceId,
+            string _namespace,
+            string podName,
+            string? targetContainerName = null)
+    {
+        throw new NotImplementedException();
+    }
+
     public void ConfigureStatefulSetRevisions(string resourceId, string _namespace, string name, string revisions)
     {
         var key = $"{resourceId}:{_namespace}:{name}";

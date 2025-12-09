@@ -2095,24 +2095,74 @@ public partial class KubePlugin : IKubePlugin
         V1Pod pod,
         string targetContainerName)
     {
-        if (stderr != null && (stderr.Contains("Illuminate has not been executed") ||
-                stderr.Contains("must be present") ||
-                stderr.Contains("This indicates the diagnosis data is stale")))
+        return await Task.FromResult("<system-reminder>This is an AKS Java Application. Continue this analysis with the AnalyzeJavaAppInAKSContainerAsync tool.</system-reminder>");
+    }
+
+    public async Task<string> AnalyzeJavaAppInAKSContainerAsync(
+        string aksResourceId,
+        string _namespace,
+        string podName,
+        string? targetContainerName)
+    {
+        var client = await GetOrCreateClientAsync(aksResourceId);
+        if (client == null)
         {
-            // Illuminate is not installed or the required files are missing, trigger the debug container analysis
-            return await _kubePluginJava
-                .AnalyzeJavaApplicationAsync(
-                    aksResourceId,
-                    client,
-                    pod,
-                    targetContainerName,
-                    this
-                );
+            return "Error: Kubernetes client could not be initialized.";
         }
-        else
+
+        V1Pod pod;
+        try
         {
-            return stdout;
+            pod = await client.CoreV1.ReadNamespacedPodAsync(podName, _namespace);
         }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error reading pod '{PodName}' in namespace '{Namespace}' for AKS resource '{AksResourceId}'.", podName, _namespace, aksResourceId);
+            return $"Error reading pod '{podName}': {ex.Message}";
+        }
+
+        if (pod == null) // Should be caught by HttpOperationException, but as a safeguard
+        {
+            _logger?.LogWarning("Pod object was null after read for '{PodName}' in namespace '{Namespace}'.", podName, _namespace);
+            return $"Pod '{podName}' not found in namespace '{_namespace}' (object was null after read).";
+        }
+
+        if (string.IsNullOrEmpty(targetContainerName))
+        {
+            if (pod.Spec.Containers.Any()) // Check if there are any containers
+            {
+                targetContainerName = pod.Spec.Containers[0].Name; // Always pick the first container
+            }
+            else
+            {
+                _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined.", podName, _namespace);
+                return $"Pod '{podName}' has no containers.";
+            }
+            _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
+        }
+        else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
+        {
+            _logger?.LogWarning("Specified target container '{TargetContainerName}' not found in pod '{PodName}'. Available: {AvailableContainers}",
+                                targetContainerName, podName, string.Join(", ", pod.Spec.Containers.Select(c => c.Name)));
+            return $"Container '{targetContainerName}' not found in pod '{podName}'. Available: {string.Join(", ", pod.Spec.Containers.Select(c => c.Name))}";
+        }
+
+        var languageStack = GetPodLanguageStack(pod);
+
+        if (languageStack != LanguageStack.Java)
+        {
+            return "Error: The specified pod does not contain a Java application, this should be diagnosed a different tool such as ProfileAppCpuInAKSContainerAsync or AnalyzeAppMemoryInAKSContainerAsync.";
+        }
+
+        return await _kubePluginJava
+            .AnalyzeJavaApplicationAsync(
+                this.ThreadId,
+                aksResourceId,
+                client,
+                pod,
+                targetContainerName,
+                this
+            );
     }
 
     private async Task<(string stdout, string stderr, int exitCode)> ExecInPodAsync(
