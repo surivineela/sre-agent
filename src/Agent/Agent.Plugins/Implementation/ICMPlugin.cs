@@ -17,7 +17,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Newtonsoft.Json;
-using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
+using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment; // corrected alias
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using TextContent = Microsoft.SemanticKernel.TextContent;
 
@@ -34,6 +34,7 @@ public class ICMPlugin : IICMPlugin
     private readonly IICMAPIClient _icmApiClient;
     private readonly ILogger<ICMPlugin> _logger;
     private readonly IChatCompletionService _chatCompletionService;
+    private readonly IThreadContextAccessor? _threadContextAccessor;
     //private const string HumanInterventionTag = "SREAgent_HumanIntervention";
     private const string AgentProcessedTag = "SREAgent_Processed";
     private const string AgentProcessingTag = "SREAgent_Processing";
@@ -43,10 +44,14 @@ public class ICMPlugin : IICMPlugin
     //Use agent unique name  (agent name + unique suffix) since customer's may use the same name  under different subscription/resource group
     private readonly string AgentName = string.Empty;
 
-    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
+    // Thread context identifier used for generating deep links in discussion entries
+    public Guid? ThreadId { get; set; }
+
+    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment, IThreadContextAccessor? threadContextAccessor = null)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
+        _threadContextAccessor = threadContextAccessor;
         AgentName = AgentNameHelper.GetAgentName(!hostEnvironment.IsDevelopment());
         _chatCompletionService = chatClientProvider.GeneralPurposeModel.AsChatCompletionService();
     }
@@ -247,7 +252,7 @@ You are an expert at extracting parameters from ICM (Incident Communication Mana
 {discussionMarkdown}
 
 **Task:**
-Based on the incident information provided above, extract the parameters requested in the instruction. 
+Based on the incident information provided above, extract the parameters requested in the instruction.
 Return the results in a structured JSON format that can be easily parsed by the calling application.
 
 If any requested parameter cannot be found in the incident data, indicate this clearly in your response.
@@ -458,7 +463,8 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(TransferIncident)}][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
         var result = await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         await UpdateAgentStatus(incidentId, AgentStatus.Transferred);
         return result;
@@ -468,7 +474,8 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(MitigateIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
 
         var mitigationResult = await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry);
         var addMitigationTagResult = await AddTagToIncident(incidentId, AgentMitigatedTag);
@@ -493,7 +500,8 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DowngradeSeverity)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -512,7 +520,8 @@ Example structure:
             throw new ArgumentException(errorMessage, nameof(severity));
         }
 
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, severity, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -522,7 +531,8 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ResolveIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
         var result = await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
         await UpdateAgentStatus(incidentId, AgentStatus.Resolved);
         return result;
@@ -532,7 +542,8 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(PostDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName);
+        var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
         var result = await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;

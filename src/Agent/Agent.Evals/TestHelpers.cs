@@ -226,6 +226,9 @@ public static class TestHelpers
         // Add HTTP client factory - required by various services
         builder.Services.AddHttpClient();
 
+        // Ensure thread context accessor is available for services that depend on it
+        builder.Services.AddSingleton<IThreadContextAccessor, ThreadContextAccessor>();
+
         // Add mock Azure services for testing
         builder.Services.AddSingleton(Mock.Of<Azure.Storage.Blobs.BlobServiceClient>());
         builder.Services.AddKeyedSingleton("agentMemoryBlobClient", (sp, _) => Mock.Of<Azure.Storage.Blobs.BlobServiceClient>());

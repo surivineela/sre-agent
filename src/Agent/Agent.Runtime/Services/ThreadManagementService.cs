@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using Thread = Agent.Core.Models.Api.v1.Thread;
@@ -15,7 +16,8 @@ public class ThreadManagementService(
     IAgentOutboundCommunicationService outboundCommunicationService,
     IThreadRepository repository,
     ITitleGenerationService titleGenerationService,
-    ILogger<ThreadManagementService> logger)
+    ILogger<ThreadManagementService> logger,
+    IThreadContextAccessor threadContextAccessor)
 {
     public async Task<Thread> CreateUserInitiatedThread(CreateThreadRequest request, Guid? userDefinedThreadId = null)
     {
@@ -89,6 +91,9 @@ public class ThreadManagementService(
 
         // Start the background title generation task (fire and forget)
         _ = titleGenerationService.GenerateTitleAndUpdateThreadAsync(thread.Id, request.StartMessage.Text);
+        // Set the current thread context for downstream plugins/tools
+        threadContextAccessor.CurrentThreadId = thread.Id;
+
         var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
         (
             ThreadId: thread.Id,
@@ -143,6 +148,9 @@ public class ThreadManagementService(
                 Busy: true
             );
         }
+
+        // Set the current thread context for downstream plugins/tools
+        threadContextAccessor.CurrentThreadId = threadId;
 
         if (agentContext != null && agentContext.AgentType == AgentTypeEnum.Incident)
         {
