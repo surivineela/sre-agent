@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
@@ -150,6 +151,427 @@ public class McpDataConnectorTests
 
         // Act / Assert
         await Assert.ThrowsAsync<NotSupportedException>(() => connector.InitAsync(settings, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedProperties_HttpTransport_Success()
+    {
+        // Arrange
+        var extendedProperties = CreateExtendedProperties(new
+        {
+            Type = "Http",
+            Endpoint = "https://api.example.com/mcp",
+            AuthType = "BearerToken",
+            BearerToken = "test-token-123"
+        });
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "extended-http-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "placeholder",
+            ExtendedProperties = extendedProperties
+        };
+
+        string? capturedEndpoint = null;
+        McpAuthenticationConfig? capturedAuth = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedEndpoint = endpoint;
+                capturedAuth = authConfig;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.Equal("https://api.example.com/mcp", capturedEndpoint);
+        Assert.NotNull(capturedAuth);
+        Assert.Equal(McpAuthenticationType.Bearer, capturedAuth!.Type);
+        Assert.Equal("test-token-123", capturedAuth.BearerToken);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedProperties_StdioTransport_Success()
+    {
+        // Arrange
+        var extendedProperties = CreateExtendedProperties(new
+        {
+            Type = "Stdio",
+            Command = "npx",
+            Args = new[] { "mcp-server", "--port", "3000" },
+            Envs = new Dictionary<string, string> { ["NODE_ENV"] = "production" }
+        });
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "extended-stdio-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "placeholder",
+            ExtendedProperties = extendedProperties
+        };
+
+        string? capturedCommand = null;
+        string[]? capturedArguments = null;
+        Dictionary<string, string>? capturedEnvVars = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedCommand = command;
+                capturedArguments = arguments;
+                capturedEnvVars = envVars;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.Equal("npx", capturedCommand);
+        Assert.NotNull(capturedArguments);
+        Assert.Equal(3, capturedArguments!.Length);
+        Assert.Equal("mcp-server", capturedArguments[0]);
+        Assert.Equal("--port", capturedArguments[1]);
+        Assert.Equal("3000", capturedArguments[2]);
+        Assert.NotNull(capturedEnvVars);
+        Assert.Single(capturedEnvVars!);
+        Assert.Equal("production", capturedEnvVars["NODE_ENV"]);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedProperties_TakesPrecedenceOverDataSource()
+    {
+        // Arrange
+        var extendedProperties = CreateExtendedProperties(new
+        {
+            type = "http",
+            endpoint = "https://extended.example.com/mcp"
+        });
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "precedence-test-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "Endpoint=https://datasource.example.com/mcp",
+            ExtendedProperties = extendedProperties
+        };
+
+        string? capturedEndpoint = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedEndpoint = endpoint;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert - ExtendedProperties should be used, not DataSource
+        Assert.Equal("https://extended.example.com/mcp", capturedEndpoint);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedPropertiesJson_HttpTransport_Success()
+    {
+        // Arrange
+        var json = """
+            {
+                "type": "http",
+                "endpoint": "https://api.example.com/mcp",
+                "authType": "BearerToken",
+                "bearerToken": "json-token-456"
+            }
+            """;
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "json-http-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "placeholder",
+            ExtendedPropertiesJson = json
+        };
+
+        string? capturedEndpoint = null;
+        McpAuthenticationConfig? capturedAuth = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedEndpoint = endpoint;
+                capturedAuth = authConfig;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.Equal("https://api.example.com/mcp", capturedEndpoint);
+        Assert.NotNull(capturedAuth);
+        Assert.Equal(McpAuthenticationType.Bearer, capturedAuth!.Type);
+        Assert.Equal("json-token-456", capturedAuth.BearerToken);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedPropertiesJson_StdioTransport_Success()
+    {
+        // Arrange
+        var json = """
+            {
+                "type": "stdio",
+                "command": "node",
+                "args": ["server.js", "--verbose"],
+                "envs": {
+                    "NODE_ENV": "development",
+                    "DEBUG": "true"
+                }
+            }
+            """;
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "json-stdio-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "placeholder",
+            ExtendedPropertiesJson = json
+        };
+
+        string? capturedCommand = null;
+        string[]? capturedArguments = null;
+        Dictionary<string, string>? capturedEnvVars = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedCommand = command;
+                capturedArguments = arguments;
+                capturedEnvVars = envVars;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.Equal("node", capturedCommand);
+        Assert.NotNull(capturedArguments);
+        Assert.Equal(2, capturedArguments!.Length);
+        Assert.Equal("server.js", capturedArguments[0]);
+        Assert.Equal("--verbose", capturedArguments[1]);
+        Assert.NotNull(capturedEnvVars);
+        Assert.Equal(2, capturedEnvVars!.Count);
+        Assert.Equal("development", capturedEnvVars["NODE_ENV"]);
+        Assert.Equal("true", capturedEnvVars["DEBUG"]);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedPropertiesJson_TakesPrecedenceOverExtendedProperties()
+    {
+        // Arrange
+        var extendedProperties = CreateExtendedProperties(new
+        {
+            type = "http",
+            endpoint = "https://properties.example.com/mcp"
+        });
+
+        var json = """
+            {
+                "type": "http",
+                "endpoint": "https://json.example.com/mcp"
+            }
+            """;
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "json-precedence-test-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "Endpoint=https://datasource.example.com/mcp",
+            ExtendedProperties = extendedProperties,
+            ExtendedPropertiesJson = json
+        };
+
+        string? capturedEndpoint = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedEndpoint = endpoint;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert - ExtendedPropertiesJson should be used, not ExtendedProperties or DataSource
+        Assert.Equal("https://json.example.com/mcp", capturedEndpoint);
+    }
+
+    [Fact]
+    public async Task InitAsync_WithExtendedPropertiesJson_WithSpecialCharactersInKeys_Success()
+    {
+        // Arrange
+        var json = """
+            {
+                "type": "http",
+                "endpoint": "https://api.example.com/mcp",
+                "authType": "CustomHeaders",
+                "X-API-Key": "secret123",
+                "Custom-Header": "custom-value"
+            }
+            """;
+
+        var settings = new DataConnectorInstanceSettings
+        {
+            Name = "special-chars-mcp",
+            DataConnectorType = "Mcp",
+            DataSource = "placeholder",
+            ExtendedPropertiesJson = json
+        };
+
+        McpAuthenticationConfig? capturedAuth = null;
+
+        _connectionManagerMock
+            .Setup(m => m.CreateAndAddConnectionAsync(
+                It.IsAny<string>(),
+                It.IsAny<McpTransportType>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string[]?>(),
+                It.IsAny<string?>(),
+                It.IsAny<McpAuthenticationConfig?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<Dictionary<string, string>?>(),
+                It.IsAny<string?>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+            {
+                capturedAuth = authConfig;
+            })
+            .ReturnsAsync(CreateConnection());
+
+        McpDataConnector connector = CreateConnector();
+
+        // Act
+        await connector.InitAsync(settings, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(capturedAuth);
+        Assert.Equal(McpAuthenticationType.CustomHeaders, capturedAuth!.Type);
+        Assert.NotNull(capturedAuth.CustomHeaders);
+        Assert.Equal(2, capturedAuth.CustomHeaders.Count);
+        Assert.True(capturedAuth.CustomHeaders.ContainsKey("X-API-Key"));
+        Assert.Equal("secret123", capturedAuth.CustomHeaders["X-API-Key"]);
+        Assert.True(capturedAuth.CustomHeaders.ContainsKey("Custom-Header"));
+        Assert.Equal("custom-value", capturedAuth.CustomHeaders["Custom-Header"]);
+    }
+
+    private static Dictionary<string, JsonElement> CreateExtendedProperties(object obj)
+    {
+        var json = JsonSerializer.Serialize(obj);
+        using var doc = JsonDocument.Parse(json);
+        var result = new Dictionary<string, JsonElement>();
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            result[property.Name] = property.Value.Clone();
+        }
+        return result;
     }
 
     private static McpConnection CreateConnection()

@@ -171,24 +171,64 @@ export const parseMcpLocalDataSource = (dataSource: string, log?: (info: ITeleme
 };
 
 /**
- * Create an MCP local data source string from structured data using semicolon-delimited format
+ * Create ExtendedProperties object for MCP local (stdio) connections
  * @param command - The command to execute
  * @param args - Optional command arguments
  * @param env - Optional environment variables
- * @returns Data source string in semicolon-delimited format: Type=stdio;Command=...;ArgsJson=...;EnvJson=...
+ * @returns ExtendedProperties object with type, command, args (as array), and envs (as object)
  */
-export const createMcpLocalDataSource = (command: string, args?: string[], env?: Record<string, string>): string => {
-    const parts: string[] = ['Type=stdio', `Command=${command}`];
+export const createMcpLocalExtendedProperties = (command: string, args?: string[], env?: Record<string, string>): Record<string, any> => {
+    const properties: Record<string, any> = {
+        type: 'stdio',
+        command: command,
+    };
 
     if (args && args.length > 0) {
-        parts.push(`ArgsJson=${JSON.stringify(args)}`);
+        properties.args = args;
     }
 
     if (env && Object.keys(env).length > 0) {
-        parts.push(`EnvJson=${JSON.stringify(env)}`);
+        properties.envs = env;
     }
 
-    return parts.join(';');
+    return properties;
+};
+
+/**
+ * Create ExtendedProperties object for MCP remote (HTTP) connections
+ * @param endpoint - The HTTP endpoint URL
+ * @param authType - Authentication type (BearerToken or CustomHeaders)
+ * @param bearerToken - Bearer token (if authType is BearerToken)
+ * @param customHeaders - Custom headers as key-value pairs (if authType is CustomHeaders)
+ * @returns ExtendedProperties object with type, endpoint, authType, and authentication details
+ */
+export const createMcpRemoteExtendedProperties = (
+    endpoint: string,
+    authType?: string,
+    bearerToken?: string,
+    customHeaders?: Array<{ key: string; value: string }>
+): Record<string, any> => {
+    const properties: Record<string, any> = {
+        type: 'http',
+        endpoint: endpoint,
+    };
+
+    if (authType) {
+        properties.authType = authType;
+
+        if (authType === 'BearerToken' && bearerToken) {
+            properties.bearerToken = bearerToken;
+        } else if (authType === 'CustomHeaders' && customHeaders) {
+            // Add each custom header as a property
+            customHeaders.forEach(header => {
+                if (header.key && header.value) {
+                    properties[header.key] = header.value;
+                }
+            });
+        }
+    }
+
+    return properties;
 };
 
 /**

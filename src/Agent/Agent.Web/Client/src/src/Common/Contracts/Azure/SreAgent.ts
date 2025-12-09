@@ -3,6 +3,8 @@ export interface Connector {
     dataConnectorType: string;
     /** Secret value - must be fetched through ListSecrets endpoints */
     dataSource?: string;
+    /** Extended properties for data connectors - replaces dataSource for complex configurations */
+    extendedProperties?: Record<string, any>;
     keyVaultUri?: string;
     identity: string;
     source?: string;

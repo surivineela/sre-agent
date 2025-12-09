@@ -66,7 +66,23 @@ public partial class McpDataConnector : IDataConnector
     {
         _settings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
 
-        McpConnectionSettings parsedSettings = ParseDataSource(instanceSettings.Name, instanceSettings.DataSource);
+        // Priority: ExtendedPropertiesJson > ExtendedProperties > DataSource
+        McpConnectionSettings parsedSettings;
+
+        if (!string.IsNullOrWhiteSpace(instanceSettings.ExtendedPropertiesJson))
+        {
+            // Parse JSON string to dictionary
+            var properties = ParseJsonToExtendedProperties(instanceSettings.ExtendedPropertiesJson);
+            parsedSettings = ParseFromDictionary(instanceSettings.Name, properties);
+        }
+        else if (instanceSettings.ExtendedProperties != null)
+        {
+            parsedSettings = ParseFromDictionary(instanceSettings.Name, instanceSettings.ExtendedProperties);
+        }
+        else
+        {
+            parsedSettings = ParseDataSource(instanceSettings.Name, instanceSettings.DataSource);
+        }
 
         var endpointHost = parsedSettings is HttpMcpConnectionSettings http ? GetEndpointHost(http.Endpoint) : "N/A";
 
@@ -175,6 +191,117 @@ public partial class McpDataConnector : IDataConnector
         }
     }
 
+    /// <summary>
+    /// DTO for HTTP MCP connection extended properties
+    /// </summary>
+    private sealed record HttpMcpConnectionDto(
+        string? Type,
+        string? Endpoint,
+        string? AuthType,
+        string? BearerToken);
+
+    /// <summary>
+    /// DTO for Stdio MCP connection extended properties
+    /// </summary>
+    private sealed record StdioMcpConnectionDto(
+        string? Type,
+        string? Command,
+        string[]? Args,
+        Dictionary<string, string>? Envs);
+
+    private static McpConnectionSettings ParseFromDictionary(string connectionName, Dictionary<string, System.Text.Json.JsonElement> properties)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+
+        // Convert dictionary to JSON and deserialize with case-insensitive property matching
+        var jsonOptions = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        string json = System.Text.Json.JsonSerializer.Serialize(properties);
+
+        // First, deserialize to determine the type
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        string? typeString = doc.RootElement.TryGetProperty("type", out var typeElement) ||
+                            doc.RootElement.TryGetProperty("Type", out typeElement)
+            ? typeElement.GetString()
+            : null;
+
+        if (string.IsNullOrWhiteSpace(typeString))
+        {
+            typeString = "http";  // backward compatibility default to HTTP
+        }
+
+        if (!Enum.TryParse<McpTransportType>(typeString, ignoreCase: true, out var type))
+        {
+            throw new NotSupportedException($"Transport Type '{typeString}' is not supported by the MCP data connector.");
+        }
+
+        if (type == McpTransportType.Http)
+        {
+            var dto = System.Text.Json.JsonSerializer.Deserialize<HttpMcpConnectionDto>(json, jsonOptions);
+            if (dto == null)
+            {
+                throw new ArgumentException("Failed to deserialize HTTP MCP connection properties.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Endpoint))
+            {
+                throw new ArgumentException("Endpoint value is required for MCP connector with HTTP transport.");
+            }
+
+            McpAuthenticationConfig? authentication = null;
+            if (!string.IsNullOrWhiteSpace(dto.AuthType))
+            {
+                // For authentication, we need all properties as strings (including custom headers)
+                var stringValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var kvp in properties)
+                {
+                    string? stringValue = kvp.Value.ValueKind == System.Text.Json.JsonValueKind.String
+                        ? kvp.Value.GetString()
+                        : kvp.Value.GetRawText();
+                    if (!string.IsNullOrEmpty(stringValue))
+                    {
+                        stringValues[kvp.Key] = stringValue;
+                    }
+                }
+                authentication = BuildAuthenticationConfig(dto.AuthType, stringValues);
+            }
+
+            return new HttpMcpConnectionSettings(
+                Endpoint: dto.Endpoint,
+                Authentication: authentication,
+                Headers: null,
+                Description: "Mcp Tool",
+                ServiceType: connectionName);
+        }
+        else if (type == McpTransportType.Stdio)
+        {
+            var dto = System.Text.Json.JsonSerializer.Deserialize<StdioMcpConnectionDto>(json, jsonOptions);
+            if (dto == null)
+            {
+                throw new ArgumentException("Failed to deserialize Stdio MCP connection properties.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Command))
+            {
+                throw new ArgumentException("Command value is required for MCP connector with Stdio transport.");
+            }
+
+            return new StdioMcpConnectionSettings(
+                Command: dto.Command,
+                Arguments: dto.Args,
+                Description: "Mcp Tool",
+                ServiceType: connectionName,
+                EnvVars: dto.Envs);
+        }
+        else
+        {
+            throw new NotSupportedException($"Transport Type '{type}' is not supported by the MCP data connector.");
+        }
+    }
+
     private static McpConnectionSettings ParseDataSource(string connectionName, string dataSource)
     {
         if (string.IsNullOrWhiteSpace(dataSource))
@@ -222,7 +349,7 @@ public partial class McpDataConnector : IDataConnector
             }
             catch (System.Text.Json.JsonException ex)
             {
-                throw new ArgumentException("EnvJson value is not a valid JSON dictionary of strings.", nameof(dataSource), ex);
+                throw new ArgumentException("EnvJson value is not a valid JSON dictionary of strings.", ex);
             }
         }
 
@@ -230,7 +357,7 @@ public partial class McpDataConnector : IDataConnector
         {
             if (!values.TryGetValue("Endpoint", out string? endpoint) || string.IsNullOrWhiteSpace(endpoint))
             {
-                throw new ArgumentException("DataSource must include an Endpoint value for MCP connector.", nameof(dataSource));
+                throw new ArgumentException("Endpoint value is required for MCP connector with HTTP transport.");
             }
 
             McpAuthenticationConfig? authentication = null;
@@ -251,7 +378,7 @@ public partial class McpDataConnector : IDataConnector
         {
             if (!values.TryGetValue("Command", out string? command) || string.IsNullOrWhiteSpace(command))
             {
-                throw new ArgumentException("DataSource must include a Command value for MCP stdio transport.", nameof(dataSource));
+                throw new ArgumentException("Command value is required for MCP connector with Stdio transport.");
             }
             string[]? arguments = null;
             if (values.TryGetValue("ArgsJson", out string? argsJson) && !string.IsNullOrWhiteSpace(argsJson))
@@ -262,7 +389,7 @@ public partial class McpDataConnector : IDataConnector
                 }
                 catch (System.Text.Json.JsonException ex)
                 {
-                    throw new ArgumentException("ArgumentsJson value is not a valid JSON array of strings.", nameof(dataSource), ex);
+                    throw new ArgumentException("ArgsJson value is not a valid JSON array of strings.", ex);
                 }
             }
             return new StdioMcpConnectionSettings(
@@ -302,7 +429,11 @@ public partial class McpDataConnector : IDataConnector
         {
             var headerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
+                "Type",
                 "Endpoint",
+                "Command",
+                "Args",
+                "Envs",
                 "AuthType",
                 "BearerToken"
             };
@@ -341,5 +472,25 @@ public partial class McpDataConnector : IDataConnector
         }
 
         return endpoint;
+    }
+
+    private static Dictionary<string, System.Text.Json.JsonElement> ParseJsonToExtendedProperties(string json)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var result = new Dictionary<string, System.Text.Json.JsonElement>();
+            foreach (var property in doc.RootElement.EnumerateObject())
+            {
+                result[property.Name] = property.Value.Clone();
+            }
+            return result;
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            throw new ArgumentException("ExtendedPropertiesJson is not valid JSON.", ex);
+        }
     }
 }

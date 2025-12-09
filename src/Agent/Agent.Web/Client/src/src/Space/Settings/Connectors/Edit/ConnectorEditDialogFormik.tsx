@@ -52,31 +52,73 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
                 initialFormProps.channelId = parts[2];
             }
         } else if (connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub) {
-            // Try parsing as Local MCP (stdio) first
-            const parsedLocal = parseMcpLocalDataSource(connector.dataSource || '', azPortalProxy.log);
+            // Check if ExtendedProperties exists (new format)
+            if (connector.extendedProperties) {
+                const props = connector.extendedProperties;
+                const type = (props.type as string)?.toLowerCase();
 
-            if (parsedLocal.type === 'stdio') {
-                initialFormProps.mcpConnectionType = McpConnectionType.Local;
-                initialFormProps.command = parsedLocal.command || '';
-                initialFormProps.args =
-                    parsedLocal.args && parsedLocal.args.length > 0 ? parsedLocal.args.map(arg => ({ value: arg })) : [{ value: '' }];
-                initialFormProps.env =
-                    parsedLocal.env && Object.keys(parsedLocal.env).length > 0
-                        ? Object.entries(parsedLocal.env).map(([key, value]) => ({ key, value }))
-                        : [{ key: '', value: '' }];
+                if (type === 'stdio') {
+                    // Local MCP (stdio) from ExtendedProperties
+                    initialFormProps.mcpConnectionType = McpConnectionType.Local;
+                    initialFormProps.command = (props.command as string) || '';
+
+                    const args = props.args as string[] | undefined;
+                    initialFormProps.args = args && args.length > 0 ? args.map(arg => ({ value: arg })) : [{ value: '' }];
+
+                    const env = props.envs as Record<string, string> | undefined;
+                    initialFormProps.env =
+                        env && Object.keys(env).length > 0
+                            ? Object.entries(env).map(([key, value]) => ({ key, value }))
+                            : [{ key: '', value: '' }];
+                } else if (type === 'http') {
+                    // Remote MCP (HTTP) from ExtendedProperties
+                    initialFormProps.mcpConnectionType = McpConnectionType.Remote;
+                    initialFormProps.url = (props.endpoint as string) || '';
+
+                    const authType = props.authType as string;
+                    initialFormProps.authType = authType as AuthType;
+
+                    if (authType === 'BearerToken') {
+                        initialFormProps.patOrApiKey = (props.bearerToken as string) || '';
+                    } else if (authType === 'CustomHeaders') {
+                        // Extract custom headers (all properties except type, endpoint, authType)
+                        const customHeaders: Array<{ key: string; value: string }> = [];
+                        Object.entries(props).forEach(([key, value]) => {
+                            if (key !== 'type' && key !== 'endpoint' && key !== 'authType') {
+                                customHeaders.push({ key, value: String(value) });
+                            }
+                        });
+                        initialFormProps.customHeaders = customHeaders.length > 0 ? customHeaders : [{ key: '', value: '' }];
+                    }
+                }
             } else {
-                // Remote MCP
-                initialFormProps.mcpConnectionType = McpConnectionType.Remote;
+                // Legacy format: parse from dataSource string
+                // Try parsing as Local MCP (stdio) first
+                const parsedLocal = parseMcpLocalDataSource(connector.dataSource || '', azPortalProxy.log);
 
-                const parsed = parseMcpRemoteDataSource(connector.dataSource || '');
+                if (parsedLocal.type === 'stdio') {
+                    initialFormProps.mcpConnectionType = McpConnectionType.Local;
+                    initialFormProps.command = parsedLocal.command || '';
+                    initialFormProps.args =
+                        parsedLocal.args && parsedLocal.args.length > 0 ? parsedLocal.args.map(arg => ({ value: arg })) : [{ value: '' }];
+                    initialFormProps.env =
+                        parsedLocal.env && Object.keys(parsedLocal.env).length > 0
+                            ? Object.entries(parsedLocal.env).map(([key, value]) => ({ key, value }))
+                            : [{ key: '', value: '' }];
+                } else {
+                    // Remote MCP
+                    initialFormProps.mcpConnectionType = McpConnectionType.Remote;
 
-                initialFormProps.url = parsed.endpoint || '';
-                initialFormProps.authType = parsed.authType as AuthType;
+                    const parsed = parseMcpRemoteDataSource(connector.dataSource || '');
 
-                if (parsed.authType === AuthType.BearerToken) {
-                    initialFormProps.patOrApiKey = parsed.bearerToken || '';
-                } else if (parsed.authType === AuthType.CustomHeaders && parsed.customHeaders) {
-                    initialFormProps.customHeaders = parsed.customHeaders.length > 0 ? parsed.customHeaders : [{ key: '', value: '' }];
+                    initialFormProps.url = parsed.endpoint || '';
+                    initialFormProps.authType = parsed.authType as AuthType;
+
+                    if (parsed.authType === AuthType.BearerToken) {
+                        initialFormProps.patOrApiKey = parsed.bearerToken || '';
+                    } else if (parsed.authType === AuthType.CustomHeaders && parsed.customHeaders) {
+                        initialFormProps.customHeaders = parsed.customHeaders.length > 0 ? parsed.customHeaders : [{ key: '', value: '' }];
+                    }
                 }
             }
         }

@@ -6,8 +6,7 @@ import { AzureConnectorForm } from '../SetupForm/AzureConnectorForm';
 import { McpServerForm } from '../SetupForm/McpServerForm';
 import { OutlookTeamsConnectorForm } from '../SetupForm/OutlookTeamsConnectorForm';
 import { ConnectorType } from './ConnectorType';
-import { getBearerTokenConnectionString, getCustomHeadersConnectionString } from './CustomConnectorHelper';
-import { createMcpLocalDataSource } from './McpDataSourceHelper';
+import { createMcpLocalExtendedProperties, createMcpRemoteExtendedProperties } from './McpDataSourceHelper';
 import { parseTeamsChannelLink } from './TeamsConnectorHelper';
 
 /**
@@ -110,8 +109,11 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         connectorType = ConnectorType.McpServer;
     }
 
-    let dataSource: string;
+    let dataSource: string | undefined;
+    let extendedProperties: Record<string, any> | undefined;
+
     if (connectorType !== ConnectorType.McpServer) {
+        // Non-MCP connectors use dataSource
         if (connectorType === ConnectorType.TeamsSendNotification) {
             const teamsInfo = parseTeamsChannelLink(values.teamsChannelLink || '');
             dataSource = `${values.url};${teamsInfo?.teamsGroupId};${teamsInfo?.channelId}`;
@@ -119,6 +121,7 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
             dataSource = values.url;
         }
     } else {
+        // MCP connectors use extendedProperties
         if (values.mcpConnectionType === McpConnectionType.Local) {
             const args = values.args?.map(a => a.value).filter(v => v.trim() !== '') || [];
             const env =
@@ -132,20 +135,24 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
                     {} as Record<string, string>
                 ) || {};
 
-            dataSource = createMcpLocalDataSource(values.command || '', args, env);
+            extendedProperties = createMcpLocalExtendedProperties(values.command || '', args, env);
         } else {
+            // Remote MCP connection
             if (values.authType === AuthType.BearerToken) {
-                dataSource = getBearerTokenConnectionString(values.url, values.patOrApiKey || '');
+                extendedProperties = createMcpRemoteExtendedProperties(values.url, 'BearerToken', values.patOrApiKey || '', undefined);
             } else {
-                dataSource = getCustomHeadersConnectionString(values.url, values.customHeaders || []);
+                extendedProperties = createMcpRemoteExtendedProperties(values.url, 'CustomHeaders', undefined, values.customHeaders || []);
             }
         }
+
+        dataSource = 'placeholder';
     }
 
     const dataConnector: Connector = {
         name: values.name,
         dataConnectorType: values.connectorType?.toString() || '',
         dataSource: dataSource,
+        extendedProperties: extendedProperties,
         identity: values.identity,
     };
 

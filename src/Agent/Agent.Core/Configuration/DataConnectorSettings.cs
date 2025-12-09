@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Agent.Core.Configuration
@@ -55,6 +56,18 @@ namespace Agent.Core.Configuration
         /// </summary>
         [Required]
         public string DataSource { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Extended properties for data connectors. This is used to replace the plain string DataSource for MCP connectors.
+        /// Use JsonElement for configuration binding.
+        /// </summary>
+        public Dictionary<string, JsonElement>? ExtendedProperties { get; init; }
+
+        /// <summary>
+        /// Extended properties as JSON string. This is parsed into ExtendedProperties if provided.
+        /// Useful for environment variable configuration where special characters in keys are problematic.
+        /// </summary>
+        public string? ExtendedPropertiesJson { get; init; }
 
         /// <summary>
         /// The resource ID of the managed identity to use for authentication.
