@@ -22,49 +22,14 @@ configuration:
     role: Maintain
   - member: ebcarek
     role: Maintain
-  - member: travisharris
-    role: Write
   - member: visagarwal
     role: Maintain
   - member: yashnisar
-    role: Write
-  - member: zhaoziqi
-    role: Write
-  - member: zhenqxu
-    role: Write
-  - member: yefuwang
-    role: Write
-  - member: layliu
-    role: Write
-  - member: zhenghanzhou
-    role: Write
-  - member: xiangy
-    role: Write
-  - member: liuqi
-    role: Write
-  - member: andimarc
-    role: Write
-  - member: stpelleg
-    role: Write
-  - member: nicolaslayne
-    role: Write
-  - member: yoonaoh
-    role: Write
-  - member: evtheodo
-    role: Write
-  - member: tmauldin
-    role: Write
-  - member: eriwan
-    role: Write
-  - member: zuh
-    role: Write
-  - member: hanren
-    role: Write
-  - member: wangcynthia
-    role: Write
-  - team: k4appscore
-    role: Read
+    role: Maintain
+# Teams
   - team: antsanchit
+    role: Write
+  - team: howangdr
     role: Write
   - team: antshekharsg
     role: Write
@@ -72,6 +37,8 @@ configuration:
     role: Read
   - team: srea-readers
     role: Read
+  - team: k4appscore
+    role: Write
 # Core Identity - SRE Agent External Partners: https://coreidentity.microsoft.com/manage/Entitlement/entitlement/sreagentexte-f1fv
 # Each top level Core Identity Group has two subgroups
   - team: crg-sreagentexte-f1fv-reader-4wok
