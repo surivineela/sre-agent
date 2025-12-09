@@ -149,7 +149,8 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Enable or disable debug logging
+    /// Enable or disable debug logging.
+    /// Output: No direct output; sets internal debug flag.
     /// </summary>
     public static void SetDebugMode(bool enabled)
     {
@@ -157,12 +158,14 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Check if debug mode is enabled
+    /// Check if debug mode is enabled.
+    /// Output: Returns boolean (no direct output).
     /// </summary>
     public static bool IsDebugEnabled => _debugEnabled;
 
     /// <summary>
-    /// Log debug message if debug mode is enabled
+    /// Log debug message if debug mode is enabled.
+    /// Output: Single line with timestamp and debug symbol (e.g., "[14:30:00.123] * DEBUG: Initializing service").
     /// </summary>
     public static void Debug(string message)
     {
@@ -174,7 +177,8 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log debug message with category if debug mode is enabled
+    /// Log debug message with category if debug mode is enabled.
+    /// Output: Single line with timestamp, debug symbol, and category (e.g., "[14:30:00.123] * DEBUG [Network]: Connecting to API").
     /// </summary>
     public static void Debug(string category, string message)
     {
@@ -186,7 +190,12 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log HTTP request details if debug mode is enabled
+    /// Log HTTP request details if debug mode is enabled.
+    /// Output: Multiple lines with timestamp, request method/URL, Content-Type, and formatted body (JSON if applicable).
+    /// Example:
+    ///   [14:30:00.123] > HTTP REQUEST: POST https://api.example.com/tools
+    ///   Content-Type: application/json
+    ///   Body: { "name": "mytool" }
     /// </summary>
     public static void LogHttpRequest(string method, string url, string? contentType = null, string? content = null)
     {
@@ -215,7 +224,14 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log HTTP request with headers (Authorization redacted)
+    /// Log HTTP request with headers (Authorization redacted).
+    /// Output: Multiple lines with timestamp, request method/URL, all headers (Authorization redacted), Content-Type, and formatted body.
+    /// Example:
+    ///   [14:30:00.123] > HTTP REQUEST: POST https://api.example.com/tools
+    ///   Authorization: <redacted>
+    ///   User-Agent: srectl/1.0
+    ///   Content-Type: application/json
+    ///   Body: { "name": "mytool" }
     /// </summary>
     public static void LogHttpRequest(string method, string url, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, string? contentType, string? content)
     {
@@ -255,7 +271,11 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log HTTP response details if debug mode is enabled
+    /// Log HTTP response details if debug mode is enabled.
+    /// Output: Multiple lines with timestamp, response status with icon, optional response time, and formatted body.
+    /// Example:
+    ///   [14:30:00.456] < HTTP RESPONSE (123ms): [OK] 200 OK
+    ///   Body: { "id": "123", "name": "mytool" }
     /// </summary>
     public static void LogHttpResponse(int statusCode, string statusName, string? content = null, long? responseTime = null)
     {
@@ -283,7 +303,13 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log HTTP response with headers
+    /// Log HTTP response with headers.
+    /// Output: Multiple lines with timestamp, response status with icon, all response headers, and formatted body.
+    /// Example:
+    ///   [14:30:00.456] < HTTP RESPONSE (123ms): [OK] 200 OK
+    ///   Content-Type: application/json
+    ///   Content-Length: 42
+    ///   Body: { "id": "123" }
     /// </summary>
     public static void LogHttpResponse(int statusCode, string statusName, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, string? content = null, long? responseTime = null)
     {
@@ -316,7 +342,8 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log authentication details if debug mode is enabled
+    /// Log authentication details if debug mode is enabled.
+    /// Output: Single line with timestamp and auth symbol (e.g., "[14:30:00.123] @ AUTH: Retrieved token from cache").
     /// </summary>
     public static void LogAuth(string message)
     {
@@ -328,7 +355,11 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log file operations if debug mode is enabled
+    /// Log file operations if debug mode is enabled.
+    /// Output: One or two lines with timestamp, file operation, path, and optional details.
+    /// Example:
+    ///   [14:30:00.123] # FILE READ: /path/to/tool.yaml
+    ///   Size: 1024 bytes
     /// </summary>
     public static void LogFile(string operation, string filePath, string? details = null)
     {
@@ -343,7 +374,14 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log JSON parsing/serialization if debug mode is enabled
+    /// Log JSON parsing/serialization if debug mode is enabled.
+    /// Output: Multiple lines with timestamp, JSON operation, optional context, and indented formatted JSON.
+    /// Example:
+    ///   [14:30:00.123] ~ JSON SERIALIZE (tool definition):
+    ///   {
+    ///     "name": "mytool",
+    ///     "version": "1.0"
+    ///   }
     /// </summary>
     public static void LogJson(string operation, object? data, string? context = null)
     {
@@ -366,7 +404,12 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log validation results if debug mode is enabled
+    /// Log validation results if debug mode is enabled.
+    /// Output: One or more lines with validation status icon and target, followed by error list if invalid.
+    /// Example:
+    ///   ? VALIDATION: [X] tool.yaml
+    ///   - Missing required field: name
+    ///   - Invalid version format
     /// </summary>
     public static void LogValidation(string target, bool isValid, List<string>? errors = null)
     {
@@ -386,7 +429,9 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log timing information if debug mode is enabled
+    /// Log timing information if debug mode is enabled.
+    /// Output: Single line with timestamp, timing symbol, operation, and formatted duration.
+    /// Example: "[14:30:00.123] & TIMING: API request completed in 1.50s"
     /// </summary>
     public static void LogTiming(string operation, TimeSpan duration)
     {
@@ -403,7 +448,9 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log configuration details if debug mode is enabled
+    /// Log configuration details if debug mode is enabled.
+    /// Output: Single line with timestamp, config symbol, key, and value (redacted if sensitive).
+    /// Example: "[14:30:00.123] = CONFIG: API_URL = https://api.example.com" or "= CONFIG: API_KEY = <***>"
     /// </summary>
     public static void LogConfig(string key, string? value, bool isSensitive = false)
     {
@@ -415,7 +462,8 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log network connectivity information if debug mode is enabled
+    /// Log network connectivity information if debug mode is enabled.
+    /// Output: Single line with timestamp and network symbol (e.g., "[14:30:00.123] ^ NETWORK: Connected to api.example.com").
     /// </summary>
     public static void LogNetwork(string message)
     {
@@ -427,7 +475,9 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log a separator line for visual grouping in debug output
+    /// Log a separator line for visual grouping in debug output.
+    /// Output: Single line with 60-char separator, optionally with timestamp and label.
+    /// Example: "[14:30:00.123] ── HTTP Request ─────────────────────────────────────"
     /// </summary>
     public static void LogSeparator(string? label = null)
     {
@@ -447,7 +497,9 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log request start with unique ID for correlation
+    /// Log request start with unique ID for correlation.
+    /// Output: Single line with timestamp, tree branch start symbol, operation, and unique ID. Returns the ID for correlation.
+    /// Example: "[14:30:00.123] ┌─ START Create Tool [ID: a1b2c3d4]"
     /// </summary>
     public static string LogRequestStart(string operation, string? details = null)
     {
@@ -461,7 +513,9 @@ public static class DebugLogger
     }
 
     /// <summary>
-    /// Log request end with correlation ID
+    /// Log request end with correlation ID.
+    /// Output: Single line with timestamp, tree branch end symbol, operation, status icon, and correlation ID.
+    /// Example: "[14:30:00.456] └─ END Create Tool: [OK] SUCCESS [ID: a1b2c3d4]"
     /// </summary>
     public static void LogRequestEnd(string requestId, string operation, bool success = true, string? details = null)
     {

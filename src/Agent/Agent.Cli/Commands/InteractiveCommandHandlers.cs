@@ -966,39 +966,16 @@ public static class InteractiveCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            var (success, response, _) = await apiService.ListAgentsAsync();
+            var (agents, error) = await apiService.ListExtendedAgentsAsync();
 
-            if (!success || string.IsNullOrEmpty(response))
+            if (error != null || agents.Count == 0)
             {
                 ConsoleUI.WriteInfo("No deployed agents found. Task will run without a specific agent.");
                 return null;
             }
 
-            // Parse the JSON response to extract agent names
-            var agentNames = new List<string>();
-            try
-            {
-                var jsonDoc = System.Text.Json.JsonDocument.Parse(response);
-                if (jsonDoc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-                {
-                    foreach (var element in jsonDoc.RootElement.EnumerateArray())
-                    {
-                        if (element.TryGetProperty("name", out var nameElement))
-                        {
-                            var name = nameElement.GetString();
-                            if (!string.IsNullOrEmpty(name))
-                            {
-                                agentNames.Add(name);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (System.Text.Json.JsonException)
-            {
-                ConsoleUI.WriteInfo("Could not parse agent list. Task will run without a specific agent.", ConsoleColor.Yellow);
-                return null;
-            }
+            // Extract agent names
+            var agentNames = agents.Select(a => a.Metadata.Name).ToList();
 
             if (agentNames.Count == 0)
             {
@@ -1010,7 +987,7 @@ public static class InteractiveCommandHandlers
 
             for (int i = 0; i < Math.Min(agentNames.Count, 9); i++)
             {
-                ConsoleUI.WriteKeyValue($"{i + 1}", agentNames[i], 3);
+                ConsoleUI.WriteKeyValue($"{i + 1}", agentNames[i] ?? "Unknown", 3);
             }
 
             Console.WriteLine();
@@ -1913,7 +1890,7 @@ description: A {type} tool created interactively";
             {
                 // Use agent apply endpoint - same as regular "srectl agent apply --name {name}" command
                 using var apiService = new ApiService();
-                var (success, response) = await apiService.ApplyOrValidateAgentAsync(name, dryRun: false);
+                var (success, response) = await apiService.ApplyExtendedAgentAsync(name, dryRun: false);
 
                 if (success)
                 {

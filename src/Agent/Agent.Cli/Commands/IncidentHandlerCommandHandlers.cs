@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
@@ -84,65 +83,16 @@ public static class IncidentHandlerCommandHandlers
 
             // Step 2: Check if agent exists
             ConsoleUI.WriteBullet("Verifying agent exists...", ConsoleColor.Cyan);
-            var (agentsSuccess, agentsResponse, responseJson) = await apiService.ListAgentsAsync();
-            if (!agentsSuccess)
+            var (agents, error) = await apiService.ListExtendedAgentsAsync();
+            if (error != null)
             {
-                ConsoleUI.WriteStatus(false, $"Failed to list agents: {agentsResponse}");
+                ConsoleUI.WriteStatus(false, $"Failed to list agents: {error}");
                 Environment.Exit(1);
                 return;
             }
 
-            // Parse agents response and check if our agent exists
-            var agentExists = false;
-            try
-            {
-                var jsonDoc = JsonDocument.Parse(responseJson);
-                JsonElement agents = default;
-                bool foundAgents = false;
-
-                // Try different response structure patterns (same as in ListAgentsAsync)
-                if (jsonDoc.RootElement.TryGetProperty("data", out var dataElement))
-                {
-                    if (dataElement.ValueKind == JsonValueKind.Object &&
-                        dataElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                    {
-                        foundAgents = true;
-                    }
-                    else if (dataElement.ValueKind == JsonValueKind.Array)
-                    {
-                        agents = dataElement;
-                        foundAgents = true;
-                    }
-                }
-                else if (jsonDoc.RootElement.TryGetProperty("agents", out agents) && agents.ValueKind == JsonValueKind.Array)
-                {
-                    foundAgents = true;
-                }
-                else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
-                {
-                    agents = jsonDoc.RootElement;
-                    foundAgents = true;
-                }
-
-                if (foundAgents)
-                {
-                    foreach (var agent in agents.EnumerateArray())
-                    {
-                        if (agent.TryGetProperty("name", out var nameProperty) &&
-                            nameProperty.GetString() == handlingAgent)
-                        {
-                            agentExists = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (JsonException ex)
-            {
-                ConsoleUI.WriteStatus(false, $"Failed to parse agents response: {ex.Message}");
-                Environment.Exit(1);
-                return;
-            }
+            // Check if our agent exists
+            var agentExists = agents.Any(a => a.Metadata.Name == handlingAgent);
 
             if (!agentExists)
             {

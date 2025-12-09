@@ -47,13 +47,16 @@ The Unit Tests project for the CLI.
 
 ## Development Guidelines
 
-- Follow .NET best practices for CLI tools.
-- Ensure all commands have clear help text and comprehensive error handling.
+- Follow .NET best practices for CLI tools
+- Ensure the individual components are following the guidelines below
+- DO NOT create readme file unless you are explicitly instructed to do so
 - Write unit tests and E2E tests for command logic and utilities:
   - Focus on testing core functionality
   - Avoid adding trivial tests like null checks
   - Add sufficient comments to test code for readability
   - Avoid making assumptions about test output
+- When modifying existing code, gradually refactor to align with these guidelines rather than performing large-scale refactoring in a single change
+- Use the <GitRoot>/TestPlayground directory as the working directory for manual CLI testing
 
 ### CommandBuilder.cs and CommandBuilder.[Command].cs Guidelines
 
@@ -119,6 +122,44 @@ cmd.AddValidator(result =>
     if (/* conflict condition */)
         result.AddError(ErrorMessageHelper.InvalidParameter("Error message"));
 });
+```
+
+### [Command]CommandHandlers.cs Guidelines
+
+The `[Command]CommandHandlers.cs` files contain the business logic for CLI commands. Each command group has its own handler class with methods that execute the actual command operations.
+
+#### Rules
+
+- Keep handlers focused on business logic only - no command structure definitions
+- All handler methods are `public static` and follow consistent naming convention
+- Use `Task<int> HandleListCommand(ParseResult parseResult, CancellationToken cancellationToken = default)` signature for all handlers
+- **Never use `Environment.Exit()`** - always return error codes and let the framework handle process exit
+- **Avoid try-catch blocks** unless there's a specific reason - let the framework handle unhandled exceptions
+- Use `ConsoleUI` for all user-facing output and `DebugLogger` for debug-only output
+
+#### Key Patterns
+
+**Handler Method Names:**
+- Format: `Handle[SubCommand]Command`, e.g., `HandleCreateCommand` for `create` subcommand
+- Use PascalCase for multi-word subcommands: `HandleShowTypesCommand` for `show-types` subcommand
+
+**Method Signature Pattern:**
+```csharp
+public static async Task<int> Handle[SubCommand]Command(ParseResult parseResult, CancellationToken cancellationToken = default)
+{
+    DebugLogger.Debug("Command", "Starting [command] [subcommand] command");
+    
+    // Get options from parseResult
+    var option1 = parseResult.GetValue([Command]CommandOptions.[SubCommand].Option1);
+    var option2 = parseResult.GetValue([Command]CommandOptions.[SubCommand].Option2);
+    
+    DebugLogger.Debug("Parameters", $"Option1: {option1}, Option2: {option2}");
+    
+    // Execute command logic
+    // ...
+    
+    return success ? 0 : 1;
+}
 ```
 
 ### [Command]CommandOptions.cs Guidelines
@@ -207,6 +248,39 @@ Examples:
 - Use multi-line format (`\`) for complex commands
 - Group related examples together
 
+### Console Output Guidelines
+
+The CLI uses two specialized helper classes for consistent, portable console output across different terminals:
+
+#### Helpers/ConsoleUI.cs
+
+- `WithColor(ConsoleColor color, Action body)` - Executes an action with specified console color
+- `DrawPanel(string title, string content, ConsoleColor titleColor)` - Draw a panel with title and content
+- `DrawLine(int length, ConsoleColor color)` - Draw a simple border line
+- `Progress(double percentage, string label, int width)` - Show a progress bar with precise fractional display
+- `WriteStatus(bool success, string message, ConsoleColor? color)` - Write a status message with appropriate symbol
+- `WriteInfo(string message, ConsoleColor color)` - Write an info message with bullet point
+- `WriteExamples((string Comment, string Command)[] examples, int indent)` - Renders an "Examples:" block with consistent spacing and colors
+- `WriteSubcommand(string name, string description, (string Comment, string Command)[]? examples, int nameWidth)` - One-shot renderer for a subcommand row + optional examples
+- `WriteBullet(string message, ConsoleColor color, int indent)` - Write a bullet point for lists
+- `WriteTreeItem(string message, bool isLast, int level, ConsoleColor color)` - Write a tree-style hierarchical item
+- `Write(string message, ConsoleColor? color)` - Write plain text with optional color
+- `WriteInline(string message, ConsoleColor? color)` - Write text without newline
+- `GetSpinnerFrame(int frameIndex)` - Spinner animation frame (ASCII-safe)
+- `WriteSection(string title, ConsoleColor color, bool topMargin, bool bottomMargin)` - Section header with underline
+- `WriteCommand(string description, string command, ConsoleColor descColor, ConsoleColor cmdColor)` - Show a command example with proper formatting
+- `WriteKeyValue(string key, string value, int keyWidth, ConsoleColor keyColor, ConsoleColor valueColor)` - Show key-value pairs in a structured format
+- `Confirm(string message, bool defaultYes)` - Yes/No prompt
+- `WriteTimestamp(DateTime timestamp, ConsoleColor color)` - Timestamp writer
+- `WriteDuration(TimeSpan duration, string operation, ConsoleColor color)` - Duration writer
+- `WriteCommandGroup(string groupName, (string name, string description)[] commands)` - Group of commands with consistent spacing
+- `CaptureOutput(Action outputAction)` - Capture ConsoleUI output to a string (for list commands)
+
+#### Helpers/DebugLogger.cs
+
+- `Debug(string message)` - General debug messages
+- `Debug(string category, string message)` - Debug messages with category
+- `LogHttpRequest/LogHttpResponse` - HTTP traffic logging
 
 ## Building & Testing
 

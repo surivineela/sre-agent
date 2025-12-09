@@ -466,14 +466,15 @@ public static class GeneralCommandHandlers
                         ConsoleUI.WriteSection("Available agents:");
 
                         // Get list of agents
-                        var (agentListSuccess, agentListResponse, _) = await apiService.ListAgentsAsync();
-                        if (agentListSuccess)
+                        var (agents, error) = await apiService.ListExtendedAgentsAsync();
+                        if (error == null)
                         {
+                            var agentListResponse = ExtendedAgentHelper.FormatAgentList(agents);
                             Console.WriteLine(agentListResponse);
                         }
                         else
                         {
-                            ConsoleUI.WriteStatus(false, "Failed to fetch agent list");
+                            ConsoleUI.WriteStatus(false, $"Failed to fetch agent list: {error}");
                         }
 
                         Console.WriteLine();
@@ -871,9 +872,10 @@ public static class GeneralCommandHandlers
                     serverConnected = true;
                     ConsoleUI.WriteStatus(true, "Server Connection: Connected");
 
-                    var (agentsSuccess, agentsResponse, _) = await apiService.ListAgentsAsync();
+                    var (agents, agentError) = await apiService.ListExtendedAgentsAsync();
                     var (toolsSuccess, toolsResponse) = await apiService.ListToolsAsync();
 
+                    var agentsSuccess = agentError == null;
                     remoteAgentsAvailable = agentsSuccess;
                     var remoteToolsAvailable = toolsSuccess;
                     if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");

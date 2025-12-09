@@ -204,6 +204,49 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
     }
 
     /// <summary>
+    /// Finds a tool YAML file by searching recursively under the tools directory.
+    /// Supports flexible folder organization.
+    /// </summary>
+    /// <param name="toolName">The name of the tool to find</param>
+    /// <returns>The full path to the tool YAML file, or null if not found</returns>
+    public static string? FindToolFile(string toolName)
+    {
+        const string toolsDir = "tools";
+        if (!Directory.Exists(toolsDir))
+        {
+            return null;
+        }
+
+        // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
+        var legacyPath = Path.Combine(toolsDir, toolName, $"{toolName}.yaml");
+        if (File.Exists(legacyPath))
+        {
+            return legacyPath;
+        }
+
+        // Then try the flat structure: tools/{toolName}.yaml
+        var flatPath = Path.Combine(toolsDir, $"{toolName}.yaml");
+        if (File.Exists(flatPath))
+        {
+            return flatPath;
+        }
+
+        // Finally, search recursively for any YAML file with the matching tool name
+        var yamlFiles = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            if (fileName.Equals(toolName, StringComparison.OrdinalIgnoreCase))
+            {
+                return file;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Detects the YAML API version of a tool file.
     /// </summary>
     /// <param name="filePath">Path to the tool YAML file</param>

@@ -281,10 +281,11 @@ public static class SmartErrorHandler
 
             if (commandContext?.Contains("agent") == true)
             {
-                var (success, response, _) = await apiService.ListAgentsAsync();
-                if (success)
+                var (agents, error) = await apiService.ListExtendedAgentsAsync();
+                if (error == null)
                 {
                     Console.WriteLine("✅ Available agents:");
+                    var response = ExtendedAgentHelper.FormatAgentList(agents);
                     Console.WriteLine(response);
                     return true;
                 }

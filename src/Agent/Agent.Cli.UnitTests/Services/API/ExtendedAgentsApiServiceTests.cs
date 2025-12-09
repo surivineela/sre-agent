@@ -53,15 +53,16 @@ public partial class ApiServiceTests
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response, JsonResponse) = await apiService.ListAgentsAsync();
+        var (agents, error) = await apiService.ListExtendedAgentsAsync();
 
         // Assert
-        Success.ShouldBeTrue();
-        Response.ShouldNotBeNullOrEmpty();
-        Response.ShouldContain("SRE Incident Handler");
-        Response.ShouldContain("Performance Monitor");
-        Response.ShouldContain("Handles incident management workflows");
-        Response.ShouldContain("Monitors system performance");
+        error.ShouldBeNull();
+        agents.ShouldNotBeNull();
+        agents.Count.ShouldBe(2);
+        agents[0].Metadata.Name.ShouldBe("SRE Incident Handler");
+        agents[1].Metadata.Name.ShouldBe("Performance Monitor");
+        agents[0].Spec.HandoffDescription.ShouldBe("Handles incident management workflows");
+        agents[1].Spec.HandoffDescription.ShouldBe("Monitors system performance and alerts on anomalies");
     }
 
     [Theory]
@@ -75,11 +76,11 @@ public partial class ApiServiceTests
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response, JsonResponse) = await apiService.ListAgentsAsync();
+        var (agents, error) = await apiService.ListExtendedAgentsAsync();
 
         // Assert
-        Success.ShouldBeFalse();
-        Response.ShouldNotBeNullOrEmpty();
+        error.ShouldNotBeNull();
+        agents.Count.ShouldBe(0);
     }
 
     [Fact]
@@ -169,7 +170,7 @@ public partial class ApiServiceTests
             Directory.SetCurrentDirectory(testDirectory);
 
             // Act
-            var (Success, Response) = await _apiService.ApplyOrValidateAgentAsync(agentName, dryRun: false);
+            var (Success, Response) = await _apiService.ApplyExtendedAgentAsync(agentName, dryRun: false);
 
             // Assert
             Assert.False(Success);
@@ -234,7 +235,7 @@ spec:
             Directory.SetCurrentDirectory(testDirectory);
 
             // Act
-            var (Success, Response) = await _apiService.ApplyOrValidateAgentAsync(agentName, dryRun: false);
+            var (Success, Response) = await _apiService.ApplyExtendedAgentAsync(agentName, dryRun: false);
 
             // Assert
             // The method should find the file and proceed to make HTTP call

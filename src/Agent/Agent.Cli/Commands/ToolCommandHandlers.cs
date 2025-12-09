@@ -388,7 +388,7 @@ public static class ToolCommandHandlers
         try
         {
             // Find local tool file
-            var localPath = FindToolFile(toolName);
+            var localPath = ExtendedToolHelper.FindToolFile(toolName);
             if (localPath == null)
             {
                 ConsoleUI.WriteStatus(false, $"Local tool file not found for '{toolName}'");
@@ -594,7 +594,7 @@ public static class ToolCommandHandlers
 
     private static async Task<bool> ValidateSingleToolAsync(string name)
     {
-        var filePath = FindToolFile(name);
+        var filePath = ExtendedToolHelper.FindToolFile(name);
         if (filePath == null)
         {
             ConsoleUI.WriteStatus(false, $"Tool YAML file not found for tool '{name}'");
@@ -751,53 +751,11 @@ public static class ToolCommandHandlers
     }
 
     /// <summary>
-    /// Finds a tool YAML file by searching recursively under the tools directory.
-    /// Supports flexible folder organization.
-    /// </summary>
-    /// <param name="toolName">The name of the tool to find</param>
-    /// <returns>The full path to the tool YAML file, or null if not found</returns>
-    public static string? FindToolFile(string toolName)
-    {
-        if (!Directory.Exists(ToolsDirectory))
-        {
-            return null;
-        }
-
-        // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
-        var legacyPath = Path.Combine(ToolsDirectory, toolName, $"{toolName}.yaml");
-        if (File.Exists(legacyPath))
-        {
-            return legacyPath;
-        }
-
-        // Then try the flat structure: tools/{toolName}.yaml
-        var flatPath = Path.Combine(ToolsDirectory, $"{toolName}.yaml");
-        if (File.Exists(flatPath))
-        {
-            return flatPath;
-        }
-
-        // Finally, search recursively for any YAML file with the matching tool name
-        var yamlFiles = Directory.GetFiles(ToolsDirectory, "*.yaml", SearchOption.AllDirectories);
-
-        foreach (var file in yamlFiles)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            if (fileName.Equals(toolName, StringComparison.OrdinalIgnoreCase))
-            {
-                return file;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Offers to clean up local tool files after successful server deletion.
     /// </summary>
     private static void OfferLocalToolCleanup(string toolName)
     {
-        var toolFile = FindToolFile(toolName);
+        var toolFile = ExtendedToolHelper.FindToolFile(toolName);
 
         if (toolFile == null)
         {
@@ -1148,7 +1106,7 @@ public static class ToolCommandHandlers
         }
         else
         {
-            var toolFile = FindToolFile(toolName!);
+            var toolFile = ExtendedToolHelper.FindToolFile(toolName!);
             if (toolFile == null)
             {
                 ConsoleUI.WriteStatus(false, $"Tool file not found for '{toolName}'");

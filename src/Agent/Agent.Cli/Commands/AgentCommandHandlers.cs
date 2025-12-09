@@ -206,7 +206,7 @@ public static class AgentCommandHandlers
         try
         {
             using var apiService = new ApiService();
-            var (success, response) = await apiService.ApplyOrValidateAgentAsync(name!, dryRun: true);
+            var (success, response) = await apiService.ApplyExtendedAgentAsync(name!, dryRun: true);
 
             if (!success)
             {
@@ -237,14 +237,6 @@ public static class AgentCommandHandlers
         ConsoleUI.WriteCommand("Apply to server", $"srectl agent apply --name {name}");
         ConsoleUI.WriteCommand("Test the agent", $"srectl agent test --name {name} --message \"Hello\"");
         ConsoleUI.Write(string.Empty);
-    }
-
-    /// <summary>
-    /// Handles the agent run command (placeholder).
-    /// </summary>
-    public static void HandleRunCommand(ParseResult parseResult)
-    {
-        ConsoleUI.WriteInfo("Not implemented yet.", ConsoleColor.Yellow);
     }
 
     /// <summary>
@@ -300,7 +292,7 @@ public static class AgentCommandHandlers
         DebugLogger.Debug("Parameters", $"Name: {name}");
 
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ApplyOrValidateAgentAsync(name!, dryRun: false);
+        var (success, response) = await apiService.ApplyExtendedAgentAsync(name!, dryRun: false);
 
         ConsoleUI.WriteInfo(response, success ? ConsoleColor.Green : ConsoleColor.Red);
         Environment.Exit(success ? 0 : 1);
@@ -397,7 +389,7 @@ public static class AgentCommandHandlers
             // Call server-side validation using v2 API with dryRun=true
             ConsoleUI.WriteInfo($"Validating agent '{agentName}' against server...", ConsoleColor.Yellow);
 
-            var (success, response) = await apiService.ApplyOrValidateAgentAsync(agentName, dryRun: true);
+            var (success, response) = await apiService.ApplyExtendedAgentAsync(agentName, dryRun: true);
 
             if (success)
             {

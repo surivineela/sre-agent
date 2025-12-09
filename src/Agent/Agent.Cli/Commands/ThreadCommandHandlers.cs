@@ -517,14 +517,15 @@ public static class ThreadCommandHandlers
                         ConsoleUI.WriteSection("Available agents:");
 
                         // Get list of agents
-                        var (agentListSuccess, agentListResponse, _) = await apiService.ListAgentsAsync();
-                        if (agentListSuccess)
+                        var (agents, error) = await apiService.ListExtendedAgentsAsync();
+                        if (error == null)
                         {
+                            var agentListResponse = ExtendedAgentHelper.FormatAgentList(agents);
                             Console.WriteLine(agentListResponse);
                         }
                         else
                         {
-                            ConsoleUI.WriteStatus(false, "Failed to fetch agent list");
+                            ConsoleUI.WriteStatus(false, $"Failed to fetch agent list: {error}");
                         }
 
                         Console.WriteLine();
