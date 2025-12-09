@@ -163,7 +163,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<ExtendedAgentView>
             {
-                Value = result.Response.Select(ExtendedAgentView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(ExtendedAgentView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -173,7 +173,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("agents/{agentName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<ExtendedAgentView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -331,7 +330,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<ToolView>
             {
-                Value = result.Response.Select(ToolView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(ToolView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -341,7 +340,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("tools/{toolName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<ToolView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -499,7 +497,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<ConnectorView>
             {
-                Value = result.Response.Select(ConnectorView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(ConnectorView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -509,7 +507,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("connectors/{connectorName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<ConnectorView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -687,7 +684,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<PluginConfigView>
             {
-                Value = result.Response.Select(PluginConfigView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(PluginConfigView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -697,7 +694,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("plugins/{pluginName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<PluginConfigView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -835,7 +831,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<CommonPromptView>
             {
-                Value = result.Response.Select(CommonPromptView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(CommonPromptView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -845,7 +841,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("commonprompts/{promptName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<CommonPromptView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -1003,7 +998,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<CommonToolListView>
             {
-                Value = result.Response.Select(CommonToolListView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(CommonToolListView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -1013,7 +1008,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("commontoolslists/{listName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<CommonToolListView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
@@ -1187,7 +1181,7 @@ public class ExtendedAgentApiController : ControllerBase
         {
             var responseEnvelope = new ApiCollectionEnvelope<SkillView>
             {
-                Value = result.Response.Select(SkillView.CreateApiResponseEnvelope).ToArray()
+                Value = [.. result.Response.Select(SkillView.CreateApiResponseEnvelope)]
             };
             return Ok(responseEnvelope);
         }
@@ -1197,7 +1191,6 @@ public class ExtendedAgentApiController : ControllerBase
 
     [HttpGet("skills/{skillName}")]
     [AuthorizeArmOperation(ArmOperations.AgentExtendedAgentReadActionId)]
-    [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiRequestEnvelope<SkillView>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
