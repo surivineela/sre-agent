@@ -151,7 +151,7 @@ foreach ($plat in $platforms) {
     # Copy executable to package directory with platform-specific naming
     $sourceExe = Join-Path $runtimeOutput "srectl$($plat.Extension)"
     $targetExe = Join-Path $packageDir "srectl-$($plat.Runtime)$($plat.Extension)"
-    
+
     if (Test-Path $sourceExe) {
         Copy-Item $sourceExe $targetExe
         $fileSize = [math]::Round((Get-Item $targetExe).Length / 1MB, 2)
@@ -159,6 +159,14 @@ foreach ($plat in $platforms) {
     } else {
         Write-Error "Expected executable not found: $sourceExe"
         exit 1
+    }
+
+    # Copy Templates folder to package directory (only once, for first platform)
+    $sourceTemplates = Join-Path $runtimeOutput "Templates"
+    $targetTemplates = Join-Path $packageDir "Templates"
+    if ((Test-Path $sourceTemplates) -and (-not (Test-Path $targetTemplates))) {
+        Copy-Item $sourceTemplates $targetTemplates -Recurse
+        Write-Host "[OK] Copied Templates folder to package" -ForegroundColor Green
     }
 }
 

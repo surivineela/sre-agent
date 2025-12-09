@@ -88,14 +88,8 @@ public static class ExtensionCommandHandlers
     {
         try
         {
-            // Get the directory of the current executing assembly
-            var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
-
-            if (string.IsNullOrEmpty(assemblyDirectory))
-            {
-                return string.Empty;
-            }
+            // Get the application base directory (works for single-file apps)
+            var assemblyDirectory = AppContext.BaseDirectory;
 
             // Look for Templates/Ev2 relative to the assembly location
             var templatesPath = Path.Combine(assemblyDirectory, "Templates", "Ev2");

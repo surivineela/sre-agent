@@ -250,6 +250,15 @@ try {
     Get-ChildItem -Path $buildOutputDir -File | ForEach-Object {
         Copy-Item $_.FullName (Join-Path $InstallPath $_.Name) -Force
     }
+
+    # Copy subdirectories (e.g., Templates folder)
+    Get-ChildItem -Path $buildOutputDir -Directory | ForEach-Object {
+        $targetDir = Join-Path $InstallPath $_.Name
+        if (Test-Path $targetDir) {
+            Remove-Item $targetDir -Recurse -Force
+        }
+        Copy-Item $_.FullName $targetDir -Recurse
+    }
     Write-Host "[OK] Executable and dependencies installed: $targetExecutable" -ForegroundColor Green
 }
 catch {

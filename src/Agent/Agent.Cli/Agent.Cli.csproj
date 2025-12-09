@@ -11,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
     <PackageId>SREAgent.CLI</PackageId>
-    <Version>1.0.12</Version>
+    <Version>1.0.21</Version>
     <Authors>SRE Agent Team</Authors>
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
     <AssemblyTitle>srectl</AssemblyTitle>
@@ -34,6 +34,14 @@
     <PackageReference Include="System.CommandLine.NamingConventionBinder" />
     <PackageReference Include="YamlDotNet" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+  </ItemGroup>
+
+  <!-- Include Templates/Ev2 folder in published output -->
+  <ItemGroup>
+    <Content Include="Templates\Ev2\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

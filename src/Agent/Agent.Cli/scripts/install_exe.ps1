@@ -318,6 +318,17 @@ try {
     Copy-Item $sourceExecutable $targetExecutable -Force
     Write-Host "[OK] Installed executable: $targetExecutable" -ForegroundColor Green
 
+    # Copy Templates folder if present in the package
+    $sourceTemplates = Join-Path $tempDir "Templates"
+    $targetTemplates = Join-Path $InstallPath "Templates"
+    if (Test-Path $sourceTemplates) {
+        if (Test-Path $targetTemplates) {
+            Remove-Item $targetTemplates -Recurse -Force
+        }
+        Copy-Item $sourceTemplates $targetTemplates -Recurse
+        Write-Host "[OK] Installed Templates folder" -ForegroundColor Green
+    }
+
     # Make executable on Unix systems
     if ($Platform -ne "Windows") {
         chmod +x $targetExecutable 2>$null
