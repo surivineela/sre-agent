@@ -937,6 +937,7 @@ const ChatBoxFooter = ({
                             {matchedShortcuts.map(shortcut => {
                                 return (
                                     <MenuItem
+                                        id={shortcut}
                                         key={shortcut}
                                         onMouseDown={e => {
                                             e.preventDefault();
@@ -1090,7 +1091,9 @@ const ChatBoxFooter = ({
                     onStop={cancelStreaming}
                     expandButtonLineVisibilityThreshold={3}
                     onKeyDown={onKeyDown}
-                    aria-activedescendant={focusedShortcut ?? focusedIncident?.id ?? undefined}
+                    aria-activedescendant={
+                        focusedShortcut ?? focusedIncident?.id ?? focusedResource?.resource_id ?? focusedExtendedAgent?.name ?? undefined
+                    }
                 >
                     <ImperativeControlPlugin ref={imperativeControlPluginRef} />
                     <LexicalEditorRefPlugin editorRef={editorRef} />
@@ -1133,6 +1136,7 @@ const ExtendedAgentMenuItem = memo(
 
         return (
             <MenuItem
+                id={props.agent.name}
                 key={props.agent.name}
                 onMouseDown={e => {
                     e.preventDefault();
@@ -1183,7 +1187,7 @@ const IncidentOrResourceRow = memo((props: { id: string; cells: string[]; onClic
     return (
         <TableRow
             ref={rowRef}
-            key={props.id}
+            id={props.id}
             onClick={props.onClick}
             aria-selected={props.isFocused}
             style={props.isFocused ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` } : undefined}
