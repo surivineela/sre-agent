@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Tools
+metadata:
+  name: web-search-tools
+  description: Tools for searching the web and fetching content
+spec:
+  tools:
+    - name: web_search
+      type: function
+      description: Search the web for information
+    - name: web_fetch
+      type: function
+      description: Fetch content from a URL

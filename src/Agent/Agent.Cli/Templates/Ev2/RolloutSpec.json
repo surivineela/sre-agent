@@ -1,0 +1,27 @@
+{
+  "$schema": "https://ev2schema.azure.net/schemas/2020-04-01/RegionAgnosticRolloutSpecification.json",
+  "contentVersion": "1.0.0.0",
+  "rolloutMetadata": {
+    "serviceModelPath": "ServiceModel.json",
+    "scopeBindingsPath": "ScopeBindings.json",
+    "name": "agent-extension-deployment",
+    "configuration": {
+      "serviceGroupScope": {
+        "specPath": "configurationSettings.jsonc"
+      }
+    },
+    "buildSource": {
+      "parameters": {
+        "versionFile": "version.txt"
+      }
+    }
+  },
+  "orchestratedSteps": [
+    {
+      "name": "AgentExtension-Deployment",
+      "targetType": "ServiceResourceDefinition",
+      "targetName": "AgentExtension",
+      "actions": ["Deploy"]
+    }
+  ]
+}

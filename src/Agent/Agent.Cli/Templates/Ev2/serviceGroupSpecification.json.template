@@ -1,0 +1,9 @@
+{
+  "name": "{{SERVICE_GROUP}}",
+  "providerType": "ServiceTree",
+  "identifier": "{{SERVICE_IDENTIFIER}}",
+  "description": "SRE Agent Extension Service Group",
+  "ownerGroupContactEmail": "sreagent@microsoft.com",
+  "policyCheckEnabled": true,
+  "contentVersion": "1.0.0.0"
+}

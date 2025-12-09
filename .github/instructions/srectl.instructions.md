@@ -56,7 +56,7 @@ The Unit Tests project for the CLI.
   - Add sufficient comments to test code for readability
   - Avoid making assumptions about test output
 - When modifying existing code, gradually refactor to align with these guidelines rather than performing large-scale refactoring in a single change
-- Use the <GitRoot>/TestPlayground directory as the working directory for manual CLI testing
+- When testing CLI commands manually, `cd` to `TestPlayground` folder first and use relative paths from there.
 
 ### CommandBuilder.cs and CommandBuilder.[Command].cs Guidelines
 
@@ -291,7 +291,8 @@ dotnet build src/Agent/Agent.Cli/Agent.Cli.csproj --no-restore
 
 To run the CLI:
 ```pwsh
-dotnet run --project src/Agent/Agent.Cli/Agent.Cli.csproj --no-restore
+cd TestPlayground
+dotnet run --project ../src/Agent/Agent.Cli/Agent.Cli.csproj --no-restore
 ```
 
 Run unit tests for the CLI only (avoid full solution test runs for speed):

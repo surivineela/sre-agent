@@ -642,11 +642,11 @@ Examples:
         public const string GenerateEv2Description = @"Generate EV2 deployment files by copying templates and processing agent/tool configurations
 
 Examples:
-  # Generate EV2 files from templates
+  # Generate Bicep and ARM templates only
   srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./ev2-output
 
-  # Generate with debug logging
-  srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./deployment --debug";
+  # Generate with full EV2 deployment artifacts
+  srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./deployment --service-identifier ""00000000-0000-0000-0000-000000000000"" --service-group ""MyServiceGroup"" --environment ""Test"" --tenant-id ""72f988bf-86f1-41af-91ab-2d7cd011db47"" --subscription-key ""Production"" --subscription-id ""00000000-0000-0000-0000-000000000000"" --resource-group ""my-resource-group""";
     }
 
     #endregion

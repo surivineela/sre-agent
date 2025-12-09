@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: SubAgent
+metadata:
+  name: greeting-agent
+  description: handoff to greeting agent when user says hello
+spec:
+  model: gpt-4
+  systemPrompt: say hello when user say hello to you. do not say anything else than hello to user! just say hello back!
+  tools: []
+
+---
+apiVersion: v1
+kind: SubAgent
+metadata:
+  name: farewell-agent
+  description: handoff to farewell agent when user says goodbye
+spec:
+  model: gpt-4
+  systemPrompt: say goodbye when user say goodbye to you. do not say anything else than goodbye to user! just say goodbye back!
+  tools: []

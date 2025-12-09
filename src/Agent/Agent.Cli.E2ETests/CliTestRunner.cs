@@ -120,6 +120,24 @@ public class CliTestRunner : IDisposable
     }
 
     /// <summary>
+    /// Creates a directory in the test working directory
+    /// </summary>
+    public void CreateDirectory(string relativePath)
+    {
+        var fullPath = Path.Combine(_testWorkingDirectory, relativePath);
+        Directory.CreateDirectory(fullPath);
+    }
+
+    /// <summary>
+    /// Checks if a directory exists in the test working directory
+    /// </summary>
+    public bool DirectoryExists(string relativePath)
+    {
+        var fullPath = Path.Combine(_testWorkingDirectory, relativePath);
+        return Directory.Exists(fullPath);
+    }
+
+    /// <summary>
     /// Gets the full path for a relative path in the test working directory
     /// </summary>
     public string GetFullPath(string relativePath)

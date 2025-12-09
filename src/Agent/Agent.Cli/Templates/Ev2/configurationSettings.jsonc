@@ -1,0 +1,10 @@
+{
+  "Settings": {
+    "environment": "{{ENVIRONMENT}}",
+    "deploymentTenantId": "{{TENANT_ID}}",
+    "subscriptionKey": "{{SUBSCRIPTION_KEY}}",
+    "subscriptionId": "{{SUBSCRIPTION_ID}}",
+    "resourceGroup": "{{RESOURCE_GROUP}}",
+    "agentName": "{{AGENT_NAME}}"
+  }
+}

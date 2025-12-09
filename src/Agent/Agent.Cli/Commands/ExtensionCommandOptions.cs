@@ -34,5 +34,45 @@ public static class ExtensionCommandOptions
             Required = true,
             Description = "Output folder where generated EV2 files will be placed"
         };
+
+        public static readonly Option<string?> ServiceIdentifierOption = new("--service-identifier")
+        {
+            Description = "EV2 service identifier GUID (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> ServiceGroupOption = new("--service-group")
+        {
+            Description = "EV2 service group name (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> EnvironmentOption = new("--environment")
+        {
+            Description = "Environment name (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> TenantIdOption = new("--tenant-id")
+        {
+            Description = "Azure AD Tenant ID (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> SubscriptionKeyOption = new("--subscription-key")
+        {
+            Description = "EV2 subscription key name (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> SubscriptionIdOption = new("--subscription-id")
+        {
+            Description = "Azure subscription ID GUID (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> ResourceGroupOption = new("--resource-group")
+        {
+            Description = "Azure resource group name (required with other EV2 options)"
+        };
+
+        public static readonly Option<string?> AgentNameOption = new("--agent-name")
+        {
+            Description = "Agent name for deployment (required with other EV2 options)"
+        };
     }
 }
