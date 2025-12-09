@@ -269,99 +269,137 @@ public static class IncidentHandlerCommandHandlers
         {
             using var apiService = new ApiService();
 
-            ConsoleUI.WriteBullet("Fetching incident handlers...", ConsoleColor.Cyan);
+            ConsoleUI.WriteBullet("Fetching incident handlers (incident response plans)...", ConsoleColor.Cyan);
 
-            // Fetch incident handlers
-            var handlers = await apiService.GetIncidentHandlersAsync();
-            if (handlers == null)
+            // Fetch both filters (incident response plan) and handlers (custom response plan)
+            var filtersTask = apiService.GetIncidentFiltersAsync();
+            var handlersTask = apiService.GetIncidentHandlersAsync();
+
+            await Task.WhenAll(filtersTask, handlersTask);
+
+            var filters = await filtersTask;
+            var handlers = await handlersTask;
+
+            if (filters == null && handlers == null)
             {
-                ConsoleUI.WriteStatus(false, "Failed to fetch incident handlers.");
+                ConsoleUI.WriteStatus(false, "Failed to fetch incident handlers (incident response plans).");
                 Environment.Exit(1);
                 return;
             }
 
-            if (handlers.Count == 0)
+            // Build a map of handlers by filterId so we can link them to filters
+            Dictionary<string, JsonNode>? handlersByFilterId = null;
+            if (handlers != null && handlers.Count > 0)
             {
-                ConsoleUI.WriteInfo("No incident handlers found.");
+                handlersByFilterId = new Dictionary<string, JsonNode>();
+                foreach (var handler in handlers)
+                {
+                    var filterId = handler["incidentFilterId"]?.ToString();
+                    if (!string.IsNullOrEmpty(filterId) && !handlersByFilterId.ContainsKey(filterId))
+                    {
+                        handlersByFilterId[filterId] = handler;
+                    }
+                }
+            }
+
+            // Display filters (what users actually create)
+            if (filters == null || filters.Count == 0)
+            {
+                ConsoleUI.WriteInfo("No incident handlers (incident response plans)found.");
                 return;
             }
 
-            ConsoleUI.WriteSection($"Found {handlers.Count} incident handler(s):");
-
-            // Optionally fetch filters for verbose mode
-            Dictionary<string, JsonNode>? filterMap = null;
-            if (verbose)
+            ConsoleUI.WriteSection($"Found {filters.Count} incident handler(s) (incident response plans):");
+            for (int i = 0; i < filters.Count; i++)
             {
-                ConsoleUI.WriteBullet("Fetching incident filters for detailed view...", ConsoleColor.Cyan);
-                var filters = await apiService.GetIncidentFiltersAsync();
-                if (filters != null)
+                var filter = filters[i];
+                var filterId = filter["id"]?.ToString() ?? filter["Id"]?.ToString() ?? "N/A";
+                var filterName = filter["name"]?.ToString() ?? filter["Name"]?.ToString() ?? "Unnamed Filter";
+                var handlingAgent = filter["handlingAgent"]?.ToString() ?? filter["HandlingAgent"]?.ToString();
+                var titleContains = filter["titleContains"]?.ToString() ?? filter["TitleContains"]?.ToString();
+                var priority = filter["priority"]?.ToString() ?? filter["Priority"]?.ToString();
+                var impactedService = filter["impactedService"]?.ToString() ?? filter["ImpactedService"]?.ToString();
+                var incidentType = filter["incidentType"]?.ToString() ?? filter["IncidentType"]?.ToString();
+                var isEnabled = filter["isEnabled"]?.ToString() ?? filter["IsEnabled"]?.ToString() ?? "true";
+                var agentMode = filter["agentMode"]?.ToString() ?? filter["AgentMode"]?.ToString();
+
+                Console.WriteLine($"[{i + 1}] {filterName}");
+                ConsoleUI.WriteKeyValue("ID", filterId, 4);
+
+                if (!string.IsNullOrEmpty(handlingAgent))
                 {
-                    filterMap = [];
-                    foreach (var filter in filters)
+                    ConsoleUI.WriteKeyValue("Handling Agent", handlingAgent, 4);
+                }
+                else
+                {
+                    ConsoleUI.WriteKeyValue("Handling Agent", "Meta Agent (default)", 4);
+                }
+
+                ConsoleUI.WriteKeyValue("Enabled", isEnabled, 4);
+
+                // Show filter fields
+                if (verbose)
+                {
+                    if (!string.IsNullOrEmpty(titleContains))
                     {
-                        var filterId = filter["Id"]?.ToString();
-                        if (!string.IsNullOrEmpty(filterId) && !filterMap.ContainsKey(filterId))
+                        ConsoleUI.WriteKeyValue("Title Contains", titleContains, 4);
+                    }
+                    if (!string.IsNullOrEmpty(priority))
+                    {
+                        ConsoleUI.WriteKeyValue("Priority", priority, 4);
+                    }
+                    if (!string.IsNullOrEmpty(impactedService))
+                    {
+                        ConsoleUI.WriteKeyValue("Impacted Service", impactedService, 4);
+                    }
+                    if (!string.IsNullOrEmpty(incidentType))
+                    {
+                        ConsoleUI.WriteKeyValue("Incident Type", incidentType, 4);
+                    }
+                    if (!string.IsNullOrEmpty(agentMode))
+                    {
+                        ConsoleUI.WriteKeyValue("Autonomy Level", agentMode, 4);
+                    }
+                }
+
+                // Show associated handler (custom response plan) if exists
+                if (handlersByFilterId != null && handlersByFilterId.TryGetValue(filterId, out var handler))
+                {
+                    var handlerId = handler["id"]?.ToString() ?? handler["Id"]?.ToString();
+                    var handlerName = handler["name"]?.ToString() ?? handler["Name"]?.ToString();
+
+                    ConsoleUI.WriteKeyValue("Custom Response Plan", "Set up", 4);
+
+                    if (verbose)
+                    {
+                        ConsoleUI.WriteKeyValue("Custom Response Plan ID", handlerId ?? "N/A", 4);
+                        if (!string.IsNullOrEmpty(handlerName))
                         {
-                            filterMap[filterId] = filter;
+                            ConsoleUI.WriteKeyValue("Custom Response Plan Name", handlerName, 4);
                         }
                     }
                 }
-            }
-
-            // Display handlers
-            for (int i = 0; i < handlers.Count; i++)
-            {
-                var handler = handlers[i];
-                var handlerId = handler["id"]?.ToString() ?? "N/A";
-                var handlerName = handler["name"]?.ToString() ?? "Unknown";
-                var filterId = handler["incidentFilterId"]?.ToString() ?? "N/A";
-                var createdAt = handler["createdAt"]?.ToString() ?? "N/A";
-                var updatedAt = handler["updatedAt"]?.ToString() ?? "N/A";
-
-                Console.WriteLine($"[{i + 1}] {handlerName}");
-                ConsoleUI.WriteKeyValue("ID", handlerId, 4);
-                ConsoleUI.WriteKeyValue("Filter ID", filterId, 4);
-
-                if (verbose && filterMap != null && filterMap.TryGetValue(filterId, out var filter))
+                else
                 {
-                    var filterName = filter["Name"]?.ToString() ?? "Unknown";
-                    var handlingAgent = filter["HandlingAgent"]?.ToString();
-
-                    ConsoleUI.WriteKeyValue("Filter Name", filterName, 4);
-                    if (!string.IsNullOrEmpty(handlingAgent))
+                    if (verbose)
                     {
-                        ConsoleUI.WriteKeyValue("Handling Agent", handlingAgent, 4);
+                        ConsoleUI.WriteKeyValue("Custom Response Plan", "Not configured", 4);
                     }
                 }
 
-                ConsoleUI.WriteKeyValue("Created", createdAt, 4);
-                ConsoleUI.WriteKeyValue("Updated", updatedAt, 4);
-
-                // Show additional properties if available
-                if (verbose)
-                {
-                    var description = handler["Description"]?.ToString();
-                    if (!string.IsNullOrEmpty(description))
-                    {
-                        ConsoleUI.WriteKeyValue("Description", description, 4);
-                    }
-
-                    var enabled = handler["Enabled"]?.ToString();
-                    if (!string.IsNullOrEmpty(enabled))
-                    {
-                        ConsoleUI.WriteKeyValue("Enabled", enabled, 4);
-                    }
-                }
-
-                if (i < handlers.Count - 1)
+                if (i < filters.Count - 1)
                 {
                     Console.WriteLine();
                 }
             }
+
+            // Show summary
+            Console.WriteLine();
+            ConsoleUI.WriteInfo($"Total: {filters.Count} filter(s), {handlers?.Count ?? 0} custom response plan(s)");
         }
         catch (Exception ex)
         {
-            ConsoleUI.WriteStatus(false, $"Error listing incident handlers: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Error listing incident filters (incident response plans): {ex.Message}");
             Environment.Exit(1);
         }
     }
