@@ -5694,4 +5694,6 @@ export const ConnectorsResources = defineMessages({
     toolCount: { defaultMessage: 'Tools: {count}', id: 'tpD3Ax' },
     lastHeartbeat: { defaultMessage: 'Last heartbeat: {time}', id: 'qdxZys' },
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
+    requestTimeout: { defaultMessage: 'Request timeout', id: 'inXqB2' },
+    failedToFetchStatus: { defaultMessage: 'Failed to fetch status', id: 'VeyLxc' },
 });

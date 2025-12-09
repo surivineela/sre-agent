@@ -29,6 +29,7 @@ export enum McpConnectorStatus {
     Disconnected = 'Disconnected',
     Failed = 'Failed',
     Initializing = 'Initializing',
+    Error = 'Error',
 }
 
 export const Connectors = () => {
@@ -51,7 +52,7 @@ export const Connectors = () => {
     const [serviceTypeFilter, setServiceTypeFilter] = useState<ServiceTypeFilter>(ServiceTypeFilterKey.All);
 
     const { agent, refresh: refreshAgent } = useSreAgent(resourceId);
-    const { connectors, isConnectorsLoading, putConnector, deleteConnector, refreshConnectors, connectionMap, isStatusLoading } =
+    const { connectors, isConnectorsLoading, putConnector, deleteConnector, refreshConnectors, connectionMap, loadingStatusMap } =
         useAgentConnectors(resourceId);
 
     const refresh = useCallback(async () => {
@@ -372,7 +373,7 @@ export const Connectors = () => {
                 onEditConnector={onEditConnector}
                 onDeleteConnector={onDeleteConnector}
                 connectionMap={connectionMap}
-                isStatusLoading={isStatusLoading}
+                loadingStatusMap={loadingStatusMap}
             />
             <DeleteConfirmationDialog
                 isOpen={isDeleteConfirmOpen}

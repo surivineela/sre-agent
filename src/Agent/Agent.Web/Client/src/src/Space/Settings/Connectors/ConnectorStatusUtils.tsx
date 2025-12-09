@@ -1,5 +1,11 @@
 import { tokens } from '@fluentui/react-components';
-import { CheckmarkCircle20Filled, DismissCircle20Filled, ErrorCircle20Filled, Warning20Filled } from '@fluentui/react-icons';
+import {
+    CheckmarkCircle20Filled,
+    CircleOff20Filled,
+    DismissCircle20Filled,
+    ErrorCircle20Filled,
+    Warning20Filled,
+} from '@fluentui/react-icons';
 import { McpConnectorStatus } from './Connectors';
 
 export const getStatusIcon = (status: string) => {
@@ -17,11 +23,15 @@ export const getStatusIcon = (status: string) => {
             break;
         case McpConnectorStatus.Disconnected:
             color = tokens.colorPaletteRedForeground1;
-            icon = <DismissCircle20Filled style={{ color }} />;
+            icon = <CircleOff20Filled style={{ color }} />;
             break;
         case McpConnectorStatus.Initializing:
             color = tokens.colorPaletteYellowForeground1;
             icon = <Warning20Filled style={{ color }} />;
+            break;
+        case McpConnectorStatus.Error:
+            color = tokens.colorPaletteRedForeground1;
+            icon = <DismissCircle20Filled style={{ color }} />;
             break;
         default:
             color = tokens.colorNeutralForeground2;

@@ -45,7 +45,7 @@ export interface ConnectorsDataGridProps {
     onEditConnector: (connector: Connector) => void;
     onDeleteConnector: (connectorName: string) => void;
     connectionMap: Record<string, ConnectorStatus>;
-    isStatusLoading: boolean;
+    loadingStatusMap: Record<string, boolean>;
 }
 
 export const ConnectorsDataGrid = ({
@@ -60,7 +60,7 @@ export const ConnectorsDataGrid = ({
     onDeleteConnector,
     setSelectedKeys,
     connectionMap,
-    isStatusLoading,
+    loadingStatusMap,
 }: ConnectorsDataGridProps) => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
@@ -217,7 +217,8 @@ export const ConnectorsDataGrid = ({
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(ConnectorsResources.status)}</Text>,
                 renderCell: item =>
                     renderCellWithShimmer(item, [{ width: '120px', height: '20px' }], item => {
-                        if (isStatusLoading) {
+                        const isLoadingThisStatus = loadingStatusMap[item.name] ?? true;
+                        if (isLoadingThisStatus) {
                             return (
                                 <TableCellLayout>
                                     <Skeleton>
@@ -250,7 +251,7 @@ export const ConnectorsDataGrid = ({
             connectionMap,
             handleStatusClick,
             intl,
-            isStatusLoading,
+            loadingStatusMap,
             onDeleteConnector,
             onEditConnector,
             renderCellWithShimmer,
