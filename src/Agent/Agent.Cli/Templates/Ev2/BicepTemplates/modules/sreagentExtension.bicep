@@ -40,7 +40,7 @@ resource subagentExtensions 'Microsoft.App/agents/subagents@2025-05-01-preview' 
   parent: parentAgent
   name: subagent.metadata.name
   properties: {
-    value: base64(string(subagent))
+    value: base64(string(subagent.spec))
   }
 }]
 
@@ -50,6 +50,6 @@ resource toolExtensions 'Microsoft.App/agents/tools@2025-05-01-preview' = [for t
   parent: parentAgent
   name: tool.metadata.name
   properties: {
-    value: base64(string(tool))
+    value: base64(string(tool.spec))
   }
 }]

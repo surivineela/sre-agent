@@ -303,4 +303,98 @@ spec:
     }
 
     #endregion
+
+    #region List Property Tests
+
+    [Fact]
+    public void Handoffs_Add_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var spec = new ExtendedAgentSpecV2();
+
+        // Act - Add items to the initially empty list
+        spec.Handoffs!.Add("Agent1");
+        spec.Handoffs!.Add("Agent2");
+
+        // Assert - Should contain added items
+        Assert.Equal(2, spec.Handoffs.Count);
+        Assert.Contains("Agent1", spec.Handoffs);
+        Assert.Contains("Agent2", spec.Handoffs);
+    }
+
+    [Fact]
+    public void Tools_Add_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var spec = new ExtendedAgentSpecV2();
+
+        // Act - Add items to the initially empty list
+        spec.Tools!.Add("Tool1");
+        spec.Tools!.Add("Tool2");
+
+        // Assert - Should contain added items
+        Assert.Equal(2, spec.Tools.Count);
+        Assert.Contains("Tool1", spec.Tools);
+        Assert.Contains("Tool2", spec.Tools);
+    }
+
+    [Fact]
+    public void Handoffs_SetToNull_ShouldSerializeAsEmptyArray()
+    {
+        // Arrange
+        var agent = new ExtendedAgentV2
+        {
+            Metadata = new ResourceMetadataModel
+            {
+                Name = "test-agent",
+                Owner = "test-owner"
+            },
+            Spec = new ExtendedAgentSpecV2
+            {
+                Instructions = "Test instructions",
+                Handoffs = null // Explicitly set to null
+            }
+        };
+
+        // Act
+        var yaml = agent.ToYaml();
+
+        // Assert - Should serialize as empty array
+        Assert.Contains("handoffs: []", yaml);
+
+        // Verify the property returns empty list, not null
+        Assert.NotNull(agent.Spec.Handoffs);
+        Assert.Empty(agent.Spec.Handoffs);
+    }
+
+    [Fact]
+    public void Tools_SetToNull_ShouldSerializeAsEmptyArray()
+    {
+        // Arrange
+        var agent = new ExtendedAgentV2
+        {
+            Metadata = new ResourceMetadataModel
+            {
+                Name = "test-agent",
+                Owner = "test-owner"
+            },
+            Spec = new ExtendedAgentSpecV2
+            {
+                Instructions = "Test instructions",
+                Tools = null // Explicitly set to null
+            }
+        };
+
+        // Act
+        var yaml = agent.ToYaml();
+
+        // Assert - Should serialize as empty array
+        Assert.Contains("tools: []", yaml);
+
+        // Verify the property returns empty list, not null
+        Assert.NotNull(agent.Spec.Tools);
+        Assert.Empty(agent.Spec.Tools);
+    }
+
+    #endregion
 }

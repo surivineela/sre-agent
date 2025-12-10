@@ -16,13 +16,23 @@ namespace Agent.Cli.Models
         public string? Instructions { get; set; }
 
         [YamlMember(Alias = "handoffDescription")]
-        public string? HandoffDescription { get; set; }
+        public string? HandoffDescription { get; set; } = string.Empty;
 
+        private List<string> _handoffs = new();
         [YamlMember(Alias = "handoffs")]
-        public List<string>? Handoffs { get; set; }
+        public List<string>? Handoffs
+        {
+            get => _handoffs;
+            set => _handoffs = value ?? new List<string>();
+        }
 
+        private List<string> _tools = new();
         [YamlMember(Alias = "tools")]
-        public List<string>? Tools { get; set; }
+        public List<string>? Tools
+        {
+            get => _tools;
+            set => _tools = value ?? new List<string>();
+        }
 
         [YamlMember(Alias = "allowParallelToolCalls")]
         public bool? AllowParallelToolCalls { get; set; }

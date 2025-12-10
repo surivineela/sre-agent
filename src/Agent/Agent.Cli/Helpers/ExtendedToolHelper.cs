@@ -144,6 +144,7 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
             Spec = new LinkToolSpecV2
             {
                 Type = ToolName.LinkTool,
+                Connector = string.Empty,
                 Description = description ?? "Sample LinkTool description",
                 Template = effectiveTemplate,
                 Parameters = CreateParameterSpecs(effectiveParameters, isKustoTool: false)
@@ -187,7 +188,9 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
                 Name = paramName,
                 Type = "string",
                 Description = paramDescription,
-                Required = true
+                Required = true,
+                MapTo = string.Empty,
+                Target = string.Empty
             };
 
             // Add KustoTool-specific properties

@@ -71,7 +71,7 @@ namespace Agent.Cli.Models
 
             var serializer = new SerializerBuilder()
                 .DisableAliases()
-                .ConfigureDefaultValuesHandling(DefaultValuesHandling.Preserve)
+                .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
                 .Build();
 
             return serializer.Serialize(this);

@@ -112,7 +112,7 @@ public static class AgentCommandHandlers
             Instructions = finalInstructions,
             Tools = finalTools,
             Handoffs = handoffs?.ToList() ?? [],
-            HandoffDescription = handoffDescription,
+            HandoffDescription = handoffDescription ?? string.Empty,
             AllowParallelToolCalls = allowParallelToolCalls,
             MaxReflectionCount = maxReflectionCount,
             CriticPromptPath = criticPromptPath ?? string.Empty,
@@ -197,8 +197,22 @@ public static class AgentCommandHandlers
 
         // Write the agent YAML file first
         ProgressService.MultiStepProgress.NextStep("Writing agent configuration");
-        var metadata = new ResourceMetadataModel { Name = name };
-        YamlHelper.WriteAgentYamlFile(Path.Combine("agents", name!), name!, agentSpec, metadata);
+
+        // Create ExtendedAgentV2 and get YAML string
+        var agent = new ExtendedAgentV2
+        {
+            Metadata = new ResourceMetadataModel { Name = name },
+            Spec = agentSpec
+        };
+        var agentYaml = agent.ToYaml();
+
+        // Write agent to file
+        var agentDir = Path.Combine("agents", name!);
+        Directory.CreateDirectory(agentDir);
+        var yamlPath = Path.Combine(agentDir, $"{name}.yaml");
+
+        DebugLogger.LogFile("WRITE", yamlPath, $"Agent YAML content size: {agentYaml.Length} characters");
+        await File.WriteAllTextAsync(yamlPath, agentYaml);
 
         // Validate using server-side validation (dryRun=true)
         ProgressService.MultiStepProgress.NextStep("Validating agent configuration with server");
