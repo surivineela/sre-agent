@@ -67,6 +67,23 @@ export default class AzPortalProxy {
         window.addEventListener(AgentSiteToAzPortalVerbs.message, this.messageReceived.bind(this) as any, false);
 
         this.postMessage(AgentSiteToAzPortalVerbs.readyForData, null);
+
+        // Log iframe load performance telemetry
+        const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        this.log({
+            action: 'iframe load',
+            actionModifier: 'performance',
+            data: {
+                immediateTimestamp: Date.now(),
+                iframePerf: navEntry
+                    ? {
+                          startTime: navEntry.startTime,
+                          loadEventEnd: navEntry.loadEventEnd,
+                          duration: navEntry.duration,
+                      }
+                    : undefined,
+            },
+        });
     };
 
     public log = (info: ITelemetryInfo) => {

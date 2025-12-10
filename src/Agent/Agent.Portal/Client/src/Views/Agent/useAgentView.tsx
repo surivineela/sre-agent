@@ -107,6 +107,14 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     }, [postMessage, user]);
 
     const readyForDataCallback = useCallback(() => {
+        logEvent({
+            action: 'iframe readyfordata received',
+            actionModifier: 'performance',
+            additionalData: {
+                immediateTimestamp: Date.now(),
+            },
+        });
+
         window.clearTimeout(initTimeoutId.current);
 
         const armUrl = new URL(getCloudEndpoints().arm);
@@ -127,7 +135,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         sendUserInfoCallback();
 
         setIframeInitialized(true);
-    }, [postMessage, authTokenManager, resourceId, agentUrl, locale, sendThemeCallback, sendUserInfoCallback]);
+    }, [logEvent, postMessage, authTokenManager, resourceId, agentUrl, locale, sendThemeCallback, sendUserInfoCallback]);
 
     const logCallback = useCallback(
         (telemetryObj: IFrameTelemetryInfo) => {
@@ -429,6 +437,16 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     useEffect(() => {
         sendThemeCallback();
     }, [sendThemeCallback]);
+
+    useEffect(() => {
+        logEvent({
+            action: 'agent iframe view loaded',
+            actionModifier: 'performance',
+            additionalData: {
+                immediateTimestamp: Date.now(),
+            },
+        });
+    }, [logEvent]);
 
     useEffect(() => {
         return () => {

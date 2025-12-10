@@ -1,5 +1,7 @@
 import debounce from 'lodash/debounce';
 import { Dispatch, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
@@ -215,6 +217,7 @@ export const useThreadListWithFavoriteList = (
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const azPortalProxy = useAzPortalContext();
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
     const currentScrollTop = useRef<number>(0);
@@ -479,6 +482,17 @@ export const useThreadListWithFavoriteList = (
                 getThreads(threadClient, filterInput, orderBy, undefined, true),
                 getThreads(threadClient, filterInput, orderBy, undefined, false),
             ]);
+
+            // Log threads loaded performance telemetry
+            if (!AzPortalProxy.inStandaloneMode) {
+                azPortalProxy.log({
+                    action: 'iframe threads loaded',
+                    actionModifier: 'performance',
+                    data: {
+                        immediateTimestamp: Date.now(),
+                    },
+                });
+            }
 
             const initialFavoriteThreads = initialFavoriteThreadsResponse.content ?? [];
             const initialRegularThreads = initialRegularThreadsResponse.content ?? [];
