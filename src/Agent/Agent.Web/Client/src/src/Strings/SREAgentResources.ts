@@ -3478,6 +3478,16 @@ export const MemorySearchCardResources = defineMessages({
     rootCauseLabel: { defaultMessage: 'Root Cause:', id: 'sILeXv' },
 });
 
+export const KnowledgeGraphCardResources = defineMessages({
+    knowledgeGraphSearchResults: { defaultMessage: 'Knowledge Graph Search Results', id: 'fi7+px' },
+    knowledgeGraphSearchResultsIntro: { defaultMessage: 'Here are the knowledge graph search results:', id: '0Xs9vS' },
+    viewKnowledgeGraphSearchResults: { defaultMessage: 'View Knowledge Graph Search Results', id: 'OgEDPw' },
+    entitiesLabel: { defaultMessage: 'Entities', id: 'CFLecQ' },
+    relationsLabel: { defaultMessage: 'Relations', id: 'mn5pjI' },
+    queryLabel: { defaultMessage: 'Query:', id: 'qC5uhF' },
+    noResults: { defaultMessage: 'No matching entities or relations found.', id: 'PGhDTf' },
+});
+
 export const ExtendedAgentsGraphResources = defineMessages({
     // Tab and Navigation
     extendedAgentsTab: { defaultMessage: 'Subagent builder', id: 'EN0CPQ' },

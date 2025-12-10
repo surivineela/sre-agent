@@ -493,6 +493,21 @@ public class Program
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
+            .AddTransient<KnowledgeGraphPluginDefinition>()
+            .AddTransient<IKnowledgeGraphPlugin, KnowledgeGraphPlugin>()
+            .AddSingleton<IKnowledgeGraphStorageProvider>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<CosmosDbKnowledgeGraphStorageProvider>>();
+                var cosmosClient = sp.GetRequiredService<Microsoft.Azure.Cosmos.CosmosClient>();
+                var cosmosDbSettings = sp.GetRequiredService<CosmosDBSettings>();
+                var chatClientProvider = sp.GetRequiredService<IChatClientProvider>();
+
+                var container = cosmosClient.GetContainer(
+                    cosmosDbSettings.Docs.Database,
+                    AgentDataConfiguration.KnowledgeGraphContainerName);
+
+                return new CosmosDbKnowledgeGraphStorageProvider(container, logger, chatClientProvider);
+            })
             .AddTransient<GenevaActionsPluginDefinition>()
             .AddTransient<MdmMetricsPluginDefinition>()
             .AddTransient<ICMPluginDefinition>()

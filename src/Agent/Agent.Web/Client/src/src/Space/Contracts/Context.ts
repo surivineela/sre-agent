@@ -3,7 +3,7 @@ import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType, MonthlyUsage } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNodeStatus } from '../../Common/Contracts/DataPlane/AgentTask';
-import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
+import { KnowledgeGraphSearchResult, MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
@@ -93,6 +93,7 @@ type ChatBoxSidePanelProps = {
     openAgentTask: (agentTask: AgentTaskMetaData) => void;
     openTodoPlan: (todoPlan: TodoInfo) => void;
     openMemorySearchResult: (result: MemorySearchResult) => void;
+    openKnowledgeGraphSearchResult: (result: KnowledgeGraphSearchResult) => void;
 };
 
 type ThreadAgentModeContextProps = {
@@ -219,6 +220,7 @@ export const ChatBoxSidePanelContext = createContext<ChatBoxSidePanelProps>({
     openAgentTask: (_agentTask: AgentTaskMetaData) => {},
     openTodoPlan: (_todoPlan: TodoInfo) => {},
     openMemorySearchResult: (_result: MemorySearchResult) => {},
+    openKnowledgeGraphSearchResult: (_result: KnowledgeGraphSearchResult) => {},
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({

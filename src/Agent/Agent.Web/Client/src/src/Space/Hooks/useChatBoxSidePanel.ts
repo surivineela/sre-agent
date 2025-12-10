@@ -3,6 +3,7 @@ import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ChatBoxHandleRef, ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
 import { useAgentTask } from './useAgentTask';
+import { useKnowledgeGraphSearchResultDrawer } from './useKnowledgeGraphSearchResultDrawer';
 import { useMemorySearchResultDrawer } from './useMemorySearchResultDrawer';
 import { useTodoPlanDrawer } from './useTodoPlanDrawer';
 
@@ -55,15 +56,27 @@ export const useChatBoxSidePanel = (
     const initSidePanel = useCallback(
         (initialSidePanelData: ChatBoxSidePanelData | undefined | null) => {
             const shouldOpenSidePanel =
-                !isLoadingInitialChatHistory && initialSidePanelData && (initialSidePanelData.agentTask || initialSidePanelData.todoInfo);
+                !isLoadingInitialChatHistory &&
+                initialSidePanelData &&
+                (initialSidePanelData.agentTask ||
+                    initialSidePanelData.todoInfo ||
+                    initialSidePanelData.memorySearchResult ||
+                    initialSidePanelData.knowledgeGraphSearchResult);
 
-            setSelectedSidePanelType(
-                shouldOpenSidePanel
-                    ? initialSidePanelData!.agentTask
-                        ? ChatBoxSidePanelType.AgentTask
-                        : ChatBoxSidePanelType.ToDoPlan
-                    : null
-            );
+            let panelType: ChatBoxSidePanelType | null = null;
+            if (shouldOpenSidePanel && initialSidePanelData) {
+                if (initialSidePanelData.agentTask) {
+                    panelType = ChatBoxSidePanelType.AgentTask;
+                } else if (initialSidePanelData.todoInfo) {
+                    panelType = ChatBoxSidePanelType.ToDoPlan;
+                } else if (initialSidePanelData.memorySearchResult) {
+                    panelType = ChatBoxSidePanelType.MemorySearchResult;
+                } else if (initialSidePanelData.knowledgeGraphSearchResult) {
+                    panelType = ChatBoxSidePanelType.KnowledgeGraphSearchResult;
+                }
+            }
+
+            setSelectedSidePanelType(panelType);
             setIsSidePanelOpen(!!shouldOpenSidePanel);
             setMenuCollapsed?.(!!shouldOpenSidePanel);
         },
@@ -88,6 +101,13 @@ export const useChatBoxSidePanel = (
     );
 
     const memorySearchResultProps = useMemorySearchResultDrawer(initialSidePanelData, openSidePanel, closeSidePanel, initSidePanel);
+
+    const knowledgeGraphSearchResultProps = useKnowledgeGraphSearchResultDrawer(
+        initialSidePanelData,
+        openSidePanel,
+        closeSidePanel,
+        initSidePanel
+    );
 
     useImperativeHandle(ref, () => ({
         openTodoPlanFromOutside: () => {
@@ -137,5 +157,6 @@ export const useChatBoxSidePanel = (
         agentTaskProps,
         todoPlanProps,
         memorySearchResultProps,
+        knowledgeGraphSearchResultProps,
     };
 };

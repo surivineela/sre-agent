@@ -104,4 +104,9 @@ public enum StreamMessageType
     /// Model Reasoning Summary (only returned for Responses API on reasoning models)
     /// </summary>
     Reasoning,
+
+    /// <summary>
+    /// Knowledge graph search results with structured data for rendering knowledge graph card
+    /// </summary>
+    KnowledgeGraph,
 }

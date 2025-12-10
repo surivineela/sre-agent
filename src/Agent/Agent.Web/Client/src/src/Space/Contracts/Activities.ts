@@ -6,6 +6,7 @@ import {
     Approval,
     AzCliExecution,
     ChatMessageError,
+    KnowledgeGraphSearchResult,
     KubectlExecution,
     MemorySearchResult,
     Message,
@@ -78,6 +79,7 @@ export interface ChatBoxSidePanelData {
     agentTask?: AgentTaskMetaData;
     todoInfo?: TodoInfo;
     memorySearchResult?: MemorySearchResult;
+    knowledgeGraphSearchResult?: KnowledgeGraphSearchResult;
 }
 
 export interface IChatBoxProps {
@@ -103,6 +105,7 @@ export enum ChatBoxSidePanelType {
     AgentTask = 'agentTask',
     ToDoPlan = 'todoPlan',
     MemorySearchResult = 'memorySearchResult',
+    KnowledgeGraphSearchResult = 'knowledgeGraphSearchResult',
 }
 
 export interface ChatBoxHandleRef {

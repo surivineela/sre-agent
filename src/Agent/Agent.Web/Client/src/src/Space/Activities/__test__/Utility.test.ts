@@ -45,6 +45,7 @@ const getDefaultUserMessage = (modifiedTimestamp?: string): ChatMessage => {
         todoInfo: null,
         isImage: null,
         reasoning: undefined,
+        knowledgeGraphSearchResult: null,
     };
 };
 
@@ -73,6 +74,7 @@ const getDefaultAgentMessage = (modifiedTimestamp?: string): ChatMessage => {
         todoInfo: null,
         isImage: null,
         reasoning: undefined,
+        knowledgeGraphSearchResult: null,
     };
 };
 

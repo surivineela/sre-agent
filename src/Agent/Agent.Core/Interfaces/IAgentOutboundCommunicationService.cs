@@ -77,6 +77,8 @@ public interface IAgentOutboundCommunicationService
 
     Task<Guid> AppendAgentMemorySearchMessage(Guid threadId, MemorySearchResult memorySearchResult, Guid messageId = default);
 
+    Task<Guid> AppendAgentKnowledgeGraphSearchMessage(Guid threadId, KnowledgeGraphSearchResult knowledgeGraphSearchResult, Guid messageId = default);
+
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
     /// </summary>

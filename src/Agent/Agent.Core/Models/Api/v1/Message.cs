@@ -42,6 +42,8 @@ public record Message(
     AgentTaskInfo? AgentTaskInfo = null,
     // Memory search results from agent memory plugin
     MemorySearchResult? MemorySearchResult = null,
+    // Knowledge graph search results from knowledge graph plugin
+    KnowledgeGraphSearchResult? KnowledgeGraphSearchResult = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)

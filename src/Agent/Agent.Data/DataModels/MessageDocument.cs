@@ -29,6 +29,8 @@ public record MessageDocument(
     AgentTaskInfo? AgentTaskInfo = null,
     // Memory search results from agent memory plugin
     MemorySearchResult? MemorySearchResult = null,
+    // Knowledge graph search results from knowledge graph plugin
+    KnowledgeGraphSearchResult? KnowledgeGraphSearchResult = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)
@@ -58,6 +60,7 @@ public record MessageDocument(
             message.IsDailyReport,
             message.AgentTaskInfo ?? null,
             message.MemorySearchResult ?? null,
+            message.KnowledgeGraphSearchResult ?? null,
             message.TodoInfo ?? null,
             message.IsComplete,
             message.MessageType
@@ -79,6 +82,7 @@ public record MessageDocument(
             IsDailyReport,
             AgentTaskInfo,
             MemorySearchResult: MemorySearchResult,
+            KnowledgeGraphSearchResult: KnowledgeGraphSearchResult,
             TodoInfo: TodoInfo,
             IsComplete: IsComplete,
             MessageType: MessageType
@@ -93,5 +97,6 @@ public record MessageDocument(
         && PsqlExecution is null
         && AgentTaskInfo is null
         && MemorySearchResult is null
+        && KnowledgeGraphSearchResult is null
         && TodoInfo is null;
 }

@@ -129,5 +129,35 @@ public class SinkService
 
         await _repository.AddMessageAsync(threadId, userMessage);
     }
+
+    public async Task<Guid> SinkAgentKnowledgeGraphMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        KnowledgeGraphSearchResult knowledgeGraphSearchResult)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            KnowledgeGraphSearchResult: knowledgeGraphSearchResult
+        );
+
+        try
+        {
+            await _repository.AddMessageAsync(threadId, agentMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding knowledge graph message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
 }
 

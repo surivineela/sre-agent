@@ -7,6 +7,7 @@ import ChangeDiffMessage from './ChangeDiffMessage';
 import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
+import KnowledgeGraphChatMessage from './KnowledgeGraphChatMessage';
 import MemoryChatMessage from './MemoryChatMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ReasoningChatMessage from './ReasoningChatMessage';
@@ -85,6 +86,8 @@ const AgentMessage = ({
                 <ErrorChatMessage error={message.error} />
             ) : message.memorySearchResult ? (
                 <MemoryChatMessage memorySearchResult={message.memorySearchResult} />
+            ) : message.knowledgeGraphSearchResult ? (
+                <KnowledgeGraphChatMessage knowledgeGraphSearchResult={message.knowledgeGraphSearchResult} />
             ) : message.reasoning ? (
                 <ReasoningChatMessage reasoning={message.reasoning} />
             ) : (message.text || isTyping) &&

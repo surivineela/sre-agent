@@ -5,6 +5,7 @@ import {
     Approval,
     ApprovalDecision,
     AzCliExecution,
+    KnowledgeGraphSearchResult,
     KubectlExecution,
     MemorySearchResult,
     Message,
@@ -518,6 +519,10 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<KubectlExecution>(streamingMessage, 'kubectl');
     const memorySearchResult = getSpecialMessageContentFromStreamingMessage<MemorySearchResult>(streamingMessage, 'memorysearch');
+    const knowledgeGraphSearchResult = getSpecialMessageContentFromStreamingMessage<KnowledgeGraphSearchResult>(
+        streamingMessage,
+        'knowledgegraph'
+    );
     const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
     const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
 
@@ -551,6 +556,7 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         !azCliExecution &&
         !kubectlExecution &&
         !memorySearchResult &&
+        !knowledgeGraphSearchResult &&
         !psqlExecution &&
         !todoInfo &&
         !agentTaskData &&
@@ -572,6 +578,7 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         kubectlExecution,
         psqlExecution,
         memorySearchResult,
+        knowledgeGraphSearchResult,
         agentTaskInfo: agentTaskData?.agentTaskInfo,
         todoInfo,
         changeDiff: undefined,
@@ -703,6 +710,7 @@ export const composeUserMessage = (userId: string, userDisplayName: string, mess
         isImage: undefined,
         deepInvestigationStatus: undefined,
         reasoning: undefined,
+        knowledgeGraphSearchResult: undefined,
     };
 };
 
@@ -728,6 +736,7 @@ export const composeDefaultAgentMessage = (): ChatMessage => {
         isImage: undefined,
         deepInvestigationStatus: undefined,
         reasoning: undefined,
+        knowledgeGraphSearchResult: undefined,
     };
 };
 
@@ -889,6 +898,7 @@ export const getDefaultDeepInvestigationStatusChatMessageGroup = (isDeepInvestig
             enabled: isDeepInvestigationTurnedOn,
         },
         reasoning: undefined,
+        knowledgeGraphSearchResult: undefined,
     };
 
     return {

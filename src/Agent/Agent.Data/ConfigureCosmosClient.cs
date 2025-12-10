@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.ObjectModel;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.Json;
@@ -19,6 +20,7 @@ public static class AgentDataConfiguration
     public const string AgentContextContainerName = "agentContexts";
     public const string ReasoningLoopContainerName = "reasoningloopdocs";
     public const string ExtendedAgentContainerName = "extendedagents";
+    public const string KnowledgeGraphContainerName = "knowledgeGraph";
     public const string ReasoningLoopEncryptionKeyName = "reansoningloopkey";
     public const string ReasoningLoopDocumentEncryptedPath = "/encryptedProperties";
 
@@ -179,6 +181,52 @@ public static class AgentDataConfiguration
         await database.Database.CreateContainerIfNotExistsAsync(
             id: ExtendedAgentContainerName,
             partitionKeyPath: "/partitionKey",
+            throughput: null // Use the database level shared RU first.
+        );
+
+        // Create Knowledge Graph container with fulltext search enabled
+        var knowledgeGraphProperties = new ContainerProperties(
+            id: KnowledgeGraphContainerName,
+            partitionKeyPath: "/partitionKey");
+
+        // Create indexing policy
+        var indexingPolicy = new IndexingPolicy
+        {
+            IndexingMode = IndexingMode.Consistent,
+            Automatic = true
+        };
+
+        // Add included paths
+        indexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
+
+        // Add fulltext indexes
+        indexingPolicy.FullTextIndexes.Add(new FullTextIndexPath { Path = "/name" });
+        indexingPolicy.FullTextIndexes.Add(new FullTextIndexPath { Path = "/entityType" });
+        indexingPolicy.FullTextIndexes.Add(new FullTextIndexPath { Path = "/content" });
+
+        // Assign indexing policy
+        knowledgeGraphProperties.IndexingPolicy = indexingPolicy;
+
+        // Create fulltext policy
+        var fullTextPolicy = new FullTextPolicy
+        {
+            DefaultLanguage = "en-US"
+        };
+
+        // Initialize FullTextPaths collection
+        fullTextPolicy.FullTextPaths =
+        [
+            // Add fulltext paths
+            new FullTextPath { Path = "/name", Language = "en-US" },
+            new FullTextPath { Path = "/entityType", Language = "en-US" },
+            new FullTextPath { Path = "/content", Language = "en-US" },
+        ];
+
+        // Assign fulltext policy
+        knowledgeGraphProperties.FullTextPolicy = fullTextPolicy;
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            containerProperties: knowledgeGraphProperties,
             throughput: null // Use the database level shared RU first.
         );
     }

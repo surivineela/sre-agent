@@ -13,6 +13,7 @@ export type MessageType =
     | 'psql'
     | 'deepinvestigation'
     | 'memorysearch'
+    | 'knowledgegraph'
     | 'todoplan'
     | 'trajectoryinsight'
     | 'reasoning'
@@ -34,6 +35,7 @@ export interface Message {
     changeDiff: ChangeDiffViewer | null | undefined;
     agentTaskInfo: AgentTaskMetaData | null | undefined;
     memorySearchResult: MemorySearchResult | null | undefined;
+    knowledgeGraphSearchResult: KnowledgeGraphSearchResult | null | undefined;
     todoInfo: TodoInfo | null | undefined;
 
     isComplete: boolean | null | undefined;
@@ -163,6 +165,27 @@ export interface MemorySearchResult {
     documents: DocumentResult[];
     timestamp: string;
     totalResults: number;
+}
+
+export interface KnowledgeGraphSearchResult {
+    query: string;
+    entities: KnowledgeGraphEntity[];
+    relations: KnowledgeGraphRelation[];
+    timestamp: string;
+    totalEntities: number;
+    totalRelations: number;
+}
+
+export interface KnowledgeGraphEntity {
+    name: string;
+    entityType: string;
+    observations: string[];
+}
+
+export interface KnowledgeGraphRelation {
+    from: string;
+    to: string;
+    relationType: string;
 }
 
 export interface TrajectoryResult {

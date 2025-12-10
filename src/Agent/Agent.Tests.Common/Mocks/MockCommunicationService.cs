@@ -197,6 +197,13 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         return Task.FromResult(Guid.NewGuid());
     }
 
+    public Task<Guid> AppendAgentKnowledgeGraphSearchMessage(Guid threadId, KnowledgeGraphSearchResult knowledgeGraphSearchResult, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, KnowledgeGraphSearchResult: {knowledgeGraphSearchResult}");
+        Messages.Add(knowledgeGraphSearchResult?.ToString() ?? string.Empty);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
     public Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default)
     {
         _logger?.LogInternalInformation($"ThreadId: {threadId}, intermediate message {message}");

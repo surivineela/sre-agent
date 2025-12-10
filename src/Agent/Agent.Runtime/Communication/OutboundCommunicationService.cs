@@ -236,6 +236,30 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, messageText, false, null, resolvedMessageId, null, null, memorySearchResult, null);
     }
 
+    public async Task<Guid> AppendAgentKnowledgeGraphSearchMessage(Guid threadId, KnowledgeGraphSearchResult knowledgeGraphSearchResult, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(knowledgeGraphSearchResult, _serializerOptions);
+            // Stream to frontend using StreamMessageType.KnowledgeGraph
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.KnowledgeGraph, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream knowledge graph search message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        var kgMessageText = $"Knowledge Graph Search: Found {knowledgeGraphSearchResult.TotalEntities} entities and {knowledgeGraphSearchResult.TotalRelations} relations";
+        return await _sinkService.SinkAgentKnowledgeGraphMessageAsync(threadId, kgMessageText, resolvedMessageId, knowledgeGraphSearchResult);
+    }
+
     public async Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread)
     {
         if (threadId == Guid.Empty)

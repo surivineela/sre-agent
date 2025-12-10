@@ -10,6 +10,7 @@ import ChatMessageGroupComponent from '../Components/Chat/ChatMessageGroupCompon
 import ChatMessageGroups from '../Components/Chat/ChatMessageGroups';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
+import KnowledgeGraphSidePanel from '../Components/KnowledgeGraphSidePanel';
 import MemorySidePanel from '../Components/MemorySidePanel';
 import PermissionErrorChatMessage from '../Components/PermissionErrorChatMessage';
 import { AgentTaskGraphHandle, ChatBoxHandleRef, ChatBoxSidePanelType, IChatBoxProps } from '../Contracts/Activities';
@@ -80,6 +81,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         agentTaskProps: { openAgentTask, closeAgentTask, ...restAgentTaskProps },
         todoPlanProps: { openTodoPlan, closeTodoPlan, ...restTodoPlanProps },
         memorySearchResultProps: { openMemorySearchResult, closeMemorySearchResult, memorySearchResult },
+        knowledgeGraphSearchResultProps: { openKnowledgeGraphSearchResult, closeKnowledgeGraphSearchResult, knowledgeGraphSearchResult },
     } = useChatBoxSidePanel(
         threadId,
         userDefinedThreadIdRef.current,
@@ -176,7 +178,9 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
             theme={theme.isInverted ? webDarkTheme : webLightTheme}
             style={stylesProps?.rootStyle || { height: `calc(100% - ${ThreadTitleHeight + 5}px)` }}
         >
-            <ChatBoxSidePanelContext.Provider value={{ openAgentTask, openTodoPlan, openMemorySearchResult }}>
+            <ChatBoxSidePanelContext.Provider
+                value={{ openAgentTask, openTodoPlan, openMemorySearchResult, openKnowledgeGraphSearchResult }}
+            >
                 <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
                     <div className={chatBoxStyles.chatBoxAndAgentTask}>
                         <div className={chatBoxStyles.chatBox}>
@@ -263,6 +267,12 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                             )}
                             {selectedSidePanelType === ChatBoxSidePanelType.MemorySearchResult && (
                                 <MemorySidePanel memoryResult={memorySearchResult} onClose={closeMemorySearchResult} />
+                            )}
+                            {selectedSidePanelType === ChatBoxSidePanelType.KnowledgeGraphSearchResult && (
+                                <KnowledgeGraphSidePanel
+                                    knowledgeGraphResult={knowledgeGraphSearchResult}
+                                    onClose={closeKnowledgeGraphSearchResult}
+                                />
                             )}
                         </ChatBoxSidePanel>
                     </div>

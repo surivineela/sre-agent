@@ -107,6 +107,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<CannotConnectToVmPluginDefinition>();
         RegisterPlugin<RedisPluginDefinition>();
         RegisterPlugin<DGrepPluginDefinition>();
+        RegisterPlugin<KnowledgeGraphPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);
