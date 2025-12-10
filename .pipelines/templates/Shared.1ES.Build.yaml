@@ -69,6 +69,21 @@ extends:
       jobs:
       - job: build
         displayName: "🔨 Build Agent"
+
+        # Add NuGet publishing output when enabled
+        ${{ if and(eq(parameters.isNugetPublish, true), eq(parameters.isOfficialBuild, true)) }}:
+          templateContext:
+            outputs:
+            - output: nuget
+              displayName: '📤 Publish Agent.Portal NuGet Package'
+              useDotNetTask: false
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/Microsoft.SREAgent.Portal.*.nupkg'
+              packageParentPath: '$(Build.ArtifactStagingDirectory)/packages'
+              publishVstsFeed: 'Antares/antares-websites'
+              nuGetFeedType: internal
+              allowPackageConflicts: false
+              publishPackageMetadata: true
+
         steps:
         - checkout: self
           fetchDepth: 1
@@ -246,12 +261,13 @@ extends:
             zipAfterPublish: false
 
         #
-        # Pack and Publish Agent.Portal NuGet Package
-        # Only runs on Official builds when isNugetPublish is enabled
+        # Build and Pack Agent.Portal NuGet Package
+        # Only runs and packages when isNugetPublish and isOfficialBuild are both true
+        # Publishing is done via templateContext outputs (see job-level templateContext above)
         #
         - ${{ if and(eq(parameters.isNugetPublish, true), eq(parameters.isOfficialBuild, true)) }}:
           - task: DotNetCoreCLI@2
-            displayName: '📦 Pack Agent.Portal NuGet Package'
+            displayName: '📦 Build and Pack Agent.Portal NuGet Package'
             inputs:
               command: 'pack'
               packagesToPack: '.\src\Agent\Agent.Portal\Agent.Portal.csproj'
@@ -259,15 +275,8 @@ extends:
               packDirectory: '$(Build.ArtifactStagingDirectory)\packages'
               versioningScheme: 'byBuildNumber'
               includeNuGetOrg: false
-
-          - task: NuGetCommand@2
-            displayName: '📤 Publish Agent.Portal to Azure Artifacts'
-            inputs:
-              command: 'push'
-              packagesToPush: '$(Build.ArtifactStagingDirectory)\packages\Microsoft.SREAgent.Portal.*.nupkg'
-              nuGetFeedType: 'internal'
-              publishVstsFeed: 'Antares/antares-websites'
-              allowPackageConflicts: false
+              nobuild: false  # Build the project to ensure React assets are included
+              arguments: '--configuration $(BuildConfiguration) -p:Version=$(Build.BuildNumber) -p:SkipReactBuild=true'
 
         # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
         - task: RoslynAnalyzers@3
