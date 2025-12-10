@@ -20,7 +20,7 @@ import {
     INotificationInfo,
     TokenTypes,
 } from './AgentIFrameContracts';
-import { resolveAgentSiteUrl } from './Utilities';
+import { AgentLoadError, resolveAgentSiteUrl } from './Utilities';
 
 export const useAgentView = (resourceId: string, sreLink?: string) => {
     const intl = useIntl();
@@ -40,6 +40,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     const [isSiteRunning, setIsSiteRunning] = useState<boolean>(false);
     const [iframeInitialized, setIframeInitialized] = useState(false);
     const [errorBannerMessage, setErrorBannerMessage] = useState<string>('');
+    const [agentLoadError, setAgentLoadError] = useState<AgentLoadError>();
 
     const postMessage = useCallback(
         (verb: string, data: object) => {
@@ -392,6 +393,9 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                         agentUxUrl,
                     },
                 });
+                setAgentLoadError({
+                    type: 'timeout',
+                });
             }
         };
 
@@ -451,22 +455,38 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 if (!subscribed) {
                     return;
                 }
+
+                if (resolvedUrl.error) {
+                    setAgentLoadError(resolvedUrl.error);
+                    logEvent({
+                        action: 'Failed to get agent and resolve agent site URL',
+                        actionModifier: 'failed',
+                        logLevel: LogLevel.Error,
+                        additionalData: {
+                            message: resolvedUrl.error.message,
+                        },
+                    });
+                    return;
+                }
+
                 setAgentUxUrl(resolvedUrl.uxUrl);
                 setUxOrigin(resolvedUrl.uxOrigin);
-                setAgentUrl(resolvedUrl.agentUrl);
+                setAgentUrl(resolvedUrl.agentUrl ?? '');
             });
         }
 
         return () => {
             subscribed = false;
         };
-    }, [resourceId, sreLink]);
+    }, [resourceId, sreLink, logEvent]);
 
     return {
         agentUxUrl,
+        agentUrl,
         isSiteRunning,
         iframeRef,
         iframeInitialized,
         errorBannerMessage,
+        agentLoadError,
     };
 };

@@ -61,7 +61,7 @@ export const RouteErrorBoundary = () => {
     const handleOpenSupport = useCallback(() => {
         let bladeUrl = '';
         const bladeInfo: IOpenBladeInfo = {
-                extension: 'Microsoft_Azure_Support',
+            extension: 'Microsoft_Azure_Support',
             detailBlade: 'HelpPane.ReactView',
             detailBladeInputs: {},
         };

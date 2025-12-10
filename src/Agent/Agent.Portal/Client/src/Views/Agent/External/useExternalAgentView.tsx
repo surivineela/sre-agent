@@ -19,7 +19,7 @@ import {
     INotificationInfo,
     TokenTypes,
 } from '../AgentIFrameContracts';
-import { buildAgentUxUrl } from '../Utilities';
+import { AgentLoadError, buildAgentUxUrl } from '../Utilities';
 
 /**
  * Hook for external agent iframe management (cross-tenant scenarios)
@@ -39,6 +39,7 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
     const [errorBannerMessage, setErrorBannerMessage] = useState<string>('');
     const [isSiteRunning, setIsSiteRunning] = useState(false);
     const [iframeInitialized, setIframeInitialized] = useState(false);
+    const [agentLoadError, setAgentLoadError] = useState<AgentLoadError>();
 
     const agentUxUrl = useMemo(() => buildAgentUxUrl(agentUrl, sreDeepLink), [agentUrl, sreDeepLink]);
     const uxOrigin = useMemo(() => {
@@ -400,6 +401,9 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                         agentUxUrl,
                     },
                 });
+                setAgentLoadError({
+                    type: 'timeout',
+                });
             }
         };
 
@@ -453,9 +457,11 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
 
     return {
         agentUxUrl,
+        agentUrl,
         isSiteRunning,
         iframeRef,
         iframeInitialized,
         errorBannerMessage,
+        agentLoadError,
     };
 };

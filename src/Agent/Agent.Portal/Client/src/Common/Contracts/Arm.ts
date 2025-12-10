@@ -139,3 +139,20 @@ export interface Tenant {
     tenantBrandingLogoUrl?: string;
     countryCode?: string;
 }
+
+export enum ErrorCode {
+    ResourceNotFound = 'ResourceNotFound',
+    ResourceGroupNotFound = 'ResourceGroupNotFound',
+    DeploymentNotFound = 'DeploymentNotFound',
+    ScopeLocked = 'ScopeLocked',
+    PrincipalNotFound = 'PrincipalNotFound',
+    LinkedRepoNotFound = 'LinkedRepoNotFound',
+    Unauthorized = 'Unauthorized',
+    Forbidden = 'Forbidden',
+}
+
+export type ArmError = {
+    code: ErrorCode;
+    message: string;
+    Message?: string;
+};

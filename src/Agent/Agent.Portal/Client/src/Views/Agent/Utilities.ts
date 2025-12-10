@@ -1,6 +1,8 @@
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { ErrorCode } from '../../Common/Contracts/Arm';
 import { getFeatureFlag, SettingNames } from '../../Common/Hooks/useConfigSettings';
+import { getArmErrorMessage } from '../../Common/Utilities/Client';
 import { addPathToHostname } from '../../Common/Utilities/Url';
 
 /** `npm run watch` server - PORT 7023 still/always hosts the `npm run dev` output */
@@ -101,32 +103,57 @@ const getEndpointsFromFlags = () => {
     };
 };
 
-export const resolveAgentSiteUrl = (resourceId: string, sreDeepLink?: string) => {
+export type AgentLoadErrorType = 'notFound' | 'accessDenied' | 'timeout' | 'unknown';
+
+export interface AgentLoadError {
+    type: AgentLoadErrorType;
+    message?: string;
+}
+
+export interface ResolveAgentSiteUrlResult {
+    uxUrl?: string;
+    uxOrigin?: string;
+    agentUrl?: string;
+    error?: AgentLoadError;
+}
+
+export const resolveAgentSiteUrl = async (resourceId: string, sreDeepLink?: string): Promise<ResolveAgentSiteUrlResult> => {
     let { uxEndpoint, dataplaneEndpoint } = getEndpointsFromFlags();
 
-    return SreAgentClient.getInstance(TelemetrySource.AgentIFrameView)
-        .getAgent(resourceId)
-        .then(response => {
-            if (response) {
-                if (!response.isSuccessful || !response.content) {
-                    throw Error('Failed to get agent: ' + response.error?.message);
-                }
+    const response = await SreAgentClient.getInstance(TelemetrySource.AgentIFrameView).getAgent(resourceId);
 
-                if (!dataplaneEndpoint) {
-                    dataplaneEndpoint = response.content.properties.agentEndpoint;
-                }
+    if (!response.isSuccessful || !response.content) {
+        const armErrorCode = response.error?.error?.code as ErrorCode | undefined;
+        const message = `${armErrorCode}: ${getArmErrorMessage(response.error.error)}`;
 
-                if (!uxEndpoint) {
-                    uxEndpoint = response.content.properties.agentEndpoint;
-                }
-            }
+        let errorType: AgentLoadErrorType = 'unknown';
+        if (armErrorCode === ErrorCode.ResourceNotFound) {
+            errorType = 'notFound';
+        } else if (armErrorCode === ErrorCode.Forbidden) {
+            errorType = 'accessDenied';
+        }
 
-            const uxUrl = buildAgentUxUrl(uxEndpoint, sreDeepLink);
+        return {
+            error: {
+                type: errorType,
+                message,
+            },
+        };
+    }
 
-            return {
-                uxUrl,
-                uxOrigin: getOrigin(uxUrl),
-                agentUrl: dataplaneEndpoint,
-            };
-        });
+    if (!dataplaneEndpoint) {
+        dataplaneEndpoint = response.content.properties.agentEndpoint;
+    }
+
+    if (!uxEndpoint) {
+        uxEndpoint = response.content.properties.agentEndpoint;
+    }
+
+    const uxUrl = buildAgentUxUrl(uxEndpoint, sreDeepLink);
+
+    return {
+        uxUrl,
+        uxOrigin: getOrigin(uxUrl),
+        agentUrl: dataplaneEndpoint,
+    };
 };

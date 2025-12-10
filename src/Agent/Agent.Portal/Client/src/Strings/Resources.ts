@@ -300,6 +300,28 @@ export const PortalResources = defineMessages({
     existingAppInsightsNamePlaceholder: { defaultMessage: 'Select an Application Insights resource', id: 'cqGvFd' },
     applicationInsights: { defaultMessage: 'Application Insights', id: 'WFo96A' },
     useExisting: { defaultMessage: 'Use existing', id: 'I5k4g/' },
+    agentNotFound: { defaultMessage: 'Agent not found', id: 'WtU4fE' },
+    agentNotFoundDescription: {
+        defaultMessage: "The agent you're looking for doesn't exist or may have been deleted. Please verify the resource ID and try again.",
+        id: '2mq+ou',
+    },
+    agentAccessDenied: { defaultMessage: 'You do not have access to this agent', id: 'nakQqT' },
+    agentAccessDeniedDescription: {
+        defaultMessage: 'You do not have the necessary permissions to access this agent. Please contact your administrator for assistance.',
+        id: 'M6fZyT',
+    },
+    agentLoadError: { defaultMessage: 'Failed to load agent', id: 'Uj2xYe' },
+    agentLoadErrorDescription: { defaultMessage: 'We encountered an error while trying to load your agent. Please try again or contact support if the issue persists.', id: 'oDZ249' },
+    resourceId: { defaultMessage: 'Resource ID', id: 'iIoj97' },
+    agentLoadTimeout: { defaultMessage: 'Failed to load agent site', id: 'Tu5Fvy' },
+    agentLoadTimeoutDescription: {
+        defaultMessage:
+            'The request either timed out or your browser refused the connection. Check your network status, browser settings and extensions, or VPN settings for conflicts. Your agent may also be cold-starting.',
+        id: 'gILrEi',
+    },
+    ensureNetworkAllows: { defaultMessage: 'Ensure your network allows', id: 'lrM2un' },
+    errorDetails: { defaultMessage: 'Error details', id: 'qddSy6' },
+    agentUrl: { defaultMessage: 'Agent URL', id: 'iYl35v' },
 });
 
 export const ResourceTypeNameResources = defineMessages({

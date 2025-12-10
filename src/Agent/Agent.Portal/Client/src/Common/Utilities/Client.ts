@@ -55,6 +55,24 @@ export const acquireAccessToken = async (
             expiresOn: response.expiresOn || undefined,
         };
     } catch (error) {
+        // In local dev, attempt popup fallback to more easily catch missing API perms and consent to them for the app registration
+        const isLocalDev = window.location.hostname === 'localhost';
+        if (isLocalDev) {
+            try {
+                const popupResponse = await msalInstance.acquireTokenPopup({
+                    scopes,
+                    account,
+                });
+
+                return {
+                    accessToken: popupResponse.accessToken,
+                    expiresOn: popupResponse.expiresOn || undefined,
+                };
+            } catch (popupError) {
+                console.error('acquireTokenPopup failed:', popupError);
+            }
+        }
+
         console.error(error);
         if (telemetrySource) {
             logTelemetryEvent({

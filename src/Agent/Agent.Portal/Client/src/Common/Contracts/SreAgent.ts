@@ -97,7 +97,7 @@ export interface DataConnector {
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;
-    agentSpaceId?: string;
+    agentSpaceId?: string | null;
     runningState: string;
     vnetConfiguration?: VnetConfiguration;
     knowledgeGraphConfiguration?: KnowledgeGraphConfiguration;

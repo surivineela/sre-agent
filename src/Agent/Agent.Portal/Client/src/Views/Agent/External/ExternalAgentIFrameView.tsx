@@ -42,15 +42,17 @@ export const ExternalAgentIFrameView = () => {
         return fullDeepLink || undefined;
     }, [encodedAgentName, encodedAgentUri, location.pathname, location.search, location.hash]);
 
-    const { agentUxUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage } = useExternalAgentView(agentUri, sreLink);
+    const { agentUxUrl, agentUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage, agentLoadError } = useExternalAgentView(agentUri, sreLink);
 
     return (
         <AgentIFrame
             agentUxUrl={agentUxUrl}
+            agentUrl={agentUrl}
             isSiteRunning={isSiteRunning}
             iframeRef={iframeRef}
             iframeInitialized={iframeInitialized}
             errorBannerMessage={errorBannerMessage}
+            agentLoadError={agentLoadError}
         />
     );
 };

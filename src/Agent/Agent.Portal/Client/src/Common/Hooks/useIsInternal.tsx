@@ -1,6 +1,6 @@
 import { useAuth } from '../Contexts/AuthContext';
 
-const devTenantId = 'c2b1aad6-a137-43d7-af13-b21ce1904be9';
+const devTenantId = 'bb34272d-0432-4e5e-9f0f-e7aca4a450a8';
 const internalTenantId = '72f988bf-86f1-41af-91ab-2d7cd011db47'; // MSFT/CORP
 
 const internalProdTenantIds = [
