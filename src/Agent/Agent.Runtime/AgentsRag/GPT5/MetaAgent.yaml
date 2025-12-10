@@ -141,6 +141,7 @@ tools:
   - PostTeamsMessage
   - GetTeamsMessages
 
+
 handoffs:
   - resource_discovery_agent
   - logs_resource_discovery_agent

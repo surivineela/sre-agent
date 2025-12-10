@@ -15,6 +15,7 @@ using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -42,6 +43,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IHostEnvironment _hostEnvironment;
     private readonly CustomerLogger _customerLogger;
     private readonly ISkillRegistry _skillRegistry;
+    private readonly IToolOutputTruncationService _toolOutputTruncationService;
 
     private readonly Tracer _tracer;
 
@@ -76,6 +78,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
+        IToolOutputTruncationService toolOutputTruncationService,
         IMeterFactory meterFactory,
         IncidentManagementSettings incidentManagementSettings,
         ISkillRegistry skillRegistry
@@ -101,6 +104,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _searchHelper = searchHelper;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
+        _toolOutputTruncationService = toolOutputTruncationService;
         _incidentManagementSettings = incidentManagementSettings;
         _skillRegistry = skillRegistry;
 
@@ -116,7 +120,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             HandoffReasoningEnabled: enableHandoffReasoning,
             DocumentRetrievalEnabled: coreSettings.AgentMemory.DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: coreSettings.AgentMemory.UserMemoryRetrievalEnabled,
-            Gpt5Enabled: coreSettings.AgentModel?.GPT5Enabled ?? false);
+            Gpt5Enabled: coreSettings.AgentModel?.GPT5Enabled ?? false,
+            PartialOutputEnabled: coreSettings.Azure.ToolOutputSettings.EnablePartialOutput);
     }
 
     public async Task<ReasoningLoop> Create(AgentContext context)
@@ -223,7 +228,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     incidentManagementSettings: _incidentManagementSettings,
                     coreSettings: _coreSettings,
                     modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
-                    skillRegistry: _skillRegistry);
+                    skillRegistry: _skillRegistry,
+                    toolOutputTruncationService: _toolOutputTruncationService);
 
             }
             catch (Exception ex)
@@ -255,6 +261,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             agentMemorySettings: _coreSettings.AgentMemory,
             featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier,
+            toolOutputTruncationService: _toolOutputTruncationService,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
             skillRegistry: _skillRegistry);
 
@@ -274,3 +281,6 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             featureConfig: _featureConfig.ToDocument());
     }
 }
+
+
+

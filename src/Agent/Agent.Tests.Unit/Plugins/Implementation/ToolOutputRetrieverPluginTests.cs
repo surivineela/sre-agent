@@ -195,7 +195,7 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches:", result);
-        Assert.Contains("Matched text:", result);
+        Assert.Contains("**Match", result);
     }
 
     [Fact]
@@ -379,7 +379,7 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches: 3", result);
-        Assert.Contains("Matched text:", result);
+        Assert.Contains("**Match", result);
     }
 
     [Fact]
@@ -403,8 +403,8 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches:", result);
-        Assert.Contains("Matched text:", result);
-        Assert.Contains("ServiceResource:", result);
+        Assert.Contains("**Match", result);
+        Assert.Contains("Line", result);
     }
 
     [Fact]
@@ -516,4 +516,5 @@ public class ToolOutputRetrieverPluginTests
         // Assert
         Assert.StartsWith("Error: File with key", result);
     }
+
 }

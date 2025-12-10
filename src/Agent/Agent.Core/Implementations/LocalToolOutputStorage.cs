@@ -3,10 +3,7 @@
 // ------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.Interfaces;
@@ -34,7 +31,8 @@ public class LocalToolOutputStorage : IToolOutputStorage
             throw new ArgumentException("Base storage path cannot be null or empty.", nameof(baseStoragePath));
         }
 
-        _baseStoragePath = baseStoragePath;
+        // Always append "ToolOutput" subfolder to the base path
+        _baseStoragePath = Path.Combine(baseStoragePath, "ToolOutput");
         _logger = logger;
 
         // Ensure base directory exists
@@ -49,26 +47,73 @@ public class LocalToolOutputStorage : IToolOutputStorage
         }
     }
 
+    /// <inheritdoc />
+    public async Task<string> SaveAsync(
+        Guid threadId,
+        string toolName,
+        string content,
+        string fileExtension,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new ArgumentException("Content cannot be null or empty.", nameof(content));
+        }
+
+        // Add dot prefix to file extension if not present
+        if (!fileExtension.StartsWith("."))
+        {
+            fileExtension = $".{fileExtension}";
+        }
+
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+        var fileKey = $"{threadId}-{timestamp}{fileExtension}";
+        var lineCount = content.Split('\n').Length;
+        var contentLength = content.Length;
+
+        _logger.LogInternalInformation(
+            "Saving tool output for thread {ThreadId}, tool {ToolName}, fileKey {FileKey}, lines {LineCount}, length {Length}, extension {Extension}",
+            threadId, toolName, fileKey, lineCount, contentLength, fileExtension);
+
+        try
+        {
+            // Save content to file in base storage directory
+            var filePath = Path.Combine(_baseStoragePath, fileKey);
+            await File.WriteAllTextAsync(filePath, content, cancellationToken);
+
+            _logger.LogInternalInformation(
+                "Successfully saved tool output to {FilePath}",
+                filePath);
+
+            return fileKey;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to save tool output for thread {ThreadId}, tool {ToolName}", threadId, toolName);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Verifies that a file exists in storage and returns its local file path.
     /// </summary>
-    public string? EnsureFileExist(string fileId)
+    public string? EnsureFileExist(string fileKey)
     {
-        if (string.IsNullOrWhiteSpace(fileId))
+        if (string.IsNullOrWhiteSpace(fileKey))
         {
             return null;
         }
 
         try
         {
-            // Sanitize fileId to prevent path traversal and glob pattern injection
-            var sanitizedFileId = Path.GetFileName(fileId);
+            // Sanitize fileKey to prevent path traversal and glob pattern injection
+            var sanitizedFileKey = Path.GetFileName(fileKey);
 
-            if (string.IsNullOrWhiteSpace(sanitizedFileId) ||
-                sanitizedFileId.Contains("..") ||
-                sanitizedFileId.IndexOfAny(new[] { '*', '?' }) >= 0)
+            if (string.IsNullOrWhiteSpace(sanitizedFileKey) ||
+                sanitizedFileKey.Contains("..") ||
+                sanitizedFileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
             {
-                _logger.LogInternalWarning("Invalid fileId detected: {FileId}", fileId);
+                _logger.LogInternalWarning("Invalid fileKey detected: {FileKey}", fileKey);
                 return null;
             }
 
@@ -77,13 +122,12 @@ public class LocalToolOutputStorage : IToolOutputStorage
                 return null;
             }
 
-            // Search in base directory and all subdirectories
-            var files = Directory.EnumerateFiles(_baseStoragePath, sanitizedFileId, SearchOption.AllDirectories);
-            var filePath = files.FirstOrDefault();
+            // Search in base directory
+            var filePath = Path.Combine(_baseStoragePath, sanitizedFileKey);
 
-            if (filePath == null)
+            if (!File.Exists(filePath))
             {
-                _logger.LogInternalWarning("File not found for {FileId}", fileId);
+                _logger.LogInternalWarning("File not found for {FileKey}", fileKey);
                 return null;
             }
 
@@ -93,16 +137,16 @@ public class LocalToolOutputStorage : IToolOutputStorage
 
             if (!fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInternalWarning("Path traversal attempt detected for {FileId}", fileId);
+                _logger.LogInternalWarning("Path traversal attempt detected for {FileKey}", fileKey);
                 return null;
             }
 
-            _logger.LogInternalInformation("File exists for {FileId}: {FilePath}", fileId, filePath);
+            _logger.LogInternalInformation("File exists for {FileKey}: {FilePath}", fileKey, filePath);
             return filePath;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error checking if file exists: {FileId}", fileId);
+            _logger.LogInternalError(ex, "Error checking if file exists: {FileKey}", fileKey);
             return null;
         }
     }
@@ -129,7 +173,7 @@ public class LocalToolOutputStorage : IToolOutputStorage
             }
 
             var cutoffDate = DateTime.UtcNow.AddDays(-retentionDays);
-            var files = Directory.EnumerateFiles(_baseStoragePath, "*.txt", SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(_baseStoragePath, "*.*", SearchOption.AllDirectories);
             var deletedCount = 0;
 
             foreach (var file in files)

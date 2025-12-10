@@ -22,4 +22,5 @@ public class RunConfig
     public Dictionary<string, object>? TraceMetadata { get; set; }
     public bool EnableDebugOutput { get; set; } = true;
     public int MaxActiveSkills { get; set; } = 5;
+    public bool EnablePartialToolOutput { get; set; } = false;
 }

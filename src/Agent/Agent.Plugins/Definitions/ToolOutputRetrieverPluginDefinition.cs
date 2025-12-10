@@ -51,6 +51,8 @@ public class ToolOutputRetrieverPluginDefinition
              { "fileKey": "logs-20251130-143025.json", "operation": "filter_structured", "jmesPath": "[?level=='ERROR']" }
            Example: Get specific fields
              { "fileKey": "data-20251130-143025.yaml", "operation": "filter_structured", "jmesPath": "items[*].{name:name, status:status}" }
+           Example: Get specific fields
+             { "fileKey": "data-20251130-143025.yaml", "operation": "filter_structured", "jmesPath": "foo[?age > `25`]" }
 
         5. search_regex - Search with regular expressions
            Required: fileKey, operation='search_regex', regexPattern
@@ -75,7 +77,7 @@ public class ToolOutputRetrieverPluginDefinition
         [Description("Starting byte offset (0-based, for read_by_offset and summarize with scope=offset)")] long? offsetStart = null,
         [Description("Ending byte offset (0-based, optional, for read_by_offset and summarize with scope=offset)")] long? offsetEnd = null,
         [Description("Prompt for summarization (required for summarize operation)")] string? summaryPrompt = null,
-        [Description("JMESPath expression for filtering (required for filter_structured operation). Example: '[?level==`ERROR`]' or 'items[*].{name:name, status:status}'")] string? jmesPath = null,
+        [Description("JMESPath expression for filtering (required for filter_structured operation). Example: '[?level==`ERROR`]' or 'items[*].{name:name, status:status} *Don't use unicode in JMESPath expressions*'")] string? jmesPath = null,
         [Description("Regex pattern to search for (required for search_regex operation)")] string? regexPattern = null,
         [Description("Regex flags: i=case-insensitive, m=multiline, s=dot-matches-newline (optional for search_regex)")] string? regexFlags = null,
         [Description("Maximum number of regex matches to return (default: 100)")] int? regexMaxMatches = null)

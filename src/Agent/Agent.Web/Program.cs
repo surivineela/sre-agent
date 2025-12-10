@@ -547,12 +547,13 @@ public class Program
                 // Use configured path if available, otherwise fall back to temp directory
                 var storagePath = !string.IsNullOrEmpty(settings.StoragePath)
                     ? settings.StoragePath
-                    : Path.Combine(Path.GetTempPath(), "SREAgent", "ToolOutputs");
+                    : Path.Combine(Path.GetTempPath(), "SREAgent");
 
                 return new LocalToolOutputStorage(storagePath, logger);
             })
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
+            .AddSingleton<IToolOutputTruncationService, ToolOutputTruncationService>()
             .AddTransient<IAzureApplicationInsightsPlugin, AzureApplicationInsightsPlugin>()
             .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
@@ -723,6 +724,11 @@ public class Program
                 .GetSection("AppSettings:Core:Azure:ScheduledTasks")
                 .Get<ScheduledTaskSettings>();
             var isScheduledTaskEnabled = scheduledTaskSettings?.Enabled ?? false;
+            // Get ToolOutputSettings to determine if partial output should be enabled
+            var toolOutputSettings = sp.GetRequiredService<IConfiguration>()
+                .GetSection("AppSettings:Core:Azure:ToolOutputSettings")
+                .Get<ToolOutputSettings>();
+            var isPartialOutputEnabled = toolOutputSettings?.EnablePartialOutput ?? false;
 
             // Build promptStarters array conditionally based on scheduled task enablement
             var promptStarters = new List<string> { Core.Constants.SREAgentPromptStarter };
@@ -750,6 +756,7 @@ public class Program
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
                 scheduledTasksEnabled: isScheduledTaskEnabled,
+                enablePartialOutput: isPartialOutputEnabled,
                 dynamicAgentDescriptors: [
                     () =>
                     {
@@ -1753,4 +1760,7 @@ public class Program
         return forcedVariants ?? string.Empty;
     }
 }
+
+
+
 

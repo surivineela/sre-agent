@@ -55,7 +55,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
         ISkillRegistry skillRegistry,
     IncidentManagementSettings incidentManagementSettings,
     CoreSettings coreSettings,
-    bool modeSwitchEnabled)
+    bool modeSwitchEnabled,
+    IToolOutputTruncationService toolOutputTruncationService)
         : base(
             loggerFactory: loggerFactory,
             chatClientProvider: chatClientProvider,
@@ -79,7 +80,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             featureConfig: featureConfig,
             agentRuntimeModifier: agentRuntimeModifier,
             modeSwitchEnabled: modeSwitchEnabled,
-            skillRegistry: skillRegistry)
+            skillRegistry: skillRegistry,
+            toolOutputTruncationService: toolOutputTruncationService)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,
@@ -139,3 +141,6 @@ public class WorkflowReasoningLoop : ReasoningLoop
         base.Dispose(disposing);
     }
 }
+
+
+

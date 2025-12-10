@@ -14,7 +14,8 @@ public sealed record FeatureConfig(
     bool? DocumentRetrievalEnabled,
     bool? UserMemoryRetrievalEnabled,
     bool? HandoffReasoningEnabled,
-    bool? Gpt5Enabled)
+    bool? Gpt5Enabled,
+    bool? PartialOutputEnabled)
 {
     public FeatureConfigModel ToModel()
     {
@@ -26,7 +27,8 @@ public sealed record FeatureConfig(
             HandoffReasoningEnabled: HandoffReasoningEnabled ?? FeatureConfigModel.Default.HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled ?? FeatureConfigModel.Default.DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled ?? FeatureConfigModel.Default.UserMemoryRetrievalEnabled,
-            Gpt5Enabled: Gpt5Enabled ?? FeatureConfigModel.Default.Gpt5Enabled);
+            Gpt5Enabled: Gpt5Enabled ?? FeatureConfigModel.Default.Gpt5Enabled,
+            PartialOutputEnabled: PartialOutputEnabled ?? FeatureConfigModel.Default.PartialOutputEnabled);
     }
 }
 
@@ -40,7 +42,8 @@ public sealed record FeatureConfigModel(
     bool DocumentRetrievalEnabled,
     bool UserMemoryRetrievalEnabled,
     bool HandoffReasoningEnabled,
-    bool Gpt5Enabled)
+    bool Gpt5Enabled,
+    bool PartialOutputEnabled)
 {
     public static FeatureConfigModel Default { get; } = new(
         AutoHandoffEnabled: false,
@@ -50,7 +53,8 @@ public sealed record FeatureConfigModel(
         HandoffReasoningEnabled: false,
         DocumentRetrievalEnabled: false,
         UserMemoryRetrievalEnabled: false,
-        Gpt5Enabled: false);
+        Gpt5Enabled: false,
+        PartialOutputEnabled: false);
 
     public FeatureConfig ToDocument()
     {
@@ -62,6 +66,7 @@ public sealed record FeatureConfigModel(
             HandoffReasoningEnabled: HandoffReasoningEnabled,
             DocumentRetrievalEnabled: DocumentRetrievalEnabled,
             UserMemoryRetrievalEnabled: UserMemoryRetrievalEnabled,
-            Gpt5Enabled: Gpt5Enabled);
+            Gpt5Enabled: Gpt5Enabled,
+            PartialOutputEnabled: PartialOutputEnabled);
     }
 }

@@ -26,4 +26,11 @@ public class ToolOutputSettings
     /// Default: 16384 characters (16KB)
     /// </summary>
     public int MaxOutputChars { get; set; } = 16384;
+
+    /// <summary>
+    /// Enables the ToolOutputRetriever tool for accessing truncated tool outputs
+    /// When enabled, agents will have access to the ToolOutputRetriever tool and related common prompt
+    /// Default: false
+    /// </summary>
+    public bool EnablePartialOutput { get; set; } = false;
 }

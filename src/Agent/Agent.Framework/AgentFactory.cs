@@ -101,6 +101,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _gpt5Enabled;
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _scheduledTasksEnabled;
+    private readonly bool _enablePartialOutput;
 
     // NEW: store deferred MCP agent descriptors (descriptor, isCustom, overwrite)
     private readonly List<(IAgentDescriptor Descriptor, bool IsCustom, bool Overwrite)> _deferredMcpAgentDescriptors = [];
@@ -133,6 +134,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         bool gpt5Enabled = false,
         bool agentMemoryRetrievalEnabled = false,
         bool scheduledTasksEnabled = false,
+        bool enablePartialOutput = false,
         IEnumerable<Func<IAgentDescriptor?>>? dynamicAgentDescriptors = null
     )
     {
@@ -152,6 +154,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _gpt5Enabled = gpt5Enabled;
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
         _scheduledTasksEnabled = scheduledTasksEnabled;
+        _enablePartialOutput = enablePartialOutput;
 
         if (dynamicAgentDescriptors is not null)
         {
@@ -259,6 +262,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         // Add memory tools and common prompts
         AugmentMemoryTools(agentDescriptor, agent);
 
+        //TODO: This func could be replaced when experiment is working on extended agents. When experiment is working, use ApplyParamOverlay to set enablePartialOutput and common prompt in agent
+        // Add ToolOutputRetriever tool and common prompt if enabled
+        AugmentPartialOutputTool(agentDescriptor, agent);
+
         // Add common tools to the agent
         if (agentDescriptor.CommonTools is not null
             && agentDescriptor.CommonTools.Count > 0)
@@ -364,6 +371,29 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool<TContext>.CommonPromptName))
         {
             agentDescriptor.CommonPrompts.Add(ToDoWriteTool<TContext>.CommonPromptName);
+        }
+    }
+
+    private void AugmentPartialOutputTool(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        const string ToolOutputRetrieverTool = "ToolOutputRetriever";
+        const string ToolOutputRetrieverCommonPrompt = "tool_output_retriever";
+
+        // Add ToolOutputRetriever tool if partial output is enabled
+        if (_enablePartialOutput)
+        {
+            // Check if ToolOutputRetriever is not already in the tools list
+            if (!agent.FactoryTools.Contains(ToolOutputRetrieverTool))
+            {
+                agent.FactoryTools.Add(ToolOutputRetrieverTool);
+            }
+        }
+
+        // Add ToolOutputRetriever common prompt to agents if tool is added
+        if (agent.FactoryTools.Contains(ToolOutputRetrieverTool)
+            && !agentDescriptor.CommonPrompts.Contains(ToolOutputRetrieverCommonPrompt))
+        {
+            agentDescriptor.CommonPrompts.Add(ToolOutputRetrieverCommonPrompt);
         }
     }
 

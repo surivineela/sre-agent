@@ -155,6 +155,7 @@ tools:
   - GetTeamsMessages
   - PerformDgrepSearch
 
+
 handoffs:
   - resource_discovery_agent
   - logs_resource_discovery_agent

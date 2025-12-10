@@ -1,0 +1,5 @@
+name: tool_output_retriever
+
+prompt: |
+    When tool outputs are truncated (indicated by fileKey in response), use ToolOutputRetriever to access full content. Operations: read_by_line (line ranges), read_by_offset (byte ranges), filter_structured (JMESPath for JSON/YAML), search_regex (pattern matching), summarize. Always retrieve relevant portions before analysis.
+       

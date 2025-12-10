@@ -150,6 +150,7 @@ tools:
   - PostTeamsMessage
   - GetTeamsMessages
 
+
 handoffs:
   - resource_discovery_agent
   - logs_resource_discovery_agent
@@ -177,7 +178,7 @@ handoffs:
   - cdb_general_agent
   - kql_agent
   - cannot_connect_to_vm_agent
-  - redis_agent 
+  - redis_agent
 
 common_prompts:
   - format_guidelines

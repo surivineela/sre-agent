@@ -49,6 +49,7 @@ public static class Runner
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -100,7 +101,8 @@ public static class Runner
             cancellationToken: cancellationToken,
             _shouldRunAgentStartHooks: previousResult.AgentChanged(),
             allowParallelToolCalls: allowParallelToolCalls,
-            toolResultCache: toolResultCache
+            toolResultCache: toolResultCache,
+            toolOutputTruncationService: toolOutputTruncationService
         );
     }
 
@@ -116,6 +118,7 @@ public static class Runner
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -132,6 +135,7 @@ public static class Runner
             cancellationToken: cancellationToken,
             allowParallelToolCalls: allowParallelToolCalls,
             toolResultCache: toolResultCache,
+            toolOutputTruncationService: toolOutputTruncationService,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
     }
@@ -150,6 +154,7 @@ public static class Runner
         RunHooks<TContext>? hooks = null,
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -180,7 +185,8 @@ public static class Runner
                 displayModelOutput: displayModelOutput,
                 cancellationToken: cancellationToken,
                 _shouldRunAgentStartHooks: true,
-                allowParallelToolCalls: allowParallelToolCalls
+                allowParallelToolCalls: allowParallelToolCalls,
+                toolOutputTruncationService: toolOutputTruncationService
             );
 
             return new RunResultWithHandoff<TContext>
@@ -214,6 +220,7 @@ public static class Runner
         bool _shouldRunAgentStartHooks = true,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
     {
@@ -283,6 +290,7 @@ public static class Runner
                     allowParallelToolCalls: allowParallelToolCalls,
                     displayModelOutput: displayModelOutput,
                     toolResultCache: toolResultCache,
+                    toolOutputTruncationService: toolOutputTruncationService,
                     cancellationToken: cancellationToken
                 );
 
@@ -575,6 +583,7 @@ public static class Runner
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         IDisplayModelOutput? displayModelOutput = null,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -728,7 +737,9 @@ public static class Runner
             activeSkills: activeSkills,
             logger: logger,
             displayModelOutput: displayModelOutput,
-            toolResultCache: toolResultCache
+            toolResultCache: toolResultCache,
+            toolOutputTruncationService: toolOutputTruncationService,
+            cancellationToken: cancellationToken
         );
     }
 
@@ -748,7 +759,9 @@ public static class Runner
         SkillList activeSkills,
         ILogger logger,
         ToolResultCache? toolResultCache = null,
-        IDisplayModelOutput? displayModelOutput = null
+        IDisplayModelOutput? displayModelOutput = null,
+        IToolOutputTruncationService? toolOutputTruncationService = null,
+        CancellationToken cancellationToken = default
     ) where TContext : class
     {
         List<ChatMessage> newStepItems = [];
@@ -1010,6 +1023,12 @@ public static class Runner
                         try
                         {
                             toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
+
+                            // Process tool output for potential truncation
+                            if (runConfig.EnablePartialToolOutput && toolOutputTruncationService != null)
+                            {
+                                toolResult = await toolOutputTruncationService.ProcessToolOutputAsync(contextWrapper.Context, tool.Name, toolResult, cancellationToken);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1585,3 +1604,5 @@ public static class Runner
         modelInput.Add(new ChatMessage(ChatRole.User, skillsReminder));
     }
 }
+
+

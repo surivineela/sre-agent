@@ -133,11 +133,6 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
 
             var content = string.Join(Environment.NewLine, selectedLines);
 
-            if (!ValidateOutputSize(content))
-            {
-                return $"Error: Output size would exceed {_maxOutputChars:N0} character limit. Please narrow your line range.";
-            }
-
             var result = new StringBuilder();
             result.AppendLine($"lineStart: {lineStart.Value}");
             result.AppendLine($"lineEnd: {Math.Min(currentLineNumber + 1, lineEnd.Value)}");
@@ -188,11 +183,6 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 var bytesRead = await stream.ReadAsync(buffer, 0, bytesToRead);
 
                 var content = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                if (!ValidateOutputSize(content))
-                {
-                    return $"Error: Output size would exceed {_maxOutputChars:N0} character limit. Please narrow your byte range.";
-                }
 
                 var result = new StringBuilder();
                 result.AppendLine($"offsetStart: {start}");
@@ -281,11 +271,6 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 output = JsonSerializer.Serialize(result);
             }
 
-            if (!ValidateOutputSize(output))
-            {
-                return $"Error: Output size would exceed {_maxOutputChars:N0} character limit. Please use a more specific JMESPath query.";
-            }
-
             return output;
         }
         catch (JsonException ex)
@@ -340,16 +325,8 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 var columnNumber = GetColumnNumber(content, match.Index);
 
                 result.AppendLine($"**Match {i + 1}** (Line {lineNumber}, Column {columnNumber}, Offset {match.Index}):");
-                result.AppendLine($"  Matched text: \"{match.Value}\"");
                 result.AppendLine();
                 actualMatchesShown = i + 1;
-
-                // Check output size periodically
-                if (i % 10 == 0 && !ValidateOutputSize(result.ToString()))
-                {
-                    result.AppendLine($"... Output size limit reached. Showing {actualMatchesShown} of {matches.Count} matches.");
-                    return result.ToString();
-                }
             }
 
             if (matches.Count > maxMatches)
@@ -369,11 +346,6 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             _logger.LogInternalError(ex, "Error searching with regex: {FilePath}", filePath);
             return $"Error searching file: {ex.Message}";
         }
-    }
-
-    private bool ValidateOutputSize(string content)
-    {
-        return content.Length <= _maxOutputChars;
     }
 
     private int GetLineNumber(string content, int index)

@@ -120,6 +120,9 @@ public class ReasoningLoop : IDisposable
     // user-required action tracking
     private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
 
+    // tool output truncation
+    private readonly IToolOutputTruncationService _toolOutputTruncationService;
+
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
@@ -143,6 +146,7 @@ public class ReasoningLoop : IDisposable
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
+        IToolOutputTruncationService toolOutputTruncationService,
         bool modeSwitchEnabled = false)
     {
         _loggerFactory = loggerFactory;
@@ -196,6 +200,7 @@ public class ReasoningLoop : IDisposable
         _logger.LogInternalInformation("[{ThreadId}] Active Experiment Variants: {experimentVariants}",
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
+        _toolOutputTruncationService = toolOutputTruncationService;
     }
     public virtual void CancelCurrentOperation()
     {
@@ -547,7 +552,6 @@ public class ReasoningLoop : IDisposable
                                 }
                                 else if (message.Role == ChatRole.Tool)
                                 {
-                                    // Extract function result information
                                     functionResultContent = message.Contents.OfType<FunctionResultContent>().FirstOrDefault();
                                 }
                             }
@@ -570,7 +574,33 @@ public class ReasoningLoop : IDisposable
 
                             _tracer.RecordUserContinueToolSpan(_context.ThreadId.ToString(), toolName, toolInput, toolOutput, _rootSpan);
 
-                            var toolResults = functionCall.Messages.Where(m => m.Role == ChatRole.Tool).ToList();
+                            var toolMessages = functionCall.Messages.Where(m => m.Role == ChatRole.Tool);
+                            var toolResults = new List<ChatMessage>();
+                            if (_featureConfig.PartialOutputEnabled)
+                            {
+                                foreach (var toolMessage in toolMessages)
+                                {
+                                    var functionResult = toolMessage.Contents.OfType<FunctionResultContent>().FirstOrDefault();
+                                    if (functionResult != null)
+                                    {
+                                        var funcCallName = functionCall.Messages.Where(m => m.Role == ChatRole.Assistant)
+                                            .SelectMany(m => m.Contents.OfType<FunctionCallContent>())
+                                            .Where(m => m.CallId == functionResult.CallId).FirstOrDefault()?.Name ?? "";
+                                        var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                            _context.ThreadId,
+                                            funcCallName,
+                                            functionResult.Result?.ToString() ?? "",
+                                            cancellationToken);
+
+                                        toolResults.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(functionResult.CallId, processedOutput)]));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                toolResults.AddRange(toolMessages);
+                            }
+
                             await PersistReasoningMessagesAsync(agentChatHistory, toolResults);
 
                             if (await HasPendingApprovalsOrCliExecutionsAsync())
@@ -761,7 +791,8 @@ public class ReasoningLoop : IDisposable
             LoggerFactory = _loggerFactory,
             EnableDebugOutput = _enableReasoningDebugOutput,
             ThreadId = _context.ThreadId,
-            SkillRegistry = _skillRegistry
+            SkillRegistry = _skillRegistry,
+            EnablePartialToolOutput = _featureConfig.PartialOutputEnabled
         };
 
         List<UserActionRequiredResult> userActionRequiredResults = [];
@@ -790,6 +821,7 @@ public class ReasoningLoop : IDisposable
                 hooks: runHooks,
                 displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                 activeSkills: GetActiveSkills(_currentAgent),
+                toolOutputTruncationService: _toolOutputTruncationService,
                 cancellationToken: cancellationToken
             );
 
@@ -892,11 +924,28 @@ public class ReasoningLoop : IDisposable
                                         || cliExecution is null
                                         || !cliExecution.IsPending)
                                     {
-                                        toolResults.Add(new ManualToolCallResult()
+                                        if (_featureConfig.PartialOutputEnabled)
                                         {
-                                            FunctionCall = toolCall.FunctionCall,
-                                            Output = functionResult
-                                        });
+                                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                                _context.ThreadId,
+                                                toolCall.Tool.Name,
+                                                functionResult,
+                                                cancellationToken);
+
+                                            toolResults.Add(new ManualToolCallResult()
+                                            {
+                                                FunctionCall = toolCall.FunctionCall,
+                                                Output = processedOutput
+                                            });
+                                        }
+                                        else
+                                        {
+                                            toolResults.Add(new ManualToolCallResult()
+                                            {
+                                                FunctionCall = toolCall.FunctionCall,
+                                                Output = functionResult
+                                            });
+                                        }
                                     }
                                     else
                                     {
@@ -988,6 +1037,7 @@ public class ReasoningLoop : IDisposable
                             context: _context,
                             hooks: runHooks,
                             displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
+                            toolOutputTruncationService: _toolOutputTruncationService,
                             cancellationToken: cancellationToken
                         );
 
@@ -1869,12 +1919,23 @@ public class ReasoningLoop : IDisposable
         {
             await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
-            var result = new FunctionResultContent(functionCall.CallId, functionResult);
+
+            FunctionResultContent result;
+            if (_featureConfig.PartialOutputEnabled)
+            {
+                var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(_context.ThreadId, aiTool.Name, functionResult, cancellationToken);
+                result = new FunctionResultContent(functionCall.CallId, processedOutput);
+            }
+            else
+            {
+                result = new FunctionResultContent(functionCall.CallId, functionResult);
+            }
             var functionCallMessage = new ChatMessage(ChatRole.Tool, [result]);
             // Set the tool output in the span
             toolSpan.SetAttribute(TraceAttribute.ToolOutput, functionResult?.ToString() ?? string.Empty);
 
-            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, result, toolCallMessageId);
+            var outboundResult = new FunctionResultContent(functionCall.CallId, functionResult);
+            await _outboundCommunicationService.AppendAgentToolCallResult(_context.ThreadId, outboundResult, toolCallMessageId);
             await PersistReasoningMessageAsync(agentChatHistory, functionCallMessage);
         }
         finally
@@ -2921,6 +2982,7 @@ public class ReasoningLoop : IDisposable
                 EnableDebugOutput = _enableReasoningDebugOutput,
                 ThreadId = _context.ThreadId,
                 SkillRegistry = _skillRegistry,
+                EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
             };
 
             try
@@ -2967,11 +3029,28 @@ public class ReasoningLoop : IDisposable
                     {
                         var functionResult = await InvokeToolWithErrorHandlingAsync(toolCall, cancellationToken);
 
-                        toolResults.Add(new ManualToolCallResult()
+                        if (_featureConfig.PartialOutputEnabled)
                         {
-                            FunctionCall = toolCall.FunctionCall,
-                            Output = functionResult
-                        });
+                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                _context.ThreadId,
+                                toolCall.FunctionCall.CallId,
+                                functionResult?.ToString());
+
+                            toolResults.Add(new ManualToolCallResult()
+                            {
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = processedOutput
+                            });
+                        }
+                        else
+                        {
+                            toolResults.Add(new ManualToolCallResult()
+                            {
+                                FunctionCall = toolCall.FunctionCall,
+                                Output = functionResult
+                            });
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -2989,6 +3068,7 @@ public class ReasoningLoop : IDisposable
                         context: _context,
                         hooks: runHooks,
                         displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
+                        toolOutputTruncationService: _toolOutputTruncationService,
                         allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );

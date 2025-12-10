@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
+using Agent.Core.Implementations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -319,6 +320,25 @@ public static class TestHelpers
         builder.Services.AddSingleton<CannotConnectToVmPluginDefinition>();
         builder.Services.AddSingleton<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>();
 
+        // Register IToolOutputStorage for test environment
+        builder.Services.AddSingleton<IToolOutputStorage>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
+            var storagePath = Path.Combine(Path.GetTempPath(), "SREAgent", "TestToolOutputs");
+            return new LocalToolOutputStorage(storagePath, logger);
+        });
+
+        // Configure ToolOutputSettings
+        builder.Services.Configure<ToolOutputSettings>(options =>
+        {
+            options.StoragePath = Path.Combine(Path.GetTempPath(), "SREAgent", "TestToolOutputs");
+            options.RetentionDays = 1;
+            options.MaxOutputChars = 16384;
+        });
+
+        builder.Services.AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>();
+        builder.Services.AddTransient<ToolOutputRetrieverPluginDefinition>();
+        builder.Services.AddSingleton<IToolOutputTruncationService, ToolOutputTruncationService>();
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
 
