@@ -4412,6 +4412,7 @@ public class ArmHelper
                 Task.Run(async () => additionalTokens[Constants.StorageOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.StorageOboTokenScope]), default)).Token),
                 Task.Run(async () => additionalTokens[Constants.SynapseOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.SynapseOboTokenScope]), default)).Token),
                 Task.Run(async () => additionalTokens[Constants.AppInsightsTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AppInsightsTokenScope]), default)).Token),
+                Task.Run(async () => additionalTokens[Constants.LogAnalyticsOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.LogAnalyticsOboTokenScope]), default)).Token),
             };
 
             await Task.WhenAll(tokenTasks);

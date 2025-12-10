@@ -2282,7 +2282,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 Constants.AkvOboTokenScope,
                 Constants.StorageOboTokenScope,
                 Constants.SynapseOboTokenScope,
-                Constants.AppInsightsTokenScope
+                Constants.AppInsightsTokenScope,
+                Constants.LogAnalyticsOboTokenScope
             });
 
             var approval = new Approval(
