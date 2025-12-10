@@ -21,7 +21,6 @@ export interface McpConnection {
     tools?: McpTool[];
     description?: string;
     serviceType?: string;
-    maxToolsPerConnection?: number; // Maximum tools that can be selected from this connection
 }
 
 /**
@@ -71,7 +70,6 @@ export interface McpToolsByConnection {
     connectionName: string;
     connectionId: string;
     serviceType?: string;
-    maxToolsPerConnection?: number;
     tools: McpTool[];
 }
 
@@ -82,7 +80,6 @@ export async function getMcpToolsByConnection(baseUrl: string): Promise<McpTools
         connectionName: connection.name,
         connectionId: connection.connectionId,
         serviceType: connection.serviceType,
-        maxToolsPerConnection: connection.maxToolsPerConnection,
         tools: connection.tools || [],
     }));
 }

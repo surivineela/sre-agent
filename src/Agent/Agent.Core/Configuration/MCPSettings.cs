@@ -18,16 +18,6 @@ namespace Agent.Core.Configuration
         public bool UseSessionForStdio { get; set; } = false;
 
         /// <summary>
-        /// The list of MCP servers that will be exposed as individual subagents
-        /// </summary>
-        public HashSet<string> IsolatedServers { get; set; } = [];
-
-        /// <summary>
-        /// The list of MCP servers that will have their tools exposed to all subagents
-        /// </summary>
-        public HashSet<string> SharedServers { get; set; } = [];
-
-        /// <summary>
         /// The list of STDIO-based MCP connections
         /// </summary>
         public List<MCPStdioConnectionSettings> StdioConnections { get; set; } = [];

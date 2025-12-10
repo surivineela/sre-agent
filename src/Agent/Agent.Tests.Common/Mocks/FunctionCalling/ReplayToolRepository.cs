@@ -73,8 +73,4 @@ public class ReplayToolRepository : IToolsRepository
         return _innerRepository.GetAllFunctions();
     }
 
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
 }

@@ -3,23 +3,18 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
-using Agent.Core.Configuration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using ModelContextProtocol.Client;
 
 namespace Agent.Runtime.SubAgents;
 
-// [Export]
 public class McpToolsRepository : IMcpConnectable
 {
     private readonly ILogger<McpToolsRepository> _logger;
-    private readonly MCPSettings _mcpSettings;
     private readonly IServiceProvider _serviceProvider;
 
     private readonly ConcurrentDictionary<string, AIFunction> _aiFunctions = new();
@@ -27,44 +22,12 @@ public class McpToolsRepository : IMcpConnectable
 
     public McpToolsRepository(
         ILogger<McpToolsRepository> logger,
-        IOptions<MCPSettings> mcpSettings,
         IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _mcpSettings = mcpSettings.Value;
         _serviceProvider = serviceProvider;
     }
 
-    public async Task InitializeAsync()
-    {
-        if (!_mcpSettings.Enabled)
-        {
-            _logger.LogInternalInformation("MCP is disabled via settings. Skipping initialization.");
-            return;
-        }
-
-        if (_connectionToToolSignatures.Count == 0)
-        {
-            // Initialize STDIO connections from configuration
-            foreach (var stdioConfig in _mcpSettings.StdioConnections.Where(c => c.Enabled))
-            {
-                var transport = new StdioClientTransport(new()
-                {
-                    Name = stdioConfig.Name,
-                    Command = stdioConfig.Command,
-                    Arguments = stdioConfig.Arguments
-                });
-
-                var connection = new McpConnection(_logger, transport)
-                {
-                    Backend = this
-                };
-
-                await connection.InitializeAsync();
-                TryAddServer(connection);
-            }
-        }
-    }
 
     private string GetMcpToolSignature(
         McpConnection connection,

@@ -293,8 +293,4 @@ public class ToolsRepository : IToolsRepository
         return _aiFunctions.Values.Select(t => t.ToolFunction).ToList();
     }
 
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
 }

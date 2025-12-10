@@ -379,7 +379,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         if (_mcpToolsRepository != null)
         {
             _logger.LogInternalInformation("Initializing MCP tools repository...");
-            await _mcpToolsRepository.InitializeAsync();
 
             var mcpFunctions = _mcpToolsRepository.GetAllFunctions();
             _logger.LogInternalInformation("MCP tools repository initialized. Found {Count} MCP tools", mcpFunctions.Count);

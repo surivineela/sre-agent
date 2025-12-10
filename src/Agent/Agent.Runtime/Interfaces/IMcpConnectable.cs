@@ -24,8 +24,5 @@ namespace Agent.Runtime.Interfaces
         public void TryRemoveServer(McpConnection connection);
 
         public List<AIFunction> GetAllFunctions();
-
-        public Task InitializeAsync();
     }
 }
-

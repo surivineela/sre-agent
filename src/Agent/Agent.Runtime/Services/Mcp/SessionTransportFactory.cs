@@ -58,7 +58,6 @@ public class SessionTransportFactory : ISessionTransportFactory
         // Define token scopes for Azure authentication (same as Azure CLI)
         var tokenScopes = new List<string>
         {
-            Constants.ArmOboTokenScope,
             Constants.ArmApiTokenScope,
             Constants.AzureDevopsTokenScope,
             Constants.Ev2ProdTokenScope,

@@ -25,7 +25,6 @@ public class AgentsUsageTests
         // Mock the IMcpConnectable service to prevent actual MCP connections during tests
         var mockMcpConnectable = new Mock<IMcpConnectable>();
         mockMcpConnectable.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
-        mockMcpConnectable.Setup(m => m.InitializeAsync()).Returns(Task.CompletedTask);
 
         // Replace the IMcpConnectable registration with our mock
         var serviceDescriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IMcpConnectable));
