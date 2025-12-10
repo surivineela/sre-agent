@@ -48,7 +48,7 @@ resource subagentExtensions 'Microsoft.App/agents/subagents@2025-05-01-preview' 
 @batchSize(1)
 resource toolExtensions 'Microsoft.App/agents/tools@2025-05-01-preview' = [for tool in tools: {
   parent: parentAgent
-  name: tool.spec.name
+  name: tool.metadata.name
   properties: {
     value: base64(string(tool))
   }

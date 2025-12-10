@@ -4,6 +4,7 @@
 
 using System.CommandLine;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
 
 namespace Agent.Cli.Commands;
 
@@ -98,20 +99,6 @@ public static class ExtensionCommandHandlers
             }
         }
 
-        // Copy and split YAML files to output directory for self-contained artifacts
-        var outputAgentsFolder = Path.Combine(outputFolder!, "agents");
-        var outputToolsFolder = Path.Combine(outputFolder!, "tools");
-
-        if (Directory.Exists(agentFolder))
-        {
-            await CopyAndSplitYamlFiles(agentFolder!, outputAgentsFolder);
-        }
-
-        if (Directory.Exists(toolsFolder))
-        {
-            await CopyAndSplitYamlFiles(toolsFolder!, outputToolsFolder);
-        }
-
         // Generate the sreagentExtensionFile.bicep dynamically
         await GenerateSreagentExtensionFile(toolsFolder!, agentFolder!, outputFolder!);
 
@@ -186,12 +173,6 @@ public static class ExtensionCommandHandlers
         {
             var fileName = Path.GetFileName(file);
 
-            // Remove .template extension if present
-            if (fileName.EndsWith(".template", StringComparison.OrdinalIgnoreCase))
-            {
-                fileName = fileName.Substring(0, fileName.Length - ".template".Length);
-            }
-
             var destinationFile = Path.Combine(destinationDir, fileName);
 
             DebugLogger.Debug("File Copy", $"Copying {file} to {destinationFile}");
@@ -210,88 +191,69 @@ public static class ExtensionCommandHandlers
     }
 
     /// <summary>
-    /// Copies YAML files and splits multi-document YAML files into individual files.
-    /// </summary>
-    private static async Task CopyAndSplitYamlFiles(string sourceDir, string destinationDir)
-    {
-        if (!Directory.Exists(sourceDir))
-        {
-            return;
-        }
-
-        // Create the destination directory if it doesn't exist
-        Directory.CreateDirectory(destinationDir);
-
-        // Get all YAML files from source directory
-        var yamlFiles = new List<string>();
-        yamlFiles.AddRange(Directory.GetFiles(sourceDir, "*.yaml", SearchOption.AllDirectories));
-        yamlFiles.AddRange(Directory.GetFiles(sourceDir, "*.yml", SearchOption.AllDirectories));
-
-        foreach (var yamlFile in yamlFiles)
-        {
-            var content = await File.ReadAllTextAsync(yamlFile);
-
-            // Check if this is a multi-document YAML file (contains document separators)
-            var documents = content.Split(new[] { "\n---\n", "\r\n---\r\n", "\n---\r\n", "\r\n---\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (documents.Length > 1)
-            {
-                // Multi-document YAML - split into individual files
-                DebugLogger.Debug("YAML Split", $"Splitting {yamlFile} into {documents.Length} documents");
-
-                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(yamlFile);
-                var extension = Path.GetExtension(yamlFile);
-
-                for (int i = 0; i < documents.Length; i++)
-                {
-                    var document = documents[i].Trim();
-                    if (string.IsNullOrWhiteSpace(document))
-                    {
-                        continue;
-                    }
-
-                    // Remove leading --- if present
-                    if (document.StartsWith("---"))
-                    {
-                        document = document.Substring(3).TrimStart();
-                    }
-
-                    var outputFileName = $"{fileNameWithoutExtension}-{i + 1}{extension}";
-                    var outputFilePath = Path.Combine(destinationDir, outputFileName);
-
-                    await File.WriteAllTextAsync(outputFilePath, document);
-                    DebugLogger.Debug("YAML Split", $"Created {outputFileName}");
-                }
-            }
-            else
-            {
-                // Single document YAML - copy as-is
-                var fileName = Path.GetFileName(yamlFile);
-                var destinationFile = Path.Combine(destinationDir, fileName);
-                File.Copy(yamlFile, destinationFile, overwrite: true);
-                DebugLogger.Debug("YAML Copy", $"Copied {fileName}");
-            }
-        }
-    }
-
-    /// <summary>
     /// Generates the sreagentExtensionFile.bicep file based on YAML files in tools and agent folders.
     /// </summary>
     private static async Task GenerateSreagentExtensionFile(string toolsFolder, string agentFolder, string outputFolder)
     {
         DebugLogger.Debug("Extension File Generation", "Starting generation of sreagentExtensionFile.bicep");
 
-        // Get all YAML files from the OUTPUT folders (where they were copied)
-        var outputAgentsFolder = Path.Combine(outputFolder, "agents");
-        var outputToolsFolder = Path.Combine(outputFolder, "tools");
+        // Get all YAML files from tools and agent folders
+        var allToolYamlFiles = GetYamlFiles(toolsFolder);
+        var allAgentYamlFiles = GetYamlFiles(agentFolder);
 
-        var toolYamlFiles = GetYamlFiles(outputToolsFolder);
-        var agentYamlFiles = GetYamlFiles(outputAgentsFolder);
+        DebugLogger.Debug("YAML Discovery", $"Found {allAgentYamlFiles.Count} agent YAML files and {allToolYamlFiles.Count} tool YAML files");
 
-        DebugLogger.Debug("YAML Discovery", $"Found {agentYamlFiles.Count} agent YAML files and {toolYamlFiles.Count} tool YAML files");
+        // Validate and filter tool YAML files
+        var toolYamlFiles = new List<string>();
+        foreach (var toolFile in allToolYamlFiles)
+        {
+            var version = ExtendedToolHelper.DetectVersion(toolFile);
+            if (version == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Warning: Skipping '{Path.GetFileName(toolFile)}' - not a valid tool file or unsupported version", ConsoleColor.Yellow);
+                DebugLogger.Debug("YAML Validation", $"Skipped tool file: {toolFile} - invalid or unsupported version");
+                continue;
+            }
+
+            if (version != YamlApiVersion.V2)
+            {
+                ConsoleUI.WriteStatus(false, $"Warning: Skipping '{Path.GetFileName(toolFile)}' - only V2 format is supported for EV2 extensions", ConsoleColor.Yellow);
+                DebugLogger.Debug("YAML Validation", $"Skipped tool file: {toolFile} - version {version} not supported (V2 required)");
+                continue;
+            }
+
+            toolYamlFiles.Add(toolFile);
+            DebugLogger.Debug("YAML Validation", $"Validated tool file: {toolFile} - version {version}");
+        }
+
+        // Validate and filter agent YAML files
+        var agentYamlFiles = new List<string>();
+        foreach (var agentFile in allAgentYamlFiles)
+        {
+            var yamlContent = await File.ReadAllTextAsync(agentFile);
+            var version = ExtendedAgentHelper.DetectVersion(yamlContent);
+            if (version == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Warning: Skipping '{Path.GetFileName(agentFile)}' - not a valid agent file or unsupported version", ConsoleColor.Yellow);
+                DebugLogger.Debug("YAML Validation", $"Skipped agent file: {agentFile} - invalid or unsupported version");
+                continue;
+            }
+
+            if (version != YamlApiVersion.V2)
+            {
+                ConsoleUI.WriteStatus(false, $"Warning: Skipping '{Path.GetFileName(agentFile)}' - only V2 format is supported for EV2 extensions", ConsoleColor.Yellow);
+                DebugLogger.Debug("YAML Validation", $"Skipped agent file: {agentFile} - version {version} not supported (V2 required)");
+                continue;
+            }
+
+            agentYamlFiles.Add(agentFile);
+            DebugLogger.Debug("YAML Validation", $"Validated agent file: {agentFile} - version {version}");
+        }
+
+        DebugLogger.Debug("YAML Validation", $"Validated {agentYamlFiles.Count} agent YAML files and {toolYamlFiles.Count} tool YAML files");
 
         // The bicep file will be at: output/BicepTemplates/modules/sreagentExtensionFile.bicep
-        // Calculate relative paths from that location to the YAML files in the output directory
+        // Calculate relative paths from that location to the YAML files
         var bicepFileDirectory = Path.Combine(outputFolder, "BicepTemplates", "modules");
         var agentRelativePaths = agentYamlFiles.Select(file => GetRelativePath(bicepFileDirectory, file)).ToList();
         var toolRelativePaths = toolYamlFiles.Select(file => GetRelativePath(bicepFileDirectory, file)).ToList();
@@ -507,10 +469,6 @@ public static class ExtensionCommandHandlers
         // Replace placeholders in configurationSettings.jsonc
         var configSettingsPath = Path.Combine(outputFolder, "configurationSettings.jsonc");
         await ReplaceFilePlaceholders(configSettingsPath, placeholders);
-
-        // Replace placeholders in bicepparam file
-        var bicepParamPath = Path.Combine(outputFolder, "BicepTemplates", "sreagentContainerAppsExtension.bicepparam");
-        await ReplaceFilePlaceholders(bicepParamPath, placeholders);
 
         DebugLogger.Debug("EV2 Artifacts", "EV2 deployment artifacts generated successfully");
     }

@@ -163,9 +163,15 @@ function Get-ServiceMetadata {
 
 function Get-ArtifactVersion {
     param([string]$Directory)
-    $versionPath = Join-Path $Directory "version"
-    if (Test-Path $versionPath) { return (Get-Content -Raw -Path $versionPath).Trim() }
-    return "1.0.0"
+    
+    # Generate a unique version based on timestamp
+    $UpdatedVersion = "1.0.0.1.$(Get-Date -UFormat %s)"
+    Write-Info "Updating the 'build'/artifact version to '$UpdatedVersion'"
+    
+    $versionPath = Join-Path $Directory "version.txt"
+    $UpdatedVersion | Set-Content $versionPath
+    
+    return $UpdatedVersion
 }
 
 function Register-ServiceGroup {
@@ -268,7 +274,12 @@ Write-Info "Selector: $selector"
 if (-not $SkipValidation) {
     Write-Info "Validating EV2 artifacts..."
     try {
-        Test-AzureServiceArtifacts -ServiceGroupRoot $ArtifactsDirectory -RolloutSpec (Join-Path $ArtifactsDirectory "rolloutSpec.json") -RolloutInfra $environment -Select $selector -ErrorAction Stop | Out-Null
+        Test-AzureServiceArtifacts `
+            -ServiceGroupRoot $ArtifactsDirectory `
+            -RolloutSpec (Join-Path $ArtifactsDirectory "rolloutSpec.json") `
+            -RolloutInfra $environment `
+            -Select $selector `
+            -ErrorAction Stop | Out-Null
         Write-Info "Artifact validation successful"
     }
     catch { Write-Error-Message "Artifact validation failed: $_"; throw }
@@ -278,14 +289,27 @@ else { Write-Warning-Message "Skipping artifact validation" }
 if (-not $SkipRollout) {
     Write-Info "Registering artifacts with EV2..."
     try {
-        Register-AzureServiceArtifacts -ServiceGroupRoot $ArtifactsDirectory -RolloutSpec (Join-Path $ArtifactsDirectory "rolloutSpec.json") -RolloutInfra $environment -Force -ErrorAction Stop | Out-Null
+        Register-AzureServiceArtifacts `
+            -ServiceGroupRoot $ArtifactsDirectory `
+            -RolloutSpec (Join-Path $ArtifactsDirectory "rolloutSpec.json") `
+            -RolloutInfra $environment `
+            -Force `
+            -ErrorAction Stop | Out-Null
         Write-Info "Artifacts registered successfully"
     }
     catch { Write-Error-Message "Artifact registration failed: $_"; throw }
 
     Write-Info "Creating EV2 rollout..."
     try {
-        New-AzureServiceRollout -ServiceIdentifier $serviceId -ServiceGroup $serviceGroup -StageMapName $STAGE_MAP_NAME -StageMapVersion $STAGE_MAP_VERSION -Select $selector -ArtifactsVersion $version -RolloutInfra $environment -ErrorAction Stop
+        New-AzureServiceRollout `
+            -ServiceIdentifier $serviceId `
+            -ServiceGroup $serviceGroup `
+            -StageMapName $STAGE_MAP_NAME `
+            -StageMapVersion $STAGE_MAP_VERSION `
+            -Select $selector `
+            -ArtifactsVersion $version `
+            -RolloutInfra $environment `
+            -ErrorAction Stop
         Write-Info "Rollout created successfully!"
     }
     catch { Write-Error-Message "Rollout creation failed: $_"; throw }
