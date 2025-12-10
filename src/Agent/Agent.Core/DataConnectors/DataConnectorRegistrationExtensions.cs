@@ -3,8 +3,10 @@
 // -----------------------------------------------------------
 
 using System.Reflection;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -63,6 +65,26 @@ public static class DataConnectorRegistrationExtensions
 
             foreach (DataConnectorInstanceSettings dataConnectorInstanceSetting in dataConnectorInstanceSettings.Value)
             {
+                // Fix ExtendedProperties by re-parsing from configuration to handle arrays and nested objects
+                var configSection = hostBuilder.Configuration
+                    .GetSection($"AppSettings:Core:DataConnectors")
+                    .GetChildren()
+                    .FirstOrDefault(c => c["Name"] == dataConnectorInstanceSetting.Name);
+
+                var extPropsSection = configSection?.GetSection("ExtendedProperties");
+                if (extPropsSection?.Exists() == true)
+                {
+                    var tempDict = new Dictionary<string, object?>();
+                    foreach (var child in extPropsSection.GetChildren())
+                    {
+                        tempDict[child.Key] = GetConfigurationValue(child);
+                    }
+
+                    var json = JsonSerializer.Serialize(tempDict);
+                    dataConnectorInstanceSetting.ExtendedProperties =
+                        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                }
+
                 Type? connectorType = dataConnectorTypes.FirstOrDefault(t => t.GetCustomAttribute<DataConnectorAttribute>()?.Type.Equals(dataConnectorInstanceSetting.DataConnectorType, StringComparison.OrdinalIgnoreCase) == true);
 
                 if (connectorType == null)
@@ -89,5 +111,35 @@ public static class DataConnectorRegistrationExtensions
         });
 
         return hostBuilder;
+    }
+
+    /// <summary>
+    /// Recursively extracts configuration values, handling simple values, arrays, and nested dictionaries.
+    /// </summary>
+    private static object? GetConfigurationValue(IConfigurationSection section)
+    {
+        var children = section.GetChildren().ToList();
+
+        if (!children.Any())
+        {
+            // Simple value
+            return section.Value;
+        }
+
+        if (children.All(c => int.TryParse(c.Key, out _)))
+        {
+            // It's an array
+            return children.OrderBy(c => int.Parse(c.Key)).Select(c => GetConfigurationValue(c)).ToList();
+        }
+        else
+        {
+            // It's a nested dictionary
+            var dict = new Dictionary<string, object?>();
+            foreach (var child in children)
+            {
+                dict[child.Key] = GetConfigurationValue(child);
+            }
+            return dict;
+        }
     }
 }

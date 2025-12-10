@@ -314,16 +314,16 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                     return;
                 }
 
-                if (connection.ClientTransport is StdioClientTransport or SessionWebsocketClientTransport)
-                {
-                    _logger.LogTrace(
-                        "Skipping periodic verification for connection '{ConnectionId}' (transport: {TransportType})",
-                        connection.Id,
-                        connection.ClientTransport.GetType().Name);
-                    connection.UpdateHeartbeat();
-                    connection.ResetPingFailures();
-                    return;
-                }
+                //if (connection.ClientTransport is StdioClientTransport or SessionWebsocketClientTransport)
+                //{
+                //    _logger.LogTrace(
+                //        "Skipping periodic verification for connection '{ConnectionId}' (transport: {TransportType})",
+                //        connection.Id,
+                //        connection.ClientTransport.GetType().Name);
+                //    connection.UpdateHeartbeat();
+                //    connection.ResetPingFailures();
+                //    return;
+                //}
 
                 if (connection.Status != DataConnectorStatus.Connected)
                 {

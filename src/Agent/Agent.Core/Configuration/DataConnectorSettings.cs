@@ -61,7 +61,7 @@ namespace Agent.Core.Configuration
         /// Extended properties for data connectors. This is used to replace the plain string DataSource for MCP connectors.
         /// Use JsonElement for configuration binding.
         /// </summary>
-        public Dictionary<string, JsonElement>? ExtendedProperties { get; init; }
+        public Dictionary<string, JsonElement>? ExtendedProperties { get; set; }
 
         /// <summary>
         /// Extended properties as JSON string. This is parsed into ExtendedProperties if provided.

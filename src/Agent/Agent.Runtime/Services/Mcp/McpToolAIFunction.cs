@@ -85,16 +85,12 @@ public class McpToolAIFunction : AIFunction
             }
             else
             {
-                var firstContent = callToolResult.Content.First();
-                if (firstContent is TextContentBlock textContentBlock)
-                {
-                    return textContentBlock.Text;
-                }
-                else
-                {
-                    return firstContent.ToAIContent()?.ToString();
-                }
+                rawResult = callToolResult.Content.First().ToAIContent();
             }
+        }
+        if (rawResult is TextContent textContent)
+        {
+            return textContent.Text;
         }
         return rawResult;
     }
