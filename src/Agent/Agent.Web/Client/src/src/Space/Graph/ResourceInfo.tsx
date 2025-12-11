@@ -322,36 +322,28 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                         )}
                         <SummaryField label={intl.formatMessage(ResourceInfoResources.annotation)}>
                             {initialRemarks ? <div>{initialRemarks}</div> : null}
-                            <PermissionedActionLink
-                                canPerform={canWriteGraph}
-                                noPermissionTooltip={intl.formatMessage(ResourceInfoResources.noPermissionAddAnnotation)}
-                                onClick={() => {}}
-                            >
-                                {canWriteGraph ? (
-                                    <Dialog>
-                                        <DialogTrigger disableButtonEnhancement>
-                                            <Link>
-                                                {initialRemarks ? (
-                                                    <FormattedMessage {...ResourceInfoResources.editAnnotation} />
-                                                ) : (
-                                                    <FormattedMessage {...ResourceInfoResources.addAnnotation} />
-                                                )}
-                                            </Link>
-                                        </DialogTrigger>
-                                        <AnnotationDialogSurface
-                                            initialRemarks={initialRemarks}
-                                            isUpdating={isUpdating}
-                                            onSubmit={async (remarks: string) => {
-                                                await onSubmit(remarks);
-                                            }}
-                                        />
-                                    </Dialog>
-                                ) : initialRemarks ? (
-                                    <FormattedMessage {...ResourceInfoResources.editAnnotation} />
-                                ) : (
-                                    <FormattedMessage {...ResourceInfoResources.addAnnotation} />
-                                )}
-                            </PermissionedActionLink>
+
+                            <Dialog>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <PermissionedActionLink
+                                        canPerform={canWriteGraph}
+                                        noPermissionTooltip={intl.formatMessage(ResourceInfoResources.noPermissionAddAnnotation)}
+                                    >
+                                        {initialRemarks ? (
+                                            <FormattedMessage {...ResourceInfoResources.editAnnotation} />
+                                        ) : (
+                                            <FormattedMessage {...ResourceInfoResources.addAnnotation} />
+                                        )}
+                                    </PermissionedActionLink>
+                                </DialogTrigger>
+                                <AnnotationDialogSurface
+                                    initialRemarks={initialRemarks}
+                                    isUpdating={isUpdating}
+                                    onSubmit={async (remarks: string) => {
+                                        await onSubmit(remarks);
+                                    }}
+                                />
+                            </Dialog>
                         </SummaryField>
                     </div>
                 </>

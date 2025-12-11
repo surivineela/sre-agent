@@ -24,12 +24,13 @@ describe('PermissionedActionLink', () => {
                 </PermissionedActionLink>
             </Wrapper>
         );
-        const link = screen.getByRole('link');
+        // Fluent UI Link without href renders as a button
+        const link = screen.getByRole('button', { name: 'Edit' });
         await userEvent.click(link);
         expect(onClick).toHaveBeenCalled();
     });
 
-    it('renders disabled span when no permission', () => {
+    it('renders disabled link when no permission', () => {
         render(
             <Wrapper>
                 <PermissionedActionLink canPerform={false} noPermissionTooltip="No access">
@@ -37,8 +38,10 @@ describe('PermissionedActionLink', () => {
                 </PermissionedActionLink>
             </Wrapper>
         );
-        const link = screen.getByText('Edit');
-        expect(link).toHaveAttribute('aria-disabled', 'true');
+        // Tooltip with relationship="label" sets aria-label to the tooltip content
+        const link = screen.getByRole('button', { name: 'No access' });
+        expect(link).toBeDisabled();
+        expect(link).toHaveTextContent('Edit');
     });
 
     it('hides when hideIfNoPermission set', () => {
