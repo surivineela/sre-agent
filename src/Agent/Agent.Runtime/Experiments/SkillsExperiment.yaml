@@ -29,6 +29,8 @@ variants:
             - GetResourceDetailedProperties
             - GetResourcePropertiesRealTime
             - GetResourceIdForResourceName
+            - SearchMemory
+            - SearchIncidentKnowledge
       handoffs:
         - agent_names:
             - meta_agent
@@ -509,6 +511,8 @@ variants:
             - GetResourceDetailedProperties
             - GetResourcePropertiesRealTime
             - GetResourceIdForResourceName
+            - SearchMemory
+            - SearchIncidentKnowledge
       handoffs:
         - agent_names:
             - meta_agent
