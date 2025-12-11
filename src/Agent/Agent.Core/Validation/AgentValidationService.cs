@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Agent.Framework;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -18,6 +19,12 @@ namespace Agent.Core.Validation;
 public class AgentValidationService
 {
     private readonly IToolAvailabilityChecker? _toolChecker;
+
+    /// <summary>
+    /// Regex pattern for validating agent names.
+    /// Allows alphanumeric characters, underscores, dots, and hyphens.
+    /// </summary>
+    private static readonly Regex AgentNameRegex = new(@"^[a-zA-Z0-9_\.-]+$", RegexOptions.Compiled);
 
     public AgentValidationService(IToolAvailabilityChecker? toolChecker = null)
     {
@@ -120,9 +127,9 @@ public class AgentValidationService
         {
             result.AddError("Agent name is required.");
         }
-        else if (agent.Name.Any(char.IsWhiteSpace))
+        else if (!AgentNameRegex.IsMatch(agent.Name))
         {
-            result.AddError($"Agent name '{agent.Name}' must not contain whitespace.");
+            result.AddError($"Agent name '{agent.Name}' contains invalid characters. Only alphanumeric characters, underscores, dots, and hyphens are allowed.");
         }
 
         if (string.IsNullOrWhiteSpace(agent.Instructions))

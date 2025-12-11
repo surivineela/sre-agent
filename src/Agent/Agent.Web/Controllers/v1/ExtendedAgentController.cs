@@ -197,6 +197,22 @@ public class ExtendedAgentController : ControllerBase
                         });
                     }
 
+                    // Validate the agent descriptor using AgentValidationService
+                    var agentConfigValidationService = new AgentValidationService();
+                    var agentConfigValidationResult = await agentConfigValidationService.ValidateAgentAsync(agentDescriptor, false);
+                    if (!agentConfigValidationResult.IsValid)
+                    {
+                        var agentConfigErrorDetails = agentConfigValidationResult.Errors.Select(error =>
+                            new ExtendedAgentErrorField("yaml", error)).ToList();
+
+                        return BadRequest(new ExtendedAgentErrorResponse
+                        {
+                            ErrorCode = "VALIDATION_FAILED",
+                            Message = "Agent validation failed",
+                            Details = new ExtendedAgentErrorDetails(agentConfigErrorDetails)
+                        });
+                    }
+
                     // Create AgentDeploymentModel using the parsed descriptor
                     var agentDeployment = new AgentDeploymentModel
                     {
