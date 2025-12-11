@@ -12,8 +12,8 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Framework;
-using Agent.Logging;
 using Anthropic;
+using Anthropic.Services;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
@@ -539,7 +539,7 @@ public static class AgentsConfigurationExtensions
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         return new ChatClientBuilder(chatClient)
-            .Use(next => new ReasoningChatClient(next, useResponsesApi))
+            .Use(next => new ReasoningChatClient(next, new OpenAIReasoningChatClientOptions(UseResponsesApi: useResponsesApi)))
             .UseTokenLogging(loggerFactory)
             .UseLogging(loggerFactory);
     }
@@ -578,8 +578,17 @@ public static class AgentsConfigurationExtensions
                 {
                     var authService = sp.GetRequiredService<IAuthenticationService>();
                     var httpClient = new HttpClient();
+                    bool interleavedThinkingEnabled = anthropicSettings.InterleavedThinkingEnabled && anthropicSettings.ExtendedThinkingEnabled;
                     // https://platform.claude.com/docs/en/build-with-claude/structured-outputs
-                    httpClient.DefaultRequestHeaders.Add("anthropic-beta", "structured-outputs-2025-11-13");
+                    if (!interleavedThinkingEnabled)
+                    {
+                        httpClient.DefaultRequestHeaders.Add("anthropic-beta", "structured-outputs-2025-11-13");
+                    }
+                    else
+                    {
+                        // https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking
+                        httpClient.DefaultRequestHeaders.Add("anthropic-beta", "structured-outputs-2025-11-13,interleaved-thinking-2025-05-14");
+                    }
 
                     var options = new Anthropic.Core.ClientOptions
                     {
@@ -590,16 +599,20 @@ public static class AgentsConfigurationExtensions
 
                     var client = string.IsNullOrEmpty(anthropicSettings.ApiKey) switch
                     {
-                        false => new AnthropicClient(options).WithOptions(o =>
+                        false => new BetaService(new AnthropicClient(options)).WithOptions(o =>
                         {
                             o.APIKey = anthropicSettings.ApiKey;
                             return o;
                         }),
-                        true => new AnthropicTokenCredentialClient(authService.GetAzureAnthropicCredential(), options),
+                        true => new BetaService(new AnthropicTokenCredentialClient(authService.GetAzureAnthropicCredential(), options)),
                     };
 
-                    return new ChatClientBuilder(client.AsIChatClient(modelName))
-                        .Use(next => new ReasoningChatClient(next, false))
+                    return new ChatClientBuilder(client.AsIChatClient(defaultModelId: modelName, defaultMaxOutputTokens: anthropicSettings.MaxOutputTokens))
+                        .Use(next => new ReasoningChatClient(next, new AnthropicReasoningChatClientOptions(
+                            ModelId: modelName,
+                            ExtendedThinkingEnabled: anthropicSettings.ExtendedThinkingEnabled,
+                            MaxOutputTokens: anthropicSettings.MaxOutputTokens,
+                            ThinkingTokenBudget: anthropicSettings.ThinkingBudgetTokens)))
                         .UseTokenLogging(sp.GetRequiredService<ILoggerFactory>())
                         .UseLogging(sp.GetRequiredService<ILoggerFactory>())
                         .Build();

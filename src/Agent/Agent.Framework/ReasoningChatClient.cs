@@ -7,13 +7,19 @@ using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
 
+public abstract record ReasoningChatClientOptions();
+public sealed record OpenAIReasoningChatClientOptions(bool UseResponsesApi) : ReasoningChatClientOptions;
+public sealed record AnthropicReasoningChatClientOptions(string ModelId, bool ExtendedThinkingEnabled, int MaxOutputTokens, int ThinkingTokenBudget) : ReasoningChatClientOptions;
+
+
 public sealed class ReasoningChatClient : DelegatingChatClient
 {
-    public bool UseResponsesApi { get; }
+    public ReasoningChatClientOptions Options { get; }
+    public bool UseResponsesApi => Options is OpenAIReasoningChatClientOptions { UseResponsesApi: true };
 
-    public ReasoningChatClient(IChatClient inner, bool useResponsesApi) : base(inner)
+    public ReasoningChatClient(IChatClient inner, ReasoningChatClientOptions options) : base(inner)
     {
-        UseResponsesApi = useResponsesApi;
+        Options = options;
     }
 
     public override Task<ChatResponse> GetResponseAsync(
@@ -40,6 +46,6 @@ public sealed class ReasoningChatClient : DelegatingChatClient
         options ??= new ChatOptions();
         return options.WithRawRepresentationFactory(
             chatClient: this,
-            configureForResponsesApi: UseResponsesApi);
+            reasoningOptions: Options);
     }
 }

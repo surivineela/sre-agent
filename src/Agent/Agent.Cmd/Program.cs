@@ -45,7 +45,7 @@ internal class Program
         builder.Services.AddKeyedChatClient(Constants.FunctionInvocationChatClient,
             serviceProvider => serviceProvider.GetRequiredService<OpenAIClient>().GetChatClient(llmDeploymentName).AsIChatClient(),
             ServiceLifetime.Singleton)
-            .Use(next => new ReasoningChatClient(next, useResponsesApi: false)) // we're working on the ChatClient here
+            .Use(next => new ReasoningChatClient(next, new OpenAIReasoningChatClientOptions(UseResponsesApi: false))) // we're working on the ChatClient here
             .UseFunctionInvocation();
 
         var webapp = builder.Build();

@@ -199,8 +199,7 @@ public static partial class ChatClientExtensions
         var isResponsesApi = (client as ReasoningChatClient)?.UseResponsesApi;
 
         var clientMetadata = client.GetService<ChatClientMetadata>();
-        bool isAnthropicModel = clientMetadata?.ProviderName?.Equals("Anthropic", StringComparison.OrdinalIgnoreCase) == true ||
-            clientMetadata?.DefaultModelId?.Contains("claude", StringComparison.OrdinalIgnoreCase) == true;
+        bool isAnthropicModel = ChatOptionsExtensions.IsAnthropicModel(clientMetadata?.DefaultModelId, clientMetadata?.ProviderName);
 
         Debug.Assert(isResponsesApi is not null);
 
@@ -237,6 +236,24 @@ public static partial class ChatClientExtensions
                         }
 
                         chatResponseUpdates.Add(update);
+
+                        // reasoning summary delta begin
+                        foreach (var content in update.Contents)
+                        {
+                            if (reasoningSummaryStreamHandler is not null
+                                && content is Microsoft.Extensions.AI.TextReasoningContent reasoningContent
+                                && !string.IsNullOrEmpty(reasoningContent.Text))
+                            {
+                                await reasoningSummaryStreamHandler.AppendAsync(reasoningContent.Text);
+                            }
+                        }
+
+                        // reasoning summary part end
+                        if (reasoningSummaryStreamHandler is not null
+                            && update.Contents.Count == 0)
+                        {
+                            await reasoningSummaryStreamHandler.CompleteAsync();
+                        }
 
                         // output text begin
                         if (outputTextStreamHandler is not null

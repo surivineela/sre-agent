@@ -252,8 +252,9 @@ public class Program
         builder.Services.Configure<AgentMemorySettings>(
             builder.Configuration.GetSection("AppSettings:Core:AgentMemory"));
 
-        builder.Services.Configure<AnthropicSettings>(
-            builder.Configuration.GetSection("AppSettings:Core:Anthropic"));
+        builder.Services.AddOptionsWithValidateOnStart<AnthropicSettings>()
+            .BindConfiguration("AppSettings:Core:Anthropic")
+            .ValidateDataAnnotations();
 
         // Add AgentMemorySettings singleton registration
         builder.Services.AddSingleton<AgentMemorySettings>(sp =>

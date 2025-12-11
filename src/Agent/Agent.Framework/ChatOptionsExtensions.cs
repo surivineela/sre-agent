@@ -4,6 +4,7 @@
 
 using System.ClientModel.Primitives;
 using System.Text.Json;
+using Anthropic.Models.Beta.Messages;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using OpenAI.Responses;
@@ -55,8 +56,20 @@ public static class ChatOptionsExtensions
     public static ChatOptions WithRawRepresentationFactory(
         this ChatOptions options,
         IChatClient chatClient,
-        bool configureForResponsesApi)
+        ReasoningChatClientOptions reasoningOptions)
     {
+        if (reasoningOptions is AnthropicReasoningChatClientOptions anthropicOptions)
+        {
+            // for Anthropic models, set up a custom RawRepresentationFactory
+            options.RawRepresentationFactory = (_) =>
+            {
+                return CreateAnthropicMessageCreateParams(anthropicOptions, options);
+            };
+
+            return options;
+        }
+
+        bool configureForResponsesApi = reasoningOptions is OpenAIReasoningChatClientOptions { UseResponsesApi: true };
         // configure Extensions.AI.Options & its AdditionalProperties
         options.AdditionalProperties ??= [];
 
@@ -74,6 +87,7 @@ public static class ChatOptionsExtensions
         // modifications needed for reasoning models
         var clientMetadata = chatClient.GetService<ChatClientMetadata>();
         var isReasoningModel = IsReasoningModel(clientMetadata?.DefaultModelId);
+        bool isAnthropicModel = IsAnthropicModel(clientMetadata?.DefaultModelId, clientMetadata?.ProviderName);
         if (isReasoningModel)
         {
             // temperature not supported in reasoning models
@@ -143,6 +157,41 @@ public static class ChatOptionsExtensions
         return !string.IsNullOrEmpty(modelId)
             && modelId.Contains("gpt-5", StringComparison.OrdinalIgnoreCase)
             && !modelId.Contains("gpt-5-chat", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsAnthropicModel(string? modelId, string? providerName)
+    {
+        return providerName?.Equals("Anthropic", StringComparison.OrdinalIgnoreCase) == true
+            || (!string.IsNullOrEmpty(modelId)
+                && (modelId.Contains("claude", StringComparison.OrdinalIgnoreCase)
+                    || modelId.Contains("anthropic", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    // This is a temporary hack to enable extended thinking for Anthropic models because the Official SDK's IChatClient adaptor doesn't support it yet.
+    // Other parameters(allow parallel tool calls, temperature, topK, topP, outputFormat) are already populated in https://github.com/anthropics/anthropic-sdk-csharp/blob/v11.0.0/src/Anthropic/Services/Beta/Messages/AnthropicBetaClientExtensions.cs
+    private static MessageCreateParams CreateAnthropicMessageCreateParams(AnthropicReasoningChatClientOptions reasoningOptions, ChatOptions chatOptions)
+    {
+        var messageParams = new MessageCreateParams()
+        {
+            MaxTokens = reasoningOptions.MaxOutputTokens,
+            Messages = [],
+            Model = reasoningOptions.ModelId,
+        };
+
+        if (reasoningOptions.ExtendedThinkingEnabled)
+        {
+            messageParams = messageParams with
+            {
+                Thinking = new BetaThinkingConfigEnabled()
+                {
+                    BudgetTokens = reasoningOptions.ThinkingTokenBudget,
+                },
+                // If temperature is not 1, we will get a 400 error saying temperature may only be set to 1 when thinking is enabled.
+                Temperature = 1.0,
+            };
+        }
+
+        return messageParams;
     }
 
     private static ChatCompletionOptions CreateChatCompletionOptions(AdditionalPropertiesDictionary optionProperties, bool isReasoningModel)
@@ -270,7 +319,7 @@ public static class ChatOptionsExtensions
 
             // service tier.. only works when calling OpenAI endpoint directly
             // NOT supported by Azure Open AI
-            // References: 
+            // References:
             // supported values:
             // default: normal latency
             // flex: slow, background processing
@@ -344,7 +393,7 @@ public static class ChatOptionsExtensions
                 }
             }
 
-            // include 
+            // include
             if (optionProperties.TryGetValue(IncludeKey, out object? includeFields)
                 && includeFields is not null)
             {
