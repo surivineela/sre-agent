@@ -125,16 +125,25 @@ const ThreadActionsMenu = ({
         const modifiedDate = new Date(thread.modifiedTimestamp).toLocaleDateString();
         const sourceValue = thread.source || intl.formatMessage(SreAgentResources.NA);
 
-        return [
+        const lines = [
             thread.title,
             `${intl.formatMessage(SreAgentResources.created)}: ${createdDate}`,
             `${intl.formatMessage(SreAgentResources.modified)}: ${modifiedDate}`,
             `${intl.formatMessage(SreAgentResources.source)}: ${sourceValue}`,
-            `${intl.formatMessage(SreAgentResources.agentId)}: ${resourceId ?? ''}`,
-            '',
-            `${intl.formatMessage(SreAgentResources.threadId)}: ${thread.id}`,
-        ].join('\n');
-    }, [intl, resourceId, thread.createdTimestamp, thread.modifiedTimestamp, thread.source, thread.title, thread.id]);
+        ];
+
+        if (resourceId) {
+            lines.push(`${intl.formatMessage(SreAgentResources.agentId)}: ${resourceId}`);
+        }
+
+        if (sreAgentEndpoint) {
+            lines.push(`${intl.formatMessage(SreAgentResources.agentEndpoint)}: ${sreAgentEndpoint}`);
+        }
+
+        lines.push('', `${intl.formatMessage(SreAgentResources.threadId)}: ${thread.id}`);
+
+        return lines.join('\n');
+    }, [intl, resourceId, sreAgentEndpoint, thread.createdTimestamp, thread.modifiedTimestamp, thread.source, thread.title, thread.id]);
 
     const renderInfoContent = () => (
         <div>
@@ -159,6 +168,11 @@ const ThreadActionsMenu = ({
                 {resourceId && (
                     <div>
                         {intl.formatMessage(SreAgentResources.agentId)}: {resourceId}
+                    </div>
+                )}
+                {sreAgentEndpoint && (
+                    <div>
+                        {intl.formatMessage(SreAgentResources.agentEndpoint)}: {sreAgentEndpoint}
                     </div>
                 )}
             </div>
