@@ -119,10 +119,7 @@ const ResourceSelector = ({
                 />
             )}
 
-            <InfoLabel
-                info={intl.formatMessage(GraphResources.resourceSelectorDescription)}
-                style={{ alignSelf: 'center', paddingTop: 0 }}
-            />
+            <InfoLabel info={intl.formatMessage(GraphResources.resourceSelectorDescription)} style={{ display: 'flex' }} />
 
             {!isKnowledgeGraphBuildCompleted && progressPercent !== 100 && (
                 <MessageBar layout={'multiline'}>

@@ -1,4 +1,5 @@
-import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
+import { EntityCard, EntityTitle } from '@fluentui-copilot/react-entity-cards';
+import { mergeClasses } from '@fluentui/react-components';
 import { Handle, Node, NodeProps, Position } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -11,22 +12,17 @@ import { getAppHealthInfo, getHandleId } from './Utility';
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
     const { logAmplitudeControlEvent } = useAzPortalContext();
-    const { hoverNode, unHoverNode, nodesToHighlight, selectedNode, setSelectedNode, hoveredNodeId, selectedAppGroupId } =
-        useContext(GraphContext);
+    const { hoverNode, unHoverNode, selectedNode, setSelectedNode, selectedAppGroupId } = useContext(GraphContext);
 
-    const { card, appGroupCard, cardHighlighted, cardHovered, appGroupCardHovered, cardSelected, header, headerText, description } =
-        useGraphNodeStyles();
+    const styles = useGraphNodeStyles();
 
     const isAppGroup = id === selectedAppGroupId;
-    const isHovered = hoveredNodeId === id;
     const isSelectedNode = selectedNode?.id === id;
 
     const cardStyles = mergeClasses(
-        card,
-        isAppGroup ? appGroupCard : undefined,
-        !isHovered && nodesToHighlight.includes(id) ? cardHighlighted : undefined,
-        isHovered ? (isAppGroup ? appGroupCardHovered : cardHovered) : undefined,
-        isSelectedNode ? cardSelected : undefined
+        styles.card,
+        isAppGroup ? styles.appGroupCard : undefined,
+        isSelectedNode ? styles.cardSelected : undefined
     );
 
     const type = useMemo(() => {
@@ -38,25 +34,12 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
         }
     }, [data?.properties?.type, data?.properties?.kind]);
 
-    const ResourceNameHeader = () =>
-        data.name ? (
-            <Text className={headerText} wrap={false} block={false} size={500}>
-                {data.name}
-            </Text>
-        ) : null;
-
-    const ResourceTypeDescription = () => (
-        <Text className={mergeClasses(headerText, description)} wrap={false} block={false} size={300}>
-            {type}
-        </Text>
-    );
-
     const appHealthInfo = useMemo(() => getAppHealthInfo(data?.properties)?.Health, [data?.properties]);
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
-            <Handles />
-            <Card
+            <Handles handleClassName={styles.handle} />
+            <EntityCard
                 onClick={() => {
                     setSelectedNode(data);
 
@@ -70,29 +53,29 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                     });
                 }}
                 className={cardStyles}
+                entityTitle={
+                    <EntityTitle
+                        media={
+                            <img
+                                width={32}
+                                height={32}
+                                src={resolveResourceIcon(data?.properties?.kind || data?.properties?.type)}
+                                alt={data?.properties?.type ?? 'resource type icon'}
+                            />
+                        }
+                        primaryText={data.name ?? ''}
+                        secondaryText={type}
+                    />
+                }
+                content={{ style: { minHeight: 'unset', marginBottom: 'unset', padding: 'unset' } }}
             >
-                <CardHeader
-                    className={header}
-                    image={
-                        <img
-                            width={32}
-                            height={32}
-                            src={resolveResourceIcon(data?.properties?.kind || data?.properties?.type)}
-                            alt={data?.properties?.type ?? 'resource type icon'}
-                        />
-                    }
-                    header={<ResourceNameHeader />}
-                    description={<ResourceTypeDescription />}
-                />
                 <HealthStatus health={appHealthInfo} />
-            </Card>
+            </EntityCard>
         </div>
     );
 };
 
-const Handles = memo(() => {
-    const { handle } = useGraphNodeStyles();
-
+const Handles = memo(({ handleClassName }: { handleClassName: string }) => {
     const HandlePort = ({ position, isTarget }: { position: HandlePosition; isTarget: boolean }) => {
         const pos =
             position === 'T' ? Position.Top : position === 'B' ? Position.Bottom : position === 'L' ? Position.Left : Position.Right;
@@ -102,7 +85,7 @@ const Handles = memo(() => {
                 position={pos}
                 id={getHandleId(position, isTarget)}
                 isConnectable={false}
-                className={handle}
+                className={handleClassName}
             />
         );
     };

@@ -232,7 +232,7 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
     }, [allTableResources, searchQuery, selectedPrimaryResourceType]);
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px', overflow: 'auto' }}>
             <div style={{ fontSize: '14px', marginBottom: '12px', lineHeight: 1.4 }}>
                 {intl.formatMessage(GraphResources.resourceSelectorDescription)}
             </div>

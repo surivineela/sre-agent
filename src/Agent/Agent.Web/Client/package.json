@@ -24,7 +24,7 @@
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
     "@fluentui-contrib/react-tree-grid": "^0.3.1",
-    "@fluentui-copilot/react-copilot": "^0.28.8",
+    "@fluentui-copilot/react-copilot": "^0.30.2",
     "@fluentui/azure-themes": "^8.6.128",
     "@fluentui/react": "^8.123.4",
     "@fluentui/react-calendar-compat": "^0.3.9",

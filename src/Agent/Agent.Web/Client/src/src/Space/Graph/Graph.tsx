@@ -1,5 +1,5 @@
 import { useTheme } from '@fluentui/react';
-import { Radio, RadioGroup, Spinner } from '@fluentui/react-components';
+import { RadioGroup, Spinner, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { memo, useCallback, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -13,12 +13,14 @@ import { GraphCard } from './GraphCard';
 import ResourceInfo from './ResourceInfo';
 import ResourceSelector from './ResourceSelector';
 
+import { CopilotProvider, CopilotTheme, tokens } from '@fluentui-copilot/react-copilot';
 import '@xyflow/react/dist/style.css';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import NoAccessError from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
+import { Radio } from '../Components/Common/Radio';
 import GraphGridView from './GraphGridView';
 
 const Graph = () => {
@@ -71,7 +73,7 @@ const GraphContent = () => {
     const { canReadGraph } = useUserPermissions();
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
-    const { visualRoot, reactFlow, spinner, rootContainer, container, radioGroupContainer } = useGraphStyles();
+    const { visualRoot, reactFlow, spinner, container, radioGroupContainer } = useGraphStyles();
     const intl = useIntl();
 
     const theme = useTheme();
@@ -108,7 +110,20 @@ const GraphContent = () => {
                 selectedAppGroupId,
             }}
         >
-            <div className={rootContainer}>
+            <CopilotProvider
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'calc(100vh - 60px)',
+                    padding: '10px ',
+                    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+                    backgroundColor: tokens.colorNeutralBackground3,
+                    gap: '0.25rem',
+                }}
+                {...CopilotTheme}
+                mode={'canvas'}
+                theme={theme.isInverted ? webDarkTheme : webLightTheme}
+            >
                 {hasChatPermissions && canReadGraph ? (
                     <>
                         <div className={radioGroupContainer}>
@@ -123,52 +138,51 @@ const GraphContent = () => {
                         </div>
                         <div className={container}>
                             <div className={visualRoot}>
-                                <div>
-                                    {currentView === GraphView.Grid && (
-                                        <GraphGridView
-                                            resources={resources}
-                                            selectedAppGroup={selectedAppGroup}
-                                            resourceGroups={resourceGroups}
-                                            appGroups={appGroups}
-                                            onLoadAppGroupResources={onLoadAppGroupResources}
-                                        />
-                                    )}
-                                </div>
-                                <div className={reactFlow}>
-                                    {isLoading ? (
-                                        <Spinner size={'large'} className={spinner} />
-                                    ) : (
-                                        <ReactFlow
-                                            fitView
-                                            nodeTypes={{ [GRAPH_CARD_TYPE]: GraphCard }}
-                                            edgeTypes={{ [CUSTOM_EDGE_TYPE]: CustomEdge }}
-                                            nodes={nodes}
-                                            edges={edges}
-                                            onNodesChange={onNodesChange}
-                                            onEdgesChange={onEdgesChange}
-                                            proOptions={{ hideAttribution: true }}
-                                            colorMode={theme.isInverted ? 'dark' : 'light'}
-                                            style={{ display: currentView === GraphView.Visual ? 'block' : 'none' }}
-                                        >
-                                            <Controls />
-                                            <MiniMap />
-                                            <ResourceSelector
-                                                subscriptions={subscriptions}
-                                                filteredAppGroups={filteredAppGroups}
-                                                selectedSubscription={selectedSubscription}
-                                                selectedRscType={selectedRscType}
-                                                selectedAppGroup={selectedAppGroup}
-                                                isSubscriptionLoading={isSubscriptionLoading}
-                                                isAppGroupLoading={isAppGroupLoading}
-                                                resourceTypeFilterOptions={resourceTypeFilterOptions}
-                                                onSelectSubscription={onSelectSubscription}
-                                                onSelectRscType={onSelectRscType}
-                                                onSelectAppGroupDropdown={onSelectAppGroupDropdown}
-                                                allKey={allKey}
-                                            />
-                                        </ReactFlow>
-                                    )}
-                                </div>
+                                {currentView === GraphView.Grid ? (
+                                    <GraphGridView
+                                        resources={resources}
+                                        selectedAppGroup={selectedAppGroup}
+                                        resourceGroups={resourceGroups}
+                                        appGroups={appGroups}
+                                        onLoadAppGroupResources={onLoadAppGroupResources}
+                                    />
+                                ) : (
+                                    <div className={reactFlow}>
+                                        {isLoading ? (
+                                            <Spinner size={'large'} className={spinner} />
+                                        ) : (
+                                            <ReactFlow
+                                                fitView
+                                                nodeTypes={{ [GRAPH_CARD_TYPE]: GraphCard }}
+                                                edgeTypes={{ [CUSTOM_EDGE_TYPE]: CustomEdge }}
+                                                nodes={nodes}
+                                                edges={edges}
+                                                onNodesChange={onNodesChange}
+                                                onEdgesChange={onEdgesChange}
+                                                proOptions={{ hideAttribution: true }}
+                                                colorMode={theme.isInverted ? 'dark' : 'light'}
+                                                style={{ display: currentView === GraphView.Visual ? 'block' : 'none' }}
+                                            >
+                                                <Controls />
+                                                <MiniMap />
+                                                <ResourceSelector
+                                                    subscriptions={subscriptions}
+                                                    filteredAppGroups={filteredAppGroups}
+                                                    selectedSubscription={selectedSubscription}
+                                                    selectedRscType={selectedRscType}
+                                                    selectedAppGroup={selectedAppGroup}
+                                                    isSubscriptionLoading={isSubscriptionLoading}
+                                                    isAppGroupLoading={isAppGroupLoading}
+                                                    resourceTypeFilterOptions={resourceTypeFilterOptions}
+                                                    onSelectSubscription={onSelectSubscription}
+                                                    onSelectRscType={onSelectRscType}
+                                                    onSelectAppGroupDropdown={onSelectAppGroupDropdown}
+                                                    allKey={allKey}
+                                                />
+                                            </ReactFlow>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             {currentView === GraphView.Visual && <ResourceInfo />}
                         </div>
@@ -176,7 +190,7 @@ const GraphContent = () => {
                 ) : (
                     <NoAccessError requiredPermission={PermissionActions.AgentGraphRead} resourceId={resourceId || 'unknown'} />
                 )}
-            </div>
+            </CopilotProvider>
         </GraphContext.Provider>
     );
 };

@@ -37,17 +37,9 @@ export const useGraphStyles = makeStyles({
         boxShadow: tokens.shadow4,
         display: 'flex',
         flexDirection: 'row',
-        overflow: 'hidden',
+        height: '100%',
+        overflow: 'auto',
         position: 'relative',
-    },
-    rootContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'calc(100vh - 60px)',
-        padding: '10px ',
-        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-        backgroundColor: tokens.colorNeutralBackground3,
-        gap: '0.25rem',
     },
     radioGroupContainer: {
         paddingRight: '1rem',
@@ -94,50 +86,25 @@ export const useIntegratedSelectorStyles = makeStyles({
 });
 
 export const useGraphNodeStyles = makeStyles({
-    handle: {
-        opacity: 0,
-        pointerEvents: 'none',
-    },
     card: {
         width: `${NodeSize.width}px`,
         height: `${NodeSize.height}px`,
         position: 'relative',
-        borderRadius: tokens.borderRadiusMedium,
-        boxShadow: tokens.shadow4,
-        gap: '8px',
+        padding: tokens.spacingHorizontalM,
+        gap: tokens.spacingVerticalS,
     },
     appGroupCard: {
         backgroundColor: tokens.colorBrandBackground2,
-        '&:hover': {
-            backgroundColor: tokens.colorBrandBackground2Hover,
-        },
     },
     cardHighlighted: {
-        backgroundColor: tokens.colorNeutralBackground2,
         boxShadow: tokens.shadow8,
     },
-    cardHovered: {
-        backgroundColor: tokens.colorNeutralBackground2,
-        boxShadow: `${tokens.shadow16} !important`,
-    },
-    appGroupCardHovered: {
-        backgroundColor: tokens.colorBrandBackground2Hover,
-        boxShadow: `${tokens.shadow16} !important`,
-    },
     cardSelected: {
-        boxShadow: tokens.shadow4,
-        border: `1px solid ${tokens.colorBrandStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground1Selected,
     },
-    header: {
-        width: `calc(${NodeSize.width}px - 24px)`,
-    },
-    headerText: {
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        width: `calc(${NodeSize.width}px - 76px)`,
-    },
-    description: {
-        color: `${tokens.colorNeutralForeground3} !important`,
+    handle: {
+        opacity: 0,
+        pointerEvents: 'none',
     },
 });
 
