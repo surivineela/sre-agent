@@ -8,7 +8,7 @@ import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClien
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { IncidentFilterDocumentPayload } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
+import { Agent, AgentMode, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../../Common/Helpers/Guid';
 import {
     IncidentManagementNotificationResources,
@@ -451,6 +451,7 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
 
                                 const defaultIncidentFilter: IncidentFilterDocumentPayload = {
                                     id: 'quickstart_handler',
+                                    agentMode: AgentMode.autonomous,
                                 };
 
                                 if (formValues.platform === IncidentManagementType.PagerDuty) {

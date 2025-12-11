@@ -272,25 +272,25 @@ export const IncidentTriggerStep: FC = () => {
                             disabled={disableAllFields}
                         >
                             <Radio
-                                value={AgentMode.review}
+                                value={AgentMode.autonomous}
                                 label={
                                     <>
-                                        {intl.formatMessage(IncidentManagementResources.reviewDefault)}
+                                        {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
                                         <br />
                                         <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
+                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
                                         </Text>
                                     </>
                                 }
                             />
                             <Radio
-                                value={AgentMode.autonomous}
+                                value={AgentMode.review}
                                 label={
                                     <>
-                                        {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                        {intl.formatMessage(IncidentManagementResources.reviewWord)}
                                         <br />
                                         <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
                                         </Text>
                                     </>
                                 }

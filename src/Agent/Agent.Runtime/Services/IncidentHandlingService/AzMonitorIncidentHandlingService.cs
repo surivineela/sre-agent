@@ -16,6 +16,7 @@ using Agent.Data.DataModels.IncidentModel;
 using Agent.Data.Interface.IncidentAPI;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Azure.Core;
 using Azure.ResourceManager.AlertsManagement.Models;
@@ -1047,7 +1048,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             Id = request?.IncidentFilter?.Id ?? filterId,
             Name = request?.IncidentFilter?.Name ?? filterId,
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
-            AgentMode = request?.IncidentFilter?.AgentMode ?? "",
+            AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",

@@ -243,24 +243,24 @@ export const FilterStep: FC = () => {
                 <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
                     <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
                         <Radio
-                            value={AgentMode.review}
-                            label={
-                                <>
-                                    {intl.formatMessage(IncidentManagementResources.reviewDefault)}
-                                    <br />
-                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
-                                </>
-                            }
-                        />
-                        <Radio
                             value={AgentMode.autonomous}
                             label={
                                 <>
-                                    {intl.formatMessage(IncidentManagementResources.autonomousWord)}
+                                    {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
                                     <br />
                                     <Text size={200}>
                                         {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
                                     </Text>
+                                </>
+                            }
+                        />
+                        <Radio
+                            value={AgentMode.review}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.reviewWord)}
+                                    <br />
+                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
                                 </>
                             }
                         />

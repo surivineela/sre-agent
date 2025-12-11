@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Graph.Interfaces;
+using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using PagerDutyIncident = Agent.Graph.Interfaces.PagerDutyIncident;
@@ -104,7 +105,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingService<PagerDut
             Id = request?.IncidentFilter?.Id ?? filterId,
             Name = request?.IncidentFilter?.Name ?? filterId,
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
-            AgentMode = request?.IncidentFilter?.AgentMode ?? "",
+            AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
             Priority = request?.IncidentFilter?.Priority ?? "",
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",

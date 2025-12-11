@@ -20,7 +20,7 @@ namespace Agent.Runtime.Services
     {
         public string FieldName { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
-        public List<KeyValuePair<string, string>> Options { get; set; } = new List<KeyValuePair<string, string>>();
+        public List<KeyValuePair<string, string>> Options { get; set; } = [];
         public IncidentFilterInputType FieldInputType { get; set; } = IncidentFilterInputType.Dropdown;
         public bool IsRequired { get; set; } = false;
     }
@@ -84,11 +84,11 @@ namespace Agent.Runtime.Services
                 new() {
                     FieldName = nameof(IncidentFilterDocumentPayload.AgentMode),
                     DisplayName = "Agent Mode",
-                    Options = new List<KeyValuePair<string, string>>
-                    {
+                    Options =
+                    [
                         new(AgentModes.Review, AgentModes.Review),
                         new(AgentModes.Autonomous, AgentModes.Autonomous),
-                    }
+                    ]
                 },
                 new() {
                     FieldName = nameof(IncidentFilterDocumentPayload.DeepInvestigationEnabled),

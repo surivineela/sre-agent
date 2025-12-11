@@ -30,7 +30,7 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         impactedService: handlerCreateOrEditInfo?.filter?.impactedService || undefined,
         priority: handlerCreateOrEditInfo?.filter?.priority || undefined,
         titleContains: handlerCreateOrEditInfo?.filter?.titleContains || undefined,
-        agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.review,
+        agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.autonomous,
         owningTeamId: handlerCreateOrEditInfo?.filter?.owningTeamId || undefined,
         createdBy: handlerCreateOrEditInfo?.filter?.createdBy || undefined,
         monitorId: handlerCreateOrEditInfo?.filter?.monitorId || undefined,

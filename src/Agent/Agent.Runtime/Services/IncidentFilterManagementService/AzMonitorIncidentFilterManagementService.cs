@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.Interface.IncidentAPI;
+using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -100,7 +101,8 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
                 Id = "quickstart_handler",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Priority = "Sev3"
+                Priority = "Sev3",
+                AgentMode = AgentModes.Autonomous.ToLowerInvariant(),
             };
             await SaveIncidentFilter(defaultFilter);
         }

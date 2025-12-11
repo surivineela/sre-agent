@@ -111,7 +111,7 @@ export const useTestHandler = (
                 impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
                 priority: values.priority === 'ALL' ? undefined : values.priority,
                 titleContains: values.titleContains || '',
-                agentMode: values.agentMode || AgentMode.review,
+                agentMode: values.agentMode || AgentMode.autonomous,
                 owningTeamId: incidentPlatformType === IncidentManagementType.Icm ? values.owningTeamId || '' : undefined,
                 createdBy: incidentPlatformType === IncidentManagementType.Icm ? values.createdBy || '' : undefined,
                 monitorId: incidentPlatformType === IncidentManagementType.Icm ? values.monitorId || '' : undefined,

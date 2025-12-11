@@ -1960,7 +1960,7 @@ export const IncidentManagementResources = defineMessages({
     },
     autonomyLevel: { defaultMessage: 'Autonomy level', id: 'Sdc+Dp' },
     agentAutonomyLevel: { defaultMessage: 'Agent autonomy level', id: 'AC5nsM' },
-    reviewDefault: { defaultMessage: 'Review (Default)', id: 'Ve40iX' },
+    autonomousDefault: { defaultMessage: 'Autonomous (Default)', id: 'Ypp6em' },
     reviewWord: { defaultMessage: 'Review', id: 'R+J5ox' },
     autonomousWord: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
     autonomyLevelReviewDescription: {
