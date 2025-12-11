@@ -19,6 +19,10 @@ import {
 } from '../Activities/Utility';
 import { ThreadListsState, ThreadListState, ThreadLoadingCounts } from '../Contracts/Activities';
 
+// Track whether we've logged the threads loaded telemetry this session
+// (module-level variable persists entire session)
+let hasLoggedThreadsLoaded = false;
+
 export interface InputForThreadListWithFavoriteList {
     includedSources?: ThreadSource[];
     excludedSources?: ThreadSource[];
@@ -483,8 +487,11 @@ export const useThreadListWithFavoriteList = (
                 getThreads(threadClient, filterInput, orderBy, undefined, false),
             ]);
 
-            // Log threads loaded performance telemetry
-            if (!AzPortalProxy.inStandaloneMode) {
+            // Log threads loaded performance telemetry (once per session; only if we're *pretty sure*
+            // they didn't deeplink elsewhere and then come here later)
+            const isInitialPageLoad = performance.now() < 15000;
+            if (!hasLoggedThreadsLoaded && isInitialPageLoad && !AzPortalProxy.inStandaloneMode) {
+                hasLoggedThreadsLoaded = true;
                 azPortalProxy.log({
                     action: 'iframe threads loaded',
                     actionModifier: 'performance',
