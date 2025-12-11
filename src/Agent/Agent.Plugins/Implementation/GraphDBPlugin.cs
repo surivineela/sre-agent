@@ -1534,19 +1534,10 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             _logger.LogInternalInformation("Executing real-time Azure Resource Graph query for resource: {ResourceId}", resourceId);
 
             // Execute the query using Azure Resource Graph
-            var result = await _azureResourceGraphClient.Query(new[] { subscriptionId }, query);
-
-            // Convert result to JSON string
-            var jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            var jsonResult = JsonSerializer.Serialize(result.Data, jsonOptions);
+            var result = await _azureResourceGraphClient.Query([subscriptionId], query);
 
             _logger.LogInternalInformation("Successfully retrieved real-time properties for resource: {ResourceId}", resourceId);
-            return jsonResult;
+            return result.Data.ToString();
         }
         catch (Exception ex)
         {
