@@ -293,25 +293,6 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> TestConnectionAsync()
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            return await TestConnectionAsync(config.ResourceUrl);
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"Unexpected error: {ex.Message}");
-            return (false, $"✗ Connection failed: {ex.Message}");
-        }
-    }
-
     public async Task<(bool Success, string Response)> TestConnectionAsync(string resourceUrl)
     {
         try
@@ -319,7 +300,7 @@ public partial class ApiService : IDisposable
             DebugLogger.LogConfig("ResourceUrl", resourceUrl);
             DebugLogger.LogConfig("IsLocalhost", CliConfigurationService.IsLocalhost(resourceUrl).ToString());
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{resourceUrl.TrimEnd('/')}/api/v1/extendedAgent/agents");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{resourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents");
 
             var (response, content, responseTime) = await MakeHttpRequestAsync(request);
 
@@ -329,15 +310,30 @@ public partial class ApiService : IDisposable
                 {
                     DebugLogger.Debug("Parsing", "Parsing connection test response as JSON");
 
-                    // Parse the response to get agent names using robust parsing
+                    // Parse the response to get agent count
+                    // cannot call ListExtendedAgents directly because resourceURL is not yet set as connection test needs to pass first
+                    // V2 API returns: { "value": [ ... ] } so look for "value" property first
                     var jsonDoc = JsonDocument.Parse(content);
-                    var agentCount = jsonDoc.RootElement.ValueKind == JsonValueKind.Array
-                        ? jsonDoc.RootElement.GetArrayLength()
-                        : 0;
+                    int agentCount;
+
+                    if (jsonDoc.RootElement.TryGetProperty("value", out var valueElement) &&
+                        valueElement.ValueKind == JsonValueKind.Array)
+                    {
+                        agentCount = valueElement.GetArrayLength();
+                    }
+                    else if (jsonDoc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
+                        // Fallback for direct array response
+                        agentCount = jsonDoc.RootElement.GetArrayLength();
+                    }
+                    else
+                    {
+                        agentCount = 0;
+                    }
 
                     DebugLogger.Debug("Response", $"Successfully parsed JSON with {agentCount} agents");
 
-                    return (true, $"✅ Connection successful! Found {agentCount} agents.");
+                    return (true, $"✅ Connection successful! Found {agentCount} agent(s).");
                 }
                 catch (JsonException ex)
                 {
