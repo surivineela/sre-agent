@@ -438,6 +438,13 @@ public partial class ThreadEvaluator
             var messages = await _threadRepository.GetMessagesAsync(threadId);
             foreach (var message in messages.OrderBy(m => m.TimeStamp))
             {
+                if (message.MessageType == StreamMessageType.Reasoning || string.IsNullOrEmpty(message.Text))
+                {
+                    // Skip reasoning messages in chat history, otherwise evaluator treats them as regular output and skews results
+                    // Also skip empty messages
+                    continue;
+                }
+
                 chatHistoryBuilder.AppendLine($"[{message.TimeStamp:yyyy-MM-dd HH:mm:ss}] {message.Author.Role}: {message.Text}");
             }
 
@@ -451,6 +458,12 @@ public partial class ThreadEvaluator
                     {
                         // Build reasoning message content
                         var content = GetContentFromReasoningMessage(reasoningMessage);
+
+                        if (string.IsNullOrEmpty(content))
+                        {
+                            continue; // Skip empty messages
+                        }
+
                         reasoningHistoryBuilder.AppendLine($"[{reasoningMessage.Role}]: {content}");
                     }
                     catch (Exception ex)
@@ -989,9 +1002,6 @@ public partial class ThreadEvaluator
     }
 
     /// <summary>
-    /// Helper classes for managing evaluation metrics and results
-    /// </summary>
-    /// <summary>
     /// Helper method to get content from a ReasoningMessage by deserializing the SerializedChatMessage
     /// </summary>
     private string GetContentFromReasoningMessage(ReasoningMessage reasoningMessage)
@@ -1004,6 +1014,9 @@ public partial class ThreadEvaluator
             }
 
             var chatMessage = JsonSerializer.Deserialize<ChatMessage>(reasoningMessage.SerializedChatMessage);
+
+            // 'Text' property on the chat message aggregates all text from 'TextContent' pieces of the message
+            // this will skip tool calls and reasoning summaries
             return chatMessage?.Text ?? "";
         }
         catch (Exception ex)
@@ -1147,7 +1160,8 @@ public partial class ThreadEvaluator
     {
         public double SATScore { get; set; }
         public string Summary { get; set; } = "";
-        public string DetailedFeedback { get; set; } = ""; public string Category { get; set; } = "";
+        public string DetailedFeedback { get; set; } = "";
+        public string Category { get; set; } = "";
         public int Resolved { get; set; }
         public int Satisfied { get; set; }
         public int Automatic { get; set; }

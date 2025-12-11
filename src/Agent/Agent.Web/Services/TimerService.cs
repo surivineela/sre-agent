@@ -701,6 +701,17 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _threadEvaluatorTimerIsRunning = true;
+
+                // Run V2 first so it evaluates the same set of threads before V1 updates evaluated timestamps.
+                try
+                {
+                    await _threadEvaluator.EvaluateV2(cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error executing thread evaluator v2.");
+                }
+
                 await _threadEvaluator.Evaluate(cancellationToken);
             }
             catch (Exception ex)

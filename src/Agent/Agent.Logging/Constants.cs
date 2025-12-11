@@ -28,6 +28,7 @@ public static class AgentActionEvents
     public const string EvaluateRag = "evaluate.rag";
     public const string EvaluateTask = "evaluate.task";
     public const string EvaluateThread = "evaluate.thread";
+    public const string EvaluateThreadV2 = "evaluate.thread.v2";
 
     // Incident Management
     public const string ResolveIncident = nameof(ResolveIncident);

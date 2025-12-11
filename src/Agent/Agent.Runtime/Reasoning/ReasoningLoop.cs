@@ -1886,13 +1886,6 @@ public class ReasoningLoop : IDisposable
             return (AgentActionStatus.Fail, output);
         }
 
-        // For other tools, check for generic error patterns
-        if (output.Contains("error", StringComparison.OrdinalIgnoreCase)
-            || output.Contains("failed", StringComparison.OrdinalIgnoreCase))
-        {
-            return (AgentActionStatus.Fail, output);
-        }
-
         return (AgentActionStatus.Success, null);
     }
 
