@@ -29,14 +29,14 @@ COPY . .
 
 # Temporarily install azure devops mcp server from source code instead of npm registry due to federation auth
 RUN apt-get install -y git && \
-    git clone https://github.com/howang-ms/azure-devops-mcp.git /azure-devops-mcp && \
-    cd /azure-devops-mcp && \
+    git clone https://github.com/howang-ms/azure-devops-mcp.git /azdevop && \
+    cd /azdevop && \
     npm install && \
     npm run build && \
     mkdir -p /app/mcp-tools && \
-    cp -r /azure-devops-mcp /app/mcp-tools/ && \
+    cp -r /azdevop /app/mcp-tools/ && \
     cd / && \
-    rm -rf /azure-devops-mcp
+    rm -rf /azdevop
 
 # Clean up apt cache
 RUN apt-get clean && \

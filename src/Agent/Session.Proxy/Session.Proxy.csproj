@@ -17,11 +17,11 @@
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   </ItemGroup>
 
-  <Target Name="CopyEv2McpServer" AfterTargets="Build">
+  <Target Name="CopyEv2McpServer" AfterTargets="Publish">
     <ItemGroup>
       <Ev2McpServerFiles Include="$(PkgEv2_McpServer)\tools\$(TargetFramework)\any\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(Ev2McpServerFiles)" DestinationFiles="@(Ev2McpServerFiles->'$(OutputPath)mcp-tools\ev2-mcp-server\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Ev2McpServerFiles)" DestinationFiles="@(Ev2McpServerFiles->'$(PublishDir)\mcp-tools\ev2-mcp-server\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
 </Project>
