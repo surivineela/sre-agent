@@ -26,7 +26,6 @@ import {
 } from '@fluentui/react-icons';
 import { ChangeEventHandler, FC, KeyboardEvent, MouseEvent, useContext, useEffect, useMemo, useState } from 'react';
 import { IntlShape } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../../../Common/Helpers/headers';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
@@ -59,7 +58,6 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
 }) => {
     const styles = useCreationDialogStyles();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const navigate = useNavigate();
 
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [isApplyingImprovement, setIsApplyingImprovement] = useState(false);
@@ -928,7 +926,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                 {agent.enableMemory && (
                     <div style={{ marginTop: '8px', marginLeft: '48px' }}>
                         <Link
-                            onClick={() => navigate('/views/settings/knowledgeBase')}
+                            href="#/views/settings/knowledgeBase"
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

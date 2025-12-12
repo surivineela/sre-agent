@@ -1,7 +1,6 @@
 import { Badge, Link, mergeClasses, Text } from '@fluentui/react-components';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
@@ -22,7 +21,6 @@ export const AgentDetails = memo(
     ({ agent, agents, toolNames, toolMap, systemToolMap, memoryEnabled, documentCount }: AgentDetailsProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
-        const navigate = useNavigate();
 
         return (
             <>
@@ -46,7 +44,7 @@ export const AgentDetails = memo(
                     </div>
                     {memoryEnabled && documentCount !== null && (
                         <div className={styles.marginTopLeft}>
-                            <Link onClick={() => navigate('/views/settings/knowledgeBase')} className={styles.knowledgeBaseLink}>
+                            <Link href="#/views/settings/knowledgeBase" className={styles.knowledgeBaseLink}>
                                 {documentCount > 0
                                     ? `View ${documentCount} documents in Knowledge Base`
                                     : 'No documents in Knowledge Base - Add documents'}

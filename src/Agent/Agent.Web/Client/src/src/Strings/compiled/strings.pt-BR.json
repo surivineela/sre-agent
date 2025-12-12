@@ -105,12 +105,6 @@
       "value": "Give access to knowledge base"
     }
   ],
-  "+Pmftr": [
-    {
-      "type": 0,
-      "value": "Redefinir rascunho"
-    }
-  ],
   "+S4WAz": [
     {
       "type": 0,
@@ -175,12 +169,6 @@
       "value": "targetAgent"
     }
   ],
-  "+ZdOJt": [
-    {
-      "type": 0,
-      "value": "Desativando tarefa(s) agendada(s)"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -197,12 +185,6 @@
     {
       "type": 0,
       "value": "Criar novo subagente"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "Editar o conector de dados"
     }
   ],
   "+hOwpi": [
@@ -489,10 +471,26 @@
       "value": "Gerenciar projetos de Visão Personalizada."
     }
   ],
+  "/jp8iL": [
+    {
+      "type": 0,
+      "value": "Failed to save tool: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/mHau5": [
     {
       "type": 0,
       "value": "Falha ao criar o conector"
+    }
+  ],
+  "/mPnOR": [
+    {
+      "type": 0,
+      "value": "Skills Enabled"
     }
   ],
   "/qCaiZ": [
@@ -565,12 +563,6 @@
     {
       "type": 0,
       "value": "Exibir sugestões de IA"
-    }
-  ],
-  "05Rzkx": [
-    {
-      "type": 0,
-      "value": "Agente de teste"
     }
   ],
   "08bD52": [
@@ -649,18 +641,10 @@
       "value": "Correções rápidas"
     }
   ],
-  "0MhOuN": [
+  "0L2J5T": [
     {
       "type": 0,
-      "value": "Tem certeza de que deseja excluir a tarefa "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "? Esta ação não poderá ser desfeita."
+      "value": "New file"
     }
   ],
   "0Qocmw": [
@@ -731,6 +715,12 @@
     {
       "type": 0,
       "value": "Opções avançadas"
+    }
+  ],
+  "0eQHdW": [
+    {
+      "type": 0,
+      "value": "Create Python Tool"
     }
   ],
   "0eZALE": [
@@ -889,6 +879,40 @@
       "value": "Para obter o desempenho ideal do agente para diagnóstico, métricas, conhecimento e muito mais, use grupos de recursos que incluem um ou mais desses serviços de computação do Azure: Serviço de Kubernetes do Azure, Functions, Aplicativos de Contêiner ou Aplicativos Web."
     }
   ],
+  "1/3fw+": [
+    {
+      "type": 0,
+      "value": "Failed to update scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "1/xsyG": [
+    {
+      "type": 0,
+      "value": "Create your agent first to enable testing."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
@@ -945,12 +969,6 @@
     {
       "type": 0,
       "value": "Adicionar um plano de resposta para automatizar o tratamento de incidentes"
-    }
-  ],
-  "1DDIYv": [
-    {
-      "type": 0,
-      "value": "Tem certeza de que deseja retomar esta tarefa agendada?"
     }
   ],
   "1EnaNQ": [
@@ -1156,16 +1174,38 @@
       "value": "Plano de resposta"
     }
   ],
+  "1vVgdq": [
+    {
+      "type": 0,
+      "value": "Failed to run scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "1xTayQ": [
     {
       "type": 0,
       "value": "Enter endpoint"
-    }
-  ],
-  "1xZjpU": [
-    {
-      "type": 0,
-      "value": "Tem certeza de que deseja pausar esta tarefa agendada?"
     }
   ],
   "2+TYMx": [
@@ -1204,6 +1244,12 @@
       "value": "PagerDuty está conectado."
     }
   ],
+  "25DrlN": [
+    {
+      "type": 0,
+      "value": "What should this function do?"
+    }
+  ],
   "26Vq1R": [
     {
       "type": 0,
@@ -1234,12 +1280,6 @@
     {
       "type": 0,
       "value": "Falha ao atualizar o conector"
-    }
-  ],
-  "2CSEeq": [
-    {
-      "type": 0,
-      "value": "Descreva a cadência — obter o Cron"
     }
   ],
   "2FLZrG": [
@@ -1304,12 +1344,6 @@
       "value": "Resumo do incidente"
     }
   ],
-  "2YgmBr": [
-    {
-      "type": 0,
-      "value": "Tarefa agendada desativada com sucesso"
-    }
-  ],
   "2a+ttj": [
     {
       "type": 0,
@@ -1370,6 +1404,12 @@
       "value": "Conectores"
     }
   ],
+  "2myhph": [
+    {
+      "type": 0,
+      "value": "Test the function to continue."
+    }
+  ],
   "2os8R1": [
     {
       "type": 0,
@@ -1406,16 +1446,38 @@
       "value": "Painel do Grafana"
     }
   ],
+  "3/OG7/": [
+    {
+      "type": 0,
+      "value": "Updating scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    }
+  ],
   "3/wF0G": [
     {
       "type": 0,
       "value": "Comandos de barra"
-    }
-  ],
-  "30Ap/Y": [
-    {
-      "type": 0,
-      "value": "Cron:"
     }
   ],
   "312q4w": [
@@ -1446,6 +1508,12 @@
     {
       "type": 0,
       "value": "Isso removerá permanentemente um grupo de recursos dos grupos de recursos gerenciados pelo agente. Tem certeza de que deseja remover?"
+    }
+  ],
+  "3DC7Da": [
+    {
+      "type": 0,
+      "value": "Enter argument"
     }
   ],
   "3DzXFS": [
@@ -1530,12 +1598,6 @@
     {
       "type": 0,
       "value": "Salvar Alterações"
-    }
-  ],
-  "3Wq8aM": [
-    {
-      "type": 0,
-      "value": "Cron"
     }
   ],
   "3a5wL8": [
@@ -1664,12 +1726,6 @@
       "value": "% de confiança"
     }
   ],
-  "3sjbqq": [
-    {
-      "type": 0,
-      "value": "Criando Tarefa Agendada..."
-    }
-  ],
   "3t/IhV": [
     {
       "type": 0,
@@ -1682,10 +1738,10 @@
       "value": "Expandir navegação"
     }
   ],
-  "3y9DGg": [
+  "3xD7BQ": [
     {
       "type": 0,
-      "value": "Retomar"
+      "value": "Add additional files to include with this skill."
     }
   ],
   "3yurtF": [
@@ -1722,12 +1778,6 @@
     {
       "type": 0,
       "value": "Vinculação do painel de controle do Grafana ao Agente do SRE em andamento"
-    }
-  ],
-  "40gxTJ": [
-    {
-      "type": 0,
-      "value": "Prompt do agente"
     }
   ],
   "41zpq3": [
@@ -1782,12 +1832,6 @@
     {
       "type": 0,
       "value": "Este agente"
-    }
-  ],
-  "493R/T": [
-    {
-      "type": 0,
-      "value": "Compartilhe suas instruções de rascunho e nós as adaptaremos para uma execução de fluxo de agente agendada."
     }
   ],
   "498yM3": [
@@ -2014,22 +2058,10 @@
       "value": ", preciso de diagnóstico para picos intermitentes de latência nos clusters do AKS eastus e westeurope."
     }
   ],
-  "53qjcm": [
-    {
-      "type": 0,
-      "value": "Atualizando tarefa agendada"
-    }
-  ],
   "543Ygw": [
     {
       "type": 0,
       "value": "Detalhes da execução e solicitação"
-    }
-  ],
-  "54UIcW": [
-    {
-      "type": 0,
-      "value": "Não foi possível aprimorar as instruções. Tente novamente em breve."
     }
   ],
   "59z+Aj": [
@@ -2182,6 +2214,38 @@
       "value": "Criar"
     }
   ],
+  "5WNvJO": [
+    {
+      "type": 0,
+      "value": "Running scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "5WWljt": [
     {
       "type": 0,
@@ -2202,6 +2266,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5X7NpJ": [
+    {
+      "type": 0,
+      "value": "Upload folder"
     }
   ],
   "5XRsWa": [
@@ -2320,6 +2390,12 @@
     {
       "type": 0,
       "value": "Desconhecido"
+    }
+  ],
+  "5kCFXN": [
+    {
+      "type": 0,
+      "value": "Generate with AI instead"
     }
   ],
   "5kK+j9": [
@@ -2470,12 +2546,6 @@
       "value": "Visualizar incidentes"
     }
   ],
-  "69sjgc": [
-    {
-      "type": 0,
-      "value": "Insira o URI do Key Vault"
-    }
-  ],
   "6B0Aua": [
     {
       "type": 1,
@@ -2510,6 +2580,12 @@
       "value": "Falha ao criar uma conexão gerenciada"
     }
   ],
+  "6GLyN3": [
+    {
+      "type": 0,
+      "value": "Generating test cases"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -2520,6 +2596,12 @@
     {
       "type": 0,
       "value": "O compositor foi limpo. Digite uma nova pergunta para começar um novo chat."
+    }
+  ],
+  "6LKCR/": [
+    {
+      "type": 0,
+      "value": "Analyzing intent"
     }
   ],
   "6LZ2qn": [
@@ -2592,12 +2674,6 @@
       "value": "Nenhuma alteração desde a última execução"
     }
   ],
-  "6YHhH+": [
-    {
-      "type": 0,
-      "value": "por exemplo, */5 * * * *"
-    }
-  ],
   "6YXj/s": [
     {
       "type": 0,
@@ -2610,28 +2686,22 @@
       "value": "Editar tarefa agendada"
     }
   ],
-  "6aH1+U": [
-    {
-      "type": 0,
-      "value": "Criar uma tarefa agendada"
-    }
-  ],
   "6bkNTl": [
     {
       "type": 0,
       "value": "ID de correlação:"
     }
   ],
-  "6dEJ43": [
-    {
-      "type": 0,
-      "value": "Rascunho de Cron"
-    }
-  ],
   "6dWeUs": [
     {
       "type": 0,
       "value": "Selecione a assinatura para gerenciar os recursos implantados e os custos. Use grupos de recursos como pastas para organizar e gerenciar todos os seus recursos."
+    }
+  ],
+  "6fPJcm": [
+    {
+      "type": 0,
+      "value": "Generate Code with AI"
     }
   ],
   "6feu1e": [
@@ -2644,6 +2714,12 @@
     {
       "type": 0,
       "value": "Gerar Insights de Sessão"
+    }
+  ],
+  "6lHI9u": [
+    {
+      "type": 0,
+      "value": "Send a message to start testing your agent."
     }
   ],
   "6m5Ba0": [
@@ -2740,12 +2816,6 @@
       "value": "Gerando insights..."
     }
   ],
-  "75lAeu": [
-    {
-      "type": 0,
-      "value": "Selecione a data de término da tarefa agendada"
-    }
-  ],
   "77t9cY": [
     {
       "type": 0,
@@ -2758,12 +2828,6 @@
       "value": "Nenhum agente disponível para entrega"
     }
   ],
-  "7C0xai": [
-    {
-      "type": 0,
-      "value": "Fonte de dados"
-    }
-  ],
   "7Cy5xk": [
     {
       "type": 0,
@@ -2774,6 +2838,12 @@
     {
       "type": 0,
       "value": "Modo de revisão"
+    }
+  ],
+  "7JgdFw": [
+    {
+      "type": 0,
+      "value": "Comma-separated tool names, e.g., SearchKusto, GetLogs"
     }
   ],
   "7K6W8s": [
@@ -3102,6 +3172,40 @@
       "value": "O plano de resposta a incidentes personalizado foi adicionado com êxito"
     }
   ],
+  "8H0PeE": [
+    {
+      "type": 0,
+      "value": "Failed to delete scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "8J3eYt": [
+    {
+      "type": 0,
+      "value": "Test live agent"
+    }
+  ],
   "8LMIGa": [
     {
       "type": 0,
@@ -3291,22 +3395,28 @@
       "value": "Tente usar termos de pesquisa diferentes ou limpe a pesquisa para ver todos os conectores."
     }
   ],
+  "8jD/lL": [
+    {
+      "type": 0,
+      "value": "Create skill"
+    }
+  ],
   "8lCjAM": [
     {
       "type": 0,
       "value": "Prioridade"
     }
   ],
+  "8lQNdb": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks have been deleted."
+    }
+  ],
   "8nBFW4": [
     {
       "type": 0,
       "value": "Colaborador do Cache Redis"
-    }
-  ],
-  "8ojA9A": [
-    {
-      "type": 0,
-      "value": "Deixe a IA aprimorar as instruções"
     }
   ],
   "8oyl6b": [
@@ -3505,22 +3615,16 @@
       "value": "message"
     }
   ],
-  "9G+4ga": [
+  "9DqDnP": [
     {
       "type": 0,
-      "value": "Experimente termos de pesquisa diferentes ou limpe sua pesquisa para ver todos os conectores de dados."
+      "value": "Generate Tool"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
       "value": "Isso substitui o meta-agente padrão para remover o conhecimento geral do Azure e fornecer uma experiência mais focada."
-    }
-  ],
-  "9MPGF8": [
-    {
-      "type": 0,
-      "value": "Instruções do Agente"
     }
   ],
   "9MwJ6v": [
@@ -3551,6 +3655,12 @@
     {
       "type": 0,
       "value": "Enviar"
+    }
+  ],
+  "9WyylR": [
+    {
+      "type": 0,
+      "value": "Command"
     }
   ],
   "9X3VEw": [
@@ -3647,12 +3757,6 @@
       "value": "Atribuições de função"
     }
   ],
-  "A0mVzo": [
-    {
-      "type": 0,
-      "value": "Defina sinais de sucesso/falha e o formato de saída obrigatório, se específico."
-    }
-  ],
   "A0rbH+": [
     {
       "type": 0,
@@ -3663,12 +3767,6 @@
     {
       "type": 0,
       "value": "Sua anotação foi atualizada com sucesso"
-    }
-  ],
-  "A3ptul": [
-    {
-      "type": 0,
-      "value": "Modelos"
     }
   ],
   "A4ZrJb": [
@@ -3771,22 +3869,10 @@
       "value": "Limite de AAU mensal:"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "Nenhum conector de dados configurado"
-    }
-  ],
   "ASLbZd": [
     {
       "type": 0,
       "value": "Exportar análise"
-    }
-  ],
-  "ATXGa+": [
-    {
-      "type": 0,
-      "value": "Nome do Agente"
     }
   ],
   "ATYp8z": [
@@ -3801,44 +3887,16 @@
       "value": "Nenhuma alteração de configuração pendente a ser aplicada"
     }
   ],
-  "AaJ/LU": [
-    {
-      "type": 0,
-      "value": "Aprimorar as instruções"
-    }
-  ],
-  "AbXVP4": [
-    {
-      "type": 0,
-      "value": "Criado em"
-    }
-  ],
   "Abi/u/": [
     {
       "type": 0,
       "value": "Expandir painel"
     }
   ],
-  "AbleKr": [
-    {
-      "type": 0,
-      "value": "conector de dados"
-    }
-  ],
   "AbpmRv": [
     {
       "type": 0,
       "value": "Insira as instruções"
-    }
-  ],
-  "Ad7J7h": [
-    {
-      "type": 0,
-      "value": "Falha ao excluir tarefa: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -3897,6 +3955,38 @@
     {
       "type": 0,
       "value": "Chave de acesso à API REST"
+    }
+  ],
+  "AuUgE1": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been run."
     }
   ],
   "AvHD3R": [
@@ -3985,12 +4075,6 @@
       "value": "Leitor do Centro do Azure para soluções SAP"
     }
   ],
-  "BLU3k6": [
-    {
-      "type": 0,
-      "value": "Editar uma tarefa agendada"
-    }
-  ],
   "BNH9Uy": [
     {
       "type": 0,
@@ -4009,6 +4093,12 @@
     {
       "type": 0,
       "value": "O tipo de funcionalidade da ferramenta"
+    }
+  ],
+  "BP5nk0": [
+    {
+      "type": 0,
+      "value": "Standard Output"
     }
   ],
   "BSQQkf": [
@@ -4113,20 +4203,6 @@
       "value": "Tipo de dados e requisito para validação"
     }
   ],
-  "BmEERa": [
-    {
-      "type": 0,
-      "value": "Excluindo "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " conectores de dados..."
-    }
-  ],
   "Bn/txo": [
     {
       "type": 0,
@@ -4149,12 +4225,6 @@
     {
       "type": 0,
       "value": "Recolher painel"
-    }
-  ],
-  "BynA9c": [
-    {
-      "type": 0,
-      "value": "Ajustes opcionais"
     }
   ],
   "C2iTEH": [
@@ -4527,6 +4597,12 @@
       "value": "Tipo de saída"
     }
   ],
+  "DS/6lY": [
+    {
+      "type": 0,
+      "value": "Collapse to show less"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
@@ -4655,6 +4731,12 @@
       "value": "Falha ao excluir aplicativo lógico"
     }
   ],
+  "DtmRJJ": [
+    {
+      "type": 0,
+      "value": "SSE"
+    }
+  ],
   "DuejfP": [
     {
       "type": 0,
@@ -4715,6 +4797,12 @@
       "value": "Exemplo: em que SubscriptionId == \"##SubscriptionId##\""
     }
   ],
+  "EAGAAs": [
+    {
+      "type": 0,
+      "value": "Test your Python function before saving"
+    }
+  ],
   "EAO/K+": [
     {
       "type": 0,
@@ -4765,6 +4853,12 @@
       "value": "Você pode analisar a disponibilidade do meu recurso nas últimas 24 horas?"
     }
   ],
+  "EJSVsO": [
+    {
+      "type": 0,
+      "value": "Skills"
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -4795,6 +4889,12 @@
       "value": "Fluxo de trabalho completo com avaliação de qualidade"
     }
   ],
+  "EPi9lK": [
+    {
+      "type": 0,
+      "value": "Previous test failed:"
+    }
+  ],
   "EQa6dK": [
     {
       "type": 0,
@@ -4805,6 +4905,12 @@
     {
       "type": 0,
       "value": "Insira o nome do filtro"
+    }
+  ],
+  "ESqLtC": [
+    {
+      "type": 0,
+      "value": "Run local command or executable"
     }
   ],
   "ETRyBL": [
@@ -4913,6 +5019,12 @@
     {
       "type": 0,
       "value": "Dados de rastreamento analisados com avisos."
+    }
+  ],
+  "Eo9M+K": [
+    {
+      "type": 0,
+      "value": "Select a file to edit"
     }
   ],
   "Ep74wA": [
@@ -5047,6 +5159,12 @@
       "value": "Grupos de recursos gerenciados adicionados com sucesso"
     }
   ],
+  "FGN2ax": [
+    {
+      "type": 0,
+      "value": "Tool saved successfully!"
+    }
+  ],
   "FGP0Kd": [
     {
       "type": 0,
@@ -5071,12 +5189,6 @@
       "value": "Insira o PAT ou a chave de API"
     }
   ],
-  "FNQNS1": [
-    {
-      "type": 0,
-      "value": "Dias da semana às 9h, horário do Pacífico"
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
@@ -5087,22 +5199,6 @@
     {
       "type": 0,
       "value": "Nenhum agente de origem especificado"
-    }
-  ],
-  "FSYccN": [
-    {
-      "type": 0,
-      "value": "Quando esta tarefa deve ser executada?"
-    }
-  ],
-  "FSZ5F/": [
-    {
-      "type": 0,
-      "value": "Excluindo tarefa agendada "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "FTWkpv": [
@@ -5139,12 +5235,6 @@
       "value": "Desconectado"
     }
   ],
-  "FZwBv0": [
-    {
-      "type": 0,
-      "value": "Detalhes da execução"
-    }
-  ],
   "FeBVnC": [
     {
       "type": 0,
@@ -5155,6 +5245,12 @@
     {
       "type": 0,
       "value": "Investigação de diagnóstico de várias etapas para ver se o agente pode orquestrar ferramentas com eficiência."
+    }
+  ],
+  "FiXNt1": [
+    {
+      "type": 0,
+      "value": "default"
     }
   ],
   "FitglU": [
@@ -5199,6 +5295,12 @@
     {
       "type": 0,
       "value": "A base de dados de conhecimento está habilitada para este agente. A ferramenta SearchMemory e os prompts da base de dados de conhecimento serão incluídos automaticamente."
+    }
+  ],
+  "FuPxOh": [
+    {
+      "type": 0,
+      "value": "Save & Use Tool"
     }
   ],
   "Fv1ZSz": [
@@ -5421,6 +5523,18 @@
       "value": "Voltar aos comandos"
     }
   ],
+  "GDCPLv": [
+    {
+      "type": 0,
+      "value": "Connect via URL endpoint"
+    }
+  ],
+  "GFhSwY": [
+    {
+      "type": 0,
+      "value": "Skill"
+    }
+  ],
   "GGr/yS": [
     {
       "type": 0,
@@ -5543,12 +5657,6 @@
       "value": "Valor"
     }
   ],
-  "Gvxoji": [
-    {
-      "type": 0,
-      "value": "O nome é obrigatório"
-    }
-  ],
   "GzKpRn": [
     {
       "type": 1,
@@ -5609,16 +5717,16 @@
       "value": "Nenhuma recomendação de otimização de código detectada."
     }
   ],
+  "HHP8Nh": [
+    {
+      "type": 0,
+      "value": "Code generated successfully!"
+    }
+  ],
   "HJ7ZeR": [
     {
       "type": 0,
       "value": "Descrição do Problema"
-    }
-  ],
-  "HKlw1J": [
-    {
-      "type": 0,
-      "value": "Isso desconectará permanentemente esse conector de dados do agente. Tem certeza de que deseja desconectar este conector de dados?"
     }
   ],
   "HMZIeG": [
@@ -5637,12 +5745,6 @@
     {
       "type": 0,
       "value": "Criar seu ecossistema de agente"
-    }
-  ],
-  "HOJNsf": [
-    {
-      "type": 0,
-      "value": "Selecione quando a tarefa deve parar de ser executada"
     }
   ],
   "HQ4NJ3": [
@@ -5691,6 +5793,12 @@
     {
       "type": 0,
       "value": "Aguardando aprovações"
+    }
+  ],
+  "HeFlq1": [
+    {
+      "type": 0,
+      "value": "Skill name is required"
     }
   ],
   "Hgs+WM": [
@@ -5745,6 +5853,12 @@
     {
       "type": 0,
       "value": "Período"
+    }
+  ],
+  "Hnv6Ej": [
+    {
+      "type": 0,
+      "value": "Python Function"
     }
   ],
   "Hs02Tq": [
@@ -5837,6 +5951,16 @@
     {
       "type": 0,
       "value": "Cadeia de caracteres"
+    }
+  ],
+  "I3ymC9": [
+    {
+      "type": 0,
+      "value": "Exit code: "
+    },
+    {
+      "type": 1,
+      "value": "code"
     }
   ],
   "I4PbZq": [
@@ -6036,10 +6160,22 @@
       "value": "Novo thread"
     }
   ],
+  "ITzzTV": [
+    {
+      "type": 0,
+      "value": "Test failed"
+    }
+  ],
   "IYLPrk": [
     {
       "type": 0,
       "value": "Excluir tarefa agendada"
+    }
+  ],
+  "IZFEUg": [
+    {
+      "type": 0,
+      "value": "Ready"
     }
   ],
   "IZYDgM": [
@@ -6052,12 +6188,6 @@
     {
       "type": 0,
       "value": "Você não tem permissão para adicionar ou editar anotações."
-    }
-  ],
-  "IbMKy+": [
-    {
-      "type": 0,
-      "value": "Usar esta versão"
     }
   ],
   "IcB2fr": [
@@ -6116,10 +6246,22 @@
       "value": "O agente usa consultas predefinidas para logs estruturados, telemetria e dados de série temporal."
     }
   ],
+  "IoxJ74": [
+    {
+      "type": 0,
+      "value": "Writing function code"
+    }
+  ],
   "Ip7Gd3": [
     {
       "type": 0,
       "value": "Aplicar automaticamente"
+    }
+  ],
+  "IpS9Tn": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled tasks"
     }
   ],
   "IrCHQG": [
@@ -6186,6 +6328,12 @@
       "value": "Falha ao validar as configurações do ServiceNow. Tente novamente."
     }
   ],
+  "J3nUiY": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks are now off."
+    }
+  ],
   "J6XCfl": [
     {
       "type": 0,
@@ -6200,12 +6348,6 @@
     {
       "type": 0,
       "value": "Conectar itens existentes"
-    }
-  ],
-  "J8u7Xg": [
-    {
-      "type": 0,
-      "value": "Última Modificação"
     }
   ],
   "J8uEym": [
@@ -6262,6 +6404,12 @@
       "value": "Com os planos de resposta a incidentes, o agente escolhe as ferramentas necessárias para gerenciar tipos comuns de incidentes. Os planos de resposta personalizados substituem essa capacidade, fornecendo ao agente instruções específicas que você fornece."
     }
   ],
+  "JSVEZ3": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled tasks."
+    }
+  ],
   "JSW9Xw": [
     {
       "type": 0,
@@ -6272,6 +6420,16 @@
     {
       "type": 0,
       "value": "Dica:"
+    }
+  ],
+  "JTS+Zf": [
+    {
+      "type": 0,
+      "value": "Failed to delete skill "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -6382,6 +6540,12 @@
     {
       "type": 0,
       "value": "Identidade Gerenciada (a identidade gerenciada do Espaço do Agente foi escolhida automaticamente como Espaço do Agente e o conector compatível foi encontrado)"
+    }
+  ],
+  "Jdy/E7": [
+    {
+      "type": 0,
+      "value": "Testing function…"
     }
   ],
   "JezZlU": [
@@ -6500,12 +6664,6 @@
       "value": "Examinar o gatilho"
     }
   ],
-  "JzOvG/": [
-    {
-      "type": 0,
-      "value": "Suposições que fizemos"
-    }
-  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -6522,12 +6680,6 @@
     {
       "type": 0,
       "value": "Mostrar"
-    }
-  ],
-  "K7tsik": [
-    {
-      "type": 0,
-      "value": "Tarefa agendada executada com sucesso"
     }
   ],
   "K9q4Xw": [
@@ -6602,12 +6754,6 @@
       "value": "Novo agente"
     }
   ],
-  "KS5JHs": [
-    {
-      "type": 0,
-      "value": "Contagem de execuções"
-    }
-  ],
   "KXyWfi": [
     {
       "type": 0,
@@ -6680,16 +6826,44 @@
       "value": "Sim/Não"
     }
   ],
-  "KiANnA": [
+  "KiXNvz": [
     {
       "type": 0,
-      "value": "Ativar tarefas agendadas"
+      "value": "Run"
     }
   ],
   "Kkc3/u": [
     {
       "type": 0,
       "value": "Editar plano de resposta a incidentes"
+    }
+  ],
+  "KlWAix": [
+    {
+      "type": 0,
+      "value": "Failed to turn on scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "Km+WSh": [
@@ -6772,6 +6946,12 @@
       "value": "Sugestões de IA descartadas"
     }
   ],
+  "L/BdWN": [
+    {
+      "type": 0,
+      "value": "Generate with AI ✨"
+    }
+  ],
   "L/ct40": [
     {
       "type": 0,
@@ -6808,12 +6988,6 @@
       "value": "atividade recente"
     }
   ],
-  "LFn7Ak": [
-    {
-      "type": 0,
-      "value": "Tarefa agendada criada com êxito"
-    }
-  ],
   "LGZkPZ": [
     {
       "type": 0,
@@ -6840,12 +7014,6 @@
     {
       "type": 0,
       "value": "Revisar grupos de recursos"
-    }
-  ],
-  "LPz7Qc": [
-    {
-      "type": 0,
-      "value": "Tipo da Ferramenta"
     }
   ],
   "LQ2AtR": [
@@ -6922,6 +7090,12 @@
       "value": "Criando a Ferramenta Kusto"
     }
   ],
+  "LbYKes": [
+    {
+      "type": 0,
+      "value": "Failed to save skill"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -6932,6 +7106,12 @@
     {
       "type": 0,
       "value": "Cabeçalhos personalizados"
+    }
+  ],
+  "LjwVHP": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks are now on."
     }
   ],
   "LkUvu/": [
@@ -6952,10 +7132,26 @@
       "value": "Nome do plano de resposta personalizado"
     }
   ],
+  "Lq6q6U": [
+    {
+      "type": 0,
+      "value": "Failed to generate code: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "LsGLc0": [
     {
       "type": 0,
       "value": "Argumento direto"
+    }
+  ],
+  "LstsP/": [
+    {
+      "type": 0,
+      "value": "MCP Tool"
     }
   ],
   "LuHM0/": [
@@ -7037,6 +7233,12 @@
       "value": "Editar plano de resposta personalizado"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "Delete scheduled tasks"
+    }
+  ],
   "M+QCSD": [
     {
       "type": 0,
@@ -7047,22 +7249,10 @@
       "value": "name"
     }
   ],
-  "M/3/kG": [
-    {
-      "type": 0,
-      "value": "O número máximo de execuções deve ser positivo."
-    }
-  ],
   "M/zZVx": [
     {
       "type": 0,
       "value": "Adicionar filtro"
-    }
-  ],
-  "M0ay1D": [
-    {
-      "type": 0,
-      "value": "Executando tarefas agendadas"
     }
   ],
   "M3159R": [
@@ -7219,24 +7409,6 @@
       "value": "Sim, substituir com o meta-agente personalizado"
     }
   ],
-  "MPzBut": [
-    {
-      "type": 0,
-      "value": "Histórico de execuções"
-    }
-  ],
-  "MQNtQ+": [
-    {
-      "type": 0,
-      "value": "Conectores de Dados"
-    }
-  ],
-  "MSWnaq": [
-    {
-      "type": 0,
-      "value": "Crie uma tarefa agendada para monitorar ou executar ações em intervalos regulares usando expressões cron."
-    }
-  ],
   "MUVpbF": [
     {
       "type": 0,
@@ -7311,12 +7483,6 @@
       "value": "error"
     }
   ],
-  "Mx6yYf": [
-    {
-      "type": 0,
-      "value": "Tarefas agendadas desativadas com sucesso"
-    }
-  ],
   "MxYLKu": [
     {
       "type": 0,
@@ -7377,13 +7543,31 @@
       "value": "Confirmar"
     }
   ],
-  "N7cqYp": [
+  "N75VIa": [
     {
       "type": 0,
-      "value": "Desativando a tarefa agendada "
+      "value": "Creating scheduled task"
     },
     {
-      "type": 1,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
       "value": "name"
     }
   ],
@@ -7403,12 +7587,6 @@
     {
       "type": 0,
       "value": "Autorizado"
-    }
-  ],
-  "NBiLYK": [
-    {
-      "type": 0,
-      "value": "Criando..."
     }
   ],
   "NBxjGE": [
@@ -7577,6 +7755,12 @@
       "value": "count"
     }
   ],
+  "NzhSBf": [
+    {
+      "type": 0,
+      "value": "Edit the code below or regenerate with different instructions"
+    }
+  ],
   "O+srpo": [
     {
       "type": 0,
@@ -7633,6 +7817,12 @@
       "value": "Qualidade Geral"
     }
   ],
+  "O25MZU": [
+    {
+      "type": 0,
+      "value": "Select all tools"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -7655,6 +7845,38 @@
     {
       "type": 0,
       "value": "Fresco"
+    }
+  ],
+  "ODswb7": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "OIWzWF": [
@@ -7745,6 +7967,12 @@
       "value": "Criado"
     }
   ],
+  "ORcS+j": [
+    {
+      "type": 0,
+      "value": "Testing…"
+    }
+  ],
   "OSMnsR": [
     {
       "type": 0,
@@ -7793,12 +8021,6 @@
       "value": "Use a sintaxe cron padrão (UTC) para controlar quando o agente é executado."
     }
   ],
-  "OYAXyI": [
-    {
-      "type": 0,
-      "value": "Forneça informações que o agente fará referência ao analisar ou responder a perguntas."
-    }
-  ],
   "OYKAqF": [
     {
       "type": 0,
@@ -7833,6 +8055,12 @@
     {
       "type": 0,
       "value": "Moderado"
+    }
+  ],
+  "OmDQWM": [
+    {
+      "type": 0,
+      "value": "Cannot create skills when subagents exist"
     }
   ],
   "Oom2N7": [
@@ -8043,12 +8271,6 @@
       "value": "Nenhum agente de destino especificado"
     }
   ],
-  "PXYq8b": [
-    {
-      "type": 0,
-      "value": "Insira uma expressão cron válida de 5 partes (m h dom mon dow)."
-    }
-  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -8155,12 +8377,6 @@
       "value": "Total de tarefas"
     }
   ],
-  "PxsPJt": [
-    {
-      "type": 0,
-      "value": "Ativando tarefas agendadas"
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -8257,16 +8473,6 @@
     {
       "type": 0,
       "value": "Descrição"
-    }
-  ],
-  "Q9IHxV": [
-    {
-      "type": 0,
-      "value": "Executando a tarefa agendada "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -8371,6 +8577,12 @@
       "value": "Usos (gatilho, ação)"
     }
   ],
+  "QTVz4e": [
+    {
+      "type": 0,
+      "value": "Describe what your tool should do"
+    }
+  ],
   "QW+Q5N": [
     {
       "type": 0,
@@ -8387,6 +8599,48 @@
     {
       "type": 0,
       "value": "1. Descreva a ação que você executou 2. Mencionar o recurso ou serviço envolvido"
+    }
+  ],
+  "QZnXvZ": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "1 tool"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Qcakd7": [
@@ -8411,6 +8665,12 @@
     {
       "type": 0,
       "value": "Editar anotação"
+    }
+  ],
+  "Qg+chS": [
+    {
+      "type": 0,
+      "value": "Describe in plain English, e.g., \"Parse JSON logs and count errors by severity\""
     }
   ],
   "QgFHei": [
@@ -8467,6 +8727,12 @@
     {
       "type": 0,
       "value": "por exemplo, 0 9 * * 1-5"
+    }
+  ],
+  "QozEE6": [
+    {
+      "type": 0,
+      "value": "Additional files"
     }
   ],
   "QpCzB2": [
@@ -8533,6 +8799,34 @@
       "value": "Ainda não há comentários"
     }
   ],
+  "R56nxF": [
+    {
+      "type": 0,
+      "value": "Failed to create scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -8543,12 +8837,6 @@
     {
       "type": 0,
       "value": "Os threads de incidentes foram movidos"
-    }
-  ],
-  "RA3fki": [
-    {
-      "type": 0,
-      "value": "Contexto ausente"
     }
   ],
   "RAjqKb": [
@@ -8661,6 +8949,12 @@
     {
       "type": 0,
       "value": "Bancos de dados"
+    }
+  ],
+  "RbWH8Q": [
+    {
+      "type": 0,
+      "value": "MCP"
     }
   ],
   "Rfvi9/": [
@@ -8795,6 +9089,38 @@
       "value": "Mais ações"
     }
   ],
+  "S8Rsb6": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been deleted."
+    }
+  ],
   "SAINuE": [
     {
       "type": 0,
@@ -8823,6 +9149,38 @@
       "value": "Adicionar ferramentas existentes"
     }
   ],
+  "SEdSoA": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been updated."
+    }
+  ],
   "SFUZOQ": [
     {
       "type": 0,
@@ -8843,12 +9201,6 @@
       "value": ")"
     }
   ],
-  "SL+c5a": [
-    {
-      "type": 0,
-      "value": "—"
-    }
-  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -8857,6 +9209,28 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "SM/hWJ": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " skills, but "
+    },
+    {
+      "type": 1,
+      "value": "failureCount"
+    },
+    {
+      "type": 0,
+      "value": " failed to delete"
     }
   ],
   "SMrXWc": [
@@ -8955,10 +9329,66 @@
       "value": "ID da equipe proprietária"
     }
   ],
+  "SjeMma": [
+    {
+      "type": 0,
+      "value": "Run scheduled tasks"
+    }
+  ],
   "Sjo1P4": [
     {
       "type": 0,
       "value": "Personalizado"
+    }
+  ],
+  "SllKh/": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Skill \""
+            },
+            {
+              "type": 1,
+              "value": "name"
+            },
+            {
+              "type": 0,
+              "value": "\" deleted successfully"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Slnpm8": [
@@ -8971,6 +9401,12 @@
     {
       "type": 0,
       "value": "Rascunho ainda não sincronizado"
+    }
+  ],
+  "Sn2nYC": [
+    {
+      "type": 0,
+      "value": "Edit Name"
     }
   ],
   "SoBWeV": [
@@ -9123,12 +9559,6 @@
       "value": "As permissões do agente foram usadas, mas a ação falhou."
     }
   ],
-  "TFsGSl": [
-    {
-      "type": 0,
-      "value": "Deixe vazio para execuções ilimitadas"
-    }
-  ],
   "TGc4Lh": [
     {
       "offset": 0,
@@ -9175,6 +9605,38 @@
       "value": "Íntegro"
     }
   ],
+  "TKNqWx": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now active."
+    }
+  ],
   "TKmub+": [
     {
       "type": 0,
@@ -9191,16 +9653,16 @@
       "value": "platform"
     }
   ],
-  "TKsgZu": [
-    {
-      "type": 0,
-      "value": "Alertas principais"
-    }
-  ],
   "TMZ2Rq": [
     {
       "type": 0,
       "value": "Administrador do Grafana"
+    }
+  ],
+  "TMjYpD": [
+    {
+      "type": 0,
+      "value": "Brief description of what this skill does"
     }
   ],
   "TO55dt": [
@@ -9269,16 +9731,16 @@
       "value": "Este insight não tem conteúdo de markdown."
     }
   ],
-  "Tg4Q8g": [
-    {
-      "type": 0,
-      "value": "Desconectar conector de dados?"
-    }
-  ],
   "ThSX0k": [
     {
       "type": 0,
       "value": "Excluir Agente da SRE"
+    }
+  ],
+  "TiR/Hq": [
+    {
+      "type": 0,
+      "value": "Saving..."
     }
   ],
   "TkWiD5": [
@@ -9393,6 +9855,12 @@
       "value": "Colaborador/Operador de Site"
     }
   ],
+  "UWZEBA": [
+    {
+      "type": 0,
+      "value": "Edit Skill"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -9411,10 +9879,26 @@
       "value": "Exibição visual"
     }
   ],
+  "UcVdDd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " test cases available"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
       "value": "Tipo de incidente"
+    }
+  ],
+  "Uiw6Xo": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled tasks."
     }
   ],
   "UjETJe": [
@@ -9465,6 +9949,12 @@
       "value": "Repositório"
     }
   ],
+  "V4KNjk": [
+    {
+      "type": 0,
+      "value": "optional"
+    }
+  ],
   "V4yeoh": [
     {
       "type": 0,
@@ -9507,12 +9997,6 @@
       "value": "Ocultar"
     }
   ],
-  "VB+AjJ": [
-    {
-      "type": 0,
-      "value": "Expressão Cron personalizada"
-    }
-  ],
   "VB97cf": [
     {
       "type": 0,
@@ -9523,6 +10007,12 @@
     {
       "type": 0,
       "value": "Selecionar subagentes para entrega"
+    }
+  ],
+  "VCHJad": [
+    {
+      "type": 0,
+      "value": "New folder"
     }
   ],
   "VIYXlx": [
@@ -9623,6 +10113,18 @@
     {
       "type": 0,
       "value": "Revisar (Padrão)"
+    }
+  ],
+  "VfjG62": [
+    {
+      "type": 0,
+      "value": "Python Code"
+    }
+  ],
+  "Vi21gb": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled tasks."
     }
   ],
   "Vipo+I": [
@@ -9759,6 +10261,12 @@
       "value": "Resolvido"
     }
   ],
+  "W7GhBB": [
+    {
+      "type": 0,
+      "value": "Cannot create subagents when skills are enabled"
+    }
+  ],
   "W8LUUc": [
     {
       "type": 0,
@@ -9787,6 +10295,12 @@
     {
       "type": 0,
       "value": "Última hora de captura de dados"
+    }
+  ],
+  "WJ+tyY": [
+    {
+      "type": 0,
+      "value": "Enter command (e.g. npx, python)"
     }
   ],
   "WJj+TP": [
@@ -9819,6 +10333,38 @@
       "value": "Salvando…"
     }
   ],
+  "WUZAzC": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now off."
+    }
+  ],
   "WVTzuw": [
     {
       "type": 0,
@@ -9837,16 +10383,6 @@
     {
       "type": 0,
       "value": "O Painel do Grafana foi criado com êxito"
-    }
-  ],
-  "WbV0j4": [
-    {
-      "type": 0,
-      "value": "Editando: "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Wc5b/J": [
@@ -10076,12 +10612,6 @@
       "value": "Ocultar detalhes"
     }
   ],
-  "X5UCWb": [
-    {
-      "type": 0,
-      "value": "Tarefa agendada excluída com êxito"
-    }
-  ],
   "X5yqtT": [
     {
       "type": 0,
@@ -10104,12 +10634,6 @@
     {
       "type": 0,
       "value": "A ação foi cancelada."
-    }
-  ],
-  "XCfiZ2": [
-    {
-      "type": 0,
-      "value": "Criar o Cron para mim"
     }
   ],
   "XDSe35": [
@@ -10178,12 +10702,6 @@
       "value": "Permite que você leia e modifique as configurações de cluster do HDInsight."
     }
   ],
-  "XJuPK6": [
-    {
-      "type": 0,
-      "value": "Inclua todos os identificadores de recursos (por exemplo, assinatura/grupo de recursos) necessários a cada execução."
-    }
-  ],
   "XKWCS3": [
     {
       "type": 0,
@@ -10194,12 +10712,6 @@
     {
       "type": 0,
       "value": "O modo totalmente autônomo. Com as permissões necessárias, o agente analisa incidentes e executa independentemente a mitigação ou a modificação de recursos."
-    }
-  ],
-  "XKvrQy": [
-    {
-      "type": 0,
-      "value": "Detalhes da tarefa"
     }
   ],
   "XLRt15": [
@@ -10380,16 +10892,6 @@
     {
       "type": 0,
       "value": "igual a"
-    }
-  ],
-  "Y3qQB0": [
-    {
-      "type": 0,
-      "value": "Ativando a tarefa agendada "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Y47Dwm": [
@@ -10608,6 +11110,56 @@
       "value": "Insights ainda não analisados"
     }
   ],
+  "Yymgt5": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting skill..."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
@@ -10656,12 +11208,6 @@
       "value": "ID do agente"
     }
   ],
-  "Z8Y6DE": [
-    {
-      "type": 0,
-      "value": "Última Sincronização"
-    }
-  ],
   "Z9TajN": [
     {
       "type": 0,
@@ -10672,16 +11218,6 @@
     {
       "type": 0,
       "value": "Criar plano de resposta a incidentes"
-    }
-  ],
-  "ZA4OiK": [
-    {
-      "type": 0,
-      "value": "Falha ao criar tarefa agendada: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "ZAkVKt": [
@@ -10726,12 +11262,6 @@
       "value": "channel"
     }
   ],
-  "ZMa6Rh": [
-    {
-      "type": 0,
-      "value": "Excluindo tarefas agendadas"
-    }
-  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -10748,6 +11278,12 @@
     {
       "type": 0,
       "value": "A edição de formulário estará disponível em breve para esta entidade."
+    }
+  ],
+  "ZSbKr/": [
+    {
+      "type": 0,
+      "value": "Write code manually instead"
     }
   ],
   "ZUXvHE": [
@@ -10881,6 +11417,12 @@
       "value": "minutes"
     }
   ],
+  "ZpQ6us": [
+    {
+      "type": 0,
+      "value": "Result"
+    }
+  ],
   "Zq5BCQ": [
     {
       "type": 0,
@@ -10962,12 +11504,6 @@
       "value": " AAUs de fluxo ativo"
     }
   ],
-  "a5dT17": [
-    {
-      "type": 0,
-      "value": "Pesquisar conectores de dados"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -10978,12 +11514,6 @@
     {
       "type": 0,
       "value": "Suas permissões serão usadas temporariamente para concluir esta ação."
-    }
-  ],
-  "a7QT/5": [
-    {
-      "type": 0,
-      "value": "Avançado: usar formato cron (minuto hora dia mês dia da semana)"
     }
   ],
   "a8czK7": [
@@ -11131,12 +11661,6 @@
       "value": "Falha ao atualizar o canal de atualização"
     }
   ],
-  "aSipXt": [
-    {
-      "type": 0,
-      "value": "Aumente o conhecimento do agente sobre sua infraestrutura"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -11179,12 +11703,6 @@
       "value": "Escolher incidentes"
     }
   ],
-  "ajASB/": [
-    {
-      "type": 0,
-      "value": "Mantenha a descrição curta; coloque aqui a lógica de execução detalhada."
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -11213,12 +11731,6 @@
     {
       "type": 0,
       "value": "Falha no teste de ferramenta, mas nenhum detalhe de erro foi fornecido."
-    }
-  ],
-  "auFFJa": [
-    {
-      "type": 0,
-      "value": "URI do Key Vault"
     }
   ],
   "ayDbML": [
@@ -11265,22 +11777,6 @@
       "value": "Excluir plano de resposta a incidentes personalizado"
     }
   ],
-  "b3sNCU": [
-    {
-      "type": 0,
-      "value": "Falha ao desativar a tarefa: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "b5OEXm": [
-    {
-      "type": 0,
-      "value": "Com que frequência deve ser executado?"
-    }
-  ],
   "b7D4Lh": [
     {
       "type": 0,
@@ -11311,6 +11807,34 @@
       "value": "Editar a ferramenta Kusto"
     }
   ],
+  "bGIW7m": [
+    {
+      "type": 0,
+      "value": "Failed to turn off scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
@@ -11329,10 +11853,58 @@
       "value": "Se você clicar em 'Continuar', esta operação será executada usando as credenciais de identidade do agente."
     }
   ],
+  "bMqcq2": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "bN0x+w": [
     {
       "type": 0,
       "value": "Leitor de Dados do Serviço de Provisionamento de Dispositivos"
+    }
+  ],
+  "bO7sKf": [
+    {
+      "type": 0,
+      "value": "Ctrl+Enter"
+    }
+  ],
+  "bR/LRB": [
+    {
+      "type": 0,
+      "value": "Select all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
     }
   ],
   "bW7B87": [
@@ -11415,12 +11987,6 @@
     {
       "type": 0,
       "value": "Reinicie o chat para ver suas alterações."
-    }
-  ],
-  "bjOnWH": [
-    {
-      "type": 0,
-      "value": "Adicione suas instruções em qualidade de rascunho antes de pedir o aprimoramento."
     }
   ],
   "blSyDZ": [
@@ -11649,6 +12215,12 @@
       "value": "Status do conector"
     }
   ],
+  "cM9da4": [
+    {
+      "type": 0,
+      "value": "Restart test"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -11705,6 +12277,12 @@
     {
       "type": 0,
       "value": "Nome da ferramenta Kusto"
+    }
+  ],
+  "cgh0+/": [
+    {
+      "type": 0,
+      "value": "The executable command to start the MCP server. Must be in your system PATH or an absolute path."
     }
   ],
   "ciB+oy": [
@@ -11861,12 +12439,6 @@
       "value": "A qualidade do agente ainda não foi avaliada. Execute uma verificação para revelar oportunidades."
     }
   ],
-  "dI9gP+": [
-    {
-      "type": 0,
-      "value": "Instruções do agente"
-    }
-  ],
   "dJqE3e": [
     {
       "type": 0,
@@ -11895,12 +12467,6 @@
     {
       "type": 0,
       "value": "This feature isn't available in this portal yet."
-    }
-  ],
-  "dQKATf": [
-    {
-      "type": 0,
-      "value": "Insira um nome (mín. 3 caracteres)."
     }
   ],
   "dQtJBl": [
@@ -11933,22 +12499,16 @@
       "value": "A URL do repositório deve ser semelhante a esta: para GitHub: https://github.com/owner/repo-name ou para Azure DevOps: https://dev.azure.com/organization/project/_git/repository-name ou https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
-  "daUwAL": [
+  "dbXXhB": [
     {
       "type": 0,
-      "value": "Criando tarefa agendada"
+      "value": "Running scheduled tasks."
     }
   ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "Pré-visualização do agendamento"
-    }
-  ],
-  "dhmpfi": [
-    {
-      "type": 0,
-      "value": "Excluir tarefas agendadas"
     }
   ],
   "dhqlRa": [
@@ -12025,12 +12585,6 @@
     {
       "type": 0,
       "value": "Nunca"
-    }
-  ],
-  "dw6Z3b": [
-    {
-      "type": 0,
-      "value": "O que significa"
     }
   ],
   "dwkMC2": [
@@ -12147,10 +12701,10 @@
       "value": "Gerenciar serviços do Azure Search."
     }
   ],
-  "ee4AUg": [
+  "efl/SK": [
     {
       "type": 0,
-      "value": "Tarefa agendada ativada com sucesso"
+      "value": "Run Test (Cmd+Enter)"
     }
   ],
   "egubDj": [
@@ -12211,12 +12765,6 @@
       "value": "Diretrizes de resposta personalizadas"
     }
   ],
-  "euBSDU": [
-    {
-      "type": 0,
-      "value": "As instruções do agente são obrigatórias."
-    }
-  ],
   "euKVCa": [
     {
       "type": 0,
@@ -12237,12 +12785,6 @@
     {
       "type": 0,
       "value": "Conectando-se ao PagerDuty..."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "Insira a cadeia de conexão ou o ponto de extremidade"
     }
   ],
   "f04POI": [
@@ -12279,18 +12821,6 @@
     {
       "type": 0,
       "value": "Sev1"
-    }
-  ],
-  "f6xT1Y": [
-    {
-      "type": 0,
-      "value": "Tarefas agendadas ativadas com sucesso"
-    }
-  ],
-  "f7Zx3L": [
-    {
-      "type": 0,
-      "value": "Dicas de Prompt"
     }
   ],
   "f9xN/g": [
@@ -12351,12 +12881,6 @@
       "value": "status"
     }
   ],
-  "fIQSsD": [
-    {
-      "type": 0,
-      "value": "Ainda não foi possível redigir o Cron de qualidade de rascunho. Refine a descrição e tente novamente."
-    }
-  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -12369,10 +12893,22 @@
       "value": "Nova ferramenta"
     }
   ],
+  "fU7I5j": [
+    {
+      "type": 0,
+      "value": "Run Test"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
       "value": "Acessar o Controle de acesso"
+    }
+  ],
+  "fZP/Ln": [
+    {
+      "type": 0,
+      "value": "This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version."
     }
   ],
   "fblXmJ": [
@@ -12433,6 +12969,22 @@
       "value": "A correlação varia de -1 (inverso) a 1 (direto)"
     }
   ],
+  "fmrYkd": [
+    {
+      "type": 0,
+      "value": "Parse JSON and extract error messages"
+    }
+  ],
+  "fn9+0+": [
+    {
+      "type": 0,
+      "value": "Function test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fr6Gnj": [
     {
       "type": 0,
@@ -12443,12 +12995,6 @@
     {
       "type": 0,
       "value": "Conectar um servidor MCP"
-    }
-  ],
-  "ftDEuE": [
-    {
-      "type": 0,
-      "value": "Selecionar tipo de conector"
     }
   ],
   "ftfFhS": [
@@ -12517,6 +13063,12 @@
       "value": "por exemplo, 0 0 * * *"
     }
   ],
+  "g6WtKF": [
+    {
+      "type": 0,
+      "value": "Timeout (seconds)"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -12547,6 +13099,12 @@
       "value": "Arraste os arquivos aqui ou"
     }
   ],
+  "gFrqQf": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes. Are you sure you want to close?"
+    }
+  ],
   "gGfQUL": [
     {
       "type": 0,
@@ -12563,6 +13121,12 @@
     {
       "type": 0,
       "value": "Escolha como configurar este plano de resposta a incidentes"
+    }
+  ],
+  "gLbYRM": [
+    {
+      "type": 0,
+      "value": "Calculate percentage from two numbers"
     }
   ],
   "gNhYpU": [
@@ -12607,10 +13171,10 @@
       "value": "Plano de resposta a incidentes:"
     }
   ],
-  "gdUWAX": [
+  "gd7vV5": [
     {
       "type": 0,
-      "value": "A descrição deve ter no máximo 140 caracteres."
+      "value": "Creating your function…"
     }
   ],
   "ggVnjB": [
@@ -12637,6 +13201,12 @@
       "value": "Carregando..."
     }
   ],
+  "gmo2Su": [
+    {
+      "type": 0,
+      "value": "Skill Content (SKILL.md)"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -12653,16 +13223,6 @@
     {
       "type": 0,
       "value": "Inserir nome do banco de dados"
-    }
-  ],
-  "grgDhd": [
-    {
-      "type": 0,
-      "value": "Falha ao carregar tarefas agendadas: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "gvlNuI": [
@@ -12767,6 +13327,12 @@
     {
       "type": 0,
       "value": "Ferramenta"
+    }
+  ],
+  "hCNgyf": [
+    {
+      "type": 0,
+      "value": "Saving tool…"
     }
   ],
   "hEXUFk": [
@@ -12987,6 +13553,12 @@
       "value": "Painel"
     }
   ],
+  "i/pRlX": [
+    {
+      "type": 0,
+      "value": "Click to edit code"
+    }
+  ],
   "i3P6ZD": [
     {
       "type": 0,
@@ -13017,12 +13589,6 @@
       "value": "The agent is stopped"
     }
   ],
-  "iDPKM0": [
-    {
-      "type": 0,
-      "value": "Filtrar tarefas"
-    }
-  ],
   "iDSWYk": [
     {
       "type": 0,
@@ -13045,6 +13611,12 @@
     {
       "type": 0,
       "value": "Ainda não foi publicado"
+    }
+  ],
+  "iJcrHj": [
+    {
+      "type": 0,
+      "value": "No parameters required"
     }
   ],
   "iMaY2Q": [
@@ -13077,6 +13649,38 @@
     {
       "type": 0,
       "value": "Criar um novo gatilho com configurações personalizadas"
+    }
+  ],
+  "iWNutw": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "iXNbPf": [
@@ -13177,6 +13781,12 @@
       "value": "Novo plano de resposta personalizado"
     }
   ],
+  "iqsZgT": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -13217,6 +13827,12 @@
     {
       "type": 0,
       "value": "Espaço do Agente do SRE"
+    }
+  ],
+  "ix9hVm": [
+    {
+      "type": 0,
+      "value": "Expand to show more"
     }
   ],
   "ixb1SP": [
@@ -13445,16 +14061,6 @@
       "value": "O recurso do Grafana deve ser único dentro do grupo de recursos."
     }
   ],
-  "jX6uvW": [
-    {
-      "type": 0,
-      "value": "Falha ao executar tarefa: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -13495,10 +14101,10 @@
       "value": "Banco de Dados"
     }
   ],
-  "jlOO/9": [
+  "jqM7Pr": [
     {
       "type": 0,
-      "value": "Próxima execução"
+      "value": "Test restarted with your latest agent changes. Send a message to continue testing."
     }
   ],
   "jqpolM": [
@@ -13517,6 +14123,12 @@
     {
       "type": 0,
       "value": "Hora de início (opcional)"
+    }
+  ],
+  "jvB4W9": [
+    {
+      "type": 0,
+      "value": "Environment variables"
     }
   ],
   "jvo0vs": [
@@ -13553,6 +14165,12 @@
     {
       "type": 0,
       "value": "Gráfico de barras"
+    }
+  ],
+  "k+phZu": [
+    {
+      "type": 0,
+      "value": "Delete skill"
     }
   ],
   "k0VNHX": [
@@ -13597,10 +14215,10 @@
       "value": "Número"
     }
   ],
-  "kG0ZtT": [
+  "kGmr6n": [
     {
       "type": 0,
-      "value": "Outras ideias de Cron"
+      "value": "Want to improve it?"
     }
   ],
   "kHIJzq": [
@@ -13631,6 +14249,12 @@
     {
       "type": 0,
       "value": "Você não tem permissão para renomear este thread."
+    }
+  ],
+  "kVOq9V": [
+    {
+      "type": 0,
+      "value": "Fill in parameters and click Run to test"
     }
   ],
   "kWBrry": [
@@ -13679,22 +14303,28 @@
       "value": "Agendamento personalizado"
     }
   ],
+  "kjUC48": [
+    {
+      "type": 0,
+      "value": "Function test succeeded."
+    }
+  ],
   "kn+J82": [
     {
       "type": 0,
       "value": "Análise de Correlação"
     }
   ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "Atualizar a configuração do conector de dados."
-    }
-  ],
   "koWZK8": [
     {
       "type": 0,
       "value": "Adicionar diretrizes de resposta personalizadas (opcional)"
+    }
+  ],
+  "kopJ66": [
+    {
+      "type": 0,
+      "value": "Keep Current Code"
     }
   ],
   "kq7D3O": [
@@ -13753,12 +14383,6 @@
       "value": "Grade de dados do agente"
     }
   ],
-  "l+e8nZ": [
-    {
-      "type": 0,
-      "value": "Tem certeza de que deseja excluir as tarefas agendadas selecionadas? Esta ação não poderá ser desfeita."
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
@@ -13769,6 +14393,12 @@
     {
       "type": 0,
       "value": "Criar ferramenta"
+    }
+  ],
+  "l1+Ilp": [
+    {
+      "type": 0,
+      "value": "Generating code…"
     }
   ],
   "l2Ni9H": [
@@ -13789,10 +14419,10 @@
       "value": "Cientista de Dados do AzureML"
     }
   ],
-  "l8IRTD": [
+  "lBZfVb": [
     {
       "type": 0,
-      "value": "Tarefas agendadas executadas com sucesso"
+      "value": "Timeout in seconds (5-900)"
     }
   ],
   "lCe4Sh": [
@@ -13829,10 +14459,14 @@
       "value": "Padrão"
     }
   ],
-  "lM2HXD": [
+  "lOaomi": [
     {
       "type": 0,
-      "value": "Nenhum prompt fornecido."
+      "value": "Generation failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "lP5P2a": [
@@ -13845,6 +14479,12 @@
     {
       "type": 0,
       "value": "Subagents"
+    }
+  ],
+  "lR/7o8": [
+    {
+      "type": 0,
+      "value": "Folder name"
     }
   ],
   "lUAfdH": [
@@ -13951,6 +14591,12 @@
       "value": "Gerar plano de resposta personalizado"
     }
   ],
+  "m2KQqp": [
+    {
+      "type": 0,
+      "value": "Execution Result"
+    }
+  ],
   "m3Npit": [
     {
       "type": 0,
@@ -14001,10 +14647,10 @@
       "value": "Editar bases de dados de conhecimento do QnA Maker."
     }
   ],
-  "mChei1": [
+  "mE7Cg1": [
     {
       "type": 0,
-      "value": "Instruções detalhadas em várias linhas. Forneça: meta, contexto/recursos, restrições, critérios de sucesso."
+      "value": "Stdio"
     }
   ],
   "mGh+K0": [
@@ -14365,10 +15011,10 @@
       "value": "Tipo de recurso principal"
     }
   ],
-  "nRkusX": [
+  "nR0FVC": [
     {
       "type": 0,
-      "value": "Expressão CRON obrigatória"
+      "value": "Reusable knowledge and instructions that enhance agent capabilities."
     }
   ],
   "nUT0Lv": [
@@ -14387,24 +15033,16 @@
       "value": "name"
     }
   ],
+  "nc7Brw": [
+    {
+      "type": 0,
+      "value": "Arguments"
+    }
+  ],
   "ncB14A": [
     {
       "type": 0,
       "value": "Agente invocado"
-    }
-  ],
-  "nkYx6+": [
-    {
-      "type": 0,
-      "value": "Desconectar "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " conectores de dados?"
     }
   ],
   "nmpevl": [
@@ -14455,6 +15093,12 @@
       "value": "Executar insights novamente"
     }
   ],
+  "nxBEvY": [
+    {
+      "type": 0,
+      "value": "Creating your Python function…"
+    }
+  ],
   "nxmZHP": [
     {
       "type": 0,
@@ -14485,22 +15129,10 @@
       "value": "Ainda não há ferramentas vinculadas. Adicione ferramentas para que esse agente possa executar uma ação."
     }
   ],
-  "o3uElD": [
-    {
-      "type": 0,
-      "value": "Adicionar conector de dados"
-    }
-  ],
   "o7TUwc": [
     {
       "type": 0,
       "value": "Conecte-se ao ICM para que o Agente possa escutar e responder automaticamente aos seus Incidentes."
-    }
-  ],
-  "o9bCTX": [
-    {
-      "type": 0,
-      "value": "Última execução"
     }
   ],
   "oBv1Sy": [
@@ -14521,6 +15153,12 @@
     {
       "type": 0,
       "value": " conectores de dados"
+    }
+  ],
+  "oDH12O": [
+    {
+      "type": 0,
+      "value": "Tool name"
     }
   ],
   "oDI/Rp": [
@@ -14623,12 +15261,6 @@
       "value": "Gravador/Operador"
     }
   ],
-  "oXd3cw": [
-    {
-      "type": 0,
-      "value": "Máximo de execuções"
-    }
-  ],
   "oY4j0R": [
     {
       "type": 0,
@@ -14709,6 +15341,18 @@
       "value": "Alto risco"
     }
   ],
+  "oyZN19": [
+    {
+      "type": 0,
+      "value": "Running..."
+    }
+  ],
+  "oyf+bG": [
+    {
+      "type": 0,
+      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
+    }
+  ],
   "p/QlSI": [
     {
       "type": 0,
@@ -14787,6 +15431,12 @@
     {
       "type": 0,
       "value": "P4"
+    }
+  ],
+  "pByJCZ": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks have been run."
     }
   ],
   "pCPZnU": [
@@ -14879,6 +15529,12 @@
       "value": "Enable the preview channel to test out new features early, however they may be less stable."
     }
   ],
+  "pXPlXr": [
+    {
+      "type": 0,
+      "value": "*required"
+    }
+  ],
   "pbpjik": [
     {
       "type": 0,
@@ -14923,6 +15579,20 @@
       "value": "Depois que um painel do Grafana é provisionado e vinculado, pode levar algum tempo para que os recursos preencham totalmente o painel."
     }
   ],
+  "piGAtN": [
+    {
+      "type": 0,
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
   "pndXMi": [
     {
       "type": 0,
@@ -14963,6 +15633,12 @@
       "value": "Atualizando canal de atualização"
     }
   ],
+  "ppAn7O": [
+    {
+      "type": 0,
+      "value": "File name"
+    }
+  ],
   "ppzeDo": [
     {
       "type": 0,
@@ -14987,10 +15663,18 @@
       "value": "Título do alerta"
     }
   ],
-  "psUT6S": [
+  "psccqt": [
     {
       "type": 0,
-      "value": "Número máximo de vezes que esta tarefa deve ser executada"
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "ms"
+    },
+    {
+      "type": 0,
+      "value": "ms"
     }
   ],
   "puQ/kF": [
@@ -15057,16 +15741,22 @@
       "value": "Erro desconhecido"
     }
   ],
+  "qQRG87": [
+    {
+      "type": 0,
+      "value": "Parameters auto-detected from code"
+    }
+  ],
   "qQh4Xu": [
     {
       "type": 0,
       "value": "O agente faz referência à documentação e aos arquivos para entender seus projetos e processos."
     }
   ],
-  "qavd9Y": [
+  "qTWwGw": [
     {
       "type": 0,
-      "value": "Conte com que frequência seu agente deve ser executado e nós criaremos a expressão de Cron para você."
+      "value": "Parameters:"
     }
   ],
   "qdAlfY": [
@@ -15081,6 +15771,16 @@
       "value": "Detalhes do erro"
     }
   ],
+  "qdxZys": [
+    {
+      "type": 0,
+      "value": "Last heartbeat: "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -15091,12 +15791,6 @@
     {
       "type": 0,
       "value": "Já existe um conector com este nome"
-    }
-  ],
-  "qh9t2U": [
-    {
-      "type": 0,
-      "value": "Conectar-se ao agente"
     }
   ],
   "qhApmK": [
@@ -15191,6 +15885,12 @@
       "value": "O plano de resposta a incidentes personalizado foi excluído com êxito"
     }
   ],
+  "qzMeS2": [
+    {
+      "type": 0,
+      "value": "Test Playground"
+    }
+  ],
   "r2ZGnB": [
     {
       "offset": 0,
@@ -15280,6 +15980,12 @@
     {
       "type": 0,
       "value": "Atualizar"
+    }
+  ],
+  "rFU0oo": [
+    {
+      "type": 0,
+      "value": "Python tool"
     }
   ],
   "rFlkvY": [
@@ -15468,6 +16174,12 @@
       "value": "Fechar"
     }
   ],
+  "rc7ZT2": [
+    {
+      "type": 0,
+      "value": "Enter the skill markdown content..."
+    }
+  ],
   "rd6YZk": [
     {
       "type": 0,
@@ -15612,20 +16324,6 @@
     {
       "type": 0,
       "value": "Saiba mais sobre fontes de conhecimento"
-    }
-  ],
-  "s04Z5U": [
-    {
-      "type": 0,
-      "value": "Isso desconectará permanentemente "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " conectores de dados do agente. Tem certeza de que deseja desconectar esses conectores de dados?"
     }
   ],
   "s2GWth": [
@@ -15824,6 +16522,12 @@
       "value": "Adicionar arquivo"
     }
   ],
+  "sYCfrb": [
+    {
+      "type": 0,
+      "value": "Test agent"
+    }
+  ],
   "sZIoMy": [
     {
       "type": 0,
@@ -15856,16 +16560,16 @@
       "value": "Ferramentas do Sistema (Opcional)"
     }
   ],
-  "sf6hMj": [
-    {
-      "type": 0,
-      "value": "Atenção"
-    }
-  ],
   "sjlioi": [
     {
       "type": 0,
       "value": "Subagente invocado"
+    }
+  ],
+  "sjq9sr": [
+    {
+      "type": 0,
+      "value": "Validate email addresses"
     }
   ],
   "slxYbm": [
@@ -16026,12 +16730,6 @@
       "value": "Falha ao analisar o relatório diário:"
     }
   ],
-  "tFFMkF": [
-    {
-      "type": 0,
-      "value": "Pausar"
-    }
-  ],
   "tFoDh3": [
     {
       "type": 0,
@@ -16118,12 +16816,6 @@
       "value": "Adicionar aos favoritos"
     }
   ],
-  "tZmd+w": [
-    {
-      "type": 0,
-      "value": "Conectar uma fonte de dados"
-    }
-  ],
   "tb6uBb": [
     {
       "type": 1,
@@ -16182,16 +16874,14 @@
       "value": "Experimente a configuração do agente e veja os resultados em tempo real"
     }
   ],
-  "tkr5bn": [
+  "tpD3Ax": [
     {
       "type": 0,
-      "value": "Desativar tarefas agendadas"
-    }
-  ],
-  "trPabo": [
+      "value": "Tools: "
+    },
     {
-      "type": 0,
-      "value": "Nenhuma tarefa agendada encontrada"
+      "type": 1,
+      "value": "count"
     }
   ],
   "trhBLG": [
@@ -16318,10 +17008,26 @@
       "value": "Early access to features"
     }
   ],
+  "uC4R7m": [
+    {
+      "type": 0,
+      "value": "Test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "uCkn4+": [
     {
       "type": 0,
       "value": "Todas as prioridades"
+    }
+  ],
+  "uDXk7F": [
+    {
+      "type": 0,
+      "value": "Python Function Tester"
     }
   ],
   "uEYYty": [
@@ -16330,10 +17036,22 @@
       "value": "Novo plano de resposta a incidentes"
     }
   ],
+  "uFDB/3": [
+    {
+      "type": 0,
+      "value": "Function Code"
+    }
+  ],
   "uFaAgq": [
     {
       "type": 0,
       "value": "Conectar relações"
+    }
+  ],
+  "uGPikn": [
+    {
+      "type": 0,
+      "value": "Describe what the function should do"
     }
   ],
   "uI0Lmu": [
@@ -16485,6 +17203,12 @@
       "value": "delta"
     }
   ],
+  "uQ/yKk": [
+    {
+      "type": 0,
+      "value": "Search by skill"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -16511,6 +17235,12 @@
     {
       "type": 0,
       "value": "Separar entre os modelos predefinidos"
+    }
+  ],
+  "uYv0At": [
+    {
+      "type": 0,
+      "value": "Extracting parameters"
     }
   ],
   "ubULuu": [
@@ -16561,12 +17291,6 @@
       "value": "Reduzir"
     }
   ],
-  "unj6JR": [
-    {
-      "type": 0,
-      "value": "Criar a partir do modelo"
-    }
-  ],
   "unxs9C": [
     {
       "type": 0,
@@ -16615,12 +17339,6 @@
       "value": "Melhorando as instruções..."
     }
   ],
-  "v0CXYP": [
-    {
-      "type": 0,
-      "value": "Insira um nome descritivo para sua tarefa"
-    }
-  ],
   "v0fBOU": [
     {
       "type": 0,
@@ -16643,12 +17361,6 @@
     {
       "type": 0,
       "value": "Ferramenta Kusto"
-    }
-  ],
-  "v8cTK0": [
-    {
-      "type": 0,
-      "value": "Tarefa agendada atualizada com êxito"
     }
   ],
   "v8lolG": [
@@ -16705,6 +17417,12 @@
       "value": "Autorizado por"
     }
   ],
+  "vEPakK": [
+    {
+      "type": 0,
+      "value": "Additional Files"
+    }
+  ],
   "vG08m6": [
     {
       "type": 0,
@@ -16729,26 +17447,6 @@
       "value": "Gatilhos de incidente"
     }
   ],
-  "vSW3OF": [
-    {
-      "type": 0,
-      "value": "Falha ao atualizar tarefa: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "vV67Wm": [
-    {
-      "type": 0,
-      "value": "Falha ao ativar a tarefa: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "vVpzJQ": [
     {
       "type": 0,
@@ -16765,6 +17463,12 @@
     {
       "type": 0,
       "value": "Ações de aviso presentes"
+    }
+  ],
+  "vZRYf4": [
+    {
+      "type": 0,
+      "value": "Deselect all tools"
     }
   ],
   "vZWQHk": [
@@ -16861,12 +17565,6 @@
       "value": "Descrição clara"
     }
   ],
-  "w4Nqlr": [
-    {
-      "type": 0,
-      "value": "Executar tarefas agendadas"
-    }
-  ],
   "w5FDGY": [
     {
       "type": 0,
@@ -16937,6 +17635,12 @@
       "value": "time"
     }
   ],
+  "wGM2T+": [
+    {
+      "type": 0,
+      "value": "Please provide Python function code"
+    }
+  ],
   "wGcWbo": [
     {
       "type": 0,
@@ -16953,16 +17657,6 @@
     {
       "type": 0,
       "value": "Ações"
-    }
-  ],
-  "wNIiXX": [
-    {
-      "type": 0,
-      "value": "A fonte de dados deve estar no formato: "
-    },
-    {
-      "type": 1,
-      "value": "format"
     }
   ],
   "wO9wb5": [
@@ -16991,6 +17685,12 @@
       "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
     }
   ],
+  "wPfhmg": [
+    {
+      "type": 0,
+      "value": "Standard Error"
+    }
+  ],
   "wQdhYo": [
     {
       "type": 0,
@@ -17013,6 +17713,12 @@
     {
       "type": 0,
       "value": "Enviar"
+    }
+  ],
+  "wTA9dx": [
+    {
+      "type": 0,
+      "value": "Test Your Function"
     }
   ],
   "wUnPMf": [
@@ -17069,12 +17775,6 @@
       "value": "Adicionar plano de resposta a incidentes personalizado"
     }
   ],
-  "wgyFIG": [
-    {
-      "type": 0,
-      "value": "Aperfeiçoando..."
-    }
-  ],
   "wjEBlr": [
     {
       "type": 1,
@@ -17111,6 +17811,12 @@
       "value": "Total de recursos"
     }
   ],
+  "wm4GRX": [
+    {
+      "type": 0,
+      "value": "Example: Parse JSON logs and extract error messages"
+    }
+  ],
   "wru3Di": [
     {
       "type": 0,
@@ -17133,12 +17839,6 @@
     {
       "type": 0,
       "value": "Verificando a configuração do gatilho..."
-    }
-  ],
-  "x1YTqM": [
-    {
-      "type": 0,
-      "value": "Descreva a frequência antes que possamos ajudar."
     }
   ],
   "x25AjF": [
@@ -17169,6 +17869,16 @@
     {
       "type": 0,
       "value": "Clique aqui para saber mais"
+    }
+  ],
+  "xGK1X2": [
+    {
+      "type": 0,
+      "value": "Deselect all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
     }
   ],
   "xGPsyJ": [
@@ -17217,6 +17927,12 @@
     {
       "type": 0,
       "value": "Nenhum conector corresponde à pesquisa"
+    }
+  ],
+  "xRpMXP": [
+    {
+      "type": 0,
+      "value": "Try:"
     }
   ],
   "xSsto+": [
@@ -17311,6 +18027,22 @@
       "value": "Pronto para testar seu agente?"
     }
   ],
+  "xgD8Kv": [
+    {
+      "type": 0,
+      "value": "Python Function Code"
+    }
+  ],
+  "xjZrbx": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -17321,6 +18053,12 @@
     {
       "type": 0,
       "value": "Operar serviços de Gerenciamento de API."
+    }
+  ],
+  "xpMDZO": [
+    {
+      "type": 0,
+      "value": "Test Passed"
     }
   ],
   "xqwf/7": [
@@ -17353,16 +18091,16 @@
       "value": "Colaborador do site"
     }
   ],
+  "xu6eM8": [
+    {
+      "type": 0,
+      "value": "Test"
+    }
+  ],
   "xvTDgy": [
     {
       "type": 0,
       "value": "Ferramentas de pesquisa instantânea..."
-    }
-  ],
-  "xxoHVE": [
-    {
-      "type": 0,
-      "value": "Prompt do agente obrigatório"
     }
   ],
   "xy47sz": [
@@ -17399,12 +18137,6 @@
     {
       "type": 0,
       "value": " desde a última execução"
-    }
-  ],
-  "y3Uu5i": [
-    {
-      "type": 0,
-      "value": "Nenhum conector de dados corresponde à sua pesquisa"
     }
   ],
   "y5oInX": [
@@ -17455,6 +18187,12 @@
       "value": "Entrada do chat"
     }
   ],
+  "yGVEST": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete these scheduled tasks? This action cannot be undone."
+    }
+  ],
   "yJJ/jv": [
     {
       "type": 0,
@@ -17483,6 +18221,12 @@
     {
       "type": 0,
       "value": "Pick a subagent to assist you with tasks."
+    }
+  ],
+  "ySdJIx": [
+    {
+      "type": 0,
+      "value": "Connection type"
     }
   ],
   "yVc78v": [
@@ -17539,12 +18283,6 @@
       "value": "Projete, teste e refine agentes sem tocar na produção."
     }
   ],
-  "yf9+0C": [
-    {
-      "type": 0,
-      "value": "Versão aprimorada"
-    }
-  ],
   "yh4G7g": [
     {
       "type": 0,
@@ -17579,6 +18317,12 @@
     {
       "type": 0,
       "value": "Grupo de recursos gerenciados"
+    }
+  ],
+  "yisTNp": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled tasks"
     }
   ],
   "ymiZvr": [
@@ -17681,12 +18425,6 @@
       "value": "Configuração de gerenciamento de incidentes salva"
     }
   ],
-  "yzfsFI": [
-    {
-      "type": 0,
-      "value": "Resumo curto de uma linha (<=140 caracteres)"
-    }
-  ],
   "z0uI4M": [
     {
       "type": 0,
@@ -17699,16 +18437,10 @@
       "value": "Exibir Base de Dados de Conhecimento"
     }
   ],
-  "z5cF/O": [
+  "z4NnlT": [
     {
       "type": 0,
-      "value": "A descrição deve ser um resumo de linha única."
-    }
-  ],
-  "z7SGAU": [
-    {
-      "type": 0,
-      "value": "Tarefas agendadas excluídas com sucesso"
+      "value": "No skills found"
     }
   ],
   "z8ZYoc": [
@@ -17815,16 +18547,16 @@
       "value": "Linha do tempo"
     }
   ],
-  "zZsxcQ": [
-    {
-      "type": 0,
-      "value": "Declare expectativas confidenciais à frequência (por exemplo, \"resumir apenas os últimos 15m de métricas\")."
-    }
-  ],
   "zaYxwd": [
     {
       "type": 0,
       "value": "Incidente"
+    }
+  ],
+  "zcksw4": [
+    {
+      "type": 0,
+      "value": "✓ Test passed"
     }
   ],
   "zcyAwy": [
@@ -17845,6 +18577,38 @@
     {
       "type": 0,
       "value": " incidentes"
+    }
+  ],
+  "zefL4U": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now on."
     }
   ],
   "zfM/75": [

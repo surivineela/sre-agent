@@ -697,6 +697,12 @@
       "value": "This will overwrite your tool selections. Are you sure you want to continue?"
     }
   ],
+  "0Xs9vS": [
+    {
+      "type": 0,
+      "value": "Here are the knowledge graph search results:"
+    }
+  ],
   "0aJxT2": [
     {
       "type": 0,
@@ -1253,6 +1259,12 @@
     {
       "type": 0,
       "value": "Failed to update connector"
+    }
+  ],
+  "2CunXT": [
+    {
+      "type": 0,
+      "value": "Giving access to your knowledge base gives the agent more context about your services to make better informed decisions"
     }
   ],
   "2FLZrG": [
@@ -4171,6 +4183,12 @@
     {
       "type": 0,
       "value": "Read-only role for Digital Twins data-plane properties."
+    }
+  ],
+  "CFLecQ": [
+    {
+      "type": 0,
+      "value": "Entities"
     }
   ],
   "CGn7Yd": [
@@ -7868,6 +7886,12 @@
       "value": "."
     }
   ],
+  "OgEDPw": [
+    {
+      "type": 0,
+      "value": "View Knowledge Graph Search Results"
+    }
+  ],
   "OlIql8": [
     {
       "type": 0,
@@ -8018,6 +8042,12 @@
     {
       "type": 0,
       "value": "You do not have permission to connect/disconnect incident management"
+    }
+  ],
+  "PGhDTf": [
+    {
+      "type": 0,
+      "value": "No matching entities or relations found."
     }
   ],
   "PI1EY1": [
@@ -8632,6 +8662,20 @@
       "value": "errorMessage"
     }
   ],
+  "R7A5z4": [
+    {
+      "type": 0,
+      "value": "Expand to show all "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " tools"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -8828,6 +8872,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "Rtd2bs": [
+    {
+      "type": 0,
+      "value": "Delete Incident Trigger"
     }
   ],
   "S0GneP": [
@@ -9886,10 +9936,10 @@
       "value": "Uses"
     }
   ],
-  "Ypp6em": [
+  "VeyLxc": [
     {
       "type": 0,
-      "value": "Autonomous (Default)"
+      "value": "Failed to fetch status"
     }
   ],
   "VfjG62": [
@@ -10849,6 +10899,12 @@
       "value": "Azure Center for SAP solutions administrator"
     }
   ],
+  "Ypp6em": [
+    {
+      "type": 0,
+      "value": "Autonomous (Default)"
+    }
+  ],
   "YrlQBL": [
     {
       "type": 0,
@@ -11467,6 +11523,12 @@
     {
       "type": 0,
       "value": "Session ID"
+    }
+  ],
+  "b1DYE3": [
+    {
+      "type": 0,
+      "value": "Delete Scheduled Trigger"
     }
   ],
   "b2PyOl": [
@@ -12643,6 +12705,12 @@
       "value": "All severity levels"
     }
   ],
+  "fi7+px": [
+    {
+      "type": 0,
+      "value": "Knowledge Graph Search Results"
+    }
+  ],
   "fiLH5L": [
     {
       "type": 0,
@@ -13251,6 +13319,12 @@
       "value": "Azure Digital Twins Data Reader"
     }
   ],
+  "hseqm+": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this incident trigger? This action cannot be undone."
+    }
+  ],
   "htvX+Z": [
     {
       "type": 0,
@@ -13477,6 +13551,12 @@
     {
       "type": 0,
       "value": " failed. Retry link."
+    }
+  ],
+  "inXqB2": [
+    {
+      "type": 0,
+      "value": "Request timeout"
     }
   ],
   "ioRcwS": [
@@ -14559,6 +14639,12 @@
       "value": "Filter by mitigated by"
     }
   ],
+  "mn5pjI": [
+    {
+      "type": 0,
+      "value": "Relations"
+    }
+  ],
   "moOg2N": [
     {
       "type": 0,
@@ -15441,6 +15527,12 @@
     {
       "type": 0,
       "value": "Add parameter"
+    }
+  ],
+  "qC5uhF": [
+    {
+      "type": 0,
+      "value": "Query:"
     }
   ],
   "qDwvZ4": [

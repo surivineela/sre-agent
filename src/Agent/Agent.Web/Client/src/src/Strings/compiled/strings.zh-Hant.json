@@ -102,13 +102,7 @@
   "+OMfjA": [
     {
       "type": 0,
-      "value": "Give access to knowledge base"
-    }
-  ],
-  "+Pmftr": [
-    {
-      "type": 0,
-      "value": "重設草稿"
+      "value": "提供知識庫存取權"
     }
   ],
   "+S4WAz": [
@@ -175,12 +169,6 @@
       "value": "targetAgent"
     }
   ],
-  "+ZdOJt": [
-    {
-      "type": 0,
-      "value": "關閉已排程工作"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -197,12 +185,6 @@
     {
       "type": 0,
       "value": "建立新子代理程式"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "編輯資料連接器"
     }
   ],
   "+hOwpi": [
@@ -327,7 +309,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting Kusto tools"
+              "value": "正在刪除 Kusto 工具"
             }
           ]
         }
@@ -368,7 +350,7 @@
   "/HeRX5": [
     {
       "type": 0,
-      "value": "Failed to create subagent with error: "
+      "value": "無法建立子代理程式，錯誤為: "
     },
     {
       "type": 1,
@@ -469,10 +451,26 @@
       "value": "管理自訂視覺專案。"
     }
   ],
+  "/jp8iL": [
+    {
+      "type": 0,
+      "value": "Failed to save tool: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/mHau5": [
     {
       "type": 0,
       "value": "無法建立連接器"
+    }
+  ],
+  "/mPnOR": [
+    {
+      "type": 0,
+      "value": "Skills Enabled"
     }
   ],
   "/qCaiZ": [
@@ -551,12 +549,6 @@
       "value": "檢視 AI 建議"
     }
   ],
-  "05Rzkx": [
-    {
-      "type": 0,
-      "value": "Test Agent"
-    }
-  ],
   "08bD52": [
     {
       "type": 0,
@@ -580,7 +572,7 @@
   "0BVwlv": [
     {
       "type": 0,
-      "value": "Owning team"
+      "value": "擁有團隊"
     }
   ],
   "0D+7fr": [
@@ -629,18 +621,10 @@
       "value": "快速修正"
     }
   ],
-  "0MhOuN": [
+  "0L2J5T": [
     {
       "type": 0,
-      "value": "是否確定要刪除工作 "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "?此動作無法復原。"
+      "value": "New file"
     }
   ],
   "0Qocmw": [
@@ -711,6 +695,12 @@
     {
       "type": 0,
       "value": "進階選項"
+    }
+  ],
+  "0eQHdW": [
+    {
+      "type": 0,
+      "value": "Create Python Tool"
     }
   ],
   "0eZALE": [
@@ -849,6 +839,40 @@
       "value": "若要取得診斷、計量、知識等方面的最佳代理程式效能，請使用包含一個或多個以下 Azure 計算服務的資源群組: Azure Kubernetes Service、Functions、容器應用程式或 Web Apps。"
     }
   ],
+  "1/3fw+": [
+    {
+      "type": 0,
+      "value": "無法更新排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "1/xsyG": [
+    {
+      "type": 0,
+      "value": "Create your agent first to enable testing."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
@@ -911,12 +935,6 @@
       "value": "新增回應計劃以自動化事件處理"
     }
   ],
-  "1DDIYv": [
-    {
-      "type": 0,
-      "value": "是否確定要繼續此已排程工作?"
-    }
-  ],
   "1EnaNQ": [
     {
       "type": 0,
@@ -946,7 +964,7 @@
   "1LBny5": [
     {
       "type": 0,
-      "value": "Stopped"
+      "value": "已停止"
     }
   ],
   "1OorZL": [
@@ -1102,16 +1120,38 @@
       "value": "回應計劃"
     }
   ],
+  "1vVgdq": [
+    {
+      "type": 0,
+      "value": "無法執行排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "1xTayQ": [
     {
       "type": 0,
-      "value": "Enter endpoint"
-    }
-  ],
-  "1xZjpU": [
-    {
-      "type": 0,
-      "value": "是否確定要暫停此已排程工作?"
+      "value": "輸入端點"
     }
   ],
   "2+TYMx": [
@@ -1150,6 +1190,12 @@
       "value": "PagerDuty 已連線。"
     }
   ],
+  "25DrlN": [
+    {
+      "type": 0,
+      "value": "What should this function do?"
+    }
+  ],
   "26Vq1R": [
     {
       "type": 0,
@@ -1180,12 +1226,6 @@
     {
       "type": 0,
       "value": "無法更新連接器"
-    }
-  ],
-  "2CSEeq": [
-    {
-      "type": 0,
-      "value": "描述節奏—取得 Cron"
     }
   ],
   "2FLZrG": [
@@ -1250,12 +1290,6 @@
       "value": "事件摘要"
     }
   ],
-  "2YgmBr": [
-    {
-      "type": 0,
-      "value": "已成功關閉已排程工作"
-    }
-  ],
   "2a+ttj": [
     {
       "type": 0,
@@ -1316,6 +1350,12 @@
       "value": "連接器"
     }
   ],
+  "2myhph": [
+    {
+      "type": 0,
+      "value": "Test the function to continue."
+    }
+  ],
   "2os8R1": [
     {
       "type": 0,
@@ -1352,16 +1392,38 @@
       "value": "Grafana 儀表板"
     }
   ],
+  "3/OG7/": [
+    {
+      "type": 0,
+      "value": "正在更新排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    }
+  ],
   "3/wF0G": [
     {
       "type": 0,
       "value": "斜線命令"
-    }
-  ],
-  "30Ap/Y": [
-    {
-      "type": 0,
-      "value": "Cron:"
     }
   ],
   "312q4w": [
@@ -1392,6 +1454,12 @@
     {
       "type": 0,
       "value": "這將永久從代理程式的受控資源群組中移除資源群組。確定要移除嗎?"
+    }
+  ],
+  "3DC7Da": [
+    {
+      "type": 0,
+      "value": "Enter argument"
     }
   ],
   "3DzXFS": [
@@ -1478,12 +1546,6 @@
       "value": "儲存變更"
     }
   ],
-  "3Wq8aM": [
-    {
-      "type": 0,
-      "value": "Cron"
-    }
-  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -1510,7 +1572,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting incident triggers"
+              "value": "正在刪除事件觸發程序"
             }
           ]
         }
@@ -1590,12 +1652,6 @@
       "value": "% 信賴度總計"
     }
   ],
-  "3sjbqq": [
-    {
-      "type": 0,
-      "value": "正在建立已排程工作..."
-    }
-  ],
   "3t/IhV": [
     {
       "type": 0,
@@ -1608,10 +1664,10 @@
       "value": "展開瀏覽"
     }
   ],
-  "3y9DGg": [
+  "3xD7BQ": [
     {
       "type": 0,
-      "value": "繼續"
+      "value": "Add additional files to include with this skill."
     }
   ],
   "3yurtF": [
@@ -1650,12 +1706,6 @@
       "value": "將 Grafana 儀表板連結至 SRE 代理程式進行中"
     }
   ],
-  "40gxTJ": [
-    {
-      "type": 0,
-      "value": "代理程式提示"
-    }
-  ],
   "41zpq3": [
     {
       "type": 0,
@@ -1683,7 +1733,7 @@
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "無"
     }
   ],
   "451B6Z": [
@@ -1708,12 +1758,6 @@
     {
       "type": 0,
       "value": "此代理程式"
-    }
-  ],
-  "493R/T": [
-    {
-      "type": 0,
-      "value": "請分享您的指示草稿，我們將根據排程的代理程式執行進行量身打造。"
     }
   ],
   "498yM3": [
@@ -1940,22 +1984,10 @@
       "value": "，我需要跨 AKS 叢集 eastus 和 westeurope 之間歇延遲峰值的診斷。"
     }
   ],
-  "53qjcm": [
-    {
-      "type": 0,
-      "value": "正在更新已排程工作"
-    }
-  ],
   "543Ygw": [
     {
       "type": 0,
       "value": "執行詳細資料與要求"
-    }
-  ],
-  "54UIcW": [
-    {
-      "type": 0,
-      "value": "我們無法潤飾指示。請稍後再試。"
     }
   ],
   "59z+Aj": [
@@ -1971,7 +2003,7 @@
   "5AvgDc": [
     {
       "type": 0,
-      "value": "Creating subagent \""
+      "value": "正在建立子代理程式 \""
     },
     {
       "type": 1,
@@ -2033,7 +2065,7 @@
   "5NZIbS": [
     {
       "type": 0,
-      "value": "Open in Azure Portal"
+      "value": "在 Azure 入口網站中開啟"
     }
   ],
   "5POweM": [
@@ -2108,6 +2140,38 @@
       "value": "新建"
     }
   ],
+  "5WNvJO": [
+    {
+      "type": 0,
+      "value": "正在執行排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "5WWljt": [
     {
       "type": 0,
@@ -2128,6 +2192,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5X7NpJ": [
+    {
+      "type": 0,
+      "value": "Upload folder"
     }
   ],
   "5XRsWa": [
@@ -2168,7 +2238,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete incident triggers"
+              "value": "無法刪除事件觸發程序"
             }
           ]
         }
@@ -2226,6 +2296,12 @@
     {
       "type": 0,
       "value": "未知"
+    }
+  ],
+  "5kCFXN": [
+    {
+      "type": 0,
+      "value": "Generate with AI instead"
     }
   ],
   "5kK+j9": [
@@ -2376,12 +2452,6 @@
       "value": "預覽事件"
     }
   ],
-  "69sjgc": [
-    {
-      "type": 0,
-      "value": "輸入 Key Vault URI"
-    }
-  ],
   "6B0Aua": [
     {
       "type": 1,
@@ -2416,6 +2486,12 @@
       "value": "無法建立受控連線"
     }
   ],
+  "6GLyN3": [
+    {
+      "type": 0,
+      "value": "Generating test cases"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -2426,6 +2502,12 @@
     {
       "type": 0,
       "value": "已清除提示編輯區。輸入新問題以開始新的聊天。"
+    }
+  ],
+  "6LKCR/": [
+    {
+      "type": 0,
+      "value": "Analyzing intent"
     }
   ],
   "6LZ2qn": [
@@ -2498,12 +2580,6 @@
       "value": "自上次執行後無變更"
     }
   ],
-  "6YHhH+": [
-    {
-      "type": 0,
-      "value": "例如 */5 * * * *"
-    }
-  ],
   "6YXj/s": [
     {
       "type": 0,
@@ -2516,28 +2592,22 @@
       "value": "編輯已排程工作"
     }
   ],
-  "6aH1+U": [
-    {
-      "type": 0,
-      "value": "建立已排程工作"
-    }
-  ],
   "6bkNTl": [
     {
       "type": 0,
       "value": "相互關聯識別碼:"
     }
   ],
-  "6dEJ43": [
-    {
-      "type": 0,
-      "value": "Cron 草稿"
-    }
-  ],
   "6dWeUs": [
     {
       "type": 0,
       "value": "請選取要用於管理所部署之資源與費用的訂用帳戶。使用資料夾之類的資源群組整理和管理您所有的資源。"
+    }
+  ],
+  "6fPJcm": [
+    {
+      "type": 0,
+      "value": "Generate Code with AI"
     }
   ],
   "6feu1e": [
@@ -2550,6 +2620,12 @@
     {
       "type": 0,
       "value": "產生工作階段深入解析"
+    }
+  ],
+  "6lHI9u": [
+    {
+      "type": 0,
+      "value": "Send a message to start testing your agent."
     }
   ],
   "6m5Ba0": [
@@ -2646,12 +2722,6 @@
       "value": "正在產生深入解析..."
     }
   ],
-  "75lAeu": [
-    {
-      "type": 0,
-      "value": "選取已排程工作的結束日期"
-    }
-  ],
   "77t9cY": [
     {
       "type": 0,
@@ -2662,12 +2732,6 @@
     {
       "type": 0,
       "value": "沒有可遞交的代理程式"
-    }
-  ],
-  "7C0xai": [
-    {
-      "type": 0,
-      "value": "資料來源"
     }
   ],
   "7Cy5xk": [
@@ -2682,6 +2746,12 @@
       "value": "檢閱模式"
     }
   ],
+  "7JgdFw": [
+    {
+      "type": 0,
+      "value": "Comma-separated tool names, e.g., SearchKusto, GetLogs"
+    }
+  ],
   "7K6W8s": [
     {
       "offset": 0,
@@ -2690,7 +2760,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Kusto tools deleted successfully"
+              "value": "Kusto 工具已成功刪除"
             }
           ]
         }
@@ -2964,6 +3034,40 @@
       "value": "已成功新增自訂事件回應計劃"
     }
   ],
+  "8H0PeE": [
+    {
+      "type": 0,
+      "value": "無法刪除排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "8J3eYt": [
+    {
+      "type": 0,
+      "value": "Test live agent"
+    }
+  ],
   "8LMIGa": [
     {
       "type": 0,
@@ -2973,7 +3077,7 @@
   "8MoJEj": [
     {
       "type": 0,
-      "value": "Message grouping:"
+      "value": "訊息群組:"
     }
   ],
   "8NHZQV": [
@@ -3131,22 +3235,28 @@
       "value": "請嘗試不同的搜尋字詞，或清除搜尋以查看所有連接器。"
     }
   ],
+  "8jD/lL": [
+    {
+      "type": 0,
+      "value": "Create skill"
+    }
+  ],
   "8lCjAM": [
     {
       "type": 0,
       "value": "優先順序"
     }
   ],
+  "8lQNdb": [
+    {
+      "type": 0,
+      "value": "排程的工作已刪除。"
+    }
+  ],
   "8nBFW4": [
     {
       "type": 0,
       "value": "Redis 快取參與者"
-    }
-  ],
-  "8ojA9A": [
-    {
-      "type": 0,
-      "value": "讓 AI 潤飾指示"
     }
   ],
   "8oyl6b": [
@@ -3203,7 +3313,7 @@
           "value": [
             {
               "type": 0,
-              "value": "SRE Agents deleted successfully"
+              "value": "已成功刪除 SRE Agent"
             }
           ]
         }
@@ -3290,7 +3400,7 @@
   "96TDsd": [
     {
       "type": 0,
-      "value": "Learn more about subagents"
+      "value": "深入了解子代理程式"
     }
   ],
   "98A08r": [
@@ -3321,22 +3431,16 @@
       "value": "message"
     }
   ],
-  "9G+4ga": [
+  "9DqDnP": [
     {
       "type": 0,
-      "value": "請嘗試不同的搜尋字詞，或清除搜尋以查看所有資料連接器。"
+      "value": "Generate Tool"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
       "value": "這會取代預設中繼代理程式，以移除一般 Azure 知識並提供更專注的體驗。"
-    }
-  ],
-  "9MPGF8": [
-    {
-      "type": 0,
-      "value": "代理程式指示"
     }
   ],
   "9MwJ6v": [
@@ -3367,6 +3471,12 @@
     {
       "type": 0,
       "value": "傳送"
+    }
+  ],
+  "9WyylR": [
+    {
+      "type": 0,
+      "value": "Command"
     }
   ],
   "9X3VEw": [
@@ -3406,13 +3516,13 @@
   "9jqvi3": [
     {
       "type": 0,
-      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+      "value": "當代理程式停止時，它就無法監視或進行互動，但仍會產生固定成本。"
     }
   ],
   "9jut5b": [
     {
       "type": 0,
-      "value": "Cron expression (UTC)"
+      "value": "Cron 運算式 (UTC)"
     }
   ],
   "9q75fe": [
@@ -3454,19 +3564,13 @@
   "A+4geD": [
     {
       "type": 0,
-      "value": "Create GitHub issue with SRE agent team"
+      "value": "與 SRE 代理程式團隊建立 GitHub 問題"
     }
   ],
   "A/xTHO": [
     {
       "type": 0,
       "value": "角色指派"
-    }
-  ],
-  "A0mVzo": [
-    {
-      "type": 0,
-      "value": "定義成功/失敗訊號和必要的輸出格式 (若有指定)。"
     }
   ],
   "A0rbH+": [
@@ -3479,12 +3583,6 @@
     {
       "type": 0,
       "value": "已成功更新您的註釋"
-    }
-  ],
-  "A3ptul": [
-    {
-      "type": 0,
-      "value": "範本"
     }
   ],
   "A4ZrJb": [
@@ -3541,7 +3639,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Incident triggers deleted successfully"
+              "value": "事件觸發程序已成功刪除"
             }
           ]
         }
@@ -3554,7 +3652,7 @@
   "AHQWDT": [
     {
       "type": 0,
-      "value": "Thinking"
+      "value": "思考中"
     }
   ],
   "AHQdRU": [
@@ -3563,22 +3661,10 @@
       "value": "每月 AAU 限制:"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "未設定資料連接器"
-    }
-  ],
   "ASLbZd": [
     {
       "type": 0,
       "value": "匯出分析"
-    }
-  ],
-  "ATXGa+": [
-    {
-      "type": 0,
-      "value": "代理程式名稱"
     }
   ],
   "ATYp8z": [
@@ -3593,44 +3679,16 @@
       "value": "沒有要套用的擱置設定變更"
     }
   ],
-  "AaJ/LU": [
-    {
-      "type": 0,
-      "value": "潤飾指示"
-    }
-  ],
-  "AbXVP4": [
-    {
-      "type": 0,
-      "value": "建立時間"
-    }
-  ],
   "Abi/u/": [
     {
       "type": 0,
       "value": "展開面板"
     }
   ],
-  "AbleKr": [
-    {
-      "type": 0,
-      "value": "資料連接器"
-    }
-  ],
   "AbpmRv": [
     {
       "type": 0,
       "value": "輸入指示"
-    }
-  ],
-  "Ad7J7h": [
-    {
-      "type": 0,
-      "value": "無法刪除工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -3691,6 +3749,38 @@
       "value": "REST API 存取金鑰"
     }
   ],
+  "AuUgE1": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 已執行。"
+    }
+  ],
   "AvHD3R": [
     {
       "type": 0,
@@ -3700,7 +3790,7 @@
   "Aw3qRf": [
     {
       "type": 0,
-      "value": "Reasoning"
+      "value": "推理中"
     }
   ],
   "AxMhQr": [
@@ -3726,7 +3816,7 @@
   "B/qM5p": [
     {
       "type": 0,
-      "value": "Enter Teams channel link"
+      "value": "輸入 Teams 頻道連結"
     }
   ],
   "B3Q5mz": [
@@ -3777,12 +3867,6 @@
       "value": "Azure SAP 解決方案中心讀者"
     }
   ],
-  "BLU3k6": [
-    {
-      "type": 0,
-      "value": "編輯已排程工作"
-    }
-  ],
   "BNH9Uy": [
     {
       "type": 0,
@@ -3801,6 +3885,12 @@
     {
       "type": 0,
       "value": "工具功能的類型"
+    }
+  ],
+  "BP5nk0": [
+    {
+      "type": 0,
+      "value": "Standard Output"
     }
   ],
   "BSQQkf": [
@@ -3909,20 +3999,6 @@
       "value": "驗證的資料類型和需求"
     }
   ],
-  "BmEERa": [
-    {
-      "type": 0,
-      "value": "正在刪除 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 個資料連接器..."
-    }
-  ],
   "Bn/txo": [
     {
       "type": 0,
@@ -3945,12 +4021,6 @@
     {
       "type": 0,
       "value": "摺疊面板"
-    }
-  ],
-  "BynA9c": [
-    {
-      "type": 0,
-      "value": "選用調整"
     }
   ],
   "C2iTEH": [
@@ -4210,7 +4280,7 @@
   "D9WytX": [
     {
       "type": 0,
-      "value": "Search for an incident by name"
+      "value": "依名稱搜尋事件"
     }
   ],
   "DD2Wjk": [
@@ -4323,6 +4393,12 @@
       "value": "輸出類型"
     }
   ],
+  "DS/6lY": [
+    {
+      "type": 0,
+      "value": "Collapse to show less"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
@@ -4376,7 +4452,7 @@
   "DcEKTG": [
     {
       "type": 0,
-      "value": "Failed to run test"
+      "value": "無法執行測試"
     }
   ],
   "DeP+ZM": [
@@ -4451,6 +4527,12 @@
       "value": "無法刪除邏輯應用程式"
     }
   ],
+  "DtmRJJ": [
+    {
+      "type": 0,
+      "value": "SSE"
+    }
+  ],
   "DuejfP": [
     {
       "type": 0,
@@ -4502,13 +4584,19 @@
   "E7aYCD": [
     {
       "type": 0,
-      "value": "Search for a resource by name"
+      "value": "依名稱搜尋資源"
     }
   ],
   "E9CWuE": [
     {
       "type": 0,
       "value": "範例: 其中 SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
+  "EAGAAs": [
+    {
+      "type": 0,
+      "value": "Test your Python function before saving"
     }
   ],
   "EAO/K+": [
@@ -4561,6 +4649,12 @@
       "value": "您能分析我過去 24 小時內的資源可用性嗎?"
     }
   ],
+  "EJSVsO": [
+    {
+      "type": 0,
+      "value": "Skills"
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -4570,7 +4664,7 @@
   "EN0CPQ": [
     {
       "type": 0,
-      "value": "Subagent builder"
+      "value": "子代理程式建立器"
     }
   ],
   "EN5iMk": [
@@ -4591,6 +4685,12 @@
       "value": "具有品質評估的完整工作流程"
     }
   ],
+  "EPi9lK": [
+    {
+      "type": 0,
+      "value": "Previous test failed:"
+    }
+  ],
   "EQa6dK": [
     {
       "type": 0,
@@ -4603,6 +4703,12 @@
       "value": "輸入篩選名稱"
     }
   ],
+  "ESqLtC": [
+    {
+      "type": 0,
+      "value": "Run local command or executable"
+    }
+  ],
   "ETRyBL": [
     {
       "type": 0,
@@ -4612,21 +4718,17 @@
   "EVA81S": [
     {
       "type": 0,
-      "value": "No "
+      "value": "找不到 "
     },
     {
       "type": 1,
       "value": "entity"
-    },
-    {
-      "type": 0,
-      "value": " found"
     }
   ],
   "EVXYDU": [
     {
       "type": 0,
-      "value": "Learn more about creating subagents."
+      "value": "深入了解建立子代理程式。"
     }
   ],
   "EWrExf": [
@@ -4709,6 +4811,12 @@
     {
       "type": 0,
       "value": "追蹤資料剖析時出現警告。"
+    }
+  ],
+  "Eo9M+K": [
+    {
+      "type": 0,
+      "value": "Select a file to edit"
     }
   ],
   "Ep74wA": [
@@ -4835,6 +4943,12 @@
       "value": "已成功新增受控資源群組"
     }
   ],
+  "FGN2ax": [
+    {
+      "type": 0,
+      "value": "Tool saved successfully!"
+    }
+  ],
   "FGP0Kd": [
     {
       "type": 0,
@@ -4859,12 +4973,6 @@
       "value": "請輸入您的 PAT 或 API 金鑰"
     }
   ],
-  "FNQNS1": [
-    {
-      "type": 0,
-      "value": "太平洋時間平日上午 9 點"
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
@@ -4875,22 +4983,6 @@
     {
       "type": 0,
       "value": "未指定來源代理程式"
-    }
-  ],
-  "FSYccN": [
-    {
-      "type": 0,
-      "value": "此工作應該何時執行?"
-    }
-  ],
-  "FSZ5F/": [
-    {
-      "type": 0,
-      "value": "正在刪除已排程工作 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "FTWkpv": [
@@ -4927,12 +5019,6 @@
       "value": "已中斷連線"
     }
   ],
-  "FZwBv0": [
-    {
-      "type": 0,
-      "value": "執行詳細資料"
-    }
-  ],
   "FeBVnC": [
     {
       "type": 0,
@@ -4943,6 +5029,12 @@
     {
       "type": 0,
       "value": "探查多步驟診斷，以查看代理程式是否能有效協調工具。"
+    }
+  ],
+  "FiXNt1": [
+    {
+      "type": 0,
+      "value": "default"
     }
   ],
   "FitglU": [
@@ -4987,6 +5079,12 @@
     {
       "type": 0,
       "value": "已為此代理程式啟用知識庫。將自動包含 SearchMemory 工具和知識庫提示。"
+    }
+  ],
+  "FuPxOh": [
+    {
+      "type": 0,
+      "value": "Save & Use Tool"
     }
   ],
   "Fv1ZSz": [
@@ -5045,7 +5143,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete scheduled tasks"
+              "value": "無法刪除已排程工作"
             }
           ]
         }
@@ -5201,6 +5299,18 @@
       "value": "返回命令"
     }
   ],
+  "GDCPLv": [
+    {
+      "type": 0,
+      "value": "Connect via URL endpoint"
+    }
+  ],
+  "GFhSwY": [
+    {
+      "type": 0,
+      "value": "Skill"
+    }
+  ],
   "GGr/yS": [
     {
       "type": 0,
@@ -5323,12 +5433,6 @@
       "value": "值"
     }
   ],
-  "Gvxoji": [
-    {
-      "type": 0,
-      "value": "名稱為必要項"
-    }
-  ],
   "GzKpRn": [
     {
       "type": 0,
@@ -5385,16 +5489,16 @@
       "value": "未偵測到程式碼最佳化建議。"
     }
   ],
+  "HHP8Nh": [
+    {
+      "type": 0,
+      "value": "Code generated successfully!"
+    }
+  ],
   "HJ7ZeR": [
     {
       "type": 0,
       "value": "問題描述"
-    }
-  ],
-  "HKlw1J": [
-    {
-      "type": 0,
-      "value": "這將從代理程式永久中斷此資料連接器的連線。是否確定要中斷此資料連接器的連線?"
     }
   ],
   "HMZIeG": [
@@ -5413,12 +5517,6 @@
     {
       "type": 0,
       "value": "建立您的代理程式生態系統"
-    }
-  ],
-  "HOJNsf": [
-    {
-      "type": 0,
-      "value": "選取工作應停止執行的時間"
     }
   ],
   "HQ4NJ3": [
@@ -5469,6 +5567,12 @@
       "value": "擱置的核准"
     }
   ],
+  "HeFlq1": [
+    {
+      "type": 0,
+      "value": "Skill name is required"
+    }
+  ],
   "Hgs+WM": [
     {
       "type": 0,
@@ -5488,7 +5592,7 @@
   "Hh4t4o": [
     {
       "type": 0,
-      "value": "Subagent \""
+      "value": "子代理程式 \""
     },
     {
       "type": 1,
@@ -5496,7 +5600,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\" 已成功建立"
     }
   ],
   "Hh8It5": [
@@ -5521,6 +5625,12 @@
     {
       "type": 0,
       "value": "時間範圍"
+    }
+  ],
+  "Hnv6Ej": [
+    {
+      "type": 0,
+      "value": "Python Function"
     }
   ],
   "Hs02Tq": [
@@ -5615,6 +5725,16 @@
       "value": "字串"
     }
   ],
+  "I3ymC9": [
+    {
+      "type": 0,
+      "value": "Exit code: "
+    },
+    {
+      "type": 1,
+      "value": "code"
+    }
+  ],
   "I4PbZq": [
     {
       "type": 0,
@@ -5699,7 +5819,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Every hour"
+              "value": "每小時"
             }
           ]
         },
@@ -5707,14 +5827,14 @@
           "value": [
             {
               "type": 0,
-              "value": "Every "
+              "value": "每 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours"
+              "value": " 小時"
             }
           ]
         }
@@ -5782,10 +5902,22 @@
       "value": "新對話"
     }
   ],
+  "ITzzTV": [
+    {
+      "type": 0,
+      "value": "Test failed"
+    }
+  ],
   "IYLPrk": [
     {
       "type": 0,
       "value": "刪除已排程工作"
+    }
+  ],
+  "IZFEUg": [
+    {
+      "type": 0,
+      "value": "Ready"
     }
   ],
   "IZYDgM": [
@@ -5798,12 +5930,6 @@
     {
       "type": 0,
       "value": "您沒有權限新增或編輯註釋。"
-    }
-  ],
-  "IbMKy+": [
-    {
-      "type": 0,
-      "value": "使用此版本"
     }
   ],
   "IcB2fr": [
@@ -5821,7 +5947,7 @@
   "Icfr5t": [
     {
       "type": 0,
-      "value": "Search by incident trigger"
+      "value": "依事件觸發程序搜尋"
     }
   ],
   "IiNwpr": [
@@ -5841,7 +5967,7 @@
   "Ij0ity": [
     {
       "type": 0,
-      "value": "Search by tool"
+      "value": "依工具搜尋"
     }
   ],
   "InWqys": [
@@ -5862,10 +5988,22 @@
       "value": "代理程式會使用預先定義的查詢來進行結構化記錄、遙測與時間序列資料。"
     }
   ],
+  "IoxJ74": [
+    {
+      "type": 0,
+      "value": "Writing function code"
+    }
+  ],
   "Ip7Gd3": [
     {
       "type": 0,
       "value": "自動套用"
+    }
+  ],
+  "IpS9Tn": [
+    {
+      "type": 0,
+      "value": "開啟排程的工作"
     }
   ],
   "IrCHQG": [
@@ -5932,6 +6070,12 @@
       "value": "無法驗證 ServiceNow 設定。請再試一次。"
     }
   ],
+  "J3nUiY": [
+    {
+      "type": 0,
+      "value": "排程的工作現在已關閉。"
+    }
+  ],
   "J6XCfl": [
     {
       "type": 0,
@@ -5952,16 +6096,10 @@
       "value": "連線現有項目"
     }
   ],
-  "J8u7Xg": [
-    {
-      "type": 0,
-      "value": "上次修改時間"
-    }
-  ],
   "J8uEym": [
     {
       "type": 0,
-      "value": "Search by scheduled task"
+      "value": "依已排程工作搜尋"
     }
   ],
   "JA/VO+": [
@@ -6012,6 +6150,12 @@
       "value": "透過事件回應計劃，代理程式會選擇管理常見類型事件所需的工具。自訂回應計劃會取代這項功能，讓代理程式依您所提供的特定指示來執行。"
     }
   ],
+  "JSVEZ3": [
+    {
+      "type": 0,
+      "value": "正在刪除排程的工作。"
+    }
+  ],
   "JSW9Xw": [
     {
       "type": 0,
@@ -6022,6 +6166,16 @@
     {
       "type": 0,
       "value": "提示:"
+    }
+  ],
+  "JTS+Zf": [
+    {
+      "type": 0,
+      "value": "Failed to delete skill "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -6116,6 +6270,12 @@
     {
       "type": 0,
       "value": "受控識別 (當找到相容的連接器時，Agent Space 受控識別會自動選擇為 Agent Space)"
+    }
+  ],
+  "Jdy/E7": [
+    {
+      "type": 0,
+      "value": "Testing function…"
     }
   ],
   "JezZlU": [
@@ -6234,12 +6394,6 @@
       "value": "檢閱您的觸發程序"
     }
   ],
-  "JzOvG/": [
-    {
-      "type": 0,
-      "value": "我們的假設"
-    }
-  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -6256,12 +6410,6 @@
     {
       "type": 0,
       "value": "顯示"
-    }
-  ],
-  "K7tsik": [
-    {
-      "type": 0,
-      "value": "排程的工作已成功執行"
     }
   ],
   "K9q4Xw": [
@@ -6336,12 +6484,6 @@
       "value": "新增代理程式"
     }
   ],
-  "KS5JHs": [
-    {
-      "type": 0,
-      "value": "執行計數"
-    }
-  ],
   "KXyWfi": [
     {
       "type": 0,
@@ -6378,7 +6520,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete SRE Agents"
+              "value": "刪除 SRE Agent"
             }
           ]
         }
@@ -6394,16 +6536,44 @@
       "value": "是/否"
     }
   ],
-  "KiANnA": [
+  "KiXNvz": [
     {
       "type": 0,
-      "value": "開啟已排程工作"
+      "value": "Run"
     }
   ],
   "Kkc3/u": [
     {
       "type": 0,
       "value": "編輯事件回應計劃"
+    }
+  ],
+  "KlWAix": [
+    {
+      "type": 0,
+      "value": "無法開啟排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "Km+WSh": [
@@ -6486,6 +6656,12 @@
       "value": "已捨棄 AI 建議"
     }
   ],
+  "L/BdWN": [
+    {
+      "type": 0,
+      "value": "Generate with AI ✨"
+    }
+  ],
   "L/ct40": [
     {
       "type": 0,
@@ -6522,12 +6698,6 @@
       "value": "最近的活動"
     }
   ],
-  "LFn7Ak": [
-    {
-      "type": 0,
-      "value": "已成功建立已排程工作"
-    }
-  ],
   "LGZkPZ": [
     {
       "type": 0,
@@ -6554,12 +6724,6 @@
     {
       "type": 0,
       "value": "檢閱資源群組"
-    }
-  ],
-  "LPz7Qc": [
-    {
-      "type": 0,
-      "value": "工具類型"
     }
   ],
   "LQ2AtR": [
@@ -6640,6 +6804,12 @@
       "value": "正在建立 Kusto 工具"
     }
   ],
+  "LbYKes": [
+    {
+      "type": 0,
+      "value": "Failed to save skill"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -6650,6 +6820,12 @@
     {
       "type": 0,
       "value": "自訂標頭"
+    }
+  ],
+  "LjwVHP": [
+    {
+      "type": 0,
+      "value": "排程的工作現在已開啟。"
     }
   ],
   "LkUvu/": [
@@ -6670,10 +6846,26 @@
       "value": "自訂回應計劃名稱"
     }
   ],
+  "Lq6q6U": [
+    {
+      "type": 0,
+      "value": "Failed to generate code: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "LsGLc0": [
     {
       "type": 0,
       "value": "直接引數"
+    }
+  ],
+  "LstsP/": [
+    {
+      "type": 0,
+      "value": "MCP Tool"
     }
   ],
   "LuHM0/": [
@@ -6718,7 +6910,7 @@
   "LxHm7z": [
     {
       "type": 0,
-      "value": "An AI subagent with instructions and tools"
+      "value": "具有指示和工具的 AI 子代理程式"
     }
   ],
   "LyHqqV": [
@@ -6733,6 +6925,12 @@
       "value": "編輯自訂回應計劃"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "刪除排程的工作"
+    }
+  ],
   "M+QCSD": [
     {
       "type": 0,
@@ -6743,22 +6941,10 @@
       "value": "name"
     }
   ],
-  "M/3/kG": [
-    {
-      "type": 0,
-      "value": "最大執行次數必須是正數。"
-    }
-  ],
   "M/zZVx": [
     {
       "type": 0,
       "value": "新增篩選"
-    }
-  ],
-  "M0ay1D": [
-    {
-      "type": 0,
-      "value": "正在執行排程的工作"
     }
   ],
   "M3159R": [
@@ -6794,7 +6980,7 @@
   "MCLPMF": [
     {
       "type": 0,
-      "value": "Scale your agent’s capabilities with subagents"
+      "value": "使用子代理程式縮放代理程式的功能"
     }
   ],
   "MGZggN": [
@@ -6805,7 +6991,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete SRE Agents"
+              "value": "無法刪除 SRE Agent"
             }
           ]
         }
@@ -6895,24 +7081,6 @@
       "value": "是，使用自訂中繼代理程式覆寫"
     }
   ],
-  "MPzBut": [
-    {
-      "type": 0,
-      "value": "執行歷程記錄"
-    }
-  ],
-  "MQNtQ+": [
-    {
-      "type": 0,
-      "value": "資料連接器"
-    }
-  ],
-  "MSWnaq": [
-    {
-      "type": 0,
-      "value": "建立新的已排程工作，以便使用 cron 運算式定期監視或執行動作。"
-    }
-  ],
   "MUVpbF": [
     {
       "type": 0,
@@ -6987,12 +7155,6 @@
       "value": "error"
     }
   ],
-  "Mx6yYf": [
-    {
-      "type": 0,
-      "value": "已成功關閉已排程工作"
-    }
-  ],
   "MxYLKu": [
     {
       "type": 0,
@@ -7057,13 +7219,31 @@
       "value": "確認"
     }
   ],
-  "N7cqYp": [
+  "N75VIa": [
     {
       "type": 0,
-      "value": "關閉已排程工作 "
+      "value": "正在建立排程的工作"
     },
     {
-      "type": 1,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
       "value": "name"
     }
   ],
@@ -7083,12 +7263,6 @@
     {
       "type": 0,
       "value": "已獲授權"
-    }
-  ],
-  "NBiLYK": [
-    {
-      "type": 0,
-      "value": "草擬中…"
     }
   ],
   "NBxjGE": [
@@ -7172,7 +7346,7 @@
   "NZ4EtH": [
     {
       "type": 0,
-      "value": "A subagent with this name already exists"
+      "value": "此名稱的子代理程式已經存在"
     }
   ],
   "NcxGiD": [
@@ -7202,7 +7376,7 @@
   "NmQwIl": [
     {
       "type": 0,
-      "value": "Schedule:"
+      "value": "排程:"
     }
   ],
   "Nrc9ba": [
@@ -7235,6 +7409,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "NzhSBf": [
+    {
+      "type": 0,
+      "value": "Edit the code below or regenerate with different instructions"
     }
   ],
   "O+srpo": [
@@ -7293,6 +7473,12 @@
       "value": "整體品質"
     }
   ],
+  "O25MZU": [
+    {
+      "type": 0,
+      "value": "選取所有工具"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -7315,6 +7501,38 @@
     {
       "type": 0,
       "value": "最新"
+    }
+  ],
+  "ODswb7": [
+    {
+      "type": 0,
+      "value": "正在開啟排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "OIWzWF": [
@@ -7396,13 +7614,19 @@
   "OQMatj": [
     {
       "type": 0,
-      "value": "Failed to create subagent"
+      "value": "無法建立子代理程式"
     }
   ],
   "ORGv1Q": [
     {
       "type": 0,
       "value": "已建立"
+    }
+  ],
+  "ORcS+j": [
+    {
+      "type": 0,
+      "value": "Testing…"
     }
   ],
   "OSMnsR": [
@@ -7453,12 +7677,6 @@
       "value": "使用標準 Cron 語法 (UTC) 控制代理程式何時執行。"
     }
   ],
-  "OYAXyI": [
-    {
-      "type": 0,
-      "value": "提供代理程式在分析或回答問題時會參考的資訊。"
-    }
-  ],
   "OYKAqF": [
     {
       "type": 0,
@@ -7497,6 +7715,12 @@
     {
       "type": 0,
       "value": "中等"
+    }
+  ],
+  "OmDQWM": [
+    {
+      "type": 0,
+      "value": "Cannot create skills when subagents exist"
     }
   ],
   "Oom2N7": [
@@ -7711,12 +7935,6 @@
       "value": "未指定目標代理程式"
     }
   ],
-  "PXYq8b": [
-    {
-      "type": 0,
-      "value": "輸入有效的 5 部分 cron 運算式 (m h dom mon dow)。"
-    }
-  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -7823,12 +8041,6 @@
       "value": "工作總計"
     }
   ],
-  "PxsPJt": [
-    {
-      "type": 0,
-      "value": "正在開啟已排程工作"
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -7856,7 +8068,7 @@
   "Q0B/Lb": [
     {
       "type": 0,
-      "value": "Only teams that allow incident assignment"
+      "value": "僅限允許事件指派的團隊"
     }
   ],
   "Q2CgqG": [
@@ -7925,16 +8137,6 @@
     {
       "type": 0,
       "value": "描述"
-    }
-  ],
-  "Q9IHxV": [
-    {
-      "type": 0,
-      "value": "正在執行排程的工作 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -8035,6 +8237,12 @@
       "value": "使用次數 (觸發程序、動作)"
     }
   ],
+  "QTVz4e": [
+    {
+      "type": 0,
+      "value": "Describe what your tool should do"
+    }
+  ],
   "QW+Q5N": [
     {
       "type": 0,
@@ -8053,10 +8261,32 @@
       "value": "1. 描述您採取的動作 2. 提及所需的資源或服務"
     }
   ],
+  "QZnXvZ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Qcakd7": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "此清單依類別顯示您的擴充代理程式、工具和連接器。建立及管理子代理程式以擴充您的功能、新增特定工作的自訂工具，以及設定連接器以存取外部資源。"
     }
   ],
   "QdDYGR": [
@@ -8075,6 +8305,12 @@
     {
       "type": 0,
       "value": "編輯注釋"
+    }
+  ],
+  "Qg+chS": [
+    {
+      "type": 0,
+      "value": "Describe in plain English, e.g., \"Parse JSON logs and count errors by severity\""
     }
   ],
   "QgFHei": [
@@ -8131,6 +8367,12 @@
     {
       "type": 0,
       "value": "例如，0 9 * * 1-5"
+    }
+  ],
+  "QozEE6": [
+    {
+      "type": 0,
+      "value": "Additional files"
     }
   ],
   "QpCzB2": [
@@ -8197,6 +8439,34 @@
       "value": "尚無意見反應"
     }
   ],
+  "R56nxF": [
+    {
+      "type": 0,
+      "value": "無法建立排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -8207,12 +8477,6 @@
     {
       "type": 0,
       "value": "事件執行緒已移動"
-    }
-  ],
-  "RA3fki": [
-    {
-      "type": 0,
-      "value": "缺少內容"
     }
   ],
   "RAjqKb": [
@@ -8327,6 +8591,12 @@
       "value": "資料庫"
     }
   ],
+  "RbWH8Q": [
+    {
+      "type": 0,
+      "value": "MCP"
+    }
+  ],
   "Rfvi9/": [
     {
       "type": 0,
@@ -8430,13 +8700,45 @@
   "S6we8v": [
     {
       "type": 0,
-      "value": "Edit incident trigger"
+      "value": "編輯事件觸發程序"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
       "value": "其他動作"
+    }
+  ],
+  "S8Rsb6": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 已刪除。"
     }
   ],
   "SAINuE": [
@@ -8467,6 +8769,38 @@
       "value": "新增現有工具"
     }
   ],
+  "SEdSoA": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 已更新。"
+    }
+  ],
   "SFUZOQ": [
     {
       "type": 0,
@@ -8487,12 +8821,6 @@
       "value": ")"
     }
   ],
-  "SL+c5a": [
-    {
-      "type": 0,
-      "value": "—"
-    }
-  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -8501,6 +8829,28 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "SM/hWJ": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " skills, but "
+    },
+    {
+      "type": 1,
+      "value": "failureCount"
+    },
+    {
+      "type": 0,
+      "value": " failed to delete"
     }
   ],
   "SMrXWc": [
@@ -8599,10 +8949,38 @@
       "value": "擁有團隊識別碼"
     }
   ],
+  "SjeMma": [
+    {
+      "type": 0,
+      "value": "執行排程的工作"
+    }
+  ],
   "Sjo1P4": [
     {
       "type": 0,
       "value": "自訂"
+    }
+  ],
+  "SllKh/": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Slnpm8": [
@@ -8615,6 +8993,12 @@
     {
       "type": 0,
       "value": "草稿尚未同步"
+    }
+  ],
+  "Sn2nYC": [
+    {
+      "type": 0,
+      "value": "Edit Name"
     }
   ],
   "SoBWeV": [
@@ -8771,12 +9155,6 @@
       "value": "已使用代理程式權限，但動作執行失敗。"
     }
   ],
-  "TFsGSl": [
-    {
-      "type": 0,
-      "value": "保持空白以無限制執行"
-    }
-  ],
   "TGc4Lh": [
     {
       "offset": 0,
@@ -8785,7 +9163,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete incident triggers"
+              "value": "刪除事件觸發程序"
             }
           ]
         }
@@ -8805,6 +9183,38 @@
     {
       "type": 0,
       "value": "良好"
+    }
+  ],
+  "TKNqWx": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 現在使用中。"
     }
   ],
   "TKmub+": [
@@ -8827,16 +9237,16 @@
       "value": " 的所有事件"
     }
   ],
-  "TKsgZu": [
-    {
-      "type": 0,
-      "value": "主要警示"
-    }
-  ],
   "TMZ2Rq": [
     {
       "type": 0,
       "value": "Grafana 系統管理員"
+    }
+  ],
+  "TMjYpD": [
+    {
+      "type": 0,
+      "value": "Brief description of what this skill does"
     }
   ],
   "TO55dt": [
@@ -8905,16 +9315,16 @@
       "value": "此深入解析沒有 Markdown 內容。"
     }
   ],
-  "Tg4Q8g": [
-    {
-      "type": 0,
-      "value": "是否要中斷資料連接器的連線?"
-    }
-  ],
   "ThSX0k": [
     {
       "type": 0,
       "value": "刪除 SRE 代理程式"
+    }
+  ],
+  "TiR/Hq": [
+    {
+      "type": 0,
+      "value": "Saving..."
     }
   ],
   "TkWiD5": [
@@ -9033,6 +9443,12 @@
       "value": "網站參與者/運算子"
     }
   ],
+  "UWZEBA": [
+    {
+      "type": 0,
+      "value": "Edit Skill"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -9051,10 +9467,26 @@
       "value": "視覺效果檢視"
     }
   ],
+  "UcVdDd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " test cases available"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
       "value": "事件類型"
+    }
+  ],
+  "Uiw6Xo": [
+    {
+      "type": 0,
+      "value": "正在關閉排程的工作。"
     }
   ],
   "UjETJe": [
@@ -9105,6 +9537,12 @@
       "value": "存放庫"
     }
   ],
+  "V4KNjk": [
+    {
+      "type": 0,
+      "value": "optional"
+    }
+  ],
   "V4yeoh": [
     {
       "type": 0,
@@ -9147,12 +9585,6 @@
       "value": "隱藏"
     }
   ],
-  "VB+AjJ": [
-    {
-      "type": 0,
-      "value": "自訂 cron 運算式"
-    }
-  ],
   "VB97cf": [
     {
       "type": 0,
@@ -9163,6 +9595,12 @@
     {
       "type": 0,
       "value": "選取用於遞交的子代理程式"
+    }
+  ],
+  "VCHJad": [
+    {
+      "type": 0,
+      "value": "New folder"
     }
   ],
   "VIYXlx": [
@@ -9267,6 +9705,18 @@
     {
       "type": 0,
       "value": "檢閱 (預設)"
+    }
+  ],
+  "VfjG62": [
+    {
+      "type": 0,
+      "value": "Python Code"
+    }
+  ],
+  "Vi21gb": [
+    {
+      "type": 0,
+      "value": "正在開啟排程的工作。"
     }
   ],
   "Vipo+I": [
@@ -9399,6 +9849,12 @@
       "value": "已解決"
     }
   ],
+  "W7GhBB": [
+    {
+      "type": 0,
+      "value": "Cannot create subagents when skills are enabled"
+    }
+  ],
   "W8LUUc": [
     {
       "type": 0,
@@ -9427,6 +9883,12 @@
     {
       "type": 0,
       "value": "上次資料擷取時間"
+    }
+  ],
+  "WJ+tyY": [
+    {
+      "type": 0,
+      "value": "Enter command (e.g. npx, python)"
     }
   ],
   "WJj+TP": [
@@ -9459,6 +9921,38 @@
       "value": "正在儲存…"
     }
   ],
+  "WUZAzC": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 現在已關閉。"
+    }
+  ],
   "WVTzuw": [
     {
       "type": 0,
@@ -9477,16 +9971,6 @@
     {
       "type": 0,
       "value": "已成功建立 Grafana 儀表板"
-    }
-  ],
-  "WbV0j4": [
-    {
-      "type": 0,
-      "value": "正在編輯: "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Wc5b/J": [
@@ -9626,7 +10110,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete scheduled tasks"
+              "value": "刪除已排程工作"
             }
           ]
         }
@@ -9700,12 +10184,6 @@
       "value": "隱藏詳細資料"
     }
   ],
-  "X5UCWb": [
-    {
-      "type": 0,
-      "value": "已成功刪除已排程工作"
-    }
-  ],
   "X5yqtT": [
     {
       "type": 0,
@@ -9728,12 +10206,6 @@
     {
       "type": 0,
       "value": "動作已取消。"
-    }
-  ],
-  "XCfiZ2": [
-    {
-      "type": 0,
-      "value": "為我草擬 Cron"
     }
   ],
   "XDSe35": [
@@ -9802,12 +10274,6 @@
       "value": "可讓您讀取及修改 HDInsight 叢集設定。"
     }
   ],
-  "XJuPK6": [
-    {
-      "type": 0,
-      "value": "每次執行時請包含任何所需的資源識別碼 (例如訂用帳戶/資源群組)。"
-    }
-  ],
   "XKWCS3": [
     {
       "type": 0,
@@ -9818,12 +10284,6 @@
     {
       "type": 0,
       "value": "完全自主模式。在取得必要權限後，代理程式會分析事件並獨立執行緩解或資源修改。"
-    }
-  ],
-  "XKvrQy": [
-    {
-      "type": 0,
-      "value": "工作詳細資料"
     }
   ],
   "XLRt15": [
@@ -10004,16 +10464,6 @@
     {
       "type": 0,
       "value": "等於"
-    }
-  ],
-  "Y3qQB0": [
-    {
-      "type": 0,
-      "value": "正在開啟已排程工作 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Y47Dwm": [
@@ -10232,6 +10682,32 @@
       "value": "深入解析尚未分析"
     }
   ],
+  "Yymgt5": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
@@ -10280,12 +10756,6 @@
       "value": "代理程式識別碼"
     }
   ],
-  "Z8Y6DE": [
-    {
-      "type": 0,
-      "value": "上次同步時間"
-    }
-  ],
   "Z9TajN": [
     {
       "type": 0,
@@ -10298,20 +10768,10 @@
       "value": "建立事件回應計劃"
     }
   ],
-  "ZA4OiK": [
-    {
-      "type": 0,
-      "value": "無法建立已排程工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "ZAkVKt": [
     {
       "type": 0,
-      "value": "Create a handoff subagent"
+      "value": "建立轉接子代理程式"
     }
   ],
   "ZBKZDe": [
@@ -10350,12 +10810,6 @@
       "value": "channel"
     }
   ],
-  "ZMa6Rh": [
-    {
-      "type": 0,
-      "value": "正在刪除已排程工作"
-    }
-  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -10372,6 +10826,12 @@
     {
       "type": 0,
       "value": "此實體的表單編輯即將推出。"
+    }
+  ],
+  "ZSbKr/": [
+    {
+      "type": 0,
+      "value": "Write code manually instead"
     }
   ],
   "ZUXvHE": [
@@ -10450,7 +10910,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Every minute"
+              "value": "每分鐘"
             }
           ]
         },
@@ -10458,14 +10918,14 @@
           "value": [
             {
               "type": 0,
-              "value": "Every "
+              "value": "每 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes"
+              "value": " 分鐘"
             }
           ]
         }
@@ -10473,6 +10933,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "minutes"
+    }
+  ],
+  "ZpQ6us": [
+    {
+      "type": 0,
+      "value": "Result"
     }
   ],
   "Zq5BCQ": [
@@ -10556,12 +11022,6 @@
       "value": " 個 Active 流程 AAU"
     }
   ],
-  "a5dT17": [
-    {
-      "type": 0,
-      "value": "搜尋資料連接器"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -10572,12 +11032,6 @@
     {
       "type": 0,
       "value": "您的權限將暫時用於完成此動作。"
-    }
-  ],
-  "a7QT/5": [
-    {
-      "type": 0,
-      "value": "進階: 使用 cron 格式 (分 時 日 月 星期)"
     }
   ],
   "a8czK7": [
@@ -10703,12 +11157,6 @@
       "value": "無法更新升級通道"
     }
   ],
-  "aSipXt": [
-    {
-      "type": 0,
-      "value": "提升代理程式對您基礎結構的認知"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -10751,12 +11199,6 @@
       "value": "選擇事件"
     }
   ],
-  "ajASB/": [
-    {
-      "type": 0,
-      "value": "請保持描述簡短; 將詳細的執行邏輯放於此處。"
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -10787,12 +11229,6 @@
       "value": "工具測試失敗，但未提供錯誤詳細資料。"
     }
   ],
-  "auFFJa": [
-    {
-      "type": 0,
-      "value": "金鑰保存庫 URI"
-    }
-  ],
   "ayDbML": [
     {
       "type": 0,
@@ -10814,7 +11250,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "工作階段識別碼"
     }
   ],
   "b2PyOl": [
@@ -10835,22 +11271,6 @@
     {
       "type": 0,
       "value": "刪除自訂事件回應計劃"
-    }
-  ],
-  "b3sNCU": [
-    {
-      "type": 0,
-      "value": "無法關閉工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "b5OEXm": [
-    {
-      "type": 0,
-      "value": "它應該多久執行一次?"
     }
   ],
   "b7D4Lh": [
@@ -10883,6 +11303,34 @@
       "value": "編輯 Kusto 工具"
     }
   ],
+  "bGIW7m": [
+    {
+      "type": 0,
+      "value": "無法關閉排程的工作。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
@@ -10901,10 +11349,62 @@
       "value": "如果您按下 [繼續]，此作業將使用代理程式身分識別認證來執行。"
     }
   ],
+  "bMqcq2": [
+    {
+      "type": 0,
+      "value": "正在關閉排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "bN0x+w": [
     {
       "type": 0,
       "value": "裝置佈建服務資料讀取者"
+    }
+  ],
+  "bO7sKf": [
+    {
+      "type": 0,
+      "value": "Ctrl+Enter"
+    }
+  ],
+  "bR/LRB": [
+    {
+      "type": 0,
+      "value": "選取 "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
+    },
+    {
+      "type": 0,
+      "value": " 中的所有工具"
     }
   ],
   "bW7B87": [
@@ -10953,7 +11453,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting scheduled tasks"
+              "value": "正在刪除已排程工作"
             }
           ]
         }
@@ -10967,12 +11467,6 @@
     {
       "type": 0,
       "value": "請重新啟動聊天以查看您的變更。"
-    }
-  ],
-  "bjOnWH": [
-    {
-      "type": 0,
-      "value": "請先新增您的指示草稿，再進行潤飾。"
     }
   ],
   "blSyDZ": [
@@ -11201,6 +11695,12 @@
       "value": "連接器狀態"
     }
   ],
+  "cM9da4": [
+    {
+      "type": 0,
+      "value": "Restart test"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -11222,7 +11722,7 @@
   "cXAlMR": [
     {
       "type": 0,
-      "value": "Scheduled"
+      "value": "已排定"
     }
   ],
   "cYwv8P": [
@@ -11257,6 +11757,12 @@
     {
       "type": 0,
       "value": "Kusto 工具名稱"
+    }
+  ],
+  "cgh0+/": [
+    {
+      "type": 0,
+      "value": "The executable command to start the MCP server. Must be in your system PATH or an absolute path."
     }
   ],
   "ciB+oy": [
@@ -11409,12 +11915,6 @@
       "value": "代理程式品質尚未評分。執行檢查以顯示機會。"
     }
   ],
-  "dI9gP+": [
-    {
-      "type": 0,
-      "value": "代理程式指示"
-    }
-  ],
   "dJqE3e": [
     {
       "type": 0,
@@ -11424,7 +11924,7 @@
   "dLWrbO": [
     {
       "type": 0,
-      "value": "Only teams with an on-call rotation"
+      "value": "僅限具有待命輪替的團隊"
     }
   ],
   "dO3eHj": [
@@ -11442,13 +11942,7 @@
   "dQJz2m": [
     {
       "type": 0,
-      "value": "This feature isn't available in this portal yet."
-    }
-  ],
-  "dQKATf": [
-    {
-      "type": 0,
-      "value": "輸入名稱 (至少 3 個字元)。"
+      "value": "此功能尚未在此入口網站提供。"
     }
   ],
   "dQtJBl": [
@@ -11481,22 +11975,16 @@
       "value": "GitHub 的存放庫 URL 必須符合以下格式: https://github.com/owner/repo-name，對於 Azure DevOps，則應為: https://dev.azure.com/organization/project/_git/repository-name 或 https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
-  "daUwAL": [
+  "dbXXhB": [
     {
       "type": 0,
-      "value": "正在建立已排程工作"
+      "value": "正在執行排程的工作。"
     }
   ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "排程預覽"
-    }
-  ],
-  "dhmpfi": [
-    {
-      "type": 0,
-      "value": "刪除已排程工作"
     }
   ],
   "dhqlRa": [
@@ -11577,12 +12065,6 @@
     {
       "type": 0,
       "value": "永不"
-    }
-  ],
-  "dw6Z3b": [
-    {
-      "type": 0,
-      "value": "這表示什麼"
     }
   ],
   "dwkMC2": [
@@ -11699,10 +12181,10 @@
       "value": "管理 Azure 搜尋服務服務。"
     }
   ],
-  "ee4AUg": [
+  "efl/SK": [
     {
       "type": 0,
-      "value": "已成功開啟已排程工作"
+      "value": "Run Test (Cmd+Enter)"
     }
   ],
   "egubDj": [
@@ -11763,12 +12245,6 @@
       "value": "自訂回應指導"
     }
   ],
-  "euBSDU": [
-    {
-      "type": 0,
-      "value": "代理程式指示為必要項。"
-    }
-  ],
   "euKVCa": [
     {
       "type": 0,
@@ -11789,12 +12265,6 @@
     {
       "type": 0,
       "value": "正在連線到 PagerDuty ..."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "輸入連接字串或端點"
     }
   ],
   "f04POI": [
@@ -11833,18 +12303,6 @@
       "value": "嚴重性 1"
     }
   ],
-  "f6xT1Y": [
-    {
-      "type": 0,
-      "value": "已成功開啟已排程工作"
-    }
-  ],
-  "f7Zx3L": [
-    {
-      "type": 0,
-      "value": "提示秘訣"
-    }
-  ],
   "f9xN/g": [
     {
       "type": 0,
@@ -11854,7 +12312,7 @@
   "fBeNkx": [
     {
       "type": 0,
-      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
+      "value": "新的轉接子代理程式會以自主模式啟動。您可以稍後再連線工具和其他詳細資料。"
     }
   ],
   "fCiXKq": [
@@ -11903,12 +12361,6 @@
       "value": "status"
     }
   ],
-  "fIQSsD": [
-    {
-      "type": 0,
-      "value": "尚無法草擬 Cron。請精簡描述後再試一次。"
-    }
-  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -11921,10 +12373,22 @@
       "value": "新工具"
     }
   ],
+  "fU7I5j": [
+    {
+      "type": 0,
+      "value": "Run Test"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
       "value": "前往存取控制"
+    }
+  ],
+  "fZP/Ln": [
+    {
+      "type": 0,
+      "value": "This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version."
     }
   ],
   "fblXmJ": [
@@ -11985,6 +12449,22 @@
       "value": "相互關聯範圍從 -1 (反向) 到 1 (正向)"
     }
   ],
+  "fmrYkd": [
+    {
+      "type": 0,
+      "value": "Parse JSON and extract error messages"
+    }
+  ],
+  "fn9+0+": [
+    {
+      "type": 0,
+      "value": "Function test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fr6Gnj": [
     {
       "type": 0,
@@ -11995,12 +12475,6 @@
     {
       "type": 0,
       "value": "連線 MCP 伺服器"
-    }
-  ],
-  "ftDEuE": [
-    {
-      "type": 0,
-      "value": "選取連接器類型"
     }
   ],
   "ftfFhS": [
@@ -12069,6 +12543,12 @@
       "value": "例如: 0 0 * * *"
     }
   ],
+  "g6WtKF": [
+    {
+      "type": 0,
+      "value": "Timeout (seconds)"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -12099,6 +12579,12 @@
       "value": "將檔案拖曳到此處，或"
     }
   ],
+  "gFrqQf": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes. Are you sure you want to close?"
+    }
+  ],
   "gGfQUL": [
     {
       "type": 0,
@@ -12115,6 +12601,12 @@
     {
       "type": 0,
       "value": "選擇如何設定此事件回應計劃"
+    }
+  ],
+  "gLbYRM": [
+    {
+      "type": 0,
+      "value": "Calculate percentage from two numbers"
     }
   ],
   "gNhYpU": [
@@ -12159,10 +12651,10 @@
       "value": "事件回應計劃:"
     }
   ],
-  "gdUWAX": [
+  "gd7vV5": [
     {
       "type": 0,
-      "value": "描述應等於或少於 140 個字元。"
+      "value": "Creating your function…"
     }
   ],
   "ggVnjB": [
@@ -12189,6 +12681,12 @@
       "value": "正在載入..."
     }
   ],
+  "gmo2Su": [
+    {
+      "type": 0,
+      "value": "Skill Content (SKILL.md)"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -12205,16 +12703,6 @@
     {
       "type": 0,
       "value": "輸入資料庫名稱"
-    }
-  ],
-  "grgDhd": [
-    {
-      "type": 0,
-      "value": "無法載入已排程工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "gvlNuI": [
@@ -12327,6 +12815,12 @@
     {
       "type": 0,
       "value": "工具"
+    }
+  ],
+  "hCNgyf": [
+    {
+      "type": 0,
+      "value": "Saving tool…"
     }
   ],
   "hEXUFk": [
@@ -12484,7 +12978,7 @@
   "hjtyTg": [
     {
       "type": 0,
-      "value": "End date must be after start date."
+      "value": "結束日期必須晚於開始日期。"
     }
   ],
   "hkgUC5": [
@@ -12520,7 +13014,7 @@
   "hqoTIz": [
     {
       "type": 0,
-      "value": "Search for a subagent by name"
+      "value": "依名稱搜尋子代理程式"
     }
   ],
   "hrdmcd": [
@@ -12547,10 +13041,16 @@
       "value": "儀表板"
     }
   ],
+  "i/pRlX": [
+    {
+      "type": 0,
+      "value": "Click to edit code"
+    }
+  ],
   "i3P6ZD": [
     {
       "type": 0,
-      "value": "Created at:"
+      "value": "建立時間:"
     }
   ],
   "i5OUQE": [
@@ -12574,13 +13074,7 @@
   "i6x7bU": [
     {
       "type": 0,
-      "value": "The agent is stopped"
-    }
-  ],
-  "iDPKM0": [
-    {
-      "type": 0,
-      "value": "篩選工作"
+      "value": "代理程式已停止"
     }
   ],
   "iDSWYk": [
@@ -12607,6 +13101,12 @@
       "value": "尚未發佈"
     }
   ],
+  "iJcrHj": [
+    {
+      "type": 0,
+      "value": "No parameters required"
+    }
+  ],
   "iMaY2Q": [
     {
       "type": 0,
@@ -12630,13 +13130,45 @@
   "iPhHGC": [
     {
       "type": 0,
-      "value": "Learn more about scheduled tasks"
+      "value": "深入了解排程工作"
     }
   ],
   "iV7LUx": [
     {
       "type": 0,
       "value": "使用自訂設定建立觸發程序"
+    }
+  ],
+  "iWNutw": [
+    {
+      "type": 0,
+      "value": "正在刪除排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "iXNbPf": [
@@ -12737,6 +13269,12 @@
       "value": "新增自訂回應計劃"
     }
   ],
+  "iqsZgT": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -12777,6 +13315,12 @@
     {
       "type": 0,
       "value": "SRE 代理程式空間"
+    }
+  ],
+  "ix9hVm": [
+    {
+      "type": 0,
+      "value": "Expand to show more"
     }
   ],
   "ixb1SP": [
@@ -12826,7 +13370,7 @@
   "j0bMX6": [
     {
       "type": 0,
-      "value": "No incident metrics to report"
+      "value": "沒有要報告的事件計量"
     }
   ],
   "j1FyDL": [
@@ -12891,7 +13435,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting SRE Agents"
+              "value": "正在刪除 SRE Agent"
             }
           ]
         }
@@ -12904,7 +13448,7 @@
   "jJ7kNS": [
     {
       "type": 0,
-      "value": "Try selecting a different date range."
+      "value": "嘗試選取不同的日期範圍。"
     }
   ],
   "jJE3xY": [
@@ -12985,16 +13529,6 @@
       "value": "資源群組中的 Grafana 資源不得重複。"
     }
   ],
-  "jX6uvW": [
-    {
-      "type": 0,
-      "value": "無法執行工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -13035,10 +13569,10 @@
       "value": "資料庫"
     }
   ],
-  "jlOO/9": [
+  "jqM7Pr": [
     {
       "type": 0,
-      "value": "下一次執行"
+      "value": "Test restarted with your latest agent changes. Send a message to continue testing."
     }
   ],
   "jqpolM": [
@@ -13057,6 +13591,12 @@
     {
       "type": 0,
       "value": "開始時間 (選用)"
+    }
+  ],
+  "jvB4W9": [
+    {
+      "type": 0,
+      "value": "Environment variables"
     }
   ],
   "jvo0vs": [
@@ -13085,6 +13625,12 @@
     {
       "type": 0,
       "value": "橫條圖"
+    }
+  ],
+  "k+phZu": [
+    {
+      "type": 0,
+      "value": "Delete skill"
     }
   ],
   "k0VNHX": [
@@ -13129,10 +13675,10 @@
       "value": "數字"
     }
   ],
-  "kG0ZtT": [
+  "kGmr6n": [
     {
       "type": 0,
-      "value": "其他 Cron 構想"
+      "value": "Want to improve it?"
     }
   ],
   "kHIJzq": [
@@ -13163,6 +13709,12 @@
     {
       "type": 0,
       "value": "您沒有權限重新命名此對話。"
+    }
+  ],
+  "kVOq9V": [
+    {
+      "type": 0,
+      "value": "Fill in parameters and click Run to test"
     }
   ],
   "kWBrry": [
@@ -13211,22 +13763,28 @@
       "value": "自訂排程"
     }
   ],
+  "kjUC48": [
+    {
+      "type": 0,
+      "value": "Function test succeeded."
+    }
+  ],
   "kn+J82": [
     {
       "type": 0,
       "value": "相互關聯分析"
     }
   ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "更新資料連接器設定。"
-    }
-  ],
   "koWZK8": [
     {
       "type": 0,
       "value": "新增自訂回應指導 (選用)"
+    }
+  ],
+  "kopJ66": [
+    {
+      "type": 0,
+      "value": "Keep Current Code"
     }
   ],
   "kq7D3O": [
@@ -13285,12 +13843,6 @@
       "value": "代理程式資料格"
     }
   ],
-  "l+e8nZ": [
-    {
-      "type": 0,
-      "value": "是否確定要刪除選取的已排程工作?此動作無法復原。"
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
@@ -13301,6 +13853,12 @@
     {
       "type": 0,
       "value": "建立工具"
+    }
+  ],
+  "l1+Ilp": [
+    {
+      "type": 0,
+      "value": "Generating code…"
     }
   ],
   "l2Ni9H": [
@@ -13321,16 +13879,16 @@
       "value": "AzureML 資料科學家"
     }
   ],
-  "l8IRTD": [
+  "lBZfVb": [
     {
       "type": 0,
-      "value": "排程的工作已成功執行"
+      "value": "Timeout in seconds (5-900)"
     }
   ],
   "lCe4Sh": [
     {
       "type": 0,
-      "value": "Search Icm team"
+      "value": "搜尋 ICM 團隊"
     }
   ],
   "lCsNuL": [
@@ -13361,10 +13919,14 @@
       "value": "預設"
     }
   ],
-  "lM2HXD": [
+  "lOaomi": [
     {
       "type": 0,
-      "value": "未提供提示。"
+      "value": "Generation failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "lP5P2a": [
@@ -13376,7 +13938,13 @@
   "lQmkhq": [
     {
       "type": 0,
-      "value": "Subagents"
+      "value": "子代理程式"
+    }
+  ],
+  "lR/7o8": [
+    {
+      "type": 0,
+      "value": "Folder name"
     }
   ],
   "lUAfdH": [
@@ -13394,7 +13962,7 @@
   "lbah5J": [
     {
       "type": 0,
-      "value": "List all agent-managed resources"
+      "value": "列出所有代理程式管理的資源"
     }
   ],
   "lcOT8X": [
@@ -13444,7 +14012,7 @@
   "lpYK4u": [
     {
       "type": 0,
-      "value": "Enter subagent name"
+      "value": "輸入子代理程式名稱"
     }
   ],
   "lqgE72": [
@@ -13474,13 +14042,19 @@
   "m/B8a5": [
     {
       "type": 0,
-      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "建立子代理程式以自動執行工作、查詢資料及回應事件。"
     }
   ],
   "m0kcbz": [
     {
       "type": 0,
       "value": "產生自訂回應計劃"
+    }
+  ],
+  "m2KQqp": [
+    {
+      "type": 0,
+      "value": "Execution Result"
     }
   ],
   "m3Npit": [
@@ -13533,10 +14107,10 @@
       "value": "編輯 QnA Maker 知識庫。"
     }
   ],
-  "mChei1": [
+  "mE7Cg1": [
     {
       "type": 0,
-      "value": "詳細的多行指示。請提供: 目標、內容/資源、限制、成功準則。"
+      "value": "Stdio"
     }
   ],
   "mGh+K0": [
@@ -13806,7 +14380,7 @@
   "n/WueE": [
     {
       "type": 0,
-      "value": "List all incidents"
+      "value": "列出所有事件"
     }
   ],
   "n0JssX": [
@@ -13901,10 +14475,10 @@
       "value": "主要資源類型"
     }
   ],
-  "nRkusX": [
+  "nR0FVC": [
     {
       "type": 0,
-      "value": "Cron 運算式為必要項"
+      "value": "Reusable knowledge and instructions that enhance agent capabilities."
     }
   ],
   "nUT0Lv": [
@@ -13923,24 +14497,16 @@
       "value": "name"
     }
   ],
+  "nc7Brw": [
+    {
+      "type": 0,
+      "value": "Arguments"
+    }
+  ],
   "ncB14A": [
     {
       "type": 0,
       "value": "已呼叫代理程式"
-    }
-  ],
-  "nkYx6+": [
-    {
-      "type": 0,
-      "value": "是否要中斷 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 個資料連接器的連線?"
     }
   ],
   "nmpevl": [
@@ -13991,6 +14557,12 @@
       "value": "重新執行深入解析"
     }
   ],
+  "nxBEvY": [
+    {
+      "type": 0,
+      "value": "Creating your Python function…"
+    }
+  ],
   "nxmZHP": [
     {
       "type": 0,
@@ -14021,22 +14593,10 @@
       "value": "尚未連結任何工具。新增工具，讓此代理程式可以採取動作。"
     }
   ],
-  "o3uElD": [
-    {
-      "type": 0,
-      "value": "新增資料連接器"
-    }
-  ],
   "o7TUwc": [
     {
       "type": 0,
       "value": "連線至 ICM，讓代理程式能自動接聽並回應您的事件。"
-    }
-  ],
-  "o9bCTX": [
-    {
-      "type": 0,
-      "value": "上次執行"
     }
   ],
   "oBv1Sy": [
@@ -14057,6 +14617,12 @@
     {
       "type": 0,
       "value": " 個資料連接器"
+    }
+  ],
+  "oDH12O": [
+    {
+      "type": 0,
+      "value": "Tool name"
     }
   ],
   "oDI/Rp": [
@@ -14163,12 +14729,6 @@
       "value": "寫入器/運算子"
     }
   ],
-  "oXd3cw": [
-    {
-      "type": 0,
-      "value": "最大執行次數"
-    }
-  ],
   "oY4j0R": [
     {
       "type": 0,
@@ -14249,6 +14809,18 @@
       "value": "高風險"
     }
   ],
+  "oyZN19": [
+    {
+      "type": 0,
+      "value": "Running..."
+    }
+  ],
+  "oyf+bG": [
+    {
+      "type": 0,
+      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
+    }
+  ],
   "p/QlSI": [
     {
       "type": 0,
@@ -14327,6 +14899,12 @@
     {
       "type": 0,
       "value": "P4"
+    }
+  ],
+  "pByJCZ": [
+    {
+      "type": 0,
+      "value": "排程的工作已執行。"
     }
   ],
   "pCPZnU": [
@@ -14416,7 +14994,13 @@
   "pU0SQw": [
     {
       "type": 0,
-      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+      "value": "啟用 Preview 通道以提前測試新功能，但這些功能可能較不穩定。"
+    }
+  ],
+  "pXPlXr": [
+    {
+      "type": 0,
+      "value": "*required"
     }
   ],
   "pbpjik": [
@@ -14463,6 +15047,20 @@
       "value": "佈建並連結 Grafana 儀表板後，資源可能需要一些時間才能完全填入儀表板。"
     }
   ],
+  "piGAtN": [
+    {
+      "type": 0,
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
   "pndXMi": [
     {
       "type": 0,
@@ -14499,6 +15097,12 @@
       "value": "正在更新升級頻道"
     }
   ],
+  "ppAn7O": [
+    {
+      "type": 0,
+      "value": "File name"
+    }
+  ],
   "ppzeDo": [
     {
       "type": 0,
@@ -14523,10 +15127,18 @@
       "value": "警示標題"
     }
   ],
-  "psUT6S": [
+  "psccqt": [
     {
       "type": 0,
-      "value": "此工作的最大的應執行次數"
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "ms"
+    },
+    {
+      "type": 0,
+      "value": "ms"
     }
   ],
   "puQ/kF": [
@@ -14593,16 +15205,22 @@
       "value": "未知的錯誤"
     }
   ],
+  "qQRG87": [
+    {
+      "type": 0,
+      "value": "Parameters auto-detected from code"
+    }
+  ],
   "qQh4Xu": [
     {
       "type": 0,
       "value": "代理程式會參考文件與檔案，以理解您的專案與流程。"
     }
   ],
-  "qavd9Y": [
+  "qTWwGw": [
     {
       "type": 0,
-      "value": "請告訴我們您的代理程式應該執行的頻率，我們會為您草擬 Cron 運算式。"
+      "value": "Parameters:"
     }
   ],
   "qdAlfY": [
@@ -14617,6 +15235,16 @@
       "value": "錯誤詳細資料"
     }
   ],
+  "qdxZys": [
+    {
+      "type": 0,
+      "value": "Last heartbeat: "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -14627,12 +15255,6 @@
     {
       "type": 0,
       "value": "具有此名稱的連接器已存在"
-    }
-  ],
-  "qh9t2U": [
-    {
-      "type": 0,
-      "value": "連線至代理程式"
     }
   ],
   "qhApmK": [
@@ -14727,6 +15349,12 @@
       "value": "已成功刪除自訂事件回應計劃"
     }
   ],
+  "qzMeS2": [
+    {
+      "type": 0,
+      "value": "Test Playground"
+    }
+  ],
   "r2ZGnB": [
     {
       "offset": 0,
@@ -14800,6 +15428,12 @@
       "value": "重新整理"
     }
   ],
+  "rFU0oo": [
+    {
+      "type": 0,
+      "value": "Python tool"
+    }
+  ],
   "rFlkvY": [
     {
       "type": 0,
@@ -14834,7 +15468,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Scheduled tasks deleted successfully"
+              "value": "已排程工作已成功刪除"
             }
           ]
         }
@@ -14879,7 +15513,7 @@
   "rPdyc5": [
     {
       "type": 0,
-      "value": "Current status: Stable - Receives updates once a month"
+      "value": "目前狀態: 穩定 - 每月接收一次更新"
     }
   ],
   "rQAyD6": [
@@ -14960,6 +15594,12 @@
     {
       "type": 0,
       "value": "關閉"
+    }
+  ],
+  "rc7ZT2": [
+    {
+      "type": 0,
+      "value": "Enter the skill markdown content..."
     }
   ],
   "rd6YZk": [
@@ -15108,20 +15748,6 @@
       "value": "深入了解知識資源"
     }
   ],
-  "s04Z5U": [
-    {
-      "type": 0,
-      "value": "這將從代理程式永久中斷 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 個資料連接器的連線。是否確定要中斷這些資料連接器的連線?"
-    }
-  ],
   "s2GWth": [
     {
       "type": 0,
@@ -15173,7 +15799,7 @@
   "sCRBH3": [
     {
       "type": 0,
-      "value": "Search by subagent"
+      "value": "依子代理程式搜尋"
     }
   ],
   "sH0O5v": [
@@ -15318,6 +15944,12 @@
       "value": "新增檔案"
     }
   ],
+  "sYCfrb": [
+    {
+      "type": 0,
+      "value": "Test agent"
+    }
+  ],
   "sZIoMy": [
     {
       "type": 0,
@@ -15350,16 +15982,16 @@
       "value": "系統工具 (選用)"
     }
   ],
-  "sf6hMj": [
-    {
-      "type": 0,
-      "value": "提醒"
-    }
-  ],
   "sjlioi": [
     {
       "type": 0,
       "value": "已呼叫子代理程式"
+    }
+  ],
+  "sjq9sr": [
+    {
+      "type": 0,
+      "value": "Validate email addresses"
     }
   ],
   "slxYbm": [
@@ -15520,12 +16152,6 @@
       "value": "無法剖析每日報表:"
     }
   ],
-  "tFFMkF": [
-    {
-      "type": 0,
-      "value": "暫停"
-    }
-  ],
   "tFoDh3": [
     {
       "type": 0,
@@ -15589,7 +16215,7 @@
   "tTjB+b": [
     {
       "type": 0,
-      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
+      "value": "這將會永久刪除代理程式及其所有聊天和動作執行緒。確定要刪除此代理程式?"
     }
   ],
   "tU3A8E": [
@@ -15610,12 +16236,6 @@
     {
       "type": 0,
       "value": "新增至我的最愛"
-    }
-  ],
-  "tZmd+w": [
-    {
-      "type": 0,
-      "value": "連線到資料來源"
     }
   ],
   "tb6uBb": [
@@ -15676,16 +16296,14 @@
       "value": "實驗您代理程式的設定並查看即時結果"
     }
   ],
-  "tkr5bn": [
+  "tpD3Ax": [
     {
       "type": 0,
-      "value": "關閉已排程工作"
-    }
-  ],
-  "trPabo": [
+      "value": "Tools: "
+    },
     {
-      "type": 0,
-      "value": "找不到已排程工作"
+      "type": 1,
+      "value": "count"
     }
   ],
   "trhBLG": [
@@ -15809,7 +16427,17 @@
   "uBPOyN": [
     {
       "type": 0,
-      "value": "Early access to features"
+      "value": "搶先使用各項功能"
+    }
+  ],
+  "uC4R7m": [
+    {
+      "type": 0,
+      "value": "Test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "uCkn4+": [
@@ -15818,16 +16446,34 @@
       "value": "所有優先順序"
     }
   ],
+  "uDXk7F": [
+    {
+      "type": 0,
+      "value": "Python Function Tester"
+    }
+  ],
   "uEYYty": [
     {
       "type": 0,
       "value": "新增事件回應計劃"
     }
   ],
+  "uFDB/3": [
+    {
+      "type": 0,
+      "value": "Function Code"
+    }
+  ],
   "uFaAgq": [
     {
       "type": 0,
       "value": "連線關聯性"
+    }
+  ],
+  "uGPikn": [
+    {
+      "type": 0,
+      "value": "Describe what the function should do"
     }
   ],
   "uI0Lmu": [
@@ -15839,13 +16485,13 @@
   "uIXQiw": [
     {
       "type": 0,
-      "value": "Establishing connection ..."
+      "value": "正在建立連線..."
     }
   ],
   "uKwm6S": [
     {
       "type": 0,
-      "value": "Canvas view"
+      "value": "畫布檢視"
     }
   ],
   "uLmZLS": [
@@ -15941,6 +16587,12 @@
       "value": "delta"
     }
   ],
+  "uQ/yKk": [
+    {
+      "type": 0,
+      "value": "Search by skill"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -15969,6 +16621,12 @@
       "value": "從預設中挑選"
     }
   ],
+  "uYv0At": [
+    {
+      "type": 0,
+      "value": "Extracting parameters"
+    }
+  ],
   "ubULuu": [
     {
       "type": 0,
@@ -15990,7 +16648,7 @@
   "ufzv1A": [
     {
       "type": 0,
-      "value": "Table view"
+      "value": "表格檢視"
     }
   ],
   "ug01Mk": [
@@ -16015,12 +16673,6 @@
     {
       "type": 0,
       "value": "縮小"
-    }
-  ],
-  "unj6JR": [
-    {
-      "type": 0,
-      "value": "從範本建立"
     }
   ],
   "unxs9C": [
@@ -16071,12 +16723,6 @@
       "value": "正在改善指示..."
     }
   ],
-  "v0CXYP": [
-    {
-      "type": 0,
-      "value": "輸入您的工作描述性名稱"
-    }
-  ],
   "v0fBOU": [
     {
       "type": 0,
@@ -16099,12 +16745,6 @@
     {
       "type": 0,
       "value": "Kusto 工具"
-    }
-  ],
-  "v8cTK0": [
-    {
-      "type": 0,
-      "value": "已成功更新已排程工作"
     }
   ],
   "v8lolG": [
@@ -16152,13 +16792,19 @@
   "vCyJXp": [
     {
       "type": 0,
-      "value": "No subagents configured"
+      "value": "未設定任何子代理程式"
     }
   ],
   "vDbj1h": [
     {
       "type": 0,
       "value": "授權者"
+    }
+  ],
+  "vEPakK": [
+    {
+      "type": 0,
+      "value": "Additional Files"
     }
   ],
   "vG08m6": [
@@ -16185,26 +16831,6 @@
       "value": "事件觸發程序"
     }
   ],
-  "vSW3OF": [
-    {
-      "type": 0,
-      "value": "無法更新工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "vV67Wm": [
-    {
-      "type": 0,
-      "value": "無法開啟工作: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "vVpzJQ": [
     {
       "type": 0,
@@ -16221,6 +16847,12 @@
     {
       "type": 0,
       "value": "存在警告動作"
+    }
+  ],
+  "vZRYf4": [
+    {
+      "type": 0,
+      "value": "取消選取所有工具"
     }
   ],
   "vZWQHk": [
@@ -16317,12 +16949,6 @@
       "value": "清除描述"
     }
   ],
-  "w4Nqlr": [
-    {
-      "type": 0,
-      "value": "執行排程的工作"
-    }
-  ],
   "w5FDGY": [
     {
       "type": 0,
@@ -16380,7 +17006,7 @@
   "wFcmSl": [
     {
       "type": 0,
-      "value": "Creating Subagent"
+      "value": "正在建立子代理程式"
     }
   ],
   "wGLrHW": [
@@ -16391,6 +17017,12 @@
     {
       "type": 1,
       "value": "time"
+    }
+  ],
+  "wGM2T+": [
+    {
+      "type": 0,
+      "value": "Please provide Python function code"
     }
   ],
   "wGcWbo": [
@@ -16409,16 +17041,6 @@
     {
       "type": 0,
       "value": "動作"
-    }
-  ],
-  "wNIiXX": [
-    {
-      "type": 0,
-      "value": "資料來源必須符合以下格式: "
-    },
-    {
-      "type": 1,
-      "value": "format"
     }
   ],
   "wO9wb5": [
@@ -16444,7 +17066,13 @@
   "wPF0jY": [
     {
       "type": 0,
-      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "使用子代理程式以自動執行工作、查詢資料及回應事件。"
+    }
+  ],
+  "wPfhmg": [
+    {
+      "type": 0,
+      "value": "Standard Error"
     }
   ],
   "wQdhYo": [
@@ -16456,19 +17084,25 @@
   "wRi+GV": [
     {
       "type": 0,
-      "value": "Create Subagent"
+      "value": "建立子代理程式"
     }
   ],
   "wSLRfB": [
     {
       "type": 0,
-      "value": "Unknown status"
+      "value": "未知的狀態"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "提交"
+    }
+  ],
+  "wTA9dx": [
+    {
+      "type": 0,
+      "value": "Test Your Function"
     }
   ],
   "wUnPMf": [
@@ -16525,12 +17159,6 @@
       "value": "新增自訂事件回應計劃"
     }
   ],
-  "wgyFIG": [
-    {
-      "type": 0,
-      "value": "潤飾中…"
-    }
-  ],
   "wjEBlr": [
     {
       "type": 1,
@@ -16567,6 +17195,12 @@
       "value": "資源總計"
     }
   ],
+  "wm4GRX": [
+    {
+      "type": 0,
+      "value": "Example: Parse JSON logs and extract error messages"
+    }
+  ],
   "wru3Di": [
     {
       "type": 0,
@@ -16589,12 +17223,6 @@
     {
       "type": 0,
       "value": "正在檢查觸發程序設定..."
-    }
-  ],
-  "x1YTqM": [
-    {
-      "type": 0,
-      "value": "請先描述節奏，我們才能提供協助。"
     }
   ],
   "x25AjF": [
@@ -16625,6 +17253,20 @@
     {
       "type": 0,
       "value": "按一下此處以深入了解"
+    }
+  ],
+  "xGK1X2": [
+    {
+      "type": 0,
+      "value": "取消選取 "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
+    },
+    {
+      "type": 0,
+      "value": " 中的所有工具"
     }
   ],
   "xGPsyJ": [
@@ -16666,13 +17308,19 @@
   "xP3hmB": [
     {
       "type": 0,
-      "value": "Start:"
+      "value": "開始:"
     }
   ],
   "xPuGYM": [
     {
       "type": 0,
       "value": "沒有符合您搜尋的連接器"
+    }
+  ],
+  "xRpMXP": [
+    {
+      "type": 0,
+      "value": "Try:"
     }
   ],
   "xSsto+": [
@@ -16771,6 +17419,22 @@
       "value": "是否準備好要測試您的代理程式?"
     }
   ],
+  "xgD8Kv": [
+    {
+      "type": 0,
+      "value": "Python Function Code"
+    }
+  ],
+  "xjZrbx": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -16781,6 +17445,12 @@
     {
       "type": 0,
       "value": "運作 API 管理服務。"
+    }
+  ],
+  "xpMDZO": [
+    {
+      "type": 0,
+      "value": "Test Passed"
     }
   ],
   "xqwf/7": [
@@ -16813,16 +17483,16 @@
       "value": "網站參與者"
     }
   ],
+  "xu6eM8": [
+    {
+      "type": 0,
+      "value": "Test"
+    }
+  ],
   "xvTDgy": [
     {
       "type": 0,
       "value": "搜尋工具…"
-    }
-  ],
-  "xxoHVE": [
-    {
-      "type": 0,
-      "value": "代理程式提示為必要項"
     }
   ],
   "xy47sz": [
@@ -16855,12 +17525,6 @@
     {
       "type": 1,
       "value": "delta"
-    }
-  ],
-  "y3Uu5i": [
-    {
-      "type": 0,
-      "value": "沒有資料連接器符合您的搜尋"
     }
   ],
   "y5oInX": [
@@ -16911,6 +17575,12 @@
       "value": "聊天輸入"
     }
   ],
+  "yGVEST": [
+    {
+      "type": 0,
+      "value": "確定要刪除這些排程的工作?此動作無法復原。"
+    }
+  ],
   "yJJ/jv": [
     {
       "type": 0,
@@ -16938,7 +17608,13 @@
   "yRTBrP": [
     {
       "type": 0,
-      "value": "Pick a subagent to assist you with tasks."
+      "value": "選擇子代理程式以協助您完成工作。"
+    }
+  ],
+  "ySdJIx": [
+    {
+      "type": 0,
+      "value": "Connection type"
     }
   ],
   "yVc78v": [
@@ -16995,12 +17671,6 @@
       "value": "在不影響實際執行的情況設計、測試及精簡代理程式。"
     }
   ],
-  "yf9+0C": [
-    {
-      "type": 0,
-      "value": "潤飾的版本"
-    }
-  ],
   "yh4G7g": [
     {
       "type": 0,
@@ -17037,10 +17707,16 @@
       "value": "受控資源群組"
     }
   ],
+  "yisTNp": [
+    {
+      "type": 0,
+      "value": "關閉排程的工作"
+    }
+  ],
   "ymiZvr": [
     {
       "type": 0,
-      "value": "Subagent Builder"
+      "value": "子代理程式建立器"
     }
   ],
   "ynVolH": [
@@ -17069,7 +17745,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete Kusto tools"
+              "value": "無法刪除 Kusto 工具"
             }
           ]
         }
@@ -17117,12 +17793,6 @@
       "value": "已儲存的事件管理設定"
     }
   ],
-  "yzfsFI": [
-    {
-      "type": 0,
-      "value": "簡短單行摘要 (<=140 個字元)"
-    }
-  ],
   "z0uI4M": [
     {
       "type": 0,
@@ -17135,16 +17805,10 @@
       "value": "檢視知識庫"
     }
   ],
-  "z5cF/O": [
+  "z4NnlT": [
     {
       "type": 0,
-      "value": "描述必須為單行摘要。"
-    }
-  ],
-  "z7SGAU": [
-    {
-      "type": 0,
-      "value": "已成功刪除已排程工作"
+      "value": "No skills found"
     }
   ],
   "z8ZYoc": [
@@ -17198,7 +17862,7 @@
   "zJFez9": [
     {
       "type": 0,
-      "value": "Go to Scheduled Tasks"
+      "value": "前往排程工作"
     }
   ],
   "zMX3td": [
@@ -17243,16 +17907,16 @@
       "value": "時間表"
     }
   ],
-  "zZsxcQ": [
-    {
-      "type": 0,
-      "value": "請說明對頻率敏感性的期望 (例如: 「僅摘要最近 15 分鐘的計量」)。"
-    }
-  ],
   "zaYxwd": [
     {
       "type": 0,
       "value": "事件"
+    }
+  ],
+  "zcksw4": [
+    {
+      "type": 0,
+      "value": "✓ Test passed"
     }
   ],
   "zcyAwy": [
@@ -17273,6 +17937,38 @@
     {
       "type": 0,
       "value": " 個事件"
+    }
+  ],
+  "zefL4U": [
+    {
+      "type": 0,
+      "value": "排程的工作"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 現在已開啟。"
     }
   ],
   "zfM/75": [
@@ -17302,13 +17998,13 @@
   "zl6fNb": [
     {
       "type": 0,
-      "value": "Thought process"
+      "value": "思考流程"
     }
   ],
   "znSLJS": [
     {
       "type": 0,
-      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
+      "value": "代理程式可能需要最多一小時才能反映這些變更，因為它需要時間來建置相應的知識。"
     }
   ],
   "zpENeF": [
@@ -17319,7 +18015,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete Kusto tools"
+              "value": "刪除 Kusto 工具"
             }
           ]
         }

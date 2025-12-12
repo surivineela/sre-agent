@@ -106,13 +106,7 @@
   "+OMfjA": [
     {
       "type": 0,
-      "value": "Give access to knowledge base"
-    }
-  ],
-  "+Pmftr": [
-    {
-      "type": 0,
-      "value": "重置草稿"
+      "value": "授予对知识库的访问权限"
     }
   ],
   "+S4WAz": [
@@ -183,12 +177,6 @@
       "value": " 的转接"
     }
   ],
-  "+ZdOJt": [
-    {
-      "type": 0,
-      "value": "正在关闭计划的任务"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -205,12 +193,6 @@
     {
       "type": 0,
       "value": "创建新的子智能体"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "编辑数据连接器"
     }
   ],
   "+hOwpi": [
@@ -335,7 +317,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting Kusto tools"
+              "value": "正在删除 Kusto 工具"
             }
           ]
         }
@@ -376,7 +358,7 @@
   "/HeRX5": [
     {
       "type": 0,
-      "value": "Failed to create subagent with error: "
+      "value": "未能创建子智能体，错误: "
     },
     {
       "type": 1,
@@ -477,10 +459,26 @@
       "value": "管理自定义视觉项目。"
     }
   ],
+  "/jp8iL": [
+    {
+      "type": 0,
+      "value": "Failed to save tool: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/mHau5": [
     {
       "type": 0,
       "value": "无法创建连接器"
+    }
+  ],
+  "/mPnOR": [
+    {
+      "type": 0,
+      "value": "Skills Enabled"
     }
   ],
   "/qCaiZ": [
@@ -559,12 +557,6 @@
       "value": "查看 AI 建议"
     }
   ],
-  "05Rzkx": [
-    {
-      "type": 0,
-      "value": "测试智能体"
-    }
-  ],
   "08bD52": [
     {
       "type": 0,
@@ -588,7 +580,7 @@
   "0BVwlv": [
     {
       "type": 0,
-      "value": "Owning team"
+      "value": "负责团队"
     }
   ],
   "0D+7fr": [
@@ -637,18 +629,10 @@
       "value": "快速修复"
     }
   ],
-  "0MhOuN": [
+  "0L2J5T": [
     {
       "type": 0,
-      "value": "是否确定要删除任务 "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "?此操作无法撤消。"
+      "value": "New file"
     }
   ],
   "0Qocmw": [
@@ -719,6 +703,12 @@
     {
       "type": 0,
       "value": "高级选项"
+    }
+  ],
+  "0eQHdW": [
+    {
+      "type": 0,
+      "value": "Create Python Tool"
     }
   ],
   "0eZALE": [
@@ -857,6 +847,40 @@
       "value": "要获得智能体在诊断、指标、知识等方面的最佳性能，请使用资源组，这些资源组包含以下一个或多个 Azure 计算服务: Azure Kubernetes 服务、Functions、容器应用或 Web 应用。"
     }
   ],
+  "1/3fw+": [
+    {
+      "type": 0,
+      "value": "未能更新计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "1/xsyG": [
+    {
+      "type": 0,
+      "value": "Create your agent first to enable testing."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
@@ -919,12 +943,6 @@
       "value": "添加响应计划，实现事件处理自动化"
     }
   ],
-  "1DDIYv": [
-    {
-      "type": 0,
-      "value": "确定要恢复此计划任务吗?"
-    }
-  ],
   "1EnaNQ": [
     {
       "type": 0,
@@ -954,7 +972,7 @@
   "1LBny5": [
     {
       "type": 0,
-      "value": "Stopped"
+      "value": "已停止"
     }
   ],
   "1OorZL": [
@@ -1110,16 +1128,38 @@
       "value": "响应计划"
     }
   ],
+  "1vVgdq": [
+    {
+      "type": 0,
+      "value": "未能运行计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "1xTayQ": [
     {
       "type": 0,
-      "value": "Enter endpoint"
-    }
-  ],
-  "1xZjpU": [
-    {
-      "type": 0,
-      "value": "确定要暂停此计划任务吗?"
+      "value": "输入终结点"
     }
   ],
   "2+TYMx": [
@@ -1158,6 +1198,12 @@
       "value": "PagerDuty 已连接。"
     }
   ],
+  "25DrlN": [
+    {
+      "type": 0,
+      "value": "What should this function do?"
+    }
+  ],
   "26Vq1R": [
     {
       "type": 0,
@@ -1188,12 +1234,6 @@
     {
       "type": 0,
       "value": "未能更新连接器"
-    }
-  ],
-  "2CSEeq": [
-    {
-      "type": 0,
-      "value": "描述节奏 - 获取 cron"
     }
   ],
   "2FLZrG": [
@@ -1258,12 +1298,6 @@
       "value": "事件摘要"
     }
   ],
-  "2YgmBr": [
-    {
-      "type": 0,
-      "value": "已成功关闭计划的任务"
-    }
-  ],
   "2a+ttj": [
     {
       "type": 0,
@@ -1324,6 +1358,12 @@
       "value": "连接器"
     }
   ],
+  "2myhph": [
+    {
+      "type": 0,
+      "value": "Test the function to continue."
+    }
+  ],
   "2os8R1": [
     {
       "type": 0,
@@ -1360,16 +1400,38 @@
       "value": "Grafana 仪表板"
     }
   ],
+  "3/OG7/": [
+    {
+      "type": 0,
+      "value": "正在更新计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    }
+  ],
   "3/wF0G": [
     {
       "type": 0,
       "value": "斜杠命令"
-    }
-  ],
-  "30Ap/Y": [
-    {
-      "type": 0,
-      "value": "Cron:"
     }
   ],
   "312q4w": [
@@ -1400,6 +1462,12 @@
     {
       "type": 0,
       "value": "这将从代理的受管理资源组中永久删除资源组。是否确定要删除资源?"
+    }
+  ],
+  "3DC7Da": [
+    {
+      "type": 0,
+      "value": "Enter argument"
     }
   ],
   "3DzXFS": [
@@ -1486,12 +1554,6 @@
       "value": "保存更改"
     }
   ],
-  "3Wq8aM": [
-    {
-      "type": 0,
-      "value": "Cron"
-    }
-  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -1518,7 +1580,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting incident triggers"
+              "value": "正在删除事件触发器"
             }
           ]
         }
@@ -1598,12 +1660,6 @@
       "value": "%"
     }
   ],
-  "3sjbqq": [
-    {
-      "type": 0,
-      "value": "正在创建计划任务..."
-    }
-  ],
   "3t/IhV": [
     {
       "type": 0,
@@ -1616,10 +1672,10 @@
       "value": "展开导航"
     }
   ],
-  "3y9DGg": [
+  "3xD7BQ": [
     {
       "type": 0,
-      "value": "继续"
+      "value": "Add additional files to include with this skill."
     }
   ],
   "3yurtF": [
@@ -1658,12 +1714,6 @@
       "value": "正在将 Grafana 仪表板链接到 SRE 代理"
     }
   ],
-  "40gxTJ": [
-    {
-      "type": 0,
-      "value": "智能体提示"
-    }
-  ],
   "41zpq3": [
     {
       "type": 0,
@@ -1691,7 +1741,7 @@
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "无"
     }
   ],
   "451B6Z": [
@@ -1716,12 +1766,6 @@
     {
       "type": 0,
       "value": "此智能体"
-    }
-  ],
-  "493R/T": [
-    {
-      "type": 0,
-      "value": "共享你的草稿说明，我们将为计划的智能体运行量身定制它们。"
     }
   ],
   "498yM3": [
@@ -1948,22 +1992,10 @@
       "value": "，我需要针对美国东部和西欧 AKS 群集中出现的间歇性延迟峰值进行诊断。"
     }
   ],
-  "53qjcm": [
-    {
-      "type": 0,
-      "value": "正在更新计划的任务"
-    }
-  ],
   "543Ygw": [
     {
       "type": 0,
       "value": "执行详细信息和请求"
-    }
-  ],
-  "54UIcW": [
-    {
-      "type": 0,
-      "value": "无法润色说明。请稍后重试。"
     }
   ],
   "59z+Aj": [
@@ -1979,7 +2011,7 @@
   "5AvgDc": [
     {
       "type": 0,
-      "value": "Creating subagent \""
+      "value": "正在创建子智能体 \""
     },
     {
       "type": 1,
@@ -2041,7 +2073,7 @@
   "5NZIbS": [
     {
       "type": 0,
-      "value": "Open in Azure Portal"
+      "value": "在 Azure 门户中打开"
     }
   ],
   "5POweM": [
@@ -2116,6 +2148,38 @@
       "value": "新建"
     }
   ],
+  "5WNvJO": [
+    {
+      "type": 0,
+      "value": "正在运行计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "5WWljt": [
     {
       "type": 0,
@@ -2136,6 +2200,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5X7NpJ": [
+    {
+      "type": 0,
+      "value": "Upload folder"
     }
   ],
   "5XRsWa": [
@@ -2176,7 +2246,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete incident triggers"
+              "value": "未能删除事件触发器"
             }
           ]
         }
@@ -2234,6 +2304,12 @@
     {
       "type": 0,
       "value": "未知"
+    }
+  ],
+  "5kCFXN": [
+    {
+      "type": 0,
+      "value": "Generate with AI instead"
     }
   ],
   "5kK+j9": [
@@ -2388,12 +2464,6 @@
       "value": "预览事件"
     }
   ],
-  "69sjgc": [
-    {
-      "type": 0,
-      "value": "输入密钥保管库 URI"
-    }
-  ],
   "6B0Aua": [
     {
       "type": 1,
@@ -2428,6 +2498,12 @@
       "value": "未能创建托管连接"
     }
   ],
+  "6GLyN3": [
+    {
+      "type": 0,
+      "value": "Generating test cases"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -2438,6 +2514,12 @@
     {
       "type": 0,
       "value": "已清除提示编辑区。键入新问题以开始新聊天。"
+    }
+  ],
+  "6LKCR/": [
+    {
+      "type": 0,
+      "value": "Analyzing intent"
     }
   ],
   "6LZ2qn": [
@@ -2510,12 +2592,6 @@
       "value": "自上次运行后无更改"
     }
   ],
-  "6YHhH+": [
-    {
-      "type": 0,
-      "value": "例如 */5 * * * *"
-    }
-  ],
   "6YXj/s": [
     {
       "type": 0,
@@ -2528,28 +2604,22 @@
       "value": "编辑计划任务"
     }
   ],
-  "6aH1+U": [
-    {
-      "type": 0,
-      "value": "创建计划的任务"
-    }
-  ],
   "6bkNTl": [
     {
       "type": 0,
       "value": "相关 ID:"
     }
   ],
-  "6dEJ43": [
-    {
-      "type": 0,
-      "value": "Cron 草稿"
-    }
-  ],
   "6dWeUs": [
     {
       "type": 0,
       "value": "选择订阅以管理所部署资源及成本。使用文件夹等资源组来组织和管理所有资源。"
+    }
+  ],
+  "6fPJcm": [
+    {
+      "type": 0,
+      "value": "Generate Code with AI"
     }
   ],
   "6feu1e": [
@@ -2562,6 +2632,12 @@
     {
       "type": 0,
       "value": "生成会话见解"
+    }
+  ],
+  "6lHI9u": [
+    {
+      "type": 0,
+      "value": "Send a message to start testing your agent."
     }
   ],
   "6m5Ba0": [
@@ -2658,12 +2734,6 @@
       "value": "正在生成见解..."
     }
   ],
-  "75lAeu": [
-    {
-      "type": 0,
-      "value": "选择计划任务的结束日期"
-    }
-  ],
   "77t9cY": [
     {
       "type": 0,
@@ -2674,12 +2744,6 @@
     {
       "type": 0,
       "value": "没有可用于转接的智能体"
-    }
-  ],
-  "7C0xai": [
-    {
-      "type": 0,
-      "value": "数据源"
     }
   ],
   "7Cy5xk": [
@@ -2694,6 +2758,12 @@
       "value": "审阅模式"
     }
   ],
+  "7JgdFw": [
+    {
+      "type": 0,
+      "value": "Comma-separated tool names, e.g., SearchKusto, GetLogs"
+    }
+  ],
   "7K6W8s": [
     {
       "offset": 0,
@@ -2702,7 +2772,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Kusto tools deleted successfully"
+              "value": "已成功删除 Kusto 工具"
             }
           ]
         }
@@ -2976,6 +3046,40 @@
       "value": "已成功添加自定义事件响应计划"
     }
   ],
+  "8H0PeE": [
+    {
+      "type": 0,
+      "value": "未能删除计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "8J3eYt": [
+    {
+      "type": 0,
+      "value": "Test live agent"
+    }
+  ],
   "8LMIGa": [
     {
       "type": 0,
@@ -2985,7 +3089,7 @@
   "8MoJEj": [
     {
       "type": 0,
-      "value": "Message grouping:"
+      "value": "消息分组:"
     }
   ],
   "8NHZQV": [
@@ -3143,22 +3247,28 @@
       "value": "请尝试其他搜索词，或者清除搜索以查看所有连接器。"
     }
   ],
+  "8jD/lL": [
+    {
+      "type": 0,
+      "value": "Create skill"
+    }
+  ],
   "8lCjAM": [
     {
       "type": 0,
       "value": "优先级"
     }
   ],
+  "8lQNdb": [
+    {
+      "type": 0,
+      "value": "计划任务已删除。"
+    }
+  ],
   "8nBFW4": [
     {
       "type": 0,
       "value": "Redis 缓存参与者"
-    }
-  ],
-  "8ojA9A": [
-    {
-      "type": 0,
-      "value": "让 AI 润色说明"
     }
   ],
   "8oyl6b": [
@@ -3215,7 +3325,7 @@
           "value": [
             {
               "type": 0,
-              "value": "SRE Agents deleted successfully"
+              "value": "已成功删除 SRE 智能体"
             }
           ]
         }
@@ -3302,7 +3412,7 @@
   "96TDsd": [
     {
       "type": 0,
-      "value": "Learn more about subagents"
+      "value": "详细了解子智能体"
     }
   ],
   "98A08r": [
@@ -3333,22 +3443,16 @@
       "value": "message"
     }
   ],
-  "9G+4ga": [
+  "9DqDnP": [
     {
       "type": 0,
-      "value": "请尝试其他搜索词，或者清除搜索以查看所有数据连接器。"
+      "value": "Generate Tool"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
       "value": "这会替代默认元智能体，以移除常规 Azure 知识并提供更具针对性体验。"
-    }
-  ],
-  "9MPGF8": [
-    {
-      "type": 0,
-      "value": "智能体指令"
     }
   ],
   "9MwJ6v": [
@@ -3379,6 +3483,12 @@
     {
       "type": 0,
       "value": "发送"
+    }
+  ],
+  "9WyylR": [
+    {
+      "type": 0,
+      "value": "Command"
     }
   ],
   "9X3VEw": [
@@ -3422,13 +3532,13 @@
   "9jqvi3": [
     {
       "type": 0,
-      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+      "value": "停止智能体后，它无法监视或交互，但仍会产生固定成本。"
     }
   ],
   "9jut5b": [
     {
       "type": 0,
-      "value": "Cron expression (UTC)"
+      "value": "Cron 表达式(UTC)"
     }
   ],
   "9q75fe": [
@@ -3474,19 +3584,13 @@
   "A+4geD": [
     {
       "type": 0,
-      "value": "Create GitHub issue with SRE agent team"
+      "value": "与 SRE 智能体团队一起创建 GitHub 议题"
     }
   ],
   "A/xTHO": [
     {
       "type": 0,
       "value": "角色分配"
-    }
-  ],
-  "A0mVzo": [
-    {
-      "type": 0,
-      "value": "请定义成功/失败信号及要求的输出格式(如有具体要求)。"
     }
   ],
   "A0rbH+": [
@@ -3499,12 +3603,6 @@
     {
       "type": 0,
       "value": "已成功更新注释"
-    }
-  ],
-  "A3ptul": [
-    {
-      "type": 0,
-      "value": "模板"
     }
   ],
   "A4ZrJb": [
@@ -3561,7 +3659,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Incident triggers deleted successfully"
+              "value": "已成功删除事件触发器"
             }
           ]
         }
@@ -3574,7 +3672,7 @@
   "AHQWDT": [
     {
       "type": 0,
-      "value": "Thinking"
+      "value": "思考"
     }
   ],
   "AHQdRU": [
@@ -3583,22 +3681,10 @@
       "value": "每月 AAU 限制:"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "未配置任何数据连接器"
-    }
-  ],
   "ASLbZd": [
     {
       "type": 0,
       "value": "导出分析"
-    }
-  ],
-  "ATXGa+": [
-    {
-      "type": 0,
-      "value": "智能体名称"
     }
   ],
   "ATYp8z": [
@@ -3613,44 +3699,16 @@
       "value": "无待应用的配置更改"
     }
   ],
-  "AaJ/LU": [
-    {
-      "type": 0,
-      "value": "润色说明"
-    }
-  ],
-  "AbXVP4": [
-    {
-      "type": 0,
-      "value": "创建时间"
-    }
-  ],
   "Abi/u/": [
     {
       "type": 0,
       "value": "展开面板"
     }
   ],
-  "AbleKr": [
-    {
-      "type": 0,
-      "value": "数据连接器"
-    }
-  ],
   "AbpmRv": [
     {
       "type": 0,
       "value": "输入指令"
-    }
-  ],
-  "Ad7J7h": [
-    {
-      "type": 0,
-      "value": "未能删除任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -3711,6 +3769,38 @@
       "value": "REST API 访问密钥"
     }
   ],
+  "AuUgE1": [
+    {
+      "type": 0,
+      "value": "已运行计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "AvHD3R": [
     {
       "type": 0,
@@ -3720,7 +3810,7 @@
   "Aw3qRf": [
     {
       "type": 0,
-      "value": "Reasoning"
+      "value": "推理"
     }
   ],
   "AxMhQr": [
@@ -3746,7 +3836,7 @@
   "B/qM5p": [
     {
       "type": 0,
-      "value": "Enter Teams channel link"
+      "value": "输入 Teams 频道链接"
     }
   ],
   "B3Q5mz": [
@@ -3797,12 +3887,6 @@
       "value": "Azure SAP 解决方案中心读者"
     }
   ],
-  "BLU3k6": [
-    {
-      "type": 0,
-      "value": "编辑计划的任务"
-    }
-  ],
   "BNH9Uy": [
     {
       "type": 0,
@@ -3821,6 +3905,12 @@
     {
       "type": 0,
       "value": "工具功能的类型"
+    }
+  ],
+  "BP5nk0": [
+    {
+      "type": 0,
+      "value": "Standard Output"
     }
   ],
   "BSQQkf": [
@@ -3925,20 +4015,6 @@
       "value": "用于验证的数据类型和要求"
     }
   ],
-  "BmEERa": [
-    {
-      "type": 0,
-      "value": "正在删除 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 个数据连接器..."
-    }
-  ],
   "Bn/txo": [
     {
       "type": 0,
@@ -3961,12 +4037,6 @@
     {
       "type": 0,
       "value": "折叠面板"
-    }
-  ],
-  "BynA9c": [
-    {
-      "type": 0,
-      "value": "可选调整"
     }
   ],
   "C2iTEH": [
@@ -4226,7 +4296,7 @@
   "D9WytX": [
     {
       "type": 0,
-      "value": "Search for an incident by name"
+      "value": "按名称搜索事件"
     }
   ],
   "DD2Wjk": [
@@ -4335,6 +4405,12 @@
       "value": "输出类型"
     }
   ],
+  "DS/6lY": [
+    {
+      "type": 0,
+      "value": "Collapse to show less"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
@@ -4388,7 +4464,7 @@
   "DcEKTG": [
     {
       "type": 0,
-      "value": "Failed to run test"
+      "value": "未能运行测试"
     }
   ],
   "DeP+ZM": [
@@ -4463,6 +4539,12 @@
       "value": "无法删除逻辑应用"
     }
   ],
+  "DtmRJJ": [
+    {
+      "type": 0,
+      "value": "SSE"
+    }
+  ],
   "DuejfP": [
     {
       "type": 0,
@@ -4514,13 +4596,19 @@
   "E7aYCD": [
     {
       "type": 0,
-      "value": "Search for a resource by name"
+      "value": "按名称搜索资源"
     }
   ],
   "E9CWuE": [
     {
       "type": 0,
       "value": "示例: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
+  "EAGAAs": [
+    {
+      "type": 0,
+      "value": "Test your Python function before saving"
     }
   ],
   "EAO/K+": [
@@ -4573,6 +4661,12 @@
       "value": "是否可以分析过去 24 小时内我的资源的可用性?"
     }
   ],
+  "EJSVsO": [
+    {
+      "type": 0,
+      "value": "Skills"
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -4582,7 +4676,7 @@
   "EN0CPQ": [
     {
       "type": 0,
-      "value": "Subagent builder"
+      "value": "子智能体生成器"
     }
   ],
   "EN5iMk": [
@@ -4603,6 +4697,12 @@
       "value": "包含质量评估的完整工作流"
     }
   ],
+  "EPi9lK": [
+    {
+      "type": 0,
+      "value": "Previous test failed:"
+    }
+  ],
   "EQa6dK": [
     {
       "type": 0,
@@ -4615,6 +4715,12 @@
       "value": "输入筛选器名称"
     }
   ],
+  "ESqLtC": [
+    {
+      "type": 0,
+      "value": "Run local command or executable"
+    }
+  ],
   "ETRyBL": [
     {
       "type": 0,
@@ -4624,21 +4730,17 @@
   "EVA81S": [
     {
       "type": 0,
-      "value": "No "
+      "value": "未找到 "
     },
     {
       "type": 1,
       "value": "entity"
-    },
-    {
-      "type": 0,
-      "value": " found"
     }
   ],
   "EVXYDU": [
     {
       "type": 0,
-      "value": "Learn more about creating subagents."
+      "value": "详细了解如何创建子智能体。"
     }
   ],
   "EWrExf": [
@@ -4721,6 +4823,12 @@
     {
       "type": 0,
       "value": "已解析跟踪数据，但出现警告。"
+    }
+  ],
+  "Eo9M+K": [
+    {
+      "type": 0,
+      "value": "Select a file to edit"
     }
   ],
   "Ep74wA": [
@@ -4847,6 +4955,12 @@
       "value": "已成功添加受管理资源组"
     }
   ],
+  "FGN2ax": [
+    {
+      "type": 0,
+      "value": "Tool saved successfully!"
+    }
+  ],
   "FGP0Kd": [
     {
       "type": 0,
@@ -4871,12 +4985,6 @@
       "value": "输入 PAT 或 API 密钥"
     }
   ],
-  "FNQNS1": [
-    {
-      "type": 0,
-      "value": "太平洋时间工作日上午 9 点"
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
@@ -4887,22 +4995,6 @@
     {
       "type": 0,
       "value": "未指定源智能体"
-    }
-  ],
-  "FSYccN": [
-    {
-      "type": 0,
-      "value": "此任务应何时运行?"
-    }
-  ],
-  "FSZ5F/": [
-    {
-      "type": 0,
-      "value": "正在删除计划的任务 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "FTWkpv": [
@@ -4939,12 +5031,6 @@
       "value": "已断开连接"
     }
   ],
-  "FZwBv0": [
-    {
-      "type": 0,
-      "value": "执行详细信息"
-    }
-  ],
   "FeBVnC": [
     {
       "type": 0,
@@ -4955,6 +5041,12 @@
     {
       "type": 0,
       "value": "探测多步骤诊断，查看智能体是否能有效协调工具。"
+    }
+  ],
+  "FiXNt1": [
+    {
+      "type": 0,
+      "value": "default"
     }
   ],
   "FitglU": [
@@ -4995,6 +5087,12 @@
     {
       "type": 0,
       "value": "已为此智能体启用知识库。将自动包含 SearchMemory 工具和知识库提示。"
+    }
+  ],
+  "FuPxOh": [
+    {
+      "type": 0,
+      "value": "Save & Use Tool"
     }
   ],
   "Fv1ZSz": [
@@ -5053,7 +5151,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete scheduled tasks"
+              "value": "未能删除计划任务"
             }
           ]
         }
@@ -5209,6 +5307,18 @@
       "value": "返回到命令"
     }
   ],
+  "GDCPLv": [
+    {
+      "type": 0,
+      "value": "Connect via URL endpoint"
+    }
+  ],
+  "GFhSwY": [
+    {
+      "type": 0,
+      "value": "Skill"
+    }
+  ],
   "GGr/yS": [
     {
       "type": 0,
@@ -5331,12 +5441,6 @@
       "value": "值"
     }
   ],
-  "Gvxoji": [
-    {
-      "type": 0,
-      "value": "名称是必需的"
-    }
-  ],
   "GzKpRn": [
     {
       "type": 0,
@@ -5393,16 +5497,16 @@
       "value": "未检测到代码优化建议。"
     }
   ],
+  "HHP8Nh": [
+    {
+      "type": 0,
+      "value": "Code generated successfully!"
+    }
+  ],
   "HJ7ZeR": [
     {
       "type": 0,
       "value": "问题说明"
-    }
-  ],
-  "HKlw1J": [
-    {
-      "type": 0,
-      "value": "这将永久断开此数据连接器与智能体的连接。是否确定要断开此数据连接器?"
     }
   ],
   "HMZIeG": [
@@ -5421,12 +5525,6 @@
     {
       "type": 0,
       "value": "构建智能体生态系统"
-    }
-  ],
-  "HOJNsf": [
-    {
-      "type": 0,
-      "value": "选择任务应停止运行的时间"
     }
   ],
   "HQ4NJ3": [
@@ -5477,6 +5575,12 @@
       "value": "挂起的审批"
     }
   ],
+  "HeFlq1": [
+    {
+      "type": 0,
+      "value": "Skill name is required"
+    }
+  ],
   "Hgs+WM": [
     {
       "type": 0,
@@ -5496,7 +5600,7 @@
   "Hh4t4o": [
     {
       "type": 0,
-      "value": "Subagent \""
+      "value": "已成功创建子智能体 \""
     },
     {
       "type": 1,
@@ -5504,7 +5608,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\""
     }
   ],
   "Hh8It5": [
@@ -5529,6 +5633,12 @@
     {
       "type": 0,
       "value": "时间范围"
+    }
+  ],
+  "Hnv6Ej": [
+    {
+      "type": 0,
+      "value": "Python Function"
     }
   ],
   "Hs02Tq": [
@@ -5623,6 +5733,16 @@
       "value": "字符串"
     }
   ],
+  "I3ymC9": [
+    {
+      "type": 0,
+      "value": "Exit code: "
+    },
+    {
+      "type": 1,
+      "value": "code"
+    }
+  ],
   "I4PbZq": [
     {
       "type": 0,
@@ -5707,7 +5827,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Every hour"
+              "value": "每小时"
             }
           ]
         },
@@ -5715,14 +5835,14 @@
           "value": [
             {
               "type": 0,
-              "value": "Every "
+              "value": "每 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours"
+              "value": " 小时"
             }
           ]
         }
@@ -5790,10 +5910,22 @@
       "value": "新会话"
     }
   ],
+  "ITzzTV": [
+    {
+      "type": 0,
+      "value": "Test failed"
+    }
+  ],
   "IYLPrk": [
     {
       "type": 0,
       "value": "删除计划任务"
+    }
+  ],
+  "IZFEUg": [
+    {
+      "type": 0,
+      "value": "Ready"
     }
   ],
   "IZYDgM": [
@@ -5806,12 +5938,6 @@
     {
       "type": 0,
       "value": "你没有添加或编辑批注的权限。"
-    }
-  ],
-  "IbMKy+": [
-    {
-      "type": 0,
-      "value": "使用此版本"
     }
   ],
   "IcB2fr": [
@@ -5829,7 +5955,7 @@
   "Icfr5t": [
     {
       "type": 0,
-      "value": "Search by incident trigger"
+      "value": "按事件触发器搜索"
     }
   ],
   "IiNwpr": [
@@ -5845,7 +5971,7 @@
   "Ij0ity": [
     {
       "type": 0,
-      "value": "Search by tool"
+      "value": "按工具搜索"
     }
   ],
   "InWqys": [
@@ -5866,10 +5992,22 @@
       "value": "智能体使用预定义的查询处理结构化日志、遥测和时序数据。"
     }
   ],
+  "IoxJ74": [
+    {
+      "type": 0,
+      "value": "Writing function code"
+    }
+  ],
   "Ip7Gd3": [
     {
       "type": 0,
       "value": "自动应用"
+    }
+  ],
+  "IpS9Tn": [
+    {
+      "type": 0,
+      "value": "打开计划任务"
     }
   ],
   "IrCHQG": [
@@ -5940,6 +6078,12 @@
       "value": "未能验证 ServiceNow 设置。请重试。"
     }
   ],
+  "J3nUiY": [
+    {
+      "type": 0,
+      "value": "计划任务现已关闭。"
+    }
+  ],
   "J6XCfl": [
     {
       "type": 0,
@@ -5960,16 +6104,10 @@
       "value": "连接现有项"
     }
   ],
-  "J8u7Xg": [
-    {
-      "type": 0,
-      "value": "上次修改时间"
-    }
-  ],
   "J8uEym": [
     {
       "type": 0,
-      "value": "Search by scheduled task"
+      "value": "按计划任务搜索"
     }
   ],
   "JA/VO+": [
@@ -6020,6 +6158,12 @@
       "value": "使用事件响应计划，智能体可选择管理常见类型的事件所需的工具。自定义响应计划通过为智能体提供你给出的特定指令来代替此功能。"
     }
   ],
+  "JSVEZ3": [
+    {
+      "type": 0,
+      "value": "正在删除计划任务。"
+    }
+  ],
   "JSW9Xw": [
     {
       "type": 0,
@@ -6030,6 +6174,16 @@
     {
       "type": 0,
       "value": "提示:"
+    }
+  ],
+  "JTS+Zf": [
+    {
+      "type": 0,
+      "value": "Failed to delete skill "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -6124,6 +6278,12 @@
     {
       "type": 0,
       "value": "托管标识(自动选择智能体空间托管标识作为智能体空间并找到兼容的连接器)"
+    }
+  ],
+  "Jdy/E7": [
+    {
+      "type": 0,
+      "value": "Testing function…"
     }
   ],
   "JezZlU": [
@@ -6242,12 +6402,6 @@
       "value": "查看触发器"
     }
   ],
-  "JzOvG/": [
-    {
-      "type": 0,
-      "value": "我们的假设"
-    }
-  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -6264,12 +6418,6 @@
     {
       "type": 0,
       "value": "显示"
-    }
-  ],
-  "K7tsik": [
-    {
-      "type": 0,
-      "value": "计划任务已成功运行"
     }
   ],
   "K9q4Xw": [
@@ -6344,12 +6492,6 @@
       "value": "新建智能体"
     }
   ],
-  "KS5JHs": [
-    {
-      "type": 0,
-      "value": "执行计数"
-    }
-  ],
   "KXyWfi": [
     {
       "type": 0,
@@ -6386,7 +6528,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete SRE Agents"
+              "value": "删除 SRE 智能体"
             }
           ]
         }
@@ -6402,16 +6544,44 @@
       "value": "是/否"
     }
   ],
-  "KiANnA": [
+  "KiXNvz": [
     {
       "type": 0,
-      "value": "启用计划的任务"
+      "value": "Run"
     }
   ],
   "Kkc3/u": [
     {
       "type": 0,
       "value": "编辑事件响应计划"
+    }
+  ],
+  "KlWAix": [
+    {
+      "type": 0,
+      "value": "未能打开计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "Km+WSh": [
@@ -6494,6 +6664,12 @@
       "value": "已放弃 AI 建议"
     }
   ],
+  "L/BdWN": [
+    {
+      "type": 0,
+      "value": "Generate with AI ✨"
+    }
+  ],
   "L/ct40": [
     {
       "type": 0,
@@ -6530,12 +6706,6 @@
       "value": "最近的活动"
     }
   ],
-  "LFn7Ak": [
-    {
-      "type": 0,
-      "value": "已成功创建计划任务"
-    }
-  ],
   "LGZkPZ": [
     {
       "type": 0,
@@ -6562,12 +6732,6 @@
     {
       "type": 0,
       "value": "查看资源组"
-    }
-  ],
-  "LPz7Qc": [
-    {
-      "type": 0,
-      "value": "工具类型"
     }
   ],
   "LQ2AtR": [
@@ -6648,6 +6812,12 @@
       "value": "正在创建 Kusto 工具"
     }
   ],
+  "LbYKes": [
+    {
+      "type": 0,
+      "value": "Failed to save skill"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -6658,6 +6828,12 @@
     {
       "type": 0,
       "value": "自定义标头"
+    }
+  ],
+  "LjwVHP": [
+    {
+      "type": 0,
+      "value": "计划任务现已打开。"
     }
   ],
   "LkUvu/": [
@@ -6678,10 +6854,26 @@
       "value": "自定义响应计划名称"
     }
   ],
+  "Lq6q6U": [
+    {
+      "type": 0,
+      "value": "Failed to generate code: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "LsGLc0": [
     {
       "type": 0,
       "value": "直接参数"
+    }
+  ],
+  "LstsP/": [
+    {
+      "type": 0,
+      "value": "MCP Tool"
     }
   ],
   "LuHM0/": [
@@ -6726,7 +6918,7 @@
   "LxHm7z": [
     {
       "type": 0,
-      "value": "An AI subagent with instructions and tools"
+      "value": "包含指令和工具的 AI 子智能体"
     }
   ],
   "LyHqqV": [
@@ -6741,6 +6933,12 @@
       "value": "编辑自定义响应计划"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "删除计划任务"
+    }
+  ],
   "M+QCSD": [
     {
       "type": 0,
@@ -6751,22 +6949,10 @@
       "value": "name"
     }
   ],
-  "M/3/kG": [
-    {
-      "type": 0,
-      "value": "最大执行次数必须为正数。"
-    }
-  ],
   "M/zZVx": [
     {
       "type": 0,
       "value": "添加筛选器"
-    }
-  ],
-  "M0ay1D": [
-    {
-      "type": 0,
-      "value": "正在运行计划任务"
     }
   ],
   "M3159R": [
@@ -6802,7 +6988,7 @@
   "MCLPMF": [
     {
       "type": 0,
-      "value": "Scale your agent’s capabilities with subagents"
+      "value": "通过子智能体扩展智能体的功能"
     }
   ],
   "MGZggN": [
@@ -6813,7 +6999,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete SRE Agents"
+              "value": "未能删除 SRE 智能体"
             }
           ]
         }
@@ -6903,24 +7089,6 @@
       "value": "是，使用自定义元智能体替代"
     }
   ],
-  "MPzBut": [
-    {
-      "type": 0,
-      "value": "执行历史记录"
-    }
-  ],
-  "MQNtQ+": [
-    {
-      "type": 0,
-      "value": "数据连接器"
-    }
-  ],
-  "MSWnaq": [
-    {
-      "type": 0,
-      "value": "创建新的计划任务，使用 Cron 表达式定期监视或执行操作。"
-    }
-  ],
   "MUVpbF": [
     {
       "type": 0,
@@ -6999,12 +7167,6 @@
       "value": "error"
     }
   ],
-  "Mx6yYf": [
-    {
-      "type": 0,
-      "value": "已成功关闭计划的任务"
-    }
-  ],
   "MxYLKu": [
     {
       "type": 0,
@@ -7069,13 +7231,31 @@
       "value": "确认"
     }
   ],
-  "N7cqYp": [
+  "N75VIa": [
     {
       "type": 0,
-      "value": "正在关闭计划的任务 "
+      "value": "正在创建计划任务"
     },
     {
-      "type": 1,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
       "value": "name"
     }
   ],
@@ -7095,12 +7275,6 @@
     {
       "type": 0,
       "value": "已授权"
-    }
-  ],
-  "NBiLYK": [
-    {
-      "type": 0,
-      "value": "起草中…"
     }
   ],
   "NBxjGE": [
@@ -7184,7 +7358,7 @@
   "NZ4EtH": [
     {
       "type": 0,
-      "value": "A subagent with this name already exists"
+      "value": "具有此名称的子智能体已存在"
     }
   ],
   "NcxGiD": [
@@ -7214,7 +7388,7 @@
   "NmQwIl": [
     {
       "type": 0,
-      "value": "Schedule:"
+      "value": "计划:"
     }
   ],
   "Nrc9ba": [
@@ -7247,6 +7421,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "NzhSBf": [
+    {
+      "type": 0,
+      "value": "Edit the code below or regenerate with different instructions"
     }
   ],
   "O+srpo": [
@@ -7305,6 +7485,12 @@
       "value": "整体质量"
     }
   ],
+  "O25MZU": [
+    {
+      "type": 0,
+      "value": "选择所有工具"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -7327,6 +7513,38 @@
     {
       "type": 0,
       "value": "全新"
+    }
+  ],
+  "ODswb7": [
+    {
+      "type": 0,
+      "value": "正在打开计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "OIWzWF": [
@@ -7408,13 +7626,19 @@
   "OQMatj": [
     {
       "type": 0,
-      "value": "Failed to create subagent"
+      "value": "未能创建子智能体"
     }
   ],
   "ORGv1Q": [
     {
       "type": 0,
       "value": "已创建"
+    }
+  ],
+  "ORcS+j": [
+    {
+      "type": 0,
+      "value": "Testing…"
     }
   ],
   "OSMnsR": [
@@ -7465,12 +7689,6 @@
       "value": "使用标准 cron 语法(UTC)控制智能体的运行时间。"
     }
   ],
-  "OYAXyI": [
-    {
-      "type": 0,
-      "value": "提供智能体在分析或回答问题时参考的信息。"
-    }
-  ],
   "OYKAqF": [
     {
       "type": 0,
@@ -7505,6 +7723,12 @@
     {
       "type": 0,
       "value": "适中"
+    }
+  ],
+  "OmDQWM": [
+    {
+      "type": 0,
+      "value": "Cannot create skills when subagents exist"
     }
   ],
   "Oom2N7": [
@@ -7719,12 +7943,6 @@
       "value": "未指定目标智能体"
     }
   ],
-  "PXYq8b": [
-    {
-      "type": 0,
-      "value": "请输入有效的 5 部分 Cron 表达式(分 时 日 月 星期几)。"
-    }
-  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -7831,12 +8049,6 @@
       "value": "任务总计"
     }
   ],
-  "PxsPJt": [
-    {
-      "type": 0,
-      "value": "正在启用计划的任务"
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -7864,7 +8076,7 @@
   "Q0B/Lb": [
     {
       "type": 0,
-      "value": "Only teams that allow incident assignment"
+      "value": "仅限允许事件分配的团队"
     }
   ],
   "Q2CgqG": [
@@ -7933,16 +8145,6 @@
     {
       "type": 0,
       "value": "说明"
-    }
-  ],
-  "Q9IHxV": [
-    {
-      "type": 0,
-      "value": "正在运行计划任务 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Q9Zp/n": [
@@ -8043,6 +8245,12 @@
       "value": "使用(触发器, 操作)"
     }
   ],
+  "QTVz4e": [
+    {
+      "type": 0,
+      "value": "Describe what your tool should do"
+    }
+  ],
   "QW+Q5N": [
     {
       "type": 0,
@@ -8061,10 +8269,32 @@
       "value": "1. 描述你采取的操作 2. 提及所涉及的资源或服务"
     }
   ],
+  "QZnXvZ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Qcakd7": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "此列表显示按类别整理的扩展智能体、工具和连接器。创建和管理子智能体以扩展你的能力，添加用于特定任务的自定义工具，并配置连接器以访问外部资源。"
     }
   ],
   "QdDYGR": [
@@ -8083,6 +8313,12 @@
     {
       "type": 0,
       "value": "编辑注释"
+    }
+  ],
+  "Qg+chS": [
+    {
+      "type": 0,
+      "value": "Describe in plain English, e.g., \"Parse JSON logs and count errors by severity\""
     }
   ],
   "QgFHei": [
@@ -8139,6 +8375,12 @@
     {
       "type": 0,
       "value": "例如 0 9 * * 1-5"
+    }
+  ],
+  "QozEE6": [
+    {
+      "type": 0,
+      "value": "Additional files"
     }
   ],
   "QpCzB2": [
@@ -8205,6 +8447,34 @@
       "value": "尚无反馈"
     }
   ],
+  "R56nxF": [
+    {
+      "type": 0,
+      "value": "未能创建计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -8215,12 +8485,6 @@
     {
       "type": 0,
       "value": "事件线程已移动"
-    }
-  ],
-  "RA3fki": [
-    {
-      "type": 0,
-      "value": "缺少上下文"
     }
   ],
   "RAjqKb": [
@@ -8335,6 +8599,12 @@
       "value": "数据库"
     }
   ],
+  "RbWH8Q": [
+    {
+      "type": 0,
+      "value": "MCP"
+    }
+  ],
   "Rfvi9/": [
     {
       "type": 0,
@@ -8438,13 +8708,45 @@
   "S6we8v": [
     {
       "type": 0,
-      "value": "Edit incident trigger"
+      "value": "编辑事件触发器"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
       "value": "更多操作"
+    }
+  ],
+  "S8Rsb6": [
+    {
+      "type": 0,
+      "value": "已删除计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "SAINuE": [
@@ -8475,6 +8777,38 @@
       "value": "添加已有工具"
     }
   ],
+  "SEdSoA": [
+    {
+      "type": 0,
+      "value": "已更新计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "SFUZOQ": [
     {
       "type": 0,
@@ -8495,12 +8829,6 @@
       "value": ")"
     }
   ],
-  "SL+c5a": [
-    {
-      "type": 0,
-      "value": "—"
-    }
-  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -8509,6 +8837,28 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "SM/hWJ": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " skills, but "
+    },
+    {
+      "type": 1,
+      "value": "failureCount"
+    },
+    {
+      "type": 0,
+      "value": " failed to delete"
     }
   ],
   "SMrXWc": [
@@ -8607,10 +8957,38 @@
       "value": "负责团队 ID"
     }
   ],
+  "SjeMma": [
+    {
+      "type": 0,
+      "value": "运行计划任务"
+    }
+  ],
   "Sjo1P4": [
     {
       "type": 0,
       "value": "自定义"
+    }
+  ],
+  "SllKh/": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Slnpm8": [
@@ -8623,6 +9001,12 @@
     {
       "type": 0,
       "value": "草稿尚未同步"
+    }
+  ],
+  "Sn2nYC": [
+    {
+      "type": 0,
+      "value": "Edit Name"
     }
   ],
   "SoBWeV": [
@@ -8779,12 +9163,6 @@
       "value": "已使用智能体权限，但操作无法运行。"
     }
   ],
-  "TFsGSl": [
-    {
-      "type": 0,
-      "value": "留空表示无限执行次数"
-    }
-  ],
   "TGc4Lh": [
     {
       "offset": 0,
@@ -8793,7 +9171,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete incident triggers"
+              "value": "删除事件触发器"
             }
           ]
         }
@@ -8813,6 +9191,38 @@
     {
       "type": 0,
       "value": "运行正常"
+    }
+  ],
+  "TKNqWx": [
+    {
+      "type": 0,
+      "value": "计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 现处于活动状态。"
     }
   ],
   "TKmub+": [
@@ -8835,16 +9245,16 @@
       "value": " 中的所有事件中"
     }
   ],
-  "TKsgZu": [
-    {
-      "type": 0,
-      "value": "关键警报"
-    }
-  ],
   "TMZ2Rq": [
     {
       "type": 0,
       "value": "Grafana 管理员"
+    }
+  ],
+  "TMjYpD": [
+    {
+      "type": 0,
+      "value": "Brief description of what this skill does"
     }
   ],
   "TO55dt": [
@@ -8913,16 +9323,16 @@
       "value": "此见解没有 Markdown 内容。"
     }
   ],
-  "Tg4Q8g": [
-    {
-      "type": 0,
-      "value": "是否断开数据连接器?"
-    }
-  ],
   "ThSX0k": [
     {
       "type": 0,
       "value": "删除 SRE 代理"
+    }
+  ],
+  "TiR/Hq": [
+    {
+      "type": 0,
+      "value": "Saving..."
     }
   ],
   "TkWiD5": [
@@ -9041,6 +9451,12 @@
       "value": "网站参与者/操作员"
     }
   ],
+  "UWZEBA": [
+    {
+      "type": 0,
+      "value": "Edit Skill"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -9059,10 +9475,26 @@
       "value": "视觉对象视图"
     }
   ],
+  "UcVdDd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " test cases available"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
       "value": "事件类型"
+    }
+  ],
+  "Uiw6Xo": [
+    {
+      "type": 0,
+      "value": "正在关闭计划任务。"
     }
   ],
   "UjETJe": [
@@ -9113,6 +9545,12 @@
       "value": "存储库"
     }
   ],
+  "V4KNjk": [
+    {
+      "type": 0,
+      "value": "optional"
+    }
+  ],
   "V4yeoh": [
     {
       "type": 0,
@@ -9155,12 +9593,6 @@
       "value": "隐藏"
     }
   ],
-  "VB+AjJ": [
-    {
-      "type": 0,
-      "value": "自定义 Cron 表达式"
-    }
-  ],
   "VB97cf": [
     {
       "type": 0,
@@ -9171,6 +9603,12 @@
     {
       "type": 0,
       "value": "选择转接的子智能体"
+    }
+  ],
+  "VCHJad": [
+    {
+      "type": 0,
+      "value": "New folder"
     }
   ],
   "VIYXlx": [
@@ -9275,6 +9713,18 @@
     {
       "type": 0,
       "value": "审阅(默认)"
+    }
+  ],
+  "VfjG62": [
+    {
+      "type": 0,
+      "value": "Python Code"
+    }
+  ],
+  "Vi21gb": [
+    {
+      "type": 0,
+      "value": "正在打开计划任务。"
     }
   ],
   "Vipo+I": [
@@ -9411,6 +9861,12 @@
       "value": "已解决"
     }
   ],
+  "W7GhBB": [
+    {
+      "type": 0,
+      "value": "Cannot create subagents when skills are enabled"
+    }
+  ],
   "W8LUUc": [
     {
       "type": 0,
@@ -9439,6 +9895,12 @@
     {
       "type": 0,
       "value": "上次数据捕获时间"
+    }
+  ],
+  "WJ+tyY": [
+    {
+      "type": 0,
+      "value": "Enter command (e.g. npx, python)"
     }
   ],
   "WJj+TP": [
@@ -9471,6 +9933,38 @@
       "value": "正在保存…"
     }
   ],
+  "WUZAzC": [
+    {
+      "type": 0,
+      "value": "计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 现处于关闭状态。"
+    }
+  ],
   "WVTzuw": [
     {
       "type": 0,
@@ -9489,16 +9983,6 @@
     {
       "type": 0,
       "value": "已成功创建 Grafana 仪表板"
-    }
-  ],
-  "WbV0j4": [
-    {
-      "type": 0,
-      "value": "正在编辑: "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Wc5b/J": [
@@ -9638,7 +10122,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete scheduled tasks"
+              "value": "删除计划任务"
             }
           ]
         }
@@ -9712,12 +10196,6 @@
       "value": "隐藏详细信息"
     }
   ],
-  "X5UCWb": [
-    {
-      "type": 0,
-      "value": "计划任务已成功删除"
-    }
-  ],
   "X5yqtT": [
     {
       "type": 0,
@@ -9740,12 +10218,6 @@
     {
       "type": 0,
       "value": "该操作已取消。"
-    }
-  ],
-  "XCfiZ2": [
-    {
-      "type": 0,
-      "value": "为我创建 cron 草稿"
     }
   ],
   "XDSe35": [
@@ -9814,12 +10286,6 @@
       "value": "允许你读取和修改 HDInsight 群集配置。"
     }
   ],
-  "XJuPK6": [
-    {
-      "type": 0,
-      "value": "包含每次运行所需的任何资源标识符(例如订阅/资源组)。"
-    }
-  ],
   "XKWCS3": [
     {
       "type": 0,
@@ -9830,12 +10296,6 @@
     {
       "type": 0,
       "value": "完全自治模式。借助所需的权限，智能体可分析事件，并独立执行缓解操作或资源修改。"
-    }
-  ],
-  "XKvrQy": [
-    {
-      "type": 0,
-      "value": "任务详细信息"
     }
   ],
   "XLRt15": [
@@ -10016,16 +10476,6 @@
     {
       "type": 0,
       "value": "等于"
-    }
-  ],
-  "Y3qQB0": [
-    {
-      "type": 0,
-      "value": "正在启用计划的任务 "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Y47Dwm": [
@@ -10244,6 +10694,32 @@
       "value": "尚未分析见解"
     }
   ],
+  "Yymgt5": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
@@ -10292,12 +10768,6 @@
       "value": "智能体 ID"
     }
   ],
-  "Z8Y6DE": [
-    {
-      "type": 0,
-      "value": "上次同步时间"
-    }
-  ],
   "Z9TajN": [
     {
       "type": 0,
@@ -10310,20 +10780,10 @@
       "value": "创建事件响应计划"
     }
   ],
-  "ZA4OiK": [
-    {
-      "type": 0,
-      "value": "未能创建计划的任务k: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "ZAkVKt": [
     {
       "type": 0,
-      "value": "Create a handoff subagent"
+      "value": "创建转接子智能体"
     }
   ],
   "ZBKZDe": [
@@ -10362,12 +10822,6 @@
       "value": "channel"
     }
   ],
-  "ZMa6Rh": [
-    {
-      "type": 0,
-      "value": "正在删除计划的任务"
-    }
-  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -10384,6 +10838,12 @@
     {
       "type": 0,
       "value": "即将向此实体推出表单编辑功能。"
+    }
+  ],
+  "ZSbKr/": [
+    {
+      "type": 0,
+      "value": "Write code manually instead"
     }
   ],
   "ZUXvHE": [
@@ -10462,7 +10922,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Every minute"
+              "value": "每分钟"
             }
           ]
         },
@@ -10470,14 +10930,14 @@
           "value": [
             {
               "type": 0,
-              "value": "Every "
+              "value": "每 "
             },
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes"
+              "value": " 分钟"
             }
           ]
         }
@@ -10485,6 +10945,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "minutes"
+    }
+  ],
+  "ZpQ6us": [
+    {
+      "type": 0,
+      "value": "Result"
     }
   ],
   "Zq5BCQ": [
@@ -10568,12 +11034,6 @@
       "value": " 个活动流 AAU"
     }
   ],
-  "a5dT17": [
-    {
-      "type": 0,
-      "value": "搜索数据连接器"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -10584,12 +11044,6 @@
     {
       "type": 0,
       "value": "你的权限将暂时用于完成此操作。"
-    }
-  ],
-  "a7QT/5": [
-    {
-      "type": 0,
-      "value": "高级: 使用 Cron 格式(分钟 小时 日 月 星期几)"
     }
   ],
   "a8czK7": [
@@ -10715,12 +11169,6 @@
       "value": "未能更新升级通道"
     }
   ],
-  "aSipXt": [
-    {
-      "type": 0,
-      "value": "提升智能体对你的基础结构的了解程度"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -10763,12 +11211,6 @@
       "value": "选择事件"
     }
   ],
-  "ajASB/": [
-    {
-      "type": 0,
-      "value": "描述保持简短；将详细的运行逻辑写在这里。"
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -10799,12 +11241,6 @@
       "value": "工具测试失败，但未提供错误详细信息。"
     }
   ],
-  "auFFJa": [
-    {
-      "type": 0,
-      "value": "密钥保管库 URI"
-    }
-  ],
   "ayDbML": [
     {
       "type": 0,
@@ -10826,7 +11262,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "会话 ID"
     }
   ],
   "b2PyOl": [
@@ -10847,22 +11283,6 @@
     {
       "type": 0,
       "value": "删除自定义事件响应计划"
-    }
-  ],
-  "b3sNCU": [
-    {
-      "type": 0,
-      "value": "未能关闭任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "b5OEXm": [
-    {
-      "type": 0,
-      "value": "应多久运行一次?"
     }
   ],
   "b7D4Lh": [
@@ -10895,6 +11315,34 @@
       "value": "编辑 Kusto 工具"
     }
   ],
+  "bGIW7m": [
+    {
+      "type": 0,
+      "value": "未能关闭计划任务。"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
@@ -10913,10 +11361,62 @@
       "value": "如果单击“继续”，则将使用智能体标识凭据执行此操作。"
     }
   ],
+  "bMqcq2": [
+    {
+      "type": 0,
+      "value": "正在关闭计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
+    }
+  ],
   "bN0x+w": [
     {
       "type": 0,
       "value": "设备预配服务数据读者"
+    }
+  ],
+  "bO7sKf": [
+    {
+      "type": 0,
+      "value": "Ctrl+Enter"
+    }
+  ],
+  "bR/LRB": [
+    {
+      "type": 0,
+      "value": "选择 "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
+    },
+    {
+      "type": 0,
+      "value": " 中的所有工具"
     }
   ],
   "bW7B87": [
@@ -10965,7 +11465,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting scheduled tasks"
+              "value": "正在删除计划任务"
             }
           ]
         }
@@ -10979,12 +11479,6 @@
     {
       "type": 0,
       "value": "请重启聊天以查看更改。"
-    }
-  ],
-  "bjOnWH": [
-    {
-      "type": 0,
-      "value": "请先添加草稿说明，再请求润色。"
     }
   ],
   "blSyDZ": [
@@ -11217,6 +11711,12 @@
       "value": "连接器状态"
     }
   ],
+  "cM9da4": [
+    {
+      "type": 0,
+      "value": "Restart test"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -11238,7 +11738,7 @@
   "cXAlMR": [
     {
       "type": 0,
-      "value": "Scheduled"
+      "value": "已计划"
     }
   ],
   "cYwv8P": [
@@ -11273,6 +11773,12 @@
     {
       "type": 0,
       "value": "Kusto 工具名称"
+    }
+  ],
+  "cgh0+/": [
+    {
+      "type": 0,
+      "value": "The executable command to start the MCP server. Must be in your system PATH or an absolute path."
     }
   ],
   "ciB+oy": [
@@ -11429,12 +11935,6 @@
       "value": "尚未对智能体质量进行评分。运行检查以发现机会。"
     }
   ],
-  "dI9gP+": [
-    {
-      "type": 0,
-      "value": "智能体指令"
-    }
-  ],
   "dJqE3e": [
     {
       "type": 0,
@@ -11444,7 +11944,7 @@
   "dLWrbO": [
     {
       "type": 0,
-      "value": "Only teams with an on-call rotation"
+      "value": "仅限有值班轮换的团队"
     }
   ],
   "dO3eHj": [
@@ -11462,13 +11962,7 @@
   "dQJz2m": [
     {
       "type": 0,
-      "value": "This feature isn't available in this portal yet."
-    }
-  ],
-  "dQKATf": [
-    {
-      "type": 0,
-      "value": "请输入名称(至少 3 个字符)。"
+      "value": "此功能在此门户尚不可用。"
     }
   ],
   "dQtJBl": [
@@ -11501,22 +11995,16 @@
       "value": "对于 GitHub，存储库 URL 必须如下所示: https://github.com/owner/repo-name，对于 Azure DevOps，则应为: https://dev.azure.com/organization/project/_git/repository-name 或 https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
-  "daUwAL": [
+  "dbXXhB": [
     {
       "type": 0,
-      "value": "正在创建计划的任务"
+      "value": "正在运行计划任务。"
     }
   ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "计划预览"
-    }
-  ],
-  "dhmpfi": [
-    {
-      "type": 0,
-      "value": "删除计划的任务"
     }
   ],
   "dhqlRa": [
@@ -11597,12 +12085,6 @@
     {
       "type": 0,
       "value": "从不"
-    }
-  ],
-  "dw6Z3b": [
-    {
-      "type": 0,
-      "value": "其含义"
     }
   ],
   "dwkMC2": [
@@ -11719,10 +12201,10 @@
       "value": "管理 Azure 搜索服务。"
     }
   ],
-  "ee4AUg": [
+  "efl/SK": [
     {
       "type": 0,
-      "value": "已成功开启计划的任务"
+      "value": "Run Test (Cmd+Enter)"
     }
   ],
   "egubDj": [
@@ -11783,12 +12265,6 @@
       "value": "自定义响应指导"
     }
   ],
-  "euBSDU": [
-    {
-      "type": 0,
-      "value": "需要智能体说明。"
-    }
-  ],
   "euKVCa": [
     {
       "type": 0,
@@ -11809,12 +12285,6 @@
     {
       "type": 0,
       "value": "正在连接到 PagerDuty..."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "输入连接字符串或终结点"
     }
   ],
   "f04POI": [
@@ -11853,18 +12323,6 @@
       "value": "Sev1"
     }
   ],
-  "f6xT1Y": [
-    {
-      "type": 0,
-      "value": "已成功开启计划的任务"
-    }
-  ],
-  "f7Zx3L": [
-    {
-      "type": 0,
-      "value": "提示技巧"
-    }
-  ],
   "f9xN/g": [
     {
       "type": 0,
@@ -11874,7 +12332,7 @@
   "fBeNkx": [
     {
       "type": 0,
-      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
+      "value": "新的转接子智能体以“自主”形式启动。稍后可以连接工具和其他详细信息。"
     }
   ],
   "fCiXKq": [
@@ -11923,12 +12381,6 @@
       "value": "status"
     }
   ],
-  "fIQSsD": [
-    {
-      "type": 0,
-      "value": "尚无法创建 cron 草稿。请优化描述后重试。"
-    }
-  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -11941,10 +12393,22 @@
       "value": "新建工具"
     }
   ],
+  "fU7I5j": [
+    {
+      "type": 0,
+      "value": "Run Test"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
       "value": "转到访问控制"
+    }
+  ],
+  "fZP/Ln": [
+    {
+      "type": 0,
+      "value": "This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version."
     }
   ],
   "fblXmJ": [
@@ -12005,6 +12469,22 @@
       "value": "关联范围从 -1 (负相关)到 1 (正相关)"
     }
   ],
+  "fmrYkd": [
+    {
+      "type": 0,
+      "value": "Parse JSON and extract error messages"
+    }
+  ],
+  "fn9+0+": [
+    {
+      "type": 0,
+      "value": "Function test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fr6Gnj": [
     {
       "type": 0,
@@ -12015,12 +12495,6 @@
     {
       "type": 0,
       "value": "连接 MCP 服务器"
-    }
-  ],
-  "ftDEuE": [
-    {
-      "type": 0,
-      "value": "选择连接器类型"
     }
   ],
   "ftfFhS": [
@@ -12089,6 +12563,12 @@
       "value": "例如 0 0 * * *"
     }
   ],
+  "g6WtKF": [
+    {
+      "type": 0,
+      "value": "Timeout (seconds)"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -12119,6 +12599,12 @@
       "value": "将文件拖动到此处或"
     }
   ],
+  "gFrqQf": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes. Are you sure you want to close?"
+    }
+  ],
   "gGfQUL": [
     {
       "type": 0,
@@ -12135,6 +12621,12 @@
     {
       "type": 0,
       "value": "选择如何设置此事件响应计划"
+    }
+  ],
+  "gLbYRM": [
+    {
+      "type": 0,
+      "value": "Calculate percentage from two numbers"
     }
   ],
   "gNhYpU": [
@@ -12179,10 +12671,10 @@
       "value": "事件响应计划:"
     }
   ],
-  "gdUWAX": [
+  "gd7vV5": [
     {
       "type": 0,
-      "value": "说明不得超过 140 个字符。"
+      "value": "Creating your function…"
     }
   ],
   "ggVnjB": [
@@ -12209,6 +12701,12 @@
       "value": "正在加载..."
     }
   ],
+  "gmo2Su": [
+    {
+      "type": 0,
+      "value": "Skill Content (SKILL.md)"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -12225,16 +12723,6 @@
     {
       "type": 0,
       "value": "输入数据库名称"
-    }
-  ],
-  "grgDhd": [
-    {
-      "type": 0,
-      "value": "未能加载计划的任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "gvlNuI": [
@@ -12339,6 +12827,12 @@
     {
       "type": 0,
       "value": "工具"
+    }
+  ],
+  "hCNgyf": [
+    {
+      "type": 0,
+      "value": "Saving tool…"
     }
   ],
   "hEXUFk": [
@@ -12496,7 +12990,7 @@
   "hjtyTg": [
     {
       "type": 0,
-      "value": "End date must be after start date."
+      "value": "结束日期必须在开始日期之后。"
     }
   ],
   "hkgUC5": [
@@ -12532,7 +13026,7 @@
   "hqoTIz": [
     {
       "type": 0,
-      "value": "Search for a subagent by name"
+      "value": "按名称搜索子智能体"
     }
   ],
   "hrdmcd": [
@@ -12559,10 +13053,16 @@
       "value": "仪表板"
     }
   ],
+  "i/pRlX": [
+    {
+      "type": 0,
+      "value": "Click to edit code"
+    }
+  ],
   "i3P6ZD": [
     {
       "type": 0,
-      "value": "Created at:"
+      "value": "创建时间:"
     }
   ],
   "i5OUQE": [
@@ -12586,13 +13086,7 @@
   "i6x7bU": [
     {
       "type": 0,
-      "value": "The agent is stopped"
-    }
-  ],
-  "iDPKM0": [
-    {
-      "type": 0,
-      "value": "筛选任务"
+      "value": "智能体已停止"
     }
   ],
   "iDSWYk": [
@@ -12619,6 +13113,12 @@
       "value": "尚未发布"
     }
   ],
+  "iJcrHj": [
+    {
+      "type": 0,
+      "value": "No parameters required"
+    }
+  ],
   "iMaY2Q": [
     {
       "type": 0,
@@ -12638,13 +13138,45 @@
   "iPhHGC": [
     {
       "type": 0,
-      "value": "Learn more about scheduled tasks"
+      "value": "详细了解计划任务"
     }
   ],
   "iV7LUx": [
     {
       "type": 0,
       "value": "使用自定义设置创建新触发器"
+    }
+  ],
+  "iWNutw": [
+    {
+      "type": 0,
+      "value": "正在删除计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "。"
     }
   ],
   "iXNbPf": [
@@ -12745,6 +13277,12 @@
       "value": "新的自定义响应计划"
     }
   ],
+  "iqsZgT": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -12785,6 +13323,12 @@
     {
       "type": 0,
       "value": "SRE 代理空间"
+    }
+  ],
+  "ix9hVm": [
+    {
+      "type": 0,
+      "value": "Expand to show more"
     }
   ],
   "ixb1SP": [
@@ -12834,7 +13378,7 @@
   "j0bMX6": [
     {
       "type": 0,
-      "value": "No incident metrics to report"
+      "value": "无事件指标可报告"
     }
   ],
   "j1FyDL": [
@@ -12899,7 +13443,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting SRE Agents"
+              "value": "正在删除 SRE 智能体"
             }
           ]
         }
@@ -12912,7 +13456,7 @@
   "jJ7kNS": [
     {
       "type": 0,
-      "value": "Try selecting a different date range."
+      "value": "尝试选择其他日期范围。"
     }
   ],
   "jJE3xY": [
@@ -12993,16 +13537,6 @@
       "value": "Grafana 资源在资源组中必须是唯一的。"
     }
   ],
-  "jX6uvW": [
-    {
-      "type": 0,
-      "value": "未能运行任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -13043,10 +13577,10 @@
       "value": "数据库"
     }
   ],
-  "jlOO/9": [
+  "jqM7Pr": [
     {
       "type": 0,
-      "value": "下次执行时间"
+      "value": "Test restarted with your latest agent changes. Send a message to continue testing."
     }
   ],
   "jqpolM": [
@@ -13065,6 +13599,12 @@
     {
       "type": 0,
       "value": "开始时间(可选)"
+    }
+  ],
+  "jvB4W9": [
+    {
+      "type": 0,
+      "value": "Environment variables"
     }
   ],
   "jvo0vs": [
@@ -13093,6 +13633,12 @@
     {
       "type": 0,
       "value": "条形图"
+    }
+  ],
+  "k+phZu": [
+    {
+      "type": 0,
+      "value": "Delete skill"
     }
   ],
   "k0VNHX": [
@@ -13137,10 +13683,10 @@
       "value": "数字"
     }
   ],
-  "kG0ZtT": [
+  "kGmr6n": [
     {
       "type": 0,
-      "value": "其他 cron 想法"
+      "value": "Want to improve it?"
     }
   ],
   "kHIJzq": [
@@ -13171,6 +13717,12 @@
     {
       "type": 0,
       "value": "你没有重命名此线程的权限。"
+    }
+  ],
+  "kVOq9V": [
+    {
+      "type": 0,
+      "value": "Fill in parameters and click Run to test"
     }
   ],
   "kWBrry": [
@@ -13219,22 +13771,28 @@
       "value": "自定义计划"
     }
   ],
+  "kjUC48": [
+    {
+      "type": 0,
+      "value": "Function test succeeded."
+    }
+  ],
   "kn+J82": [
     {
       "type": 0,
       "value": "关联分析"
     }
   ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "更新数据连接器配置。"
-    }
-  ],
   "koWZK8": [
     {
       "type": 0,
       "value": "添加自定义响应指导(可选)"
+    }
+  ],
+  "kopJ66": [
+    {
+      "type": 0,
+      "value": "Keep Current Code"
     }
   ],
   "kq7D3O": [
@@ -13293,12 +13851,6 @@
       "value": "智能体数据网格"
     }
   ],
-  "l+e8nZ": [
-    {
-      "type": 0,
-      "value": "是否确定要删除所选的计划任务?此操作无法撤消。"
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
@@ -13309,6 +13861,12 @@
     {
       "type": 0,
       "value": "创建工具"
+    }
+  ],
+  "l1+Ilp": [
+    {
+      "type": 0,
+      "value": "Generating code…"
     }
   ],
   "l2Ni9H": [
@@ -13329,16 +13887,16 @@
       "value": "AzureML 数据科学家"
     }
   ],
-  "l8IRTD": [
+  "lBZfVb": [
     {
       "type": 0,
-      "value": "计划任务已成功运行"
+      "value": "Timeout in seconds (5-900)"
     }
   ],
   "lCe4Sh": [
     {
       "type": 0,
-      "value": "Search Icm team"
+      "value": "搜索 ICM 团队"
     }
   ],
   "lCsNuL": [
@@ -13369,10 +13927,14 @@
       "value": "默认"
     }
   ],
-  "lM2HXD": [
+  "lOaomi": [
     {
       "type": 0,
-      "value": "未提供提示。"
+      "value": "Generation failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "lP5P2a": [
@@ -13384,7 +13946,13 @@
   "lQmkhq": [
     {
       "type": 0,
-      "value": "Subagents"
+      "value": "子智能体"
+    }
+  ],
+  "lR/7o8": [
+    {
+      "type": 0,
+      "value": "Folder name"
     }
   ],
   "lUAfdH": [
@@ -13402,7 +13970,7 @@
   "lbah5J": [
     {
       "type": 0,
-      "value": "List all agent-managed resources"
+      "value": "列出所有智能体管理的资源"
     }
   ],
   "lcOT8X": [
@@ -13452,7 +14020,7 @@
   "lpYK4u": [
     {
       "type": 0,
-      "value": "Enter subagent name"
+      "value": "输入子智能体名称"
     }
   ],
   "lqgE72": [
@@ -13482,13 +14050,19 @@
   "m/B8a5": [
     {
       "type": 0,
-      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "创建子智能体以自动运行任务、查询数据和响应事件。"
     }
   ],
   "m0kcbz": [
     {
       "type": 0,
       "value": "生成自定义响应计划"
+    }
+  ],
+  "m2KQqp": [
+    {
+      "type": 0,
+      "value": "Execution Result"
     }
   ],
   "m3Npit": [
@@ -13541,10 +14115,10 @@
       "value": "编辑 QnA Maker 知识库。"
     }
   ],
-  "mChei1": [
+  "mE7Cg1": [
     {
       "type": 0,
-      "value": "多行详细指令。请提供: 目标、上下文/资源、约束、成功标准。"
+      "value": "Stdio"
     }
   ],
   "mGh+K0": [
@@ -13818,7 +14392,7 @@
   "n/WueE": [
     {
       "type": 0,
-      "value": "List all incidents"
+      "value": "列出所有事件"
     }
   ],
   "n0JssX": [
@@ -13913,10 +14487,10 @@
       "value": "主要资源类型"
     }
   ],
-  "nRkusX": [
+  "nR0FVC": [
     {
       "type": 0,
-      "value": "需要 Cron 表达式"
+      "value": "Reusable knowledge and instructions that enhance agent capabilities."
     }
   ],
   "nUT0Lv": [
@@ -13935,24 +14509,16 @@
       "value": "name"
     }
   ],
+  "nc7Brw": [
+    {
+      "type": 0,
+      "value": "Arguments"
+    }
+  ],
   "ncB14A": [
     {
       "type": 0,
       "value": "智能体已调用"
-    }
-  ],
-  "nkYx6+": [
-    {
-      "type": 0,
-      "value": "是否断开 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 个数据连接器?"
     }
   ],
   "nmpevl": [
@@ -14003,6 +14569,12 @@
       "value": "重新运行见解"
     }
   ],
+  "nxBEvY": [
+    {
+      "type": 0,
+      "value": "Creating your Python function…"
+    }
+  ],
   "nxmZHP": [
     {
       "type": 0,
@@ -14033,22 +14605,10 @@
       "value": "尚无链接的工具。添加工具，以便此智能体可以执行操作。"
     }
   ],
-  "o3uElD": [
-    {
-      "type": 0,
-      "value": "添加数据连接器"
-    }
-  ],
   "o7TUwc": [
     {
       "type": 0,
       "value": "连接到 ICM，以便智能体可以自动侦听和响应事件。"
-    }
-  ],
-  "o9bCTX": [
-    {
-      "type": 0,
-      "value": "上次执行时间"
     }
   ],
   "oBv1Sy": [
@@ -14069,6 +14629,12 @@
     {
       "type": 0,
       "value": " 个数据连接器"
+    }
+  ],
+  "oDH12O": [
+    {
+      "type": 0,
+      "value": "Tool name"
     }
   ],
   "oDI/Rp": [
@@ -14175,12 +14741,6 @@
       "value": "写入者/操作员"
     }
   ],
-  "oXd3cw": [
-    {
-      "type": 0,
-      "value": "最大执行次数"
-    }
-  ],
   "oY4j0R": [
     {
       "type": 0,
@@ -14265,6 +14825,18 @@
       "value": "高风险"
     }
   ],
+  "oyZN19": [
+    {
+      "type": 0,
+      "value": "Running..."
+    }
+  ],
+  "oyf+bG": [
+    {
+      "type": 0,
+      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
+    }
+  ],
   "p/QlSI": [
     {
       "type": 0,
@@ -14343,6 +14915,12 @@
     {
       "type": 0,
       "value": "P4"
+    }
+  ],
+  "pByJCZ": [
+    {
+      "type": 0,
+      "value": "计划任务已运行。"
     }
   ],
   "pCPZnU": [
@@ -14432,7 +15010,13 @@
   "pU0SQw": [
     {
       "type": 0,
-      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+      "value": "启用 Preview 频道可提前测试新功能，但这些功能的稳定性可能较差。"
+    }
+  ],
+  "pXPlXr": [
+    {
+      "type": 0,
+      "value": "*required"
     }
   ],
   "pbpjik": [
@@ -14479,6 +15063,20 @@
       "value": "预配并链接 Grafana 仪表板后，资源可能需要一段时间才能完全填充仪表板。"
     }
   ],
+  "piGAtN": [
+    {
+      "type": 0,
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
   "pndXMi": [
     {
       "type": 0,
@@ -14519,6 +15117,12 @@
       "value": "正在更新升级通道"
     }
   ],
+  "ppAn7O": [
+    {
+      "type": 0,
+      "value": "File name"
+    }
+  ],
   "ppzeDo": [
     {
       "type": 0,
@@ -14543,10 +15147,18 @@
       "value": "警报标题"
     }
   ],
-  "psUT6S": [
+  "psccqt": [
     {
       "type": 0,
-      "value": "此任务应运行的最大次数"
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "ms"
+    },
+    {
+      "type": 0,
+      "value": "ms"
     }
   ],
   "puQ/kF": [
@@ -14613,16 +15225,22 @@
       "value": "未知错误"
     }
   ],
+  "qQRG87": [
+    {
+      "type": 0,
+      "value": "Parameters auto-detected from code"
+    }
+  ],
   "qQh4Xu": [
     {
       "type": 0,
       "value": "智能体引用文档和文件以了解你的项目和流程。"
     }
   ],
-  "qavd9Y": [
+  "qTWwGw": [
     {
       "type": 0,
-      "value": "告诉我们智能体应多久运行一次，我们将为你生成 cron 表达式的草稿。"
+      "value": "Parameters:"
     }
   ],
   "qdAlfY": [
@@ -14637,6 +15255,16 @@
       "value": "错误详细信息"
     }
   ],
+  "qdxZys": [
+    {
+      "type": 0,
+      "value": "Last heartbeat: "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -14647,12 +15275,6 @@
     {
       "type": 0,
       "value": "具有此名称的连接器已存在"
-    }
-  ],
-  "qh9t2U": [
-    {
-      "type": 0,
-      "value": "连接到智能体"
     }
   ],
   "qhApmK": [
@@ -14747,6 +15369,12 @@
       "value": "已成功删除自定义事件响应计划"
     }
   ],
+  "qzMeS2": [
+    {
+      "type": 0,
+      "value": "Test Playground"
+    }
+  ],
   "r2ZGnB": [
     {
       "offset": 0,
@@ -14820,6 +15448,12 @@
       "value": "刷新"
     }
   ],
+  "rFU0oo": [
+    {
+      "type": 0,
+      "value": "Python tool"
+    }
+  ],
   "rFlkvY": [
     {
       "type": 0,
@@ -14854,7 +15488,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Scheduled tasks deleted successfully"
+              "value": "已成功删除计划任务"
             }
           ]
         }
@@ -14899,7 +15533,7 @@
   "rPdyc5": [
     {
       "type": 0,
-      "value": "Current status: Stable - Receives updates once a month"
+      "value": "当前状态: 稳定 - 每月接收一次更新"
     }
   ],
   "rQAyD6": [
@@ -14980,6 +15614,12 @@
     {
       "type": 0,
       "value": "关闭"
+    }
+  ],
+  "rc7ZT2": [
+    {
+      "type": 0,
+      "value": "Enter the skill markdown content..."
     }
   ],
   "rd6YZk": [
@@ -15128,20 +15768,6 @@
       "value": "详细了解知识源"
     }
   ],
-  "s04Z5U": [
-    {
-      "type": 0,
-      "value": "这将永久断开 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " 个数据连接器与智能体的连接。是否确定要断开这些数据连接器?"
-    }
-  ],
   "s2GWth": [
     {
       "type": 0,
@@ -15193,7 +15819,7 @@
   "sCRBH3": [
     {
       "type": 0,
-      "value": "Search by subagent"
+      "value": "按子智能体搜索"
     }
   ],
   "sH0O5v": [
@@ -15338,6 +15964,12 @@
       "value": "添加文件"
     }
   ],
+  "sYCfrb": [
+    {
+      "type": 0,
+      "value": "Test agent"
+    }
+  ],
   "sZIoMy": [
     {
       "type": 0,
@@ -15370,16 +16002,16 @@
       "value": "系统工具(可选)"
     }
   ],
-  "sf6hMj": [
-    {
-      "type": 0,
-      "value": "提醒"
-    }
-  ],
   "sjlioi": [
     {
       "type": 0,
       "value": "子智能体已调用"
+    }
+  ],
+  "sjq9sr": [
+    {
+      "type": 0,
+      "value": "Validate email addresses"
     }
   ],
   "slxYbm": [
@@ -15540,12 +16172,6 @@
       "value": "未能解析每日报告:"
     }
   ],
-  "tFFMkF": [
-    {
-      "type": 0,
-      "value": "暂停"
-    }
-  ],
   "tFoDh3": [
     {
       "type": 0,
@@ -15609,7 +16235,7 @@
   "tTjB+b": [
     {
       "type": 0,
-      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
+      "value": "这将永久删除智能体及其所有聊天和操作线程。确定要删除此智能体吗?"
     }
   ],
   "tU3A8E": [
@@ -15630,12 +16256,6 @@
     {
       "type": 0,
       "value": "添加到收藏夹"
-    }
-  ],
-  "tZmd+w": [
-    {
-      "type": 0,
-      "value": "连接到数据源"
     }
   ],
   "tb6uBb": [
@@ -15700,16 +16320,14 @@
       "value": "试验智能体的配置并查看实时结果"
     }
   ],
-  "tkr5bn": [
+  "tpD3Ax": [
     {
       "type": 0,
-      "value": "关闭计划的任务"
-    }
-  ],
-  "trPabo": [
+      "value": "Tools: "
+    },
     {
-      "type": 0,
-      "value": "找不到计划任务"
+      "type": 1,
+      "value": "count"
     }
   ],
   "trhBLG": [
@@ -15837,7 +16455,17 @@
   "uBPOyN": [
     {
       "type": 0,
-      "value": "Early access to features"
+      "value": "提前访问功能"
+    }
+  ],
+  "uC4R7m": [
+    {
+      "type": 0,
+      "value": "Test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "uCkn4+": [
@@ -15846,16 +16474,34 @@
       "value": "所有优先级"
     }
   ],
+  "uDXk7F": [
+    {
+      "type": 0,
+      "value": "Python Function Tester"
+    }
+  ],
   "uEYYty": [
     {
       "type": 0,
       "value": "新的事件响应计划"
     }
   ],
+  "uFDB/3": [
+    {
+      "type": 0,
+      "value": "Function Code"
+    }
+  ],
   "uFaAgq": [
     {
       "type": 0,
       "value": "连接关系"
+    }
+  ],
+  "uGPikn": [
+    {
+      "type": 0,
+      "value": "Describe what the function should do"
     }
   ],
   "uI0Lmu": [
@@ -15867,13 +16513,13 @@
   "uIXQiw": [
     {
       "type": 0,
-      "value": "Establishing connection ..."
+      "value": "正在建立连接..."
     }
   ],
   "uKwm6S": [
     {
       "type": 0,
-      "value": "Canvas view"
+      "value": "画布视图"
     }
   ],
   "uLmZLS": [
@@ -15973,6 +16619,12 @@
       "value": "delta"
     }
   ],
+  "uQ/yKk": [
+    {
+      "type": 0,
+      "value": "Search by skill"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -16001,6 +16653,12 @@
       "value": "从预设中选择"
     }
   ],
+  "uYv0At": [
+    {
+      "type": 0,
+      "value": "Extracting parameters"
+    }
+  ],
   "ubULuu": [
     {
       "type": 0,
@@ -16022,7 +16680,7 @@
   "ufzv1A": [
     {
       "type": 0,
-      "value": "Table view"
+      "value": "表视图"
     }
   ],
   "ug01Mk": [
@@ -16047,12 +16705,6 @@
     {
       "type": 0,
       "value": "缩小"
-    }
-  ],
-  "unj6JR": [
-    {
-      "type": 0,
-      "value": "根据模板创建"
     }
   ],
   "unxs9C": [
@@ -16103,12 +16755,6 @@
       "value": "正在优化指令..."
     }
   ],
-  "v0CXYP": [
-    {
-      "type": 0,
-      "value": "输入任务的描述性名称"
-    }
-  ],
   "v0fBOU": [
     {
       "type": 0,
@@ -16131,12 +16777,6 @@
     {
       "type": 0,
       "value": "Kusto 工具"
-    }
-  ],
-  "v8cTK0": [
-    {
-      "type": 0,
-      "value": "已成功更新计划任务"
     }
   ],
   "v8lolG": [
@@ -16184,13 +16824,19 @@
   "vCyJXp": [
     {
       "type": 0,
-      "value": "No subagents configured"
+      "value": "未配置任何子智能体"
     }
   ],
   "vDbj1h": [
     {
       "type": 0,
       "value": "授权者"
+    }
+  ],
+  "vEPakK": [
+    {
+      "type": 0,
+      "value": "Additional Files"
     }
   ],
   "vG08m6": [
@@ -16217,26 +16863,6 @@
       "value": "事件触发器"
     }
   ],
-  "vSW3OF": [
-    {
-      "type": 0,
-      "value": "未能更新任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "vV67Wm": [
-    {
-      "type": 0,
-      "value": "未能启用任务: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "vVpzJQ": [
     {
       "type": 0,
@@ -16253,6 +16879,12 @@
     {
       "type": 0,
       "value": "存在警告操作"
+    }
+  ],
+  "vZRYf4": [
+    {
+      "type": 0,
+      "value": "取消选择所有工具"
     }
   ],
   "vZWQHk": [
@@ -16349,12 +16981,6 @@
       "value": "清除说明"
     }
   ],
-  "w4Nqlr": [
-    {
-      "type": 0,
-      "value": "运行计划任务"
-    }
-  ],
   "w5FDGY": [
     {
       "type": 0,
@@ -16412,7 +17038,7 @@
   "wFcmSl": [
     {
       "type": 0,
-      "value": "Creating Subagent"
+      "value": "正在创建子智能体"
     }
   ],
   "wGLrHW": [
@@ -16423,6 +17049,12 @@
     {
       "type": 0,
       "value": " 的用户"
+    }
+  ],
+  "wGM2T+": [
+    {
+      "type": 0,
+      "value": "Please provide Python function code"
     }
   ],
   "wGcWbo": [
@@ -16441,16 +17073,6 @@
     {
       "type": 0,
       "value": "操作"
-    }
-  ],
-  "wNIiXX": [
-    {
-      "type": 0,
-      "value": "数据源格式必须为: "
-    },
-    {
-      "type": 1,
-      "value": "format"
     }
   ],
   "wO9wb5": [
@@ -16476,7 +17098,13 @@
   "wPF0jY": [
     {
       "type": 0,
-      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "使用子智能体自动运行任务、查询数据和响应事件。"
+    }
+  ],
+  "wPfhmg": [
+    {
+      "type": 0,
+      "value": "Standard Error"
     }
   ],
   "wQdhYo": [
@@ -16488,19 +17116,25 @@
   "wRi+GV": [
     {
       "type": 0,
-      "value": "Create Subagent"
+      "value": "创建子智能体"
     }
   ],
   "wSLRfB": [
     {
       "type": 0,
-      "value": "Unknown status"
+      "value": "未知状态"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "提交"
+    }
+  ],
+  "wTA9dx": [
+    {
+      "type": 0,
+      "value": "Test Your Function"
     }
   ],
   "wUnPMf": [
@@ -16557,12 +17191,6 @@
       "value": "添加自定义事件响应计划"
     }
   ],
-  "wgyFIG": [
-    {
-      "type": 0,
-      "value": "润色中…"
-    }
-  ],
   "wjEBlr": [
     {
       "type": 1,
@@ -16599,6 +17227,12 @@
       "value": "资源总数"
     }
   ],
+  "wm4GRX": [
+    {
+      "type": 0,
+      "value": "Example: Parse JSON logs and extract error messages"
+    }
+  ],
   "wru3Di": [
     {
       "type": 0,
@@ -16621,12 +17255,6 @@
     {
       "type": 0,
       "value": "正在检查触发器设置…"
-    }
-  ],
-  "x1YTqM": [
-    {
-      "type": 0,
-      "value": "请先描述节奏，我们才能提供帮助。"
     }
   ],
   "x25AjF": [
@@ -16657,6 +17285,20 @@
     {
       "type": 0,
       "value": "单击此处了解更多信息"
+    }
+  ],
+  "xGK1X2": [
+    {
+      "type": 0,
+      "value": "取消选择 "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
+    },
+    {
+      "type": 0,
+      "value": " 中的所有工具"
     }
   ],
   "xGPsyJ": [
@@ -16698,13 +17340,19 @@
   "xP3hmB": [
     {
       "type": 0,
-      "value": "Start:"
+      "value": "开始:"
     }
   ],
   "xPuGYM": [
     {
       "type": 0,
       "value": "没有连接器与你的搜索匹配"
+    }
+  ],
+  "xRpMXP": [
+    {
+      "type": 0,
+      "value": "Try:"
     }
   ],
   "xSsto+": [
@@ -16803,6 +17451,22 @@
       "value": "准备好测试智能体了吗?"
     }
   ],
+  "xgD8Kv": [
+    {
+      "type": 0,
+      "value": "Python Function Code"
+    }
+  ],
+  "xjZrbx": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -16813,6 +17477,12 @@
     {
       "type": 0,
       "value": "操作 Azure API 管理服务。"
+    }
+  ],
+  "xpMDZO": [
+    {
+      "type": 0,
+      "value": "Test Passed"
     }
   ],
   "xqwf/7": [
@@ -16845,16 +17515,16 @@
       "value": "网站参与者"
     }
   ],
+  "xu6eM8": [
+    {
+      "type": 0,
+      "value": "Test"
+    }
+  ],
   "xvTDgy": [
     {
       "type": 0,
       "value": "搜索工具…"
-    }
-  ],
-  "xxoHVE": [
-    {
-      "type": 0,
-      "value": "需要智能体提示"
     }
   ],
   "xy47sz": [
@@ -16891,12 +17561,6 @@
     {
       "type": 0,
       "value": " (自上次运行以来)"
-    }
-  ],
-  "y3Uu5i": [
-    {
-      "type": 0,
-      "value": "没有数据连接器与你的搜索匹配"
     }
   ],
   "y5oInX": [
@@ -16947,6 +17611,12 @@
       "value": "聊天输入"
     }
   ],
+  "yGVEST": [
+    {
+      "type": 0,
+      "value": "是否确定要删除这些计划任务?此操作无法撤消。"
+    }
+  ],
   "yJJ/jv": [
     {
       "type": 0,
@@ -16974,7 +17644,13 @@
   "yRTBrP": [
     {
       "type": 0,
-      "value": "Pick a subagent to assist you with tasks."
+      "value": "选取子智能体来帮助你完成任务。"
+    }
+  ],
+  "ySdJIx": [
+    {
+      "type": 0,
+      "value": "Connection type"
     }
   ],
   "yVc78v": [
@@ -17031,12 +17707,6 @@
       "value": "设计、测试和优化智能体，无需接触生产环境。"
     }
   ],
-  "yf9+0C": [
-    {
-      "type": 0,
-      "value": "润色后的版本"
-    }
-  ],
   "yh4G7g": [
     {
       "type": 0,
@@ -17073,10 +17743,16 @@
       "value": "托管资源组"
     }
   ],
+  "yisTNp": [
+    {
+      "type": 0,
+      "value": "关闭计划任务"
+    }
+  ],
   "ymiZvr": [
     {
       "type": 0,
-      "value": "Subagent Builder"
+      "value": "子智能体生成器"
     }
   ],
   "ynVolH": [
@@ -17105,7 +17781,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete Kusto tools"
+              "value": "未能删除 Kusto 工具"
             }
           ]
         }
@@ -17153,12 +17829,6 @@
       "value": "已保存事件管理配置"
     }
   ],
-  "yzfsFI": [
-    {
-      "type": 0,
-      "value": "单行简短摘要(<=140 字符)"
-    }
-  ],
   "z0uI4M": [
     {
       "type": 0,
@@ -17171,16 +17841,10 @@
       "value": "查看知识库"
     }
   ],
-  "z5cF/O": [
+  "z4NnlT": [
     {
       "type": 0,
-      "value": "说明必须为单行摘要。"
-    }
-  ],
-  "z7SGAU": [
-    {
-      "type": 0,
-      "value": "已成功删除计划的任务"
+      "value": "No skills found"
     }
   ],
   "z8ZYoc": [
@@ -17234,7 +17898,7 @@
   "zJFez9": [
     {
       "type": 0,
-      "value": "Go to Scheduled Tasks"
+      "value": "转到“计划任务”"
     }
   ],
   "zMX3td": [
@@ -17287,16 +17951,16 @@
       "value": "时间线"
     }
   ],
-  "zZsxcQ": [
-    {
-      "type": 0,
-      "value": "说明频率敏感的预期(例如“仅汇总过去 15 分钟内的指标”)。"
-    }
-  ],
   "zaYxwd": [
     {
       "type": 0,
       "value": "事件"
+    }
+  ],
+  "zcksw4": [
+    {
+      "type": 0,
+      "value": "✓ Test passed"
     }
   ],
   "zcyAwy": [
@@ -17317,6 +17981,38 @@
     {
       "type": 0,
       "value": " 个事件"
+    }
+  ],
+  "zefL4U": [
+    {
+      "type": 0,
+      "value": "计划任务"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 现处于打开状态。"
     }
   ],
   "zfM/75": [
@@ -17346,13 +18042,13 @@
   "zl6fNb": [
     {
       "type": 0,
-      "value": "Thought process"
+      "value": "思考过程"
     }
   ],
   "znSLJS": [
     {
       "type": 0,
-      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
+      "value": "智能体需要时间来构建相应的知识，因此它可能最多需要 1 小时才能反映出这些更改。"
     }
   ],
   "zpENeF": [
@@ -17363,7 +18059,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete Kusto tools"
+              "value": "删除 Kusto 工具"
             }
           ]
         }

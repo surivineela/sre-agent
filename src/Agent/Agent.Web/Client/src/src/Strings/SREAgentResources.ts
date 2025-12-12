@@ -4466,8 +4466,9 @@ export const ExtendedAgentsGraphResources = defineMessages({
     // Agent Memory
     agentMemoryLabel: { defaultMessage: 'Give access to knowledge base', id: '+OMfjA' },
     agentMemoryHelp: {
-        defaultMessage: 'Knowledge Base Enabled',
-        id: 'ketkP5',
+        defaultMessage:
+            'Giving access to your knowledge base gives the agent more context about your services to make better informed decisions',
+        id: '2CunXT',
     },
     agentMemoryTooltip: {
         defaultMessage: 'When enabled, the SearchMemory tool and knowledge base prompts will be automatically added',

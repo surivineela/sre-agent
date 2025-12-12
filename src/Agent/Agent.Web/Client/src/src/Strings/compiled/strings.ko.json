@@ -102,13 +102,7 @@
   "+OMfjA": [
     {
       "type": 0,
-      "value": "Give access to knowledge base"
-    }
-  ],
-  "+Pmftr": [
-    {
-      "type": 0,
-      "value": "초안 다시 설정"
+      "value": "기술 자료에 대한 액세스 권한 부여"
     }
   ],
   "+S4WAz": [
@@ -175,12 +169,6 @@
       "value": "(으)로의 전달 추가했음"
     }
   ],
-  "+ZdOJt": [
-    {
-      "type": 0,
-      "value": "예약된 작업 끄기"
-    }
-  ],
   "+bJIWo": [
     {
       "type": 0,
@@ -197,12 +185,6 @@
     {
       "type": 0,
       "value": "새 하위 에이전트 만들기"
-    }
-  ],
-  "+hJd45": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터 편집"
     }
   ],
   "+hOwpi": [
@@ -327,7 +309,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting Kusto tools"
+              "value": "Kusto 도구를 삭제하는 중"
             }
           ]
         }
@@ -372,11 +354,15 @@
   "/HeRX5": [
     {
       "type": 0,
-      "value": "Failed to create subagent with error: "
+      "value": "하위 에이전트를 생성하지 못했습니다(오류: "
     },
     {
       "type": 1,
       "value": "error"
+    },
+    {
+      "type": 0,
+      "value": ")."
     }
   ],
   "/N0Usl": [
@@ -473,10 +459,26 @@
       "value": "Custom Vision 프로젝트를 관리합니다."
     }
   ],
+  "/jp8iL": [
+    {
+      "type": 0,
+      "value": "Failed to save tool: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
   "/mHau5": [
     {
       "type": 0,
       "value": "커넥터를 만들지 못했습니다."
+    }
+  ],
+  "/mPnOR": [
+    {
+      "type": 0,
+      "value": "Skills Enabled"
     }
   ],
   "/qCaiZ": [
@@ -549,12 +551,6 @@
     {
       "type": 0,
       "value": "AI 제안 보기"
-    }
-  ],
-  "05Rzkx": [
-    {
-      "type": 0,
-      "value": "테스트 에이전트"
     }
   ],
   "08bD52": [
@@ -633,14 +629,10 @@
       "value": "빠른 수정"
     }
   ],
-  "0MhOuN": [
-    {
-      "type": 1,
-      "value": "name"
-    },
+  "0L2J5T": [
     {
       "type": 0,
-      "value": " 작업을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
+      "value": "New file"
     }
   ],
   "0Qocmw": [
@@ -711,6 +703,12 @@
     {
       "type": 0,
       "value": "고급 옵션"
+    }
+  ],
+  "0eQHdW": [
+    {
+      "type": 0,
+      "value": "Create Python Tool"
     }
   ],
   "0eZALE": [
@@ -853,6 +851,40 @@
       "value": "진단, 메트릭, 지식 등에 대한 최적의 에이전트 성능을 얻으려면 Azure Kubernetes Service, Functions, Container Apps 또는 Web Apps와 같은 Azure 컴퓨팅 서비스를 하나 이상 포함한 리소스 그룹을 사용하세요."
     }
   ],
+  "1/3fw+": [
+    {
+      "type": 0,
+      "value": "Failed to update scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "1/xsyG": [
+    {
+      "type": 0,
+      "value": "Create your agent first to enable testing."
+    }
+  ],
   "12GY0h": [
     {
       "type": 0,
@@ -911,12 +943,6 @@
       "value": "인시던트 처리를 자동화하는 응답 계획 추가"
     }
   ],
-  "1DDIYv": [
-    {
-      "type": 0,
-      "value": "이 예약된 작업을 다시 시작하시겠습니까?"
-    }
-  ],
   "1EnaNQ": [
     {
       "type": 0,
@@ -946,7 +972,7 @@
   "1LBny5": [
     {
       "type": 0,
-      "value": "Stopped"
+      "value": "중지됨"
     }
   ],
   "1OorZL": [
@@ -1102,16 +1128,38 @@
       "value": "응답 계획"
     }
   ],
+  "1vVgdq": [
+    {
+      "type": 0,
+      "value": "Failed to run scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "1xTayQ": [
     {
       "type": 0,
-      "value": "Enter endpoint"
-    }
-  ],
-  "1xZjpU": [
-    {
-      "type": 0,
-      "value": "이 예약된 작업을 일시 중지하시겠습니까?"
+      "value": "엔드포인트 입력"
     }
   ],
   "2+TYMx": [
@@ -1150,6 +1198,12 @@
       "value": "PagerDuty가 연결되었습니다."
     }
   ],
+  "25DrlN": [
+    {
+      "type": 0,
+      "value": "What should this function do?"
+    }
+  ],
   "26Vq1R": [
     {
       "type": 0,
@@ -1176,12 +1230,6 @@
     {
       "type": 0,
       "value": "커넥터 업데이트 실패"
-    }
-  ],
-  "2CSEeq": [
-    {
-      "type": 0,
-      "value": "주기 설명 — Cron 가져오기"
     }
   ],
   "2FLZrG": [
@@ -1246,12 +1294,6 @@
       "value": "인시던트 요약"
     }
   ],
-  "2YgmBr": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 꺼졌습니다."
-    }
-  ],
   "2a+ttj": [
     {
       "type": 0,
@@ -1312,6 +1354,12 @@
       "value": "커넥터"
     }
   ],
+  "2myhph": [
+    {
+      "type": 0,
+      "value": "Test the function to continue."
+    }
+  ],
   "2os8R1": [
     {
       "type": 0,
@@ -1348,16 +1396,38 @@
       "value": "Grafana 대시보드"
     }
   ],
+  "3/OG7/": [
+    {
+      "type": 0,
+      "value": "Updating scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    }
+  ],
   "3/wF0G": [
     {
       "type": 0,
       "value": "슬래시 명령"
-    }
-  ],
-  "30Ap/Y": [
-    {
-      "type": 0,
-      "value": "Cron:"
     }
   ],
   "312q4w": [
@@ -1388,6 +1458,12 @@
     {
       "type": 0,
       "value": "이 작업은 에이전트의 관리되는 리소스 그룹에서 리소스 그룹을 영구적으로 제거합니다. 제거하시겠습니까?"
+    }
+  ],
+  "3DC7Da": [
+    {
+      "type": 0,
+      "value": "Enter argument"
     }
   ],
   "3DzXFS": [
@@ -1474,12 +1550,6 @@
       "value": "변경 내용 저장"
     }
   ],
-  "3Wq8aM": [
-    {
-      "type": 0,
-      "value": "Cron"
-    }
-  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -1506,7 +1576,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting incident triggers"
+              "value": "인시던트 트리거를 삭제하는 중"
             }
           ]
         }
@@ -1590,12 +1660,6 @@
       "value": "% 신뢰도 예상"
     }
   ],
-  "3sjbqq": [
-    {
-      "type": 0,
-      "value": "예약된 작업 생성 중..."
-    }
-  ],
   "3t/IhV": [
     {
       "type": 0,
@@ -1608,10 +1672,10 @@
       "value": "탐색 확장"
     }
   ],
-  "3y9DGg": [
+  "3xD7BQ": [
     {
       "type": 0,
-      "value": "다시 시작"
+      "value": "Add additional files to include with this skill."
     }
   ],
   "3yurtF": [
@@ -1650,12 +1714,6 @@
       "value": "Grafana 대시보드를 SRE 에이전트에 연결하는 중"
     }
   ],
-  "40gxTJ": [
-    {
-      "type": 0,
-      "value": "에이전트 프롬프트"
-    }
-  ],
   "41zpq3": [
     {
       "type": 0,
@@ -1683,7 +1741,7 @@
   "450Fty": [
     {
       "type": 0,
-      "value": "None"
+      "value": "없음"
     }
   ],
   "451B6Z": [
@@ -1708,12 +1766,6 @@
     {
       "type": 0,
       "value": "이 에이전트"
-    }
-  ],
-  "493R/T": [
-    {
-      "type": 0,
-      "value": "초안 지침을 공유하면 예약된 에이전트 실행에 맞게 조정해 드리겠습니다."
     }
   ],
   "498yM3": [
@@ -1944,22 +1996,10 @@
       "value": " 님, AKS 클러스터 eastus 및 westeurope에서 일시적인 대기 시간 급증에 대한 진단이 필요합니다."
     }
   ],
-  "53qjcm": [
-    {
-      "type": 0,
-      "value": "예약된 작업을 업데이트하는 중"
-    }
-  ],
   "543Ygw": [
     {
       "type": 0,
       "value": "실행 세부 정보 및 요청"
-    }
-  ],
-  "54UIcW": [
-    {
-      "type": 0,
-      "value": "지침을 다듬을 수 없습니다. 잠시 후 다시 시도하세요."
     }
   ],
   "59z+Aj": [
@@ -1975,7 +2015,7 @@
   "5AvgDc": [
     {
       "type": 0,
-      "value": "Creating subagent \""
+      "value": "하위 에이전트 \""
     },
     {
       "type": 1,
@@ -1983,7 +2023,7 @@
     },
     {
       "type": 0,
-      "value": "\""
+      "value": "\"을(를) 만드는 중"
     }
   ],
   "5CX32Z": [
@@ -2033,7 +2073,7 @@
   "5NZIbS": [
     {
       "type": 0,
-      "value": "Open in Azure Portal"
+      "value": "Azure Portal에서 열기"
     }
   ],
   "5POweM": [
@@ -2108,6 +2148,38 @@
       "value": "새로 만들기"
     }
   ],
+  "5WNvJO": [
+    {
+      "type": 0,
+      "value": "Running scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "5WWljt": [
     {
       "type": 0,
@@ -2128,6 +2200,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "5X7NpJ": [
+    {
+      "type": 0,
+      "value": "Upload folder"
     }
   ],
   "5XRsWa": [
@@ -2168,7 +2246,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete incident triggers"
+              "value": "인시던트 트리거를 삭제하지 못했습니다."
             }
           ]
         }
@@ -2226,6 +2304,12 @@
     {
       "type": 0,
       "value": "알 수 없음"
+    }
+  ],
+  "5kCFXN": [
+    {
+      "type": 0,
+      "value": "Generate with AI instead"
     }
   ],
   "5kK+j9": [
@@ -2376,12 +2460,6 @@
       "value": "인시던트 미리 보기"
     }
   ],
-  "69sjgc": [
-    {
-      "type": 0,
-      "value": "키 자격 증명 모음 URI 입력"
-    }
-  ],
   "6B0Aua": [
     {
       "type": 0,
@@ -2416,6 +2494,12 @@
       "value": "관리되는 연결을 만들지 못함"
     }
   ],
+  "6GLyN3": [
+    {
+      "type": 0,
+      "value": "Generating test cases"
+    }
+  ],
   "6IIC+D": [
     {
       "type": 0,
@@ -2426,6 +2510,12 @@
     {
       "type": 0,
       "value": "작성기를 만들었습니다. 새 질문을 입력해 새 채팅을 시작합니다."
+    }
+  ],
+  "6LKCR/": [
+    {
+      "type": 0,
+      "value": "Analyzing intent"
     }
   ],
   "6LZ2qn": [
@@ -2502,12 +2592,6 @@
       "value": "마지막 실행 이후 변경 내용 없음"
     }
   ],
-  "6YHhH+": [
-    {
-      "type": 0,
-      "value": "예: */5 * * * *"
-    }
-  ],
   "6YXj/s": [
     {
       "type": 0,
@@ -2520,28 +2604,22 @@
       "value": "예약된 작업 편집"
     }
   ],
-  "6aH1+U": [
-    {
-      "type": 0,
-      "value": "예약된 작업 만들기"
-    }
-  ],
   "6bkNTl": [
     {
       "type": 0,
       "value": "상관 관계 ID:"
     }
   ],
-  "6dEJ43": [
-    {
-      "type": 0,
-      "value": "Cron 초안"
-    }
-  ],
   "6dWeUs": [
     {
       "type": 0,
       "value": "배포된 리소스와 비용을 관리할 구독을 선택합니다. 폴더와 같은 리소스 그룹을 사용하여 모든 리소스를 구성하고 관리합니다."
+    }
+  ],
+  "6fPJcm": [
+    {
+      "type": 0,
+      "value": "Generate Code with AI"
     }
   ],
   "6feu1e": [
@@ -2554,6 +2632,12 @@
     {
       "type": 0,
       "value": "세션 인사이트 생성"
+    }
+  ],
+  "6lHI9u": [
+    {
+      "type": 0,
+      "value": "Send a message to start testing your agent."
     }
   ],
   "6m5Ba0": [
@@ -2650,12 +2734,6 @@
       "value": "인사이트 생성 중..."
     }
   ],
-  "75lAeu": [
-    {
-      "type": 0,
-      "value": "예약된 작업 종료 날짜 선택"
-    }
-  ],
   "77t9cY": [
     {
       "type": 0,
@@ -2666,12 +2744,6 @@
     {
       "type": 0,
       "value": "전달에 사용할 수 있는 에이전트가 없음"
-    }
-  ],
-  "7C0xai": [
-    {
-      "type": 0,
-      "value": "데이터 원본"
     }
   ],
   "7Cy5xk": [
@@ -2686,6 +2758,12 @@
       "value": "검토 모드"
     }
   ],
+  "7JgdFw": [
+    {
+      "type": 0,
+      "value": "Comma-separated tool names, e.g., SearchKusto, GetLogs"
+    }
+  ],
   "7K6W8s": [
     {
       "offset": 0,
@@ -2694,7 +2772,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Kusto tools deleted successfully"
+              "value": "Kusto 도구를 삭제했습니다."
             }
           ]
         }
@@ -2976,6 +3054,40 @@
       "value": "사용자 지정 인시던트 응답 계획이 추가되었습니다."
     }
   ],
+  "8H0PeE": [
+    {
+      "type": 0,
+      "value": "Failed to delete scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
+  "8J3eYt": [
+    {
+      "type": 0,
+      "value": "Test live agent"
+    }
+  ],
   "8LMIGa": [
     {
       "type": 0,
@@ -2985,7 +3097,7 @@
   "8MoJEj": [
     {
       "type": 0,
-      "value": "Message grouping:"
+      "value": "메시지 그룹화:"
     }
   ],
   "8NHZQV": [
@@ -3143,22 +3255,28 @@
       "value": "다른 검색어를 시도하거나 검색을 지우면 모든 커넥터를 볼 수 있습니다."
     }
   ],
+  "8jD/lL": [
+    {
+      "type": 0,
+      "value": "Create skill"
+    }
+  ],
   "8lCjAM": [
     {
       "type": 0,
       "value": "우선순위"
     }
   ],
+  "8lQNdb": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks have been deleted."
+    }
+  ],
   "8nBFW4": [
     {
       "type": 0,
       "value": "Redis Cache 기여자"
-    }
-  ],
-  "8ojA9A": [
-    {
-      "type": 0,
-      "value": "AI가 지침을 다듬도록 허용"
     }
   ],
   "8oyl6b": [
@@ -3215,7 +3333,7 @@
           "value": [
             {
               "type": 0,
-              "value": "SRE Agents deleted successfully"
+              "value": "SRE 에이전트를 삭제했습니다."
             }
           ]
         }
@@ -3302,7 +3420,7 @@
   "96TDsd": [
     {
       "type": 0,
-      "value": "Learn more about subagents"
+      "value": "하위 에이전트에 대해 자세히 알아보기"
     }
   ],
   "98A08r": [
@@ -3333,22 +3451,16 @@
       "value": "message"
     }
   ],
-  "9G+4ga": [
+  "9DqDnP": [
     {
       "type": 0,
-      "value": "다른 검색어를 시도하거나 검색을 지우면 모든 데이터 커넥터를 볼 수 있습니다."
+      "value": "Generate Tool"
     }
   ],
   "9GSKOR": [
     {
       "type": 0,
       "value": "이렇게 하면 기본 메타 에이전트를 재정의하여 일반적인 Azure 지식을 제거하고 더 집중적인 환경을 제공합니다."
-    }
-  ],
-  "9MPGF8": [
-    {
-      "type": 0,
-      "value": "에이전트 지침"
     }
   ],
   "9MwJ6v": [
@@ -3379,6 +3491,12 @@
     {
       "type": 0,
       "value": "보내기"
+    }
+  ],
+  "9WyylR": [
+    {
+      "type": 0,
+      "value": "Command"
     }
   ],
   "9X3VEw": [
@@ -3418,13 +3536,13 @@
   "9jqvi3": [
     {
       "type": 0,
-      "value": "When an agent is stopped, it cannot monitor or interact, but it still incurs a fixed cost."
+      "value": "에이전트가 중지되면 모니터링하거나 상호 작용할 수 없지만 고정 비용은 계속 발생합니다."
     }
   ],
   "9jut5b": [
     {
       "type": 0,
-      "value": "Cron expression (UTC)"
+      "value": "Cron 식(UTC)"
     }
   ],
   "9q75fe": [
@@ -3466,19 +3584,13 @@
   "A+4geD": [
     {
       "type": 0,
-      "value": "Create GitHub issue with SRE agent team"
+      "value": "SRE Agent 팀과 GitHub 이슈 만들기"
     }
   ],
   "A/xTHO": [
     {
       "type": 0,
       "value": "역할 할당"
-    }
-  ],
-  "A0mVzo": [
-    {
-      "type": 0,
-      "value": "성공/실패 신호와 필요한 출력 형식을 정의하세요(특정한 경우)."
     }
   ],
   "A0rbH+": [
@@ -3491,12 +3603,6 @@
     {
       "type": 0,
       "value": "주석을 업데이트했습니다"
-    }
-  ],
-  "A3ptul": [
-    {
-      "type": 0,
-      "value": "템플릿"
     }
   ],
   "A4ZrJb": [
@@ -3553,7 +3659,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Incident triggers deleted successfully"
+              "value": "인시던트 트리거를 삭제했습니다."
             }
           ]
         }
@@ -3566,7 +3672,7 @@
   "AHQWDT": [
     {
       "type": 0,
-      "value": "Thinking"
+      "value": "생각"
     }
   ],
   "AHQdRU": [
@@ -3575,22 +3681,10 @@
       "value": "월별 AAU 제한:"
     }
   ],
-  "ALkPTF": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터가 구성되지 않음"
-    }
-  ],
   "ASLbZd": [
     {
       "type": 0,
       "value": "분석 내보내기"
-    }
-  ],
-  "ATXGa+": [
-    {
-      "type": 0,
-      "value": "에이전트 이름"
     }
   ],
   "ATYp8z": [
@@ -3605,44 +3699,16 @@
       "value": "적용할 보류 중인 구성 변경 내용이 없습니다."
     }
   ],
-  "AaJ/LU": [
-    {
-      "type": 0,
-      "value": "지침 다듬기"
-    }
-  ],
-  "AbXVP4": [
-    {
-      "type": 0,
-      "value": "만든 시간"
-    }
-  ],
   "Abi/u/": [
     {
       "type": 0,
       "value": "패널 확장"
     }
   ],
-  "AbleKr": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터"
-    }
-  ],
   "AbpmRv": [
     {
       "type": 0,
       "value": "지침 입력"
-    }
-  ],
-  "Ad7J7h": [
-    {
-      "type": 0,
-      "value": "작업을 삭제하지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "AdRf7Y": [
@@ -3703,6 +3769,38 @@
       "value": "REST API 액세스 키"
     }
   ],
+  "AuUgE1": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been run."
+    }
+  ],
   "AvHD3R": [
     {
       "type": 0,
@@ -3712,7 +3810,7 @@
   "Aw3qRf": [
     {
       "type": 0,
-      "value": "Reasoning"
+      "value": "추론"
     }
   ],
   "AxMhQr": [
@@ -3738,7 +3836,7 @@
   "B/qM5p": [
     {
       "type": 0,
-      "value": "Enter Teams channel link"
+      "value": "Teams 채널 링크 입력"
     }
   ],
   "B3Q5mz": [
@@ -3789,12 +3887,6 @@
       "value": "Azure Center for SAP solutions 뷰어"
     }
   ],
-  "BLU3k6": [
-    {
-      "type": 0,
-      "value": "예약된 작업 편집"
-    }
-  ],
   "BNH9Uy": [
     {
       "type": 0,
@@ -3813,6 +3905,12 @@
     {
       "type": 0,
       "value": "도구 기능의 유형"
+    }
+  ],
+  "BP5nk0": [
+    {
+      "type": 0,
+      "value": "Standard Output"
     }
   ],
   "BSQQkf": [
@@ -3921,16 +4019,6 @@
       "value": "유효성 검사용 데이터 형식 및 요구 사항"
     }
   ],
-  "BmEERa": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "개의 데이터 커넥터를 삭제하는 중..."
-    }
-  ],
   "Bn/txo": [
     {
       "type": 0,
@@ -3953,12 +4041,6 @@
     {
       "type": 0,
       "value": "패널 축소"
-    }
-  ],
-  "BynA9c": [
-    {
-      "type": 0,
-      "value": "선택적 조정"
     }
   ],
   "C2iTEH": [
@@ -4222,7 +4304,7 @@
   "D9WytX": [
     {
       "type": 0,
-      "value": "Search for an incident by name"
+      "value": "이름으로 인시던트 검색"
     }
   ],
   "DD2Wjk": [
@@ -4331,6 +4413,12 @@
       "value": "출력 유형"
     }
   ],
+  "DS/6lY": [
+    {
+      "type": 0,
+      "value": "Collapse to show less"
+    }
+  ],
   "DVVbGP": [
     {
       "type": 0,
@@ -4384,7 +4472,7 @@
   "DcEKTG": [
     {
       "type": 0,
-      "value": "Failed to run test"
+      "value": "테스트를 실행하지 못함"
     }
   ],
   "DeP+ZM": [
@@ -4459,6 +4547,12 @@
       "value": "논리 앱을 삭제하지 못함"
     }
   ],
+  "DtmRJJ": [
+    {
+      "type": 0,
+      "value": "SSE"
+    }
+  ],
   "DuejfP": [
     {
       "type": 0,
@@ -4510,13 +4604,19 @@
   "E7aYCD": [
     {
       "type": 0,
-      "value": "Search for a resource by name"
+      "value": "이름으로 리소스 검색"
     }
   ],
   "E9CWuE": [
     {
       "type": 0,
       "value": "Example: where SubscriptionId == \"##SubscriptionId##\""
+    }
+  ],
+  "EAGAAs": [
+    {
+      "type": 0,
+      "value": "Test your Python function before saving"
     }
   ],
   "EAO/K+": [
@@ -4569,6 +4669,12 @@
       "value": "지난 24시간 동안 내 리소스의 가용성을 분석할 수 있나요?"
     }
   ],
+  "EJSVsO": [
+    {
+      "type": 0,
+      "value": "Skills"
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -4578,7 +4684,7 @@
   "EN0CPQ": [
     {
       "type": 0,
-      "value": "Subagent builder"
+      "value": "하위 에이전트 작성기"
     }
   ],
   "EN5iMk": [
@@ -4599,6 +4705,12 @@
       "value": "품질 평가가 포함된 전체 워크플로"
     }
   ],
+  "EPi9lK": [
+    {
+      "type": 0,
+      "value": "Previous test failed:"
+    }
+  ],
   "EQa6dK": [
     {
       "type": 0,
@@ -4611,6 +4723,12 @@
       "value": "필터 이름 입력"
     }
   ],
+  "ESqLtC": [
+    {
+      "type": 0,
+      "value": "Run local command or executable"
+    }
+  ],
   "ETRyBL": [
     {
       "type": 0,
@@ -4619,22 +4737,18 @@
   ],
   "EVA81S": [
     {
-      "type": 0,
-      "value": "No "
-    },
-    {
       "type": 1,
       "value": "entity"
     },
     {
       "type": 0,
-      "value": " found"
+      "value": "을(를) 찾을 수 없음"
     }
   ],
   "EVXYDU": [
     {
       "type": 0,
-      "value": "Learn more about creating subagents."
+      "value": "하위 에이전트 만들기에 대해 자세히 알아보세요."
     }
   ],
   "EWrExf": [
@@ -4717,6 +4831,12 @@
     {
       "type": 0,
       "value": "추적 데이터 구문 분석했지만 경고가 생성되었습니다."
+    }
+  ],
+  "Eo9M+K": [
+    {
+      "type": 0,
+      "value": "Select a file to edit"
     }
   ],
   "Ep74wA": [
@@ -4855,6 +4975,12 @@
       "value": "관리되는 리소스 그룹을 추가했습니다"
     }
   ],
+  "FGN2ax": [
+    {
+      "type": 0,
+      "value": "Tool saved successfully!"
+    }
+  ],
   "FGP0Kd": [
     {
       "type": 0,
@@ -4879,12 +5005,6 @@
       "value": "PAT 또는 API 키를 입력하세요"
     }
   ],
-  "FNQNS1": [
-    {
-      "type": 0,
-      "value": "평일 오전 9시(태평양 표준시)"
-    }
-  ],
   "FPdoJ3": [
     {
       "type": 0,
@@ -4895,26 +5015,6 @@
     {
       "type": 0,
       "value": "지정된 원본 에이전트 없음"
-    }
-  ],
-  "FSYccN": [
-    {
-      "type": 0,
-      "value": "이 작업을 언제 실행할까요?"
-    }
-  ],
-  "FSZ5F/": [
-    {
-      "type": 0,
-      "value": "예약된 작업 "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "을(를) 삭제하는 중"
     }
   ],
   "FTWkpv": [
@@ -4951,12 +5051,6 @@
       "value": "연결 끊김"
     }
   ],
-  "FZwBv0": [
-    {
-      "type": 0,
-      "value": "실행 세부 정보"
-    }
-  ],
   "FeBVnC": [
     {
       "type": 0,
@@ -4967,6 +5061,12 @@
     {
       "type": 0,
       "value": "다단계 진단을 검사하여 에이전트가 도구를 효과적으로 오케스트레이션할 수 있는지 확인합니다."
+    }
+  ],
+  "FiXNt1": [
+    {
+      "type": 0,
+      "value": "default"
     }
   ],
   "FitglU": [
@@ -5011,6 +5111,12 @@
     {
       "type": 0,
       "value": "이 에이전트에 대한 지식 기반이 활성화되어 있습니다. SearchMemory 도구와 지식 기반 프롬프트가 자동으로 포함됩니다."
+    }
+  ],
+  "FuPxOh": [
+    {
+      "type": 0,
+      "value": "Save & Use Tool"
     }
   ],
   "Fv1ZSz": [
@@ -5069,7 +5175,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete scheduled tasks"
+              "value": "예약된 작업을 삭제하지 못했습니다."
             }
           ]
         }
@@ -5221,6 +5327,18 @@
       "value": "명령으로 돌아가기"
     }
   ],
+  "GDCPLv": [
+    {
+      "type": 0,
+      "value": "Connect via URL endpoint"
+    }
+  ],
+  "GFhSwY": [
+    {
+      "type": 0,
+      "value": "Skill"
+    }
+  ],
   "GGr/yS": [
     {
       "type": 0,
@@ -5343,12 +5461,6 @@
       "value": "값"
     }
   ],
-  "Gvxoji": [
-    {
-      "type": 0,
-      "value": "이름이 필요합니다."
-    }
-  ],
   "GzKpRn": [
     {
       "type": 1,
@@ -5401,16 +5513,16 @@
       "value": "코드 최적화 권장 사항이 검색되지 않았습니다."
     }
   ],
+  "HHP8Nh": [
+    {
+      "type": 0,
+      "value": "Code generated successfully!"
+    }
+  ],
   "HJ7ZeR": [
     {
       "type": 0,
       "value": "문제 설명"
-    }
-  ],
-  "HKlw1J": [
-    {
-      "type": 0,
-      "value": "이렇게 하면 에이전트에서 이 데이터 커넥터의 연결이 영구적으로 끊어집니다. 이 데이터 커넥터의 연결을 끊으시겠습니까?"
     }
   ],
   "HMZIeG": [
@@ -5429,12 +5541,6 @@
     {
       "type": 0,
       "value": "에이전트 에코시스템 빌드"
-    }
-  ],
-  "HOJNsf": [
-    {
-      "type": 0,
-      "value": "작업 실행을 중지해야 하는 경우 선택"
     }
   ],
   "HQ4NJ3": [
@@ -5485,6 +5591,12 @@
       "value": "보류 중인 승인"
     }
   ],
+  "HeFlq1": [
+    {
+      "type": 0,
+      "value": "Skill name is required"
+    }
+  ],
   "Hgs+WM": [
     {
       "type": 0,
@@ -5504,7 +5616,7 @@
   "Hh4t4o": [
     {
       "type": 0,
-      "value": "Subagent \""
+      "value": "하위 에이전트 \""
     },
     {
       "type": 1,
@@ -5512,7 +5624,7 @@
     },
     {
       "type": 0,
-      "value": "\" has been created successfully"
+      "value": "\"을(를) 만들었습니다."
     }
   ],
   "Hh8It5": [
@@ -5537,6 +5649,12 @@
     {
       "type": 0,
       "value": "시간 프레임"
+    }
+  ],
+  "Hnv6Ej": [
+    {
+      "type": 0,
+      "value": "Python Function"
     }
   ],
   "Hs02Tq": [
@@ -5631,6 +5749,16 @@
       "value": "문자열"
     }
   ],
+  "I3ymC9": [
+    {
+      "type": 0,
+      "value": "Exit code: "
+    },
+    {
+      "type": 1,
+      "value": "code"
+    }
+  ],
   "I4PbZq": [
     {
       "type": 0,
@@ -5715,22 +5843,18 @@
           "value": [
             {
               "type": 0,
-              "value": "Every hour"
+              "value": "1시간마다"
             }
           ]
         },
         "other": {
           "value": [
             {
-              "type": 0,
-              "value": "Every "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " hours"
+              "value": "시간마다"
             }
           ]
         }
@@ -5798,10 +5922,22 @@
       "value": "새 스레드"
     }
   ],
+  "ITzzTV": [
+    {
+      "type": 0,
+      "value": "Test failed"
+    }
+  ],
   "IYLPrk": [
     {
       "type": 0,
       "value": "예약된 작업 삭제"
+    }
+  ],
+  "IZFEUg": [
+    {
+      "type": 0,
+      "value": "Ready"
     }
   ],
   "IZYDgM": [
@@ -5814,12 +5950,6 @@
     {
       "type": 0,
       "value": "주석을 추가하거나 편집할 권한이 없습니다."
-    }
-  ],
-  "IbMKy+": [
-    {
-      "type": 0,
-      "value": "이 버전 사용"
     }
   ],
   "IcB2fr": [
@@ -5837,7 +5967,7 @@
   "Icfr5t": [
     {
       "type": 0,
-      "value": "Search by incident trigger"
+      "value": "인시던트 트리거로 검색"
     }
   ],
   "IiNwpr": [
@@ -5853,7 +5983,7 @@
   "Ij0ity": [
     {
       "type": 0,
-      "value": "Search by tool"
+      "value": "도구로 검색"
     }
   ],
   "InWqys": [
@@ -5874,10 +6004,22 @@
       "value": "에이전트는 구조화된 로그, 원격 분석 및 시계열 데이터에 대해 미리 정의된 쿼리를 사용합니다."
     }
   ],
+  "IoxJ74": [
+    {
+      "type": 0,
+      "value": "Writing function code"
+    }
+  ],
   "Ip7Gd3": [
     {
       "type": 0,
       "value": "자동 적용"
+    }
+  ],
+  "IpS9Tn": [
+    {
+      "type": 0,
+      "value": "Turn on scheduled tasks"
     }
   ],
   "IrCHQG": [
@@ -5944,6 +6086,12 @@
       "value": "ServiceNow 설정의 유효성을 검사하지 못했습니다. 다시 시도하세요."
     }
   ],
+  "J3nUiY": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks are now off."
+    }
+  ],
   "J6XCfl": [
     {
       "type": 0,
@@ -5964,16 +6112,10 @@
       "value": "기존 항목 연결"
     }
   ],
-  "J8u7Xg": [
-    {
-      "type": 0,
-      "value": "마지막으로 수정한 날짜"
-    }
-  ],
   "J8uEym": [
     {
       "type": 0,
-      "value": "Search by scheduled task"
+      "value": "예약된 작업으로 검색"
     }
   ],
   "JA/VO+": [
@@ -6024,6 +6166,12 @@
       "value": "인시던트 응답 계획을 사용하여 에이전트는 일반적인 유형의 인시던트를 관리하는 데 필요한 도구를 선택합니다. 사용자 지정 응답 계획은 사용자가 제공하는 에이전트 관련 지침을 제공하여 이 기능을 대체합니다."
     }
   ],
+  "JSVEZ3": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled tasks."
+    }
+  ],
   "JSW9Xw": [
     {
       "type": 0,
@@ -6034,6 +6182,16 @@
     {
       "type": 0,
       "value": "팁:"
+    }
+  ],
+  "JTS+Zf": [
+    {
+      "type": 0,
+      "value": "Failed to delete skill "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "JVZyFs": [
@@ -6132,6 +6290,12 @@
     {
       "type": 0,
       "value": "관리 ID(에이전트 공간 관리 ID가 에이전트 공간으로 자동 선택되고 호환되는 커넥터 발견됨)"
+    }
+  ],
+  "Jdy/E7": [
+    {
+      "type": 0,
+      "value": "Testing function…"
     }
   ],
   "JezZlU": [
@@ -6250,12 +6414,6 @@
       "value": "트리거 검토"
     }
   ],
-  "JzOvG/": [
-    {
-      "type": 0,
-      "value": "우리가 세운 가정"
-    }
-  ],
   "K1h5xo": [
     {
       "type": 0,
@@ -6272,12 +6430,6 @@
     {
       "type": 0,
       "value": "표시"
-    }
-  ],
-  "K7tsik": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 성공적으로 실행되었음"
     }
   ],
   "K9q4Xw": [
@@ -6352,12 +6504,6 @@
       "value": "새 에이전트"
     }
   ],
-  "KS5JHs": [
-    {
-      "type": 0,
-      "value": "실행 수"
-    }
-  ],
   "KXyWfi": [
     {
       "type": 0,
@@ -6398,7 +6544,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete SRE Agents"
+              "value": "SRE 에이전트 삭제"
             }
           ]
         }
@@ -6414,16 +6560,44 @@
       "value": "예/아니요"
     }
   ],
-  "KiANnA": [
+  "KiXNvz": [
     {
       "type": 0,
-      "value": "예약된 작업 켜기"
+      "value": "Run"
     }
   ],
   "Kkc3/u": [
     {
       "type": 0,
       "value": "인시던트 응답 계획 편집"
+    }
+  ],
+  "KlWAix": [
+    {
+      "type": 0,
+      "value": "Failed to turn on scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
     }
   ],
   "Km+WSh": [
@@ -6506,6 +6680,12 @@
       "value": "AI 제안이 삭제됨"
     }
   ],
+  "L/BdWN": [
+    {
+      "type": 0,
+      "value": "Generate with AI ✨"
+    }
+  ],
   "L/ct40": [
     {
       "type": 0,
@@ -6542,12 +6722,6 @@
       "value": "최근 활동"
     }
   ],
-  "LFn7Ak": [
-    {
-      "type": 0,
-      "value": "예약 작업이 성공적으로 생성되었습니다."
-    }
-  ],
   "LGZkPZ": [
     {
       "type": 0,
@@ -6574,12 +6748,6 @@
     {
       "type": 0,
       "value": "리소스 그룹 검토"
-    }
-  ],
-  "LPz7Qc": [
-    {
-      "type": 0,
-      "value": "도구 유형"
     }
   ],
   "LQ2AtR": [
@@ -6668,6 +6836,12 @@
       "value": "Kusto 도구를 만드는 중"
     }
   ],
+  "LbYKes": [
+    {
+      "type": 0,
+      "value": "Failed to save skill"
+    }
+  ],
   "LbkJp1": [
     {
       "type": 0,
@@ -6678,6 +6852,12 @@
     {
       "type": 0,
       "value": "사용자 지정 헤더"
+    }
+  ],
+  "LjwVHP": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks are now on."
     }
   ],
   "LkUvu/": [
@@ -6698,10 +6878,26 @@
       "value": "사용자 지정 응답 계획 이름"
     }
   ],
+  "Lq6q6U": [
+    {
+      "type": 0,
+      "value": "Failed to generate code: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "LsGLc0": [
     {
       "type": 0,
       "value": "직접 인수"
+    }
+  ],
+  "LstsP/": [
+    {
+      "type": 0,
+      "value": "MCP Tool"
     }
   ],
   "LuHM0/": [
@@ -6746,7 +6942,7 @@
   "LxHm7z": [
     {
       "type": 0,
-      "value": "An AI subagent with instructions and tools"
+      "value": "지침 및 도구가 포함된 AI 하위 에이전트"
     }
   ],
   "LyHqqV": [
@@ -6761,6 +6957,12 @@
       "value": "사용자 지정 응답 계획 편집"
     }
   ],
+  "M+AZNX": [
+    {
+      "type": 0,
+      "value": "Delete scheduled tasks"
+    }
+  ],
   "M+QCSD": [
     {
       "type": 1,
@@ -6771,22 +6973,10 @@
       "value": " 입력"
     }
   ],
-  "M/3/kG": [
-    {
-      "type": 0,
-      "value": "최대 실행 횟수는 양수여야 합니다."
-    }
-  ],
   "M/zZVx": [
     {
       "type": 0,
       "value": "필터 추가"
-    }
-  ],
-  "M0ay1D": [
-    {
-      "type": 0,
-      "value": "예약된 작업 실행 중"
     }
   ],
   "M3159R": [
@@ -6822,7 +7012,7 @@
   "MCLPMF": [
     {
       "type": 0,
-      "value": "Scale your agent’s capabilities with subagents"
+      "value": "하위 에이전트를 사용하여 에이전트 기능 확장"
     }
   ],
   "MGZggN": [
@@ -6833,7 +7023,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete SRE Agents"
+              "value": "SRE 에이전트를 삭제하지 못했습니다"
             }
           ]
         }
@@ -6923,24 +7113,6 @@
       "value": "예, 사용자 지정 메타 에이전트로 재정의"
     }
   ],
-  "MPzBut": [
-    {
-      "type": 0,
-      "value": "실행 기록"
-    }
-  ],
-  "MQNtQ+": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터"
-    }
-  ],
-  "MSWnaq": [
-    {
-      "type": 0,
-      "value": "cron 식을 사용해 정기적으로 작업을 모니터링하거나 수행하는 새 예약 작업을 만듭니다."
-    }
-  ],
   "MUVpbF": [
     {
       "type": 0,
@@ -7015,12 +7187,6 @@
       "value": "error"
     }
   ],
-  "Mx6yYf": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 해제되었습니다."
-    }
-  ],
   "MxYLKu": [
     {
       "type": 0,
@@ -7081,18 +7247,32 @@
       "value": "확인"
     }
   ],
-  "N7cqYp": [
+  "N75VIa": [
     {
       "type": 0,
-      "value": "예약된 작업 "
+      "value": "Creating scheduled task"
     },
     {
-      "type": 1,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
       "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " 끄기"
     }
   ],
   "N7lPfx": [
@@ -7111,12 +7291,6 @@
     {
       "type": 0,
       "value": "권한 부여됨"
-    }
-  ],
-  "NBiLYK": [
-    {
-      "type": 0,
-      "value": "초안 작성 중..."
     }
   ],
   "NBxjGE": [
@@ -7200,7 +7374,7 @@
   "NZ4EtH": [
     {
       "type": 0,
-      "value": "A subagent with this name already exists"
+      "value": "이 이름의 하위 에이전트가 이미 있습니다."
     }
   ],
   "NcxGiD": [
@@ -7230,7 +7404,7 @@
   "NmQwIl": [
     {
       "type": 0,
-      "value": "Schedule:"
+      "value": "일정:"
     }
   ],
   "Nrc9ba": [
@@ -7259,6 +7433,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "NzhSBf": [
+    {
+      "type": 0,
+      "value": "Edit the code below or regenerate with different instructions"
     }
   ],
   "O+srpo": [
@@ -7325,6 +7505,12 @@
       "value": "전반적인 품질"
     }
   ],
+  "O25MZU": [
+    {
+      "type": 0,
+      "value": "Select all tools"
+    }
+  ],
   "O3Ak71": [
     {
       "type": 0,
@@ -7347,6 +7533,38 @@
     {
       "type": 0,
       "value": "아침 햇살"
+    }
+  ],
+  "ODswb7": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "OIWzWF": [
@@ -7424,13 +7642,19 @@
   "OQMatj": [
     {
       "type": 0,
-      "value": "Failed to create subagent"
+      "value": "하위 에이전트를 만들지 못했습니다."
     }
   ],
   "ORGv1Q": [
     {
       "type": 0,
       "value": "만들어짐"
+    }
+  ],
+  "ORcS+j": [
+    {
+      "type": 0,
+      "value": "Testing…"
     }
   ],
   "OSMnsR": [
@@ -7481,12 +7705,6 @@
       "value": "표준 cron 구문(UTC)을 사용해 에이전트 실행 시기를 제어합니다."
     }
   ],
-  "OYAXyI": [
-    {
-      "type": 0,
-      "value": "에이전트가 질문을 분석하거나 답변할 때 참조할 정보를 제공합니다."
-    }
-  ],
   "OYKAqF": [
     {
       "type": 0,
@@ -7521,6 +7739,12 @@
     {
       "type": 0,
       "value": "보통"
+    }
+  ],
+  "OmDQWM": [
+    {
+      "type": 0,
+      "value": "Cannot create skills when subagents exist"
     }
   ],
   "Oom2N7": [
@@ -7731,12 +7955,6 @@
       "value": "대상 에이전트가 지정되지 않았음"
     }
   ],
-  "PXYq8b": [
-    {
-      "type": 0,
-      "value": "유효한 5부분 cron 식(m h dom mon dow)을 입력하세요."
-    }
-  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -7843,12 +8061,6 @@
       "value": "총 작업 수"
     }
   ],
-  "PxsPJt": [
-    {
-      "type": 0,
-      "value": "예약된 작업 켜기"
-    }
-  ],
   "PysW/n": [
     {
       "type": 0,
@@ -7945,20 +8157,6 @@
     {
       "type": 0,
       "value": "설명"
-    }
-  ],
-  "Q9IHxV": [
-    {
-      "type": 0,
-      "value": "예약된 작업 "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "을(를) 실행하는 중"
     }
   ],
   "Q9Zp/n": [
@@ -8063,6 +8261,12 @@
       "value": "사용(트리거, 작업)"
     }
   ],
+  "QTVz4e": [
+    {
+      "type": 0,
+      "value": "Describe what your tool should do"
+    }
+  ],
   "QW+Q5N": [
     {
       "type": 0,
@@ -8081,10 +8285,32 @@
       "value": "1. 수행한 작업을 설명해 주세요. 2. 관련된 리소스나 서비스를 언급해 주세요."
     }
   ],
+  "QZnXvZ": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " tools"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Qcakd7": [
     {
       "type": 0,
-      "value": "This list shows your extended agents, tools, and connectors organized by category. Create and manage subagents to extend your capabilities, add custom tools for specific tasks, and configure connectors to access external resources."
+      "value": "이 목록에는 범주별로 구성된 확장 에이전트, 도구 및 커넥터가 표시됩니다. 하위 에이전트를 만들고 관리하여 기능을 확장하고, 특정 작업에 대한 사용자 지정 도구를 추가하고, 외부 리소스에 액세스하도록 커넥터를 구성합니다."
     }
   ],
   "QdDYGR": [
@@ -8103,6 +8329,12 @@
     {
       "type": 0,
       "value": "주석 편집"
+    }
+  ],
+  "Qg+chS": [
+    {
+      "type": 0,
+      "value": "Describe in plain English, e.g., \"Parse JSON logs and count errors by severity\""
     }
   ],
   "QgFHei": [
@@ -8159,6 +8391,12 @@
     {
       "type": 0,
       "value": "예: 0 9 * * 1-5"
+    }
+  ],
+  "QozEE6": [
+    {
+      "type": 0,
+      "value": "Additional files"
     }
   ],
   "QpCzB2": [
@@ -8225,6 +8463,34 @@
       "value": "아직 피드백 없음"
     }
   ],
+  "R56nxF": [
+    {
+      "type": 0,
+      "value": "Failed to create scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "R7DP3y": [
     {
       "type": 0,
@@ -8235,12 +8501,6 @@
     {
       "type": 0,
       "value": "인시던트 스레드가 이동됨"
-    }
-  ],
-  "RA3fki": [
-    {
-      "type": 0,
-      "value": "누락된 컨텍스트"
     }
   ],
   "RAjqKb": [
@@ -8345,6 +8605,12 @@
     {
       "type": 0,
       "value": "데이터베이스"
+    }
+  ],
+  "RbWH8Q": [
+    {
+      "type": 0,
+      "value": "MCP"
     }
   ],
   "Rfvi9/": [
@@ -8454,13 +8720,45 @@
   "S6we8v": [
     {
       "type": 0,
-      "value": "Edit incident trigger"
+      "value": "인시던트 트리거 편집"
     }
   ],
   "S8/4ZI": [
     {
       "type": 0,
       "value": "추가 작업"
+    }
+  ],
+  "S8Rsb6": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been deleted."
     }
   ],
   "SAINuE": [
@@ -8495,6 +8793,38 @@
       "value": "기존 도구 추가"
     }
   ],
+  "SEdSoA": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " has been updated."
+    }
+  ],
   "SFUZOQ": [
     {
       "type": 0,
@@ -8515,12 +8845,6 @@
       "value": ")"
     }
   ],
-  "SL+c5a": [
-    {
-      "type": 0,
-      "value": "—"
-    }
-  ],
   "SL7+hl": [
     {
       "type": 0,
@@ -8533,6 +8857,28 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "SM/hWJ": [
+    {
+      "type": 0,
+      "value": "Deleted "
+    },
+    {
+      "type": 1,
+      "value": "successCount"
+    },
+    {
+      "type": 0,
+      "value": " skills, but "
+    },
+    {
+      "type": 1,
+      "value": "failureCount"
+    },
+    {
+      "type": 0,
+      "value": " failed to delete"
     }
   ],
   "SMrXWc": [
@@ -8631,10 +8977,38 @@
       "value": "소유 팀 ID"
     }
   ],
+  "SjeMma": [
+    {
+      "type": 0,
+      "value": "Run scheduled tasks"
+    }
+  ],
   "Sjo1P4": [
     {
       "type": 0,
       "value": "사용자 지정"
+    }
+  ],
+  "SllKh/": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills deleted successfully"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "Slnpm8": [
@@ -8647,6 +9021,12 @@
     {
       "type": 0,
       "value": "초안이 아직 동기화되지 않음"
+    }
+  ],
+  "Sn2nYC": [
+    {
+      "type": 0,
+      "value": "Edit Name"
     }
   ],
   "SoBWeV": [
@@ -8795,12 +9175,6 @@
       "value": "에이전트 권한이 사용되었지만 작업을 실행하지 못했습니다."
     }
   ],
-  "TFsGSl": [
-    {
-      "type": 0,
-      "value": "무제한 실행을 위해 비워 둡니다."
-    }
-  ],
   "TGc4Lh": [
     {
       "offset": 0,
@@ -8809,7 +9183,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete incident triggers"
+              "value": "인시던트 트리거 삭제"
             }
           ]
         }
@@ -8831,6 +9205,38 @@
       "value": "정상"
     }
   ],
+  "TKNqWx": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now active."
+    }
+  ],
   "TKmub+": [
     {
       "type": 0,
@@ -8847,16 +9253,16 @@
       "value": "의 모든 인시던트에서"
     }
   ],
-  "TKsgZu": [
-    {
-      "type": 0,
-      "value": "주요 경고"
-    }
-  ],
   "TMZ2Rq": [
     {
       "type": 0,
       "value": "Grafana 관리자"
+    }
+  ],
+  "TMjYpD": [
+    {
+      "type": 0,
+      "value": "Brief description of what this skill does"
     }
   ],
   "TO55dt": [
@@ -8925,16 +9331,16 @@
       "value": "이 인사이트에는 마크다운 콘텐츠가 없습니다."
     }
   ],
-  "Tg4Q8g": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터의 연결을 끊으시겠습니까?"
-    }
-  ],
   "ThSX0k": [
     {
       "type": 0,
       "value": "SRE 에이전트 삭제"
+    }
+  ],
+  "TiR/Hq": [
+    {
+      "type": 0,
+      "value": "Saving..."
     }
   ],
   "TkWiD5": [
@@ -9053,6 +9459,12 @@
       "value": "웹 사이트 기여자/운영자"
     }
   ],
+  "UWZEBA": [
+    {
+      "type": 0,
+      "value": "Edit Skill"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -9071,10 +9483,26 @@
       "value": "시각적 개체 보기"
     }
   ],
+  "UcVdDd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " test cases available"
+    }
+  ],
   "Udeffr": [
     {
       "type": 0,
       "value": "인시던트 유형"
+    }
+  ],
+  "Uiw6Xo": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled tasks."
     }
   ],
   "UjETJe": [
@@ -9125,6 +9553,12 @@
       "value": "리포지토리"
     }
   ],
+  "V4KNjk": [
+    {
+      "type": 0,
+      "value": "optional"
+    }
+  ],
   "V4yeoh": [
     {
       "type": 0,
@@ -9167,12 +9601,6 @@
       "value": "숨기기"
     }
   ],
-  "VB+AjJ": [
-    {
-      "type": 0,
-      "value": "사용자 지정 Cron 식"
-    }
-  ],
   "VB97cf": [
     {
       "type": 0,
@@ -9183,6 +9611,12 @@
     {
       "type": 0,
       "value": "전달을 위해 서브에이전트 선택"
+    }
+  ],
+  "VCHJad": [
+    {
+      "type": 0,
+      "value": "New folder"
     }
   ],
   "VIYXlx": [
@@ -9283,6 +9717,18 @@
     {
       "type": 0,
       "value": "검토(기본값)"
+    }
+  ],
+  "VfjG62": [
+    {
+      "type": 0,
+      "value": "Python Code"
+    }
+  ],
+  "Vi21gb": [
+    {
+      "type": 0,
+      "value": "Turning on scheduled tasks."
     }
   ],
   "Vipo+I": [
@@ -9419,6 +9865,12 @@
       "value": "해결됨"
     }
   ],
+  "W7GhBB": [
+    {
+      "type": 0,
+      "value": "Cannot create subagents when skills are enabled"
+    }
+  ],
   "W8LUUc": [
     {
       "type": 0,
@@ -9447,6 +9899,12 @@
     {
       "type": 0,
       "value": "마지막 데이터 캡처 시간"
+    }
+  ],
+  "WJ+tyY": [
+    {
+      "type": 0,
+      "value": "Enter command (e.g. npx, python)"
     }
   ],
   "WJj+TP": [
@@ -9479,6 +9937,38 @@
       "value": "저장하는 중..."
     }
   ],
+  "WUZAzC": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now off."
+    }
+  ],
   "WVTzuw": [
     {
       "type": 1,
@@ -9493,16 +9983,6 @@
     {
       "type": 0,
       "value": "Grafana 대시보드를 만들었습니다."
-    }
-  ],
-  "WbV0j4": [
-    {
-      "type": 0,
-      "value": "편집 중: "
-    },
-    {
-      "type": 1,
-      "value": "name"
     }
   ],
   "Wc5b/J": [
@@ -9638,7 +10118,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete scheduled tasks"
+              "value": "예약된 작업 삭제"
             }
           ]
         }
@@ -9712,12 +10192,6 @@
       "value": "세부 정보 숨기기"
     }
   ],
-  "X5UCWb": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 성공적으로 삭제되었습니다."
-    }
-  ],
   "X5yqtT": [
     {
       "type": 0,
@@ -9740,12 +10214,6 @@
     {
       "type": 0,
       "value": "작업이 취소되었습니다."
-    }
-  ],
-  "XCfiZ2": [
-    {
-      "type": 0,
-      "value": "나를 위해 cron 초안 작성"
     }
   ],
   "XDSe35": [
@@ -9814,12 +10282,6 @@
       "value": "HDInsight 클러스터 구성을 읽고 수정할 수 있습니다."
     }
   ],
-  "XJuPK6": [
-    {
-      "type": 0,
-      "value": "각 실행에 필요한 리소스 식별자(예: 구독/리소스 그룹)를 포함하세요."
-    }
-  ],
   "XKWCS3": [
     {
       "type": 0,
@@ -9830,12 +10292,6 @@
     {
       "type": 0,
       "value": "완전 자율 모드입니다. 에이전트는 필요한 사용 권한을 사용하여 인시던트를 분석하고 완화 또는 리소스 수정을 독립적으로 수행합니다."
-    }
-  ],
-  "XKvrQy": [
-    {
-      "type": 0,
-      "value": "작업 정보"
     }
   ],
   "XLRt15": [
@@ -10012,20 +10468,6 @@
     {
       "type": 0,
       "value": "같음"
-    }
-  ],
-  "Y3qQB0": [
-    {
-      "type": 0,
-      "value": "예약된 작업 "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "을(를) 켜는 중"
     }
   ],
   "Y47Dwm": [
@@ -10240,6 +10682,32 @@
       "value": "인사이트가 아직 분석되지 않음"
     }
   ],
+  "Yymgt5": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Deleting "
+            },
+            {
+              "type": 1,
+              "value": "count"
+            },
+            {
+              "type": 0,
+              "value": " skills..."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "Z+uDP9": [
     {
       "type": 0,
@@ -10288,12 +10756,6 @@
       "value": "에이전트 ID"
     }
   ],
-  "Z8Y6DE": [
-    {
-      "type": 0,
-      "value": "마지막으로 동기화됨"
-    }
-  ],
   "Z9TajN": [
     {
       "type": 0,
@@ -10306,20 +10768,10 @@
       "value": "인시던트 응답 계획 만들기"
     }
   ],
-  "ZA4OiK": [
-    {
-      "type": 0,
-      "value": "예약된 작업을 만들지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "ZAkVKt": [
     {
       "type": 0,
-      "value": "Create a handoff subagent"
+      "value": "핸드오프 하위 에이전트 만들기"
     }
   ],
   "ZBKZDe": [
@@ -10362,12 +10814,6 @@
       "value": "(으)로 업데이트하는 중"
     }
   ],
-  "ZMa6Rh": [
-    {
-      "type": 0,
-      "value": "예약된 작업을 삭제하는 중"
-    }
-  ],
   "ZNMCbm": [
     {
       "type": 0,
@@ -10384,6 +10830,12 @@
     {
       "type": 0,
       "value": "이 엔터티에 대한 양식 편집이 곧 제공될 예정입니다."
+    }
+  ],
+  "ZSbKr/": [
+    {
+      "type": 0,
+      "value": "Write code manually instead"
     }
   ],
   "ZUXvHE": [
@@ -10458,22 +10910,18 @@
           "value": [
             {
               "type": 0,
-              "value": "Every minute"
+              "value": "1분마다"
             }
           ]
         },
         "other": {
           "value": [
             {
-              "type": 0,
-              "value": "Every "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " minutes"
+              "value": "분마다"
             }
           ]
         }
@@ -10481,6 +10929,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "minutes"
+    }
+  ],
+  "ZpQ6us": [
+    {
+      "type": 0,
+      "value": "Result"
     }
   ],
   "Zq5BCQ": [
@@ -10564,12 +11018,6 @@
       "value": "개"
     }
   ],
-  "a5dT17": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터 검색"
-    }
-  ],
   "a5msuh": [
     {
       "type": 0,
@@ -10580,12 +11028,6 @@
     {
       "type": 0,
       "value": "이 작업을 완료하기 위해 여러분의 권한이 일시적으로 사용됩니다."
-    }
-  ],
-  "a7QT/5": [
-    {
-      "type": 0,
-      "value": "고급: cron 형식(분 시간 일 월 요일)을 사용하세요."
     }
   ],
   "a8czK7": [
@@ -10711,12 +11153,6 @@
       "value": "업그레이드 채널을 업데이트하지 못했습니다."
     }
   ],
-  "aSipXt": [
-    {
-      "type": 0,
-      "value": "인프라에 대한 에이전트의 지식 늘리기"
-    }
-  ],
   "aWpBzj": [
     {
       "type": 0,
@@ -10759,12 +11195,6 @@
       "value": "인시던트 선택"
     }
   ],
-  "ajASB/": [
-    {
-      "type": 0,
-      "value": "설명은 간단히 하고, 자세한 실행 로직은 여기에 작성하세요."
-    }
-  ],
   "anSi7M": [
     {
       "type": 0,
@@ -10795,12 +11225,6 @@
       "value": "도구 테스트에 실패했지만 오류 세부 정보가 제공되지 않았습니다."
     }
   ],
-  "auFFJa": [
-    {
-      "type": 0,
-      "value": "Key Vault URI"
-    }
-  ],
   "ayDbML": [
     {
       "type": 0,
@@ -10822,7 +11246,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "세션 ID"
     }
   ],
   "b2PyOl": [
@@ -10839,22 +11263,6 @@
     {
       "type": 0,
       "value": "사용자 지정 인시던트 응답 계획 삭제"
-    }
-  ],
-  "b3sNCU": [
-    {
-      "type": 0,
-      "value": "작업을 끄지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "b5OEXm": [
-    {
-      "type": 0,
-      "value": "얼마나 자주 실행해야 하나요?"
     }
   ],
   "b7D4Lh": [
@@ -10887,6 +11295,34 @@
       "value": "Kusto 도구 편집"
     }
   ],
+  "bGIW7m": [
+    {
+      "type": 0,
+      "value": "Failed to turn off scheduled task."
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "errorMessage"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "errorMessage"
+    }
+  ],
   "bICPAQ": [
     {
       "type": 0,
@@ -10905,10 +11341,58 @@
       "value": "'계속'을 클릭하면 에이전트 ID 자격 증명을 사용하여 이 작업이 실행됩니다."
     }
   ],
+  "bMqcq2": [
+    {
+      "type": 0,
+      "value": "Turning off scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "bN0x+w": [
     {
       "type": 0,
       "value": "디바이스 프로비전 서비스 데이터 읽기 권한자"
+    }
+  ],
+  "bO7sKf": [
+    {
+      "type": 0,
+      "value": "Ctrl+Enter"
+    }
+  ],
+  "bR/LRB": [
+    {
+      "type": 0,
+      "value": "Select all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
     }
   ],
   "bW7B87": [
@@ -10957,7 +11441,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting scheduled tasks"
+              "value": "예약된 작업을 삭제하는 중"
             }
           ]
         }
@@ -10971,12 +11455,6 @@
     {
       "type": 0,
       "value": "변경 내용을 보려면 채팅을 다시 시작하세요."
-    }
-  ],
-  "bjOnWH": [
-    {
-      "type": 0,
-      "value": "폴란드어를 요청하기 전에 초안 지침을 추가합니다."
     }
   ],
   "blSyDZ": [
@@ -11209,6 +11687,12 @@
       "value": "커넥터 상태"
     }
   ],
+  "cM9da4": [
+    {
+      "type": 0,
+      "value": "Restart test"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -11230,7 +11714,7 @@
   "cXAlMR": [
     {
       "type": 0,
-      "value": "Scheduled"
+      "value": "예약됨"
     }
   ],
   "cYwv8P": [
@@ -11265,6 +11749,12 @@
     {
       "type": 0,
       "value": "Kusto 도구 이름"
+    }
+  ],
+  "cgh0+/": [
+    {
+      "type": 0,
+      "value": "The executable command to start the MCP server. Must be in your system PATH or an absolute path."
     }
   ],
   "ciB+oy": [
@@ -11421,12 +11911,6 @@
       "value": "에이전트 품질의 점수가 아직 매겨지지 않았습니다. 검사를 실행하여 기회를 표시합니다."
     }
   ],
-  "dI9gP+": [
-    {
-      "type": 0,
-      "value": "에이전트 지침"
-    }
-  ],
   "dJqE3e": [
     {
       "type": 0,
@@ -11454,13 +11938,7 @@
   "dQJz2m": [
     {
       "type": 0,
-      "value": "This feature isn't available in this portal yet."
-    }
-  ],
-  "dQKATf": [
-    {
-      "type": 0,
-      "value": "이름을 입력하세요(최소 3자)."
+      "value": "이 기능은 아직 이 포털에서 사용할 수 없습니다."
     }
   ],
   "dQtJBl": [
@@ -11493,22 +11971,16 @@
       "value": "리포지토리 URL은 GitHub의 경우 https://github.com/owner/repo-name 또는 Azure DevOps의 경우 https://dev.azure.com/organization/project/_git/repository-name 또는 https://organization.visualstudio.com/project/_git/repository-name"
     }
   ],
-  "daUwAL": [
+  "dbXXhB": [
     {
       "type": 0,
-      "value": "예약된 작업 생성 중..."
+      "value": "Running scheduled tasks."
     }
   ],
   "dd6gV2": [
     {
       "type": 0,
       "value": "예약 미리 보기"
-    }
-  ],
-  "dhmpfi": [
-    {
-      "type": 0,
-      "value": "예약된 작업 삭제"
     }
   ],
   "dhqlRa": [
@@ -11585,12 +12057,6 @@
     {
       "type": 0,
       "value": "적용 안 함"
-    }
-  ],
-  "dw6Z3b": [
-    {
-      "type": 0,
-      "value": "의미"
     }
   ],
   "dwkMC2": [
@@ -11707,10 +12173,10 @@
       "value": "Azure Search 서비스를 관리합니다."
     }
   ],
-  "ee4AUg": [
+  "efl/SK": [
     {
       "type": 0,
-      "value": "예약된 작업이 켜졌습니다."
+      "value": "Run Test (Cmd+Enter)"
     }
   ],
   "egubDj": [
@@ -11775,12 +12241,6 @@
       "value": "사용자 지정 응답 지침"
     }
   ],
-  "euBSDU": [
-    {
-      "type": 0,
-      "value": "에이전트 지침이 필요합니다."
-    }
-  ],
   "euKVCa": [
     {
       "type": 0,
@@ -11801,12 +12261,6 @@
     {
       "type": 0,
       "value": "PagerDuty에 연결하는 중..."
-    }
-  ],
-  "f+cHle": [
-    {
-      "type": 0,
-      "value": "연결 문자열 또는 엔드포인트 입력"
     }
   ],
   "f04POI": [
@@ -11845,18 +12299,6 @@
       "value": "Sev1"
     }
   ],
-  "f6xT1Y": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 켜졌습니다."
-    }
-  ],
-  "f7Zx3L": [
-    {
-      "type": 0,
-      "value": "프롬프트 팁"
-    }
-  ],
   "f9xN/g": [
     {
       "type": 0,
@@ -11866,7 +12308,7 @@
   "fBeNkx": [
     {
       "type": 0,
-      "value": "New handoff subagents start as Autonomous. You can connect tools and other details later."
+      "value": "새로운 핸드오프 하위 에이전트는 자율적으로 시작됩니다. 나중에 도구 및 기타 세부 정보를 연결할 수 있습니다."
     }
   ],
   "fCiXKq": [
@@ -11915,12 +12357,6 @@
       "value": "status"
     }
   ],
-  "fIQSsD": [
-    {
-      "type": 0,
-      "value": "아직 cron 초안을 작성할 수 없습니다. 설명을 구체화하고 다시 시도하세요."
-    }
-  ],
   "fLkL3F": [
     {
       "type": 0,
@@ -11933,10 +12369,22 @@
       "value": "새 도구"
     }
   ],
+  "fU7I5j": [
+    {
+      "type": 0,
+      "value": "Run Test"
+    }
+  ],
   "fUgypu": [
     {
       "type": 0,
       "value": "액세스 제어로 이동"
+    }
+  ],
+  "fZP/Ln": [
+    {
+      "type": 0,
+      "value": "This test is running against the version of your agent deployed at the time the test was started. Restart the test to run against the latest deployed version."
     }
   ],
   "fblXmJ": [
@@ -11997,6 +12445,22 @@
       "value": "상관관계는 -1(역상관)에서 1(정상관) 사이입니다."
     }
   ],
+  "fmrYkd": [
+    {
+      "type": 0,
+      "value": "Parse JSON and extract error messages"
+    }
+  ],
+  "fn9+0+": [
+    {
+      "type": 0,
+      "value": "Function test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "fr6Gnj": [
     {
       "type": 0,
@@ -12007,12 +12471,6 @@
     {
       "type": 0,
       "value": "MCP 서버 연결"
-    }
-  ],
-  "ftDEuE": [
-    {
-      "type": 0,
-      "value": "커넥터 유형 선택"
     }
   ],
   "ftfFhS": [
@@ -12081,6 +12539,12 @@
       "value": "예: 0 0 * * *"
     }
   ],
+  "g6WtKF": [
+    {
+      "type": 0,
+      "value": "Timeout (seconds)"
+    }
+  ],
   "g7HOVb": [
     {
       "type": 0,
@@ -12111,6 +12575,12 @@
       "value": "파일을 여기로 끌어다 놓거나"
     }
   ],
+  "gFrqQf": [
+    {
+      "type": 0,
+      "value": "You have unsaved changes. Are you sure you want to close?"
+    }
+  ],
   "gGfQUL": [
     {
       "type": 0,
@@ -12127,6 +12597,12 @@
     {
       "type": 0,
       "value": "이 인시던트 응답 계획을 설정하는 방법 선택"
+    }
+  ],
+  "gLbYRM": [
+    {
+      "type": 0,
+      "value": "Calculate percentage from two numbers"
     }
   ],
   "gNhYpU": [
@@ -12171,10 +12647,10 @@
       "value": "인시던트 응답 계획:"
     }
   ],
-  "gdUWAX": [
+  "gd7vV5": [
     {
       "type": 0,
-      "value": "설명은 140자 이하여야 합니다."
+      "value": "Creating your function…"
     }
   ],
   "ggVnjB": [
@@ -12201,6 +12677,12 @@
       "value": "로드 중..."
     }
   ],
+  "gmo2Su": [
+    {
+      "type": 0,
+      "value": "Skill Content (SKILL.md)"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -12217,16 +12699,6 @@
     {
       "type": 0,
       "value": "데이터베이스 이름 입력"
-    }
-  ],
-  "grgDhd": [
-    {
-      "type": 0,
-      "value": "예약된 작업을 로드하지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
     }
   ],
   "gvlNuI": [
@@ -12331,6 +12803,12 @@
     {
       "type": 0,
       "value": "도구"
+    }
+  ],
+  "hCNgyf": [
+    {
+      "type": 0,
+      "value": "Saving tool…"
     }
   ],
   "hEXUFk": [
@@ -12488,7 +12966,7 @@
   "hjtyTg": [
     {
       "type": 0,
-      "value": "End date must be after start date."
+      "value": "종료 날짜는 시작 날짜 이후여야 합니다."
     }
   ],
   "hkgUC5": [
@@ -12524,7 +13002,7 @@
   "hqoTIz": [
     {
       "type": 0,
-      "value": "Search for a subagent by name"
+      "value": "이름으로 서브에이전트 검색"
     }
   ],
   "hrdmcd": [
@@ -12551,10 +13029,16 @@
       "value": "대시보드"
     }
   ],
+  "i/pRlX": [
+    {
+      "type": 0,
+      "value": "Click to edit code"
+    }
+  ],
   "i3P6ZD": [
     {
       "type": 0,
-      "value": "Created at:"
+      "value": "만든 시간:"
     }
   ],
   "i5OUQE": [
@@ -12578,13 +13062,7 @@
   "i6x7bU": [
     {
       "type": 0,
-      "value": "The agent is stopped"
-    }
-  ],
-  "iDPKM0": [
-    {
-      "type": 0,
-      "value": "작업 필터링"
+      "value": "에이전트가 중지되었습니다."
     }
   ],
   "iDSWYk": [
@@ -12611,6 +13089,12 @@
       "value": "아직 게시되지 않음"
     }
   ],
+  "iJcrHj": [
+    {
+      "type": 0,
+      "value": "No parameters required"
+    }
+  ],
   "iMaY2Q": [
     {
       "type": 0,
@@ -12634,13 +13118,45 @@
   "iPhHGC": [
     {
       "type": 0,
-      "value": "Learn more about scheduled tasks"
+      "value": "예약된 작업에 대한 자세한 정보"
     }
   ],
   "iV7LUx": [
     {
       "type": 0,
       "value": "사용자 지정 설정으로 새 트리거 만들기"
+    }
+  ],
+  "iWNutw": [
+    {
+      "type": 0,
+      "value": "Deleting scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "iXNbPf": [
@@ -12741,6 +13257,12 @@
       "value": "새 사용자 지정 응답 계획"
     }
   ],
+  "iqsZgT": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone."
+    }
+  ],
   "irFBKn": [
     {
       "type": 0,
@@ -12781,6 +13303,12 @@
     {
       "type": 0,
       "value": "SRE 에이전트 공간"
+    }
+  ],
+  "ix9hVm": [
+    {
+      "type": 0,
+      "value": "Expand to show more"
     }
   ],
   "ixb1SP": [
@@ -12826,7 +13354,7 @@
   "j0bMX6": [
     {
       "type": 0,
-      "value": "No incident metrics to report"
+      "value": "보고할 인시던트 메트릭 없음"
     }
   ],
   "j1FyDL": [
@@ -12891,7 +13419,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Deleting SRE Agents"
+              "value": "SRE 에이전트를 삭제하는 중"
             }
           ]
         }
@@ -12904,7 +13432,7 @@
   "jJ7kNS": [
     {
       "type": 0,
-      "value": "Try selecting a different date range."
+      "value": "다른 날짜 범위를 선택해 보세요."
     }
   ],
   "jJE3xY": [
@@ -12985,16 +13513,6 @@
       "value": "Grafana 리소스는 리소스 그룹 내에서 고유해야 합니다."
     }
   ],
-  "jX6uvW": [
-    {
-      "type": 0,
-      "value": "작업 실행 실패: "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "jXIYLG": [
     {
       "type": 0,
@@ -13039,10 +13557,10 @@
       "value": "데이터베이스"
     }
   ],
-  "jlOO/9": [
+  "jqM7Pr": [
     {
       "type": 0,
-      "value": "다음 실행"
+      "value": "Test restarted with your latest agent changes. Send a message to continue testing."
     }
   ],
   "jqpolM": [
@@ -13061,6 +13579,12 @@
     {
       "type": 0,
       "value": "시작 시간(선택 사항)"
+    }
+  ],
+  "jvB4W9": [
+    {
+      "type": 0,
+      "value": "Environment variables"
     }
   ],
   "jvo0vs": [
@@ -13085,6 +13609,12 @@
     {
       "type": 0,
       "value": "막대형 차트"
+    }
+  ],
+  "k+phZu": [
+    {
+      "type": 0,
+      "value": "Delete skill"
     }
   ],
   "k0VNHX": [
@@ -13129,10 +13659,10 @@
       "value": "번호"
     }
   ],
-  "kG0ZtT": [
+  "kGmr6n": [
     {
       "type": 0,
-      "value": "기타 cron 아이디어"
+      "value": "Want to improve it?"
     }
   ],
   "kHIJzq": [
@@ -13163,6 +13693,12 @@
     {
       "type": 0,
       "value": "이 스레드의 이름을 바꿀 수 있는 권한이 없습니다."
+    }
+  ],
+  "kVOq9V": [
+    {
+      "type": 0,
+      "value": "Fill in parameters and click Run to test"
     }
   ],
   "kWBrry": [
@@ -13211,22 +13747,28 @@
       "value": "사용자 지정 일정"
     }
   ],
+  "kjUC48": [
+    {
+      "type": 0,
+      "value": "Function test succeeded."
+    }
+  ],
   "kn+J82": [
     {
       "type": 0,
       "value": "상관 관계 분석"
     }
   ],
-  "ko0rr4": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터 구성을 업데이트합니다."
-    }
-  ],
   "koWZK8": [
     {
       "type": 0,
       "value": "사용자 지정 응답 지침 추가(선택 사항)"
+    }
+  ],
+  "kopJ66": [
+    {
+      "type": 0,
+      "value": "Keep Current Code"
     }
   ],
   "kq7D3O": [
@@ -13285,12 +13827,6 @@
       "value": "에이전트 datagrid"
     }
   ],
-  "l+e8nZ": [
-    {
-      "type": 0,
-      "value": "선택한 예약된 작업을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
-    }
-  ],
   "l0UKyP": [
     {
       "type": 0,
@@ -13301,6 +13837,12 @@
     {
       "type": 0,
       "value": "도구 만들기"
+    }
+  ],
+  "l1+Ilp": [
+    {
+      "type": 0,
+      "value": "Generating code…"
     }
   ],
   "l2Ni9H": [
@@ -13321,10 +13863,10 @@
       "value": "AzureML 데이터 과학자"
     }
   ],
-  "l8IRTD": [
+  "lBZfVb": [
     {
       "type": 0,
-      "value": "예약된 작업이 성공적으로 실행됨"
+      "value": "Timeout in seconds (5-900)"
     }
   ],
   "lCe4Sh": [
@@ -13361,10 +13903,14 @@
       "value": "기본값"
     }
   ],
-  "lM2HXD": [
+  "lOaomi": [
     {
       "type": 0,
-      "value": "프롬프트가 제공되지 않았습니다."
+      "value": "Generation failed: "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "lP5P2a": [
@@ -13376,7 +13922,13 @@
   "lQmkhq": [
     {
       "type": 0,
-      "value": "Subagents"
+      "value": "하위 에이전트"
+    }
+  ],
+  "lR/7o8": [
+    {
+      "type": 0,
+      "value": "Folder name"
     }
   ],
   "lUAfdH": [
@@ -13394,7 +13946,7 @@
   "lbah5J": [
     {
       "type": 0,
-      "value": "List all agent-managed resources"
+      "value": "에이전트가 관리하는 모든 리소스 나열"
     }
   ],
   "lcOT8X": [
@@ -13444,7 +13996,7 @@
   "lpYK4u": [
     {
       "type": 0,
-      "value": "Enter subagent name"
+      "value": "하위 에이전트 이름 입력"
     }
   ],
   "lqgE72": [
@@ -13474,13 +14026,19 @@
   "m/B8a5": [
     {
       "type": 0,
-      "value": "Create subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "작업을 자동으로 실행하고, 데이터를 쿼리하고, 인시던트에 응답하는 하위 에이전트를 만듭니다."
     }
   ],
   "m0kcbz": [
     {
       "type": 0,
       "value": "사용자 지정 응답 계획 생성"
+    }
+  ],
+  "m2KQqp": [
+    {
+      "type": 0,
+      "value": "Execution Result"
     }
   ],
   "m3Npit": [
@@ -13533,10 +14091,10 @@
       "value": "QnA Maker 지식 기반을 편집합니다."
     }
   ],
-  "mChei1": [
+  "mE7Cg1": [
     {
       "type": 0,
-      "value": "자세한 여러 줄 지침입니다. 제공: 목표, 컨텍스트/리소스, 제약 조건, 성공 조건."
+      "value": "Stdio"
     }
   ],
   "mGh+K0": [
@@ -13802,7 +14360,7 @@
   "n/WueE": [
     {
       "type": 0,
-      "value": "List all incidents"
+      "value": "모든 인시던트 나열"
     }
   ],
   "n0JssX": [
@@ -13897,10 +14455,10 @@
       "value": "기본 리소스 종류"
     }
   ],
-  "nRkusX": [
+  "nR0FVC": [
     {
       "type": 0,
-      "value": "Cron 식은 필수입니다."
+      "value": "Reusable knowledge and instructions that enhance agent capabilities."
     }
   ],
   "nUT0Lv": [
@@ -13919,24 +14477,16 @@
       "value": "name"
     }
   ],
+  "nc7Brw": [
+    {
+      "type": 0,
+      "value": "Arguments"
+    }
+  ],
   "ncB14A": [
     {
       "type": 0,
       "value": "에이전트가 호출됨"
-    }
-  ],
-  "nkYx6+": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "개의 연결을 끊으시겠습니까?"
     }
   ],
   "nmpevl": [
@@ -13987,6 +14537,12 @@
       "value": "인사이트 다시 실행"
     }
   ],
+  "nxBEvY": [
+    {
+      "type": 0,
+      "value": "Creating your Python function…"
+    }
+  ],
   "nxmZHP": [
     {
       "type": 0,
@@ -14017,22 +14573,10 @@
       "value": "아직 연결된 도구가 없습니다. 이 에이전트가 작업할 수 있도록 도구를 추가합니다."
     }
   ],
-  "o3uElD": [
-    {
-      "type": 0,
-      "value": "데이터 커넥터 추가"
-    }
-  ],
   "o7TUwc": [
     {
       "type": 0,
       "value": "에이전트가 인시던트를 자동으로 수신 대기하고 응답할 수 있도록 ICM에 연결합니다."
-    }
-  ],
-  "o9bCTX": [
-    {
-      "type": 0,
-      "value": "마지막 실행"
     }
   ],
   "oBv1Sy": [
@@ -14053,6 +14597,12 @@
     {
       "type": 0,
       "value": "개의 데이터 커넥터를 삭제하지 못했습니다."
+    }
+  ],
+  "oDH12O": [
+    {
+      "type": 0,
+      "value": "Tool name"
     }
   ],
   "oDI/Rp": [
@@ -14155,12 +14705,6 @@
       "value": "작성자/운영자"
     }
   ],
-  "oXd3cw": [
-    {
-      "type": 0,
-      "value": "최대 실행 수"
-    }
-  ],
   "oY4j0R": [
     {
       "type": 0,
@@ -14245,6 +14789,18 @@
       "value": "위험 수준 높음"
     }
   ],
+  "oyZN19": [
+    {
+      "type": 0,
+      "value": "Running..."
+    }
+  ],
+  "oyf+bG": [
+    {
+      "type": 0,
+      "value": "Custom Python function to extend agent capabilities with AI-assisted code generation."
+    }
+  ],
   "p/QlSI": [
     {
       "type": 0,
@@ -14323,6 +14879,12 @@
     {
       "type": 0,
       "value": "P4"
+    }
+  ],
+  "pByJCZ": [
+    {
+      "type": 0,
+      "value": "Scheduled tasks have been run."
     }
   ],
   "pCPZnU": [
@@ -14412,7 +14974,13 @@
   "pU0SQw": [
     {
       "type": 0,
-      "value": "Enable the preview channel to test out new features early, however they may be less stable."
+      "value": "미리 보기 채널을 사용하여 새 기능을 조기에 테스트할 수 있지만 안정성이 떨어질 수 있습니다."
+    }
+  ],
+  "pXPlXr": [
+    {
+      "type": 0,
+      "value": "*required"
     }
   ],
   "pbpjik": [
@@ -14459,6 +15027,20 @@
       "value": "Grafana 대시보드가 프로비전되고 연결되면 리소스가 대시보드를 완전히 채우는 데 시간이 걸릴 수 있습니다."
     }
   ],
+  "piGAtN": [
+    {
+      "type": 0,
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "milliseconds"
+    },
+    {
+      "type": 0,
+      "value": "ms"
+    }
+  ],
   "pndXMi": [
     {
       "type": 0,
@@ -14495,6 +15077,12 @@
       "value": "업그레이드 채널을 업데이트하는 중"
     }
   ],
+  "ppAn7O": [
+    {
+      "type": 0,
+      "value": "File name"
+    }
+  ],
   "ppzeDo": [
     {
       "type": 0,
@@ -14519,10 +15107,18 @@
       "value": "경고 제목"
     }
   ],
-  "psUT6S": [
+  "psccqt": [
     {
       "type": 0,
-      "value": "이 작업이 실행될 최대 횟수"
+      "value": "Executed in "
+    },
+    {
+      "type": 1,
+      "value": "ms"
+    },
+    {
+      "type": 0,
+      "value": "ms"
     }
   ],
   "puQ/kF": [
@@ -14589,16 +15185,22 @@
       "value": "알 수 없는 오류"
     }
   ],
+  "qQRG87": [
+    {
+      "type": 0,
+      "value": "Parameters auto-detected from code"
+    }
+  ],
   "qQh4Xu": [
     {
       "type": 0,
       "value": "에이전트는 설명서 및 파일을 참조하여 프로젝트 및 프로세스를 이해합니다."
     }
   ],
-  "qavd9Y": [
+  "qTWwGw": [
     {
       "type": 0,
-      "value": "에이전트가 실행되어야 하는 빈도를 알려주시면 cron 식의 초안을 작성해 드리겠습니다."
+      "value": "Parameters:"
     }
   ],
   "qdAlfY": [
@@ -14613,6 +15215,16 @@
       "value": "오류 세부 정보"
     }
   ],
+  "qdxZys": [
+    {
+      "type": 0,
+      "value": "Last heartbeat: "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "qeUtXk": [
     {
       "type": 0,
@@ -14623,12 +15235,6 @@
     {
       "type": 0,
       "value": "이 이름의 커넥터가 이미 있습니다."
-    }
-  ],
-  "qh9t2U": [
-    {
-      "type": 0,
-      "value": "에이전트에 연결"
     }
   ],
   "qhApmK": [
@@ -14723,6 +15329,12 @@
       "value": "사용자 지정 인시던트 응답 계획이 삭제되었습니다."
     }
   ],
+  "qzMeS2": [
+    {
+      "type": 0,
+      "value": "Test Playground"
+    }
+  ],
   "r2ZGnB": [
     {
       "offset": 0,
@@ -14796,6 +15408,12 @@
       "value": "새로 고침"
     }
   ],
+  "rFU0oo": [
+    {
+      "type": 0,
+      "value": "Python tool"
+    }
+  ],
   "rFlkvY": [
     {
       "type": 0,
@@ -14826,7 +15444,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Scheduled tasks deleted successfully"
+              "value": "예약된 작업을 삭제했습니다."
             }
           ]
         }
@@ -14867,7 +15485,7 @@
   "rPdyc5": [
     {
       "type": 0,
-      "value": "Current status: Stable - Receives updates once a month"
+      "value": "현재 상태: 안정 - 한 달에 한 번 업데이트를 받습니다."
     }
   ],
   "rQAyD6": [
@@ -14948,6 +15566,12 @@
     {
       "type": 0,
       "value": "닫기"
+    }
+  ],
+  "rc7ZT2": [
+    {
+      "type": 0,
+      "value": "Enter the skill markdown content..."
     }
   ],
   "rd6YZk": [
@@ -15096,20 +15720,6 @@
       "value": "지식 원본에 대한 자세한 정보"
     }
   ],
-  "s04Z5U": [
-    {
-      "type": 0,
-      "value": "이렇게 하면 에이전트에서 "
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "개의 데이터 커넥터의 연결이 영구적으로 끊어집니다. 이 데이터 커넥터의 연결을 끊으시겠습니까?"
-    }
-  ],
   "s2GWth": [
     {
       "type": 0,
@@ -15161,7 +15771,7 @@
   "sCRBH3": [
     {
       "type": 0,
-      "value": "Search by subagent"
+      "value": "하위 에이전트별로 검색"
     }
   ],
   "sH0O5v": [
@@ -15298,6 +15908,12 @@
       "value": "파일 추가"
     }
   ],
+  "sYCfrb": [
+    {
+      "type": 0,
+      "value": "Test agent"
+    }
+  ],
   "sZIoMy": [
     {
       "type": 0,
@@ -15330,16 +15946,16 @@
       "value": "시스템 도구(선택 사항)"
     }
   ],
-  "sf6hMj": [
-    {
-      "type": 0,
-      "value": "알림"
-    }
-  ],
   "sjlioi": [
     {
       "type": 0,
       "value": "하위 에이전트가 호출됨"
+    }
+  ],
+  "sjq9sr": [
+    {
+      "type": 0,
+      "value": "Validate email addresses"
     }
   ],
   "slxYbm": [
@@ -15500,12 +16116,6 @@
       "value": "일일 보고서 구문 분석에 실패했습니다."
     }
   ],
-  "tFFMkF": [
-    {
-      "type": 0,
-      "value": "일시 중지"
-    }
-  ],
   "tFoDh3": [
     {
       "type": 0,
@@ -15569,7 +16179,7 @@
   "tTjB+b": [
     {
       "type": 0,
-      "value": "This will permanently delete the agent and all its chat and actions threads. Are you sure you want to delete this agent?"
+      "value": "그러면 에이전트와 모든 채팅 및 작업 스레드가 영구적으로 삭제됩니다. 이 에이전트를 삭제하시겠습니까?"
     }
   ],
   "tU3A8E": [
@@ -15590,12 +16200,6 @@
     {
       "type": 0,
       "value": "즐겨찾기에 추가"
-    }
-  ],
-  "tZmd+w": [
-    {
-      "type": 0,
-      "value": "데이터 원본에 연결"
     }
   ],
   "tb6uBb": [
@@ -15656,16 +16260,14 @@
       "value": "에이전트의 구성을 실험하고 실시간 결과 보기"
     }
   ],
-  "tkr5bn": [
+  "tpD3Ax": [
     {
       "type": 0,
-      "value": "예약된 작업 끄기"
-    }
-  ],
-  "trPabo": [
+      "value": "Tools: "
+    },
     {
-      "type": 0,
-      "value": "예약된 작업을 찾을 수 없음"
+      "type": 1,
+      "value": "count"
     }
   ],
   "trhBLG": [
@@ -15789,7 +16391,17 @@
   "uBPOyN": [
     {
       "type": 0,
-      "value": "Early access to features"
+      "value": "기능 미리 확인"
+    }
+  ],
+  "uC4R7m": [
+    {
+      "type": 0,
+      "value": "Test failed: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "uCkn4+": [
@@ -15798,16 +16410,34 @@
       "value": "모든 우선 순위"
     }
   ],
+  "uDXk7F": [
+    {
+      "type": 0,
+      "value": "Python Function Tester"
+    }
+  ],
   "uEYYty": [
     {
       "type": 0,
       "value": "새 인시던트 응답 계획"
     }
   ],
+  "uFDB/3": [
+    {
+      "type": 0,
+      "value": "Function Code"
+    }
+  ],
   "uFaAgq": [
     {
       "type": 0,
       "value": "관계 연결"
+    }
+  ],
+  "uGPikn": [
+    {
+      "type": 0,
+      "value": "Describe what the function should do"
     }
   ],
   "uI0Lmu": [
@@ -15819,13 +16449,13 @@
   "uIXQiw": [
     {
       "type": 0,
-      "value": "Establishing connection ..."
+      "value": "연결 설정 중..."
     }
   ],
   "uKwm6S": [
     {
       "type": 0,
-      "value": "Canvas view"
+      "value": "캔버스 보기"
     }
   ],
   "uLmZLS": [
@@ -15921,6 +16551,12 @@
       "value": "delta"
     }
   ],
+  "uQ/yKk": [
+    {
+      "type": 0,
+      "value": "Search by skill"
+    }
+  ],
   "uRMqBi": [
     {
       "type": 0,
@@ -15949,6 +16585,12 @@
       "value": "사전 설정에서 선택"
     }
   ],
+  "uYv0At": [
+    {
+      "type": 0,
+      "value": "Extracting parameters"
+    }
+  ],
   "ubULuu": [
     {
       "type": 0,
@@ -15970,7 +16612,7 @@
   "ufzv1A": [
     {
       "type": 0,
-      "value": "Table view"
+      "value": "테이블 보기"
     }
   ],
   "ug01Mk": [
@@ -15995,12 +16637,6 @@
     {
       "type": 0,
       "value": "축소"
-    }
-  ],
-  "unj6JR": [
-    {
-      "type": 0,
-      "value": "템플릿에서 만들기"
     }
   ],
   "unxs9C": [
@@ -16051,12 +16687,6 @@
       "value": "지침을 개선하는 중..."
     }
   ],
-  "v0CXYP": [
-    {
-      "type": 0,
-      "value": "작업에 대한 설명이 포함된 이름 입력"
-    }
-  ],
   "v0fBOU": [
     {
       "type": 0,
@@ -16079,12 +16709,6 @@
     {
       "type": 0,
       "value": "Kusto 도구"
-    }
-  ],
-  "v8cTK0": [
-    {
-      "type": 0,
-      "value": "예약된 작업이 성공적으로 업데이트되었습니다."
     }
   ],
   "v8lolG": [
@@ -16132,13 +16756,19 @@
   "vCyJXp": [
     {
       "type": 0,
-      "value": "No subagents configured"
+      "value": "구성된 하위 에이전트 없음"
     }
   ],
   "vDbj1h": [
     {
       "type": 0,
       "value": "권한을 부여한 사람"
+    }
+  ],
+  "vEPakK": [
+    {
+      "type": 0,
+      "value": "Additional Files"
     }
   ],
   "vG08m6": [
@@ -16165,26 +16795,6 @@
       "value": "인시던트 트리거"
     }
   ],
-  "vSW3OF": [
-    {
-      "type": 0,
-      "value": "작업을 업데이트하지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
-  "vV67Wm": [
-    {
-      "type": 0,
-      "value": "작업을 켜지 못했습니다. "
-    },
-    {
-      "type": 1,
-      "value": "errorMessage"
-    }
-  ],
   "vVpzJQ": [
     {
       "type": 0,
@@ -16201,6 +16811,12 @@
     {
       "type": 0,
       "value": "경고 작업 있음"
+    }
+  ],
+  "vZRYf4": [
+    {
+      "type": 0,
+      "value": "Deselect all tools"
     }
   ],
   "vZWQHk": [
@@ -16297,12 +16913,6 @@
       "value": "설명 지우기"
     }
   ],
-  "w4Nqlr": [
-    {
-      "type": 0,
-      "value": "예약된 작업 실행"
-    }
-  ],
   "w5FDGY": [
     {
       "type": 0,
@@ -16360,7 +16970,7 @@
   "wFcmSl": [
     {
       "type": 0,
-      "value": "Creating Subagent"
+      "value": "하위 에이전트 생성 중"
     }
   ],
   "wGLrHW": [
@@ -16371,6 +16981,12 @@
     {
       "type": 0,
       "value": "의 사용자"
+    }
+  ],
+  "wGM2T+": [
+    {
+      "type": 0,
+      "value": "Please provide Python function code"
     }
   ],
   "wGcWbo": [
@@ -16389,20 +17005,6 @@
     {
       "type": 0,
       "value": "작업"
-    }
-  ],
-  "wNIiXX": [
-    {
-      "type": 0,
-      "value": "데이터 원본은 "
-    },
-    {
-      "type": 1,
-      "value": "format"
-    },
-    {
-      "type": 0,
-      "value": " 형식이어야 합니다."
     }
   ],
   "wO9wb5": [
@@ -16424,7 +17026,13 @@
   "wPF0jY": [
     {
       "type": 0,
-      "value": "Use subagents to automatically run tasks, query data, and respond to incidents."
+      "value": "하위 에이전트를 사용하여 작업을 자동으로 실행하고, 데이터를 쿼리하고, 인시던트에 대응합니다."
+    }
+  ],
+  "wPfhmg": [
+    {
+      "type": 0,
+      "value": "Standard Error"
     }
   ],
   "wQdhYo": [
@@ -16436,19 +17044,25 @@
   "wRi+GV": [
     {
       "type": 0,
-      "value": "Create Subagent"
+      "value": "하위 에이전트 만들기"
     }
   ],
   "wSLRfB": [
     {
       "type": 0,
-      "value": "Unknown status"
+      "value": "알 수 없는 상태"
     }
   ],
   "wSZR47": [
     {
       "type": 0,
       "value": "제출"
+    }
+  ],
+  "wTA9dx": [
+    {
+      "type": 0,
+      "value": "Test Your Function"
     }
   ],
   "wUnPMf": [
@@ -16505,12 +17119,6 @@
       "value": "사용자 지정 인시던트 응답 계획 추가"
     }
   ],
-  "wgyFIG": [
-    {
-      "type": 0,
-      "value": "다듬는 중..."
-    }
-  ],
   "wjEBlr": [
     {
       "type": 1,
@@ -16547,6 +17155,12 @@
       "value": "총 리소스 수"
     }
   ],
+  "wm4GRX": [
+    {
+      "type": 0,
+      "value": "Example: Parse JSON logs and extract error messages"
+    }
+  ],
   "wru3Di": [
     {
       "type": 0,
@@ -16569,12 +17183,6 @@
     {
       "type": 0,
       "value": "트리거 설정을 확인하는 중..."
-    }
-  ],
-  "x1YTqM": [
-    {
-      "type": 0,
-      "value": "도움을 드리려면 실행 주기를 설명해 주세요."
     }
   ],
   "x25AjF": [
@@ -16605,6 +17213,16 @@
     {
       "type": 0,
       "value": "자세한 내용을 확인하려면 여기를 클릭"
+    }
+  ],
+  "xGK1X2": [
+    {
+      "type": 0,
+      "value": "Deselect all tools in "
+    },
+    {
+      "type": 1,
+      "value": "groupName"
     }
   ],
   "xGPsyJ": [
@@ -16646,13 +17264,19 @@
   "xP3hmB": [
     {
       "type": 0,
-      "value": "Start:"
+      "value": "시작:"
     }
   ],
   "xPuGYM": [
     {
       "type": 0,
       "value": "검색과 일치하는 커넥터가 없습니다."
+    }
+  ],
+  "xRpMXP": [
+    {
+      "type": 0,
+      "value": "Try:"
     }
   ],
   "xSsto+": [
@@ -16747,6 +17371,22 @@
       "value": "에이전트를 테스트할 준비가 되셨나요?"
     }
   ],
+  "xgD8Kv": [
+    {
+      "type": 0,
+      "value": "Python Function Code"
+    }
+  ],
+  "xjZrbx": [
+    {
+      "type": 0,
+      "value": "Editing: "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    }
+  ],
   "xmcVZ0": [
     {
       "type": 0,
@@ -16757,6 +17397,12 @@
     {
       "type": 0,
       "value": "API Management 서비스를 작동합니다."
+    }
+  ],
+  "xpMDZO": [
+    {
+      "type": 0,
+      "value": "Test Passed"
     }
   ],
   "xqwf/7": [
@@ -16789,16 +17435,16 @@
       "value": "웹 사이트 기여자"
     }
   ],
+  "xu6eM8": [
+    {
+      "type": 0,
+      "value": "Test"
+    }
+  ],
   "xvTDgy": [
     {
       "type": 0,
       "value": "도구 검색…"
-    }
-  ],
-  "xxoHVE": [
-    {
-      "type": 0,
-      "value": "에이전트 프롬프트가 필요합니다"
     }
   ],
   "xy47sz": [
@@ -16831,12 +17477,6 @@
     {
       "type": 1,
       "value": "delta"
-    }
-  ],
-  "y3Uu5i": [
-    {
-      "type": 0,
-      "value": "검색과 일치하는 데이터 커넥터가 없습니다."
     }
   ],
   "y5oInX": [
@@ -16883,6 +17523,12 @@
       "value": "채팅 입력"
     }
   ],
+  "yGVEST": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete these scheduled tasks? This action cannot be undone."
+    }
+  ],
   "yJJ/jv": [
     {
       "type": 0,
@@ -16910,7 +17556,13 @@
   "yRTBrP": [
     {
       "type": 0,
-      "value": "Pick a subagent to assist you with tasks."
+      "value": "작업을 도와줄 서브에이전트를 선택하세요."
+    }
+  ],
+  "ySdJIx": [
+    {
+      "type": 0,
+      "value": "Connection type"
     }
   ],
   "yVc78v": [
@@ -16967,12 +17619,6 @@
       "value": "프로덕션을 건드리지 않고 에이전트를 디자인, 테스트 및 구체화합니다."
     }
   ],
-  "yf9+0C": [
-    {
-      "type": 0,
-      "value": "다듬은 버전"
-    }
-  ],
   "yh4G7g": [
     {
       "type": 0,
@@ -17009,10 +17655,16 @@
       "value": "관리되는 리소스 그룹"
     }
   ],
+  "yisTNp": [
+    {
+      "type": 0,
+      "value": "Turn off scheduled tasks"
+    }
+  ],
   "ymiZvr": [
     {
       "type": 0,
-      "value": "Subagent Builder"
+      "value": "하위 에이전트 작성기"
     }
   ],
   "ynVolH": [
@@ -17041,7 +17693,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Failed to delete Kusto tools"
+              "value": "Kusto 도구를 삭제하지 못했습니다."
             }
           ]
         }
@@ -17089,12 +17741,6 @@
       "value": "저장된 인시던트 관리 구성"
     }
   ],
-  "yzfsFI": [
-    {
-      "type": 0,
-      "value": "짧은 한 줄 요약(<=140자)"
-    }
-  ],
   "z0uI4M": [
     {
       "type": 0,
@@ -17107,16 +17753,10 @@
       "value": "지식 기반 보기"
     }
   ],
-  "z5cF/O": [
+  "z4NnlT": [
     {
       "type": 0,
-      "value": "설명은 한 줄 요약이어야 합니다."
-    }
-  ],
-  "z7SGAU": [
-    {
-      "type": 0,
-      "value": "예약된 작업을 삭제했습니다."
+      "value": "No skills found"
     }
   ],
   "z8ZYoc": [
@@ -17170,7 +17810,7 @@
   "zJFez9": [
     {
       "type": 0,
-      "value": "Go to Scheduled Tasks"
+      "value": "예약된 작업으로 이동"
     }
   ],
   "zMX3td": [
@@ -17223,16 +17863,16 @@
       "value": "타임라인"
     }
   ],
-  "zZsxcQ": [
-    {
-      "type": 0,
-      "value": "상태 빈도에 민감한 기대치(예: \"최근 15분 메트릭만 요약\")를 명시하세요."
-    }
-  ],
   "zaYxwd": [
     {
       "type": 0,
       "value": "인시던트"
+    }
+  ],
+  "zcksw4": [
+    {
+      "type": 0,
+      "value": "✓ Test passed"
     }
   ],
   "zcyAwy": [
@@ -17249,6 +17889,38 @@
     {
       "type": 0,
       "value": "개 인시던트를 삭제하는 중"
+    }
+  ],
+  "zefL4U": [
+    {
+      "type": 0,
+      "value": "Scheduled task"
+    },
+    {
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": " "
+            },
+            {
+              "type": 1,
+              "value": "name"
+            }
+          ]
+        },
+        "undefined": {
+          "value": [
+          ]
+        }
+      },
+      "type": 5,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is now on."
     }
   ],
   "zfM/75": [
@@ -17278,13 +17950,13 @@
   "zl6fNb": [
     {
       "type": 0,
-      "value": "Thought process"
+      "value": "사고 프로세스"
     }
   ],
   "znSLJS": [
     {
       "type": 0,
-      "value": "It may take up to an hour for your agent to reflect these changes as it needs time to build the corresponding knowledge."
+      "value": "해당 지식을 작성하는 데 시간이 필요하므로 에이전트가 이러한 변경 내용을 반영하는 데 최대 1시간이 걸릴 수 있습니다."
     }
   ],
   "zpENeF": [
@@ -17295,7 +17967,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Delete Kusto tools"
+              "value": "Kusto 도구 삭제"
             }
           ]
         }
