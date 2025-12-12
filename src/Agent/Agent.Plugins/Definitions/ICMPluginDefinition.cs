@@ -303,6 +303,32 @@ public class ICMPluginDefinition
         return await _icmPlugin.ListIncidentAttachments(incidentId);
     }
 
+    [Description("List ICM incidents with filtering and pagination support")]
+    public async Task<List<Incident>> ListIncidents(
+        [Description("Maximum number of incidents to return in a page")] int limit,
+        [Description("Starting offset for pagination")] int offset,
+        [Description("List incidents whose ModifiedDate is later than this datetime (ISO 8601 format). Do not specify time more then 100 days ago")] string? since,
+        [Description("Filter by the owning service ID of the incident")] string? owningServiceId,
+        [Description("Filter by the owning team ID of the incident")] string? owningTeamId,
+        [Description("Filter by incident type. Must be provided if owner tean ID is provided. Valid values: 'CustomerReported', 'LiveSite', 'Deployment'")] string? incidentType,
+        [Description("Filter by severity. Valid values: '0', '1', '2', '25', '3', '4'")] string? severity)
+    {
+        DateTime? sinceDate = null;
+        if (!string.IsNullOrEmpty(since) && TryParseSmart(since, out var parsedDate))
+        {
+            sinceDate = parsedDate.DateTime;
+        }
+
+        return await _icmPlugin.ListIncidents(
+            (uint)limit,
+            (uint)offset,
+            sinceDate,
+            owningServiceId,
+            owningTeamId,
+            incidentType,
+            severity);
+    }
+
     //[Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]
     //public async Task<string> DownloadIncidentAttachment(
     //    [Description("Incident ID")] string incidentId,

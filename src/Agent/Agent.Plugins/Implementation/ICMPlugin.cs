@@ -954,6 +954,37 @@ Example structure:
         }
     }
 
+    public async Task<List<ICMIncident>> ListIncidents(uint limit, uint offset, DateTime? since, string? owningServiceId, string? owningTeamId, string? incidentType, string? severity)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ListIncidents)}][{DateTime.UtcNow}] Invoked with limit {limit}, offset {offset}, since {since}, owningServiceId {owningServiceId}, owningTeamId {owningTeamId}, incidentType {incidentType}, severity {severity}";
+        _logger.LogInternalInformation(logMessage);
+
+        try
+        {
+            var incidents = await _icmApiClient.GetIncidentsAsync(
+                limit,
+                offset,
+                since,
+                owningServiceId,
+                titleContains: null,
+                owningTeamId,
+                incidentType,
+                createdBy: null,
+                monitorId: null,
+                severity,
+                statuses: null);
+
+            _logger.LogInternalInformation($"Successfully retrieved {incidents.Count} incidents");
+            return incidents;
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = $"Failed to list incidents. Error: {ex.Message}";
+            _logger.LogInternalError(ex, errorMessage);
+            throw new Exception(errorMessage, ex);
+        }
+    }
+
     //public async Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId)
     //{
     //    var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DownloadIncidentAttachment)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, attachmentId {attachmentId}";

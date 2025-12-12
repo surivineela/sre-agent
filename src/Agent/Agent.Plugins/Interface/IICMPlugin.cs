@@ -68,5 +68,7 @@ public interface IICMPlugin
 
     Task<List<Attachment>> ListIncidentAttachments(string incidentId);
 
+    Task<List<ICMIncident>> ListIncidents(uint limit, uint offset, DateTime? since, string? owningServiceId, string? owningTeamId, string? incidentType, string? severity);
+
     //Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
 }
