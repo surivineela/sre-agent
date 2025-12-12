@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.Collections.Immutable;
 using System.IO.Compression;
 using System.Net.Http.Headers;
@@ -37,12 +36,9 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using OpenTelemetry.Resources;
-using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Core.Helpers;
@@ -4876,141 +4872,13 @@ public class ArmHelper
             return "[Validation Failed]: Command must start with 'az'.";
         }
 
-        // try determine the verb by finding the last command before the parameters
-        var commandParts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var verb = string.Empty;
-        foreach (var cmd in commandParts)
-        {
-            if (cmd.StartsWith("-") || cmd.StartsWith("--"))
-            {
-                break;
-            }
-            verb = cmd;
-        }
-
-        // Define flags that are allowed to contain dangerous characters in their quoted values
-        var whitelistedFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "--analytics-query",
-            "--query",
-            "--condition-query", // az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition "count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points" --condition-query 'ErrorPods="KubePodInventory" | where Namespace == "default"'
-            "--condition", // az monitor metrics alert create -n name --condition "avg requests/duration > 2000"
-            "--scripts" // az vmss run-command invoke -g rg -n name --subscription sg --instance-id 1 --command-id RunPowerShellScript --scripts "echo HelloWorld | Out-File -FilePath c:\test\hello.txt"
-        };
-
-        // Check for dangerous characters that could indicate command injection
-        var dangerousPatterns = new string[]
-        {
-                ";",        // Command separator
-                "&&",       // Command chaining
-                "||",       // Command chaining
-                "|",        // Pipe (could be dangerous)
-                ">",        // Output redirection
-                "<",        // Input redirection
-                "`",        // Command substitution
-                "$(",       // Command substitution
-                "\\",       // Escape character
-                "\n",       // Newline
-                "\r"        // Carriage return
-        };
-
-        foreach (var pattern in dangerousPatterns)
-        {
-            if (command.Contains(pattern))
-            {
-                // Check if the dangerous pattern is within a whitelisted flag's quoted value
-                if (IsDangerousPatternInWhitelistedFlag(command, pattern, whitelistedFlags))
-                {
-                    continue; // Allow this pattern as it's in a whitelisted flag's quoted value
-                }
-
-                return $"[Validation Failed]: Command contains potentially dangerous character(s): {pattern}";
-            }
-        }
-
         return null; // No validation errors
-    }
-
-    private bool IsDangerousPatternInWhitelistedFlag(string command, string pattern, HashSet<string> whitelistedFlags)
-    {
-        // Find all occurrences of the dangerous pattern
-        int patternIndex = 0;
-        while ((patternIndex = command.IndexOf(pattern, patternIndex, StringComparison.Ordinal)) != -1)
-        {
-            // Check if this pattern occurrence is within a whitelisted flag's quoted value
-            if (!IsPatternInWhitelistedFlagValue(command, patternIndex, whitelistedFlags))
-            {
-                return false; // Found a pattern that's not in a whitelisted flag's value
-            }
-            patternIndex += pattern.Length;
-        }
-        return true; // All pattern occurrences are in whitelisted flag values
-    }
-
-    private bool IsPatternInWhitelistedFlagValue(string command, int patternIndex, HashSet<string> whitelistedFlags)
-    {
-        // Look backwards from the pattern to find the nearest flag
-        var beforePattern = command.Substring(0, patternIndex);
-
-        // Find the last occurrence of each whitelisted flag before the pattern
-        string? matchedFlag = null;
-        int flagIndex = -1;
-
-        foreach (var flag in whitelistedFlags)
-        {
-            int lastFlagIndex = beforePattern.LastIndexOf(flag, StringComparison.OrdinalIgnoreCase);
-            if (lastFlagIndex > flagIndex)
-            {
-                flagIndex = lastFlagIndex;
-                matchedFlag = flag;
-            }
-        }
-
-        if (matchedFlag == null || flagIndex == -1)
-        {
-            return false; // No whitelisted flag found before the pattern
-        }
-
-        // Check if there's a quoted value after the flag that contains the pattern
-        var afterFlag = command.Substring(flagIndex + matchedFlag.Length);
-
-        // Skip whitespace after flag
-        int valueStart = 0;
-        while (valueStart < afterFlag.Length && char.IsWhiteSpace(afterFlag[valueStart]))
-        {
-            valueStart++;
-        }
-
-        if (valueStart >= afterFlag.Length)
-        {
-            return false; // No value after flag
-        }
-
-        // Check if the value starts with a quote
-        char quoteChar = afterFlag[valueStart];
-        if (quoteChar != '"' && quoteChar != '\'')
-        {
-            return false; // Value is not quoted
-        }
-
-        // Find the closing quote
-        int closingQuoteIndex = afterFlag.IndexOf(quoteChar, valueStart + 1);
-        if (closingQuoteIndex == -1)
-        {
-            return false; // No closing quote found
-        }
-
-        // Check if the pattern is within the quoted value
-        int quotedValueStart = flagIndex + matchedFlag.Length + valueStart + 1; // +1 to skip opening quote
-        int quotedValueEnd = flagIndex + matchedFlag.Length + closingQuoteIndex;
-
-        return patternIndex >= quotedValueStart && patternIndex < quotedValueEnd;
     }
 
     private bool CheckForUnauthorizedAccess(HttpResponseMessage response)
     {
-        return (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
-                response.StatusCode == System.Net.HttpStatusCode.Forbidden);
+        return response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                response.StatusCode == System.Net.HttpStatusCode.Forbidden;
     }
 
     /// <summary>

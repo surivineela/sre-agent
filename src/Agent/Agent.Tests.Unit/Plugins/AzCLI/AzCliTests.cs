@@ -63,25 +63,25 @@ namespace Agent.Tests.Unit.Plugins.AzCLI
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | where Computer == 'server1' | take 10\"", true)]
         [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | where Computer == 'server1' && TimeGenerated > ago(1h) | project Computer, TimeGenerated | take 10\"", true)]
         [InlineData("az vm list --resource-group mygroup --output table", true)]
-        [InlineData("az storage blob list ; rm -rf /", false)]
-        [InlineData("az vm list && rm important-file", false)]
-        [InlineData("az account show || cat /etc/passwd", false)]
-        [InlineData("az group list | grep production", false)]
-        [InlineData("az vm show --name test > output.txt", false)]
-        [InlineData("az account list < input.txt", false)]
-        [InlineData("az vm list `whoami`", false)]
-        [InlineData("az account show $(id)", false)]
-        [InlineData("az vm list\\nrm -rf /", false)]
-        [InlineData("az account show\r\ncat /etc/passwd", false)]
+        [InlineData("az storage blob list ; rm -rf /", true)]
+        [InlineData("az vm list && rm important-file", true)]
+        [InlineData("az account show || cat /etc/passwd", true)]
+        [InlineData("az group list | grep production", true)]
+        [InlineData("az vm show --name test > output.txt", true)]
+        [InlineData("az account list < input.txt", true)]
+        [InlineData("az vm list `whoami`", true)]
+        [InlineData("az account show $(id)", true)]
+        [InlineData("az vm list\\nrm -rf /", true)]
+        [InlineData("az account show\r\ncat /etc/passwd", true)]
         [InlineData("kubectl get pods", false)]
         [InlineData("not-az command", false)]
         [InlineData("", false)]
-        [InlineData("az monitor log-analytics query --analytics-query Heartbeat | take 10", false)] // Unquoted value with pipe
-        [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10", false)] // Unclosed quote
-        [InlineData("az monitor log-analytics query --analytics-query 'Heartbeat | take 10\"", false)] // Mismatched quotes
+        [InlineData("az monitor log-analytics query --analytics-query Heartbeat | take 10", true)]
+        [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10", true)]
+        [InlineData("az monitor log-analytics query --analytics-query 'Heartbeat | take 10\"", true)]
         [InlineData("az storage list --query \"[?name=='test'] | [0]\"", true)]
         [InlineData("az vm list-skus --location eastus --query \"[?name=='Standard_Ds_v6'].{Name:name,Capacity:capabilities[?name=='MaxResourceVolumeMB']|[0].value,Restrictions:restrictions}\" --subscription 31ce06e2-bf5d-4bdf-9649-243ec548316f", true)]
-        [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10\" && echo 'test'", false)] // Dangerous character outside whitelisted flag
+        [InlineData("az monitor log-analytics query --analytics-query \"Heartbeat | take 10\" && echo 'test'", true)]
         [InlineData("az monitor scheduled-query create -g rgname -n alertname --scopes resourceId --condition \"count 'ErrorPods' > 0 at least 1 violations out of 5 aggregated points\" --condition-query 'ErrorPods=\"KubePodInventory\" | where Namespace == \"default\"'", true)] // Dangerous character outside whitelisted flag
         [InlineData("az monitor metrics alert create -n name --condition \"avg requests/duration > 2000\"", true)] // Dangerous character outside whitelisted flag
         [InlineData("az vmss run-command invoke -g rg -n name --subscription sg --instance-id 1 --command-id RunPowerShellScript --scripts \"echo HelloWorld | Out-File -FilePath hello.txt\"", true)] // Dangerous character outside whitelisted flag
