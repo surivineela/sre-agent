@@ -8,6 +8,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActivitiesThreadHeaderResources, DailyReportsTabResources } from '../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../Activities/ThreadActionsMenu';
 import { useThreadList } from '../Hooks/useThreadList';
+import { tokens } from '@fluentui-copilot/react-copilot';
 
 interface DailyReportThreadDropdownProps {
     selectedThread: Thread | null;
@@ -116,7 +117,8 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
             <Field
                 label={<FormattedMessage {...DailyReportsTabResources.selectADate} />}
                 orientation="horizontal"
-                style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', margin: '20px 0px' }}
+                size={'small'}
+                style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', margin: `${tokens.spacingVerticalL} 0px` }}
             >
                 {isLoadingInitialThreads ? (
                     <Skeleton aria-label={intl.formatMessage(DailyReportsTabResources.loadingReportsAriaLabel)} style={{ width: '500px' }}>

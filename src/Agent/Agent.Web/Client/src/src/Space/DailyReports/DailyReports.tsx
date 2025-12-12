@@ -1,4 +1,6 @@
-import { makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
+import { useTheme } from '@fluentui/react';
+import { makeStyles, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { FC, useContext, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { NoAccessError } from '../../Common/Components/NoAccessError';
@@ -26,6 +28,8 @@ const DailyReports: FC = () => {
     const { canReadThreads } = useUserPermissions();
     const { resourceId } = useContext(EnvironmentContext);
 
+    const theme = useTheme();
+
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
 
     if (!canReadThreads) {
@@ -37,27 +41,36 @@ const DailyReports: FC = () => {
     }
 
     return (
-        <div className={mergeClasses(styles.root)}>
+        <CopilotProvider
+            {...CopilotTheme}
+            mode={'canvas'}
+            theme={theme.isInverted ? webDarkTheme : webLightTheme}
+            style={{
+                padding: `10px ${tokens.spacingHorizontalXXL} 0px`,
+                height: '100%',
+                backgroundColor: tokens.colorNeutralBackground3,
+            }}
+        >
             <DailyReportThreadDropdown selectedThread={selectedThread} setSelectedThread={setSelectedThread} />
             {selectedThread ? (
                 <div key={selectedThread?.id}>
                     <ChatBox
-                        addThread={() => {}}
-                        updateThreadLastReadTime={() => {}}
+                        addThread={() => { }}
+                        updateThreadLastReadTime={() => { }}
                         threadId={selectedThread?.id}
                         threadSource={selectedThread?.source}
                         stylesProps={{
                             chatBox: {
-                                height: 'calc(100vh - 130px)',
+                                height: 'calc(100vh - 126px)',
                             },
                         }}
                         canOpenSidePanel={true}
                     />
                 </div>
             ) : (
-                <div style={{ height: 'calc(100vh - 130px)' }} />
+                <div style={{ height: 'calc(100vh - 126px)' }} />
             )}
-        </div>
+        </CopilotProvider>
     );
 };
 
