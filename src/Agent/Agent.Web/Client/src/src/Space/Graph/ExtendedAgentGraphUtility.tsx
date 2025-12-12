@@ -10,6 +10,8 @@ import {
     Skill,
     SkillGroupData,
     SystemTool,
+    ToolboxData,
+    ToolboxToolItem,
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from './ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { EntityType } from './ExtendedAgentCreationDialog/types';
@@ -21,6 +23,8 @@ export const TRIGGER_CARD_TYPE = 'TriggerCard';
 export const SKILL_CARD_TYPE = 'SkillCard';
 export const SKILL_GROUP_CARD_TYPE = 'SkillGroupCard';
 export const EXPANDED_SKILL_GROUP_CARD_TYPE = 'ExpandedSkillGroupCard';
+export const TOOLBOX_CARD_TYPE = 'ToolboxCard';
+export const EXPANDED_TOOLBOX_CARD_TYPE = 'ExpandedToolboxCard';
 export const EXTENDED_AGENT_EDGE_TYPE = 'ExtendedAgentEdge';
 
 export const SKILL_GROUP_NODE_ID = 'skill_group';
@@ -151,6 +155,44 @@ export const createSystemToolNode = (systemTool: SystemTool): Node<ExtendedAgent
     };
 };
 
+export const createToolboxNode = (agentName: string, tools: ToolboxToolItem[]): Node<ExtendedAgentGraphNode> => {
+    const toolboxData: ToolboxData = {
+        agentName,
+        toolCount: tools.length,
+        tools,
+    };
+    return {
+        id: `toolbox_${agentName}`,
+        type: TOOLBOX_CARD_TYPE,
+        position: { x: 0, y: 0 },
+        data: {
+            id: `toolbox_${agentName}`,
+            name: `${agentName} Toolbox`,
+            type: ExtendedAgentNodeType.Toolbox,
+            data: toolboxData,
+        },
+    };
+};
+
+export const createExpandedToolboxNode = (agentName: string, tools: ToolboxToolItem[]): Node<ExtendedAgentGraphNode> => {
+    const toolboxData: ToolboxData = {
+        agentName,
+        toolCount: tools.length,
+        tools,
+    };
+    return {
+        id: `toolbox_${agentName}`,
+        type: EXPANDED_TOOLBOX_CARD_TYPE,
+        position: { x: 0, y: 0 },
+        data: {
+            id: `toolbox_${agentName}`,
+            name: `${agentName} Toolbox`,
+            type: ExtendedAgentNodeType.Toolbox,
+            data: toolboxData,
+        },
+    };
+};
+
 export const createExtendedAgentEdge = (
     sourceId: string,
     targetId: string,
@@ -181,7 +223,8 @@ export const buildExtendedAgentGraph = (
     systemTools: SystemTool[] = [],
     mcpConnections: McpConnection[] = [],
     skills: Skill[] = [],
-    isSkillGroupExpanded: boolean = false
+    isSkillGroupExpanded: boolean = false,
+    expandedToolboxes: Set<string> = new Set()
 ): { nodes: Node<ExtendedAgentGraphNode>[]; edges: Edge<ExtendedAgentGraphEdge>[] } => {
     const nodes: Node<ExtendedAgentGraphNode>[] = [];
     const edges: Edge<ExtendedAgentGraphEdge>[] = [];
@@ -208,19 +251,16 @@ export const buildExtendedAgentGraph = (
     });
     agents.forEach(agent => agentMap.set(agent.name, agent));
 
-    // Create tool nodes, connector nodes, and trigger nodes
-    const toolNodesCreated = new Set<string>();
-    const connectorNodesCreated = new Set<string>();
+    // Create trigger nodes tracking
     const triggerNodesCreated = new Set<string>();
-    const systemToolNodesCreated = new Set<string>();
-    const systemToolEdgesCreated = new Set<string>();
 
-    // Create agent nodes and edges
+    // Create agent nodes and toolbox nodes
     agents.forEach(agent => {
         const agentNode = createAgentNode(agent);
         nodes.push(agentNode);
 
-        // Create edges for tools used by this agent
+        // Collect all tools for this agent's toolbox
+        const toolboxItems: ToolboxToolItem[] = [];
         const agentSystemToolNames = new Set<string>();
 
         // Prefer explicit systemTools property when present
@@ -230,40 +270,16 @@ export const buildExtendedAgentGraph = (
             }
         });
 
+        // Process regular tools
         agent.tools?.forEach(toolName => {
             const tool = toolMap.get(toolName);
             if (tool) {
-                // Create tool node if not already created
-                if (!toolNodesCreated.has(toolName)) {
-                    const toolNode = createToolNode(tool);
-                    nodes.push(toolNode);
-                    toolNodesCreated.add(toolName);
-                }
-
-                // Create edge from agent to tool
-                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `tool_${toolName}`, 'agent', 'tool');
-                edges.push(edge);
-
-                // Create connector node and edge if tool has a connector
-                if (tool.connector) {
-                    const connector = connectorMap.get(tool.connector);
-                    if (connector && !connectorNodesCreated.has(tool.connector)) {
-                        const connectorNode = createConnectorNode(connector);
-                        nodes.push(connectorNode);
-                        connectorNodesCreated.add(tool.connector);
-                    }
-
-                    if (connector) {
-                        const connectorEdge = createExtendedAgentEdge(
-                            `tool_${toolName}`,
-                            `connector_${tool.connector}`,
-                            'tool',
-                            'connector'
-                        );
-                        edges.push(connectorEdge);
-                    }
-                }
-
+                const connector = tool.connector ? connectorMap.get(tool.connector) : undefined;
+                toolboxItems.push({
+                    tool,
+                    connector,
+                    isSystemTool: false,
+                });
                 return;
             }
 
@@ -273,41 +289,16 @@ export const buildExtendedAgentGraph = (
             }
         });
 
+        // Process MCP tools
         agent.mcpTools?.forEach(mcpToolName => {
             const mcpTool = mcpToolMap.get(mcpToolName);
             if (mcpTool) {
-                // Create tool node if not already created
-                if (!toolNodesCreated.has(mcpToolName)) {
-                    const toolNode = createToolNode(mcpTool);
-                    nodes.push(toolNode);
-                    toolNodesCreated.add(mcpToolName);
-                }
-
-                // Create edge from agent to tool
-                const edge = createExtendedAgentEdge(`agent_${agent.name}`, `tool_${mcpToolName}`, 'agent', 'tool');
-                edges.push(edge);
-
-                // Create connector node and edge if tool has a connector
-                if (mcpTool.connector) {
-                    const connector = connectorMap.get(mcpTool.connector);
-                    if (connector && !connectorNodesCreated.has(mcpTool.connector)) {
-                        const connectorNode = createConnectorNode(connector);
-                        nodes.push(connectorNode);
-                        connectorNodesCreated.add(mcpTool.connector);
-                    }
-
-                    if (connector) {
-                        const connectorEdge = createExtendedAgentEdge(
-                            `tool_${mcpToolName}`,
-                            `connector_${mcpTool.connector}`,
-                            'tool',
-                            'connector'
-                        );
-                        edges.push(connectorEdge);
-                    }
-                }
-
-                return;
+                const connector = mcpTool.connector ? connectorMap.get(mcpTool.connector) : undefined;
+                toolboxItems.push({
+                    tool: mcpTool,
+                    connector,
+                    isSystemTool: false,
+                });
             }
         });
 
@@ -320,23 +311,30 @@ export const buildExtendedAgentGraph = (
             });
         }
 
+        // Add system tools to toolbox
         agentSystemToolNames.forEach(systemToolName => {
             const systemTool = systemToolMap.get(systemToolName);
-            if (!systemTool) {
-                return;
-            }
-
-            if (!systemToolNodesCreated.has(systemToolName)) {
-                nodes.push(createSystemToolNode(systemTool));
-                systemToolNodesCreated.add(systemToolName);
-            }
-
-            const edgeId = getEdgeId(`agent_${agent.name}`, `systemtool_${systemToolName}`);
-            if (!systemToolEdgesCreated.has(edgeId)) {
-                edges.push(createExtendedAgentEdge(`agent_${agent.name}`, `systemtool_${systemToolName}`, 'agent', 'tool'));
-                systemToolEdgesCreated.add(edgeId);
+            if (systemTool) {
+                toolboxItems.push({
+                    tool: systemTool,
+                    connector: undefined,
+                    isSystemTool: true,
+                });
             }
         });
+
+        // Create toolbox node if agent has any tools
+        if (toolboxItems.length > 0) {
+            const isExpanded = expandedToolboxes.has(agent.name);
+            const toolboxNode = isExpanded
+                ? createExpandedToolboxNode(agent.name, toolboxItems)
+                : createToolboxNode(agent.name, toolboxItems);
+            nodes.push(toolboxNode);
+
+            // Create edge from agent to toolbox
+            const edge = createExtendedAgentEdge(`agent_${agent.name}`, `toolbox_${agent.name}`, 'agent', 'tool');
+            edges.push(edge);
+        }
 
         // Create edges for agentsAsTools (agent-to-agent relationships)
         agent.agentsAsTools?.forEach(agentAsToolRef => {
@@ -432,16 +430,32 @@ export const filterGraphBySearch = (
     // Find matching nodes
     nodes.forEach(node => {
         const name = node.data?.name?.toLowerCase() || '';
-        const description =
-            node.data?.type === ExtendedAgentNodeType.Agent
-                ? (node.data.data as ExtendedAgent)?.instructions?.toLowerCase() || ''
-                : node.data?.type === ExtendedAgentNodeType.Tool
-                  ? (node.data.data as ExtendedTool)?.description?.toLowerCase() || ''
-                  : node.data?.type === ExtendedAgentNodeType.SystemTool
-                    ? (node.data.data as SystemTool)?.description?.toLowerCase() || ''
-                    : node.data?.type === ExtendedAgentNodeType.Trigger
-                      ? (node.data.data as ExtendedTrigger)?.description?.toLowerCase() || ''
-                      : (node.data.data as ExtendedConnector)?.description?.toLowerCase() || '';
+        let description = '';
+
+        if (node.data?.type === ExtendedAgentNodeType.Agent) {
+            description = (node.data.data as ExtendedAgent)?.instructions?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Tool) {
+            description = (node.data.data as ExtendedTool)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.SystemTool) {
+            description = (node.data.data as SystemTool)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Trigger) {
+            description = (node.data.data as ExtendedTrigger)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Toolbox) {
+            // Search within toolbox contents (tools and connectors)
+            const toolboxData = node.data.data as ToolboxData | undefined;
+            const toolMatches = toolboxData?.tools?.some(item => {
+                const toolName = item.tool.name.toLowerCase();
+                const toolDesc = (item.tool as ExtendedTool).description?.toLowerCase() || '';
+                const connectorName = item.connector?.name?.toLowerCase() || '';
+                return toolName.includes(query) || toolDesc.includes(query) || connectorName.includes(query);
+            });
+            if (toolMatches) {
+                matchingNodeIds.add(node.id);
+                return;
+            }
+        } else {
+            description = (node.data?.data as ExtendedConnector)?.description?.toLowerCase() || '';
+        }
 
         if (name.includes(query) || description.includes(query)) {
             matchingNodeIds.add(node.id);
@@ -466,7 +480,7 @@ export const filterGraphBySearch = (
 
 export const getNodesMatchingSearchQuery = (nodes: Node<ExtendedAgentGraphNode>[], searchQuery: string): Node<ExtendedAgentGraphNode>[] => {
     if (!searchQuery.trim()) {
-        return nodes;
+        return nodes.filter(node => node.data?.type !== ExtendedAgentNodeType.Toolbox);
     }
 
     const query = searchQuery.toLowerCase();
@@ -474,21 +488,76 @@ export const getNodesMatchingSearchQuery = (nodes: Node<ExtendedAgentGraphNode>[
 
     // Find matching nodes
     nodes.forEach(node => {
-        const name = node.data?.name?.toLowerCase() || '';
-        const description =
-            node.data?.type === ExtendedAgentNodeType.Agent
-                ? (node.data.data as ExtendedAgent)?.instructions?.toLowerCase() || ''
-                : node.data?.type === ExtendedAgentNodeType.Tool
-                  ? (node.data.data as ExtendedTool)?.description?.toLowerCase() || ''
-                  : node.data?.type === ExtendedAgentNodeType.SystemTool
-                    ? (node.data.data as SystemTool)?.description?.toLowerCase() || ''
-                    : node.data?.type === ExtendedAgentNodeType.Trigger
-                      ? (node.data.data as ExtendedTrigger)?.description?.toLowerCase() || ''
-                      : (node.data.data as ExtendedConnector)?.description?.toLowerCase() || '';
+        let name = node.data?.name?.toLowerCase();
+        let description = '';
+
+        if (node.data?.type === ExtendedAgentNodeType.Agent) {
+            description = (node.data.data as ExtendedAgent)?.instructions?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Tool) {
+            description = (node.data.data as ExtendedTool)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.SystemTool) {
+            description = (node.data.data as SystemTool)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Trigger) {
+            description = (node.data.data as ExtendedTrigger)?.description?.toLowerCase() || '';
+        } else if (node.data?.type === ExtendedAgentNodeType.Toolbox) {
+            name = ''; // Ignore toolbox name for search
+            description = ''; // Ignore toolbox description for search
+        } else {
+            description = (node.data?.data as ExtendedConnector)?.description?.toLowerCase() || '';
+        }
 
         if (name.includes(query) || description.includes(query)) {
             matchingNodes.push(node);
         }
     });
     return matchingNodes;
+};
+
+export const doesNodeExistInGraph = (graphNodes: Node<ExtendedAgentGraphNode>[], prevSelectedNodeId?: string): boolean => {
+    if (!prevSelectedNodeId) {
+        return false;
+    }
+
+    const isVirtualTool = prevSelectedNodeId.startsWith('toolbox_tool_');
+    const isVirtualConnector = prevSelectedNodeId.startsWith('toolbox_connector_');
+    const isVirtualNode = isVirtualTool || isVirtualConnector;
+
+    if (!isVirtualNode) {
+        // The node isn't a virtual node. Check for it directly in the graph.
+        return graphNodes.some(node => node.id === prevSelectedNodeId);
+    }
+
+    // The node is a virtual tool or connector inside a toolbox. Check within the toolbox nodes in the graph.
+
+    // Extract agent name from the virtual node ID to find the parent toolbox
+    const prefix = isVirtualTool ? 'toolbox_tool_' : 'toolbox_connector_';
+    const remainder = prevSelectedNodeId.substring(prefix.length);
+    const firstUnderscoreIdx = remainder.indexOf('_');
+    if (firstUnderscoreIdx !== -1) {
+        const agentName = remainder.substring(0, firstUnderscoreIdx);
+        const toolboxNode = graphNodes.find(n => n.id === `toolbox_${agentName}`);
+        if (toolboxNode) {
+            const toolboxData = toolboxNode.data?.data as ToolboxData | undefined;
+            if (toolboxData?.tools) {
+                // For virtual tool: check if tool exists in toolbox
+                // For virtual connector: check if tool+connector combo exists
+                const toolName = isVirtualTool
+                    ? remainder.substring(firstUnderscoreIdx + 1)
+                    : remainder.substring(firstUnderscoreIdx + 1, remainder.lastIndexOf('_'));
+                const connectorName = isVirtualConnector ? remainder.substring(remainder.lastIndexOf('_') + 1) : undefined;
+
+                const matchingToolOrConnector = toolboxData.tools.find(t => {
+                    if (t.tool.name !== toolName) return false;
+                    if (isVirtualConnector) {
+                        return t.connector?.name === connectorName;
+                    }
+                    return true;
+                });
+
+                return !!matchingToolOrConnector;
+            }
+        }
+    }
+
+    return false;
 };

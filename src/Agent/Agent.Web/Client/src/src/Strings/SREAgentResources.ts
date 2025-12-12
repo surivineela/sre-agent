@@ -4178,6 +4178,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Expand to show more',
         id: 'ix9hVm',
     },
+    expandToShowAllTools: {
+        defaultMessage: 'Expand to show all {count} tools',
+        id: 'R7A5z4',
+    },
     collapseToShowLess: {
         defaultMessage: 'Collapse to show less',
         id: 'DS/6lY',

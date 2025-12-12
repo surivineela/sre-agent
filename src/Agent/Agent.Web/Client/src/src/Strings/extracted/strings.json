@@ -1142,6 +1142,7 @@
   "R3eMOe": "Outlook account",
   "R4Blzb": "No Feedback Yet",
   "R56nxF": "Failed to create scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}",
+  "R7A5z4": "Expand to show all {count} tools",
   "R7DP3y": "Resolved by agent",
   "R7g7UT": "Incident threads have moved",
   "RAjqKb": "Close panel",

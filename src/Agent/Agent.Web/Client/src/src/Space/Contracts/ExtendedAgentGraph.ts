@@ -21,6 +21,19 @@ export type SkillGroupData = {
     skills: Skill[];
 };
 
+// Toolbox Types
+export type ToolboxToolItem = {
+    tool: ExtendedTool | SystemTool;
+    connector?: ExtendedConnector;
+    isSystemTool: boolean;
+};
+
+export type ToolboxData = {
+    agentName: string;
+    toolCount: number;
+    tools: ToolboxToolItem[];
+};
+
 // Extended Agent Types
 export type ExtendedAgent = {
     name: string;
@@ -171,6 +184,7 @@ export enum ExtendedAgentNodeType {
     Trigger = 'TRIGGER',
     Skill = 'SKILL',
     SkillGroup = 'SKILL_GROUP',
+    Toolbox = 'TOOLBOX',
 }
 
 export type ExtendedAgentGraphNode = {
@@ -182,7 +196,7 @@ export type ExtendedAgentGraphNode = {
     connectorType?: string;
     triggerType?: 'incident' | 'scheduled';
     isLastInGroup?: boolean;
-    data?: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | SystemTool | Skill | SkillGroupData;
+    data?: ExtendedAgent | ExtendedTool | ExtendedConnector | ExtendedTrigger | SystemTool | Skill | SkillGroupData | ToolboxData;
 };
 
 export type ExtendedAgentGraphEdge = {
@@ -230,6 +244,8 @@ interface ExtendedAgentGraphContextProps {
     hasSkills: boolean;
     isSkillGroupExpanded?: boolean;
     toggleSkillGroupExpanded?: () => void;
+    expandedToolboxes: Set<string>;
+    toggleToolboxExpanded: (agentName: string) => void;
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
@@ -247,6 +263,8 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
     hasSkills: false,
     isSkillGroupExpanded: false,
     toggleSkillGroupExpanded: () => {},
+    expandedToolboxes: new Set<string>(),
+    toggleToolboxExpanded: () => {},
 });
 
 // Node Size Configuration
@@ -263,10 +281,40 @@ export class ExtendedAgentNodeSize {
     static readonly skillHeight = 40;
     static readonly skillGroupWidth = 320;
     static readonly skillGroupHeight = 80;
+    static readonly toolboxWidth = 280;
+
+    static readonly toolsBasePadding = 20;
+    static readonly toolsExpandLinkHeight = 28;
+    static readonly toolsCollapsedMaxRows = 5;
+    static readonly toolsExpandedMaxRows = 10;
+    static readonly toolsRowHeight = 48;
+    static readonly toolsRowGap = 4;
+
+    // Height calculation for collapsed toolbox: padding + (tool height + gap) * count + collapse link
+    static getCollapsedToolboxHeight(toolCount: number): number {
+        const expandLinkHeight = toolCount <= this.toolsCollapsedMaxRows ? 0 : this.toolsExpandLinkHeight; // expand link row
+        const rowCount = Math.min(toolCount, this.toolsCollapsedMaxRows);
+        return this.toolsBasePadding * 2 + rowCount * this.toolsRowHeight + Math.max(0, rowCount - 1) * this.toolsRowGap + expandLinkHeight;
+    }
+
+    // Height calculation for expanded toolbox tools container: (tool height + gap) * count
+    static getExpandedToolsContainerHeight(toolCount: number): number {
+        const rowCount = Math.min(toolCount, this.toolsExpandedMaxRows);
+        return rowCount * this.toolsRowHeight + Math.max(0, rowCount - 1) * this.toolsRowGap;
+    }
+
+    // Height calculation for expanded toolbox: base padding + (tool height + gap) * count + collapse link
+    static getExpandedToolboxHeight(toolCount: number): number {
+        const collapseLinkHeight = toolCount <= this.toolsCollapsedMaxRows ? 0 : this.toolsExpandLinkHeight; // collapse link row
+        const rowCount = Math.min(toolCount, this.toolsExpandedMaxRows);
+        return (
+            this.toolsBasePadding * 2 + rowCount * this.toolsRowHeight + Math.max(0, rowCount - 1) * this.toolsRowGap + collapseLinkHeight
+        );
+    }
 
     // Height calculation for expanded skill group: base padding + (skill height + gap) * count + collapse link
     static getExpandedSkillGroupHeight(skillCount: number): number {
-        const basePadding = 24; // top/bottom padding
+        const basePadding = 40; // top/bottom padding
         const skillCardHeight = 48; // skill card height
         const gap = 8; // gap between cards
         const collapseHeight = 32; // collapse link row

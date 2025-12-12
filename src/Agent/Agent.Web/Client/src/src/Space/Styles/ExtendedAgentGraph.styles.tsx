@@ -262,7 +262,22 @@ export const useToolNodeStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         position: 'relative',
-        boxShadow: tokens.shadow16,
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground1Hover,
+        },
+    },
+    connectorCard: {
+        // width: `fit-content`,
+        minHeight: `40px`,
+        borderRadius: '16px',
+        cursor: 'pointer',
+        transition: 'box-shadow 0.2s ease-in-out',
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+        position: 'relative',
         ':hover': {
             backgroundColor: tokens.colorNeutralBackground1Hover,
         },

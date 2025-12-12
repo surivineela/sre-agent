@@ -14,6 +14,7 @@ import {
     PaginatedResponse,
     Skill,
     SystemTool,
+    ToolboxData,
 } from '../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { buildExtendedAgentGraph } from '../Graph/ExtendedAgentGraphUtility';
@@ -33,12 +34,16 @@ export const useExtendedAgentGraph = () => {
     const [mcpConnections, setMcpConnections] = useState<McpConnection[]>([]);
     const [skills, setSkills] = useState<Skill[]>([]);
     const [isSkillGroupExpanded, setIsSkillGroupExpanded] = useState<boolean>(false);
+    const [expandedToolboxes, setExpandedToolboxes] = useState<Set<string>>(new Set());
 
     const [nodes, setNodes] = useState<Node<ExtendedAgentGraphNode>[]>([]);
     const [edges, setEdges] = useState<Edge<ExtendedAgentGraphEdge>[]>([]);
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
     const selectedNodeIdRef = useRef<string | undefined>(selectedNodeId);
+
+    // Ref to skip fitView after expand/collapse operations
+    const skipNextFitViewRef = useRef<boolean>(false);
 
     const [hoveredNodeId, setHoveredNodeId] = useState<string | undefined>();
 
@@ -75,6 +80,73 @@ export const useExtendedAgentGraph = () => {
                         data: skill,
                     },
                 } as Node<ExtendedAgentGraphNode>;
+            }
+        }
+
+        // Handle toolbox tool selection (toolbox_tool_{agentName}_{toolName})
+        if (selectedNodeId?.startsWith('toolbox_tool_')) {
+            const remainder = selectedNodeId.replace('toolbox_tool_', '');
+            const underscoreIdx = remainder.indexOf('_');
+            if (underscoreIdx !== -1) {
+                const agentName = remainder.substring(0, underscoreIdx);
+                const toolName = remainder.substring(underscoreIdx + 1);
+
+                // Find the toolbox node for this agent
+                const toolboxNode = nodes.find(n => n.id === `toolbox_${agentName}`);
+                if (toolboxNode) {
+                    const toolboxData = toolboxNode.data?.data as ToolboxData | undefined;
+                    const toolItem = toolboxData?.tools?.find(t => t.tool.name === toolName);
+                    if (toolItem) {
+                        return {
+                            id: selectedNodeId,
+                            position: { x: 0, y: 0 },
+                            data: {
+                                id: selectedNodeId,
+                                name: toolItem.tool.name,
+                                type: toolItem.isSystemTool ? ExtendedAgentNodeType.SystemTool : ExtendedAgentNodeType.Tool,
+                                toolType: toolItem.isSystemTool
+                                    ? (toolItem.tool as SystemTool).category
+                                    : (toolItem.tool as ExtendedTool).type,
+                                data: toolItem.tool,
+                            },
+                        } as Node<ExtendedAgentGraphNode>;
+                    }
+                }
+            }
+        }
+
+        // Handle toolbox connector selection (toolbox_connector_{agentName}_{toolName}_{connectorName})
+        if (selectedNodeId?.startsWith('toolbox_connector_')) {
+            const remainder = selectedNodeId.replace('toolbox_connector_', '');
+            const firstUnderscoreIdx = remainder.indexOf('_');
+            if (firstUnderscoreIdx !== -1) {
+                const agentName = remainder.substring(0, firstUnderscoreIdx);
+                const toolAndConnector = remainder.substring(firstUnderscoreIdx + 1);
+                const lastUnderscoreIdx = toolAndConnector.lastIndexOf('_');
+                if (lastUnderscoreIdx !== -1) {
+                    const toolName = toolAndConnector.substring(0, lastUnderscoreIdx);
+                    const connectorName = toolAndConnector.substring(lastUnderscoreIdx + 1);
+
+                    // Find the toolbox node for this agent
+                    const toolboxNode = nodes.find(n => n.id === `toolbox_${agentName}`);
+                    if (toolboxNode) {
+                        const toolboxData = toolboxNode.data?.data as ToolboxData | undefined;
+                        const toolItem = toolboxData?.tools?.find(t => t.tool.name === toolName && t.connector?.name === connectorName);
+                        if (toolItem?.connector) {
+                            return {
+                                id: selectedNodeId,
+                                position: { x: 0, y: 0 },
+                                data: {
+                                    id: selectedNodeId,
+                                    name: toolItem.connector.name,
+                                    type: ExtendedAgentNodeType.Connector,
+                                    connectorType: toolItem.connector.type,
+                                    data: toolItem.connector,
+                                },
+                            } as Node<ExtendedAgentGraphNode>;
+                        }
+                    }
+                }
             }
         }
 
@@ -426,12 +498,13 @@ export const useExtendedAgentGraph = () => {
             systemTools,
             mcpConnections,
             skills,
-            isSkillGroupExpanded
+            isSkillGroupExpanded,
+            expandedToolboxes
         );
 
         setNodes(graphNodes);
         setEdges(graphEdges);
-    }, [agents, tools, connectors, triggers, systemTools, mcpConnections, skills, isSkillGroupExpanded]);
+    }, [agents, tools, connectors, triggers, systemTools, mcpConnections, skills, isSkillGroupExpanded, expandedToolboxes]);
 
     // Apply filters
     const filteredGraph = useMemo(() => {
@@ -521,7 +594,21 @@ export const useExtendedAgentGraph = () => {
     }, []);
 
     const toggleSkillGroupExpanded = useCallback(() => {
+        skipNextFitViewRef.current = true;
         setIsSkillGroupExpanded(prev => !prev);
+    }, []);
+
+    const toggleToolboxExpanded = useCallback((agentName: string) => {
+        skipNextFitViewRef.current = true;
+        setExpandedToolboxes(prev => {
+            const next = new Set(prev);
+            if (next.has(agentName)) {
+                next.delete(agentName);
+            } else {
+                next.add(agentName);
+            }
+            return next;
+        });
     }, []);
 
     return {
@@ -548,6 +635,9 @@ export const useExtendedAgentGraph = () => {
         edgesToHighlight,
         isSkillGroupExpanded,
         toggleSkillGroupExpanded,
+        expandedToolboxes,
+        toggleToolboxExpanded,
+        skipNextFitViewRef,
         anchorEntity,
         setAnchorEntity,
         loading,

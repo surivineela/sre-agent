@@ -7,8 +7,9 @@ import {
     ExtendedAgentNodeSize,
     ExtendedAgentNodeType,
     SkillGroupData,
+    ToolboxData,
 } from '../Contracts/ExtendedAgentGraph';
-import { EXPANDED_SKILL_GROUP_CARD_TYPE } from '../Graph/ExtendedAgentGraphUtility';
+import { EXPANDED_SKILL_GROUP_CARD_TYPE, EXPANDED_TOOLBOX_CARD_TYPE } from '../Graph/ExtendedAgentGraphUtility';
 import { getSourceAndTargetHandleId } from '../Graph/Utility';
 
 export const useExtendedAgentGraphLayout = () => {
@@ -38,6 +39,25 @@ export const useExtendedAgentGraphLayout = () => {
                     };
                 }
                 return { width: ExtendedAgentNodeSize.skillGroupWidth, height: ExtendedAgentNodeSize.skillGroupHeight };
+            case ExtendedAgentNodeType.Toolbox:
+                // Check if this is an expanded toolbox and calculate dynamic height
+                if (node.type === EXPANDED_TOOLBOX_CARD_TYPE) {
+                    const toolboxData = node.data?.data as ToolboxData | undefined;
+                    const toolCount = toolboxData?.toolCount ?? 1;
+                    return {
+                        width: ExtendedAgentNodeSize.toolboxWidth,
+                        height: ExtendedAgentNodeSize.getExpandedToolboxHeight(toolCount),
+                    };
+                }
+                // Collapsed toolbox - calculate based on preview rows (up to 3)
+                {
+                    const toolboxData = node.data?.data as ToolboxData | undefined;
+                    const toolCount = toolboxData?.toolCount ?? 1;
+                    return {
+                        width: ExtendedAgentNodeSize.toolboxWidth,
+                        height: ExtendedAgentNodeSize.getCollapsedToolboxHeight(toolCount),
+                    };
+                }
             default:
                 return { width: ExtendedAgentNodeSize.agentWidth, height: ExtendedAgentNodeSize.agentHeight };
         }

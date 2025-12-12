@@ -1,13 +1,13 @@
 import { useTheme } from '@fluentui/react';
 import {
     Button,
+    mergeClasses,
     MessageBar,
     MessageBarActions,
     MessageBarBody,
     Radio,
     RadioGroup,
     Spinner,
-    mergeClasses,
     tokens,
 } from '@fluentui/react-components';
 import { ArrowClockwise20Regular, DividerTall20Regular } from '@fluentui/react-icons';
@@ -58,12 +58,15 @@ import { ExtendedAgentEdge } from './ExtendedAgentEdge';
 import { ExtendedAgentEmptyState } from './ExtendedAgentEmptyState';
 import {
     CONNECTOR_CARD_TYPE,
+    doesNodeExistInGraph,
     EXPANDED_SKILL_GROUP_CARD_TYPE,
+    EXPANDED_TOOLBOX_CARD_TYPE,
     EXTENDED_AGENT_CARD_TYPE,
     EXTENDED_AGENT_EDGE_TYPE,
     SKILL_CARD_TYPE,
     SKILL_GROUP_CARD_TYPE,
     TOOL_CARD_TYPE,
+    TOOLBOX_CARD_TYPE,
     TRIGGER_CARD_TYPE,
 } from './ExtendedAgentGraphUtility';
 import { ExtendedAgentInfoPanel } from './ExtendedAgentInfoPanel/ExtendedAgentInfoPanel';
@@ -72,6 +75,7 @@ import { CreateSkillDialog } from './ExtendedAgents/Skills/CreateSkillDialog';
 import { ExpandedSkillGroup } from './ExtendedAgents/Skills/ExpandedSkillGroup';
 import { SkillCard } from './ExtendedAgents/Skills/SkillCard';
 import { SkillGroupCard } from './ExtendedAgents/Skills/SkillGroupCard';
+import { CollapsedToolboxCard, ExpandedToolboxCard } from './ExtendedAgents/Toolbox/ToolboxCard';
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import ExtendedAgentTableView from './ExtendedAgentTableView/ExtendedAgentTableView';
 import { TableViewTabValue } from './ExtendedAgentTableView/ExtendedAgentTableView.Contracts';
@@ -141,6 +145,9 @@ const ExtendedAgentGraphContent = memo(() => {
         refetch,
         isSkillGroupExpanded,
         toggleSkillGroupExpanded,
+        expandedToolboxes,
+        toggleToolboxExpanded,
+        skipNextFitViewRef,
     } = useExtendedAgentGraph();
 
     const { features } = useFeatureFlags();
@@ -433,6 +440,12 @@ const ExtendedAgentGraphContent = memo(() => {
 
         lastFitSignatureRef.current = signature;
 
+        // Skip fitView if this change was from expanding/collapsing a toolbox or skill group
+        if (skipNextFitViewRef.current) {
+            skipNextFitViewRef.current = false;
+            return;
+        }
+
         const raf = window.requestAnimationFrame(() => {
             try {
                 reactFlowInstance.fitView({ padding: 0.25, duration: 400, minZoom: 0.1, maxZoom: 1.5 });
@@ -444,7 +457,7 @@ const ExtendedAgentGraphContent = memo(() => {
         return () => {
             window.cancelAnimationFrame(raf);
         };
-    }, [currentView, isLayouting, loading, nodes, reactFlowInstance]);
+    }, [currentView, isLayouting, loading, nodes, reactFlowInstance, skipNextFitViewRef]);
 
     useEffect(() => {
         setAnchorEntity(prevAnchorEntity => {
@@ -569,8 +582,9 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         const entityChanged = previousEntityRef.current !== activeEntity;
-        const prevSelectedNode = graphNodes.find(node => node.id === prevSelectedNodeId)?.data;
-        if (prevSelectedNode) {
+        const prevSelectedNodeExists = doesNodeExistInGraph(graphNodes, prevSelectedNodeId);
+
+        if (prevSelectedNodeExists) {
             previousEntityRef.current = activeEntity;
             setSelectedNodeId(entityChanged ? primaryNode.data.id : prevSelectedNodeId);
             return;
@@ -1644,6 +1658,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         [SKILL_CARD_TYPE]: SkillCard,
                         [SKILL_GROUP_CARD_TYPE]: SkillGroupCard,
                         [EXPANDED_SKILL_GROUP_CARD_TYPE]: ExpandedSkillGroup,
+                        [TOOLBOX_CARD_TYPE]: CollapsedToolboxCard,
+                        [EXPANDED_TOOLBOX_CARD_TYPE]: ExpandedToolboxCard,
                     }}
                     edgeTypes={{ [EXTENDED_AGENT_EDGE_TYPE]: ExtendedAgentEdge }}
                     nodes={nodes}
@@ -1807,6 +1823,8 @@ const ExtendedAgentGraphContent = memo(() => {
                 hasSkills,
                 isSkillGroupExpanded,
                 toggleSkillGroupExpanded,
+                expandedToolboxes,
+                toggleToolboxExpanded,
             }}
         >
             <ScheduledTasksContext.Provider
