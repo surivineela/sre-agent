@@ -104,6 +104,28 @@ const useChatSuggestionStyles = makeStyles({
     },
 });
 
+interface PromptSuggestionButtonProps {
+    question: string;
+    canWriteThreads: boolean;
+    noPermissionTooltip: string;
+    className: string;
+    onClick: (question: string) => void;
+}
+
+const PromptSuggestionButton = ({ question, canWriteThreads, noPermissionTooltip, className, onClick }: PromptSuggestionButtonProps) => (
+    <PermissionedButton
+        canPerform={canWriteThreads}
+        noPermissionTooltip={noPermissionTooltip}
+        appearance="subtle"
+        className={className}
+        onClick={() => onClick(question)}
+    >
+        <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
+            {question}
+        </Text>
+    </PermissionedButton>
+);
+
 interface ChatSuggestionsProps {
     sendMessage: (message: string) => void | Promise<void>;
     categories?: string[];
@@ -275,20 +297,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         });
     };
 
-    const PromptSuggestionButton = ({ question }: { question: string }) => (
-        <PermissionedButton
-            key={question}
-            canPerform={canWriteThreads}
-            noPermissionTooltip={intl.formatMessage(ActivitiesResources.sendMessageNoPermissionTooltip)}
-            appearance="subtle"
-            className={chatSuggestionsStyles.questionButton}
-            onClick={() => handleQuestionClick(question)}
-        >
-            <Text size={200} style={{ textAlign: 'left', width: '100%' }}>
-                {question}
-            </Text>
-        </PermissionedButton>
-    );
+    const noPermissionTooltip = intl.formatMessage(ActivitiesResources.sendMessageNoPermissionTooltip);
 
     return (
         <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
@@ -341,12 +350,26 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                                                   {subcat}
                                               </Text>
                                               {questions.map(question => (
-                                                  <PromptSuggestionButton key={question} question={question} />
+                                                  <PromptSuggestionButton
+                                                      key={question}
+                                                      question={question}
+                                                      canWriteThreads={canWriteThreads}
+                                                      noPermissionTooltip={noPermissionTooltip}
+                                                      className={chatSuggestionsStyles.questionButton}
+                                                      onClick={handleQuestionClick}
+                                                  />
                                               ))}
                                           </div>
                                       ))
                                 : getQuestionsForCategory(clickedKey).map(question => (
-                                      <PromptSuggestionButton key={question} question={question} />
+                                      <PromptSuggestionButton
+                                          key={question}
+                                          question={question}
+                                          canWriteThreads={canWriteThreads}
+                                          noPermissionTooltip={noPermissionTooltip}
+                                          className={chatSuggestionsStyles.questionButton}
+                                          onClick={handleQuestionClick}
+                                      />
                                   ))}
                         </div>
                     );
