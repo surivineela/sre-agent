@@ -154,9 +154,11 @@ export const RepositoryConnectionDialog = ({
                         label={intl.formatMessage(ResourceInfoResources.repositoryUrl)}
                         validationState={repoUrlError ? 'error' : undefined}
                         validationMessage={repoUrlError}
+                        hint={
+                            <div style={{ marginTop: '4px' }}>{intl.formatMessage(ResourceInfoResources.repositoryLongUrlPlaceholder)}</div>
+                        }
                     >
                         <Textarea
-                            placeholder={intl.formatMessage(ResourceInfoResources.repositoryLongUrlPlaceholder)}
                             value={repoUrl}
                             onChange={(_, data) => {
                                 setRepoUrl(data.value);
