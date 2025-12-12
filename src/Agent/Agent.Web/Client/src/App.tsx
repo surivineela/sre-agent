@@ -13,6 +13,7 @@ import { KnowledgeGraphBuildStatusProvider } from './src/Common/Providers/Knowle
 import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClientProvider';
 import { StreamingProvider } from './src/Common/Providers/StreamingProvider';
 import { UserActivityReporter } from './src/Common/Utils/UserActivityReporter';
+import { useAmplitudeSessionReplay } from './src/Space/Hooks/useAmplitudeSessionReplay';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 
@@ -20,6 +21,8 @@ const portalProxy = new AzPortalProxy();
 
 const App: React.FC = () => {
     const [environmentInfo, setEnvironmentInfo] = useState({ sreAgentEndpoint: defaultSreAgentEndpoint } as IEnvironmentInfo);
+
+    useAmplitudeSessionReplay();
 
     useEffect(() => {
         portalProxy.initialize(setEnvironmentInfo);
