@@ -61,6 +61,9 @@ public class SessionTransportFactory : ISessionTransportFactory
             Constants.ArmApiTokenScope,
             Constants.AzureDevopsTokenScope,
             Constants.Ev2ProdTokenScope,
+            Constants.AkvOboTokenScope,
+            Constants.StorageOboTokenScope,
+            Constants.LogAnalyticsOboTokenScope
         };
 
         // Get data connector credential for acquiring action tokens (same as data connectors)

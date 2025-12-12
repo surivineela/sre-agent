@@ -34,7 +34,7 @@ public class StaticTokenService : ITokenService
             }
         }
 
-        _logger.LogInformation($"No token found for resource: {resource}.");
+        _logger.LogError($"No token found for resource: {resource}.");
         return Task.FromResult<Token?>(null);
     }
 
