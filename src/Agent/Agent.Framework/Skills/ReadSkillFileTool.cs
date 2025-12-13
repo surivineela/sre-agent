@@ -26,6 +26,17 @@ public class ReadSkillFileTool<TContext>(
 
     public override string Description => $"""
     <skills_instructions>
+    <dynamic_toolset_notice>
+    **Dynamic toolset**: Your available tools may be incomplete at the start of a request. Loading a skill can provide missing domain instructions and may add new tools.
+
+    **When you suspect missing capability** (e.g., you cannot perform a requested action with current tools):
+    1. Identify the most relevant skill from <available_skills>
+    2. Read that skill's core instructions first: `read_skill_file(skill_name="...", file_path="SKILL.md")`
+    3. Re-evaluate the request using the newly loaded instructions and any newly available tools
+
+    Only after loading the most relevant skill(s) should you conclude an operation is not possible.
+    </dynamic_toolset_notice>
+
     When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively.
     Skills help you gain domain-specific expertise and knowledge, and may also add additional tools for specialized operations.
     You MUST load and utilize the relevant skills to inform your actions and decisions. Do not attempt to answer domain-specific questions without first loading the appropriate skill(s).
@@ -74,6 +85,13 @@ public class ReadSkillFileTool<TContext>(
     - Do not attempt to read files that are not part of the skill set
     - Do not read metadata.yaml
     - Do not read skill files more than once per task to avoid redundancy
+
+    <blocked_handling>
+    When you are blocked:
+    - **Blocked by missing capability/tools**: Load the most relevant skill's `SKILL.md` immediately (do not stall by repeatedly saying you will proceed).
+    - **Blocked by missing required user parameter**: Ask one focused question for the missing detail, then continue.
+    - **Still blocked after skill load**: Explain what is missing (capability/permissions/tool) and offer the closest feasible alternative.
+    </blocked_handling>
     </skills_instructions>
 
     <active_skills_guidelines>
