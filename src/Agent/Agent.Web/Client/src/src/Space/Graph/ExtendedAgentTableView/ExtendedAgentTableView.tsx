@@ -44,6 +44,7 @@ interface ExtendedAgentTableViewProps {
     lastUpdated?: string;
     systemTools?: SystemTool[];
     onEditKustoTool?: (tool: ExtendedTool) => void;
+    onEditPythonTool?: (tool: ExtendedTool) => void;
     onEditSkill?: (skill: Skill) => void;
 }
 
@@ -59,6 +60,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     isLoading,
     onRefresh,
     onEditKustoTool,
+    onEditPythonTool,
     onEditSkill,
 }) => {
     const intl = useIntl();
@@ -452,6 +454,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         maxWidth={INFO_PANEL_MAX_WIDTH}
                         onOpenPlayground={handleOpenPlayground}
                         onEditKustoTool={onEditKustoTool}
+                        onEditPythonTool={onEditPythonTool}
                         onEditSkill={onEditSkill}
                         onClose={handleCloseInfoPanel}
                     />

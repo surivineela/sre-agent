@@ -9,12 +9,10 @@ import {
 } from '@fluentui/react-icons';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { IntlShape, useIntl } from 'react-intl';
-import { useFeatureFlags } from '../../../../Common/Hooks/useFeatureFlags';
-import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedConnector, ExtendedTool, ToolParameter } from '../../../Contracts/ExtendedAgentGraph';
 import { useCreationDialogStyles } from '../styles';
 import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid, sanitizeEntityName } from '../utils/nameValidation';
-import { PythonToolCreator } from './PythonToolCreator';
 
 interface ToolDetailsStepProps {
     tool: Partial<ExtendedTool>;
@@ -33,15 +31,11 @@ export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({
     existingConnectors,
     onChange,
     intl,
-    onTestStatusChange,
-    fingerprint,
 }) => {
     const styles = useCreationDialogStyles();
     const internalIntl = useIntl();
-    const { features } = useFeatureFlags();
     const toolType = tool.type?.trim() || 'KustoTool';
     const isKustoTool = toolType === 'KustoTool';
-    const isPythonTool = toolType === 'PythonFunctionTool';
     const [paramValidationError, setParamValidationError] = useState<string>('');
     const [detectedParams, setDetectedParams] = useState<string[]>([]);
     const [showParamDetectionWarning, setShowParamDetectionWarning] = useState(false);
@@ -198,21 +192,9 @@ export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({
               })
             : undefined;
 
-    // If Python tool, use the unified component (after all hooks!)
-    if (isPythonTool) {
-        return (
-            <PythonToolCreator
-                tool={tool}
-                onChange={onChange}
-                onTestStatusChange={onTestStatusChange || (() => {})}
-                fingerprint={fingerprint}
-            />
-        );
-    }
-
     return (
         <div className={styles.formSection}>
-            {/* Tool Name and Type - Always shown for non-Python tools */}
+            {/* Tool Name and Type - Always shown for Kusto tools */}
             <div className={styles.formGrid}>
                 <Field
                     label={intl.formatMessage(ExtendedAgentsGraphResources.toolName)}
@@ -239,14 +221,11 @@ export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({
                         onOptionSelect={(_, data) => onChange({ ...tool, type: (data.optionValue as string | undefined)?.trim() })}
                     >
                         <Option value="KustoTool">{intl.formatMessage(ExtendedAgentsGraphResources.kustoTool)}</Option>
-                        {features.pythonTool && (
-                            <Option value="PythonFunctionTool">{internalIntl.formatMessage(SreAgentResources.pythonFunctionTool)}</Option>
-                        )}
                     </Dropdown>
                 </Field>
             </div>
 
-            {/* Description - Always shown for non-Python tools */}
+            {/* Description - Always shown for Kusto tools */}
             <div className={styles.compactField}>
                 <Field label={intl.formatMessage(ExtendedAgentsGraphResources.description)} required>
                     <Textarea

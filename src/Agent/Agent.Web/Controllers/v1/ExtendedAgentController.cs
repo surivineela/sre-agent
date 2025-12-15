@@ -796,7 +796,8 @@ Return ONLY valid JSON with this exact shape:
             "parameters": {"param1": "test", "param2": "5"},
             "expected_output": "Brief description of expected result"
         }
-    ]
+    ],
+    "message": "<A summary of the code you generated, any bugs you fixed>"
 }
 
 IMPORTANT:
@@ -807,6 +808,7 @@ IMPORTANT:
 - Generate 2-3 realistic test cases
 - Timeout should be 30-120 seconds based on complexity
 - The function MUST return a result - never leave results unreturned
+- Always return a message summarizing what you generated or updated
 
 User Intent (between <<< and >>>):
 <<<

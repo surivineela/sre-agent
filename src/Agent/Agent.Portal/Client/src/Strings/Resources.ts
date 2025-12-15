@@ -311,7 +311,11 @@ export const PortalResources = defineMessages({
         id: 'M6fZyT',
     },
     agentLoadError: { defaultMessage: 'Failed to load agent', id: 'Uj2xYe' },
-    agentLoadErrorDescription: { defaultMessage: 'We encountered an error while trying to load your agent. Please try again or contact support if the issue persists.', id: 'oDZ249' },
+    agentLoadErrorDescription: {
+        defaultMessage:
+            'We encountered an error while trying to load your agent. Please try again or contact support if the issue persists.',
+        id: 'oDZ249',
+    },
     resourceId: { defaultMessage: 'Resource ID', id: 'iIoj97' },
     agentLoadTimeout: { defaultMessage: 'Failed to load agent site', id: 'Tu5Fvy' },
     agentLoadTimeoutDescription: {

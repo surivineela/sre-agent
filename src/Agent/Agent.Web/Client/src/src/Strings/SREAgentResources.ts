@@ -198,246 +198,13 @@ export const SreAgentResources = defineMessages({
         id: 'BSQQkf',
         defaultMessage: 'Query returned no results',
     },
-    pythonFunctionTool: {
-        id: 'Hnv6Ej',
-        defaultMessage: 'Python Function',
-    },
-    pythonToolTesterTitle: {
-        id: 'uDXk7F',
-        defaultMessage: 'Python Function Tester',
-    },
-    pythonToolTesterSubtitle: {
-        id: 'EAGAAs',
-        defaultMessage: 'Test your Python function before saving',
-    },
-    pythonToolTesterCodeLabel: {
-        id: 'xgD8Kv',
-        defaultMessage: 'Python Function Code',
-    },
-    pythonToolTesterParameterValuesLabel: {
-        id: 'KryvVM',
-        defaultMessage: 'Parameter values (for testing)',
-    },
-    pythonToolTesterTestPending: {
-        id: '2myhph',
-        defaultMessage: 'Test the function to continue.',
-    },
-    pythonToolTesterTestRunning: {
-        id: 'Jdy/E7',
-        defaultMessage: 'Testing function…',
-    },
-    pythonToolTesterTestSuccess: {
-        id: 'kjUC48',
-        defaultMessage: 'Function test succeeded.',
-    },
-    pythonToolTesterTestError: {
-        id: 'fn9+0+',
-        defaultMessage: 'Function test failed: {message}',
-    },
-    pythonToolTesterTestMissingParams: {
-        id: '++2B26',
-        defaultMessage: 'Provide values for: {parameters}',
-    },
-    pythonToolTesterResultsLabel: {
-        id: 'm2KQqp',
-        defaultMessage: 'Execution Result',
-    },
-    pythonToolTesterExecutionTime: {
-        id: 'piGAtN',
-        defaultMessage: 'Executed in {milliseconds}ms',
-    },
-    pythonToolTesterExitCode: {
-        id: 'I3ymC9',
-        defaultMessage: 'Exit code: {code}',
-    },
-    pythonToolTesterStdout: {
-        id: 'BP5nk0',
-        defaultMessage: 'Standard Output',
-    },
-    pythonToolTesterStderr: {
-        id: 'wPfhmg',
-        defaultMessage: 'Standard Error',
-    },
-    pythonToolTesterNoCode: {
-        id: 'wGM2T+',
-        defaultMessage: 'Please provide Python function code',
-    },
-    pythonToolTesterGenerateCodeButton: {
-        id: '6fPJcm',
-        defaultMessage: 'Generate Code with AI',
-    },
-    pythonToolTesterGeneratingCode: {
-        id: 'l1+Ilp',
-        defaultMessage: 'Generating code…',
-    },
-    pythonToolTesterGeneratePromptLabel: {
-        id: 'uGPikn',
-        defaultMessage: 'Describe what the function should do',
-    },
-    pythonToolTesterGeneratePromptPlaceholder: {
-        id: 'wm4GRX',
-        defaultMessage: 'Example: Parse JSON logs and extract error messages',
-    },
-    pythonToolTesterGenerateSuccess: {
-        id: 'HHP8Nh',
-        defaultMessage: 'Code generated successfully!',
-    },
-    pythonToolTesterGenerateError: {
-        id: 'Lq6q6U',
-        defaultMessage: 'Failed to generate code: {message}',
-    },
-    // Python Tool Creator - Unified AI-First Experience
-    pythonToolAiPromptTitle: {
-        id: '25DrlN',
-        defaultMessage: 'What should this function do?',
-    },
-    pythonToolAiPromptPlaceholder: {
-        id: 'Qg+chS',
-        defaultMessage: 'Describe in plain English, e.g., "Parse JSON logs and count errors by severity"',
-    },
-    pythonToolAiGenerateButton: {
-        id: 'L/BdWN',
-        defaultMessage: 'Generate with AI ✨',
-    },
-    pythonToolAiGenerating: {
-        id: 'gd7vV5',
-        defaultMessage: 'Creating your function…',
-    },
-    pythonToolAiRegenerateButton: {
-        id: '6PgVSe',
-        defaultMessage: 'Regenerate',
-    },
-    pythonToolManualModeLink: {
-        id: 'ZSbKr/',
-        defaultMessage: 'Write code manually instead',
-    },
-    pythonToolAiModeLink: {
-        id: '5kCFXN',
-        defaultMessage: 'Generate with AI instead',
-    },
-    pythonToolCodeSectionTitle: {
-        id: 'uFDB/3',
-        defaultMessage: 'Function Code',
-    },
-    pythonToolTestSectionTitle: {
-        id: 'wTA9dx',
-        defaultMessage: 'Test Your Function',
-    },
-    pythonToolTestButton: {
-        id: 'fU7I5j',
-        defaultMessage: 'Run Test',
-    },
-    pythonToolTestRunning: {
-        id: 'ORcS+j',
-        defaultMessage: 'Testing…',
-    },
-    pythonToolTestSuccess: {
-        id: 'zcksw4',
-        defaultMessage: '✓ Test passed',
-    },
-    pythonToolTestFailed: {
-        id: 'uC4R7m',
-        defaultMessage: 'Test failed: {message}',
-    },
-    pythonToolParamsAutoDetected: {
-        id: 'qQRG87',
-        defaultMessage: 'Parameters auto-detected from code',
-    },
-    pythonToolEditCodeHint: {
-        id: 'NzhSBf',
-        defaultMessage: 'Edit the code below or regenerate with different instructions',
-    },
-    pythonToolBuilderTitle: {
-        id: '0eQHdW',
-        defaultMessage: 'Create Python Tool',
-    },
-    pythonToolBuilderIntentLabel: {
-        id: 'QTVz4e',
-        defaultMessage: 'Describe what your tool should do',
-    },
     pythonToolBuilderIntentPlaceholder: {
         id: 'wm4GRX',
         defaultMessage: 'Example: Parse JSON logs and extract error messages',
     },
-    pythonToolBuilderExamplePrefix: {
-        id: 'xRpMXP',
-        defaultMessage: 'Try:',
-    },
-    pythonToolBuilderExample1: {
-        id: 'fmrYkd',
-        defaultMessage: 'Parse JSON and extract error messages',
-    },
-    pythonToolBuilderExample2: {
-        id: 'sjq9sr',
-        defaultMessage: 'Validate email addresses',
-    },
-    pythonToolBuilderExample3: {
-        id: 'gLbYRM',
-        defaultMessage: 'Calculate percentage from two numbers',
-    },
-    pythonToolBuilderGenerateButton: {
-        id: '9DqDnP',
-        defaultMessage: 'Generate Tool',
-    },
-    pythonToolBuilderGenerating: {
-        id: 'nxBEvY',
-        defaultMessage: 'Creating your Python function…',
-    },
-    pythonToolBuilderGeneratingStep1: {
-        id: '6LKCR/',
-        defaultMessage: 'Analyzing intent',
-    },
-    pythonToolBuilderGeneratingStep2: {
-        id: 'IoxJ74',
-        defaultMessage: 'Writing function code',
-    },
-    pythonToolBuilderGeneratingStep3: {
-        id: 'uYv0At',
-        defaultMessage: 'Extracting parameters',
-    },
-    pythonToolBuilderGeneratingStep4: {
-        id: '6GLyN3',
-        defaultMessage: 'Generating test cases',
-    },
-    pythonToolBuilderCodeLabel: {
-        id: 'Hnv6Ej',
-        defaultMessage: 'Python Function',
-    },
-    pythonToolBuilderTestLabel: {
-        id: 'xu6eM8',
-        defaultMessage: 'Test',
-    },
-    pythonToolBuilderRunTest: {
-        id: 'fU7I5j',
-        defaultMessage: 'Run Test',
-    },
-    pythonToolBuilderRunTestShortcut: {
-        id: 'efl/SK',
-        defaultMessage: 'Run Test (Cmd+Enter)',
-    },
     pythonToolBuilderTestRunning: {
         id: 'ORcS+j',
         defaultMessage: 'Testing…',
-    },
-    pythonToolBuilderEditCode: {
-        id: 'i/pRlX',
-        defaultMessage: 'Click to edit code',
-    },
-    pythonToolBuilderSaveButton: {
-        id: 'FuPxOh',
-        defaultMessage: 'Save & Use Tool',
-    },
-    pythonToolBuilderCancelButton: {
-        id: '47FYwb',
-        defaultMessage: 'Cancel',
-    },
-    pythonToolBuilderTestCases: {
-        id: 'UcVdDd',
-        defaultMessage: '{count} test cases available',
-    },
-    pythonToolBuilderAdvancedSettings: {
-        id: 'zhoVUT',
-        defaultMessage: 'Advanced settings',
     },
     pythonToolBuilderNameLabel: {
         id: 'INiSE2',
@@ -451,41 +218,102 @@ export const SreAgentResources = defineMessages({
         id: 'g6WtKF',
         defaultMessage: 'Timeout (seconds)',
     },
-    pythonToolBuilderGenerationFailed: {
-        id: 'lOaomi',
-        defaultMessage: 'Generation failed: {error}',
+    // Python Tool Creator - Split Panel UI
+    pythonToolCreatorAssistantTab: {
+        id: 'wSAvhu',
+        defaultMessage: 'Assistant',
     },
-    pythonToolBuilderTestSuccess: {
-        id: 'psccqt',
-        defaultMessage: 'Executed in {ms}ms',
+    pythonToolCreatorTestPlaygroundTab: {
+        id: 'smIXdP',
+        defaultMessage: 'Test playground',
     },
-    pythonToolBuilderTestFailed: {
-        id: 'ITzzTV',
-        defaultMessage: 'Test failed',
+    pythonToolCreatorToolNamePlaceholder: {
+        id: '12QT7S',
+        defaultMessage: 'e.g., check_url_status',
     },
-    pythonToolBuilderSaving: {
-        id: 'hCNgyf',
-        defaultMessage: 'Saving tool…',
+    pythonToolCreatorDescriptionPlaceholder: {
+        id: '2pzmrJ',
+        defaultMessage: 'What does this function do?',
     },
-    pythonToolBuilderSaveSuccess: {
-        id: 'FGN2ax',
-        defaultMessage: 'Tool saved successfully!',
+    pythonToolCreatorGenerateButton: {
+        id: 'Pc+tM3',
+        defaultMessage: 'Generate',
     },
-    pythonToolBuilderSaveFailed: {
-        id: '/jp8iL',
-        defaultMessage: 'Failed to save tool: {error}',
+    pythonToolCreatorGeneratingButton: {
+        id: 'tB02Wz',
+        defaultMessage: 'Generating…',
     },
-    pythonToolBuilderUnsavedChanges: {
-        id: 'gFrqQf',
-        defaultMessage: 'You have unsaved changes. Are you sure you want to close?',
+    pythonToolCreatorTestButton: {
+        id: 'xu6eM8',
+        defaultMessage: 'Test',
     },
-    pythonToolBuilderEditName: {
-        id: 'Sn2nYC',
-        defaultMessage: 'Edit Name',
+    pythonToolCreatorTestPending: {
+        id: '2myhph',
+        defaultMessage: 'Test the function to continue.',
     },
-    pythonToolBuilderResultLabel: {
-        id: 'ZpQ6us',
-        defaultMessage: 'Result',
+    pythonToolCreatorTestRunning: {
+        id: 'Jdy/E7',
+        defaultMessage: 'Testing function…',
+    },
+    pythonToolCreatorTestSuccess: {
+        id: 'kjUC48',
+        defaultMessage: 'Function test succeeded.',
+    },
+    pythonToolCreatorTestError: {
+        id: 'fn9+0+',
+        defaultMessage: 'Function test failed: {message}',
+    },
+    pythonToolCreatorFixWithAI: {
+        id: 'zztZjz',
+        defaultMessage: 'Fix with AI',
+    },
+    pythonToolCreatorTestMissingParams: {
+        id: '++2B26',
+        defaultMessage: 'Provide values for: {parameters}',
+    },
+    pythonToolCreatorTestPlaygroundWarning: {
+        id: 'B2qjyO',
+        defaultMessage: 'Test the tool to continue',
+    },
+    pythonToolCreatorParamFieldWarning: {
+        id: 'Q7/1w4',
+        defaultMessage: 'Required for testing',
+    },
+    pythonToolCreatorParameterValuesLabel: {
+        id: 'KryvVM',
+        defaultMessage: 'Parameter values (for testing)',
+    },
+    pythonToolCreatorParameterPlaceholder: {
+        id: 'djuhEG',
+        defaultMessage: 'Enter {type} value',
+    },
+    pythonToolCreatorResultsLabel: {
+        id: 'oi3wVV',
+        defaultMessage: 'Test results',
+    },
+    pythonToolCreatorExecutionTime: {
+        id: 'piGAtN',
+        defaultMessage: 'Executed in {milliseconds}ms',
+    },
+    pythonToolCreatorGenerateError: {
+        id: 'Lq6q6U',
+        defaultMessage: 'Failed to generate code: {message}',
+    },
+    pythonToolCreatorPromptLabel: {
+        id: 'uGPikn',
+        defaultMessage: 'Describe what the function should do',
+    },
+    pythonToolCreatorMainFunctionRequired: {
+        id: 'x+Cs2X',
+        defaultMessage: 'Function must contain a main() function',
+    },
+    pythonToolCreatorTimeoutMin: {
+        id: 'q9vJvD',
+        defaultMessage: 'Timeout must be at least 5 seconds',
+    },
+    pythonToolCreatorTimeoutMax: {
+        id: 'cJucrk',
+        defaultMessage: 'Timeout cannot exceed 900 seconds',
     },
     deleteToolTitle: {
         id: 'bn84V+',
@@ -3776,6 +3604,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     // Tool Form Fields
     createKustoTool: { defaultMessage: 'Create a Kusto tool', id: 'gclDgn' },
     editKustoTool: { defaultMessage: 'Edit Kusto tool', id: 'bDbbX7' },
+    createPythonTool: { defaultMessage: 'Create a Python tool', id: '+3gcXm' },
+    editPythonTool: { defaultMessage: 'Edit Python tool', id: 'FKyoe8' },
     toolNoConnectorsMessage: { defaultMessage: 'To create a Kusto tool, first add an Azure Data Explorer connector.', id: 'fiLH5L' },
     goToConnectors: { defaultMessage: 'Go to Connectors', id: 'QK0vxq' },
     toolName: { defaultMessage: 'Tool name', id: 'oDH12O' },
@@ -3861,6 +3691,10 @@ export const ExtendedAgentsGraphResources = defineMessages({
     updateToolInProgress: { defaultMessage: 'Updating Kusto Tool', id: 'DP0m/y' },
     failedToUpdateTool: { defaultMessage: 'Failed to update tool', id: 'PpdTYy' },
     toolUpdatedSuccessfully: { defaultMessage: 'Tool updated successfully', id: 'fvSiRs' },
+    createPythonToolTitle: { defaultMessage: 'Create Python Tool', id: '0eQHdW' },
+    createPythonToolInProgress: { defaultMessage: 'Creating Python Tool', id: 'btp86z' },
+    updatePythonToolTitle: { defaultMessage: 'Update Python Tool', id: '0dIKAx' },
+    updatePythonToolInProgress: { defaultMessage: 'Updating Python Tool', id: 'dRQsmw' },
     addParameter: { defaultMessage: 'Add parameter', id: 'qB4s5L' },
     parameterName: { defaultMessage: 'Parameter name', id: 'xLrAFR' },
     parameterNamePlaceholder: { defaultMessage: 'Enter the parameter name', id: '0hpRE4' },
@@ -4492,6 +4326,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     quickCreateAddScheduledTask: { defaultMessage: 'Add scheduled task', id: 'fCiXKq' },
     quickCreateAddExistingTools: { defaultMessage: 'Add existing tools', id: 'SDsdCi' },
     quickCreateCreateNewKustoTool: { defaultMessage: 'Create new Kusto tool', id: 'mhKk7c' },
+    quickCreateCreateNewPythonTool: { defaultMessage: 'Create new Python tool', id: 'vOzK9a' },
     quickCreateAddExistingSubagent: { defaultMessage: 'Add existing subagent', id: 'KJHRU/' },
     quickCreateCreateNewSubagent: { defaultMessage: 'Create new subagent', id: '+h4pn9' },
     createIncidentTrigger: { defaultMessage: 'Create incident trigger', id: 'HQc/Lf' },

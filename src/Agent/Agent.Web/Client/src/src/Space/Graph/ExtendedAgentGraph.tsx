@@ -82,6 +82,7 @@ import { TableViewTabValue } from './ExtendedAgentTableView/ExtendedAgentTableVi
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
 import { KustoToolDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
+import { PythonToolDialog, PythonToolDialogMode } from './PythonToolDialog/PythonToolDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
 
@@ -188,6 +189,12 @@ const ExtendedAgentGraphContent = memo(() => {
     const [createToolAgent, setCreateToolAgent] = useState<string>();
     const [toolDialogMode, setToolDialogMode] = useState<KustoToolDialogMode>(KustoToolDialogMode.Create);
     const [toolToEdit, setToolToEdit] = useState<ExtendedTool>();
+
+    // Python Tool Dialog state
+    const [isPythonToolDialogOpen, setIsPythonToolDialogOpen] = useState<boolean>(false);
+    const [pythonToolDialogMode, setPythonToolDialogMode] = useState<PythonToolDialogMode>(PythonToolDialogMode.Create);
+    const [pythonToolToEdit, setPythonToolToEdit] = useState<ExtendedTool>();
+    const [pythonToolAgentName, setPythonToolAgentName] = useState<string>();
 
     const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
     const [currentTableViewTab, setCurrentTableViewTab] = useState<TableViewTabValue>('agents');
@@ -651,6 +658,20 @@ const ExtendedAgentGraphContent = memo(() => {
         setToolDialogMode(KustoToolDialogMode.Edit);
         setToolToEdit(tool);
         setIsToolDialogOpen(true);
+    }, []);
+
+    const handleEditPythonTool = useCallback((tool: ExtendedTool) => {
+        setPythonToolAgentName(undefined);
+        setPythonToolDialogMode(PythonToolDialogMode.Edit);
+        setPythonToolToEdit(tool);
+        setIsPythonToolDialogOpen(true);
+    }, []);
+
+    const handleCreatePythonTool = useCallback((agentName?: string) => {
+        setPythonToolAgentName(agentName);
+        setPythonToolDialogMode(PythonToolDialogMode.Create);
+        setPythonToolToEdit(undefined);
+        setIsPythonToolDialogOpen(true);
     }, []);
 
     const handleSaveSkill = useCallback(
@@ -1321,6 +1342,11 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (action === 'createPythonTool') {
+                handleCreatePythonTool(agentName);
+                return;
+            }
+
             if (action === 'createHandoffSourceAgent' || action === 'createHandoffTargetAgent' || action === 'editAgent') {
                 const agent = agents.find(a => a.name === agentName)!;
                 setAgentCreateOrEditInfo({
@@ -1349,7 +1375,7 @@ const ExtendedAgentGraphContent = memo(() => {
             setRelationshipInitialAction(action === 'addHandoff' ? 'handoff' : 'tool');
             setIsRelationshipDialogOpen(true);
         },
-        [agents]
+        [agents, handleCreatePythonTool]
     );
 
     const handleTriggerQuickAction = useCallback(
@@ -1688,6 +1714,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 isLoading={loading}
                 onRefresh={handleRefresh}
                 onEditKustoTool={handleEditKustoTool}
+                onEditPythonTool={handleEditPythonTool}
                 onEditSkill={skill => {
                     setEditingSkill(skill);
                     setIsSkillDialogOpen(true);
@@ -1711,6 +1738,7 @@ const ExtendedAgentGraphContent = memo(() => {
         loading,
         handleRefresh,
         handleEditKustoTool,
+        handleEditPythonTool,
         spinner,
         intl,
         nodes,
@@ -1751,12 +1779,7 @@ const ExtendedAgentGraphContent = memo(() => {
             }
 
             if (itemType === 'pythonTool') {
-                setCreationDialogContext(undefined);
-                setCreationDialogInitialTypeOverride('tool');
-                setCreationDialogInitialToolType('PythonFunctionTool');
-                setCreationDialogTriggerAgentName(undefined);
-                setCreationSuccess(undefined);
-                setIsCreationDialogOpen(true);
+                handleCreatePythonTool(undefined);
                 return;
             }
 
@@ -1797,6 +1820,7 @@ const ExtendedAgentGraphContent = memo(() => {
             setIsCreationDialogOpen,
             agents,
             anchorEntity,
+            handleCreatePythonTool,
         ]
     );
 
@@ -1989,6 +2013,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                         maxWidth={INFO_PANEL_MAX_WIDTH}
                                         onOpenPlayground={handleOpenPlayground}
                                         onEditKustoTool={handleEditKustoTool}
+                                        onEditPythonTool={handleEditPythonTool}
                                         onEditSkill={skill => {
                                             setEditingSkill(skill);
                                             setIsSkillDialogOpen(true);
@@ -2078,6 +2103,19 @@ const ExtendedAgentGraphContent = memo(() => {
                         }}
                         kustoTool={toolToEdit}
                         mode={toolDialogMode}
+                    />
+
+                    <PythonToolDialog
+                        isDialogOpen={isPythonToolDialogOpen}
+                        setIsDialogOpen={setIsPythonToolDialogOpen}
+                        agentName={pythonToolAgentName}
+                        addToolsToAgent={addToolsToAgent}
+                        refresh={() => {
+                            setIsInfoPanelCollapsed(true);
+                            handleRefresh();
+                        }}
+                        pythonTool={pythonToolToEdit}
+                        mode={pythonToolDialogMode}
                     />
 
                     <AddExistingAgentHandoffDialog

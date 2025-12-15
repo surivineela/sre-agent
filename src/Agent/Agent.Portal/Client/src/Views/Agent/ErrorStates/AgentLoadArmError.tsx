@@ -92,16 +92,18 @@ const AgentLoadArmError = ({ agentLoadError, resourceId }: AgentLoadArmErrorProp
 
     const sessionId = getSessionId();
 
-    const title = agentLoadError.type === 'notFound'
-        ? intl.formatMessage(PortalResources.agentNotFound)
-        : agentLoadError.type === 'accessDenied'
-          ? intl.formatMessage(PortalResources.agentAccessDenied)
-          : intl.formatMessage(PortalResources.agentLoadError);
-    const description = agentLoadError.type === 'notFound'
-        ? intl.formatMessage(PortalResources.agentNotFoundDescription)
-        : agentLoadError.type === 'accessDenied'
-          ? intl.formatMessage(PortalResources.agentAccessDeniedDescription)
-          : intl.formatMessage(PortalResources.agentLoadErrorDescription);
+    const title =
+        agentLoadError.type === 'notFound'
+            ? intl.formatMessage(PortalResources.agentNotFound)
+            : agentLoadError.type === 'accessDenied'
+              ? intl.formatMessage(PortalResources.agentAccessDenied)
+              : intl.formatMessage(PortalResources.agentLoadError);
+    const description =
+        agentLoadError.type === 'notFound'
+            ? intl.formatMessage(PortalResources.agentNotFoundDescription)
+            : agentLoadError.type === 'accessDenied'
+              ? intl.formatMessage(PortalResources.agentAccessDeniedDescription)
+              : intl.formatMessage(PortalResources.agentLoadErrorDescription);
 
     const handleBrowseAgents = useCallback(() => {
         logEvent({
@@ -133,7 +135,11 @@ const AgentLoadArmError = ({ agentLoadError, resourceId }: AgentLoadArmErrorProp
     return (
         <div className={styles.wrapper}>
             <div className={styles.container}>
-                {agentLoadError.type === 'accessDenied' ? <LockClosedRegular className={styles.icon} /> : <BotFilled className={styles.icon} />}
+                {agentLoadError.type === 'accessDenied' ? (
+                    <LockClosedRegular className={styles.icon} />
+                ) : (
+                    <BotFilled className={styles.icon} />
+                )}
                 <Subtitle1 className={styles.title}>{title}</Subtitle1>
                 <Body1 className={styles.description}>{description}</Body1>
 

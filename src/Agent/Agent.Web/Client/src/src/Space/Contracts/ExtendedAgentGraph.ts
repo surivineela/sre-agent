@@ -219,7 +219,8 @@ export type AgentQuickAction =
     | 'createHandoffTargetAgent'
     | 'createAgent'
     | 'editAgent'
-    | 'createTool';
+    | 'createTool'
+    | 'createPythonTool';
 
 export enum ExtendedAgentGraphView {
     Grid = 'grid',

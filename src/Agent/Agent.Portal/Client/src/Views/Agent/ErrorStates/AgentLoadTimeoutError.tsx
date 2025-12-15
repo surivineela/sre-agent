@@ -2,12 +2,12 @@ import { Body1, Button, makeStyles, MessageBar, MessageBarBody, Subtitle1, Text,
 import { PlugDisconnectedRegular } from '@fluentui/react-icons';
 import { memo, useCallback } from 'react';
 import { useIntl } from 'react-intl';
+import CopyButton from '../../../Common/Components/CopyButton';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { useTelemetry } from '../../../Common/Hooks/useTelemetry';
 import { getSessionId } from '../../../Common/Utilities/SessionManager';
 import { buildBladeUrl, IOpenBladeInfo } from '../../../Common/Utilities/Url';
-import CopyButton from '../../../Common/Components/CopyButton';
 import { PortalResources } from '../../../Strings/Resources';
 
 const azureSreWildcardDomain = '*.azuresre.ai';

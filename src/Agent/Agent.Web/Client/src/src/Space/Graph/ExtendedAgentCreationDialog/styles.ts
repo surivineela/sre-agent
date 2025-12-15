@@ -1320,24 +1320,4 @@ export const useCreationDialogStyles = makeStyles({
         paddingTop: '16px',
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
-
-    // Python tool takes the full dialog body height with its own split layout
-    pythonToolContainer: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        overflow: 'hidden',
-    },
-
-    // DialogContent override to fill available space for Python tool
-    dialogContentFullHeight: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        overflow: 'hidden',
-        // Remove default padding to give Python tool full control
-        padding: 0,
-    },
 });

@@ -27,6 +27,9 @@ public class GeneratePythonToolResponse
     [JsonPropertyName("test_cases")]
     public List<TestCase> TestCases { get; set; } = new();
 
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = string.Empty;
+
     public bool Success { get; set; }
     public string? ErrorMessage { get; set; }
 }

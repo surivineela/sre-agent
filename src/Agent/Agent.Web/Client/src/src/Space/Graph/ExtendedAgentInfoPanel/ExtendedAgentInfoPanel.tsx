@@ -68,6 +68,7 @@ type ExtendedAgentInfoPanelProps = {
     maxWidth?: number;
     onOpenPlayground?: (target: PlaygroundTarget) => void;
     onEditKustoTool?: (tool: ExtendedTool) => void;
+    onEditPythonTool?: (tool: ExtendedTool) => void;
     onEditSkill?: (skill: Skill) => void;
     onClose?: () => void;
     collapsibleProps?: {
@@ -132,6 +133,7 @@ export const ExtendedAgentInfoPanel = memo(
         maxWidth,
         onOpenPlayground,
         onEditKustoTool,
+        onEditPythonTool,
         onEditSkill,
         onClose,
         collapsibleProps,
@@ -266,9 +268,16 @@ export const ExtendedAgentInfoPanel = memo(
                     triggerTriggerQuickAction(entity.name, 'editTrigger');
                     return;
                 }
-                if (type === 'tool' && onEditKustoTool) {
-                    onEditKustoTool(entity as ExtendedTool);
-                    return;
+                if (type === 'tool') {
+                    const tool = entity as ExtendedTool;
+                    if (tool.type === 'PythonFunctionTool' && onEditPythonTool) {
+                        onEditPythonTool(tool);
+                        return;
+                    }
+                    if (onEditKustoTool) {
+                        onEditKustoTool(tool);
+                        return;
+                    }
                 }
                 if (type === 'skill' && onEditSkill) {
                     onEditSkill(entity as Skill);
@@ -276,7 +285,7 @@ export const ExtendedAgentInfoPanel = memo(
                 }
                 handleOpenYamlEditor(entity, type as ExtendedEntityType);
             },
-            [triggerAgentQuickAction, triggerTriggerQuickAction, onEditKustoTool, onEditSkill, handleOpenYamlEditor]
+            [triggerAgentQuickAction, triggerTriggerQuickAction, onEditKustoTool, onEditPythonTool, onEditSkill, handleOpenYamlEditor]
         );
 
         const renderToolDetails = useCallback(
