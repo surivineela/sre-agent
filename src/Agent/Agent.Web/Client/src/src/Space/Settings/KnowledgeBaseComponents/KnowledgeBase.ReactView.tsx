@@ -154,6 +154,7 @@ const KnowledgeBase: FC = () => {
                         placeholder={intl.formatMessage(KnowledgeBaseResources.searchForFiles)}
                         value={searchText}
                         onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                        size={'small'}
                     />
                     <ToolbarButton
                         icon={<ArrowClockwise16Regular />}

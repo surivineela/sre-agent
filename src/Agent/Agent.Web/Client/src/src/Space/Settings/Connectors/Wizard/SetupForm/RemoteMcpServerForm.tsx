@@ -48,6 +48,7 @@ export const RemoteMcpServerForm: React.FC<RemoteMcpServerFormProps> = props => 
                             <InputFormik
                                 name={`customHeaders[${itemIndex}].key`}
                                 placeholder={intl.formatMessage(ConnectorsResources.customHeadersKeyPlaceholder)}
+                                size={'small'}
                             />
                         </TableCellLayout>
                     );
@@ -64,6 +65,7 @@ export const RemoteMcpServerForm: React.FC<RemoteMcpServerFormProps> = props => 
                             <InputFormik
                                 name={`customHeaders[${itemIndex}].value`}
                                 placeholder={intl.formatMessage(ConnectorsResources.customHeadersValuePlaceholder)}
+                                size={'small'}
                             />
                         </TableCellLayout>
                     );

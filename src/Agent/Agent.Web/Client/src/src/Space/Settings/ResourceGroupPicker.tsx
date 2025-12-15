@@ -510,6 +510,7 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
                                             value={filter}
                                             onChange={(_event, data) => setFilter(data.value)}
                                             placeholder={intl.formatMessage(ManagedResourcesStringResources.search)}
+                                            size={'small'}
                                         />
                                     </div>
                                     <div className={localStyles.filterItem}>

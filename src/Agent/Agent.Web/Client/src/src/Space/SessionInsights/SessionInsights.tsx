@@ -89,7 +89,7 @@ interface SessionInsightData {
 
 const SessionInsights: FC = () => {
     const styles = useStyles();
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [insights, setInsights] = useState<SessionInsightData[]>([]);
     const [selectedInsightId, setSelectedInsightId] = useState<string | null>(null);
@@ -106,7 +106,7 @@ const SessionInsights: FC = () => {
                 }
 
                 // Fetch insights from Cosmos DB - now returning full SessionInsight objects
-                const response = await fetch(`/api/v1/threads/insights?skip=0&take=1000`, {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/insights?skip=0&take=1000`, {
                     headers: getAgentHeaders(),
                 });
 

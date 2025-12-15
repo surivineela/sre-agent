@@ -35,6 +35,7 @@ export const LocalMcpServerForm: React.FC<LocalMcpServerFormProps> = props => {
                             <InputFormik
                                 name={`args[${itemIndex}].value`}
                                 placeholder={intl.formatMessage(ConnectorsResources.argumentPlaceholder)}
+                                size={'small'}
                             />
                         </TableCellLayout>
                     );
@@ -53,7 +54,11 @@ export const LocalMcpServerForm: React.FC<LocalMcpServerFormProps> = props => {
                     const itemIndex = values.env?.indexOf(item) ?? -1;
                     return (
                         <TableCellLayout>
-                            <InputFormik name={`env[${itemIndex}].key`} placeholder={intl.formatMessage(ConnectorsResources.key)} />
+                            <InputFormik
+                                name={`env[${itemIndex}].key`}
+                                placeholder={intl.formatMessage(ConnectorsResources.key)}
+                                size={'small'}
+                            />
                         </TableCellLayout>
                     );
                 },
@@ -66,7 +71,11 @@ export const LocalMcpServerForm: React.FC<LocalMcpServerFormProps> = props => {
                     const itemIndex = values.env?.indexOf(item) ?? -1;
                     return (
                         <TableCellLayout>
-                            <InputFormik name={`env[${itemIndex}].value`} placeholder={intl.formatMessage(ConnectorsResources.value)} />
+                            <InputFormik
+                                name={`env[${itemIndex}].value`}
+                                placeholder={intl.formatMessage(ConnectorsResources.value)}
+                                size={'small'}
+                            />
                         </TableCellLayout>
                     );
                 },

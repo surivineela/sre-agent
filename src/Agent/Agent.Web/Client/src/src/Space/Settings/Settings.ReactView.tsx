@@ -1,5 +1,5 @@
-import { initializeIcons } from '@fluentui/react';
-import { NavDrawer, NavDrawerBody, NavItem } from '@fluentui/react-components';
+import { initializeIcons, useTheme } from '@fluentui/react';
+import { NavDrawer, NavDrawerBody, NavItem, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -21,6 +21,7 @@ import { useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
 import Support from './Support';
 import Usage from './Usage';
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 
 export enum SettingsKeys {
     AccessControl = 'accessControl',
@@ -42,6 +43,8 @@ export enum SettingsKeys {
 const useSettingsNavStyles = () => useSharedNavDrawerStyles();
 
 const Settings: FC = () => {
+    const theme = useTheme();
+
     const styles = useSettingsStyles();
     const navigationStyles = useSettingsNavStyles();
     const intl = useIntl();
@@ -161,7 +164,7 @@ const Settings: FC = () => {
 
     return (
         iconsInitialized && (
-            <div style={styles.navContainerStyles}>
+            <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme.isInverted ? webDarkTheme : webLightTheme} style={styles.navContainerStyles}>
                 <NavDrawer
                     defaultSelectedValue={selectedKey || SettingsKeys.Basics}
                     defaultSelectedCategoryValue=""
@@ -198,7 +201,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.SessionInsights && <SessionInsights />}
                     {selectedKey === SettingsKeys.Support && <Support />}
                 </div>
-            </div>
+            </CopilotProvider>
         )
     );
 };

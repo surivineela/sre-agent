@@ -107,7 +107,7 @@ const ConnectorsToolbar: FC<ConnectorsToolbarProps> = ({
                 {intl.formatMessage(SreAgentResources.remove)}
             </PermissionedButton>
             <Divider vertical className={styles.divider} />
-            <SearchBoxWithDebounce className={styles.searchBox} setSearchTerm={setSearchTerm} />
+            <SearchBoxWithDebounce className={styles.searchBox} setSearchTerm={setSearchTerm} size={'small'} />
             <PillFilter
                 label={intl.formatMessage(ConnectorsResources.service)}
                 filterType="combobox"

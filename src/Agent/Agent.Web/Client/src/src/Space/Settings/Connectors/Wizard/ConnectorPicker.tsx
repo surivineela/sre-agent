@@ -76,7 +76,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                 {intl.formatMessage(ConnectorsResources.chooseAConnector)}
             </h2>
             <div className={styles.searchBarContainer}>
-                <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} />
+                <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} size={'small'} />
                 <Button appearance="secondary" icon={<Add20Regular />} onClick={onCustomMcpAdd}>
                     {intl.formatMessage(ConnectorsResources.addMcpServer)}
                 </Button>
