@@ -20,7 +20,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import NoAccessError from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
-import { Radio } from '../Components/Common/Radio';
+import { CopilotRadio } from '../Components/Common/CopilotRadio';
 import GraphGridView from './GraphGridView';
 
 const Graph = () => {
@@ -132,8 +132,8 @@ const GraphContent = () => {
                                 onChange={(_, data) => onChangeViewType(data.value as GraphView)}
                                 layout="horizontal"
                             >
-                                <Radio value={GraphView.Visual} label={intl.formatMessage(GraphResources.visualView)} />
-                                <Radio value={GraphView.Grid} label={intl.formatMessage(GraphResources.gridView)} />
+                                <CopilotRadio value={GraphView.Visual} label={intl.formatMessage(GraphResources.visualView)} />
+                                <CopilotRadio value={GraphView.Grid} label={intl.formatMessage(GraphResources.gridView)} />
                             </RadioGroup>
                         </div>
                         <div className={container}>

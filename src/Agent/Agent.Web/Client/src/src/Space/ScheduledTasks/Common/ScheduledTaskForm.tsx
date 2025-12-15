@@ -1,12 +1,13 @@
 import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData } from '@fluentui/react-components';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
-import { formatDateToTimeString, TimePicker } from '@fluentui/react-timepicker-compat';
+import { formatDateToTimeString } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
 import { FC, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { roundTimeToNearestMinuteInterval } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { AgentPromptTextarea } from '../../Components/AgentPromptTextarea';
+import { CopilotTimePicker } from '../../Components/Common/CopilotTimePicker';
 import { ExtendedAgent } from '../../Contracts/ExtendedAgentGraph';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 import { DayOfTheWeek, getDaysOfTheWeek, GroupMessageKey, ScheduledTaskFormProps, TaskFrequencyKey } from '../ScheduledTasksUtilities';
@@ -176,7 +177,7 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                         // Styling is a workaround to time picker being too wide
                         // https://github.com/microsoft/fluentui/issues/34325
                         <Field style={{ gridTemplateColumns: 'auto' }} label={intl.formatMessage(ScheduledTasksResources.timeOfDay)}>
-                            <TimePicker
+                            <CopilotTimePicker
                                 type="button"
                                 className={styles.timePicker}
                                 increment={15}

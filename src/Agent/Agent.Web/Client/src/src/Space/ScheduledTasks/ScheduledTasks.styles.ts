@@ -129,7 +129,6 @@ export const useScheduledTasksStyles = makeStyles({
         alignItems: 'start',
         gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))',
         gap: '12px',
-        maxWidth: '460px',
         '& .fui-Dropdown': {
             minWidth: '0 !important',
             width: '100%',
@@ -138,7 +137,6 @@ export const useScheduledTasksStyles = makeStyles({
     timePicker: {
         minWidth: 'initial',
         gridTemplateColumns: 'minmax(0, 1fr) auto',
-        '& input': { textAlign: 'left' },
     },
     taskFormDateFields: {
         display: 'grid',

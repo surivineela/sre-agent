@@ -343,6 +343,7 @@ export const ScheduledTasksFilters: FC<ScheduledTasksFiltersProps> = ({ searchQu
                 value={searchQuery}
                 onChange={(_, data) => setSearchQuery(data.value)}
                 placeholder={intl.formatMessage(ScheduledTasksResources.searchByScheduledTask)}
+                size={'small'}
             />
             <PillFilter
                 label={`${intl.formatMessage(SreAgentResources.status)}`}

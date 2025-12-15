@@ -1,5 +1,7 @@
-import { Text } from '@fluentui/react-components';
 import { FC, useCallback, useMemo, useState } from 'react';
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
+import { useTheme } from '@fluentui/react';
+import { Text, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
@@ -16,6 +18,8 @@ import { getFilterKeyFromScheduledTaskStatus, TaskStatusFilterKey } from './Sche
 
 export const ScheduledTasks: FC = () => {
     const intl = useIntl();
+    const theme = useTheme();
+
     const styles = useScheduledTasksStyles();
     const {
         scheduledTasks,
@@ -88,7 +92,20 @@ export const ScheduledTasks: FC = () => {
                 setIsOperationInProgress,
             }}
         >
-            <div className={styles.root}>
+            <CopilotProvider
+                {...CopilotTheme}
+                mode={'canvas'}
+                theme={theme.isInverted ? webDarkTheme : webLightTheme}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'calc(100vh - 60px)',
+                    padding: '10px ',
+                    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+                    backgroundColor: tokens.colorNeutralBackground3,
+                    gap: '0.25rem',
+                }}
+            >
                 <div className={styles.tabRoot}>
                     {currentSelectedTask ? (
                         <ScheduledTaskExecutionsView task={currentSelectedTask} onBack={handleBackToList} />
@@ -140,7 +157,7 @@ export const ScheduledTasks: FC = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </CopilotProvider>
         </ScheduledTasksContext.Provider>
     );
 };
