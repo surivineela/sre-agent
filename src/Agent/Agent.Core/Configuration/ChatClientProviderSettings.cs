@@ -22,6 +22,12 @@ namespace Agent.Core.Configuration
         public string EmbeddingModelName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Maximum number of burst requests allowed for rate limiting.
+        /// Default is 20 if not specified.
+        /// </summary>
+        public int MaxBurstRequests { get; set; } = 20;
+
+        /// <summary>
         /// Configuration for model selection based on scenario types.
         /// </summary>
         public ModelScenarioConfiguration ScenarioConfiguration { get; set; } = new();

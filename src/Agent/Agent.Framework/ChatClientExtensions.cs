@@ -189,8 +189,7 @@ public static partial class ChatClientExtensions
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;
-        var deadline = start.AddSeconds(60);
-        var attempt = 0;
+        var deadline = start.AddSeconds(60); // Extended to 60 seconds to accommodate rate limit retries
         var nonRateLimitRetried = false;
 
         Debug.Assert(client is ReasoningChatClient);
@@ -205,7 +204,6 @@ public static partial class ChatClientExtensions
 
         while (true)
         {
-            attempt++;
             try
             {
                 // Check for cancellation
@@ -396,17 +394,18 @@ public static partial class ChatClientExtensions
 
                 return response;
             }
-            catch (ClientResultException ex) when (IsRateLimit(ex))
+            catch (RateLimitExceededException ex)
             {
+                // Rate limit exception from RateLimitChatClient
                 var remaining = deadline - DateTime.UtcNow;
                 if (remaining <= TimeSpan.Zero)
                 {
                     throw;
                 }
 
-                var delay = TryParseRetryAfterSeconds(ex, out var seconds)
-                    ? TimeSpan.FromSeconds(seconds)
-                    : ComputeBackoff(attempt);
+                var delay = ex.RetryAfterSeconds.HasValue
+                    ? TimeSpan.FromSeconds(ex.RetryAfterSeconds.Value)
+                    : TimeSpan.FromSeconds(10);
 
                 if (delay > remaining)
                 {
@@ -523,46 +522,6 @@ public static partial class ChatClientExtensions
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
-    }
-
-    private static bool IsRateLimit(System.ClientModel.ClientResultException ex)
-    {
-        try
-        {
-            if (ex.Status == 429)
-            {
-                return true;
-            }
-        }
-        catch
-        {
-            // Fallback to message checks if Status is not available
-        }
-
-        var msg = ex.Message ?? string.Empty;
-        return msg.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase)
-            || msg.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase)
-            || msg.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool TryParseRetryAfterSeconds(System.ClientModel.ClientResultException ex, out int seconds)
-    {
-        seconds = 0;
-        var msg = ex.Message ?? string.Empty;
-        var m = Regex.Match(msg, @"Try again in\s+(\d+)\s+seconds", RegexOptions.IgnoreCase);
-        if (m.Success && int.TryParse(m.Groups[1].Value, out var s))
-        {
-            seconds = s;
-            return true;
-        }
-        return false;
-    }
-
-    private static TimeSpan ComputeBackoff(int attempt)
-    {
-        var baseMs = Math.Min(1000 * (int)Math.Pow(2, Math.Max(0, attempt - 1)), 10_000);
-        var jitter = (int)(baseMs * 0.2 * Random.Shared.NextDouble());
-        return TimeSpan.FromMilliseconds(baseMs + jitter);
     }
 }
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

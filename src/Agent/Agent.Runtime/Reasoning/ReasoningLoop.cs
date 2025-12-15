@@ -1229,6 +1229,30 @@ public class ReasoningLoop : IDisposable
                 _context,
                 assistantMessage);
         }
+        catch (RateLimitExceededException ex)
+        {
+            _currentException = ex;
+            var parentSpan = _currentAgentSpan ?? _rootSpan;
+            var errorSpan = _tracer.StartActiveSpan("error", SpanKind.Internal, parentSpan);
+            errorSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
+            errorSpan.SetAttribute(TraceAttribute.OperationName, "error");
+            errorSpan.SetAttribute("error.message", $"Model Rate-limit exceeded: {ex.GetType()}: {ex.Message}");
+            errorSpan.SetAttribute("error.stacktrace", ex.StackTrace);
+            errorSpan.End();
+
+            _logger.LogInternalWarning(ex, "[{threadId}]Rate limit encountered during reasoning loop.", _context.ThreadId);
+
+            var retryAfterMessage = ex.RetryAfterSeconds.HasValue
+                ? $"{ex.RetryAfterSeconds.Value} seconds"
+                : "a few moments";
+            var errorMessage = string.Format(Agent.Core.Constants.ErrorMessages.RateLimitExceeded, retryAfterMessage);
+            var message = new ChatMessage(ChatRole.Assistant, errorMessage);
+
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                _context,
+                message
+            );
+        }
         catch (System.ClientModel.ClientResultException ex)
             when (ex.Status == 429
                 || (ex.Message?.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase) ?? false)

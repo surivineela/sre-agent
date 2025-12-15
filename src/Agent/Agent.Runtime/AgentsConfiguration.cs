@@ -19,6 +19,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using OpenAI;
@@ -522,6 +523,8 @@ public static class AgentsConfigurationExtensions
         var experimentalSettings = serviceProvider.GetRequiredService<ExperimentalSettings>();
         var useResponsesApi = experimentalSettings.UseResponsesApi;
 
+        var chatClientProviderSettings = serviceProvider.GetRequiredService<IOptions<ChatClientProviderSettings>>();
+        var maxBurstRequests = chatClientProviderSettings.Value.MaxBurstRequests;
         // load experiments to see if Responses API is enabled via experiment
         var experimentLoader = serviceProvider.GetRequiredService<IExperimentLoader>();
         if (experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableResponsesApi))
@@ -540,6 +543,7 @@ public static class AgentsConfigurationExtensions
 
         return new ChatClientBuilder(chatClient)
             .Use(next => new ReasoningChatClient(next, new OpenAIReasoningChatClientOptions(UseResponsesApi: useResponsesApi)))
+            .Use(next => new RateLimitChatClient(next, maxBurstRequests))
             .UseTokenLogging(loggerFactory)
             .UseLogging(loggerFactory);
     }
