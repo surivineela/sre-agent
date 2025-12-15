@@ -11,6 +11,7 @@ export interface ScheduledTasksContextProps {
     pauseTask: (id: string) => Promise<Response<void>>;
     resumeTask: (id: string) => Promise<Response<void>>;
     deleteTask: (id: string) => Promise<Response<void>>;
+    getTaskExecutions: (id: string) => Promise<Response<any>>;
     isOperationInProgress: boolean;
     setIsOperationInProgress: (value: boolean) => void;
 }

@@ -3252,6 +3252,23 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Start:',
         id: 'xP3hmB',
     },
+
+    // Executions
+    startTime: { defaultMessage: 'Start time', id: '/zFP1/' },
+    duration: { defaultMessage: 'Duration', id: 'IuFETn' },
+    runStatus: { defaultMessage: 'Run status', id: 'WNTEQn' },
+    threadName: { defaultMessage: 'Thread name', id: 'tiNK7U' },
+    taskSummary: { defaultMessage: 'Task summary', id: 'spehs+' },
+    downloadFile: { defaultMessage: 'Download file', id: 'k9qHCC' },
+    executionSuccess: { defaultMessage: 'Success', id: 'xrKHS6' },
+    executionFailed: { defaultMessage: 'Failed', id: 'vXCeIi' },
+    noExecutions: { defaultMessage: 'No executions found', id: 'HDeHN9' },
+    noExecutionsDescription: { defaultMessage: 'This scheduled task has not been run yet.', id: 'WCPqyS' },
+    executionHistoryTableAriaLabel: { defaultMessage: 'Scheduled task execution history', id: 'TEziH8' },
+    statusFilterAll: { defaultMessage: 'All', id: 'zQvVDJ' },
+    backToScheduledTasks: { defaultMessage: 'Back to scheduled tasks', id: 'eXGPt3' },
+    editTask: { defaultMessage: 'Edit task', id: 'dsTLW1' },
+    noThreadFound: { defaultMessage: 'No thread found', id: 'y1cukD' },
 });
 
 export const SubAgentsResources = defineMessages({

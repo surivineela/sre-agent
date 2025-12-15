@@ -46,6 +46,8 @@ export const useScheduledTasks = () => {
 
     const resumeTask = useCallback((id: string) => scheduledTasksClient.resumeScheduledTask(id), [scheduledTasksClient]);
 
+    const getTaskExecutions = useCallback((id: string) => scheduledTasksClient.getScheduledTaskExecutions(id), [scheduledTasksClient]);
+
     // Load tasks on mount
     useEffect(() => {
         refreshTasks();
@@ -62,5 +64,6 @@ export const useScheduledTasks = () => {
         deleteTask,
         pauseTask,
         resumeTask,
+        getTaskExecutions,
     };
 };

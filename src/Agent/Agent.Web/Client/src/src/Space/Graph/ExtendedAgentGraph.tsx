@@ -1865,6 +1865,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     resumeTask: scheduledTasksHook.resumeTask,
                     deleteTask: scheduledTasksHook.deleteTask,
                     runTask: scheduledTasksHook.runTask,
+                    getTaskExecutions: scheduledTasksHook.getTaskExecutions,
                     isOperationInProgress,
                     setIsOperationInProgress,
                 }}

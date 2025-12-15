@@ -168,4 +168,28 @@ export const useScheduledTasksStyles = makeStyles({
         alignItems: 'center',
         fontSize: tokens.fontSizeBase200,
     },
+    emptyState: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: tokens.spacingVerticalXXL,
+        gap: tokens.spacingVerticalS,
+        textAlign: 'center',
+    },
+    executionsHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+        padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalXL}`,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    executionsHeaderTitle: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalXXS,
+    },
+    backButton: {
+        minWidth: 'auto',
+    },
 });

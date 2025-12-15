@@ -23,7 +23,7 @@ import {
 } from '@fluentui/react-components';
 import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
@@ -31,7 +31,6 @@ import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpress
 import { getLocaleDateTimeHHMM } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
-import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
 import ScheduledTaskStatusBadge from './Common/ScheduledTaskStatusBadge';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
@@ -52,14 +51,19 @@ interface ScheduledTasksDataGridProps {
     isScheduledTasksLoading: boolean; // TODO: Use it when loading state will be implemented
     selectedTaskIds: string[];
     setSelectedTaskIds: (tasks: string[]) => void;
+    onTaskClick?: (task: ScheduledTask) => void;
 }
 
-export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ scheduledTasks, selectedTaskIds, setSelectedTaskIds }) => {
+export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
+    scheduledTasks,
+    selectedTaskIds,
+    setSelectedTaskIds,
+    onTaskClick,
+}) => {
     const intl = useIntl();
     const azPortalContext = useContext(AzPortalContext);
-    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
+    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, getTaskExecutions, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
-    const [editDialogTaskId, setEditDialogTaskId] = useState<string | null>(null);
 
     const onSelectionChange: DataGridProps['onSelectionChange'] = useCallback(
         (_: any, data: OnSelectionChangeData) => {
@@ -159,6 +163,8 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
                 intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationInProgressSingle, { name: name ?? id })
             );
 
+            console.log(await getTaskExecutions(id));
+
             setIsOperationInProgress(true);
             const response = await runTask(id);
             if (response.isSuccessful) {
@@ -177,7 +183,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
             }
             setIsOperationInProgress(false);
         },
-        [azPortalContext, intl, setIsOperationInProgress, runTask, refreshTasks]
+        [azPortalContext, intl, getTaskExecutions, setIsOperationInProgress, runTask, refreshTasks]
     );
 
     const onDeleteTask = useCallback(
@@ -223,22 +229,9 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({ schedu
 
     const onRenderName = useCallback(
         (item: ScheduledTask) => {
-            const isDialogOpen = editDialogTaskId === item.id;
-            const setIsDialogOpen = (open: boolean) => {
-                setEditDialogTaskId(open ? item.id : null);
-            };
-
-            return (
-                <ScheduledTaskCreateOrEditDialog
-                    dialogTrigger={<Link>{item.name}</Link>}
-                    isDialogOpen={isDialogOpen}
-                    setIsDialogOpen={setIsDialogOpen}
-                    mode={ScheduledTaskDialogMode.Edit}
-                    scheduledTask={item}
-                />
-            );
+            return <Link onClick={() => onTaskClick?.(item)}>{item.name}</Link>;
         },
-        [editDialogTaskId]
+        [onTaskClick]
     );
 
     const onRenderActions = useCallback(
