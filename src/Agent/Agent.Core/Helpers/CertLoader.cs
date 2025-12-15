@@ -96,15 +96,27 @@ namespace Agent.Core.Helpers
             }
         }
 
-        public static X509Certificate2 LoadCertFromKeyVault(IAuthenticationService authService, string keyVaultUrl, string certificateName, string managedIdentityId, string? certPassword = null, ILogger? log = null)
+        public static X509Certificate2 LoadCertFromKeyVault(IAuthenticationService authService, string keyVaultUrl, string certificateName, string managedIdentityId, string? certPassword = null, ILogger? log = null, string? version = null)
         {
             try
             {
-                log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Managed Identity Client Id: {managedIdentityId}");
+                log?.LogInternalInformation($"Loading cert from Key Vault: {keyVaultUrl}, Certificate Name: {certificateName}, Version: {version ?? "latest"}, Managed Identity Client Id: {managedIdentityId}");
 
                 var cred = authService.Get1PAgentKeyVaultCredential(managedIdentityId);
-                KeyVaultCertificateWithPolicy certificateWithPolicy = GetKVCertificateClient(keyVaultUrl, cred, log).GetCertificate(certificateName);
-                KeyVaultSecret secret = GetKVSecretClient(keyVaultUrl, cred, log).GetSecret(certificateWithPolicy.Name);
+
+                KeyVaultSecret secret;
+                if (!string.IsNullOrWhiteSpace(version))
+                {
+                    // Get specific version of the certificate's secret
+                    KeyVaultCertificate kvCertificate = GetKVCertificateClient(keyVaultUrl, cred, log).GetCertificateVersion(certificateName, version);
+                    secret = GetKVSecretClient(keyVaultUrl, cred, log).GetSecret(kvCertificate.Name, version);
+                }
+                else
+                {
+                    // Get latest version (existing behavior)
+                    KeyVaultCertificateWithPolicy certificateWithPolicy = GetKVCertificateClient(keyVaultUrl, cred, log).GetCertificate(certificateName);
+                    secret = GetKVSecretClient(keyVaultUrl, cred, log).GetSecret(certificateWithPolicy.Name);
+                }
 
                 byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
 

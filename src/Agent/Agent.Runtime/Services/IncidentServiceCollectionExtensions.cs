@@ -126,6 +126,12 @@ public static class IncidentServiceCollectionExtensions
             .FirstOrDefault(dc => dc.Source == DataConnectorSource.AgentSpace &&
                                  dc.DataConnectorType.Equals("icm", StringComparison.OrdinalIgnoreCase));
 
+        // Check if there's an Agent source ICM data connector with KeyVaultUri for certificate auth
+        var agentIcmConnector = dataConnectorInstanceSettings?
+            .FirstOrDefault(dc => dc.Source == DataConnectorSource.Agent &&
+                                 dc.DataConnectorType.Equals("icm", StringComparison.OrdinalIgnoreCase) &&
+                                 !string.IsNullOrWhiteSpace(dc.KeyVaultUri));
+
 
         string agentSpaceEndpoint = serviceProvider.GetRequiredService<AzureSettings>().AgentSpaceProxy?.Endpoint ?? string.Empty;
         string agentSpaceResourceId = agentSpaceIcmConnector?.Identity ?? string.Empty;
@@ -170,6 +176,25 @@ public static class IncidentServiceCollectionExtensions
                     };
                 });
             }
+            else if (IcmDataConnectorCertAuthService.IsCertAuthConfigured(agentIcmConnector))
+            {
+                // Use Data Connector configuration for certificate auth (uses DefaultAzureCredential to load cert from KeyVault)
+                var connectorApiEndpoint = !string.IsNullOrWhiteSpace(agentIcmConnector!.DataSource)
+                    ? agentIcmConnector.DataSource
+                    : apiEndpoint;
+
+                services.AddSingleton(agentIcmConnector);
+                services.AddSingleton<IIcmCertAuthService, IcmDataConnectorCertAuthService>();
+                httpClientBuilder = services.AddIcmApiClient(options =>
+                {
+                    options.ApiEndpoint = connectorApiEndpoint;
+                    options.CertificateProvider = sp =>
+                    {
+                        var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
+                        return certAuthService.GetClientCertificate();
+                    };
+                });
+            }
             else if (IcmApiCertAuthService.IsCertAuthConfigured(icmAppsettings))
             {
                 services.AddSingleton<IIcmCertAuthService, IcmApiCertAuthService>();
@@ -199,6 +224,26 @@ public static class IncidentServiceCollectionExtensions
                 {
                     var agentSpaceTokenService = sp.GetRequiredService<IIcmTokenAuthService>();
                     return await agentSpaceTokenService.GetAccessTokenAsync();
+                };
+            });
+        }
+        else if (IcmDataConnectorCertAuthService.IsCertAuthConfigured(agentIcmConnector))
+        {
+            // Use Data Connector configuration for certificate auth
+            // Override apiEndpoint with DataSource from connector if provided
+            var connectorApiEndpoint = !string.IsNullOrWhiteSpace(agentIcmConnector!.DataSource)
+                ? agentIcmConnector.DataSource
+                : apiEndpoint;
+
+            services.AddSingleton(agentIcmConnector);
+            services.AddSingleton<IIcmCertAuthService, IcmDataConnectorCertAuthService>();
+            httpClientBuilder = services.AddIcmApiClient(options =>
+            {
+                options.ApiEndpoint = connectorApiEndpoint;
+                options.CertificateProvider = sp =>
+                {
+                    var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
+                    return certAuthService.GetClientCertificate();
                 };
             });
         }

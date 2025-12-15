@@ -75,6 +75,13 @@ namespace Agent.Core.Configuration
         public string Identity { get; init; } = string.Empty;
 
         /// <summary>
+        /// The Key Vault URI for certificate-based authentication.
+        /// This can be a full certificate URI (e.g., https://myvault.vault.azure.net/certificates/mycert/version)
+        /// or just the vault URI if CertificateSecretName is specified separately.
+        /// </summary>
+        public string? KeyVaultUri { get; init; }
+
+        /// <summary>
         /// The source of the data connector authentication.
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
