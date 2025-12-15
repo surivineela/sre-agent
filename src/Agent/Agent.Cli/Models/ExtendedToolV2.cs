@@ -18,7 +18,7 @@ namespace Agent.Cli.Models
         public ExtendedToolV2()
         {
             ApiVersion = YamlApiVersion.V2;
-            Kind = "ExtendedTool";
+            Kind = ResourceKind.ExtendedAgentToolV2;
         }
 
         /// <summary>

@@ -165,7 +165,7 @@ public class ValidateCommandTests : IDisposable
         // Arrange - create an invalid V2 KustoTool (missing required connector)
         var toolName = "InvalidKustoTool";
         var yamlContent = @"api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: InvalidKustoTool
 spec:
@@ -196,7 +196,7 @@ spec:
         // Arrange - create an invalid V2 LinkTool (missing required template)
         var toolName = "InvalidLinkTool";
         var yamlContent = @"api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: InvalidLinkTool
 spec:
@@ -237,7 +237,7 @@ spec:
             connector: "connector1",
             database: "db1");
         var invalidYaml = @"api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: InvalidTool
 spec:
@@ -326,7 +326,7 @@ spec:
         // Arrange - create a tool with malformed YAML
         var toolName = "MalformedTool";
         var yamlContent = @"api_version: v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: MalformedTool
 spec:

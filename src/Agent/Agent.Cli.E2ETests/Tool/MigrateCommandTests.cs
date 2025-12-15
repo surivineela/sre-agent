@@ -59,7 +59,7 @@ public class MigrateCommandTests : IDisposable
         // Verify V2 format (migrated in place)
         var migratedYaml = _cli.ReadFile($"tools/{toolName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", migratedYaml);
-        Assert.Contains("kind: ExtendedTool", migratedYaml);
+        Assert.Contains("kind: ExtendedAgentTool", migratedYaml);
         Assert.Contains("type: KustoTool", migratedYaml);
         Assert.Contains("connector: TestConnector", migratedYaml);
         Assert.Contains("database: TestDatabase", migratedYaml);
@@ -107,7 +107,7 @@ public class MigrateCommandTests : IDisposable
         // Verify V2 format (migrated in place)
         var migratedYaml = _cli.ReadFile($"tools/{toolName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", migratedYaml);
-        Assert.Contains("kind: ExtendedTool", migratedYaml);
+        Assert.Contains("kind: ExtendedAgentTool", migratedYaml);
         Assert.Contains("type: LinkTool", migratedYaml);
         Assert.Contains("template: https://example.com/{param1}", migratedYaml);
 
@@ -297,7 +297,7 @@ public class MigrateCommandTests : IDisposable
 
         // Verify Tool1
         Assert.Contains("api_version: azuresre.ai/v2", tool1Yaml);
-        Assert.Contains("kind: ExtendedTool", tool1Yaml);
+        Assert.Contains("kind: ExtendedAgentTool", tool1Yaml);
         Assert.Contains("name: Tool1", tool1Yaml);
         Assert.Contains("type: KustoTool", tool1Yaml);
         Assert.Contains("connector: Connector1", tool1Yaml);
@@ -367,7 +367,7 @@ public class MigrateCommandTests : IDisposable
         // Verify the original file was overwritten with Tool1's V2 format (not backed up)
         var myToolListYaml = _cli.ReadFile($"tools/{toolListName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", myToolListYaml);
-        Assert.Contains("kind: ExtendedTool", myToolListYaml);
+        Assert.Contains("kind: ExtendedAgentTool", myToolListYaml);
         Assert.Contains("name: MyToolList", myToolListYaml);
 
         // Verify AnotherTool was created

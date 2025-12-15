@@ -260,6 +260,67 @@ Examples:
 
     #endregion
 
+    #region Common Prompt Command Examples
+
+    public static class CommonPrompt
+    {
+        public const string CreateDescription = @"Create a new common prompt YAML configuration file
+
+Examples:
+  # Create a livesite investigation prompt
+  srectl common-prompt create --name LivesiteScope --prompt ""DO NOT RESPOND IF THE QUESTION IS NOT ABOUT LIVESITE INVESTIGATION""
+
+  # Create a common prompt with owner and tags
+  srectl common-prompt create --name ProductionOnlyPrompt --owner ""SRE Team"" --tag production --tag livesite --prompt ""Only answer questions related to production incidents and service health""
+
+  # Create a common prompt with custom path organization
+  srectl common-prompt create --name SecurityScope --path ""Security/Compliance"" --prompt ""Only provide information about security incidents and compliance issues""
+
+  # Create a common prompt in flat structure
+  srectl common-prompt create --name QuickGuard --path """" --prompt ""This agent only handles critical production alerts""";
+
+        public const string GetDescription = @"List or get common prompts from the remote server
+
+Examples:
+  # List all common prompts
+  srectl common-prompt get
+
+  # List all common prompts with full YAML details
+  srectl common-prompt get --detail
+
+  # Get a specific common prompt by name (full YAML output)
+  srectl common-prompt get --name StandardInstructions
+
+  # Search for specific common prompts
+  srectl common-prompt get --search troubleshoot";
+
+        public const string ApplyDescription = @"Apply a common prompt configuration to the remote server
+
+Examples:
+  # Apply a common prompt to the server
+  srectl common-prompt apply --name StandardInstructions
+
+  # Preview what would be applied (dry run)
+  srectl common-prompt apply --name TroubleshootingGuide --dry-run
+
+  # Apply with debug logging
+  srectl common-prompt apply --name CustomPrompt --debug";
+
+        public const string DeleteDescription = @"Delete a common prompt from the remote server
+
+Examples:
+  # Delete a common prompt from the server
+  srectl common-prompt delete --name OldPrompt
+
+  # Preview what would be deleted (dry run)
+  srectl common-prompt delete --name TestPrompt --dry-run
+
+  # Delete with debug logging
+  srectl common-prompt delete --name UnusedPrompt --debug";
+    }
+
+    #endregion
+
     #region Skill Command Examples
 
     public static class Skill

@@ -363,5 +363,175 @@ public partial class ApiService : IDisposable
     }
 
     #endregion
+
+    #region Extended API for Common Prompts
+
+    public async Task<(List<CommonPromptV2> Result, string? Error)> ListCommonPromptsAsync(string? search = null)
+    {
+        var resultList = new List<CommonPromptV2>();
+
+        try
+        {
+            var relativeUrl = "api/v2/extendedAgent/commonprompts";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                relativeUrl += $"?search={Uri.EscapeDataString(search)}";
+            }
+
+            var (promptsEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiCollectionEnvelope<CommonPromptSpecV2>>(HttpMethod.Get, relativeUrl);
+
+            if (errorMessage != null)
+            {
+                return (resultList, errorMessage);
+            }
+
+            if (promptsEnvelope?.Value == null || promptsEnvelope.Value.Count == 0)
+            {
+                return (resultList, null);
+            }
+
+            // Convert envelopes to CommonPromptV2
+            foreach (var envelope in promptsEnvelope.Value)
+            {
+                if (envelope.Properties == null)
+                {
+                    continue;
+                }
+
+                // Construct CommonPromptV2 from envelope
+                var commonPrompt = new CommonPromptV2
+                {
+                    Metadata = new ResourceMetadataModel
+                    {
+                        Name = envelope.Name,
+                        Owner = envelope.Owner,
+                        Tags = envelope.Tags ?? new List<string>()
+                    },
+                    Spec = envelope.Properties
+                };
+
+                resultList.Add(commonPrompt);
+            }
+
+            return (resultList, null);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListCommonPrompts failed: {ex.Message}");
+            return (resultList, $"Failed to list common prompts: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
+    {
+        try
+        {
+            // Use V2 API endpoint: DELETE /api/v2/extendedAgent/commonprompts/{promptName}
+            var relativeUrl = $"api/v2/extendedAgent/commonprompts/{Uri.EscapeDataString(promptName)}";
+            if (dryRun)
+            {
+                relativeUrl += "?dryRun=true";
+            }
+
+            var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
+
+            if (errorMessage != null)
+            {
+                // Check specific status codes for better error messages
+                if (statusCode == HttpStatusCode.Conflict)
+                {
+                    // Parse conflict response to show dependent resources
+                    try
+                    {
+                        var conflictData = JsonSerializer.Deserialize<JsonElement>(content ?? "{}");
+                        if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                        {
+                            var dependentAgents = dependentAgentsElement.EnumerateArray()
+                                .Select(x => x.GetString())
+                                .Where(x => !string.IsNullOrEmpty(x))
+                                .ToList();
+
+                            var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
+                            return (false, $"Cannot delete common prompt '{promptName}': it is used by the following agents: {agentList}");
+                        }
+
+                        if (conflictData.TryGetProperty("message", out var messageElement))
+                        {
+                            return (false, messageElement.GetString() ?? $"Conflict deleting common prompt '{promptName}'");
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to generic conflict message if parsing fails
+                    }
+
+                    return (false, $"Cannot delete common prompt '{promptName}': it is being used by agents");
+                }
+                else if (statusCode == HttpStatusCode.NotFound)
+                {
+                    return (false, $"Common prompt '{promptName}' not found");
+                }
+
+                return (false, errorMessage);
+            }
+
+            return (true, $"Common prompt '{promptName}' deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete common prompt: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> ApplyCommonPromptAsync(CommonPromptV2 prompt, bool dryRun = false)
+    {
+        try
+        {
+            var promptName = prompt.Metadata.Name;
+            if (string.IsNullOrWhiteSpace(promptName))
+            {
+                return (false, "Common prompt name is required in metadata.");
+            }
+
+            // Serialize spec to JSON node with camelCase properties
+            var propertiesNode = JsonSerializer.SerializeToNode(prompt.Spec, _camelCaseJsonOptions);
+
+            // Build the API request envelope in camelCase
+            var requestBody = new
+            {
+                name = prompt.Metadata.Name,
+                type = "CommonPrompt",
+                tags = prompt.Metadata.Tags ?? new List<string>(),
+                owner = prompt.Metadata.Owner,
+                properties = propertiesNode
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
+
+            // Use V2 API endpoint: PUT /api/v2/extendedAgent/commonprompts/{promptName}
+            var dryRunQuery = dryRun ? "?dryRun=true" : "";
+            var relativeUrl = $"api/v2/extendedAgent/commonprompts/{Uri.EscapeDataString(promptName)}{dryRunQuery}";
+
+            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
+
+            if (errorMessage == null)
+            {
+                var message = dryRun
+                    ? $"✅ Common prompt '{promptName}' validated successfully (dry run)"
+                    : $"✅ Common prompt '{promptName}' applied successfully!";
+                return (true, message);
+            }
+            else
+            {
+                return (false, $"❌ Failed to apply common prompt: {statusCode} - {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to apply common prompt: {ex.Message}");
+        }
+    }
+
+    #endregion
 }
 

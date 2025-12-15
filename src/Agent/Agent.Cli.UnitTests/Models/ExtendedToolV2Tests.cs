@@ -17,7 +17,7 @@ public class ExtendedToolV2Tests
         // Arrange
         var yaml = @"
 api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: test-kusto-tool
 spec:
@@ -31,7 +31,7 @@ spec:
         // Assert
         Assert.NotNull(tool);
         Assert.Equal("azuresre.ai/v2", tool.ApiVersion);
-        Assert.Equal("ExtendedTool", tool.Kind);
+        Assert.Equal("ExtendedAgentTool", tool.Kind);
         Assert.NotNull(tool.Metadata);
         Assert.Equal("test-kusto-tool", tool.Metadata.Name);
         Assert.NotNull(tool.Spec);
@@ -46,7 +46,7 @@ spec:
         // Arrange
         var yaml = @"
 api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: test-kusto-tool
   owner: test-owner
@@ -107,7 +107,7 @@ spec:
         // Arrange
         var yaml = @"
 api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: test-link-tool
 spec:
@@ -122,7 +122,7 @@ spec:
         // Assert
         Assert.NotNull(tool);
         Assert.Equal("azuresre.ai/v2", tool.ApiVersion);
-        Assert.Equal("ExtendedTool", tool.Kind);
+        Assert.Equal("ExtendedAgentTool", tool.Kind);
         Assert.NotNull(tool.Metadata);
         Assert.Equal("test-link-tool", tool.Metadata.Name);
         Assert.NotNull(tool.Spec);
@@ -140,7 +140,7 @@ spec:
         // Arrange
         var yaml = @"
 api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: test-link-tool
   owner: test-owner
@@ -203,7 +203,7 @@ spec:
         // Assert
         Assert.NotNull(yaml);
         Assert.Contains("api_version: azuresre.ai/v2", yaml);
-        Assert.Contains("kind: ExtendedTool", yaml);
+        Assert.Contains("kind: ExtendedAgentTool", yaml);
         Assert.Contains("name: test-kusto-tool", yaml);
         Assert.Contains("type: KustoTool", yaml);
         Assert.Contains("A test Kusto tool", yaml);
@@ -286,7 +286,7 @@ spec:
         // Assert
         Assert.NotNull(yaml);
         Assert.Contains("api_version: azuresre.ai/v2", yaml);
-        Assert.Contains("kind: ExtendedTool", yaml);
+        Assert.Contains("kind: ExtendedAgentTool", yaml);
         Assert.Contains("name: test-link-tool", yaml);
         Assert.Contains("type: LinkTool", yaml);
         Assert.Contains("A test Link tool", yaml);

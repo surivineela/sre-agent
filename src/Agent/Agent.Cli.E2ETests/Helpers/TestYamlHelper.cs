@@ -106,7 +106,7 @@ template: {template}{parametersYaml}
         }
 
         return $@"api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: {name}
   owner: someone
@@ -145,7 +145,7 @@ spec:
         }
 
         return $@"api_version: azuresre.ai/v2
-kind: ExtendedTool
+kind: ExtendedAgentTool
 metadata:
   name: {name}
   description: {description}

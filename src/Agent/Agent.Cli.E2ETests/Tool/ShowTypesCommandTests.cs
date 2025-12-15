@@ -86,7 +86,7 @@ public class ShowTypesCommandTests : IDisposable
 
         // Verify YAML content - metadata
         Assert.Contains("api_version: azuresre.ai/v2", result.Output);
-        Assert.Contains("kind: ExtendedTool", result.Output);
+        Assert.Contains("kind: ExtendedAgentTool", result.Output);
         Assert.Contains("metadata:", result.Output);
         Assert.Contains("name: MyKustoTool", result.Output);
 
@@ -132,7 +132,7 @@ public class ShowTypesCommandTests : IDisposable
 
         // Verify YAML content - metadata
         Assert.Contains("api_version: azuresre.ai/v2", result.Output);
-        Assert.Contains("kind: ExtendedTool", result.Output);
+        Assert.Contains("kind: ExtendedAgentTool", result.Output);
         Assert.Contains("metadata:", result.Output);
         Assert.Contains("name: MyLinkTool", result.Output);
 

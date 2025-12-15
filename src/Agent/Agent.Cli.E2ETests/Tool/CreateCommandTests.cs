@@ -74,7 +74,7 @@ public class CreateCommandTests : IDisposable
         // Validate required fields
         Assert.True(yamlDict.ContainsKey("api_version"), "YAML should contain api_version");
         Assert.True(yamlDict.ContainsKey("kind"), "YAML should contain kind");
-        Assert.Equal("ExtendedTool", yamlDict["kind"].ToString());
+        Assert.Equal("ExtendedAgentTool", yamlDict["kind"].ToString());
 
         // Validate metadata
         Assert.True(yamlDict.ContainsKey("metadata"), "YAML should contain metadata");

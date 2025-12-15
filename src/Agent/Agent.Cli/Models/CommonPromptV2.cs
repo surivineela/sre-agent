@@ -7,15 +7,25 @@ using YamlDotNet.Serialization;
 namespace Agent.Cli.Models
 {
     /// <summary>
-    /// CLI YAML wrapper for agent configurations.
+    /// Common prompt specification for YAML configurations (V2).
+    /// Contains a single prompt property for common prompt definitions.
+    /// </summary>
+    public class CommonPromptSpecV2
+    {
+        [YamlMember(Alias = "prompt", ScalarStyle = YamlDotNet.Core.ScalarStyle.Literal)]
+        public string? Prompt { get; set; }
+    }
+
+    /// <summary>
+    /// CLI YAML wrapper for common prompt configurations.
     /// Adds YAML envelope fields (api_version, kind) for file serialization.
     /// </summary>
-    public class ExtendedAgentV2 : ResourceModel
+    public class CommonPromptV2 : ResourceModel
     {
-        public ExtendedAgentV2()
+        public CommonPromptV2()
         {
             ApiVersion = YamlApiVersion.V2;
-            Kind = ResourceKind.ExtendedAgentV2;
+            Kind = ResourceKind.CommonPromptV2;
         }
 
         /// <summary>
@@ -25,42 +35,40 @@ namespace Agent.Cli.Models
         public ResourceMetadataModel Metadata { get; set; } = new();
 
         /// <summary>
-        /// Agent specification properties.
+        /// Common prompt specification properties.
         /// </summary>
         [YamlMember(Alias = "spec", Order = 1)]
-        public ExtendedAgentSpecV2 Spec { get; set; } = new();
+        public CommonPromptSpecV2 Spec { get; set; } = new();
 
         /// <summary>
         /// Normalizes string properties to ensure clean YAML literal block formatting.
-        /// Removes trailing whitespace from instructions and other text fields.
+        /// Removes trailing whitespace from the prompt field.
         /// </summary>
         public override void Normalize()
         {
             if (Spec != null)
             {
-                Spec.Instructions = NormalizeString(Spec.Instructions);
-                Spec.HandoffDescription = NormalizeString(Spec.HandoffDescription);
-                Spec.CustomReflectionNote = NormalizeString(Spec.CustomReflectionNote);
+                Spec.Prompt = NormalizeString(Spec.Prompt);
             }
         }
 
         /// <summary>
-        /// Parses a YAML string into an ExtendedAgentV2 object.
+        /// Parses a YAML string into a CommonPromptV2 object.
         /// </summary>
         /// <param name="yaml">The YAML string to parse</param>
-        /// <returns>The parsed ExtendedAgentV2 object</returns>
-        public static ExtendedAgentV2 ParseYaml(string yaml)
+        /// <returns>The parsed CommonPromptV2 object</returns>
+        public static CommonPromptV2 ParseYaml(string yaml)
         {
             var deserializer = GetDeserializerBuilder().Build();
-            return deserializer.Deserialize<ExtendedAgentV2>(yaml);
+            return deserializer.Deserialize<CommonPromptV2>(yaml);
         }
 
         /// <summary>
-        /// Loads a YAML file and parses it into an ExtendedAgentV2 object asynchronously.
+        /// Loads a YAML file and parses it into a CommonPromptV2 object asynchronously.
         /// </summary>
         /// <param name="fileName">The file path to read and parse</param>
-        /// <returns>The parsed ExtendedAgentV2 object, or null if the file doesn't exist or parsing fails</returns>
-        public static async Task<ExtendedAgentV2?> LoadYamlAsync(string fileName)
+        /// <returns>The parsed CommonPromptV2 object, or null if the file doesn't exist or parsing fails</returns>
+        public static async Task<CommonPromptV2?> LoadYamlAsync(string fileName)
         {
             try
             {

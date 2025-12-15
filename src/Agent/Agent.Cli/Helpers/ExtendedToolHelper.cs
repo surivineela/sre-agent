@@ -276,7 +276,7 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
             }
 
             // Check if this has Kind field (V2 format)
-            if (string.Equals(resourceModel.Kind, "ExtendedTool", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(resourceModel.Kind, ResourceModel.ResourceKind.ExtendedAgentToolV2, StringComparison.OrdinalIgnoreCase))
             {
                 var version = YamlApiVersion.Parse(resourceModel.ApiVersion);
                 return version;

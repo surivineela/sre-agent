@@ -48,6 +48,7 @@ public static partial class CommandBuilder
             chatCommand,
             AgentCommand.Build(),
             ToolCommand.Build(),
+            CommonPromptCommand.Build(),
             DocumentCommand.Build(),
             ProfileCommand.Build(),
             SkillCommand.Build(),

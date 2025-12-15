@@ -12,6 +12,16 @@ namespace Agent.Cli.Models
     /// </summary>
     public class ResourceModel
     {
+        /// <summary>
+        /// Standard resource kind values used in YAML files.
+        /// </summary>
+        public static class ResourceKind
+        {
+            public const string ExtendedAgentToolV2 = "ExtendedAgentTool";
+            public const string ExtendedAgentV2 = "ExtendedAgent";
+            public const string CommonPromptV2 = "CommonPrompt";
+        }
+
         [YamlMember(Alias = "api_version", Order = -2)]
         public string ApiVersion { get; set; } = string.Empty;
 
