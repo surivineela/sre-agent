@@ -90,6 +90,12 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.log, info);
     };
 
+    private _getBaseAmplitudeMetadata = (): Record<string, unknown> => {
+        return {
+            agentSiteVersion: import.meta.env.SRE_UX_VERSION || undefined,
+        };
+    };
+
     public logAmplitudeOperationEvent = (
         amplitudeEvent: AmplitudeOperationEvent & { errorInfo?: ILogBladeErrorInfo } & { metadata?: Record<string, unknown> }
     ) => {
@@ -97,7 +103,15 @@ export default class AzPortalProxy {
             return;
         }
 
-        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent, amplitudeEvent);
+        const enrichedEvent = {
+            ...amplitudeEvent,
+            metadata: {
+                ...this._getBaseAmplitudeMetadata(),
+                ...amplitudeEvent.metadata,
+            },
+        };
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent, enrichedEvent);
     };
 
     public logAmplitudeControlEvent = (amplitudeEvent: AmplitudeControlEvent & { metadata?: Record<string, unknown> }) => {
@@ -105,7 +119,15 @@ export default class AzPortalProxy {
             return;
         }
 
-        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeControlEvent, amplitudeEvent);
+        const enrichedEvent = {
+            ...amplitudeEvent,
+            metadata: {
+                ...this._getBaseAmplitudeMetadata(),
+                ...amplitudeEvent.metadata,
+            },
+        };
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeControlEvent, enrichedEvent);
     };
 
     public logAmplitudeNavigationEvent = (amplitudeEvent: AmplitudeNavigationEvent & { metadata?: Record<string, unknown> }) => {
@@ -113,7 +135,15 @@ export default class AzPortalProxy {
             return;
         }
 
-        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent, amplitudeEvent);
+        const enrichedEvent = {
+            ...amplitudeEvent,
+            metadata: {
+                ...this._getBaseAmplitudeMetadata(),
+                ...amplitudeEvent.metadata,
+            },
+        };
+
+        this.postMessage(AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent, enrichedEvent);
     };
 
     public requestAuthToken = (tokenType: TokenTypes) => {
