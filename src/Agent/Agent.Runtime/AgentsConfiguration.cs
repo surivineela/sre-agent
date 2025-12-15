@@ -447,7 +447,11 @@ public static class AgentsConfigurationExtensions
 
         // Group models by provider and register keyed IChatClient for each
         var modelsByProvider = availableModels
-            .GroupBy(m => m.Contains("claude") ? "claude" : m.Contains("gpt") ? "gpt" : "other")
+            .GroupBy(m =>
+                m.Contains("embedding", StringComparison.OrdinalIgnoreCase) ? "embedding" :
+                m.Contains("claude", StringComparison.OrdinalIgnoreCase) ? "claude" :
+                m.Contains("gpt", StringComparison.OrdinalIgnoreCase) ? "gpt" :
+                "other")
             .ToDictionary(g => g.Key, g => g.ToList());
 
         if (modelsByProvider.TryGetValue("gpt", out var openaiModels))
