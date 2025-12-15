@@ -22,7 +22,7 @@ public class CommonToolListView
 
         ApiResponseEnvelope<CommonToolListView> apiResponse = new()
         {
-            Name = toolList.Name,
+            Name = toolListDoc.Name,
             Type = toolListDoc.DocumentType,
             Tags = toolListDoc.Metadata.Tags,
             Properties = toolListView,
@@ -47,13 +47,11 @@ public class CommonToolListView
         var resultMetadata = metadata ?? baseModel?.Metadata ?? new ResourceMetadata
         {
             CreatedAt = DateTime.UtcNow,
-            Version = "v2",
         };
 
         resultMetadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => resultMetadata.Owner = owner);
+        envelope.Name.ApplyTo(name => resultMetadata.Name = name!);
         envelope.Tags.ApplyTo(tag => resultMetadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {

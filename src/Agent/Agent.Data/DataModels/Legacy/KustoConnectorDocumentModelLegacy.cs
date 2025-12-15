@@ -40,7 +40,6 @@ public record KustoConnectorDocumentModelLegacy : ConnectorDocumentModelLegacy, 
     {
         return new KustoConnectorSpec
         {
-            Name = Name,
             Type = Type,
             Description = Description,
             Auth = Auth,

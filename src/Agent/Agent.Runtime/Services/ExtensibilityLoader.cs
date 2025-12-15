@@ -26,6 +26,9 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public async Task<List<YamlCommonToolsDescriptor>> LoadExtendedCommonToolsListsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("Migrating legacy cosmos db document before loading common tools lists...");
+        await _extendedAgentRepository.MigrateCommonToolsListDocumentsAsync();
+
         _logger.LogInternalInformation("Starting custom agent files download...");
         List<YamlCommonToolsDescriptor> loadedCommonToolsLists = new List<YamlCommonToolsDescriptor>();
         try
@@ -54,6 +57,9 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public async Task<List<YamlPromptDescriptor>> LoadExtendedCommonPromptsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("Migrating legacy cosmos db document before loading common prompts...");
+        await _extendedAgentRepository.MigrateCommonPromptDocumentsAsync();
+
         List<YamlPromptDescriptor> loadedCommonPrompts = new List<YamlPromptDescriptor>();
 
         try
@@ -81,6 +87,9 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public async Task<List<YamlToolDefinitionBase>> LoadExtendedToolsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("Migrating legacy cosmos db document before loading extended tools...");
+        await _extendedAgentRepository.MigrateToolDocumentsAsync();
+
         List<YamlToolDefinitionBase> loadedExtendedTools = new List<YamlToolDefinitionBase>();
         try
         {
@@ -131,6 +140,9 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public async Task<List<YamlAgentDescriptor>> LoadExtendedAgentsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("Migrating legacy cosmos db document before loading extended agents...");
+        await _extendedAgentRepository.MigrateAgentDocumentsAsync();
+
         _logger.LogInternalInformation("Starting custom agent files download...");
         List<YamlAgentDescriptor> loadedExtendedAgents = new List<YamlAgentDescriptor>();
         try
@@ -159,6 +171,9 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
     public async Task<List<SkillSpec>> LoadExtendedSkillsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInternalInformation("Migrating legacy cosmos db document before loading extended skills...");
+        await _extendedAgentRepository.MigrateSkillDocumentsAsync();
+
         _logger.LogInternalInformation("Starting custom skill files download...");
         List<SkillSpec> loadedExtendedSkills = [];
         try

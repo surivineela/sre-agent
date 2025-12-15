@@ -50,7 +50,6 @@ public class ConnectorView
             new ResourceMetadata
             {
                 CreatedAt = DateTime.UtcNow,
-                Version = "v2",
             },
             new ConnectorSpec()
             {
@@ -68,8 +67,7 @@ public class ConnectorView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {
@@ -114,7 +112,7 @@ public class KustoConnectorView : ConnectorView
 
         ApiResponseEnvelope<KustoConnectorView> apiResponse = new()
         {
-            Name = connector.Name,
+            Name = connectorDoc.Name,
             Type = connectorDoc.DocumentType,
             Tags = connectorDoc.Metadata.Tags,
             Properties = connectorView,
@@ -129,7 +127,6 @@ public class KustoConnectorView : ConnectorView
             new ResourceMetadata
             {
                 CreatedAt = DateTime.UtcNow,
-                Version = "v2",
             },
             new KustoConnectorSpec()
         );
@@ -144,8 +141,7 @@ public class KustoConnectorView : ConnectorView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {

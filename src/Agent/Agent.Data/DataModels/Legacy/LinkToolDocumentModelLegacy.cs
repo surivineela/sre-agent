@@ -39,7 +39,6 @@ public record LinkToolDocumentModelLegacy : ToolDocumentModelLegacy, ILegacyMode
     {
         return new LinkToolSpec
         {
-            Name = Name,
             Type = Type,
             Connector = Connector,
             Description = Description,

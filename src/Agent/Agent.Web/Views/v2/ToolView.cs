@@ -57,7 +57,6 @@ public class ToolView
                         Name = envelope.Name,
                         Type = envelope.Type,
                         Tags = envelope.Tags,
-                        Owner = envelope.Owner,
                         Properties = new Settable<KustoToolView>(kustoToolView),
                     };
                     return KustoToolView.CreateModel(newEnvelope, metadata, (KustoToolDocumentModel?)baseModel);
@@ -70,7 +69,6 @@ public class ToolView
                         Name = envelope.Name,
                         Type = envelope.Type,
                         Tags = envelope.Tags,
-                        Owner = envelope.Owner,
                         Properties = new Settable<LinkToolView>(linkToolView),
                     };
                     return LinkToolView.CreateModel(newEnvelope, metadata, (LinkToolDocumentModel?)baseModel);
@@ -82,7 +80,6 @@ public class ToolView
                         new ResourceMetadata
                         {
                             CreatedAt = DateTime.UtcNow,
-                            Version = "v2",
                         },
                         new ToolSpec()
                     );
@@ -97,8 +94,7 @@ public class ToolView
 
                     result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-                    envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-                    envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+                    envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
                     envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
 
                     return result;
@@ -186,7 +182,7 @@ public class KustoToolView : ToolView
 
         ApiResponseEnvelope<KustoToolView> apiResponse = new()
         {
-            Name = tool.Name,
+            Name = toolDoc.Name,
             Type = toolDoc.DocumentType,
             Tags = toolDoc.Metadata.Tags,
             Properties = toolView,
@@ -201,7 +197,6 @@ public class KustoToolView : ToolView
             new ResourceMetadata
             {
                 CreatedAt = DateTime.UtcNow,
-                Version = "v2",
             },
             new KustoToolSpec()
             {
@@ -219,8 +214,7 @@ public class KustoToolView : ToolView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {
@@ -304,7 +298,7 @@ public class LinkToolView : ToolView
 
         ApiResponseEnvelope<LinkToolView> apiResponse = new()
         {
-            Name = tool.Name,
+            Name = toolDoc.Name,
             Type = toolDoc.DocumentType,
             Tags = toolDoc.Metadata.Tags,
             Properties = toolView,
@@ -319,7 +313,6 @@ public class LinkToolView : ToolView
             new ResourceMetadata
             {
                 CreatedAt = DateTime.UtcNow,
-                Version = "v2",
             },
             new LinkToolSpec()
             {
@@ -337,8 +330,7 @@ public class LinkToolView : ToolView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {

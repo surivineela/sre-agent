@@ -100,7 +100,7 @@ public class ExtendedAgentView
 
         ApiResponseEnvelope<ExtendedAgentView> apiResponse = new()
         {
-            Name = agent.Name,
+            Name = agentDoc.Name,
             Type = agentDoc.DocumentType,
             Tags = agentDoc.Metadata.Tags,
             Properties = agentView,
@@ -118,7 +118,6 @@ public class ExtendedAgentView
             new ResourceMetadata
             {
                 CreatedAt = DateTime.UtcNow,
-                Version = "v2",
             },
             new AgentSpec()
         );
@@ -133,8 +132,7 @@ public class ExtendedAgentView
 
         result.Metadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => result.Spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => result.Metadata.Owner = owner);
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
         envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {

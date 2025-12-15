@@ -39,7 +39,7 @@ public record AgentDocumentModelLegacy(
     bool? AddSystemSkills
 ) : ICosmosDocument, ILegacyModelConverter<AgentDocumentModel>
 {
-    public string DocumentType => "ExtendedAgent";
+    public string DocumentType => AgentDocumentModel.DocumentTypeName;
     public string PartitionKey => Name;
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -47,7 +47,6 @@ public record AgentDocumentModelLegacy(
     {
         return new AgentSpec
         {
-            Name = Name,
             Instructions = Instructions,
             HandoffDescription = HandoffDescription,
             Handoffs = Handoffs,
@@ -83,10 +82,7 @@ public record AgentDocumentModelLegacy(
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt

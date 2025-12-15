@@ -30,14 +30,23 @@ public interface IExtendedAgentRepository
 
     Task<PlugInConfigDocumentModel> UpsertPluginConfigAsync(PlugInConfigDocumentModel config);
 
+    Task<PlugInConfigDocumentModel?> GetPluginConfigByNameAsync(string name);
+
+    Task<PaginatedList<PlugInConfigDocumentModel>> GetPluginConfigsAsync(int limit = 50, string? search = null);
+
+    Task<bool> DeletePluginConfigAsync(string name);
+
     Task<ConnectorDocumentModel> UpsertConnectorAsync(ConnectorDocumentModel connector, string operationId);
 
     Task<ConnectorDocumentModel?> GetConnectorByNameAsync(string name);
 
     Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name);
     Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null);
+    Task<bool> DeleteCommonPromptAsync(string name);
 
+    Task<CommonToolsListDocumentModel?> GetCommonToolsListByNameAsync(string name);
     Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null);
+    Task<bool> DeleteCommonToolsListAsync(string name);
 
     Task<PaginatedList<ConnectorDocumentModel>> GetConnectorsAsync(int limit = 50, string? search = null);
 
@@ -50,4 +59,42 @@ public interface IExtendedAgentRepository
     Task<SkillDocumentModel?> GetSkillByNameAsync(string name);
 
     Task<PaginatedList<SkillDocumentModel>> GetSkillsAsync(int limit = 50, string? search = null, int pageIndex = 1);
+
+    #region Migration Operations
+    /// <summary>
+    /// Migrates all tool documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateToolDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all agent documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateAgentDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all connector documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateConnectorDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all common prompt documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateCommonPromptDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all common tools list documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateCommonToolsListDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all skill documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigrateSkillDocumentsAsync();
+
+    /// <summary>
+    /// Migrates all plugin config documents to use the new id and partitionKey format.
+    /// </summary>
+    Task MigratePluginConfigDocumentsAsync();
+
+    #endregion
 }

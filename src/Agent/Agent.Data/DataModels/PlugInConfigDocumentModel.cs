@@ -15,13 +15,25 @@ public record PlugInConfigDocumentModel(
     PluginConfigSpec Spec
 ) : ICosmosDocument
 {
-    public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "PluginConfig";
-    public string PartitionKey => Spec.Name;
+    public const string DocumentTypeName = "PluginConfig";
+
+    public string Id => GetId(Name);
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
+
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
 }
 
 /// <summary>
@@ -29,7 +41,5 @@ public record PlugInConfigDocumentModel(
 /// </summary>
 public class PluginConfigSpec
 {
-    public string Name { get; set; } = string.Empty;
-
     public IDictionary<string, object>? Config { get; set; }
 }

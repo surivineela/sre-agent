@@ -33,21 +33,61 @@ where TModelLegacy : ILegacyModelConverter<TModel>
             var polymorphicAttributes = typeToConvert.GetCustomAttributes(typeof(CustomizedJsonPolymorphicAttribute), true);
             var derivedTypeAttributes = typeToConvert.GetCustomAttributes(typeof(CustomizedJsonDerivedTypeAttribute), true);
 
+            TModel model;
             if (polymorphicAttributes.Length > 0 && derivedTypeAttributes.Length > 0)
             {
                 var targetType = GetDerivedType(polymorphicAttributes, derivedTypeAttributes, root);
 
                 var optionsWithoutConverter = CreateOptionsWithoutThisConverter(options);
-                return (TModel)JsonSerializer.Deserialize(root.GetRawText(), targetType, optionsWithoutConverter)!
+                model = (TModel)JsonSerializer.Deserialize(root.GetRawText(), targetType, optionsWithoutConverter)!
                     ?? throw new JsonException($"Failed to deserialize new schema {targetType.Name}.");
             }
             else
             {
                 var optionsWithoutConverter = CreateOptionsWithoutThisConverter(options);
-                return JsonSerializer.Deserialize<TModel>(root.GetRawText(), optionsWithoutConverter)
+                model = JsonSerializer.Deserialize<TModel>(root.GetRawText(), optionsWithoutConverter)
                     ?? throw new JsonException($"Failed to deserialize new schema {typeof(TModel).Name}");
             }
 
+            // migrate name from spec to metadata
+            string? name = null;
+            if (root.TryGetProperty("spec", out var specElement) || root.TryGetProperty("Spec", out specElement))
+            {
+                if (specElement.TryGetProperty("name", out var nameElement) || specElement.TryGetProperty("Name", out nameElement))
+                {
+                    name = nameElement.GetString();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                switch (model)
+                {
+                    case AgentDocumentModel agent:
+                        agent.Metadata.Name = name;
+                        break;
+                    case ToolDocumentModel tool:
+                        tool.Metadata.Name = name;
+                        break;
+                    case ConnectorDocumentModel connector:
+                        connector.Metadata.Name = name;
+                        break;
+                    case SkillDocumentModel skill:
+                        skill.Metadata.Name = name;
+                        break;
+                    case CommonPromptDocumentModel commonPrompt:
+                        commonPrompt.Metadata.Name = name;
+                        break;
+                    case CommonToolsListDocumentModel commonToolsList:
+                        commonToolsList.Metadata.Name = name;
+                        break;
+                    case PlugInConfigDocumentModel pluginConfig:
+                        pluginConfig.Metadata.Name = name;
+                        break;
+                }
+            }
+
+            return model;
         }
         else
         {

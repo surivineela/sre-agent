@@ -110,7 +110,6 @@ public class ResourceDeploymentService : IResourceDeploymentService
             // Map agent
             var agentSpecModel = new AgentSpec
             {
-                Name = agentName,
                 Instructions = agentSpec.Instructions ?? string.Empty,
                 HandoffDescription = agentSpec.HandoffDescription,
                 Handoffs = agentSpec.Handoffs,
@@ -145,7 +144,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
                 AddSystemSkills = agentSpec.AddSystemSkills,
             };
 
-            var metadata = ResourceMetadata.FromYamlMetadata(yamlMetadata, agentName, operationId);
+            var metadata = ResourceMetadata.FromYamlMetadata(yamlMetadata, agentName ?? string.Empty);
             var agentDoc = new AgentDocumentModel(
                 Metadata: metadata,
                 Spec: agentSpecModel

@@ -184,4 +184,76 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<PlugInConfigDocumentModel?> GetPluginConfigByNameAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PaginatedList<PlugInConfigDocumentModel>> GetPluginConfigsAsync(int limit = 50, string? search = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeletePluginConfigAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteCommonPromptAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<CommonToolsListDocumentModel?> GetCommonToolsListByNameAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteCommonToolsListAsync(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task MigrateToolDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigrateAgentDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigrateConnectorDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigrateCommonPromptDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigrateCommonToolsListDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigrateSkillDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
+
+    public Task MigratePluginConfigDocumentsAsync()
+    {
+        // No-op for in-memory repository
+        return Task.CompletedTask;
+    }
 }

@@ -17,7 +17,7 @@ public record CommonToolsListDocumentModelLegacy(
     YamlMetadata Metadata
 ) : ICosmosDocument, ILegacyModelConverter<CommonToolsListDocumentModel>
 {
-    public string DocumentType => "CommonToolsList";
+    public string DocumentType => CommonToolsListDocumentModel.DocumentTypeName;
     public string PartitionKey => Name; // Use Id as partition key for easy querying
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -25,10 +25,7 @@ public record CommonToolsListDocumentModelLegacy(
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt
@@ -39,7 +36,6 @@ public record CommonToolsListDocumentModelLegacy(
     {
         return new CommonToolListSpec
         {
-            Name = Name,
             CommonToolsList = CommonToolsList
         };
     }

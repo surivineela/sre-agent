@@ -28,6 +28,29 @@
             "requireExactSource": true
         },
         {
+            "name": "Launch Agent.Web (Publish) (HTTPS)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "publish Agent.Web",
+            "program": "${workspaceFolder}/out/publish/Agent.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/out/publish",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7023"
+            },
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/static"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            },
+            "requireExactSource": true
+        },
+        {
             "name": "Debug Crawler",
             "type": "coreclr",
             "request": "launch",

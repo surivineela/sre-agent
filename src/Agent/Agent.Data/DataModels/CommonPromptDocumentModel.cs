@@ -15,13 +15,25 @@ public record CommonPromptDocumentModel(
     CommonPromptSpec Spec
 ) : ICosmosDocument
 {
-    public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "CommonPrompt";
-    public string PartitionKey => Spec.Name;
+    public const string DocumentTypeName = "CommonPrompt";
+
+    public string Id => GetId(Name);
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
+
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
 
     #region Conversion between runtime and data model
     public YamlPromptDescriptor ToYamlPromptDescriptor() => new YamlPromptDescriptor
@@ -37,7 +49,5 @@ public record CommonPromptDocumentModel(
 /// </summary>
 public class CommonPromptSpec
 {
-    public string Name { get; set; } = string.Empty;
-
     public string Prompt { get; set; } = string.Empty;
 }

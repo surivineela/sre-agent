@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DataModels;
 using Agent.Web.ApiResources;
 using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
@@ -40,7 +41,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ExtendedAgentView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgent")
+        if (request.Type != null && request.Type != AgentDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -86,7 +87,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ExtendedAgentView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgent")
+        if (request.Type != null && request.Type != AgentDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -207,7 +208,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ToolView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgentTool")
+        if (request.Type != null && request.Type != ToolDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -253,7 +254,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ToolView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgentTool")
+        if (request.Type != null && request.Type != ToolDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -374,7 +375,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ConnectorView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgentConnector")
+        if (request.Type != null && request.Type != ConnectorDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -420,7 +421,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<ConnectorView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "ExtendedAgentConnector")
+        if (request.Type != null && request.Type != ConnectorDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -561,7 +562,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<PluginConfigView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "PluginConfig")
+        if (request.Type != null && request.Type != PlugInConfigDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -607,7 +608,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<PluginConfigView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "PluginConfig")
+        if (request.Type != null && request.Type != PlugInConfigDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -728,7 +729,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<CommonPromptView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "CommonPrompt")
+        if (request.Type != null && request.Type != CommonPromptDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -774,7 +775,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<CommonPromptView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "CommonPrompt")
+        if (request.Type != null && request.Type != CommonPromptDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -895,7 +896,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<CommonToolListView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "CommonToolsList")
+        if (request.Type != null && request.Type != CommonToolsListDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -941,7 +942,7 @@ public class ExtendedAgentApiController : ControllerBase
         [FromBody] ApiRequestEnvelope<CommonToolListView> request,
         [FromQuery] bool dryRun = false)
     {
-        if (request.Type != null && request.Type != "CommonToolsList")
+        if (request.Type != null && request.Type != CommonToolsListDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -1061,7 +1062,7 @@ public class ExtendedAgentApiController : ControllerBase
         string skillName,
         [FromBody] ApiRequestEnvelope<SkillView> request)
     {
-        if (request.Type != null && request.Type != "Skill")
+        if (request.Type != null && request.Type != SkillDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }
@@ -1106,7 +1107,7 @@ public class ExtendedAgentApiController : ControllerBase
         string skillName,
         [FromBody] ApiRequestEnvelope<SkillView> request)
     {
-        if (request.Type != null && request.Type != "Skill")
+        if (request.Type != null && request.Type != SkillDocumentModel.DocumentTypeName)
         {
             return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
         }

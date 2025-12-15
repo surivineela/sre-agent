@@ -45,12 +45,10 @@ public class KustoToolDisplayOptionsTests
         var document = new KustoToolDocumentModel(
             new ResourceMetadata
             {
-                Id = "tool_id",
-                OperationId = "op"
+                Name = "Tool"
             },
             new KustoToolSpec
             {
-                Name = "Tool",
                 Type = ToolDocumentModel.KustoToolType,
                 Connector = "connector",
                 Description = "desc",

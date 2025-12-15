@@ -37,6 +37,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

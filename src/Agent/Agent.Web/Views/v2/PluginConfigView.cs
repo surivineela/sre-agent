@@ -22,7 +22,7 @@ public class PluginConfigView
 
         ApiResponseEnvelope<PluginConfigView> apiResponse = new()
         {
-            Name = plugin.Name,
+            Name = pluginDoc.Name,
             Type = pluginDoc.DocumentType,
             Tags = pluginDoc.Metadata.Tags,
             Properties = pluginView,
@@ -47,13 +47,11 @@ public class PluginConfigView
         var resultMetadata = metadata ?? baseModel?.Metadata ?? new ResourceMetadata
         {
             CreatedAt = DateTime.UtcNow,
-            Version = "v2",
         };
 
         resultMetadata.UpdatedAt = DateTime.UtcNow;
 
-        envelope.Name.ApplyTo(name => spec.Name = name!);
-        envelope.Owner.ApplyTo(owner => resultMetadata.Owner = owner);
+        envelope.Name.ApplyTo(name => resultMetadata.Name = name!);
         envelope.Tags.ApplyTo(tag => resultMetadata.Tags = tag);
         envelope.Properties.ApplyTo(properties =>
         {

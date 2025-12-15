@@ -81,7 +81,7 @@ public class HeartbeatReporter
                 subAgentName: nameof(HeartbeatReporter));
 
             // Log detailed information about extended agents and tools
-            await LogExtendedAgentsAndToolsAsync(cancellationToken);
+            await LogExtendedAgentsResourcesAsync(cancellationToken);
             LogIncidentHandlers(incidentHandlers ?? new List<dynamic>());
         }
         catch (Exception ex)
@@ -100,9 +100,9 @@ public class HeartbeatReporter
     }
 
     /// <summary>
-    /// Logs detailed information about extended agents and tools.
+    /// Logs detailed information about extended agents, tools, and skills.
     /// </summary>
-    private async Task LogExtendedAgentsAndToolsAsync(CancellationToken cancellationToken)
+    private async Task LogExtendedAgentsResourcesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -117,9 +117,7 @@ public class HeartbeatReporter
                         type = "ExtendedAgent",
                         name = agent.Name,
                         createdAt = agent.Metadata?.CreatedAt,
-                        owner = agent.Metadata?.Owner,
                         tools = agent.Tools?.ToArray() ?? Array.Empty<string>(),
-                        version = agent.Metadata?.Version,
                         tags = agent.Metadata?.Tags?.ToArray() ?? Array.Empty<string>()
                     };
 
@@ -153,9 +151,7 @@ public class HeartbeatReporter
                         name = tool.Name,
                         toolType = tool.Type,
                         createdAt = tool.Metadata?.CreatedAt,
-                        owner = tool.Metadata?.Owner,
                         subscription = tool.Metadata != null ? ExtractSubscriptionFromMetadata(tool.Metadata) : null,
-                        version = tool.Metadata?.Version,
                         tags = tool.Metadata?.Tags?.ToArray() ?? Array.Empty<string>()
                     };
 
@@ -176,10 +172,43 @@ public class HeartbeatReporter
                     _logger.LogInternalError(ex, "Failed to log extended tool: {ToolName}", tool?.Name ?? "unknown");
                 }
             }
+
+            // Log extended skills
+            var extendedSkills = await _extendedAgentRepository.GetSkillsAsync(limit: 1000);
+            foreach (var skill in extendedSkills)
+            {
+                try
+                {
+                    var skillInfo = new
+                    {
+                        type = "ExtendedSkill",
+                        name = skill.Name,
+                        description = skill.Spec?.Description,
+                        createdAt = skill.Metadata?.CreatedAt,
+                        tags = skill.Metadata?.Tags?.ToArray() ?? Array.Empty<string>()
+                    };
+
+                    var skillPayload = JsonSerializer.Serialize(skillInfo, PayloadSerializerOptions);
+                    _logger.LogInternalInformation("[ExtendedSkill] {Payload}", skillPayload);
+
+                    // Log with LogAgentAction for aggregation
+                    _logger.LogAgentAction(
+                        action: AgentActionEvents.ExtendedSkill,
+                        parameter: skillPayload,
+                        status: "Success",
+                        duration: 0,
+                        threadId: string.Empty,
+                        subAgentName: "ExtendedSkill");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Failed to log extended skill: {SkillName}", skill?.Name ?? "unknown");
+                }
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Failed to log extended agents and tools");
+            _logger.LogInternalError(ex, "Failed to log extended agents, tools, and skills");
         }
     }
 

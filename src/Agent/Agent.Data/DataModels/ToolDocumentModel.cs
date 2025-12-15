@@ -22,19 +22,31 @@ public record ToolDocumentModel(
     ToolSpec Spec
 ) : ICosmosDocument
 {
+    public const string DocumentTypeName = "ExtendedAgentTool";
     public const string KustoToolType = "KustoTool";
     public const string LinkToolType = "LinkTool";
     public const string PythonToolType = "PythonFunctionTool";
-    public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "ExtendedAgentTool";
-    public string PartitionKey => Spec.Name;
+
+    public string Id => GetId(Name);
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
 
     // [JsonIgnore] uncomment when we remove the CustomizedJsonPolymorphic attribute
     public string Type => Spec.Type;
+
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
 
     #region Conversion between runtime and data model
 
@@ -53,8 +65,6 @@ public record ToolDocumentModel(
 /// </summary>
 public class ToolSpec
 {
-    public string Name { get; set; } = string.Empty;
-
     public string Type { get; set; } = string.Empty;
 
     public string? Connector { get; set; }

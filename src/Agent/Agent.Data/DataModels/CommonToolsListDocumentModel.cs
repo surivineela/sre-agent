@@ -15,13 +15,25 @@ public record CommonToolsListDocumentModel(
     CommonToolListSpec Spec
 ) : ICosmosDocument
 {
-    public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "CommonToolsList";
-    public string PartitionKey => Spec.Name;
+    public const string DocumentTypeName = "CommonToolsList";
+
+    public string Id => GetId(Name);
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
+
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
 
     #region Conversion between runtime and data model
     public YamlCommonToolsDescriptor ToRuntimeToolsList() => new YamlCommonToolsDescriptor
@@ -37,7 +49,5 @@ public record CommonToolsListDocumentModel(
 /// </summary>
 public class CommonToolListSpec
 {
-    public string Name { get; set; } = string.Empty;
-
     public List<string> CommonToolsList { get; set; } = new();
 }

@@ -28,11 +28,6 @@ public class ApiRequestEnvelope<T>
     public Settable<List<string>> Tags { get; set; }
 
     /// <summary>
-    /// Owner of the resource.
-    /// </summary>
-    public Settable<string> Owner { get; set; }
-
-    /// <summary>
     /// Resource specific properties.
     /// </summary>
     public Settable<T> Properties { get; set; }

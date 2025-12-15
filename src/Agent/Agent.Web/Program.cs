@@ -69,6 +69,7 @@ using Agent.Web.Authorization;
 using Agent.Web.Services;
 using Agent.Web.Validation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;

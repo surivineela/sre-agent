@@ -17,15 +17,17 @@ public record AgentDocumentModel(
     AgentSpec Spec
 ) : ICosmosDocument
 {
-    public string Id => Metadata.Id ?? Spec.Name;
+    public const string DocumentTypeName = "ExtendedAgent";
 
-    public string DocumentType => "ExtendedAgent";
-    public string PartitionKey => Spec.Name;
+    public string Id => GetId(Name);
+
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     // Convenience properties for ease of access (JsonIgnore to avoid serialization conflicts)
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
 
     [JsonIgnore]
     public string HandoffDescription => Spec.HandoffDescription ?? string.Empty;
@@ -33,11 +35,21 @@ public record AgentDocumentModel(
     [JsonIgnore]
     public List<string> Tools => Spec.Tools ?? [];
 
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
+
     # region Conversion between runtime and data model
     public YamlAgentDescriptor ToYamlAgentDescriptor() => new YamlAgentDescriptor
     {
         AgentsAsTools = Spec.AgentsAsTools ?? [],
-        Name = Spec.Name,
+        Name = Metadata.Name,
         Instructions = Spec.Instructions ?? string.Empty,
         HandoffDescription = Spec.HandoffDescription,
         Handoffs = Spec.Handoffs ?? [],
@@ -78,17 +90,8 @@ public record AgentDocumentModel(
 /// </summary>
 public class ResourceMetadata
 {
-    [YamlIgnore]
-    public string? Id { get; set; }
-
-    [YamlIgnore]
-    public string? OperationId { get; set; }
-
-    [YamlMember(Alias = "owner")]
-    public string? Owner { get; set; }
-
-    [YamlMember(Alias = "version")]
-    public string? Version { get; set; }
+    [YamlMember(Alias = "name")]
+    public string Name { get; set; } = string.Empty;
 
     [YamlMember(Alias = "tags")]
     public List<string>? Tags { get; set; }
@@ -100,14 +103,11 @@ public class ResourceMetadata
     public DateTime? CreatedAt { get; set; }
 
     #region Conversion between runtime and data model
-    public static ResourceMetadata FromYamlMetadata(YamlMetadata yamlMetadata, string id, string operationId)
+    public static ResourceMetadata FromYamlMetadata(YamlMetadata yamlMetadata, string name)
     {
         return new ResourceMetadata
         {
-            Id = id,
-            OperationId = operationId,
-            Owner = yamlMetadata.Owner,
-            Version = yamlMetadata.Version,
+            Name = name ?? string.Empty,
             Tags = yamlMetadata.Tags,
             UpdatedAt = yamlMetadata.UpdatedAt,
             CreatedAt = yamlMetadata.CreatedAt
@@ -118,8 +118,6 @@ public class ResourceMetadata
     {
         return new YamlMetadata
         {
-            Owner = Owner,
-            Version = Version,
             Tags = Tags,
             UpdatedAt = UpdatedAt,
             CreatedAt = CreatedAt
@@ -130,9 +128,6 @@ public class ResourceMetadata
 
 public class AgentSpec
 {
-    [YamlMember(Alias = "name")]
-    public string Name { get; set; } = string.Empty;
-
     [YamlMember(Alias = "instructions")]
     public string? Instructions { get; set; }
 

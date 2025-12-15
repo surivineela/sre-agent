@@ -69,13 +69,9 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("test-agent-id");
-        result.Metadata.OperationId.ShouldBe("op-123");
-        result.Metadata.Owner.ShouldBe("test-owner");
-        result.Metadata.Version.ShouldBe("1.0.0");
         result.Metadata.Tags.ShouldBe(new[] { "tag1", "tag2" });
 
-        result.Spec.Name.ShouldBe("TestAgent");
+        result.Name.ShouldBe("TestAgent");
         result.Spec.Instructions.ShouldBe("Test instructions");
         result.Spec.HandoffDescription.ShouldBe("Test handoff");
         result.Spec.Handoffs.ShouldBe(new[] { "Agent1", "Agent2" });
@@ -126,12 +122,8 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("legacy-agent-id");
-        result.Metadata.OperationId.ShouldBe("legacy-op-123");
-        result.Metadata.Owner.ShouldBe("legacy-owner");
-        result.Metadata.Version.ShouldBe("0.9.0");
 
-        result.Spec.Name.ShouldBe("LegacyAgent");
+        result.Name.ShouldBe("LegacyAgent");
         result.Spec.Instructions.ShouldBe("Legacy instructions");
         result.Spec.HandoffDescription.ShouldBe("Legacy handoff");
         result.Spec.Handoffs.ShouldBe(new[] { "Agent1" });
@@ -148,17 +140,13 @@ public class LegacyDocumentModelConverterTests
         var model = new AgentDocumentModel(
             new ResourceMetadata
             {
-                Id = "agent-id",
-                OperationId = "op-456",
-                Owner = "owner1",
-                Version = "2.0.0",
+                Name = "SerializedAgent",
                 Tags = new List<string> { "production" },
                 CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2024, 1, 2, 0, 0, 0, DateTimeKind.Utc)
             },
             new AgentSpec
             {
-                Name = "SerializedAgent",
                 Instructions = "Serialized instructions",
                 Tools = new List<string> { "Tool1" },
                 Temperature = 0.5f
@@ -171,8 +159,7 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         deserialized.ShouldNotBeNull();
-        deserialized.Metadata.Id.ShouldBe("agent-id");
-        deserialized.Spec.Name.ShouldBe("SerializedAgent");
+        deserialized.Name.ShouldBe("SerializedAgent");
         deserialized.Spec.Instructions.ShouldBe("Serialized instructions");
         deserialized.Spec.Temperature.ShouldBe(0.5f);
 
@@ -227,11 +214,9 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<KustoToolDocumentModel>();
 
         var kustoTool = (KustoToolDocumentModel)result;
-        kustoTool.Metadata.Id.ShouldBe("kusto-tool-id");
-        kustoTool.Metadata.Owner.ShouldBe("tool-owner");
         kustoTool.Metadata.Tags.ShouldBe(new[] { "kusto", "query" });
 
-        kustoTool.Spec.Name.ShouldBe("TestKustoTool");
+        kustoTool.Name.ShouldBe("TestKustoTool");
         kustoTool.Spec.Type.ShouldBe("KustoTool");
         kustoTool.Spec.Connector.ShouldBe("KustoConnector");
         kustoTool.Spec.Description.ShouldBe("Test Kusto tool");
@@ -274,11 +259,8 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<KustoToolDocumentModel>();
 
         var kustoTool = (KustoToolDocumentModel)result;
-        kustoTool.Metadata.Id.ShouldBe("legacy-kusto-id");
-        kustoTool.Metadata.OperationId.ShouldBe("legacy-op");
-        kustoTool.Metadata.Owner.ShouldBe("legacy-owner");
 
-        kustoTool.Spec.Name.ShouldBe("LegacyKustoTool");
+        kustoTool.Name.ShouldBe("LegacyKustoTool");
         kustoTool.Spec.Type.ShouldBe("KustoTool");
         kustoTool.Spec.Connector.ShouldBe("LegacyConnector");
         kustoTool.Spec.Description.ShouldBe("Legacy Kusto tool");
@@ -292,16 +274,9 @@ public class LegacyDocumentModelConverterTests
     {
         // Arrange
         var model = new KustoToolDocumentModel(
-            new ResourceMetadata
-            {
-                Id = "kusto-id",
-                OperationId = "op-kusto",
-                Owner = "kusto-owner",
-                Version = "1.0.0"
-            },
+            new ResourceMetadata { Name = "SerializedKustoTool" },
             new KustoToolSpec
             {
-                Name = "SerializedKustoTool",
                 Type = "KustoTool",
                 Connector = "KustoConnector",
                 Description = "Serialized Kusto tool",
@@ -320,7 +295,7 @@ public class LegacyDocumentModelConverterTests
         deserialized.ShouldBeOfType<KustoToolDocumentModel>();
 
         var kustoTool = (KustoToolDocumentModel)deserialized;
-        kustoTool.Spec.Name.ShouldBe("SerializedKustoTool");
+        kustoTool.Name.ShouldBe("SerializedKustoTool");
         kustoTool.Spec.Database.ShouldBe("SerializedDB");
         kustoTool.Spec.Function.ShouldBe("MyFunction()");
 
@@ -369,10 +344,8 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<LinkToolDocumentModel>();
 
         var linkTool = (LinkToolDocumentModel)result;
-        linkTool.Metadata.Id.ShouldBe("link-tool-id");
-        linkTool.Metadata.Owner.ShouldBe("link-owner");
 
-        linkTool.Spec.Name.ShouldBe("TestLinkTool");
+        linkTool.Name.ShouldBe("TestLinkTool");
         linkTool.Spec.Type.ShouldBe("LinkTool");
         linkTool.Spec.Description.ShouldBe("Test link tool");
         linkTool.Spec.Template.ShouldBe("https://example.com/{param1}");
@@ -407,11 +380,8 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<LinkToolDocumentModel>();
 
         var linkTool = (LinkToolDocumentModel)result;
-        linkTool.Metadata.Id.ShouldBe("legacy-link-id");
-        linkTool.Metadata.OperationId.ShouldBe("legacy-link-op");
-        linkTool.Metadata.Owner.ShouldBe("legacy-link-owner");
 
-        linkTool.Spec.Name.ShouldBe("LegacyLinkTool");
+        linkTool.Name.ShouldBe("LegacyLinkTool");
         linkTool.Spec.Type.ShouldBe("LinkTool");
         linkTool.Spec.Template.ShouldBe("https://legacy.com/{id}");
     }
@@ -421,15 +391,9 @@ public class LegacyDocumentModelConverterTests
     {
         // Arrange
         var model = new LinkToolDocumentModel(
-            new ResourceMetadata
-            {
-                Id = "link-id",
-                OperationId = "op-link-serialize",
-                Owner = "link-serialize-owner"
-            },
+            new ResourceMetadata { Name = "SerializedLinkTool" },
             new LinkToolSpec
             {
-                Name = "SerializedLinkTool",
                 Type = "LinkTool",
                 Connector = "HttpConnector",
                 Description = "Serialized link tool",
@@ -446,7 +410,7 @@ public class LegacyDocumentModelConverterTests
         deserialized.ShouldBeOfType<LinkToolDocumentModel>();
 
         var linkTool = (LinkToolDocumentModel)deserialized;
-        linkTool.Spec.Name.ShouldBe("SerializedLinkTool");
+        linkTool.Name.ShouldBe("SerializedLinkTool");
         linkTool.Spec.Template.ShouldBe("https://serialized.com/{param}");
 
         // Verify new schema structure
@@ -495,11 +459,9 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<KustoConnectorDocumentModel>();
 
         var kustoConnector = (KustoConnectorDocumentModel)result;
-        kustoConnector.Metadata.Id.ShouldBe("kusto-connector-id");
-        kustoConnector.Metadata.Owner.ShouldBe("connector-owner");
         kustoConnector.Metadata.Tags.ShouldBe(new[] { "kusto", "database" });
 
-        kustoConnector.Spec.Name.ShouldBe("TestKustoConnector");
+        kustoConnector.Name.ShouldBe("TestKustoConnector");
         kustoConnector.Spec.Type.ShouldBe("Kusto");
         kustoConnector.Spec.Description.ShouldBe("Test Kusto connector");
         kustoConnector.Spec.Enabled.ShouldBe(true);
@@ -538,11 +500,8 @@ public class LegacyDocumentModelConverterTests
         result.ShouldBeOfType<KustoConnectorDocumentModel>();
 
         var kustoConnector = (KustoConnectorDocumentModel)result;
-        kustoConnector.Metadata.Id.ShouldBe("legacy-connector-id");
-        kustoConnector.Metadata.OperationId.ShouldBe("legacy-conn-op");
-        kustoConnector.Metadata.Owner.ShouldBe("legacy-connector-owner");
 
-        kustoConnector.Spec.Name.ShouldBe("LegacyKustoConnector");
+        kustoConnector.Name.ShouldBe("LegacyKustoConnector");
         kustoConnector.Spec.Type.ShouldBe("Kusto");
         kustoConnector.Spec.Description.ShouldBe("Legacy Kusto connector");
         kustoConnector.Spec.Enabled.ShouldBe(false);
@@ -557,14 +516,10 @@ public class LegacyDocumentModelConverterTests
         var model = new KustoConnectorDocumentModel(
             new ResourceMetadata
             {
-                Id = "connector-id",
-                OperationId = "op-conn-serialize",
-                Owner = "connector-serialize-owner",
-                Version = "2.0.0"
+                Name = "SerializedKustoConnector"
             },
             new KustoConnectorSpec
             {
-                Name = "SerializedKustoConnector",
                 Type = "Kusto",
                 Description = "Serialized Kusto connector",
                 Enabled = true,
@@ -582,7 +537,7 @@ public class LegacyDocumentModelConverterTests
         deserialized.ShouldBeOfType<KustoConnectorDocumentModel>();
 
         var kustoConnector = (KustoConnectorDocumentModel)deserialized;
-        kustoConnector.Spec.Name.ShouldBe("SerializedKustoConnector");
+        kustoConnector.Name.ShouldBe("SerializedKustoConnector");
         kustoConnector.Spec.ClusterUrl.ShouldBe("https://serialized.kusto.windows.net");
         kustoConnector.Spec.Database.ShouldBe("SerializedDB");
 
@@ -623,13 +578,9 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("common-tools-id");
-        result.Metadata.OperationId.ShouldBe("op-tools-123");
-        result.Metadata.Owner.ShouldBe("tools-owner");
-        result.Metadata.Version.ShouldBe("1.0.0");
         result.Metadata.Tags.ShouldBe(new[] { "common", "tools" });
 
-        result.Spec.Name.ShouldBe("StandardTools");
+        result.Name.ShouldBe("StandardTools");
         result.Spec.CommonToolsList.ShouldBe(new[] { "tool1", "tool2", "tool3" });
     }
 
@@ -655,12 +606,8 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("legacy-tools-id");
-        result.Metadata.OperationId.ShouldBe("legacy-tools-op");
-        result.Metadata.Owner.ShouldBe("legacy-tools-owner");
-        result.Metadata.Version.ShouldBe("0.8.0");
 
-        result.Spec.Name.ShouldBe("LegacyStandardTools");
+        result.Name.ShouldBe("LegacyStandardTools");
         result.Spec.CommonToolsList.ShouldBe(new[] { "legacyTool1", "legacyTool2" });
     }
 
@@ -671,14 +618,10 @@ public class LegacyDocumentModelConverterTests
         var model = new CommonToolsListDocumentModel(
             new ResourceMetadata
             {
-                Id = "serialize-tools-id",
-                OperationId = "op-serialize-tools",
-                Owner = "serialize-owner",
-                Version = "3.0.0"
+                Name = "SerializedToolsList"
             },
             new CommonToolListSpec
             {
-                Name = "SerializedToolsList",
                 CommonToolsList = new List<string> { "serializedTool1", "serializedTool2", "serializedTool3" }
             }
         );
@@ -689,7 +632,7 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         deserialized.ShouldNotBeNull();
-        deserialized.Spec.Name.ShouldBe("SerializedToolsList");
+        deserialized.Name.ShouldBe("SerializedToolsList");
         deserialized.Spec.CommonToolsList.ShouldBe(new[] { "serializedTool1", "serializedTool2", "serializedTool3" });
 
         // Verify new schema structure
@@ -726,13 +669,9 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("common-prompt-id");
-        result.Metadata.OperationId.ShouldBe("op-prompt-123");
-        result.Metadata.Owner.ShouldBe("prompt-owner");
-        result.Metadata.Version.ShouldBe("1.0.0");
         result.Metadata.Tags.ShouldBe(new[] { "prompt", "common" });
 
-        result.Spec.Name.ShouldBe("WelcomePrompt");
+        result.Name.ShouldBe("WelcomePrompt");
         result.Spec.Prompt.ShouldBe("Welcome to the system! How can I help you today?");
     }
 
@@ -758,12 +697,8 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("legacy-prompt-id");
-        result.Metadata.OperationId.ShouldBe("legacy-prompt-op");
-        result.Metadata.Owner.ShouldBe("legacy-prompt-owner");
-        result.Metadata.Version.ShouldBe("0.7.0");
 
-        result.Spec.Name.ShouldBe("LegacyWelcomePrompt");
+        result.Name.ShouldBe("LegacyWelcomePrompt");
         result.Spec.Prompt.ShouldBe("Legacy welcome message");
     }
 
@@ -774,14 +709,10 @@ public class LegacyDocumentModelConverterTests
         var model = new CommonPromptDocumentModel(
             new ResourceMetadata
             {
-                Id = "serialize-prompt-id",
-                OperationId = "op-serialize-prompt",
-                Owner = "serialize-prompt-owner",
-                Version = "2.5.0"
+                Name = "SerializedPrompt"
             },
             new CommonPromptSpec
             {
-                Name = "SerializedPrompt",
                 Prompt = "This is a serialized prompt for testing."
             }
         );
@@ -792,7 +723,7 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         deserialized.ShouldNotBeNull();
-        deserialized.Spec.Name.ShouldBe("SerializedPrompt");
+        deserialized.Name.ShouldBe("SerializedPrompt");
         deserialized.Spec.Prompt.ShouldBe("This is a serialized prompt for testing.");
 
         // Verify new schema structure
@@ -833,13 +764,9 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("plugin-config-id");
-        result.Metadata.OperationId.ShouldBe("op-plugin-123");
-        result.Metadata.Owner.ShouldBe("plugin-owner");
-        result.Metadata.Version.ShouldBe("1.0.0");
         result.Metadata.Tags.ShouldBe(new[] { "plugin", "config" });
 
-        result.Spec.Name.ShouldBe("TestPluginConfig");
+        result.Name.ShouldBe("TestPluginConfig");
         result.Spec.Config.ShouldNotBeNull();
         result.Spec.Config.Count.ShouldBe(3);
     }
@@ -869,12 +796,8 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Metadata.Id.ShouldBe("legacy-plugin-id");
-        result.Metadata.OperationId.ShouldBe("legacy-plugin-op");
-        result.Metadata.Owner.ShouldBe("legacy-plugin-owner");
-        result.Metadata.Version.ShouldBe("0.6.0");
 
-        result.Spec.Name.ShouldBe("LegacyPluginConfig");
+        result.Name.ShouldBe("LegacyPluginConfig");
         result.Spec.Config.ShouldNotBeNull();
         result.Spec.Config.Count.ShouldBe(2);
     }
@@ -886,14 +809,10 @@ public class LegacyDocumentModelConverterTests
         var model = new PlugInConfigDocumentModel(
             new ResourceMetadata
             {
-                Id = "serialize-plugin-id",
-                OperationId = "op-serialize-plugin",
-                Owner = "serialize-plugin-owner",
-                Version = "1.5.0"
+                Name = "SerializedPluginConfig"
             },
             new PluginConfigSpec
             {
-                Name = "SerializedPluginConfig",
                 Config = new Dictionary<string, object>
                 {
                     { "url", "https://serialized.api.com" },
@@ -909,7 +828,7 @@ public class LegacyDocumentModelConverterTests
 
         // Assert
         deserialized.ShouldNotBeNull();
-        deserialized.Spec.Name.ShouldBe("SerializedPluginConfig");
+        deserialized.Name.ShouldBe("SerializedPluginConfig");
         deserialized.Spec.Config.ShouldNotBeNull();
         deserialized.Spec.Config.Count.ShouldBe(3);
 

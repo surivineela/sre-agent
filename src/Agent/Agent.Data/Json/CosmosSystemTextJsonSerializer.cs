@@ -34,6 +34,7 @@ public class CosmosSystemTextJsonSerializer : CosmosLinqSerializer
                     new LegacyDocumentModelConverter<PlugInConfigDocumentModel, PlugInConfigDocumentModelLegacy>(),
                     new LegacyDocumentModelConverter<CommonPromptDocumentModel, CommonPromptDocumentModelLegacy>(),
                     new LegacyDocumentModelConverter<CommonToolsListDocumentModel, CommonToolsListDocumentModelLegacy>(),
+                    new LegacyDocumentModelConverter<SkillDocumentModel, SkillDocumentModelLegacy>(),
                 },
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,

@@ -383,16 +383,20 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // Plugin operations
-    public Task<ApiCommandResult<PlugInConfigDocumentModel>> GetPluginConfigAsync(string pluginName)
+    public async Task<ApiCommandResult<PlugInConfigDocumentModel>> GetPluginConfigAsync(string pluginName)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Retrieving plugin config: {PluginName}, OperationId: {OperationId}", pluginName, operationId);
 
-            // Note: Repository doesn't have GetPluginConfigByNameAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult()));
+            var plugin = await _repository.GetPluginConfigByNameAsync(pluginName);
+            if (plugin == null)
+            {
+                return new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult());
+            }
+
+            return new ApiCommandResult<PlugInConfigDocumentModel>(plugin);
         }
         catch (Exception ex)
         {
@@ -436,17 +440,27 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false)
+    public async Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Deleting plugin config: {PluginName}, DryRun: {DryRun}, OperationId: {OperationId}", pluginName, dryRun, operationId);
 
-            // Note: Repository doesn't have DeletePluginConfigAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            // When implemented, add dry-run logic similar to other delete methods
-            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult()));
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for deleting plugin config: {PluginName}", pluginName);
+                return new ApiCommandResult<PlugInConfigDocumentModel>(new AcceptedResult());
+            }
+
+            var deleted = await _repository.DeletePluginConfigAsync(pluginName);
+            if (!deleted)
+            {
+                return new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult());
+            }
+
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+            return new ApiCommandResult<PlugInConfigDocumentModel>(new AcceptedResult());
         }
         catch (Exception ex)
         {
@@ -455,16 +469,15 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync(int limit = 50, string? search = null)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Getting plugin configs, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
 
-            // Note: Repository doesn't have GetPluginConfigsAsync, so we return empty array for now
-            // This might need to be implemented in the repository if needed
-            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel[]>(Array.Empty<PlugInConfigDocumentModel>()));
+            var plugins = await _repository.GetPluginConfigsAsync(limit, search);
+            return new ApiCommandResult<PlugInConfigDocumentModel[]>(plugins.ToArray());
         }
         catch (Exception ex)
         {
@@ -531,17 +544,27 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
+    public async Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Deleting common prompt: {PromptName}, DryRun: {DryRun}, OperationId: {OperationId}", promptName, dryRun, operationId);
 
-            // Note: Repository doesn't have DeleteCommonPromptAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            // When implemented, add dry-run logic similar to other delete methods
-            return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult()));
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for deleting common prompt: {PromptName}", promptName);
+                return new ApiCommandResult<CommonPromptDocumentModel>(new AcceptedResult());
+            }
+
+            var deleted = await _repository.DeleteCommonPromptAsync(promptName);
+            if (!deleted)
+            {
+                return new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult());
+            }
+
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+            return new ApiCommandResult<CommonPromptDocumentModel>(new AcceptedResult());
         }
         catch (Exception ex)
         {
@@ -569,16 +592,20 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // CommonToolList operations
-    public Task<ApiCommandResult<CommonToolsListDocumentModel>> GetCommonToolListAsync(string listName)
+    public async Task<ApiCommandResult<CommonToolsListDocumentModel>> GetCommonToolListAsync(string listName)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Retrieving common tool list: {ListName}, OperationId: {OperationId}", listName, operationId);
 
-            // Note: Repository doesn't have GetCommonToolListByNameAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult()));
+            var toolList = await _repository.GetCommonToolsListByNameAsync(listName);
+            if (toolList == null)
+            {
+                return new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult());
+            }
+
+            return new ApiCommandResult<CommonToolsListDocumentModel>(toolList);
         }
         catch (Exception ex)
         {
@@ -622,17 +649,27 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false)
+    public async Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false)
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
             _logger.LogInternalInformation("Deleting common tool list: {ListName}, DryRun: {DryRun}, OperationId: {OperationId}", listName, dryRun, operationId);
 
-            // Note: Repository doesn't have DeleteCommonToolListAsync, so we return NotFound for now
-            // This might need to be implemented in the repository if needed
-            // When implemented, add dry-run logic similar to other delete methods
-            return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult()));
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping database operations for deleting common tool list: {ListName}", listName);
+                return new ApiCommandResult<CommonToolsListDocumentModel>(new AcceptedResult());
+            }
+
+            var deleted = await _repository.DeleteCommonToolsListAsync(listName);
+            if (!deleted)
+            {
+                return new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult());
+            }
+
+            await _extendedAgentService.RefreshAgentAndToolsRegisterationsAsync();
+            return new ApiCommandResult<CommonToolsListDocumentModel>(new AcceptedResult());
         }
         catch (Exception ex)
         {
@@ -764,9 +801,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             var skillDocumentModel = new SkillDocumentModel(
                 Metadata: new ResourceMetadata
                 {
-                    Id = $"skill_{skill.Name}",
                     CreatedAt = DateTime.UtcNow,
-                    Version = "v2",
                 },
                 Spec: skill
             );

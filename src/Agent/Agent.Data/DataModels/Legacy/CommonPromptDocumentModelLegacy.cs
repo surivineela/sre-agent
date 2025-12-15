@@ -20,7 +20,7 @@ public record CommonPromptDocumentModelLegacy(
     string OperationId
 ) : ICosmosDocument, ILegacyModelConverter<CommonPromptDocumentModel>
 {
-    public string DocumentType => "CommonPrompt";
+    public string DocumentType => CommonPromptDocumentModel.DocumentTypeName;
     public string PartitionKey => Name; // Use common prompt name as partition key for easy querying
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -28,10 +28,7 @@ public record CommonPromptDocumentModelLegacy(
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt
@@ -42,7 +39,6 @@ public record CommonPromptDocumentModelLegacy(
     {
         return new CommonPromptSpec
         {
-            Name = Name,
             Prompt = Prompt
         };
     }

@@ -48,7 +48,6 @@ public record KustoToolDocumentModelLegacy : ToolDocumentModelLegacy, ILegacyMod
     {
         return new KustoToolSpec
         {
-            Name = Name,
             Type = Type,
             Connector = Connector,
             Description = Description,

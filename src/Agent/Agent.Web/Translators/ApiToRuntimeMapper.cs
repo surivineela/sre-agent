@@ -16,17 +16,13 @@ public static class ApiToRuntimeMapper
         KustoToolApiModel k => new KustoToolDocumentModel(
             new ResourceMetadata
             {
-                Id = $"tool_{k.Name}",
-                OperationId = operationId,
-                Owner = k.Metadata?.Owner,
-                Version = k.Metadata?.Version,
+                Name = k.Name,
                 Tags = k.Metadata?.Tags,
                 UpdatedAt = k.Metadata?.UpdatedAt,
                 CreatedAt = k.Metadata?.CreatedAt
             },
             new KustoToolSpec
             {
-                Name = k.Name,
                 Type = k.Type,
                 Connector = k.Connector,
                 Description = k.Description,
@@ -45,17 +41,13 @@ public static class ApiToRuntimeMapper
         LinkToolApiModel link => new LinkToolDocumentModel(
             new ResourceMetadata
             {
-                Id = $"tool_{link.Name}",
-                OperationId = operationId,
-                Owner = link.Metadata?.Owner,
-                Version = link.Metadata?.Version,
+                Name = link.Name,
                 Tags = link.Metadata?.Tags,
                 UpdatedAt = link.Metadata?.UpdatedAt,
                 CreatedAt = link.Metadata?.CreatedAt
             },
             new LinkToolSpec
             {
-                Name = link.Name,
                 Type = link.Type,
                 Connector = link.Connector,
                 Description = link.Description,
@@ -67,17 +59,13 @@ public static class ApiToRuntimeMapper
         PythonToolApiModel py => new PythonToolDocumentModel(
             new ResourceMetadata
             {
-                Id = $"tool_{py.Name}",
-                OperationId = operationId,
-                Owner = py.Metadata?.Owner,
-                Version = py.Metadata?.Version,
+                Name = py.Name,
                 Tags = py.Metadata?.Tags,
                 UpdatedAt = py.Metadata?.UpdatedAt,
                 CreatedAt = py.Metadata?.CreatedAt
             },
             new PythonToolSpec
             {
-                Name = py.Name,
                 Type = "PythonFunctionTool",
                 Description = py.Description,
                 Parameters = py.Parameters,
@@ -95,17 +83,13 @@ public static class ApiToRuntimeMapper
         return new CommonPromptDocumentModel(
             new ResourceMetadata
             {
-                Id = $"commonprompt_{prompt.Name}",
-                OperationId = operationId,
-                Owner = prompt.Metadata?.Owner,
-                Version = prompt.Metadata?.Version,
+                Name = prompt.Name,
                 Tags = prompt.Metadata?.Tags,
                 UpdatedAt = prompt.Metadata?.UpdatedAt,
                 CreatedAt = prompt.Metadata?.CreatedAt
             },
             new CommonPromptSpec
             {
-                Name = prompt.Name,
                 Prompt = prompt.Prompt
             });
     }
@@ -115,17 +99,13 @@ public static class ApiToRuntimeMapper
         return new CommonToolsListDocumentModel(
             new ResourceMetadata
             {
-                Id = $"commontoolslist_{commonToolsList.Name}",
-                OperationId = operationId,
-                Owner = commonToolsList.Metadata?.Owner,
-                Version = commonToolsList.Metadata?.Version,
+                Name = commonToolsList.Name,
                 Tags = commonToolsList.Metadata?.Tags,
                 UpdatedAt = commonToolsList.Metadata?.UpdatedAt,
                 CreatedAt = commonToolsList.Metadata?.CreatedAt
             },
             new CommonToolListSpec
             {
-                Name = commonToolsList.Name,
                 CommonToolsList = commonToolsList.Tools
             });
     }
@@ -135,17 +115,13 @@ public static class ApiToRuntimeMapper
         KustoConnectorApiModel k => new KustoConnectorDocumentModel(
             new ResourceMetadata
             {
-                Id = $"connector_{k.Name}",
-                OperationId = operationId,
-                Owner = k.Metadata?.Owner,
-                Version = k.Metadata?.Version,
+                Name = k.Name,
                 Tags = k.Metadata?.Tags,
                 UpdatedAt = k.Metadata?.UpdatedAt,
                 CreatedAt = k.Metadata?.CreatedAt
             },
             new KustoConnectorSpec
             {
-                Name = k.Name,
                 Type = k.Type,
                 Description = k.Description ?? string.Empty,
                 Auth = k.Auth,
@@ -162,10 +138,7 @@ public static class ApiToRuntimeMapper
     {
         var metadata = new ResourceMetadata
         {
-            Id = $"config_{config.Spec.PluginName}",
-            OperationId = operationId,
-            Owner = config.Metadata.Owner,
-            Version = config.Metadata.Version,
+            Name = config.Spec.PluginName,
             Tags = config.Metadata.Tags,
             UpdatedAt = config.Metadata.UpdatedAt,
             CreatedAt = config.Metadata.CreatedAt
@@ -173,7 +146,6 @@ public static class ApiToRuntimeMapper
 
         var spec = new PluginConfigSpec
         {
-            Name = config.Spec.PluginName,
             Config = config.Spec.Config
         };
 
@@ -232,10 +204,6 @@ public static class ApiToRuntimeMapper
         return new SkillDocumentModel(
             Metadata: new ResourceMetadata
             {
-                Id = $"skill_{skill.Spec.Name}",
-                OperationId = operationId,
-                Owner = skill.Metadata.Owner,
-                Version = skill.Metadata.Version,
                 Tags = skill.Metadata.Tags,
                 UpdatedAt = skill.Metadata.UpdatedAt,
                 CreatedAt = skill.Metadata.CreatedAt

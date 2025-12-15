@@ -30,7 +30,7 @@ public record ConnectorDocumentModelLegacy(
     string OperationId
 ) : ICosmosDocument, ILegacyModelConverter<ConnectorDocumentModel>
 {
-    public string DocumentType => "ExtendedAgentConnector";
+    public string DocumentType => ConnectorDocumentModel.DocumentTypeName;
     public string PartitionKey => Name; // Use connector name as partition key for easy querying
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -38,10 +38,7 @@ public record ConnectorDocumentModelLegacy(
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt
@@ -52,7 +49,6 @@ public record ConnectorDocumentModelLegacy(
     {
         return new ConnectorSpec
         {
-            Name = Name,
             Type = Type,
             Description = Description,
             Auth = Auth,

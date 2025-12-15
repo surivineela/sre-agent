@@ -18,16 +18,28 @@ public record ConnectorDocumentModel(
 ) : ICosmosDocument
 {
     public const string KustoConnectorType = "Kusto";
-    public string Id => Metadata.Id ?? Spec.Name;
-    public string DocumentType => "ExtendedAgentConnector";
-    public string PartitionKey => Spec.Name;
+    public const string DocumentTypeName = "ExtendedAgentConnector";
+
+    public string Id => GetId(Name);
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => GetPartitionKey();
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     [JsonIgnore]
-    public string Name => Spec.Name;
+    public string Name => Metadata.Name;
 
     // [JsonIgnore] uncomment when we remove the CustomizedJsonPolymorphic attribute
     public string Type => Spec.Type;
+
+    public static string GetId(string name)
+    {
+        return name.ToLowerInvariant();
+    }
+
+    public static string GetPartitionKey()
+    {
+        return DocumentTypeName;
+    }
 }
 
 /// <summary>
@@ -35,8 +47,6 @@ public record ConnectorDocumentModel(
 /// </summary>
 public class ConnectorSpec
 {
-    public string Name { get; set; } = string.Empty;
-
     public string Type { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;

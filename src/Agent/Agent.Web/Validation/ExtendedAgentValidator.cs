@@ -105,23 +105,21 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
 
     private void ValidateResourceMetadata(ResourceMetadata metadata, ApiValidationResult result)
     {
-        // add validations if necessary
+        if (string.IsNullOrEmpty(metadata.Name))
+        {
+            result.Errors.Add("Agent name is required.");
+        }
+
+        if (metadata.Name.Any(char.IsWhiteSpace))
+        {
+            result.Errors.Add($"Agent name '{metadata.Name}' must not contain whitespace.");
+        }
     }
 
     // Ported from src\Agent\Agent.Core\Validation\AgentValidationService.cs
     // Not reusing it directly because it does not validate against the model
     private async Task ValidateAgentSpec(AgentSpec spec, ApiValidationResult result)
     {
-        if (string.IsNullOrEmpty(spec.Name))
-        {
-            result.Errors.Add("Agent name is required.");
-        }
-
-        if (spec.Name.Any(char.IsWhiteSpace))
-        {
-            result.Errors.Add($"Agent name '{spec.Name}' must not contain whitespace.");
-        }
-
         if (string.IsNullOrWhiteSpace(spec.Instructions))
         {
             result.Errors.Add("Agent instructions (system_prompt) are required.");

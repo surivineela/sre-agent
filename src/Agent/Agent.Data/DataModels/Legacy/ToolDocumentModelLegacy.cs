@@ -30,7 +30,7 @@ YamlMetadata Metadata,
     string OperationId
 ) : ICosmosDocument, ILegacyModelConverter<ToolDocumentModel>
 {
-    public string DocumentType => "ExtendedAgentTool";
+    public string DocumentType => ToolDocumentModel.DocumentTypeName;
     public string PartitionKey => Name; // Use tool name as partition key for easy querying
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -38,10 +38,7 @@ YamlMetadata Metadata,
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt
@@ -52,7 +49,6 @@ YamlMetadata Metadata,
     {
         return new ToolSpec
         {
-            Name = Name,
             Type = Type,
             Connector = Connector,
             Description = Description,

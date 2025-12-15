@@ -21,7 +21,7 @@ public record PlugInConfigDocumentModelLegacy(
     string OperationId
 ) : ICosmosDocument, ILegacyModelConverter<PlugInConfigDocumentModel>
 {
-    public string DocumentType => "PluginConfig";
+    public string DocumentType => PlugInConfigDocumentModel.DocumentTypeName;
     public string PartitionKey => Name; // Use tool name as partition key for easy querying
     public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
@@ -29,10 +29,7 @@ public record PlugInConfigDocumentModelLegacy(
     {
         return new ResourceMetadata
         {
-            Id = Id,
-            OperationId = OperationId,
-            Owner = Metadata?.Owner,
-            Version = Metadata?.Version,
+            Name = Name,
             Tags = Metadata?.Tags,
             UpdatedAt = Metadata?.UpdatedAt,
             CreatedAt = Metadata?.CreatedAt
@@ -43,7 +40,6 @@ public record PlugInConfigDocumentModelLegacy(
     {
         return new PluginConfigSpec
         {
-            Name = Name,
             Config = Config
         };
     }
