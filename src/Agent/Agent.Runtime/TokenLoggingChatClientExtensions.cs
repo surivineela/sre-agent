@@ -2,8 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core;
-using Agent.Core.Extensions;
+using System.Text.RegularExpressions;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -23,6 +22,11 @@ namespace Agent.Runtime
 
     internal class TokenLoggingChatClient : IChatClient
     {
+        // Pre-compiled regex to match trailing date YYYY-MM-DD or YYYYMMDD in model IDs
+        private static readonly Regex ModelVersionRegex = new(
+            @"^(.*)-((\d{4}-\d{2}-\d{2})|(\d{8}))$",
+            RegexOptions.Compiled);
+
         private readonly IChatClient _inner;
         private readonly ILogger<TokenLoggingChatClient> _logger;
 
@@ -80,16 +84,15 @@ namespace Agent.Runtime
                     _logger.LogInternalDebug("Failed to parse reasoning token count from AdditionalCounts: {Exception}", ex);
                 }
 
-                // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14)
+                // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14 or 20250414)
                 // Prefer parsing the trailing date first because model names can contain hyphens (e.g. gpt-4.1-2025-04-14).
                 string model = modelId;
                 string modelVersion = string.Empty;
 
                 if (!string.IsNullOrEmpty(modelId))
                 {
-                    // Match a trailing date YYYY-MM-DD and capture the preceding model name (handles hyphens in model)
-                    var m = System.Text.RegularExpressions.Regex.Match(modelId, "^(.*)-(\\d{4}-\\d{2}-\\d{2})$");
-                    if (m.Success && m.Groups.Count == 3)
+                    var m = ModelVersionRegex.Match(modelId);
+                    if (m.Success && m.Groups.Count >= 3)
                     {
                         model = m.Groups[1].Value;
                         modelVersion = m.Groups[2].Value;
@@ -163,10 +166,18 @@ namespace Agent.Runtime
             await foreach (var update in _inner.GetStreamingResponseAsync(chatMessages, options, cancellationToken))
             {
                 // Capture model ID from updates
-                var tempModelId = (update.RawRepresentation as OpenAI.Chat.StreamingChatCompletionUpdate)?.Model;
-                if (!string.IsNullOrEmpty(tempModelId))
+                if (string.IsNullOrWhiteSpace(modelId))
                 {
-                    modelId = tempModelId;
+                    if (!string.IsNullOrWhiteSpace(update.ModelId))
+                    {
+                        modelId = update.ModelId;
+                    }
+                    else if (update.RawRepresentation is OpenAI.Chat.StreamingChatCompletionUpdate openAIUpdate
+                             && !string.IsNullOrWhiteSpace(openAIUpdate.Model))
+                    {
+                        modelId = openAIUpdate.Model;
+                    }
+
                 }
 
                 // Extract usage information from UsageContent in the update contents
@@ -225,15 +236,14 @@ namespace Agent.Runtime
             // Log accumulated token consumption at the end of the stream
             try
             {
-                // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14)
+                // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14 or 20250414)
                 string model = modelId;
                 string modelVersion = string.Empty;
 
                 if (!string.IsNullOrEmpty(modelId))
                 {
-                    // Match a trailing date YYYY-MM-DD and capture the preceding model name (handles hyphens in model)
-                    var m = System.Text.RegularExpressions.Regex.Match(modelId, "^(.*)-(\\d{4}-\\d{2}-\\d{2})$");
-                    if (m.Success && m.Groups.Count == 3)
+                    var m = ModelVersionRegex.Match(modelId);
+                    if (m.Success && m.Groups.Count >= 3)
                     {
                         model = m.Groups[1].Value;
                         modelVersion = m.Groups[2].Value;

@@ -432,53 +432,43 @@ public static class AgentsConfigurationExtensions
         // backward compatibility
         // TODO: Will remove these settings once AvailableModels is fully rolled out
         var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
-        // register keyed IChatClient for all models in ChatClientProviderSettings.ModelNames
-        if (chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames))
-        {
-            var modelsByProvider = chatClientProviderSettings.ModelNames
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(m => m.Trim())
-                .Where(m => !string.IsNullOrWhiteSpace(m))
-                .Distinct()
-                .GroupBy(m => m.Contains("claude") ? "claude" : m.Contains("gpt") ? "gpt" : "other")
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            if (modelsByProvider.TryGetValue("gpt", out var openaiModels))
-            {
-                foreach (var modelName in openaiModels)
-                {
-                    services.AddKeyedSingleton(modelName, (sp, _) =>
-                    {
-                        return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
-                    });
-                }
-            }
-
-            if (modelsByProvider.TryGetValue("claude", out var anthropicModels))
-            {
-                ConfigureAnthropicChatClients(services, configuration, anthropicModels);
-            }
-
-            if (modelsByProvider.TryGetValue("other", out var unsupportedModels))
-            {
-                throw new InvalidOperationException($"Unsupported model(s) found in ChatClientProvider.ModelNames: {string.Join(", ", unsupportedModels)}");
-            }
-
-        }
-
         var agentModelSettings = configuration.GetSection("AppSettings:Core:AgentModel").Get<AgentModelSettings>();
-        // register keyed IChatClient for all models in AgentModel.AvailableModels
-        if (agentModelSettings != null)
-        {
-            var modelNames = agentModelSettings.AvailableModelList;
 
-            foreach (var modelName in modelNames)
+        // Merge models from both ChatClientProviderSettings.ModelNames and AgentModelSettings.AvailableModels
+        var modelsFromChatClientProvider = chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames)
+            ? chatClientProviderSettings.ModelNames.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())
+            : [];
+        var modelsFromAgentModel = agentModelSettings?.AvailableModelList ?? [];
+
+        var availableModels = modelsFromChatClientProvider
+            .Concat(modelsFromAgentModel)
+            .Where(m => !string.IsNullOrWhiteSpace(m))
+            .Distinct();
+
+        // Group models by provider and register keyed IChatClient for each
+        var modelsByProvider = availableModels
+            .GroupBy(m => m.Contains("claude") ? "claude" : m.Contains("gpt") ? "gpt" : "other")
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        if (modelsByProvider.TryGetValue("gpt", out var openaiModels))
+        {
+            foreach (var modelName in openaiModels)
             {
                 services.AddKeyedSingleton(modelName, (sp, _) =>
                 {
                     return sp.CreateChatClientBuilder(openAiDeploymentName: modelName).Build();
                 });
             }
+        }
+
+        if (modelsByProvider.TryGetValue("claude", out var anthropicModels))
+        {
+            ConfigureAnthropicChatClients(services, configuration, anthropicModels);
+        }
+
+        if (modelsByProvider.TryGetValue("other", out var unsupportedModels))
+        {
+            throw new InvalidOperationException($"Unsupported model(s) found in available models: {string.Join(", ", unsupportedModels)}");
         }
 
         // backward compatibility
