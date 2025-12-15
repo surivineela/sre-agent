@@ -95,6 +95,12 @@
       "value": "Custom Vision-Projekte verwalten."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Fehler beim Löschen einiger Agents"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Unerwarteter Fehler."
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Abbrechen"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Alle Agents auswählen"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Alle Agentlinks auswählen"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Kopieren"
     }
   ],
   "556JQK": [
@@ -447,6 +465,12 @@
       "value": "Device Provisioning Service-Daten verwalten."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Möchten Sie die ausgewählten Agentlinks wirklich löschen?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -535,6 +559,34 @@
       "value": "Bereitstellung fehlgeschlagen"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "„"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“ wird gelöscht..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Möchten Sie "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " Agents wirklich löschen?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -592,7 +644,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Ausgewählte Standardabonnements"
     }
   ],
   "Bcx/Gz": [
@@ -682,7 +734,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Abonnements auswählen..."
     }
   ],
   "ENnkRe": [
@@ -709,6 +761,26 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Agent löschen"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "Der URI muss mit "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " beginnen"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -719,6 +791,16 @@
     {
       "type": 0,
       "value": "Genehmigung erforderlich"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " auswählen"
     }
   ],
   "G7yB8N": [
@@ -804,13 +886,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights-Name"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Vorhandenes verwenden"
     }
   ],
   "I6cq17": [
@@ -835,6 +917,12 @@
     {
       "type": 0,
       "value": "Im ausgewählten Abonnement ist bereits eine Ressourcengruppe mit diesem Namen vorhanden."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Löschen"
     }
   ],
   "KAYpG9": [
@@ -864,7 +952,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Support erhalten"
     }
   ],
   "KzMCPo": [
@@ -1028,7 +1116,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " Abonnement"
             }
           ]
         },
@@ -1039,7 +1127,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " Abonnements"
             }
           ]
         }
@@ -1047,6 +1135,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Agentlinks durchsuchen"
     }
   ],
   "OjYIuI": [
@@ -1085,6 +1179,12 @@
       "value": "Ihr Agent befindet sich im schreibgeschützten Modus. Die folgenden Berechtigungen sind erforderlich, damit der Agent Wissen über Ihre Ressourcen aufbauen kann. Die Mitwirkendenrollen für bestimmte Dienste werden nicht für Schreibvorgänge verwendet."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Agentlink hinzufügen"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1119,6 +1219,12 @@
     {
       "type": 0,
       "value": "Beschreibung"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1267,6 +1373,16 @@
       "value": "Client-ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " Agents werden gelöscht..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1305,6 +1421,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1495,10 +1617,26 @@
       "value": "Azure Monitor-Arbeitsmappen verwalten"
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agentlinks"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Logic Apps verwalten."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " Agents wurden erfolgreich gelöscht"
     }
   ],
   "ZsLOg3": [
@@ -1516,7 +1654,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "In Zwischenablage kopieren"
     }
   ],
   "aGL+Qo": [
@@ -1528,7 +1666,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Zurück zur Startseite"
     }
   ],
   "aLBTVj": [
@@ -1592,7 +1730,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Sitzungs-ID"
     }
   ],
   "b43a5F": [
@@ -1631,6 +1769,12 @@
       "value": "Cognitive Services Usages-Leser"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Agentlinks löschen"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1664,7 +1808,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Application Insights-Ressource auswählen"
     }
   ],
   "ctcA0c": [
@@ -1717,6 +1861,12 @@
     {
       "type": 0,
       "value": "Bis zu 100 zu überwachende Ressourcengruppen auswählen"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Anzeigename"
     }
   ],
   "dQ5/dh": [
@@ -1777,6 +1927,20 @@
       "value": " Ressourcengruppen ausgewählt"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Fehler beim Löschen von „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1792,7 +1956,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights-Abonnement"
     }
   ],
   "fSFDgd": [
@@ -1831,6 +1995,12 @@
       "value": "IoT Hub-Gerätezwillinge verwalten."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Dieser URI ist bereits vorhanden"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1859,6 +2029,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Externe Agents"
     }
   ],
   "hO1Iog": [
@@ -1895,6 +2071,38 @@
     {
       "type": 0,
       "value": "Weisen Sie dem Agent eine Berechtigungsebene für die von ihm verwalteten Ressourcengruppen zu. Der Agent kann seine zugewiesenen Ressourcen weiterhin mit Leseberechtigungen verwalten."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Fehler beim Löschen von „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "„"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“ wurde erfolgreich gelöscht"
     }
   ],
   "i50Kb0": [
@@ -2045,6 +2253,12 @@
       "value": "“ wird überprüft."
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Agents löschen"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2069,6 +2283,12 @@
       "value": "Azure Monitor-Überwachungseinstellungen und -daten lesen und schreiben."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Agentlink löschen"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2085,6 +2305,20 @@
     {
       "type": 0,
       "value": "Wird ausgeführt"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Möchten Sie \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" löschen?"
     }
   ],
   "nlPgO8": [
@@ -2146,7 +2380,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Kopiert"
     }
   ],
   "p5T+zv": [
@@ -2233,6 +2467,12 @@
     {
       "type": 0,
       "value": "Das ausgewählte Abonnement wurde nicht für die Verwendung des SRE Agents registriert. Senden Sie uns eine E-Mail mit Ihrer Abonnement-ID an sreagentteam@microsoft.com, um registriert zu werden."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Aktualisieren"
     }
   ],
   "rZaqtB": [
@@ -2333,6 +2573,20 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "Der URI muss mit "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " enden"
     }
   ],
   "ss/NWY": [
@@ -2471,6 +2725,20 @@
     {
       "type": 0,
       "value": "Name des Zertifikats für Geneva-Aktionen"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Link "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " auswählen"
     }
   ],
   "xGPsyJ": [

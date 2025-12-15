@@ -95,6 +95,12 @@
       "value": "管理自訂視覺專案。"
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "無法刪除某些代理程式"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -228,7 +234,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "發生未預期的錯誤"
     }
   ],
   "3cc4Ct": [
@@ -285,6 +291,18 @@
       "value": "取消"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "選取所有代理程式"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "選取所有代理程式連結"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -318,7 +336,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "複製"
     }
   ],
   "556JQK": [
@@ -451,6 +469,12 @@
       "value": "管理裝置佈建服務資料。"
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "確定要刪除選取的代理程式連結?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -520,6 +544,34 @@
       "value": "部署已失敗"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "正在刪除 \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "確定要刪除 "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個代理程式?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -577,7 +629,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "預設已選取的訂用帳戶"
     }
   ],
   "Bcx/Gz": [
@@ -667,7 +719,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "選取訂用帳戶..."
     }
   ],
   "ENnkRe": [
@@ -694,6 +746,22 @@
       "value": "Azure SRE 代理程式"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "刪除代理程式"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI 的開頭必須是 "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -704,6 +772,16 @@
     {
       "type": 0,
       "value": "需要核准"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "選取 "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -789,13 +867,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights 名稱"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "使用現有項目"
     }
   ],
   "I6cq17": [
@@ -820,6 +898,12 @@
     {
       "type": 0,
       "value": "所選訂用帳戶中已有此名稱的資源群組。"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "刪除"
     }
   ],
   "KAYpG9": [
@@ -849,7 +933,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "取得支援"
     }
   ],
   "KzMCPo": [
@@ -994,7 +1078,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " 個訂用帳戶"
             }
           ]
         }
@@ -1002,6 +1086,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "搜尋代理程式連結"
     }
   ],
   "OjYIuI": [
@@ -1040,6 +1130,12 @@
       "value": "您的代理程式處於唯讀模式。代理程式需要下列權限，才能建立您資源的知識。特定服務的參與者角色將不會用於執行任何寫入作業。"
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "新增代理程式連結"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1074,6 +1170,12 @@
     {
       "type": 0,
       "value": "描述"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "代理程式"
     }
   ],
   "QIY3dQ": [
@@ -1222,6 +1324,20 @@
       "value": "用戶端識別碼"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "正在刪除 "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個代理程式..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1260,6 +1376,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1450,10 +1572,26 @@
       "value": "管理 Azure Monitor 活頁簿。"
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "代理程式連結"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "管理 Logic Apps。"
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個代理程式已成功刪除"
     }
   ],
   "ZsLOg3": [
@@ -1471,7 +1609,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "複製到剪貼簿"
     }
   ],
   "aGL+Qo": [
@@ -1483,7 +1621,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "返回首頁"
     }
   ],
   "aLBTVj": [
@@ -1528,7 +1666,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "工作階段識別碼"
     }
   ],
   "b43a5F": [
@@ -1567,6 +1705,12 @@
       "value": "認知服務使用量讀者"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "刪除代理程式連結"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1600,7 +1744,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "選取 Application Insights 資源"
     }
   ],
   "ctcA0c": [
@@ -1653,6 +1797,12 @@
     {
       "type": 0,
       "value": "選取最多 100 個資源群組來監視"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "顯示名稱"
     }
   ],
   "dQ5/dh": [
@@ -1717,6 +1867,20 @@
       "value": " 個資源群組"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "無法刪除 \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1732,7 +1896,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights 訂用帳戶"
     }
   ],
   "fSFDgd": [
@@ -1771,6 +1935,12 @@
       "value": "管理 IoT 中樞裝置對應項。"
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "此 URI 已存在"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1799,6 +1969,12 @@
     {
       "type": 0,
       "value": "應用程式深入解析"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "外部代理程式"
     }
   ],
   "hO1Iog": [
@@ -1835,6 +2011,38 @@
     {
       "type": 0,
       "value": "為代理程式指派其管理的資源群組的權限等級。代理程式仍可使用讀取者權限管理其獲指派的資源。"
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "無法刪除 \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" 已成功刪除"
     }
   ],
   "i50Kb0": [
@@ -1985,6 +2193,12 @@
       "value": " 建立進行中"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "刪除代理程式"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2009,6 +2223,12 @@
       "value": "讀取和寫入 Azure 監視器監視設定和資料。"
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "刪除代理程式連結"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2025,6 +2245,20 @@
     {
       "type": 0,
       "value": "執行中"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "確定要刪除 \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" 嗎?"
     }
   ],
   "nlPgO8": [
@@ -2090,7 +2324,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "已複製"
     }
   ],
   "p5T+zv": [
@@ -2179,6 +2413,12 @@
       "value": "您選取的訂用帳戶尚未註冊為使用 SRE Agent。請將您的訂用帳戶識別碼透過電子郵件寄送至 sreagentteam@microsoft.com 以進行註冊。"
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "重新整理"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2258,6 +2498,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI 的結尾必須是 "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2396,6 +2646,20 @@
     {
       "type": 0,
       "value": "Geneva 動作憑證名稱"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "選取 "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 連結"
     }
   ],
   "xGPsyJ": [

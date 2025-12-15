@@ -95,6 +95,12 @@
       "value": "Özel Görüntü İşleme projelerini yönetin."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Failed to delete some agents"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Beklenmeyen bir hata oluştu"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "İptal"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Select all agents"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Select all agent links"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Kopyala"
     }
   ],
   "556JQK": [
@@ -439,6 +457,12 @@
       "value": "Cihaz Sağlama Hizmeti verilerini yönetin."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected agent links?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -519,6 +543,34 @@
       "value": "Dağıtım başarısız oldu"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Deleting \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -576,7 +628,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Varsayılan seçili abonelikler"
     }
   ],
   "Bcx/Gz": [
@@ -666,7 +718,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Abonelik seçin..."
     }
   ],
   "ENnkRe": [
@@ -693,6 +745,22 @@
       "value": "Azure SRE Aracısı"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Delete agent"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI must start with "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -703,6 +771,16 @@
     {
       "type": 0,
       "value": "Onay Gerekli"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -784,13 +862,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights adı"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Mevcut olanı kullan"
     }
   ],
   "I6cq17": [
@@ -815,6 +893,12 @@
     {
       "type": 0,
       "value": "Seçilen abonelikte bu ada sahip bir kaynak grubu zaten var."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Sil"
     }
   ],
   "KAYpG9": [
@@ -844,7 +928,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Destek alın"
     }
   ],
   "KzMCPo": [
@@ -1000,7 +1084,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " abonelik"
             }
           ]
         },
@@ -1011,7 +1095,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " abonelik"
             }
           ]
         }
@@ -1019,6 +1103,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Search agent links"
     }
   ],
   "OjYIuI": [
@@ -1057,6 +1147,12 @@
       "value": "Aracınız salt okunur modda. Aracının kaynaklarınız hakkında bilgi oluşturması için aşağıdaki izinler gereklidir. Belirli hizmetlerin katkıda bulunan rolleri herhangi bir yazma işlemi gerçekleştirmek için kullanılmaz."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Add agent link"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1091,6 +1187,12 @@
     {
       "type": 0,
       "value": "Açıklama"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Aracı"
     }
   ],
   "QIY3dQ": [
@@ -1239,6 +1341,20 @@
       "value": "İstemci Kimliği"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1281,6 +1397,12 @@
     {
       "type": 0,
       "value": " hatasıyla ayarlanamadı"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1475,10 +1597,26 @@
       "value": "Azure İzleyici çalışma kitaplarını yönetin."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agent links"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Logic Apps'i yönetin."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents deleted successfully"
     }
   ],
   "ZsLOg3": [
@@ -1496,7 +1634,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Panoya kopyala"
     }
   ],
   "aGL+Qo": [
@@ -1508,7 +1646,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Giriş sayfasına dön"
     }
   ],
   "aLBTVj": [
@@ -1564,7 +1702,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Oturum Kimliği"
     }
   ],
   "b43a5F": [
@@ -1603,6 +1741,12 @@
       "value": "Bilişsel Hizmetler Kullanımları Okuyucusu"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Delete agent links"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1636,7 +1780,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Application Insights kaynağı seçin"
     }
   ],
   "ctcA0c": [
@@ -1689,6 +1833,12 @@
     {
       "type": 0,
       "value": "İzleyecek 100'e kadar kaynak grubu seçin"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Display name"
     }
   ],
   "dQ5/dh": [
@@ -1749,6 +1899,20 @@
       "value": " kaynak grubu seçildi"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1764,7 +1928,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights aboneliği"
     }
   ],
   "fSFDgd": [
@@ -1803,6 +1967,12 @@
       "value": "IoT Hub cihaz ikizlerini yönetin."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "This URI already exists"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1831,6 +2001,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "External agents"
     }
   ],
   "hO1Iog": [
@@ -1867,6 +2043,38 @@
     {
       "type": 0,
       "value": "Aracıya, yönettiği kaynak grupları için bir izin düzeyi atayın. Aracı, atandığı kaynakları Okuyucu izinleriyle yönetmeye devam edebilir."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" deleted successfully"
     }
   ],
   "i50Kb0": [
@@ -2017,6 +2225,12 @@
       "value": " oluşturma doğrulaması devam ediyor"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Delete agents"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2041,6 +2255,12 @@
       "value": "Azure İzleyici izleme ayarlarını ve verilerini okuyup yazın."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Delete agent link"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2057,6 +2277,20 @@
     {
       "type": 0,
       "value": "Çalışıyor"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" öğesini silmek istediğinizden emin misiniz?"
     }
   ],
   "nlPgO8": [
@@ -2122,7 +2356,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Kopyalandı"
     }
   ],
   "p5T+zv": [
@@ -2209,6 +2443,12 @@
     {
       "type": 0,
       "value": "Seçtiğiniz abonelik, SRE Aracısı kullanımı için kaydedilmemiş. Kaydedilmesi için lütfen abonelik kimliğinizi sağlayarak sreagentteam@microsoft.com adresine e-posta gönderin."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Yenile"
     }
   ],
   "rZaqtB": [
@@ -2301,6 +2541,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI must end with "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2439,6 +2689,20 @@
     {
       "type": 0,
       "value": "Geneva Eylemleri Sertifika Adı"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " link"
     }
   ],
   "xGPsyJ": [

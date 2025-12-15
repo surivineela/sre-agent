@@ -95,6 +95,12 @@
       "value": "Kelola proyek Custom Vision."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Gagal menghapus beberapa agen"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Terjadi kesalahan tak terduga"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Batal"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Pilih semua agen"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Pilih semua tautan agen"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Salin"
     }
   ],
   "556JQK": [
@@ -439,6 +457,12 @@
       "value": "Kelola data Layanan Pengadaan Perangkat."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Yakin ingin menghapus tautan agen yang dipilih?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -508,6 +532,34 @@
       "value": "Penyebaran gagal"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Menghapus \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Yakin ingin menghapus "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agen?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -565,7 +617,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Langganan yang dipilih default"
     }
   ],
   "Bcx/Gz": [
@@ -655,7 +707,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Pilih langganan..."
     }
   ],
   "ENnkRe": [
@@ -682,6 +734,22 @@
       "value": "Agen Azure SRE"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Hapus agen"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI harus dimulai dengan "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -692,6 +760,16 @@
     {
       "type": 0,
       "value": "Diperlukan Persetujuan"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Pilih "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -777,13 +855,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Nama Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Gunakan yang sudah ada"
     }
   ],
   "I6cq17": [
@@ -808,6 +886,12 @@
     {
       "type": 0,
       "value": "Grup sumber daya dengan nama ini sudah ada di langganan yang dipilih."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Hapus"
     }
   ],
   "KAYpG9": [
@@ -837,7 +921,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Dapatkan dukungan"
     }
   ],
   "KzMCPo": [
@@ -982,7 +1066,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " langganan"
             }
           ]
         }
@@ -990,6 +1074,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Cari tautan agen"
     }
   ],
   "OjYIuI": [
@@ -1028,6 +1118,12 @@
       "value": "Agen Anda dalam mode baca-saja. Agen memerlukan izin berikut agar dapat membangun pengetahuan tentang sumber daya Anda. Peran kontributor untuk layanan tertentu tidak akan digunakan untuk melakukan operasi tulis."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Tambahkan tautan agen"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1062,6 +1158,12 @@
     {
       "type": 0,
       "value": "Deskripsi"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agen"
     }
   ],
   "QIY3dQ": [
@@ -1210,6 +1312,20 @@
       "value": "ID Klien"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Menghapus "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agen..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1248,6 +1364,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1438,10 +1560,26 @@
       "value": "Kelola buku kerja Azure Monitor."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Tautan agen"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Kelola Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agen berhasil dihapus"
     }
   ],
   "ZsLOg3": [
@@ -1459,7 +1597,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Salin ke clipboard"
     }
   ],
   "aGL+Qo": [
@@ -1471,7 +1609,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Kembali ke beranda"
     }
   ],
   "aLBTVj": [
@@ -1516,7 +1654,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "ID Sesi"
     }
   ],
   "b43a5F": [
@@ -1555,6 +1693,12 @@
       "value": "Pembaca Penggunaan Cognitive Services"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Hapus tautan agen"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1588,7 +1732,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Pilih sumber daya Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1641,6 +1785,12 @@
     {
       "type": 0,
       "value": "Pilih hingga 100 grup sumber daya untuk dipantau"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Nama tampilan"
     }
   ],
   "dQ5/dh": [
@@ -1701,6 +1851,20 @@
       "value": " grup sumber daya dipilih"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Gagal menghapus \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1716,7 +1880,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Langganan Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1755,6 +1919,12 @@
       "value": "Kelola pasangan perangkat IoT Hub."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "URI ini sudah ada"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1783,6 +1953,12 @@
     {
       "type": 0,
       "value": "Wawasan Aplikasi"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Agen eksternal"
     }
   ],
   "hO1Iog": [
@@ -1819,6 +1995,38 @@
     {
       "type": 0,
       "value": "Tetapkan tingkat izin agen untuk grup sumber daya yang dikelolanya. Agen masih dapat mengelola sumber daya yang ditetapkan dengan izin Pembaca."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Gagal menghapus \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" berhasil dihapus"
     }
   ],
   "i50Kb0": [
@@ -1969,6 +2177,12 @@
       "value": " sedang dalam proses"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Hapus agen"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -1993,6 +2207,12 @@
       "value": "Baca dan tulis pengaturan serta data pemantauan Azure Monitor."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Hapus tautan agen"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2009,6 +2229,20 @@
     {
       "type": 0,
       "value": "Berjalan"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Anda yakin ingin menghapus \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"?"
     }
   ],
   "nlPgO8": [
@@ -2070,7 +2304,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Disalin"
     }
   ],
   "p5T+zv": [
@@ -2159,6 +2393,12 @@
       "value": "Langganan yang Anda pilih belum didaftarkan untuk menggunakan SRE Agent. Kirim email kepada kami dengan ID langganan Anda ke sreagentteam@microsoft.com untuk mendaftar."
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Refresh"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2238,6 +2478,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI harus diakhiri dengan "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2376,6 +2626,16 @@
     {
       "type": 0,
       "value": "Nama Sertifikat Tindakan Geneva"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Pilih tautan "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

@@ -95,6 +95,12 @@
       "value": "Custom Vision 프로젝트를 관리합니다."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Failed to delete some agents"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "예기치 않은 오류가 발생했습니다."
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "취소"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Select all agents"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Select all agent links"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "복사"
     }
   ],
   "556JQK": [
@@ -439,6 +457,12 @@
       "value": "디바이스 프로비저닝 서비스 데이터를 관리합니다."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete the selected agent links?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -508,6 +532,34 @@
       "value": "배포 실패"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Deleting \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -565,7 +617,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "기본 선택 구독"
     }
   ],
   "Bcx/Gz": [
@@ -655,7 +707,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "구독 선택..."
     }
   ],
   "ENnkRe": [
@@ -682,6 +734,22 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Delete agent"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI must start with "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -692,6 +760,16 @@
     {
       "type": 0,
       "value": "승인 필요"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -777,13 +855,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights 이름"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "기존 항목 사용"
     }
   ],
   "I6cq17": [
@@ -808,6 +886,12 @@
     {
       "type": 0,
       "value": "이름의 리소스 그룹이 선택한 구독에 이미 있습니다."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "삭제"
     }
   ],
   "KAYpG9": [
@@ -837,7 +921,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "지원 받기"
     }
   ],
   "KzMCPo": [
@@ -978,11 +1062,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "구독 "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": "개"
             }
           ]
         }
@@ -990,6 +1078,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Search agent links"
     }
   ],
   "OjYIuI": [
@@ -1028,6 +1122,12 @@
       "value": "에이전트가 읽기 전용 모드에 있습니다. 에이전트가 리소스에 대한 정보를 구축하려면 다음 권한이 필요합니다. 특정 서비스에 대한 기여자 역할은 쓰기 작업을 수행하는 데 사용되지 않습니다."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Add agent link"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1062,6 +1162,12 @@
     {
       "type": 0,
       "value": "설명"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "에이전트"
     }
   ],
   "QIY3dQ": [
@@ -1210,6 +1316,20 @@
       "value": "클라이언트 ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Deleting "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1248,6 +1368,12 @@
     {
       "type": 0,
       "value": " 오류로 관리 ID를 설정하지 못했습니다."
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1438,10 +1564,26 @@
       "value": "Azure Monitor 통합 문서를 관리합니다."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agent links"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Logic App를 관리합니다."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents deleted successfully"
     }
   ],
   "ZsLOg3": [
@@ -1459,7 +1601,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "클립보드에 복사"
     }
   ],
   "aGL+Qo": [
@@ -1471,7 +1613,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "홈으로 돌아가기"
     }
   ],
   "aLBTVj": [
@@ -1516,7 +1658,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "세션 ID"
     }
   ],
   "b43a5F": [
@@ -1555,6 +1697,12 @@
       "value": "Cognitive Services 사용량 뷰어"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Delete agent links"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1588,7 +1736,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Application Insights 리소스 선택"
     }
   ],
   "ctcA0c": [
@@ -1641,6 +1789,12 @@
     {
       "type": 0,
       "value": "모니터링할 리소스 그룹을 최대 100개까지 선택합니다."
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Display name"
     }
   ],
   "dQ5/dh": [
@@ -1701,6 +1855,20 @@
       "value": " 리소스 그룹 선택됨"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1716,7 +1884,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights 구독"
     }
   ],
   "fSFDgd": [
@@ -1755,6 +1923,12 @@
       "value": "IoT Hub 디바이스 쌍을 관리합니다."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "This URI already exists"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1783,6 +1957,12 @@
     {
       "type": 0,
       "value": "앱 인사이트"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "External agents"
     }
   ],
   "hO1Iog": [
@@ -1819,6 +1999,38 @@
     {
       "type": 0,
       "value": "에이전트가 관리하는 리소스 그룹에 대한 사용 권한 수준을 에이전트에 할당합니다. 에이전트는 여전히 읽기 권한으로 할당된 리소스를 관리할 수 있습니다."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Failed to delete \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" deleted successfully"
     }
   ],
   "i50Kb0": [
@@ -1969,6 +2181,12 @@
       "value": " 만들기의 유효성을 검사하는 중"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Delete agents"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -1993,6 +2211,12 @@
       "value": "Azure Monitor 모니터링 설정과 데이터를 읽고 씁니다."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Delete agent link"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2009,6 +2233,20 @@
     {
       "type": 0,
       "value": "실행하는 중"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"을(를) 삭제하시겠습니까?"
     }
   ],
   "nlPgO8": [
@@ -2070,7 +2308,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "복사됨"
     }
   ],
   "p5T+zv": [
@@ -2159,6 +2397,12 @@
       "value": "선택한 구독이 SRE 에이전트를 사용하도록 등록되지 않았습니다. 등록하려면 구독 ID를 이메일(sreagentteam@microsoft.com)로 보내주세요."
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "새로 고침"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2238,6 +2482,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI must end with "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2376,6 +2630,20 @@
     {
       "type": 0,
       "value": "Geneva 작업 인증서 이름"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Select "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " link"
     }
   ],
   "xGPsyJ": [

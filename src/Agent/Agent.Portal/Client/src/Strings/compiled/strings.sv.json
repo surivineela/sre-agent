@@ -95,6 +95,12 @@
       "value": "Hantera Custom Vision-projekt."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ta bort vissa agenter"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Det uppstod ett oväntat fel"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Avbryt"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Markera alla agenter"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Markera alla agentlänkar"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Kopiera"
     }
   ],
   "556JQK": [
@@ -447,6 +465,12 @@
       "value": "Hantera data för enhetsetableringstjänsten."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Vill du ta bort de markerade agentlänkarna?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -527,6 +551,34 @@
       "value": "Det gick inte att distribuera"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Tar bort "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Vill du ta bort "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agenter?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -584,7 +636,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Valda standardprenumerationer"
     }
   ],
   "Bcx/Gz": [
@@ -674,7 +726,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Välj prenumerationer..."
     }
   ],
   "ENnkRe": [
@@ -701,6 +753,22 @@
       "value": "Azure SRE-agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Ta bort agent"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI:n måste börja med "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -711,6 +779,16 @@
     {
       "type": 0,
       "value": "Godkännande krävs"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Välj "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -796,13 +874,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights-namn"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Använd befintlig"
     }
   ],
   "I6cq17": [
@@ -827,6 +905,12 @@
     {
       "type": 0,
       "value": "Det finns redan en resursgrupp med det här namnet i den valda prenumerationen."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Ta bort"
     }
   ],
   "KAYpG9": [
@@ -856,7 +940,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Få support"
     }
   ],
   "KzMCPo": [
@@ -1008,7 +1092,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " prenumeration"
             }
           ]
         },
@@ -1019,7 +1103,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " prenumerationer"
             }
           ]
         }
@@ -1027,6 +1111,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Sök agentlänkar"
     }
   ],
   "OjYIuI": [
@@ -1065,6 +1155,12 @@
       "value": "Agenten är i skrivskyddat läge. Följande behörigheter krävs för att agenten ska kunna bygga upp kunskap om dina resurser. Deltagarroller för specifika tjänster används inte för att utföra skrivåtgärder."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Lägg till agentlänk"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1099,6 +1195,12 @@
     {
       "type": 0,
       "value": "Beskrivning"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1247,6 +1349,20 @@
       "value": "Klient-ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Tar bort "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agenter..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1285,6 +1401,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1475,10 +1597,26 @@
       "value": "Hantera Azure Monitor-arbetsböcker."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agentlänkar"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Hantera Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agenter har tagits bort"
     }
   ],
   "ZsLOg3": [
@@ -1496,7 +1634,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Kopiera till Urklipp"
     }
   ],
   "aGL+Qo": [
@@ -1508,7 +1646,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Tillbaka till startsidan"
     }
   ],
   "aLBTVj": [
@@ -1564,7 +1702,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Sessions-ID"
     }
   ],
   "b43a5F": [
@@ -1603,6 +1741,12 @@
       "value": "Cognitive Services-användningsläsare"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Ta bort agentlänkar"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1636,7 +1780,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Välj en Application Insights-resurs"
     }
   ],
   "ctcA0c": [
@@ -1689,6 +1833,12 @@
     {
       "type": 0,
       "value": "Välj upp till 100 resursgrupper som ska övervakas"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Visningsnamn"
     }
   ],
   "dQ5/dh": [
@@ -1749,6 +1899,16 @@
       "value": " resursgrupper har valts"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ta bort "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1764,7 +1924,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights-prenumeration"
     }
   ],
   "fSFDgd": [
@@ -1803,6 +1963,12 @@
       "value": "Hantera IoT Hub-enhetstvillingar."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Den här URI:n finns redan"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1831,6 +1997,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Externa agenter"
     }
   ],
   "hO1Iog": [
@@ -1867,6 +2039,34 @@
     {
       "type": 0,
       "value": "Tilldela agenten en behörighetsnivå för de resursgrupper den hanterar. Agenten kan fortfarande använda läsarbehörighet för att hantera de resurser den har tilldelats."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ta bort "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " togs bort"
     }
   ],
   "i50Kb0": [
@@ -2013,6 +2213,12 @@
       "value": "agentName"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Ta bort agenter"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2037,6 +2243,12 @@
       "value": "Läsa och skriva inställningar och data för Azure Monitor-övervakning."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Ta bort agentlänk"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2053,6 +2265,20 @@
     {
       "type": 0,
       "value": "Körs"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Är du säker på att du vill ta bort "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "nlPgO8": [
@@ -2114,7 +2340,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Kopierat"
     }
   ],
   "p5T+zv": [
@@ -2201,6 +2427,12 @@
     {
       "type": 0,
       "value": "Den prenumeration du har valt har inte registrerats för användning av SRE Agent. Skicka ett mejl med ditt prenumerations-id till sreagentteam@microsoft.com för att bli registrerad."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Uppdatera"
     }
   ],
   "rZaqtB": [
@@ -2293,6 +2525,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI:n måste sluta med "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2431,6 +2673,16 @@
     {
       "type": 0,
       "value": "Certifikatnamn för Geneva-åtgärder"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Välj länken "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

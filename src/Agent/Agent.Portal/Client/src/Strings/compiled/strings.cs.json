@@ -95,6 +95,12 @@
       "value": "Spravujte projekty Custom Vision."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Nepovedlo se odstranit některé agenty."
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Došlo k neočekávané chybě."
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Zrušit"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Vybrat všechny agenty"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Vybrat všechny odkazy na agenty"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Kopírovat"
     }
   ],
   "556JQK": [
@@ -447,6 +465,12 @@
       "value": "Spravujte data služby Device Provisioning Service."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Jste si jisti, že chcete vybrané odkazy na agenty odstranit?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -565,6 +589,34 @@
       "value": "Nasazení selhalo."
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Odstraňuje se „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Opravdu chcete odstranit tento počet agentů: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -622,7 +674,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Výchozí vybraná předplatná"
     }
   ],
   "Bcx/Gz": [
@@ -712,7 +764,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Vybrat předplatná..."
     }
   ],
   "ENnkRe": [
@@ -739,6 +791,26 @@
       "value": "Azure SRE Agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Odstranit agenta"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "Identifikátor URI musí začínat na "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -749,6 +821,16 @@
     {
       "type": 0,
       "value": "Vyžaduje se schválení"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Vybrat "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -834,13 +916,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Název prostředku Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Použít existující"
     }
   ],
   "I6cq17": [
@@ -865,6 +947,12 @@
     {
       "type": 0,
       "value": "Skupina prostředků s tímto názvem už ve vybraném předplatném existuje."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Odstranit"
     }
   ],
   "KAYpG9": [
@@ -894,7 +982,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Získat podporu"
     }
   ],
   "KzMCPo": [
@@ -1088,7 +1176,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " předplatná"
             }
           ]
         },
@@ -1099,7 +1187,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " předplatných"
             }
           ]
         },
@@ -1110,7 +1198,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " předplatné"
             }
           ]
         },
@@ -1121,7 +1209,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " předplatná"
             }
           ]
         }
@@ -1129,6 +1217,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Hledat odkazy na agenty"
     }
   ],
   "OjYIuI": [
@@ -1167,6 +1261,12 @@
       "value": "Váš agent je v režimu jen pro čtení. Pro to, aby agent mohl vytvářet znalosti o vašich prostředcích, jsou vyžadována následující oprávnění. Role přispěvatele pro konkrétní služby nebudou použity k provádění žádných operací zápisu."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Přidat odkaz na agenta"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1201,6 +1301,12 @@
     {
       "type": 0,
       "value": "Popis"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1349,6 +1455,20 @@
       "value": "ID klienta"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Odstraňuje se tento počet agentů: "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1387,6 +1507,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "Identifikátor URI"
     }
   ],
   "V/rQci": [
@@ -1577,10 +1703,26 @@
       "value": "Spravujte sešity Azure Monitoru."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Odkazy na agenty"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Spravujte Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 0,
+      "value": "Počet úspěšně odstraněných agentů: "
+    },
+    {
+      "type": 1,
+      "value": "count"
     }
   ],
   "ZsLOg3": [
@@ -1598,7 +1740,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Kopírovat do schránky"
     }
   ],
   "aGL+Qo": [
@@ -1610,7 +1752,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Zpět domů"
     }
   ],
   "aLBTVj": [
@@ -1704,7 +1846,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "ID relace"
     }
   ],
   "b43a5F": [
@@ -1743,6 +1885,12 @@
       "value": "Čtenář použití Cognitive Services"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Odstranit odkazy na agenta"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1776,7 +1924,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Vyberte prostředek Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1829,6 +1977,12 @@
     {
       "type": 0,
       "value": "Vyberte až 100 skupin prostředků, které chcete monitorovat."
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Zobrazovaný název"
     }
   ],
   "dQ5/dh": [
@@ -1889,6 +2043,20 @@
       "value": "0"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Nepovedlo se odstranit "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1904,7 +2072,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Předplatné Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1943,6 +2111,12 @@
       "value": "Spravujte dvojčata zařízení IoT Hub."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Tento identifikátor URI už existuje."
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1971,6 +2145,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Externí agenti"
     }
   ],
   "hO1Iog": [
@@ -2007,6 +2187,34 @@
     {
       "type": 0,
       "value": "Přiřaďte agentovi úroveň oprávnění pro skupiny prostředků, které spravuje. Agent může i nadále spravovat své přiřazené prostředky s oprávněními čtenáře."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Nepovedlo se odstranit "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " se úspěšně odstranil."
     }
   ],
   "i50Kb0": [
@@ -2157,6 +2365,12 @@
       "value": "."
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Odstranit agenty"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2181,6 +2395,12 @@
       "value": "Čtení a zápis nastavení a dat monitorování v Azure Monitoru."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Odstranit odkaz na agenta"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2197,6 +2417,20 @@
     {
       "type": 0,
       "value": "Spuštěno"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Opravdu chcete odstranit "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "nlPgO8": [
@@ -2262,7 +2496,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Zkopírováno"
     }
   ],
   "p5T+zv": [
@@ -2349,6 +2583,12 @@
     {
       "type": 0,
       "value": "Předplatné, které jste vybrali, nebylo zaregistrováno pro použití agenta SRE. Pošlete nám prosím e-mail s ID předplatného na sreagentteam@microsoft.com, abyste se mohli zaregistrovat."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Aktualizovat"
     }
   ],
   "rZaqtB": [
@@ -2479,6 +2719,20 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "Identifikátor URI musí končit hodnotou "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "ss/NWY": [
@@ -2617,6 +2871,16 @@
     {
       "type": 0,
       "value": "Název certifikátu akcí Geneva"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Vybrat odkaz "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

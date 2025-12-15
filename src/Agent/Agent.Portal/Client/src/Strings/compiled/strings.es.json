@@ -95,6 +95,12 @@
       "value": "Administrar proyectos de Custom Vision."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "No se pudieron eliminar algunos agentes"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Se produjo un error inesperado"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Cancelar"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Seleccionar todos los agentes"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Seleccionar todos los vínculos del agente"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Copiar"
     }
   ],
   "556JQK": [
@@ -439,6 +457,12 @@
       "value": "Administre los datos del servicio de aprovisionamiento de dispositivos."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "¿Está seguro de que desea eliminar los vínculos de agente seleccionados?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -542,6 +566,34 @@
       "value": "Error de implementación"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Eliminando \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "¿Está seguro de que desea eliminar "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -599,7 +651,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Suscripciones seleccionadas predeterminadas"
     }
   ],
   "Bcx/Gz": [
@@ -689,7 +741,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Seleccionar suscripciones..."
     }
   ],
   "ENnkRe": [
@@ -716,6 +768,22 @@
       "value": "Agente de SRE de Azure"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Eliminación del agente"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "El URI debe comenzar con "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -726,6 +794,16 @@
     {
       "type": 0,
       "value": "Se necesita aprobación"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Seleccione "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -811,13 +889,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Nombre de Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Usar existente"
     }
   ],
   "I6cq17": [
@@ -842,6 +920,12 @@
     {
       "type": 0,
       "value": "Ya existe un grupo de recursos con este nombre en la suscripción seleccionada."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Eliminar"
     }
   ],
   "KAYpG9": [
@@ -871,7 +955,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Obtener soporte técnico"
     }
   ],
   "KzMCPo": [
@@ -1050,7 +1134,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " suscripciones"
             }
           ]
         },
@@ -1061,7 +1145,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " suscripción"
             }
           ]
         },
@@ -1072,7 +1156,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " suscripciones"
             }
           ]
         }
@@ -1080,6 +1164,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Vínculos del agente de búsqueda"
     }
   ],
   "OjYIuI": [
@@ -1118,6 +1208,12 @@
       "value": "El agente está en modo de solo lectura. Los siguientes permisos son necesarios para que el agente cree conocimientos sobre los recursos. Los roles de colaborador de servicios específicos no se usarán para realizar ninguna operación de escritura."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Agregar vínculo de agente"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1152,6 +1248,12 @@
     {
       "type": 0,
       "value": "Descripción"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agente"
     }
   ],
   "QIY3dQ": [
@@ -1300,6 +1402,20 @@
       "value": "Id. de cliente"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Eliminando "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1338,6 +1454,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1528,10 +1650,26 @@
       "value": "Administrar libros de Azure Monitor."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Vínculos del agente"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Administrar Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes eliminados correctamente"
     }
   ],
   "ZsLOg3": [
@@ -1549,7 +1687,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Copiar en el Portapapeles"
     }
   ],
   "aGL+Qo": [
@@ -1561,7 +1699,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Volver al inicio"
     }
   ],
   "aLBTVj": [
@@ -1640,7 +1778,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Id. de sesión"
     }
   ],
   "b43a5F": [
@@ -1679,6 +1817,12 @@
       "value": "Lector de usos de Cognitive Services"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Eliminar vínculos del agente"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1712,7 +1856,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Seleccionar un recurso de Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1765,6 +1909,12 @@
     {
       "type": 0,
       "value": "Seleccione hasta 100 grupos de recursos para supervisar"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Nombre para mostrar"
     }
   ],
   "dQ5/dh": [
@@ -1825,6 +1975,20 @@
       "value": " grupos de recursos seleccionados"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "No se pudo eliminar \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1840,7 +2004,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Suscripción de Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1879,6 +2043,12 @@
       "value": "Administre IoT Hub dispositivos gemelos."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Este URI ya existe"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1907,6 +2077,12 @@
     {
       "type": 0,
       "value": "Información de la aplicación"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Agentes externos"
     }
   ],
   "hO1Iog": [
@@ -1943,6 +2119,38 @@
     {
       "type": 0,
       "value": "Asigne al agente un nivel de permisos para los grupos de recursos que administra. El agente aún puede administrar sus recursos asignados con permisos de lector."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "No se pudo eliminar \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" se eliminó correctamente"
     }
   ],
   "i50Kb0": [
@@ -2093,6 +2301,12 @@
       "value": " en curso"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Eliminar agentes"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2117,6 +2331,12 @@
       "value": "Leer y escribir Azure Monitor la configuración y los datos de supervisión."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Eliminar vínculo de agente"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2133,6 +2353,20 @@
     {
       "type": 0,
       "value": "En ejecución"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "¿Está seguro de que quiere eliminar \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"?"
     }
   ],
   "nlPgO8": [
@@ -2194,7 +2428,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Copiado"
     }
   ],
   "p5T+zv": [
@@ -2281,6 +2515,12 @@
     {
       "type": 0,
       "value": "La suscripción que ha seleccionado no está registrada para usar el agente de SRE. Envíenos un correo con su id. de suscripción a sreagentteam@microsoft.com para registrarse."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Actualizar"
     }
   ],
   "rZaqtB": [
@@ -2396,6 +2636,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "El URI debe terminar con "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2534,6 +2784,16 @@
     {
       "type": 0,
       "value": "Nombre del certificado de acciones de Geneva"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Seleccione el vínculo "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

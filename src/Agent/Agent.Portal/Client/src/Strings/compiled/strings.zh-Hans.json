@@ -95,6 +95,12 @@
       "value": "管理自定义视觉项目。"
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "未能删除某些智能体"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -228,7 +234,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "出现了意外错误"
     }
   ],
   "3cc4Ct": [
@@ -285,6 +291,18 @@
       "value": "取消"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "选择所有智能体"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "选择所有智能体链接"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -318,7 +336,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "复制"
     }
   ],
   "556JQK": [
@@ -451,6 +469,12 @@
       "value": "管理设备预配服务数据。"
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "是否确定要删除所选智能体链接?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -520,6 +544,34 @@
       "value": "部署失败"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "正在删除“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "是否确定要删除 "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个智能体?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -577,7 +629,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "默认选中的订阅"
     }
   ],
   "Bcx/Gz": [
@@ -667,7 +719,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "选择订阅..."
     }
   ],
   "ENnkRe": [
@@ -694,6 +746,26 @@
       "value": "Azure SRE 代理"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "删除智能体"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI 必须以 "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " 开头"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -704,6 +776,16 @@
     {
       "type": 0,
       "value": "需要批准"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "选择 "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -789,13 +871,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application insights 名称"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "使用现有项"
     }
   ],
   "I6cq17": [
@@ -820,6 +902,12 @@
     {
       "type": 0,
       "value": "所选订阅中已有此名称的资源组。"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "删除"
     }
   ],
   "KAYpG9": [
@@ -849,7 +937,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "获取支持"
     }
   ],
   "KzMCPo": [
@@ -994,7 +1082,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " 个订阅"
             }
           ]
         }
@@ -1002,6 +1090,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "搜索智能体链接"
     }
   ],
   "OjYIuI": [
@@ -1040,6 +1134,12 @@
       "value": "你的智能体处于只读模式。智能体需要以下权限才能生成有关资源的知识。特定服务的参与者角色将不用于执行任何写入操作。"
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "添加智能体链接"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1074,6 +1174,12 @@
     {
       "type": 0,
       "value": "说明"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "代理"
     }
   ],
   "QIY3dQ": [
@@ -1222,6 +1328,20 @@
       "value": "客户端 ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "正在删除 "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 智能体..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1260,6 +1380,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1450,10 +1576,30 @@
       "value": "管理 Azure Monitor 工作簿。"
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "智能体链接"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "管理逻辑应用。"
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 0,
+      "value": "已成功删除 "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 个智能体"
     }
   ],
   "ZsLOg3": [
@@ -1471,7 +1617,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "复制到剪贴板"
     }
   ],
   "aGL+Qo": [
@@ -1483,7 +1629,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "返回主页"
     }
   ],
   "aLBTVj": [
@@ -1528,7 +1674,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "会话 ID"
     }
   ],
   "b43a5F": [
@@ -1567,6 +1713,12 @@
       "value": "认知服务使用情况读者"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "删除智能体链接"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1600,7 +1752,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "选择 Application Insights 资源"
     }
   ],
   "ctcA0c": [
@@ -1653,6 +1805,12 @@
     {
       "type": 0,
       "value": "最多选择 100 个资源组进行监视"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "显示名称"
     }
   ],
   "dQ5/dh": [
@@ -1717,6 +1875,20 @@
       "value": " 个资源组"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "未能删除“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1732,7 +1904,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights 订阅"
     }
   ],
   "fSFDgd": [
@@ -1771,6 +1943,12 @@
       "value": "管理 IoT 中心设备孪生。"
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "此 URI 已存在"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1799,6 +1977,12 @@
     {
       "type": 0,
       "value": "应用见解"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "外部智能体"
     }
   ],
   "hO1Iog": [
@@ -1835,6 +2019,38 @@
     {
       "type": 0,
       "value": "为智能体分配其管理的资源组的权限级别。智能体仍可使用读者权限管理其分配的资源。"
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "未能删除“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”已成功删除"
     }
   ],
   "i50Kb0": [
@@ -1985,6 +2201,12 @@
       "value": " 的创建"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "删除智能体"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2009,6 +2231,12 @@
       "value": "读取和写入 Azure Monitor 监视设置和数据。"
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "删除智能体链接"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2025,6 +2253,20 @@
     {
       "type": 0,
       "value": "正在运行"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "确实要删除“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”吗?"
     }
   ],
   "nlPgO8": [
@@ -2090,7 +2332,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "已复制"
     }
   ],
   "p5T+zv": [
@@ -2179,6 +2421,12 @@
       "value": "尚未注册你选择的订阅，无法使用 SRE 智能体。请通过电子邮件将订阅 ID 发送至 sreagentteam@microsoft.com 以完成注册。"
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "刷新"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2258,6 +2506,20 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI 必须以 "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " 结尾"
     }
   ],
   "ss/NWY": [
@@ -2396,6 +2658,20 @@
     {
       "type": 0,
       "value": "Geneva 操作证书名称"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "选择 "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 链接"
     }
   ],
   "xGPsyJ": [

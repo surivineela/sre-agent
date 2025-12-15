@@ -95,6 +95,12 @@
       "value": "Custom Vision プロジェクトを管理します。"
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "一部のエージェントを削除できませんでした"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -228,7 +234,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "予期しないエラーが発生しました"
     }
   ],
   "3cc4Ct": [
@@ -285,6 +291,18 @@
       "value": "キャンセル"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "すべてのエージェントの選択"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "すべてのエージェント リンクの選択"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -318,7 +336,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "コピー"
     }
   ],
   "556JQK": [
@@ -443,6 +461,12 @@
       "value": "デバイス プロビジョニング サービスのデータを管理します。"
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "選択されたエージェント リンクを削除しますか?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -512,6 +536,30 @@
       "value": "デプロイに失敗しました"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" を削除しています..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個のエージェントを削除しますか?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -569,7 +617,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "既定で選択されたサブスクリプション"
     }
   ],
   "Bcx/Gz": [
@@ -659,7 +707,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "サブスクリプションを選択してください..."
     }
   ],
   "ENnkRe": [
@@ -686,6 +734,26 @@
       "value": "Azure SRE エージェント"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "エージェントの削除"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "URI は "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " で始まる必要があります"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -696,6 +764,16 @@
     {
       "type": 0,
       "value": "承認が必要"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " の選択"
     }
   ],
   "G7yB8N": [
@@ -781,13 +859,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights 名"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "既存のものを使用"
     }
   ],
   "I6cq17": [
@@ -812,6 +890,12 @@
     {
       "type": 0,
       "value": "この名前のリソース グループは、選択したサブスクリプションに既に存在します。"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "削除"
     }
   ],
   "KAYpG9": [
@@ -841,7 +925,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "サポートを利用"
     }
   ],
   "KzMCPo": [
@@ -986,7 +1070,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " 個のサブスクリプション"
             }
           ]
         }
@@ -994,6 +1078,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "エージェント リンクの検索"
     }
   ],
   "OjYIuI": [
@@ -1032,6 +1122,12 @@
       "value": "エージェントは読み取り専用モードですリソースに関する知識をエージェントで構築するために、以下のアクセス許可が必要です。特定サービスの共同作成者ロールは、書き込み操作の実行には使用されません。"
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "エージェント リンクの追加"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1066,6 +1162,12 @@
     {
       "type": 0,
       "value": "説明"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "エージェント"
     }
   ],
   "QIY3dQ": [
@@ -1214,6 +1316,16 @@
       "value": "クライアント ID"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個のエージェントを削除しています..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1252,6 +1364,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1442,10 +1560,26 @@
       "value": "Azure Monitor ブックを管理します。"
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "エージェント リンク"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Logic Apps を管理します。"
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 個のエージェントが正常に削除されました"
     }
   ],
   "ZsLOg3": [
@@ -1463,7 +1597,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "クリップボードにコピー"
     }
   ],
   "aGL+Qo": [
@@ -1475,7 +1609,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "ホームに戻る"
     }
   ],
   "aLBTVj": [
@@ -1520,7 +1654,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "セッション ID"
     }
   ],
   "b43a5F": [
@@ -1559,6 +1693,12 @@
       "value": "Cognitive Services Usages Reader"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "エージェント リンクの削除"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1592,7 +1732,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Application Insights リソースの選択"
     }
   ],
   "ctcA0c": [
@@ -1645,6 +1785,12 @@
     {
       "type": 0,
       "value": "監視するリソース グループを最大 100 個選択します"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "表示名"
     }
   ],
   "dQ5/dh": [
@@ -1705,6 +1851,20 @@
       "value": " 個のリソース グループが選択されています"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" を削除できませんでした"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1720,7 +1880,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights のサブスクリプション"
     }
   ],
   "fSFDgd": [
@@ -1759,6 +1919,12 @@
       "value": "IoT Hub デバイス ツインを管理します。"
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "この URI は既に存在します"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1787,6 +1953,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "外部エージェント"
     }
   ],
   "hO1Iog": [
@@ -1823,6 +1995,38 @@
     {
       "type": 0,
       "value": "管理するリソース グループに対するアクセス許可のレベルをエージェントに割り当てます。エージェントは引き続き閲覧者のアクセス許可で割り当てられたリソースを管理できます。"
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" を削除できませんでした: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" が正常に削除されました"
     }
   ],
   "i50Kb0": [
@@ -1973,6 +2177,12 @@
       "value": " の作成検証を実施しています"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "エージェントの削除"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -1997,6 +2207,12 @@
       "value": "Azure Monitor の監視設定とデータの読み取りと書き込みを行います。"
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "エージェント リンクの削除"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2013,6 +2229,20 @@
     {
       "type": 0,
       "value": "実行中"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" を削除しますか?"
     }
   ],
   "nlPgO8": [
@@ -2074,7 +2304,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "コピー済み"
     }
   ],
   "p5T+zv": [
@@ -2163,6 +2393,12 @@
       "value": "選択したサブスクリプションは、SRE Agent を使用するための登録がされていません。登録するには、サブスクリプション ID を記載のうえ、sreagentteam@microsoft.com までメールでご連絡ください。"
     }
   ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "最新の情報に更新"
+    }
+  ],
   "rZaqtB": [
     {
       "type": 0,
@@ -2242,6 +2478,20 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "URI は "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " で終わる必要があります"
     }
   ],
   "ss/NWY": [
@@ -2380,6 +2630,16 @@
     {
       "type": 0,
       "value": "Geneva アクション証明書名"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " リンクの選択"
     }
   ],
   "xGPsyJ": [

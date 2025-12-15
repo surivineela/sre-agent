@@ -95,6 +95,12 @@
       "value": "Gerenciar projetos de Visão Personalizada."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Falha ao excluir alguns agentes"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Ocorreu um erro inesperado"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Cancelar"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Selecionar todos os agentes"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Selecionar todos os links de agentes"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Copiar"
     }
   ],
   "556JQK": [
@@ -439,6 +457,12 @@
       "value": "Gerenciar dados do Serviço de Provisionamento de Dispositivos."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir os links de agente selecionados?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -530,6 +554,34 @@
       "value": "Falha na implantação"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Excluindo \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -587,7 +639,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Assinaturas selecionadas padrão"
     }
   ],
   "Bcx/Gz": [
@@ -677,7 +729,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Selecionar assinaturas..."
     }
   ],
   "ENnkRe": [
@@ -704,6 +756,22 @@
       "value": "Agente do SRE do Azure"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Excluir o agente"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "O URI deve começar com "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -714,6 +782,16 @@
     {
       "type": 0,
       "value": "Aprovação Necessária"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Selecionar "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -799,13 +877,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Nome do Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Usar existente"
     }
   ],
   "I6cq17": [
@@ -830,6 +908,12 @@
     {
       "type": 0,
       "value": "Já existe um grupo de recursos com esse nome na assinatura selecionada."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Excluir"
     }
   ],
   "KAYpG9": [
@@ -859,7 +943,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Obter suporte"
     }
   ],
   "KzMCPo": [
@@ -1026,7 +1110,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " assinaturas"
             }
           ]
         },
@@ -1037,7 +1121,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " assinatura"
             }
           ]
         },
@@ -1048,7 +1132,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " assinaturas"
             }
           ]
         }
@@ -1056,6 +1140,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Links do agente de pesquisa"
     }
   ],
   "OjYIuI": [
@@ -1094,6 +1184,12 @@
       "value": "Seu agente está no modo somente leitura. As seguintes permissões são necessárias para que o agente construa conhecimento sobre seus recursos. As funções de colaborador para serviços específicos não serão usadas para realizar operações de gravação."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Adicionar link do agente"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1128,6 +1224,12 @@
     {
       "type": 0,
       "value": "Descrição"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agente"
     }
   ],
   "QIY3dQ": [
@@ -1276,6 +1378,20 @@
       "value": "ID do cliente"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Excluindo "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1314,6 +1430,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1504,10 +1626,26 @@
       "value": "Gerenciar pastas de trabalho do Azure Monitor."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Links do agente"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Gerenciar Aplicativos Lógicos."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes excluídos com sucesso"
     }
   ],
   "ZsLOg3": [
@@ -1525,7 +1663,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Copiar para a área de transferência"
     }
   ],
   "aGL+Qo": [
@@ -1537,7 +1675,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Voltar à Página Inicial"
     }
   ],
   "aLBTVj": [
@@ -1604,7 +1742,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "ID da sessão"
     }
   ],
   "b43a5F": [
@@ -1643,6 +1781,12 @@
       "value": "Leitor de Uso dos Serviços Cognitivos"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Excluir links de agente"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1676,7 +1820,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Selecione um recurso do Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1729,6 +1873,12 @@
     {
       "type": 0,
       "value": "Selecione até 100 grupos de recursos para monitorar"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Nome de exibição"
     }
   ],
   "dQ5/dh": [
@@ -1789,6 +1939,20 @@
       "value": " grupos de recursos selecionados"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Falha ao excluir \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1804,7 +1968,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Assinatura do Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1843,6 +2007,12 @@
       "value": "Gerenciar gêmeos de dispositivos do Hub IoT."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Este URI já existe"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1871,6 +2041,12 @@
     {
       "type": 0,
       "value": "Insights do Aplicativo"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Agentes externos"
     }
   ],
   "hO1Iog": [
@@ -1907,6 +2083,38 @@
     {
       "type": 0,
       "value": "Atribua ao agente um nível de permissões para os grupos de recursos que ele gerencia. O agente ainda pode gerenciar seus recursos atribuídos com permissões de Leitor."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Falha ao excluir \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\": "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "\""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\" excluído com sucesso"
     }
   ],
   "i50Kb0": [
@@ -2057,6 +2265,12 @@
       "value": " em andamento"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Excluir agentes"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2081,6 +2295,12 @@
       "value": "Ler e gravar configurações e dados de monitoramento do Azure Monitor."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Excluir link do agente"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2097,6 +2317,20 @@
     {
       "type": 0,
       "value": "Em execução"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"?"
     }
   ],
   "nlPgO8": [
@@ -2158,7 +2392,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Copiado"
     }
   ],
   "p5T+zv": [
@@ -2245,6 +2479,12 @@
     {
       "type": 0,
       "value": "A assinatura selecionada não foi registrada para usar o Agente SRE. Envie um email para sreagentteam@microsoft.com com o ID da sua assinatura para se registrar."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Atualizar"
     }
   ],
   "rZaqtB": [
@@ -2348,6 +2588,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "O URI deve terminar com "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2486,6 +2736,16 @@
     {
       "type": 0,
       "value": "Nome do Certificado de Ações do Geneva"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Selecione o link "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

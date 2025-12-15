@@ -95,6 +95,12 @@
       "value": "Gira projetos de Visão Personalizada."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Não foi possível eliminar alguns agentes"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Ocorreu um erro inesperado"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Cancelar"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Selecionar todos os agentes"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Selecionar todas as ligações de agente"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Copiar"
     }
   ],
   "556JQK": [
@@ -447,6 +465,12 @@
       "value": "Gerir os dados do Serviço de Aprovisionamento de Dispositivos."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Quer mesmo eliminar as ligações de agente selecionadas?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -550,6 +574,34 @@
       "value": "A implementação falhou"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "A eliminar “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Quer mesmo eliminar "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -607,7 +659,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Subscrições selecionadas predefinidas"
     }
   ],
   "Bcx/Gz": [
@@ -697,7 +749,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Selecionar subscrições..."
     }
   ],
   "ENnkRe": [
@@ -724,6 +776,22 @@
       "value": "Agente SRE do Azure"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Eliminar agente"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "O URI tem de começar por "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -734,6 +802,16 @@
     {
       "type": 0,
       "value": "Aprovação Necessária"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Selecionar "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -819,13 +897,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Nome do Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Utilizar existente"
     }
   ],
   "I6cq17": [
@@ -850,6 +928,12 @@
     {
       "type": 0,
       "value": "Já existe um grupo de recursos com este nome na subscrição selecionada."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Eliminar"
     }
   ],
   "KAYpG9": [
@@ -879,13 +963,13 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Obter suporte"
     }
   ],
   "KzMCPo": [
     {
       "type": 0,
-      "value": "Concede acesso total para gerir todos os recursos, mas não permite atribuir funções no Azure RBAC, gerir atribuições no Azure Blueprints ou partilhar galerias de imagens."
+      "value": "Concede acesso total para gerir todos os recursos, mas não permite atribuir funções no RBAC do Azure, gerir atribuições no Azure Blueprints ou partilhar galerias de imagens."
     }
   ],
   "L31yBb": [
@@ -1058,7 +1142,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " subscrições"
             }
           ]
         },
@@ -1069,7 +1153,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " subscrição"
             }
           ]
         },
@@ -1080,7 +1164,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " subscrições"
             }
           ]
         }
@@ -1088,6 +1172,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Procurar ligações de agentes"
     }
   ],
   "OjYIuI": [
@@ -1126,6 +1216,12 @@
       "value": "O agente está no modo só de leitura. São necessárias as seguintes permissões para que o agente crie conhecimento sobre os seus recursos. As funções de contribuidor para serviços específicos não serão utilizadas para efetuar operações de escrita."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Adicionar ligação de agente"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1160,6 +1256,12 @@
     {
       "type": 0,
       "value": "Descrição"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agente"
     }
   ],
   "QIY3dQ": [
@@ -1308,6 +1410,20 @@
       "value": "ID de Cliente"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "A eliminar "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1346,6 +1462,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1536,10 +1658,26 @@
       "value": "Gerir livros de trabalho do Azure Monitor."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Ligações de agente"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Fazer a gestão de Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agentes eliminados com êxito"
     }
   ],
   "ZsLOg3": [
@@ -1557,7 +1695,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Copiar para a área de transferência"
     }
   ],
   "aGL+Qo": [
@@ -1569,7 +1707,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Voltar à página inicial"
     }
   ],
   "aLBTVj": [
@@ -1648,7 +1786,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "ID da Sessão"
     }
   ],
   "b43a5F": [
@@ -1687,6 +1825,12 @@
       "value": "Leitor de Utilizações dos Serviços Cognitivos"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Eliminar ligações de agente"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1720,7 +1864,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Selecionar um recurso Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1773,6 +1917,12 @@
     {
       "type": 0,
       "value": "Selecione até 100 grupos de recursos para monitorizar"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Nome a apresentar"
     }
   ],
   "dQ5/dh": [
@@ -1833,6 +1983,20 @@
       "value": " grupos de recursos selecionados"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Não foi possível eliminar “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1848,7 +2012,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Subscrição do Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1887,6 +2051,12 @@
       "value": "Gira os duplos dos dispositivos do Hub IoT."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Este URI já existe"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1915,6 +2085,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Agentes externos"
     }
   ],
   "hO1Iog": [
@@ -1951,6 +2127,38 @@
     {
       "type": 0,
       "value": "Atribua ao agente um nível de permissões para os grupos de recursos que gere. O agente continua a poder gerir os respetivos recursos atribuídos com permissões de Leitor."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Não foi possível eliminar “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "“"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "” eliminado com êxito"
     }
   ],
   "i50Kb0": [
@@ -2101,6 +2309,12 @@
       "value": " em curso"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Eliminar agentes"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2125,6 +2339,12 @@
       "value": "Ler e escrever dados e definições de monitorização do Azure Monitor."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Eliminar ligação de agente"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2141,6 +2361,20 @@
     {
       "type": 0,
       "value": "Em execução"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Quer mesmo eliminar \""
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "\"?"
     }
   ],
   "nlPgO8": [
@@ -2202,7 +2436,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Copiado"
     }
   ],
   "p5T+zv": [
@@ -2289,6 +2523,12 @@
     {
       "type": 0,
       "value": "A subscrição que selecionou não foi registada para utilizar o Agente SRE. Envie-nos um e-mail com o seu ID de subscrição para sreagentteam@microsoft.com para registar."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Atualizar"
     }
   ],
   "rZaqtB": [
@@ -2404,6 +2644,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "O URI tem de terminar em "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2542,6 +2792,16 @@
     {
       "type": 0,
       "value": "Nome do Certificado de Ações do Geneva"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Selecionar ligação "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [

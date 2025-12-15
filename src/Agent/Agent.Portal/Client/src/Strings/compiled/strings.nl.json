@@ -95,6 +95,12 @@
       "value": "Beheer Custom Vision-projecten."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Sommige agents zijn niet verwijderd"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -228,7 +234,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Er is een onverwachte fout opgetreden"
     }
   ],
   "3cc4Ct": [
@@ -285,6 +291,18 @@
       "value": "Annuleren"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Alle agents selecteren"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Alle agentkoppelingen selecteren"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -318,7 +336,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Kopiëren"
     }
   ],
   "556JQK": [
@@ -443,6 +461,12 @@
       "value": "Apparaatinrichtingsservicegegevens beheren."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u de geselecteerde agentkoppelingen wilt verwijderen?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -523,6 +547,30 @@
       "value": "De implementatie is mislukt"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " verwijderen..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents wilt verwijderen?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -580,7 +628,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Standaard geselecteerde abonnementen"
     }
   ],
   "Bcx/Gz": [
@@ -670,7 +718,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Abonnementen selecteren..."
     }
   ],
   "ENnkRe": [
@@ -697,6 +745,22 @@
       "value": "Azure SRE-agent"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Agent verwijderen"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "De URI moet beginnen met "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -707,6 +771,16 @@
     {
       "type": 0,
       "value": "Goedkeuring is vereist"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " selecteren"
     }
   ],
   "G7yB8N": [
@@ -792,13 +866,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights-naam"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Bestaande gebruiken"
     }
   ],
   "I6cq17": [
@@ -823,6 +897,12 @@
     {
       "type": 0,
       "value": "Er bestaat al een resourcegroep met deze naam in het geselecteerde abonnement."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Verwijderen"
     }
   ],
   "KAYpG9": [
@@ -852,7 +932,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Ondersteuning vragen"
     }
   ],
   "KzMCPo": [
@@ -1008,7 +1088,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " abonnement"
             }
           ]
         },
@@ -1019,7 +1099,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " abonnementen"
             }
           ]
         }
@@ -1027,6 +1107,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Agentkoppelingen zoeken"
     }
   ],
   "OjYIuI": [
@@ -1065,6 +1151,12 @@
       "value": "Je agent staat in de alleen-lezen modus. De volgende machtigingen zijn nodig zodat de agent kennis kan opbouwen over je resources. De rollen voor bijdrager voor specifieke services worden niet gebruikt voor schrijfbewerkingen."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Agentkoppeling toevoegen"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1099,6 +1191,12 @@
     {
       "type": 0,
       "value": "Beschrijving"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1247,6 +1345,16 @@
       "value": "Client-id"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents verwijderen..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1285,6 +1393,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1475,10 +1589,26 @@
       "value": "Beheer Azure Monitor-werkmappen."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Agentkoppelingen"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Beheer Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents zijn verwijderd"
     }
   ],
   "ZsLOg3": [
@@ -1496,7 +1626,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Kopieer naar klembord"
     }
   ],
   "aGL+Qo": [
@@ -1508,7 +1638,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Terug naar start"
     }
   ],
   "aLBTVj": [
@@ -1564,7 +1694,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Sessie-id"
     }
   ],
   "b43a5F": [
@@ -1603,6 +1733,12 @@
       "value": "Lezer van Cognitive Services-gebruik"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Agentkoppelingen verwijderen"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1636,7 +1772,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Een Application Insights-resource selecteren"
     }
   ],
   "ctcA0c": [
@@ -1689,6 +1825,12 @@
     {
       "type": 0,
       "value": "Selecteer maximaal 100 resourcegroepen om te bewaken"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Weergavenaam"
     }
   ],
   "dQ5/dh": [
@@ -1749,6 +1891,16 @@
       "value": " resourcegroepen geselecteerd"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is niet verwijderd"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1764,7 +1916,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights-abonnement"
     }
   ],
   "fSFDgd": [
@@ -1803,6 +1955,12 @@
       "value": "Beheer IoT Hub-apparaatdubbels."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Deze URI bestaat al"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1831,6 +1989,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Externe agents"
     }
   ],
   "hO1Iog": [
@@ -1867,6 +2031,30 @@
     {
       "type": 0,
       "value": "Wijs de agent een machtigingsniveau toe voor de resourcegroepen die hij beheert. De agent kan zijn toegewezen resources nog steeds beheren met lezersmachtigingen."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is niet verwijderd: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " is verwijderd"
     }
   ],
   "i50Kb0": [
@@ -2017,6 +2205,12 @@
       "value": " is in voortgang"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Agents verwijderen"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2041,6 +2235,12 @@
       "value": "Lees en schrijf Azure Monitor-bewakingsinstellingen en -gegevens."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Agentkoppeling verwijderen"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2057,6 +2257,20 @@
     {
       "type": 0,
       "value": "In uitvoering"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " wilt verwijderen?"
     }
   ],
   "nlPgO8": [
@@ -2118,7 +2332,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Gekopieerd"
     }
   ],
   "p5T+zv": [
@@ -2205,6 +2419,12 @@
     {
       "type": 0,
       "value": "Het abonnement dat u hebt geselecteerd, is niet geregistreerd voor het gebruik van de SRE-agent. Stuur een e-mail met uw abonnements-id naar sreagentteam@microsoft.com om u te laten registreren."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Vernieuwen"
     }
   ],
   "rZaqtB": [
@@ -2297,6 +2517,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "De URI moet eindigen op "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2435,6 +2665,20 @@
     {
       "type": 0,
       "value": "Certificaatnaam van Geneva Actions"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Koppeling "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " selecteren"
     }
   ],
   "xGPsyJ": [

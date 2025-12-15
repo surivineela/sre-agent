@@ -95,6 +95,12 @@
       "value": "Custom Vision-projektek kezelése."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Nem sikerült törölni néhány ügynököt"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -228,7 +234,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Váratlan hiba történt"
     }
   ],
   "3cc4Ct": [
@@ -285,6 +291,18 @@
       "value": "Mégse"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Az összes ügynök kijelölése"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Az összes ügynökhivatkozás kijelölése"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -318,7 +336,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Másolás"
     }
   ],
   "556JQK": [
@@ -451,6 +469,12 @@
       "value": "Eszközregisztrációs szolgáltatás adatainak kezelése."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Biztos, hogy törli a kijelölt ügynökhivatkozásokat?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -531,6 +555,34 @@
       "value": "Az üzembe helyezés nem sikerült"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "A(z) „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "“ törlése folyamatban..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Biztosan törölni szeretne "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ügynököt?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -588,7 +640,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Alapértelmezett kiválasztott előfizetések"
     }
   ],
   "Bcx/Gz": [
@@ -678,7 +730,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Válasszon előfizetéseket..."
     }
   ],
   "ENnkRe": [
@@ -705,6 +757,26 @@
       "value": "Azure SRE-ügynök"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Ügynök törlése"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "Az URI-nak a(z) "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " előtaggal kell kezdődnie"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -715,6 +787,16 @@
     {
       "type": 0,
       "value": "Jóváhagyás szükséges"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " kiválasztása"
     }
   ],
   "G7yB8N": [
@@ -800,13 +882,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Application Insights-példány neve"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Meglévő használata"
     }
   ],
   "I6cq17": [
@@ -831,6 +913,12 @@
     {
       "type": 0,
       "value": "A kiválasztott előfizetésben már van egy ugyanilyen nevű erőforráscsoport."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Törlés"
     }
   ],
   "KAYpG9": [
@@ -860,7 +948,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Támogatás kérése"
     }
   ],
   "KzMCPo": [
@@ -1016,7 +1104,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " előfizetés"
             }
           ]
         },
@@ -1027,7 +1115,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " előfizetés"
             }
           ]
         }
@@ -1035,6 +1123,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Keresés az ügynökhivatkozások között"
     }
   ],
   "OjYIuI": [
@@ -1073,6 +1167,12 @@
       "value": "Az ügynök írásvédett módban van. Az alábbi engedélyek szükségesek ahhoz, hogy az ügynök tudást építsen az Ön erőforrásairól. Az adott szolgáltatások közreműködői szerepköreit nem használjuk írási műveletekhez."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Ügynökhivatkozás hozzáadása"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1107,6 +1207,12 @@
     {
       "type": 0,
       "value": "Leírás"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Ügynök"
     }
   ],
   "QIY3dQ": [
@@ -1255,6 +1361,16 @@
       "value": "Ügyfélazonosító"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ügynök törlése folyamatban..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1293,6 +1409,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1483,10 +1605,26 @@
       "value": "Azure Monitor-munkafüzetek kezelése."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Ügynökhivatkozások"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "A Logic Apps kezelése."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ügynök törlése sikerült"
     }
   ],
   "ZsLOg3": [
@@ -1504,7 +1642,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Vágólapra másolás"
     }
   ],
   "aGL+Qo": [
@@ -1516,7 +1654,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Vissza a kezdőoldalra"
     }
   ],
   "aLBTVj": [
@@ -1572,7 +1710,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "Munkamenet-azonosító"
     }
   ],
   "b43a5F": [
@@ -1611,6 +1749,12 @@
       "value": "Cognitive Services használati olvasó"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Ügynökhivatkozások törlése"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1644,7 +1788,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Válasszon egy Application Insights-erőforrást"
     }
   ],
   "ctcA0c": [
@@ -1697,6 +1841,12 @@
     {
       "type": 0,
       "value": "Válasszon ki legfeljebb 100 erőforráscsoportot a figyeléshez"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Megjelenítendő név"
     }
   ],
   "dQ5/dh": [
@@ -1757,6 +1907,20 @@
       "value": " erőforráscsoport kiválasztva"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "Nem sikerült törölni a következőt: „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1772,7 +1936,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Application Insights-előfizetés"
     }
   ],
   "fSFDgd": [
@@ -1811,6 +1975,12 @@
       "value": "IoT Hub ikereszközök kezelése."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Ez az URI már létezik"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1839,6 +2009,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Külső ügynökök"
     }
   ],
   "hO1Iog": [
@@ -1875,6 +2051,38 @@
     {
       "type": 0,
       "value": "Adja meg az ügynök számára az általa kezelt erőforráscsoportokhoz szükséges jogosultsági szintet. Az ügynök továbbra is kezelheti a hozzárendelt erőforrásokat olvasói jogosultsággal."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "Nem sikerült törölni a következőt: „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”: "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "A(z) „"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "” törlése sikerült"
     }
   ],
   "i50Kb0": [
@@ -2025,6 +2233,12 @@
       "value": " SRE-ügynök létrehozásának érvényesítése folyamatban van"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Ügynökök törlése"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2049,6 +2263,12 @@
       "value": "Azure Monitor figyelési beállítások és adatok olvasása és írása."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Ügynökhivatkozás törlése"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2065,6 +2285,20 @@
     {
       "type": 0,
       "value": "Fut"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Biztosan törli a következőt: "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "nlPgO8": [
@@ -2126,7 +2360,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Másolva"
     }
   ],
   "p5T+zv": [
@@ -2213,6 +2447,12 @@
     {
       "type": 0,
       "value": "A kiválasztott előfizetés nincs regisztrálva az SRE-ügynök használatára. A regisztrációhoz küldjön e-mailt az előfizetési azonosítójával az sreagentteam@microsoft.com címre."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Frissítés"
     }
   ],
   "rZaqtB": [
@@ -2305,6 +2545,20 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "Az URI-nak "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    },
+    {
+      "type": 0,
+      "value": " végződésűnek kell lennie"
     }
   ],
   "ss/NWY": [
@@ -2443,6 +2697,20 @@
     {
       "type": 0,
       "value": "Geneva-műveletek tanúsítványának neve"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "A(z) "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hivatkozás kijelölése"
     }
   ],
   "xGPsyJ": [

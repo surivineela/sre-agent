@@ -95,6 +95,12 @@
       "value": "Gérez les projets Custom Vision."
     }
   ],
+  "/h2P8O": [
+    {
+      "type": 0,
+      "value": "Échec de la suppression de certains agents"
+    }
+  ],
   "/wY7pG": [
     {
       "type": 0,
@@ -224,7 +230,7 @@
   "3IKub9": [
     {
       "type": 0,
-      "value": "An unexpected error occurred"
+      "value": "Une erreur inattendue s\\'est produite"
     }
   ],
   "3cc4Ct": [
@@ -281,6 +287,18 @@
       "value": "Annuler"
     }
   ],
+  "49wxuU": [
+    {
+      "type": 0,
+      "value": "Sélectionner tous les agents"
+    }
+  ],
+  "4CDU6x": [
+    {
+      "type": 0,
+      "value": "Sélectionner tous les liens de l’agent"
+    }
+  ],
   "4MeTpL": [
     {
       "type": 0,
@@ -314,7 +332,7 @@
   "4l6vz1": [
     {
       "type": 0,
-      "value": "Copy"
+      "value": "Copier"
     }
   ],
   "556JQK": [
@@ -447,6 +465,12 @@
       "value": "Gérez les données du service de provisionnement des appareils."
     }
   ],
+  "7ynO3Y": [
+    {
+      "type": 0,
+      "value": "Êtes-vous sûr de vouloir supprimer les liens d’agent sélectionnés ?"
+    }
+  ],
   "87v+WY": [
     {
       "type": 0,
@@ -550,6 +574,34 @@
       "value": "Nous n’avons pas pu effectuer le déploiement"
     }
   ],
+  "9U5pgE": [
+    {
+      "type": 0,
+      "value": "Suppression de « "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " » en cours..."
+    }
+  ],
+  "9hO/jE": [
+    {
+      "type": 0,
+      "value": "Voulez-vous vraiment supprimer ces "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents ?"
+    }
+  ],
   "ABo5XY": [
     {
       "type": 0,
@@ -607,7 +659,7 @@
   "BMjugG": [
     {
       "type": 0,
-      "value": "Default selected subscriptions"
+      "value": "Abonnements par défaut sélectionnés"
     }
   ],
   "Bcx/Gz": [
@@ -697,7 +749,7 @@
   "E7zWqc": [
     {
       "type": 0,
-      "value": "Select subscriptions..."
+      "value": "Sélectionner des abonnements..."
     }
   ],
   "ENnkRe": [
@@ -724,6 +776,22 @@
       "value": "Agent Azure SRE"
     }
   ],
+  "FKlXAd": [
+    {
+      "type": 0,
+      "value": "Supprimer l’agent"
+    }
+  ],
+  "FMhqpw": [
+    {
+      "type": 0,
+      "value": "L’URI doit commencer par "
+    },
+    {
+      "type": 1,
+      "value": "value"
+    }
+  ],
   "FqRdvb": [
     {
       "type": 0,
@@ -734,6 +802,16 @@
     {
       "type": 0,
       "value": "Approbation obligatoire"
+    }
+  ],
+  "G65XME": [
+    {
+      "type": 0,
+      "value": "Sélectionner "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "G7yB8N": [
@@ -819,13 +897,13 @@
   "I5NZ9z": [
     {
       "type": 0,
-      "value": "Application Insights name"
+      "value": "Nom d'Application Insights"
     }
   ],
   "I5k4g/": [
     {
       "type": 0,
-      "value": "Use existing"
+      "value": "Utiliser un élément existant"
     }
   ],
   "I6cq17": [
@@ -850,6 +928,12 @@
     {
       "type": 0,
       "value": "Un groupe de ressources portant ce nom existe déjà dans l’abonnement sélectionné."
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Supprimer"
     }
   ],
   "KAYpG9": [
@@ -879,7 +963,7 @@
   "Km7x3v": [
     {
       "type": 0,
-      "value": "Get support"
+      "value": "Obtenir de l’aide"
     }
   ],
   "KzMCPo": [
@@ -1054,7 +1138,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " abonnements"
             }
           ]
         },
@@ -1065,7 +1149,7 @@
             },
             {
               "type": 0,
-              "value": " subscription"
+              "value": " abonnement"
             }
           ]
         },
@@ -1076,7 +1160,7 @@
             },
             {
               "type": 0,
-              "value": " subscriptions"
+              "value": " abonnements"
             }
           ]
         }
@@ -1084,6 +1168,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "OeeWFV": [
+    {
+      "type": 0,
+      "value": "Recherchez des liens d’agent"
     }
   ],
   "OjYIuI": [
@@ -1122,6 +1212,12 @@
       "value": "Votre agent est en mode lecture seule. Les autorisations suivantes sont requises pour que l’agent développe des connaissances sur vos ressources. Les rôles contributeur pour certains services ne seront pas utilisés pour effectuer des opérations d’écriture."
     }
   ],
+  "PGgs7P": [
+    {
+      "type": 0,
+      "value": "Ajouter un lien d’agent"
+    }
+  ],
   "PXg8+x": [
     {
       "type": 0,
@@ -1156,6 +1252,12 @@
     {
       "type": 0,
       "value": "Description"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
     }
   ],
   "QIY3dQ": [
@@ -1304,6 +1406,20 @@
       "value": "ID client"
     }
   ],
+  "UIyZ/V": [
+    {
+      "type": 0,
+      "value": "Suppression de "
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents en cours..."
+    }
+  ],
   "UQUIP7": [
     {
       "type": 0,
@@ -1342,6 +1458,12 @@
     {
       "type": 1,
       "value": "error"
+    }
+  ],
+  "UzV6T0": [
+    {
+      "type": 0,
+      "value": "URI"
     }
   ],
   "V/rQci": [
@@ -1532,10 +1654,26 @@
       "value": "Gérez les classeurs Azure Monitor."
     }
   ],
+  "Z9MqPb": [
+    {
+      "type": 0,
+      "value": "Liens de l’agent"
+    }
+  ],
   "ZNMCbm": [
     {
       "type": 0,
       "value": "Gérez Logic Apps."
+    }
+  ],
+  "Zk831H": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " agents ont été correctement supprimés"
     }
   ],
   "ZsLOg3": [
@@ -1553,7 +1691,7 @@
   "aCdAsI": [
     {
       "type": 0,
-      "value": "Copy to clipboard"
+      "value": "Copier dans le Presse-papiers"
     }
   ],
   "aGL+Qo": [
@@ -1565,7 +1703,7 @@
   "aIRWQB": [
     {
       "type": 0,
-      "value": "Back to home"
+      "value": "Retour à l’accueil"
     }
   ],
   "aLBTVj": [
@@ -1644,7 +1782,7 @@
   "b0v+Pu": [
     {
       "type": 0,
-      "value": "Session ID"
+      "value": "ID de session"
     }
   ],
   "b43a5F": [
@@ -1683,6 +1821,12 @@
       "value": "Lecteur des utilisations Cognitive Services"
     }
   ],
+  "cP6uU4": [
+    {
+      "type": 0,
+      "value": "Supprimer les liens de l’agent"
+    }
+  ],
   "cRTR/A": [
     {
       "type": 0,
@@ -1716,7 +1860,7 @@
   "cqGvFd": [
     {
       "type": 0,
-      "value": "Select an Application Insights resource"
+      "value": "Sélectionner une ressource Application Insights"
     }
   ],
   "ctcA0c": [
@@ -1769,6 +1913,12 @@
     {
       "type": 0,
       "value": "Sélectionnez jusqu’à 100 groupes de ressources à surveiller"
+    }
+  ],
+  "dOQCL8": [
+    {
+      "type": 0,
+      "value": "Nom d’affichage"
     }
   ],
   "dQ5/dh": [
@@ -1829,6 +1979,20 @@
       "value": " groupe(s) de ressources sélectionné(s)"
     }
   ],
+  "fFXU2w": [
+    {
+      "type": 0,
+      "value": "La suppression de « "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " » a échoué"
+    }
+  ],
   "fFyuVF": [
     {
       "type": 0,
@@ -1844,7 +2008,7 @@
   "fLcQXf": [
     {
       "type": 0,
-      "value": "Application Insights subscription"
+      "value": "Abonnement Application Insights"
     }
   ],
   "fSFDgd": [
@@ -1883,6 +2047,12 @@
       "value": "Gérez les jumeaux d’appareils IoT Hub."
     }
   ],
+  "gicrFI": [
+    {
+      "type": 0,
+      "value": "Cet URI existe déjà"
+    }
+  ],
   "gn/nvJ": [
     {
       "type": 0,
@@ -1911,6 +2081,12 @@
     {
       "type": 0,
       "value": "App Insights"
+    }
+  ],
+  "hNjyCX": [
+    {
+      "type": 0,
+      "value": "Agents externes"
     }
   ],
   "hO1Iog": [
@@ -1947,6 +2123,38 @@
     {
       "type": 0,
       "value": "Attribuez à l’agent un niveau d’autorisations pour les groupes de ressources qu’il gère. L’agent peut toujours gérer ses ressources affectées avec des autorisations de lecteur."
+    }
+  ],
+  "htQs+D": [
+    {
+      "type": 0,
+      "value": "La suppression de « "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " » a échoué : "
+    },
+    {
+      "type": 1,
+      "value": "error"
+    }
+  ],
+  "hwGu/Q": [
+    {
+      "type": 0,
+      "value": "« "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " » a été correctement supprimé"
     }
   ],
   "i50Kb0": [
@@ -2097,6 +2305,12 @@
       "value": " en cours"
     }
   ],
+  "le4UM7": [
+    {
+      "type": 0,
+      "value": "Supprimer les agents"
+    }
+  ],
   "lnaWo/": [
     {
       "type": 0,
@@ -2121,6 +2335,12 @@
       "value": "Lisez et écrivez les paramètres et données de supervision Azure Monitor."
     }
   ],
+  "mmngrs": [
+    {
+      "type": 0,
+      "value": "Supprimer le lien d’agent"
+    }
+  ],
   "n/e5Mg": [
     {
       "type": 0,
@@ -2137,6 +2357,20 @@
     {
       "type": 0,
       "value": "Exécution"
+    }
+  ],
+  "nKJuTy": [
+    {
+      "type": 0,
+      "value": "Voulez-vous vraiment supprimer « "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " » ?"
     }
   ],
   "nlPgO8": [
@@ -2202,7 +2436,7 @@
   "p556q3": [
     {
       "type": 0,
-      "value": "Copied"
+      "value": "Copié"
     }
   ],
   "p5T+zv": [
@@ -2289,6 +2523,12 @@
     {
       "type": 0,
       "value": "L’abonnement que vous avez sélectionné n’a pas été enregistré pour utiliser l’agent SRE. Envoyez-nous un e-mail avec votre ID d’abonnement à sreagentteam@microsoft.com pour vous enregistrer."
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Actualiser"
     }
   ],
   "rZaqtB": [
@@ -2404,6 +2644,16 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    }
+  ],
+  "srMOPI": [
+    {
+      "type": 0,
+      "value": "L’URI doit se terminer par "
+    },
+    {
+      "type": 1,
+      "value": "value"
     }
   ],
   "ss/NWY": [
@@ -2542,6 +2792,16 @@
     {
       "type": 0,
       "value": "Nom du certificat Geneva Actions"
+    }
+  ],
+  "xAeeyZ": [
+    {
+      "type": 0,
+      "value": "Sélectionner le lien "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "xGPsyJ": [
