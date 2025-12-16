@@ -442,11 +442,11 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
-        var toolName = "TestTool";
         var output = "Small output";
+        var mockTool = new SimpleTestTool();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, toolName, output);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, output);
 
         // Assert
         result.ShouldBe(output);
@@ -458,16 +458,16 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
-        var toolName = "TestTool";
+        var mockTool = new SimpleTestTool();
         var largeOutput = new string('x', 2000); // Exceeds default 1000 char limit
         var expectedFileKey = "test-file.yaml";
 
         _mockStorage
-            .Setup(s => s.SaveAsync(threadId, toolName, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFileKey);
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, toolName, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
 
         // Assert
         result.ShouldBeOfType<string>();
@@ -476,7 +476,7 @@ nested:
         resultString.ShouldContain("partial preview");
         resultString.ShouldContain("File Key:");
         // The file key should be in the output somewhere
-        _mockStorage.Verify(s => s.SaveAsync(threadId, toolName, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockStorage.Verify(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -484,10 +484,10 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
-        var toolName = "TestTool";
+        var mockTool = new SimpleTestTool();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, toolName, null);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, null);
 
         // Assert
         result.ShouldBeNull();
@@ -498,15 +498,123 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
-        var toolName = "ToolOutputRetriever";
+        var mockTool = new ToolOutputRetrieverTool();
         var largeOutput = new string('x', 2000);
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, toolName, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
 
         // Assert
         result.ShouldBe(largeOutput);
         _mockStorage.Verify(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessToolOutputAsync_WithDisableOutputTruncation_ReturnsOriginal()
+    {
+        // Arrange
+        var threadId = Guid.NewGuid();
+        var largeOutput = new string('x', 2000);
+
+        // Create a mock tool with DisableOutputTruncation = true
+        var mockTool = new TestToolWithDisabledTruncation();
+
+        // Act
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+
+        // Assert
+        result.ShouldBe(largeOutput);
+        _mockStorage.Verify(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessToolOutputAsync_WithoutDisableOutputTruncation_Truncates()
+    {
+        // Arrange
+        var threadId = Guid.NewGuid();
+        var largeOutput = new string('x', 2000);
+        _mockStorage.Setup(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("test-file-key");
+
+        // Create a mock tool without DisableOutputTruncation (defaults to false)
+        var mockTool = new TestToolWithoutDisabledTruncation();
+
+        // Act
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+
+        // Assert
+        result.ShouldNotBe(largeOutput);
+        result.ShouldBeOfType<string>();
+        ((string)result!).ShouldContain("test-file-key");
+        _mockStorage.Verify(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, "txt", default), Times.Once);
+    }
+
+    #endregion
+
+    #region Test Tool Classes
+
+    private class SimpleTestTool : Microsoft.Extensions.AI.AIFunction
+    {
+        public override string Name => "TestTool";
+        public override string Description => "Simple test tool";
+        public override System.Reflection.MethodInfo? UnderlyingMethod => typeof(SimpleTestTool).GetMethod(nameof(Execute));
+
+        [Agent.Framework.AgentTool(Agent.Framework.ToolMode.Auto)]
+        public static void Execute() { }
+
+        protected override async ValueTask<object?> InvokeCoreAsync(Microsoft.Extensions.AI.AIFunctionArguments arguments, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+    }
+
+    private class ToolOutputRetrieverTool : Microsoft.Extensions.AI.AIFunction
+    {
+        public override string Name => "ToolOutputRetriever";
+        public override string Description => "Tool output retriever";
+        public override System.Reflection.MethodInfo? UnderlyingMethod => typeof(ToolOutputRetrieverTool).GetMethod(nameof(Execute));
+
+        [Agent.Framework.AgentTool(Agent.Framework.ToolMode.Auto, DisableOutputTruncation = true)]
+        public static void Execute() { }
+
+        protected override async ValueTask<object?> InvokeCoreAsync(Microsoft.Extensions.AI.AIFunctionArguments arguments, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+    }
+
+    private class TestToolWithDisabledTruncation : Microsoft.Extensions.AI.AIFunction
+    {
+        public override string Name => "TestToolWithDisabledTruncation";
+        public override string Description => "Test tool";
+        public override System.Reflection.MethodInfo? UnderlyingMethod => typeof(TestToolWithDisabledTruncation).GetMethod(nameof(Execute));
+
+        [Agent.Framework.AgentTool(Agent.Framework.ToolMode.Auto, DisableOutputTruncation = true)]
+        public static void Execute() { }
+
+        protected override async ValueTask<object?> InvokeCoreAsync(Microsoft.Extensions.AI.AIFunctionArguments arguments, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+    }
+
+    private class TestToolWithoutDisabledTruncation : Microsoft.Extensions.AI.AIFunction
+    {
+        public override string Name => "TestToolWithoutDisabledTruncation";
+        public override string Description => "Test tool";
+        public override System.Reflection.MethodInfo? UnderlyingMethod => typeof(TestToolWithoutDisabledTruncation).GetMethod(nameof(Execute));
+
+        [Agent.Framework.AgentTool(Agent.Framework.ToolMode.Auto)]
+        public static void Execute() { }
+
+        protected override async ValueTask<object?> InvokeCoreAsync(Microsoft.Extensions.AI.AIFunctionArguments arguments, CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
     }
 
     #endregion

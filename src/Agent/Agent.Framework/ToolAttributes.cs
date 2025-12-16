@@ -24,6 +24,12 @@ public class AgentToolAttribute : Attribute
     public ToolMode Mode { get; }
     public string Category { get; set; }
     public string ResourceType { get; set; }
+
+    /// <summary>
+    /// When set to true, the output of this tool will not be truncated by ToolOutputTruncationService,
+    /// regardless of size. Use this for tools where the full output is critical for the agent's operation.
+    /// </summary>
+    public bool DisableOutputTruncation { get; set; }
 }
 
 public enum ToolMode

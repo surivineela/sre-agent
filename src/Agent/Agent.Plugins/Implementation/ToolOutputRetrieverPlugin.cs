@@ -216,8 +216,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             // Use LLM to summarize
             var messages = new List<ChatMessage>
             {
-                new ChatMessage(ChatRole.System, "You are a helpful assistant that summarizes and analyzes file content based on user prompts."),
-                new ChatMessage(ChatRole.User, $"Task: {summaryPrompt}\n\nContent:\n{content}")
+                new ChatMessage(ChatRole.System, $"{summaryPrompt} Content: {content}")
             };
 
             var response = await _chatClientProvider.LargeContextModel.GetResponseAsync(messages);

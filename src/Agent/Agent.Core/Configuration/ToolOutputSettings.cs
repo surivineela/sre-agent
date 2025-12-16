@@ -23,9 +23,9 @@ public class ToolOutputSettings
 
     /// <summary>
     /// Maximum number of characters allowed in tool output retrieval results
-    /// Default: 16384 characters (16KB)
+    /// Default: 65536 characters (64KB)
     /// </summary>
-    public int MaxOutputChars { get; set; } = 16384;
+    public int MaxOutputChars { get; set; } = 65536;
 
     /// <summary>
     /// Enables the ToolOutputRetriever tool for accessing truncated tool outputs

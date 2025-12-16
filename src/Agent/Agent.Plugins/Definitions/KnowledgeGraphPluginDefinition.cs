@@ -137,7 +137,7 @@ public class KnowledgeGraphPluginDefinition
     }
 
     [Description("Read the entire knowledge graph, returning all entities and relations. Use this to get a complete view of all stored knowledge.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> ReadGraph()
     {
         var result = await _plugin.ReadGraphAsync();
@@ -153,7 +153,7 @@ public class KnowledgeGraphPluginDefinition
     }
 
     [Description("Search for nodes in the knowledge graph based on a query string. Searches across entity names, entity types, and observation content. Returns matching entities and their relations. Prefer to get graph schema first to generate effective queries.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> SearchNodes(
         [Description("The search query to match against entity names, types, and observation content. Case-insensitive. Example: 'Microsoft' or 'coffee'")]
         string query)
@@ -209,7 +209,7 @@ public class KnowledgeGraphPluginDefinition
     }
 
     [Description("Open specific nodes in the knowledge graph by their names. Returns the requested entities and the relations between them. Useful for retrieving specific entities you know exist.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> OpenNodes(
         [Description("An array of entity names to retrieve.")]
         List<string> names)
@@ -224,7 +224,7 @@ public class KnowledgeGraphPluginDefinition
     }
 
     [Description("Get the schema of the knowledge graph, including all entity types with example names and all relation types. Useful for understanding what kinds of entities and relationships exist in the graph before querying.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> GetGraphSchema()
     {
         var result = await _plugin.GetGraphSchemaAsync();

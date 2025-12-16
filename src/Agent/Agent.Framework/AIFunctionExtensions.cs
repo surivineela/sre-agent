@@ -72,4 +72,9 @@ public static class AIFunctionExtensions
         // Native MCP client tool OR runtime wrapper named McpToolAIFunction
         return tool is McpClientTool || tool.GetType().Name == "McpToolAIFunction";
     }
+
+    public static bool ShouldDisableOutputTruncation(this AIFunction function)
+    {
+        return function.UnderlyingMethod?.GetCustomAttribute<AgentToolAttribute>()?.DisableOutputTruncation ?? false;
+    }
 }

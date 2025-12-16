@@ -928,7 +928,7 @@ public class ReasoningLoop : IDisposable
                                         {
                                             var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
-                                                toolCall.Tool.Name,
+                                                toolCall.Tool,
                                                 functionResult,
                                                 cancellationToken);
 
@@ -1940,7 +1940,7 @@ public class ReasoningLoop : IDisposable
             FunctionResultContent result;
             if (_featureConfig.PartialOutputEnabled)
             {
-                var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(_context.ThreadId, aiTool.Name, functionResult, cancellationToken);
+                var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
                 result = new FunctionResultContent(functionCall.CallId, processedOutput);
             }
             else
@@ -3050,8 +3050,9 @@ public class ReasoningLoop : IDisposable
                         {
                             var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
                                 _context.ThreadId,
-                                toolCall.FunctionCall.CallId,
-                                functionResult?.ToString());
+                                toolCall.Tool,
+                                functionResult?.ToString(),
+                                cancellationToken);
 
                             toolResults.Add(new ManualToolCallResult()
                             {

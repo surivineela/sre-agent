@@ -261,7 +261,7 @@ public class ToDoWriteTool<TContext> : AIToolFunction<ToDoWriteTool<TContext>, T
 
     #region Models
 
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public static void ToDoWrite(
         [Description("The updated todo list")]
         List<TodoItem> todos)

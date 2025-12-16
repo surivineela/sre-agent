@@ -203,7 +203,7 @@ public class ReadSkillFileTool<TContext>(
 
     #region Schema Method
 
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public static void ReadSkillFile(
         [Description("The name of the skill to read from (e.g., 'kubernetes_skill', 'postgresql_skill')")]
         [MinLength(1)]

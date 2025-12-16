@@ -20,6 +20,7 @@ public class ToolOutputRetrieverPluginDefinition
         _toolOutputRetrieverPlugin = toolOutputRetrieverPlugin;
     }
 
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     [Description("""
         Access large stored tool outputs (text/json/yaml) by fileKey.
 
@@ -39,7 +40,7 @@ public class ToolOutputRetrieverPluginDefinition
            Example: Read 1KB starting from byte 5000
             { "fileKey": "data-export-20251130-143025.json", "operation": "read_by_offset", "offsetStart": 5000, "offsetEnd": 6024 }
 
-        3. summarize - Summarizes or analyzes the full file using a natural-language prompt
+        3. summarize - Leverages an LLM to interpret and extract relevant information from the file using natural language understanding when conventional data retrieval methods (such as regex patterns, JSON parsing, or structured queries) are unable to locate or extract the expected data
            Required: fileKey, operation='summarize', summaryPrompt
            Example: Summarize the entire log file
              { "fileKey": "logs-20251130-143025.json", "operation": "summarize", "summaryPrompt": "Summarize the content" }

@@ -9,6 +9,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Logging;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using YamlDotNet.Core;
@@ -60,7 +61,7 @@ public class ToolOutputTruncationService : IToolOutputTruncationService
     /// Processes tool output, truncating and storing large outputs
     /// </summary>
     /// <param name="threadId">The thread ID for this execution</param>
-    /// <param name="toolName">The name of the tool that produced this output</param>
+    /// <param name="tool">The AIFunction that produced this output</param>
     /// <param name="output">The original tool output (string or object that will be serialized to JSON)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
@@ -69,7 +70,7 @@ public class ToolOutputTruncationService : IToolOutputTruncationService
     /// </returns>
     public async Task<object?> ProcessToolOutputAsync(
         Guid threadId,
-        string toolName,
+        AIFunction tool,
         object? output,
         CancellationToken cancellationToken = default)
     {
@@ -78,15 +79,56 @@ public class ToolOutputTruncationService : IToolOutputTruncationService
             return output;
         }
 
-        // Don't truncate output from certain tools:
-        // - ToolOutputRetriever: already retrieving truncated content
-        // - read_skill_file: skill content needs to be preserved in full
-        // - ToDoWrite: todo list planning output should be preserved for context
-        if (string.Equals(toolName, "ToolOutputRetriever", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(toolName, "read_skill_file", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(toolName, "ToDoWrite", StringComparison.OrdinalIgnoreCase))
+        // Check if the tool has DisableOutputTruncation attribute set
+        if (tool.ShouldDisableOutputTruncation())
         {
-            _logger.LogInternalInformation("Returning full output for excluded tool {ToolName}", toolName);
+            _logger.LogInternalInformation("Returning full output for tool {ToolName} (DisableOutputTruncation=true)", tool.Name);
+            return output;
+        }
+
+        // Delegate to the string-based implementation
+        return await ProcessToolOutputAsync(threadId, tool.Name, output, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes tool output using a generic context, truncating and storing large outputs
+    /// </summary>
+    public async Task<object?> ProcessToolOutputAsync<TContext>(
+        TContext? context,
+        AIFunction tool,
+        object? output,
+        CancellationToken cancellationToken = default) where TContext : class
+    {
+        // Extract ThreadId from context using reflection
+        var threadIdProperty = typeof(TContext).GetProperty("ThreadId");
+        if (threadIdProperty == null)
+        {
+            _logger.LogInternalWarning("Context type {ContextType} does not have a ThreadId property", typeof(TContext).Name);
+            return output;
+        }
+
+        var threadIdValue = threadIdProperty.GetValue(context);
+        if (threadIdValue is not Guid threadId)
+        {
+            _logger.LogInternalWarning("ThreadId property in context is not a Guid");
+            return output;
+        }
+
+        // Delegate to the main implementation
+        return await ProcessToolOutputAsync(threadId, tool, output, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes tool output, truncating and storing large outputs (string toolName overload)
+    /// </summary>
+    public async Task<object?> ProcessToolOutputAsync(
+        Guid threadId,
+        string toolName,
+        object? output,
+        CancellationToken cancellationToken = default)
+    {
+        if (output == null)
+        {
             return output;
         }
 
@@ -142,34 +184,6 @@ public class ToolOutputTruncationService : IToolOutputTruncationService
             // Return error message when storage fails
             return $"Error: Tool output size exceeds maximum allowed limit.";
         }
-    }
-
-    /// <summary>
-    /// Processes tool output using a generic context, truncating and storing large outputs
-    /// </summary>
-    public async Task<object?> ProcessToolOutputAsync<TContext>(
-        TContext? context,
-        string toolName,
-        object? output,
-        CancellationToken cancellationToken = default) where TContext : class
-    {
-        // Extract ThreadId from context using reflection
-        var threadIdProperty = typeof(TContext).GetProperty("ThreadId");
-        if (threadIdProperty == null)
-        {
-            _logger.LogInternalWarning("Context type {ContextType} does not have a ThreadId property", typeof(TContext).Name);
-            return output;
-        }
-
-        var threadIdValue = threadIdProperty.GetValue(context);
-        if (threadIdValue is not Guid threadId)
-        {
-            _logger.LogInternalWarning("ThreadId property in context is not a Guid");
-            return output;
-        }
-
-        // Delegate to the main implementation
-        return await ProcessToolOutputAsync(threadId, toolName, output, cancellationToken);
     }
 
     /// <summary>
