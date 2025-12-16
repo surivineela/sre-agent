@@ -306,6 +306,12 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
+        // Empty or null implies system-assigned managed identity
+        if (string.IsNullOrEmpty(managedIdentityId))
+        {
+            return GetManagedIdentityCredential(Constants.SystemManagedIdentityName);
+        }
+
         if (ResourceIdentifier.TryParse(managedIdentityId, out _))
         {
             // This is true when the MSI is being specified as a resource ID via ARM settings
