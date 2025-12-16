@@ -1,4 +1,6 @@
 import { IncidentFilter } from '../../../Common/Contracts/Azure/IncidentHandler';
+import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { McpConnection } from '../../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 
 export const HANDLER_TOOL_LIMIT = 30;
 
@@ -44,6 +46,12 @@ export interface HandlerCreateOrEditInfo {
     subAgentTriggerInfo?: {
         preSelectedAgent?: string;
         agents: string[];
+    };
+    incidentTriggerWithLearningsInfo?: {
+        mcpConnections?: McpConnection[];
+        extendedAgents: ExtendedAgent[];
+        extendedTools?: ExtendedTool[];
+        systemTools?: SystemTool[];
     };
 }
 

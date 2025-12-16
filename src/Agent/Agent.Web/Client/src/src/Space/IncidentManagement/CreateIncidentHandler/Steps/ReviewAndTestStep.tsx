@@ -96,7 +96,7 @@ export const ReviewAndTestStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button appearance="primary" onClick={saveHandler} disabled={!dirty || !isValid}>
+                <Button appearance="primary" onClick={() => saveHandler()} disabled={!dirty || !isValid}>
                     {intl.formatMessage(IncidentHandlerCreateResources.save)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>

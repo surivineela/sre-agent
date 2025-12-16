@@ -79,10 +79,11 @@ export const IncidentTriggerStep: FC = () => {
 
     const isNextDisabled = useMemo((): boolean => {
         if (filterMode === 'create') {
+            const handlingAgentRequired = !values.isIncidentTriggerWithLearnings && !values.handlingAgent;
             return (
                 !values.filterName ||
                 !values.priority ||
-                !values.handlingAgent ||
+                handlingAgentRequired ||
                 (incidentPlatformType !== IncidentManagementType.AzMonitor && (!values.impactedService || !values.incidentType))
             );
         }
@@ -101,6 +102,7 @@ export const IncidentTriggerStep: FC = () => {
         values.priority,
         values.incidentType,
         values.handlingAgent,
+        values.isIncidentTriggerWithLearnings,
     ]);
 
     return (
@@ -239,65 +241,67 @@ export const IncidentTriggerStep: FC = () => {
                         />
                     </Field>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
-                        {intl.formatMessage(ExtendedAgentsGraphResources.subagent)}
-                    </Text>
-                    <Field label={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagent)} required>
-                        <Dropdown
-                            name="handlingAgent"
-                            selectedOptions={values.handlingAgent ? [values.handlingAgent] : []}
-                            value={values.handlingAgent || ''}
-                            onOptionSelect={(_, data) => {
-                                setFieldValue('handlingAgent', data.optionValue);
-                            }}
-                            onBlur={() => setFieldTouched('handlingAgent', true)}
-                            placeholder={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagentPlaceholder)}
-                            disabled={disableAllFields}
-                            className={styles.inputField}
-                        >
-                            {subAgentNames?.map(name => (
-                                <Option value={name} key={name}>
-                                    {name}
-                                </Option>
-                            ))}
-                        </Dropdown>
-                    </Field>
+                {!values.isIncidentTriggerWithLearnings && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <Text size={400} weight="semibold">
+                            {intl.formatMessage(ExtendedAgentsGraphResources.subagent)}
+                        </Text>
+                        <Field label={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagent)} required>
+                            <Dropdown
+                                name="handlingAgent"
+                                selectedOptions={values.handlingAgent ? [values.handlingAgent] : []}
+                                value={values.handlingAgent || ''}
+                                onOptionSelect={(_, data) => {
+                                    setFieldValue('handlingAgent', data.optionValue);
+                                }}
+                                onBlur={() => setFieldTouched('handlingAgent', true)}
+                                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagentPlaceholder)}
+                                disabled={disableAllFields}
+                                className={styles.inputField}
+                            >
+                                {subAgentNames?.map(name => (
+                                    <Option value={name} key={name}>
+                                        {name}
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        </Field>
 
-                    <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
-                        <RadioGroup
-                            name="agentMode"
-                            value={values.agentMode}
-                            onChange={(_, data) => setFieldValue('agentMode', data.value)}
-                            disabled={disableAllFields}
-                        >
-                            <Radio
-                                value={AgentMode.autonomous}
-                                label={
-                                    <>
-                                        {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
-                                        <br />
-                                        <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
-                                        </Text>
-                                    </>
-                                }
-                            />
-                            <Radio
-                                value={AgentMode.review}
-                                label={
-                                    <>
-                                        {intl.formatMessage(IncidentManagementResources.reviewWord)}
-                                        <br />
-                                        <Text size={200}>
-                                            {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
-                                        </Text>
-                                    </>
-                                }
-                            />
-                        </RadioGroup>
-                    </Field>
-                </div>
+                        <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                            <RadioGroup
+                                name="agentMode"
+                                value={values.agentMode}
+                                onChange={(_, data) => setFieldValue('agentMode', data.value)}
+                                disabled={disableAllFields}
+                            >
+                                <Radio
+                                    value={AgentMode.autonomous}
+                                    label={
+                                        <>
+                                            {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
+                                            <br />
+                                            <Text size={200}>
+                                                {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
+                                            </Text>
+                                        </>
+                                    }
+                                />
+                                <Radio
+                                    value={AgentMode.review}
+                                    label={
+                                        <>
+                                            {intl.formatMessage(IncidentManagementResources.reviewWord)}
+                                            <br />
+                                            <Text size={200}>
+                                                {intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}
+                                            </Text>
+                                        </>
+                                    }
+                                />
+                            </RadioGroup>
+                        </Field>
+                    </div>
+                )}
             </div>
             <div
                 style={{
@@ -309,7 +313,13 @@ export const IncidentTriggerStep: FC = () => {
             >
                 <Button
                     appearance="primary"
-                    onClick={() => setCurrentStep(IncidentHandlerCreateSteps.PreviewIncidentsStep)}
+                    onClick={() =>
+                        setCurrentStep(
+                            values.isIncidentTriggerWithLearnings
+                                ? IncidentHandlerCreateSteps.IncidentsAndGuidanceStep
+                                : IncidentHandlerCreateSteps.PreviewIncidentsStep
+                        )
+                    }
                     disabled={isNextDisabled}
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.next)}

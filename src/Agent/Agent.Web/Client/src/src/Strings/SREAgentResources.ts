@@ -4424,6 +4424,13 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Automatically starts a subagent in response to an incident or alert.',
         id: 'hdfKe+',
     },
+    createSubagentStep: { defaultMessage: 'Create subagent', id: 'O9C6j/' },
+    createIncidentTriggerWithLearnings: { defaultMessage: 'Create incident trigger with learnings', id: 'VAsLEP' },
+    incidentTriggerWithLearningsCreateMenuLabel: { defaultMessage: 'Incident trigger with learnings', id: 'Ml5W34' },
+    incidentTriggerWithLearningsCreateMenuDescription: {
+        defaultMessage: 'Incident trigger that includes past incident learnings and analysis.',
+        id: '8Tlee1',
+    },
     scheduledTaskTriggerCreateMenuLabel: { defaultMessage: 'Scheduled task trigger', id: 'ioRcwS' },
     scheduledTaskTriggerCreateMenuDescription: { defaultMessage: 'Starts a task at a defined time or interval.', id: 'JA/VO+' },
     kustoToolCreateMenuLabel: { defaultMessage: 'Kusto tool', id: 'v6cujo' },

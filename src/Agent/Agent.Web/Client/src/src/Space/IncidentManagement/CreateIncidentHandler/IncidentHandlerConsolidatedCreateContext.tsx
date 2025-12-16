@@ -1,6 +1,9 @@
 import React from 'react';
 import { IncidentDocument, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
+import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { AgentCreateFormValues } from '../../Graph/AgentCreateDialog/Contracts';
+import { McpConnection } from '../../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
 export enum IncidentHandlerCreateSteps {
@@ -9,6 +12,7 @@ export enum IncidentHandlerCreateSteps {
     PreviewIncidentsStep = 'PreviewIncidentsStep',
     IncidentsAndGuidanceStep = 'IncidentsAndGuidanceStep',
     ReviewAndTestStep = 'ReviewAndTestStep',
+    CreateSubagentStep = 'CreateSubagentStep',
 }
 
 export interface IncidentHandlerTestMetadata {
@@ -37,6 +41,14 @@ export interface IncidentsPreviewMetadata {
     loadMoreOldIncidents: (overflowDiv: boolean) => Promise<boolean | undefined>;
 }
 
+export interface IncidentTriggerWithLearningsMetadata {
+    extendedAgents?: ExtendedAgent[];
+    systemTools?: SystemTool[];
+    extendedTools?: ExtendedTool[];
+    createSubagent?: (formValues?: AgentCreateFormValues) => Promise<{ isSuccessful: boolean; error?: string; agentName?: string }>;
+    mcpConnections?: McpConnection[];
+}
+
 export interface IncidentHandlerConsolidatedCreateMetadata {
     incidentPlatformType: IncidentManagementType | undefined;
     exitToHome: () => void;
@@ -59,7 +71,7 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     generateUpdatedTools: () => void;
     deleteHandler: () => void;
     exportHandler: () => void;
-    saveHandler: () => Promise<void>;
+    saveHandler: (handlingAgentOverride?: string) => Promise<void>;
     isSubagentTrigger?: boolean;
     subAgentNames?: string[];
     filterMode: FilterMode | undefined;
@@ -76,6 +88,8 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
 
     handlerTestMetadata: IncidentHandlerTestMetadata;
     incidentsPreviewMetadata: IncidentsPreviewMetadata;
+
+    incidentTriggerWithLearningsMetadata?: IncidentTriggerWithLearningsMetadata;
 }
 
 export const IncidentHandlerConsolidatedCreateContext = React.createContext<IncidentHandlerConsolidatedCreateMetadata>({
@@ -102,6 +116,7 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     exportHandler: () => {},
     saveHandler: () => Promise.resolve(),
     isSubagentTrigger: undefined,
+    incidentTriggerWithLearningsMetadata: undefined,
     subAgentNames: undefined,
     filterMode: undefined,
     handlerMode: undefined,

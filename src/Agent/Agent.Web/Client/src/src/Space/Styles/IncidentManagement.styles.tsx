@@ -176,6 +176,20 @@ export const useIncidentManagementStyles = makeStyles({
             backgroundColor: `${tokens.colorNeutralBackground2} !important`,
         },
     },
+    stepContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '20px 20px',
+        gap: '32px',
+        height: 'calc(100% - 114px)',
+        overflowY: 'auto',
+    },
+    stepFooter: {
+        display: 'flex',
+        gap: '10px',
+        padding: '20px',
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
 });
 
 export const generateHandlerStyles = mergeStyleSets({

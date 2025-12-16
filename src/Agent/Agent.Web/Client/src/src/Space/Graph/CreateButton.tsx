@@ -28,6 +28,7 @@ export interface CreateButtonProps {
 const CreateButton = memo(
     ({ handleCreateItemStandalone, disableCreateMetaAgent, disableCreateSubagent, disableCreateSkill, disabled }: CreateButtonProps) => {
         const allowMetaAgentOverride = useConfigSetting(SettingNames.AllowMetaAgentOverride);
+        const showIncidentTriggerWithLearnings = useConfigSetting(SettingNames.ShowIncidentTriggerWithLearnings);
         const { features } = useFeatureFlags();
         const { menuItemWithIcon, menuItemContent, menuIconDisabled } = useExtendedAgentGraphStyles();
         const intl = useIntl();
@@ -60,6 +61,17 @@ const CreateButton = memo(
                   ]
                 : [];
 
+            const incidentTriggerWithLearningsOption = showIncidentTriggerWithLearnings
+                ? [
+                      {
+                          label: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerWithLearningsCreateMenuLabel),
+                          description: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerWithLearningsCreateMenuDescription),
+                          icon: <EntityIcon type="incidentTriggerWithLearnings" />,
+                          entityType: 'incidentTriggerWithLearnings' as EntityTypeExt,
+                      },
+                  ]
+                : [];
+
             return [
                 {
                     label: intl.formatMessage(ExtendedAgentsGraphResources.subAgentCreateMenuLabel),
@@ -86,6 +98,7 @@ const CreateButton = memo(
                     icon: <EntityIcon type="incidentTrigger" />,
                     entityType: 'incidentTrigger' as EntityTypeExt,
                 },
+                ...incidentTriggerWithLearningsOption,
                 {
                     label: intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuLabel),
                     description: intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuDescription),

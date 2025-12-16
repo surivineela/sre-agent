@@ -72,7 +72,9 @@ export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> =
                             {intl.formatMessage(
                                 handlerCreateOrEditInfo?.filter
                                     ? ExtendedAgentsGraphResources.editIncidentTrigger
-                                    : ExtendedAgentsGraphResources.createIncidentTrigger
+                                    : handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo
+                                      ? ExtendedAgentsGraphResources.createIncidentTriggerWithLearnings
+                                      : ExtendedAgentsGraphResources.createIncidentTrigger
                             )}
                         </DialogTitle>
                     </div>

@@ -36,6 +36,7 @@ export const IncidentsAndGuidanceStep = () => {
         loadMoreOldIncidents,
         generatingInstructions,
         generateInstructions,
+        incidentTriggerWithLearningsMetadata,
     } = context;
 
     const { dirty, values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
@@ -267,7 +268,11 @@ export const IncidentsAndGuidanceStep = () => {
             >
                 <Button
                     onClick={() => {
-                        setCurrentStep(IncidentHandlerCreateSteps.FilterStep);
+                        setCurrentStep(
+                            incidentTriggerWithLearningsMetadata
+                                ? IncidentHandlerCreateSteps.IncidentTriggerStep
+                                : IncidentHandlerCreateSteps.FilterStep
+                        );
                     }}
                     disabled={!handlerLoaded || generatingInstructions}
                 >
@@ -285,7 +290,11 @@ export const IncidentsAndGuidanceStep = () => {
                 <Button
                     onClick={() => {
                         setGenerateInstructionsStepSkipped(true);
-                        setCurrentStep(IncidentHandlerCreateSteps.ReviewAndTestStep);
+                        setCurrentStep(
+                            incidentTriggerWithLearningsMetadata
+                                ? IncidentHandlerCreateSteps.CreateSubagentStep
+                                : IncidentHandlerCreateSteps.ReviewAndTestStep
+                        );
                     }}
                     disabled={!handlerLoaded || generatingInstructions}
                 >

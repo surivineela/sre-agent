@@ -49,7 +49,7 @@ export const QuickEditIncidentHandlerConsolidated: FC = () => {
                         paddingBottom: 20,
                     }}
                 >
-                    <Button appearance="primary" onClick={saveHandler} disabled={!dirty}>
+                    <Button appearance="primary" onClick={() => saveHandler()} disabled={!dirty}>
                         {intl.formatMessage(IncidentHandlerCreateResources.save)}
                     </Button>
                     <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={exitToHome}>

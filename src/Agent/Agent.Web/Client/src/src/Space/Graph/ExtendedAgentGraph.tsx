@@ -1762,6 +1762,18 @@ const ExtendedAgentGraphContent = memo(() => {
                 return;
             }
 
+            if (itemType === 'incidentTriggerWithLearnings') {
+                setHandlerCreateOrEditInfo({
+                    incidentTriggerWithLearningsInfo: {
+                        mcpConnections: mcpConnections,
+                        extendedAgents: agents,
+                        systemTools: systemTools,
+                        extendedTools: tools,
+                    },
+                });
+                return;
+            }
+
             if (itemType === 'scheduledTask') {
                 setIsScheduledTaskDialogOpen(true);
                 setScheduledTaskStartingAgent(anchorEntity?.entityType === 'Agent' ? anchorEntity?.entityName : undefined);

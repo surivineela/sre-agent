@@ -15,6 +15,7 @@ export enum SettingNames {
     ShowThreadTraceUI = 'showThreadTraceUI',
     ShowAgentBuilderPlayground = 'showAgentBuilderPlayground',
     AllowMetaAgentOverride = 'allowMetaAgentOverride',
+    ShowIncidentTriggerWithLearnings = 'showIncidentTriggerWithLearnings',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -28,6 +29,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.Connectors]: true,
         [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
+        [SettingNames.ShowIncidentTriggerWithLearnings]: true,
     },
     'sre.azure.com': {
         [SettingNames.ShowThreadTraceUI]: true,
@@ -41,6 +43,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowAgentBuilderPlayground]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
         [SettingNames.Connectors]: true,
+        [SettingNames.ShowIncidentTriggerWithLearnings]: true,
     },
 };
 

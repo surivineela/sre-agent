@@ -4,7 +4,16 @@ import { ExtendedAgent, ExtendedConnector, ExtendedTool, SystemTool } from '../.
 import { ScheduledTask } from '../../Contracts/ScheduledTasks';
 
 export type EntityType = 'agent' | 'tool' | 'connector' | 'trigger' | 'skill';
-export type EntityTypeExt = 'agent' | 'metaAgent' | 'tool' | 'pythonTool' | 'connector' | 'scheduledTask' | 'incidentTrigger' | 'skill';
+export type EntityTypeExt =
+    | 'agent'
+    | 'metaAgent'
+    | 'tool'
+    | 'pythonTool'
+    | 'connector'
+    | 'scheduledTask'
+    | 'incidentTrigger'
+    | 'incidentTriggerWithLearnings'
+    | 'skill';
 export type Step = 1 | 2 | 3;
 export type TriggerMode = 'incident' | 'scheduled';
 export type TriggerStrategy = 'quick' | 'existing';

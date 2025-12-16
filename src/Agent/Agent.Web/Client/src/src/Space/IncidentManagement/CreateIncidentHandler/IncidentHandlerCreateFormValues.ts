@@ -1,4 +1,6 @@
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
+import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { McpConnection } from '../../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 
 export interface IncidentHandlerCreateFormValues {
     filterName?: string;
@@ -20,4 +22,18 @@ export interface IncidentHandlerCreateFormValues {
     useCustomHandler?: boolean;
     deepInvestigationEnabled?: boolean;
     includePastIncidents?: boolean;
+
+    isIncidentTriggerWithLearnings?: boolean;
+
+    subagentName?: string;
+    subagentInstructions?: string;
+    subagentHandoffInstructions?: string;
+    subagentHandoffSubagents?: string[];
+    subagentAutonomyLevel?: AgentMode;
+    subagentToolNames?: string[];
+
+    extendedAgents?: ExtendedAgent[];
+    systemTools?: SystemTool[];
+    extendedTools?: ExtendedTool[];
+    mcpConnections?: McpConnection[];
 }

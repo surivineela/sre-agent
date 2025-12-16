@@ -14,6 +14,7 @@ import { IncidentHandlerConsolidatedCreateContext } from './IncidentHandlerConso
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 import { DirtyStateNavigationConfirmDialog } from './NavigationConfirmDialog';
 import { useConsolidatedCreateIncidentHandler } from './useConsolidatedCreateIncidentHandler';
+import { useConsolidatedCreateIncidentHandlerforAgentBuilder } from './useConsolidatedCreateIncidentHandlerForAgentBuilder';
 
 interface CreateIncidentHandlerProps {
     exitToHome: (filterName?: string, handlerId?: string, isNew?: boolean) => void;
@@ -44,6 +45,12 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         useCustomHandler: !!handlerCreateOrEditInfo.handlerId,
         deepInvestigationEnabled: handlerCreateOrEditInfo?.filter?.deepInvestigationEnabled || false,
         includePastIncidents: false,
+
+        isIncidentTriggerWithLearnings: !!handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo,
+        extendedAgents: handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo?.extendedAgents || [],
+        extendedTools: handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo?.extendedTools || [],
+        systemTools: handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo?.systemTools || [],
+        mcpConnections: handlerCreateOrEditInfo?.incidentTriggerWithLearningsInfo?.mcpConnections || [],
     });
 
     const validate = useCallback(
@@ -81,15 +88,29 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
 }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
-    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { dirty, values } = useFormikContext<IncidentHandlerCreateFormValues>();
+
+    const incidentHandlerForAgentBuilder = useConsolidatedCreateIncidentHandlerforAgentBuilder(
+        exitToHome,
+        setHandlerOperationStatus,
+        handlerCreateOrEditInfo,
+        setInitialValues
+    );
+
     const incidentHandlerCreateMetadata = useConsolidatedCreateIncidentHandler(
         exitToHome,
         setHandlerOperationStatus,
         handlerCreateOrEditInfo,
         setInitialValues
     );
+
+    const activeHandlerMetadata = useMemo(
+        () => (values.isIncidentTriggerWithLearnings ? incidentHandlerForAgentBuilder : incidentHandlerCreateMetadata),
+        [values.isIncidentTriggerWithLearnings, incidentHandlerForAgentBuilder, incidentHandlerCreateMetadata]
+    );
+
     const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
-    const { filterMode, handlerMode } = incidentHandlerCreateMetadata;
+    const { filterMode, handlerMode } = activeHandlerMetadata;
 
     const innerComponent = useMemo(() => {
         return (
@@ -97,7 +118,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                 <DirtyStateNavigationConfirmDialog isDirty={dirty} />
                 <IncidentHandlerConsolidatedCreateContext.Provider
                     value={{
-                        ...incidentHandlerCreateMetadata,
+                        ...activeHandlerMetadata,
                         incidentTypeOptions,
                         impactedServiceOptions,
                         priorityOptions,
@@ -107,9 +128,9 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                 </IncidentHandlerConsolidatedCreateContext.Provider>
             </div>
         );
-    }, [dirty, incidentHandlerCreateMetadata, incidentTypeOptions, impactedServiceOptions, priorityOptions, handlerMode, styles]);
+    }, [dirty, activeHandlerMetadata, incidentTypeOptions, impactedServiceOptions, priorityOptions, handlerMode, styles]);
 
-    if (incidentHandlerCreateMetadata.isSubagentTrigger) {
+    if (activeHandlerMetadata.isSubagentTrigger || values.isIncidentTriggerWithLearnings) {
         return innerComponent;
     }
 

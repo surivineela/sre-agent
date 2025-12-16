@@ -21,6 +21,7 @@ export type EntityIconType =
     | 'scheduledTask'
     | 'scheduledTaskRun'
     | 'incidentTrigger'
+    | 'incidentTriggerWithLearnings'
     | 'genericTrigger'
     | 'tool'
     | 'toolWithGear'
@@ -73,6 +74,12 @@ export const EntityIcon: FC<EntityIconProps> = ({ type, shorthandStyle: size, wr
                 return {
                     backgroundColor: tokens.colorPaletteCranberryBackground2,
                     foregroundColor: tokens.colorPaletteCranberryForeground2,
+                    Icon: WarningRegular,
+                };
+            case 'incidentTriggerWithLearnings':
+                return {
+                    backgroundColor: tokens.colorPaletteRedBackground2,
+                    foregroundColor: tokens.colorPaletteRedForeground2,
                     Icon: WarningRegular,
                 };
             case 'genericTrigger':

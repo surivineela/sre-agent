@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
+import { CreateSubagentStep } from '../Steps/CreateSubagentStep';
 import { FilterStep } from '../Steps/FilterStep';
 import { IncidentsAndGuidanceStep } from '../Steps/IncidentsAndGuidanceStep';
 import { IncidentTriggerStep } from '../Steps/IncidentTriggerStep';
@@ -27,6 +28,23 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                 {
                     stepKey: IncidentHandlerCreateSteps.PreviewIncidentsStep,
                     stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.incidentsPreviewStep),
+                },
+            ];
+        }
+
+        if (values.isIncidentTriggerWithLearnings) {
+            return [
+                {
+                    stepKey: IncidentHandlerCreateSteps.IncidentTriggerStep,
+                    stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerStep),
+                },
+                {
+                    stepKey: IncidentHandlerCreateSteps.IncidentsAndGuidanceStep,
+                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.incidentsAndGuidanceStep),
+                },
+                {
+                    stepKey: IncidentHandlerCreateSteps.CreateSubagentStep,
+                    stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.createSubagentStep),
                 },
             ];
         }
@@ -58,7 +76,7 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                 stepTitle: intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsStep),
             },
         ];
-    }, [intl, values.useCustomHandler]);
+    }, [intl, isSubagentTrigger, values.isIncidentTriggerWithLearnings, values.useCustomHandler]);
 
     return (
         <div
@@ -97,6 +115,8 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     <IncidentTriggerStep />
                 ) : currentStep === IncidentHandlerCreateSteps.IncidentsAndGuidanceStep ? (
                     <IncidentsAndGuidanceStep />
+                ) : currentStep === IncidentHandlerCreateSteps.CreateSubagentStep ? (
+                    <CreateSubagentStep />
                 ) : currentStep === IncidentHandlerCreateSteps.PreviewIncidentsStep ? (
                     <PreviewIncidentsStep />
                 ) : currentStep === IncidentHandlerCreateSteps.ReviewAndTestStep ? (
