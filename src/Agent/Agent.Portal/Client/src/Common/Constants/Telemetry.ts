@@ -1,4 +1,5 @@
 export enum TelemetrySource {
+    Unknown = 'Unknown',
     PortalLayout = 'PortalLayout',
     HomeBrowseView = 'HomeBrowseView',
     AgentIFrameView = 'AgentIFrameView',

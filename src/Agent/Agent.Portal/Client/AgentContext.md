@@ -45,6 +45,42 @@ src/
 - Telemetry sources are defined in `TelemetrySource` enum; add new sources as needed for major features/areas.
 - **Pass telemetry source from caller context** - hooks accept `telemetrySource` parameter representing where they're used (e.g., `HomeBrowseView`), not what they are. This enables feature-level visibility.
 
+### Amplitude Telemetry (Structured Events)
+
+For richer analytics with structured event types, use the Amplitude telemetry system:
+
+- **`useAmplitudeTelemetry()`** – Hook providing `logControlEvent`, `logNavigationEvent`, `logOperationEvent`
+- **`AmplitudeContextProvider`** – Wrap views to provide automatic resource metadata enrichment
+- **`logAmplitudeEvent()`** – Non-hook version for use outside React components
+
+**Event Types:**
+- **Control Events** – User interactions (button clicks, dropdown changes, toggles)
+- **Navigation Events** – Page/tab navigation, blade opens, external links
+- **Operation Events** – Backend operations (create, update, delete, load) with optional error info
+
+**Usage:**
+```tsx
+// Wrap your view with the context provider
+<AmplitudeContextProvider
+    resourceId={resourceId}
+    telemetrySource={TelemetrySource.MyView}
+>
+    <MyComponent />
+</AmplitudeContextProvider>
+
+// In components, use the hook
+const { logControlEvent, logNavigationEvent, logOperationEvent } = useAmplitudeTelemetry();
+
+logControlEvent({
+    targetType: 'button',
+    targetAction: 'clicked',
+    targetName: 'createAgentButton',
+    targetFriendlyName: 'Create Agent',
+    valueObjectName: SpecialControlValue.SubmitForm,
+    valueObjectFriendlyName: SpecialControlValue.SubmitForm,
+});
+```
+
 ### API Clients
 
 All client classes use singleton pattern via `getInstance()`, handle MSAL token acquisition automatically, and return `Response<T>` objects (see Error Handling below).

@@ -165,9 +165,10 @@ export const ResourceGroupDropdown = (props: ResourceGroupDropdownProps) => {
                 };
                 setNewResourceGroup(newRg);
                 onResourceGroupChange(newRg);
+                setQuery(intl.formatMessage(PortalResources.newItemFormat, { item: validatedNewResourceGroupName }));
             }
         },
-        [onResourceGroupChange, subscriptionId]
+        [intl, onResourceGroupChange, subscriptionId]
     );
 
     // Auto-select first resource group on load if none is selected

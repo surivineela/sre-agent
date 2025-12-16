@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getCloudEndpoints } from '../../Common/Auth/cloudConfig';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../Common/Contexts/NotificationContext';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
@@ -26,6 +27,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
     const intl = useIntl();
     const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.AgentIFrameView, resourceId);
+    const { logControlEvent, logNavigationEvent, logOperationEvent } = useAmplitudeTelemetry();
     const { resolvedTheme, locale } = useUserPreferences();
     const { start, succeed, fail } = useNotifications();
 
@@ -256,9 +258,9 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             const messageCallbackMap: Record<string, (data: any) => void> = {
                 [AgentSiteToAzPortalVerbs.readyForData]: readyForDataCallback,
                 [AgentSiteToAzPortalVerbs.log]: logCallback,
-                [AgentSiteToAzPortalVerbs.logAmplitudeControlEvent]: () => undefined,
-                [AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent]: () => undefined,
-                [AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent]: () => undefined,
+                [AgentSiteToAzPortalVerbs.logAmplitudeControlEvent]: logControlEvent,
+                [AgentSiteToAzPortalVerbs.logAmplitudeNavigationEvent]: logNavigationEvent,
+                [AgentSiteToAzPortalVerbs.logAmplitudeOperationEvent]: logOperationEvent,
                 [AgentSiteToAzPortalVerbs.openBlade]: openBladeCallback,
                 [AgentSiteToAzPortalVerbs.updateNotification]: updateNotificationCallback,
                 [AgentSiteToAzPortalVerbs.requestToken]: requestTokenCallback,
@@ -306,7 +308,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 });
             }
         },
-        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback]
+        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback, logControlEvent, logNavigationEvent, logOperationEvent]
     );
 
     useEffect(() => {
@@ -497,6 +499,17 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
             subscribed = false;
         };
     }, [resourceId, sreLink, logEvent]);
+
+    useEffect(() => {
+        // Logging nav event from link here so it has the resource info attached
+        logNavigationEvent({
+            targetType: 'link',
+            targetAction: 'openBlade',
+            targetName: 'AgentFrameBlade.ReactView',
+            targetFriendlyName: 'Agent name link',
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return {
         agentUxUrl,

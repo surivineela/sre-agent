@@ -157,7 +157,7 @@ describe('ArmId utilities', () => {
         });
 
         it('returns empty string for invalid ARM ID', () => {
-            const result = stringifyArmId({ kind: ArmIdKind.Invalid });
+            const result = stringifyArmId({ kind: ArmIdKind.Invalid, subscription: '', resourceGroup: '', resourceName: '', resourceType: '', location: '', provider: '', tagName: '', tagValue: '' });
             expect(result).toBe('');
         });
 

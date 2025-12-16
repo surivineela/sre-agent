@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
 import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
@@ -37,6 +37,8 @@ import { newShortGuid } from '../../../Common/Utilities/Guid';
 import { getCanonicalLocation, getResourceLocation } from '../../../Common/Utilities/Location';
 import { AgentCreateDeploymentNotificationResources, PortalResources } from '../../../Strings/Resources';
 import { ApplicationInsightsSetup, SreAgentCreateFormProps } from './CreateAgentDialog';
+import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
+import { SpecialControlValue } from '../../../Common/Contracts/Amplitude';
 
 const ARM_DEPLOYMENT_NAME_LIMIT = 64;
 
@@ -64,8 +66,11 @@ export const useSreAgentCreate = ({
 }) => {
     const { user } = useAuth();
     const { logEvent } = useTelemetry(TelemetrySource.SreAgentCreate, undefined);
+    const { logControlEvent, logOperationEvent } = useAmplitudeTelemetry();
     const notifications = useNotifications();
     const intl = useIntl();
+
+    const createStartTimeRef = useRef<number | undefined>(undefined);
 
     const [isDeploying, setIsDeploying] = useState<boolean>(false);
     const [permissionsLoading, setPermissionsLoading] = useState<boolean>(false);
@@ -224,6 +229,18 @@ export const useSreAgentCreate = ({
 
                         if (provisioningState === DeploymentProvisioningStates.succeeded) {
                             setIsDeploying(false);
+
+                            const durationMs = createStartTimeRef.current ? Date.now() - createStartTimeRef.current : undefined;
+                            logOperationEvent(
+                                {
+                                    targetType: 'create',
+                                    targetAction: 'deploy',
+                                    targetName: 'createAgentProvision',
+                                    targetFriendlyName: 'Create Agent Provision',
+                                },
+                                { status: 'success', durationMs, resourceId: agentResourceId }
+                            );
+
                             return {
                                 complete: true,
                                 success: true,
@@ -237,6 +254,29 @@ export const useSreAgentCreate = ({
                         if (provisioningState === DeploymentProvisioningStates.Failed) {
                             setIsDeploying(false);
                             const errorMessage = getArmErrorMessage(deploymentResponse?.content?.properties?.error);
+
+                            // Determine if this is a provisioning failure (deployment in-flight) or a validation/pre-deployment error
+            const hadStart = createStartTimeRef.current !== undefined;
+            const isProvisioningFailure = isDeploying && hadStart;
+            const durationMs = isProvisioningFailure && createStartTimeRef.current ? Date.now() - createStartTimeRef.current : undefined;
+            if (isProvisioningFailure) {
+                logOperationEvent(
+                    {
+                        targetType: 'create',
+                        targetAction: 'deploy',
+                        targetName: 'createAgentProvision',
+                        targetFriendlyName: 'Create Agent Provision',
+                    },
+                    {
+                        status: 'failed',
+                        failureType: 'provisioning',
+                        resourceId: agentResourceId,
+                        errorMessage,
+                        ...(durationMs !== undefined ? { durationMs } : {}),
+                    }
+                );
+            }
+
                             return {
                                 complete: true,
                                 success: false,
@@ -272,7 +312,7 @@ export const useSreAgentCreate = ({
                 );
             }
         },
-        [handleFailedDeployment, waitForAgentSiteLoad, deploymentClient, notifications, intl, onDeploymentStarted]
+        [handleFailedDeployment, waitForAgentSiteLoad, deploymentClient, notifications, intl, onDeploymentStarted, isDeploying, logOperationEvent]
     );
 
     const deployTemplate = useCallback(
@@ -553,6 +593,25 @@ export const useSreAgentCreate = ({
                 },
             });
 
+            logControlEvent({
+                targetType: 'button',
+                targetAction: 'clicked',
+                targetName: 'createAgent',
+                targetFriendlyName: 'Create Agent',
+                valueObjectName: SpecialControlValue.SubmitForm,
+                valueObjectFriendlyName: SpecialControlValue.SubmitForm,
+            });
+            logOperationEvent(
+                {
+                    targetType: 'create',
+                    targetAction: 'deploy',
+                    targetName: 'createAgentProvision',
+                    targetFriendlyName: 'Create Agent Provision',
+                },
+                { status: 'submitted', resourceId: agentResourceId }
+            );
+            createStartTimeRef.current = Date.now();
+
             const notificationId = notifications.start(
                 intl.formatMessage(AgentCreateDeploymentNotificationResources.agentCreationValidationTitle),
                 intl.formatMessage(AgentCreateDeploymentNotificationResources.agentCreationValidationInProgress, {
@@ -626,6 +685,8 @@ export const useSreAgentCreate = ({
             logEvent,
             intl,
             notifications,
+            logControlEvent,
+            logOperationEvent,
         ]
     );
 

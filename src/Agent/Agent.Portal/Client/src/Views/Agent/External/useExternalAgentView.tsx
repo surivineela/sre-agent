@@ -142,7 +142,7 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
         sendUserInfoCallback();
 
         setIframeInitialized(true);
-    }, [postMessage, authTokenManager, agentUrl, locale, sendThemeCallback, sendUserInfoCallback]);
+    }, [postMessage, authTokenManager, agentUrl, locale, sendThemeCallback, sendUserInfoCallback, logEvent]);
 
     const logCallback = useCallback(
         (telemetryObj: IFrameTelemetryInfo) => {

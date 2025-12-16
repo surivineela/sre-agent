@@ -29,6 +29,8 @@ import { PillFilter } from '../PillFilter/PillFilter';
 import { useFilteredResourceGroups } from './Hooks/useFilteredResourceGroups';
 import { ResourceGroupWithSelection, useResourceGroupsFromMultipleSubscriptions } from './Hooks/useResourceGroupsFromMultipleSubscriptions';
 import { ResourceGroupPickerSkeleton } from './ResourceGroupPickerSkeleton';
+import { useAmplitudeTelemetry } from '../../Hooks/useAmplitudeTelemetry';
+import { SpecialControlValue } from '../../Contracts/Amplitude';
 
 export const MAX_RESOURCE_GROUPS = 100;
 
@@ -80,6 +82,7 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
 }) => {
     const styles = useStyles();
     const intl = useIntl();
+    const { logControlEvent } = useAmplitudeTelemetry();
 
     const [searchFilter, setSearchFilter] = useState<string>('');
     const [resourceGroupsWithSelection, setResourceGroupsWithSelection] = useState<ResourceGroupWithSelection[]>([]);
@@ -227,7 +230,17 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                     return (
                         <TableCellLayout>
                             <div className={styles.nameCell}>
-                                <Link onClick={() => openResourceGroupOverviewInNewTab(item.id)}>{item.name}</Link>
+                                <Link onClick={() => {
+                                    openResourceGroupOverviewInNewTab(item.id);
+                                    logControlEvent({
+                                        targetType: 'link',
+                                        targetAction: 'clicked',
+                                        targetName: 'sreAgentCreateResourceGroupLink',
+                                        targetFriendlyName: 'SRE Agent Create - Resource Group Link',
+                                        valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                                        valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                                    });
+                                    }}>{item.name}</Link>
                                 {item.recommended && (
                                     <Tooltip
                                         relationship="description"
@@ -262,7 +275,7 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                 renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
             }),
         ],
-        [intl, styles, subscriptionOptions, isAllFilteredSelected, isSomeFilteredSelected, toggleSelectAll, toggleItemSelection]
+        [intl, styles, subscriptionOptions, isAllFilteredSelected, isSomeFilteredSelected, toggleSelectAll, toggleItemSelection, logControlEvent]
     );
 
     return (
@@ -282,7 +295,17 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                     <Text>{intl.formatMessage(PortalResources.showRecommended)}</Text>
                     <Switch
                         checked={showRecommended}
-                        onChange={(_, data) => setShowRecommended(data.checked)}
+                        onChange={(_, data) => {
+                            setShowRecommended(data.checked);
+                            logControlEvent({
+                                targetType: 'toggle',
+                                targetAction: 'changed',
+                                targetName: 'sreAgentCreateShowOnlyRecommendedRscGrpsToggle',
+                                targetFriendlyName: 'SRE Agent Create - Show only recommended resource groups toggle',
+                                valueObjectName: data.checked ? 'checked' : 'unchecked',
+                                valueObjectFriendlyName: data.checked ? 'Checked' : 'Unchecked',
+                            });
+                        }}
                         aria-label={intl.formatMessage(PortalResources.toggleShowRecommendedAriaLabel)}
                     />
                 </div>

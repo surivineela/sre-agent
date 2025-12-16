@@ -31,10 +31,13 @@ import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../Common/Contexts/NotificationContext';
 import { useSubscriptions } from '../../Common/Contexts/SubscriptionsContext';
+import { SpecialControlValue } from '../../Common/Contracts/Amplitude';
 import { SreAgentArgItem } from '../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../Common/Contracts/Telemetry';
+import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry';
 import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
+import { getUserFriendlyLocation } from '../../Common/Utilities/Location';
 import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentListSkeleton } from './AgentListSkeleton';
@@ -59,11 +62,14 @@ const useStyles = makeStyles({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
     },
     searchControls: {
         display: 'flex',
         gap: '12px',
         alignItems: 'center',
+        flexWrap: 'wrap',
     },
     searchBox: {
         width: '250px',
@@ -87,6 +93,7 @@ export const AgentsGrid = () => {
     const { isAuthenticated } = useAuth();
     const { start, succeed, fail } = useNotifications();
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
+    const { logNavigationEvent, logControlEvent } = useAmplitudeTelemetry();
     const navigate = usePersistentNavigate();
     const { selectedSubscriptions, subscriptions } = useSubscriptions();
 
@@ -152,7 +159,7 @@ export const AgentsGrid = () => {
                 columnId: 'region',
                 compare: (a, b) => a.location.localeCompare(b.location),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.region)}</Text>,
-                renderCell: item => <TableCellLayout>{item.location}</TableCellLayout>,
+                renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
             }),
         ],
         [intl, navigate, subscriptionDisplayNameMap]
@@ -299,6 +306,28 @@ export const AgentsGrid = () => {
         [sreAgentClient, intl, start, succeed, fail, fetchAgents, logEvent]
     );
 
+    const handleCreateClick = useCallback(() => {
+        logNavigationEvent({
+            targetType: 'button',
+            targetAction: 'openContextPane',
+            targetName: 'SreAgentCreate',
+            targetFriendlyName: 'Create',
+        });
+        setIsCreateDialogOpen(true);
+    }, [logNavigationEvent]);
+
+    const handleDeleteConfirm = useCallback(() => {
+        logControlEvent({
+            targetType: 'button',
+            targetAction: 'clicked',
+            targetName: 'deleteAgents',
+            targetFriendlyName: 'Yes',
+            valueObjectName: SpecialControlValue.DoAction,
+            valueObjectFriendlyName: SpecialControlValue.DoAction,
+        });
+        deleteAgents(selectedAgents);
+    }, [logControlEvent, deleteAgents, selectedAgents]);
+
     useEffect(() => {
         setSelectedSubscriptionIds(selectedSubscriptions.map(sub => sub.subscriptionId));
     }, [selectedSubscriptions]);
@@ -322,7 +351,7 @@ export const AgentsGrid = () => {
 
             <div className={styles.controlsContainer}>
                 <div className={styles.actionButtons}>
-                    <Button icon={<Add16Regular />} appearance="primary" onClick={() => setIsCreateDialogOpen(true)} disabled={isLoading}>
+                    <Button icon={<Add16Regular />} appearance="primary" onClick={handleCreateClick} disabled={isLoading}>
                         {intl.formatMessage(PortalResources.createAgent)}
                     </Button>
                     <Button
@@ -422,9 +451,7 @@ export const AgentsGrid = () => {
                 open={showDeleteConfirmDialog}
                 selectedAgents={selectedAgents}
                 onClose={() => setShowDeleteConfirmDialog(false)}
-                onConfirm={() => {
-                    deleteAgents(selectedAgents);
-                }}
+                onConfirm={handleDeleteConfirm}
             />
         </>
     );

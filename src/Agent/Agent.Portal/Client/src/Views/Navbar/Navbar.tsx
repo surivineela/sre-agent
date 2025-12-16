@@ -31,11 +31,13 @@ const useStyles = makeStyles({
         flexDirection: 'row',
         alignContent: 'center',
         gap: '8px',
+        flexShrink: 0,
     },
     logoSection: {
         display: 'flex',
         flexDirection: 'row',
         alignContent: 'center',
+        alignItems: 'center',
         gap: '8px',
         cursor: 'pointer',
         paddingTop: tokens.spacingVerticalS,
@@ -43,6 +45,8 @@ const useStyles = makeStyles({
         paddingLeft: tokens.spacingHorizontalS,
         paddingRight: tokens.spacingHorizontalS,
         borderRadius: tokens.borderRadiusMedium,
+        minWidth: 0,
+        overflow: 'hidden',
         ':hover': {
             backgroundColor: tokens.colorNeutralBackground4Hover,
         },
@@ -50,11 +54,19 @@ const useStyles = makeStyles({
             backgroundColor: tokens.colorNeutralBackground4Pressed,
         },
     },
+    logoText: {
+        flexShrink: 0,
+    },
     breadcrumbSeparator: {
         color: tokens.colorNeutralForeground3,
+        flexShrink: 0,
     },
     agentName: {
         color: tokens.colorNeutralForeground1,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        minWidth: 0,
     },
     navbarButton: {
         minWidth: '50px',
@@ -89,12 +101,14 @@ export const Navbar = () => {
             <Tooltip content={intl.formatMessage(PortalResources.azureSreAgents)} relationship="label">
                 <div className={styles.logoSection} onClick={() => navigate('/')}>
                     <Image src="SreAgent.svg" width={18} height={18} alt={intl.formatMessage(PortalResources.azureSreAgents)} />
-                    <Text weight="semibold">{intl.formatMessage(PortalResources.azureSreAgents)}</Text>
+                    <Text weight="semibold" className={styles.logoText}>
+                        {intl.formatMessage(PortalResources.azureSreAgents)}
+                    </Text>
                     {agentName && (
                         <>
                             {/* TODO: Fancy selector thingy */}
                             <Text className={styles.breadcrumbSeparator}>/</Text>
-                            <Text weight="semibold" className={styles.agentName}>
+                            <Text weight="semibold" className={styles.agentName} title={decodeURIComponent(agentName)}>
                                 {decodeURIComponent(agentName)}
                             </Text>
                         </>

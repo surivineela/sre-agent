@@ -2,20 +2,20 @@ export interface ArmId {
     /** The kind/type of ARM resource ID */
     readonly kind: ArmIdKind;
     /** Subscription ID */
-    readonly subscription?: string;
+    readonly subscription: string;
     /** Resource group name */
-    readonly resourceGroup?: string;
+    readonly resourceGroup: string;
     /** Location/region */
-    readonly location?: string;
+    readonly location: string;
     /** Resource provider (e.g., "Microsoft.Compute") */
-    readonly provider?: string;
+    readonly provider: string;
     /** Full resource type including provider (e.g., "Microsoft.Compute/virtualMachines") */
-    readonly resourceType?: string;
-    readonly resourceName?: string;
+    readonly resourceType: string;
+    readonly resourceName: string;
     /** (for tag IDs) */
-    readonly tagName?: string;
+    readonly tagName: string;
     /** (for tag IDs) */
-    readonly tagValue?: string;
+    readonly tagValue: string;
     /** Reason for invalid parse (if kind === Invalid) */
     readonly reason?: string;
 }
@@ -70,6 +70,14 @@ type ProcessorFn = (data: MachineData, token: string, value: string) => MachineS
 const invalidResult: ArmId = {
     kind: ArmIdKind.Invalid,
     reason: "Invalid ARM ID",
+    subscription: '',
+    resourceGroup: '',
+    location: '',
+    provider: '',
+    resourceType: '',
+    resourceName: '',
+    tagName: '',
+    tagValue: '',
 };
 
 /**
@@ -136,14 +144,14 @@ export const parseArmId = (id: string): ArmId => {
 
     const result: ArmId = {
         kind: data.kind,
-        subscription: data.subscription,
-        resourceGroup: data.resourceGroup,
-        location: data.location,
-        provider: data.provider,
-        tagName: data.tagName,
-        tagValue: data.tagValue,
-        resourceType: buildResourceType(data),
-        resourceName: data.resourceNames.join("/"),
+        subscription: data.subscription ?? '',
+        resourceGroup: data.resourceGroup ?? '',
+        location: data.location ?? '',
+        provider: data.provider ?? '',
+        tagName: data.tagName ?? '',
+        tagValue: data.tagValue ?? '',
+        resourceType: buildResourceType(data) ?? '',
+        resourceName: data.resourceNames.join("/") ?? '',
     };
 
     return result;

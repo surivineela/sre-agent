@@ -1,7 +1,35 @@
-import { useMemo } from 'react';
+import { FC, useMemo } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
+import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { AmplitudeContextProvider } from '../../Common/Contexts/AmplitudeContext';
 import { AgentIFrame } from './AgentIFrame';
 import { useAgentView } from './useAgentView';
+
+interface AgentIFrameViewContentProps {
+    agentId: string;
+    sreLink?: string;
+}
+
+/** Inner component that uses the amplitude context */
+const AgentIFrameViewContent: FC<AgentIFrameViewContentProps> = ({ agentId, sreLink }) => {
+    const { agentUxUrl, agentUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage, agentLoadError } = useAgentView(
+        agentId,
+        sreLink
+    );
+
+    return (
+        <AgentIFrame
+            agentUxUrl={agentUxUrl}
+            agentUrl={agentUrl}
+            isSiteRunning={isSiteRunning}
+            iframeRef={iframeRef}
+            iframeInitialized={iframeInitialized}
+            errorBannerMessage={errorBannerMessage}
+            agentLoadError={agentLoadError}
+            resourceId={agentId}
+        />
+    );
+};
 
 export const AgentIFrameView = () => {
     const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
@@ -42,21 +70,9 @@ export const AgentIFrameView = () => {
         return fullDeepLink || undefined;
     }, [encodedAgentId, location.pathname, location.search, location.hash]);
 
-    const { agentUxUrl, agentUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage, agentLoadError } = useAgentView(
-        agentId ?? '',
-        sreLink
-    );
-
     return (
-        <AgentIFrame
-            agentUxUrl={agentUxUrl}
-            agentUrl={agentUrl}
-            isSiteRunning={isSiteRunning}
-            iframeRef={iframeRef}
-            iframeInitialized={iframeInitialized}
-            errorBannerMessage={errorBannerMessage}
-            agentLoadError={agentLoadError}
-            resourceId={agentId ?? ''}
-        />
+        <AmplitudeContextProvider resourceId={agentId ?? ''} telemetrySource={TelemetrySource.AgentIFrameView}>
+            <AgentIFrameViewContent agentId={agentId ?? ''} sreLink={sreLink} />
+        </AmplitudeContextProvider>
     );
 };

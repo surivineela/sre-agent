@@ -1,6 +1,10 @@
 import { makeStyles, Subtitle1, Tab, TabList } from '@fluentui/react-components';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { TelemetrySource } from '../../Common/Constants/Telemetry';
+import { AmplitudeContextProvider } from '../../Common/Contexts/AmplitudeContext';
+import { ProductName } from '../../Common/Contracts/Amplitude';
+import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry';
 import { useIsInternal } from '../../Common/Hooks/useIsInternal';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentsGrid } from './AgentsGrid';
@@ -36,13 +40,31 @@ const useStyles = makeStyles({
 });
 
 export const HomeBrowseView = () => {
+    return (
+        <AmplitudeContextProvider resourceId="" productName={ProductName.SreAgent} telemetrySource={TelemetrySource.HomeBrowseView}>
+            <HomeBrowseViewContent />
+        </AmplitudeContextProvider>
+    );
+};
+
+const HomeBrowseViewContent = () => {
     const intl = useIntl();
     const styles = useStyles();
     const { isInternalTenant, isInternalDevTenant } = useIsInternal();
+    const { logNavigationEvent } = useAmplitudeTelemetry();
 
     const [selectedTabKey, setSelectedTabKey] = useState<GridTabKey>(GridTabKey.agents);
 
     const showExternalAgents = useMemo(() => isInternalTenant || isInternalDevTenant, [isInternalTenant, isInternalDevTenant]);
+
+    useEffect(() => {
+        logNavigationEvent({
+            targetType: 'link',
+            targetAction: 'openBlade',
+            targetName: 'sreAgentHome',
+            targetFriendlyName: 'SRE Agent Home',
+        });
+    }, [logNavigationEvent]);
 
     return (
         <div className={styles.container}>

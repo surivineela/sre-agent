@@ -10,12 +10,24 @@ const useStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-evenly',
+        padding: tokens.spacingHorizontalL,
+        boxSizing: 'border-box',
+        '@media (max-width: 768px)': {
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: tokens.spacingVerticalXXL,
+        },
     },
     hero: {
         padding: `${tokens.spacingVerticalXXXL} ${tokens.spacingHorizontalXXL}`,
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalXL,
+        '@media (max-width: 768px)': {
+            padding: tokens.spacingHorizontalM,
+            alignItems: 'center',
+            textAlign: 'center',
+        },
     },
     heading: {
         fontSize: '46px',
@@ -24,6 +36,10 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground1,
         margin: 0,
         maxWidth: '600px',
+        '@media (max-width: 768px)': {
+            fontSize: '32px',
+            lineHeight: '40px',
+        },
     },
     description: {
         fontSize: tokens.fontSizeBase400,
@@ -45,6 +61,12 @@ const useStyles = makeStyles({
     secondaryButton: {
         paddingLeft: tokens.spacingHorizontalL,
         paddingRight: tokens.spacingHorizontalL,
+    },
+    heroImage: {
+        '@media (max-width: 768px)': {
+            width: '180px',
+            height: '180px',
+        },
     },
 });
 
@@ -70,7 +92,13 @@ export const LandingPage = () => {
                 </div>
             </div>
 
-            <Image src="SreAgent.svg" width={256} height={256} alt={intl.formatMessage(PortalResources.azureSreAgent)} />
+            <Image
+                src="SreAgent.svg"
+                width={256}
+                height={256}
+                alt={intl.formatMessage(PortalResources.azureSreAgent)}
+                className={styles.heroImage}
+            />
         </div>
     );
 };

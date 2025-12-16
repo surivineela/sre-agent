@@ -11,8 +11,10 @@ import { ResourceGroupDropdown } from '../../../Common/Components/ResourceGroupD
 import { SubscriptionDropdown } from '../../../Common/Components/SubscriptionDropdown';
 import { ApiVersions } from '../../../Common/Constants/ApiVersions';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
+import { SpecialControlValue } from '../../../Common/Contracts/Amplitude';
 import { Subscription } from '../../../Common/Contracts/Arm';
 import { FieldRestrictionResult } from '../../../Common/Contracts/Permissions';
+import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
 import { useSubscriptionAppInsights } from '../../../Common/Hooks/useSubscriptionAppInsights';
 import { ArmServiceType } from '../../../Common/Utilities/ArmTemplateBuilder/ArmTemplateTypes';
 import { getCanonicalLocation } from '../../../Common/Utilities/Location';
@@ -55,6 +57,7 @@ export const Basics = (props: BasicsProps) => {
 
     const intl = useIntl();
     const { values, setFieldValue, errors } = useFormikContext<SreAgentCreateFormProps>();
+    const { logControlEvent } = useAmplitudeTelemetry();
     const { locationsList, locationsLoading, containsNoLocations } = useSreAgentLocations(
         values.subscriptionId,
         TelemetrySource.SreAgentCreate
@@ -90,6 +93,14 @@ export const Basics = (props: BasicsProps) => {
 
     const onSubscriptionChange = useCallback(
         (subscription?: Subscription) => {
+            logControlEvent({
+                targetType: 'dropdown',
+                targetAction: 'changed',
+                targetName: 'sreAgentCreateSubscription',
+                targetFriendlyName: 'SRE Agent Create - Subscription',
+                valueObjectName: subscription?.subscriptionId ?? '',
+                valueObjectFriendlyName: subscription?.subscriptionId ?? '',
+            });
             setFieldValue('subscriptionId', subscription?.subscriptionId ?? '');
             if (!isDeploying) {
                 setFieldValue('managedResourceGroups', []);
@@ -98,7 +109,7 @@ export const Basics = (props: BasicsProps) => {
                 setFieldValue('managedResourceGroupsLockError', false);
             }
         },
-        [isDeploying, setFieldValue]
+        [isDeploying, setFieldValue, logControlEvent]
     );
 
     const getPolicyErrorMessage = useCallback(async (): Promise<string> => {
@@ -190,6 +201,14 @@ export const Basics = (props: BasicsProps) => {
                 subscriptionId={values.subscriptionId}
                 selectedResourceGroupId={values.resourceGroupId}
                 onResourceGroupChange={resourceGroup => {
+                    logControlEvent({
+                        targetType: 'dropdown',
+                        targetAction: 'changed',
+                        targetName: 'sreAgentCreateResourceGroup',
+                        targetFriendlyName: 'SRE Agent Create - Resource group',
+                        valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                        valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                    });
                     setFieldValue('resourceGroupId', resourceGroup?.id);
                     setFieldValue('isResourceGroupNew', resourceGroup?.new ?? false);
                 }}
@@ -218,6 +237,26 @@ export const Basics = (props: BasicsProps) => {
                 disabled={locationsLoading || isDeploying || isLocationDisabled}
                 isLoading={locationsLoading}
                 orientation="vertical"
+                onOptionSelect={(_e, data) => {
+                    logControlEvent({
+                        targetType: 'dropdown',
+                        targetAction: 'changed',
+                        targetName: 'sreAgentCreateRegion',
+                        targetFriendlyName: 'SRE Agent Create - Region',
+                        valueObjectName: data.optionValue ?? '',
+                        valueObjectFriendlyName: data.optionValue ?? '',
+                    });
+                }}
+                onBlur={() => {
+                    logControlEvent({
+                        targetType: 'dropdown',
+                        targetAction: 'blurred',
+                        targetName: 'sreAgentCreateRegion',
+                        targetFriendlyName: 'SRE Agent Create - Region',
+                        valueObjectName: SpecialControlValue.DoAction,
+                        valueObjectFriendlyName: SpecialControlValue.DoAction,
+                    });
+                }}
             >
                 {locationDropdownOptions.map(option => (
                     <Option key={option.key} value={option.data} text={option.text}>
@@ -247,6 +286,14 @@ export const Basics = (props: BasicsProps) => {
                         onSubscriptionChange={subscription => {
                             setFieldValue('appInsightsSubscriptionId', subscription?.subscriptionId ?? '');
                             setFieldValue('existingAppInsightsId', '');
+                            logControlEvent({
+                                targetType: 'dropdown',
+                                targetAction: 'changed',
+                                targetName: 'sreAgentCreateAppInsightsSubscription',
+                                targetFriendlyName: 'SRE Agent Create - App Insights Subscription',
+                                valueObjectName: subscription?.subscriptionId ?? '',
+                                valueObjectFriendlyName: subscription?.subscriptionId ?? '',
+                            });
                         }}
                         selectedSubscriptionId={values.appInsightsSubscriptionId}
                         disabled={isDeploying}
@@ -263,6 +310,16 @@ export const Basics = (props: BasicsProps) => {
                         isLoading={appInsightsLoading}
                         orientation="vertical"
                         noOptionsMessage={intl.formatMessage(PortalResources.noResultsFound)}
+                        onOptionSelect={(_e, option) => {
+                            logControlEvent({
+                                targetType: 'dropdown',
+                                targetAction: 'changed',
+                                targetName: 'sreAgentCreateAppInsights',
+                                targetFriendlyName: 'SRE Agent Create - Application Insights',
+                                valueObjectName: option.optionValue ?? '',
+                                valueObjectFriendlyName: option.optionValue ?? '',
+                            });
+                        }}
                     />
                 </>
             )}

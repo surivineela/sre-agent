@@ -1,11 +1,14 @@
 import { Formik, useFormikContext } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { WizardDialog } from '../../../Common/Components/Wizard/WizardDialog';
 import { WizardStep } from '../../../Common/Components/Wizard/WizardStepper';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
+import { AmplitudeContextProvider } from '../../../Common/Contexts/AmplitudeContext';
+import { ProductName } from '../../../Common/Contracts/Amplitude';
 import { ResourceGroup } from '../../../Common/Contracts/Arm';
 import { AgentAccessLevel, AgentMode } from '../../../Common/Contracts/SreAgent';
+import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
 import { useDeployment } from '../../../Common/Hooks/useDeployment';
 import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { DeployResources, PortalResources } from '../../../Strings/Resources';
@@ -63,25 +66,27 @@ export const CreateAgentDialog = (props: CreateAgentDialogProps) => {
         });
 
     return (
-        <Formik<SreAgentCreateFormProps>
-            initialValues={initialValues}
-            onSubmit={onSubmit}
-            validationSchema={validationSchema}
-            validateOnBlur={false}
-            enableReinitialize
-        >
-            <InnerCreateAgentDialog
-                isDialogOpen={isDialogOpen}
-                setIsDialogOpen={setIsDialogOpen}
-                isDeploying={isDeploying}
-                permissionsLoading={permissionsLoading}
-                agentSpaceLocation={undefined}
-                currentStepIndex={currentStepIndex}
-                setCurrentStepIndex={setCurrentStepIndex}
-                deploymentResourceId={deploymentResourceId}
-                agentResourceId={agentResourceId}
-            />
-        </Formik>
+        <AmplitudeContextProvider resourceId="" productName={ProductName.SreAgent} telemetrySource={TelemetrySource.SreAgentCreate}>
+            <Formik<SreAgentCreateFormProps>
+                initialValues={initialValues}
+                onSubmit={onSubmit}
+                validationSchema={validationSchema}
+                validateOnBlur={false}
+                enableReinitialize
+            >
+                <InnerCreateAgentDialog
+                    isDialogOpen={isDialogOpen}
+                    setIsDialogOpen={setIsDialogOpen}
+                    isDeploying={isDeploying}
+                    permissionsLoading={permissionsLoading}
+                    agentSpaceLocation={undefined}
+                    currentStepIndex={currentStepIndex}
+                    setCurrentStepIndex={setCurrentStepIndex}
+                    deploymentResourceId={deploymentResourceId}
+                    agentResourceId={agentResourceId}
+                />
+            </Formik>
+        </AmplitudeContextProvider>
     );
 };
 
@@ -113,6 +118,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
     const intl = useIntl();
     const navigate = usePersistentNavigate();
     const { values, errors, submitForm } = useFormikContext<SreAgentCreateFormProps>();
+    const { logNavigationEvent } = useAmplitudeTelemetry();
 
     const { deploymentSucceeded } = useDeployment(deploymentResourceId, currentStepIndex === 4, TelemetrySource.SreAgentCreate);
 
@@ -203,13 +209,38 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
 
     const handleNext = useCallback(() => {
         if (isDeployStep) {
+            logNavigationEvent({
+                targetType: 'button',
+                targetAction: 'openBlade',
+                targetName: 'sreAgentCreateChatWithAgentButton',
+                targetFriendlyName: 'SRE Agent Create - Chat with Agent',
+            });
             navigate(`/agents/${encodeURIComponent(agentResourceId)}`);
         } else if (isReviewStep) {
             submitForm();
         } else {
             setCurrentStepIndex(currentStepIndex + 1);
         }
-    }, [isDeployStep, isReviewStep, currentStepIndex, navigate, agentResourceId, setCurrentStepIndex, submitForm]);
+    }, [
+        isDeployStep,
+        isReviewStep,
+        currentStepIndex,
+        navigate,
+        agentResourceId,
+        setCurrentStepIndex,
+        submitForm,
+        logNavigationEvent,
+    ]);
+
+    useEffect(() => {
+        logNavigationEvent({
+            targetType: 'tab',
+            targetAction: 'tabItem',
+            targetName: `sreAgentCreateTab${wizardSteps[currentStepIndex].id}`,
+            targetFriendlyName: `SRE Agent Create tab ${wizardSteps[currentStepIndex].id}`,
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStepIndex, logNavigationEvent]);
 
     return (
         <WizardDialog

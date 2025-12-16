@@ -8,6 +8,7 @@ import { AgentAccessLevel } from '../../../Common/Contracts/SreAgent';
 import { PortalResources } from '../../../Strings/Resources';
 import { SreAgentCreateFormProps } from './CreateAgentDialog';
 import PermissionsGrid from './PermissionsGrid';
+import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
 
 interface AgentPermissionsProps {
     isDeploying: boolean;
@@ -16,6 +17,7 @@ interface AgentPermissionsProps {
 export const AgentPermissions = ({ isDeploying }: AgentPermissionsProps) => {
     const intl = useIntl();
     const { values, setFieldValue, errors } = useFormikContext<SreAgentCreateFormProps>();
+    const { logControlEvent } = useAmplitudeTelemetry();
 
     const permissionsLevelOptions = useMemo(() => {
         return [
@@ -57,7 +59,18 @@ export const AgentPermissions = ({ isDeploying }: AgentPermissionsProps) => {
             >
                 <RadioGroup
                     value={values.permissionsLevel}
-                    onChange={(_e, data) => setFieldValue('permissionsLevel', data.value)}
+                    onChange={(_e, data) => {
+                        setFieldValue('permissionsLevel', data.value);
+
+                        logControlEvent({
+                            targetType: 'radioButton',
+                            targetAction: 'changed',
+                            targetName: 'sreAgentCreateAgentPermissionsLevel',
+                            targetFriendlyName: 'SRE Agent Create - Agent permissions Level',
+                            valueObjectName: data.value ?? '',
+                            valueObjectFriendlyName: data.value ?? '',
+                        });
+                    }}
                     disabled={isDeploying}
                 >
                     {permissionsLevelOptions.map(option => (
