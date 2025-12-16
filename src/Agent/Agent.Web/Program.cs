@@ -17,6 +17,7 @@ using Agent.Core.Services.LinuxAppService.Validators;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
+using Agent.Data.Storage;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Graph.Crawler;
@@ -543,7 +544,6 @@ public class Program
             .AddTransient<IAzureActivityLogsPlugin, AzureActivityLogsPlugin>()
             .AddSingleton<IToolOutputStorage>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
                 var settings = sp.GetRequiredService<IOptions<ToolOutputSettings>>().Value;
 
                 // Use configured path if available, otherwise fall back to temp directory
@@ -551,7 +551,24 @@ public class Program
                     ? settings.StoragePath
                     : Path.Combine(Path.GetTempPath(), "SREAgent");
 
-                return new LocalToolOutputStorage(storagePath, logger);
+                // Validate configuration if storage account is enabled
+                if (settings.IsStorageAccountValid())
+                {
+                    // Use Azure Blob Storage
+                    var authService = sp.GetRequiredService<IAuthenticationService>();
+                    var logger = sp.GetRequiredService<ILogger<AzureBlobToolOutputStorage>>();
+                    return new AzureBlobToolOutputStorage(settings, authService, logger, storagePath);
+                }
+                else
+                {
+                    // Use local file system storage (either not enabled or invalid configuration)
+                    var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
+                    if (settings.StorageAccountEnabled)
+                    {
+                        logger.LogInternalWarning("Azure Blob Storage for tool outputs is enabled but configuration is invalid. Falling back to local storage.");
+                    }
+                    return new LocalToolOutputStorage(storagePath, logger);
+                }
             })
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()

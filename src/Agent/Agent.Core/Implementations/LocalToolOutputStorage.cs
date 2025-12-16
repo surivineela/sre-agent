@@ -152,17 +152,11 @@ public class LocalToolOutputStorage : IToolOutputStorage
     }
 
     /// <summary>
-    /// Deletes files older than the specified retention period
+    /// Deletes all files associated with a specific thread
     /// </summary>
-    /// <param name="retentionDays">Number of days to retain files</param>
-    /// <returns>Number of files deleted</returns>
-    public int CleanupOldFiles(int retentionDays)
+    public int CleanupFilesByThreadId(Guid threadId)
     {
-        if (retentionDays <= 0)
-        {
-            _logger.LogInternalWarning("Invalid retention days: {RetentionDays}. Skipping cleanup.", retentionDays);
-            return 0;
-        }
+        var deletedCount = 0;
 
         try
         {
@@ -172,22 +166,16 @@ public class LocalToolOutputStorage : IToolOutputStorage
                 return 0;
             }
 
-            var cutoffDate = DateTime.UtcNow.AddDays(-retentionDays);
-            var files = Directory.EnumerateFiles(_baseStoragePath, "*.*", SearchOption.AllDirectories);
-            var deletedCount = 0;
+            var threadPrefix = $"{threadId}-";
+            var files = Directory.EnumerateFiles(_baseStoragePath, $"{threadId}-*.*", SearchOption.TopDirectoryOnly);
 
             foreach (var file in files)
             {
                 try
                 {
-                    var fileInfo = new FileInfo(file);
-                    if (fileInfo.CreationTimeUtc < cutoffDate)
-                    {
-                        File.Delete(file);
-                        deletedCount++;
-                        _logger.LogInternalInformation("Deleted old file: {FilePath}, Created: {CreationTime}",
-                            file, fileInfo.CreationTimeUtc);
-                    }
+                    File.Delete(file);
+                    deletedCount++;
+                    _logger.LogInternalInformation("Deleted tool output file for thread {ThreadId}: {FilePath}", threadId, file);
                 }
                 catch (Exception ex)
                 {
@@ -195,13 +183,12 @@ public class LocalToolOutputStorage : IToolOutputStorage
                 }
             }
 
-            _logger.LogInternalInformation("Cleanup completed. Deleted {DeletedCount} files older than {RetentionDays} days.",
-                deletedCount, retentionDays);
+            _logger.LogInternalInformation("Cleanup completed for thread {ThreadId}. Deleted {DeletedCount} file(s).", threadId, deletedCount);
             return deletedCount;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error during cleanup of old files in {BasePath}", _baseStoragePath);
+            _logger.LogInternalError(ex, "Error during cleanup of files for thread {ThreadId}", threadId);
             return 0;
         }
     }

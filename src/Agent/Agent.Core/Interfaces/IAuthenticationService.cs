@@ -103,6 +103,7 @@ public interface IAuthenticationService
 
     public TokenCredential GetAgentMemoryBlobStorageCredential();
     public TokenCredential GetAgentMemoryAzureAISearchCredential();
+    public TokenCredential GetToolOutputBlobStorageCredential();
     public TokenCredential GetObserverCredential();
     public TokenCredential GetAgentHelperCredential();
     public TokenCredential GetAgentSpaceProxyCredential();

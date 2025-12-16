@@ -280,6 +280,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public string? GetActionIdentity() => "action-id";
         public TokenCredential GetAgentMemoryBlobStorageCredential() => _credential;
         public TokenCredential GetAgentMemoryAzureAISearchCredential() => _credential;
+        public TokenCredential GetToolOutputBlobStorageCredential() => _credential;
         public TokenCredential GetObserverCredential() => _credential;
         public TokenCredential GetAgentHelperCredential() => _credential;
         public TokenCredential GetAzureDevOpsCredential() => _credential;

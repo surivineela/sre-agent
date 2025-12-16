@@ -52,7 +52,8 @@ public class ThreadsController(
     IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
     TrajectoryEvaluator trajectoryEvaluator,
     ISessionInsightRepository sessionInsightRepository,
-    IStreamingMessageRepository streamingMessageRepository) : ControllerBase
+    IStreamingMessageRepository streamingMessageRepository,
+    IToolOutputStorage toolOutputStorage) : ControllerBase
 {
     // By default, returns threads ordered by timestamp in ascending order.
     // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -493,6 +494,17 @@ public class ThreadsController(
         {
             logger.LogInternalInformation("Session insight found for thread {threadId}, deleting it", threadId);
             await sessionInsightRepository.DeleteSessionInsightAsync(threadId.ToString());
+        }
+
+        // Clean up tool output files associated with this thread
+        try
+        {
+            var deletedFilesCount = toolOutputStorage.CleanupFilesByThreadId(threadId);
+            logger.LogInternalInformation("Deleted {Count} tool output file(s) for thread {ThreadId}", deletedFilesCount, threadId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to cleanup tool output files for thread {ThreadId}", threadId);
         }
 
         // Delete CLI executions (Az CLI) for this thread

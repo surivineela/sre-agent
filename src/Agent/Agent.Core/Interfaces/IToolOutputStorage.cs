@@ -32,9 +32,9 @@ public interface IToolOutputStorage
     string? EnsureFileExist(string fileKey);
 
     /// <summary>
-    /// Deletes files older than the specified retention period
+    /// Deletes all files associated with a specific thread
     /// </summary>
-    /// <param name="retentionDays">Number of days to retain files</param>
+    /// <param name="threadId">The thread ID to delete files for</param>
     /// <returns>Number of files deleted</returns>
-    int CleanupOldFiles(int retentionDays);
+    int CleanupFilesByThreadId(Guid threadId);
 }
