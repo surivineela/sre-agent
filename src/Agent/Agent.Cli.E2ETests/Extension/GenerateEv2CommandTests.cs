@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cli.Tests.E2E.Helpers;
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,17 +13,15 @@ namespace Agent.Cli.Tests.E2E.Extension;
 /// E2E tests for 'srectl extension generate-ev2' command.
 /// Tests both Bicep-only and full EV2 artifact generation scenarios.
 /// </summary>
-[Collection("ExtensionTests")]
-public class GenerateEv2CommandTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class GenerateEv2CommandTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public GenerateEv2CommandTests(ITestOutputHelper output)
+    public GenerateEv2CommandTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -31,14 +30,14 @@ public class GenerateEv2CommandTests : IDisposable
     public async Task GenerateEv2_BicepOnly_CreatesTemplates()
     {
         // Arrange - Create test tools and agents folders
-        _cli.CreateDirectory("tools");
-        _cli.CreateFile("tools/test-tool.yaml", TestYamlHelper.GetMinimalKustoToolV2("test-tool"));
+        Runner.CreateDirectory("tools");
+        Runner.CreateFile("tools/test-tool.yaml", TestYamlHelper.GetMinimalKustoToolV2("test-tool"));
 
-        _cli.CreateDirectory("agents");
-        _cli.CreateFile("agents/test-agent.yaml", TestYamlHelper.GetMinimalAgentV2("test-agent"));
+        Runner.CreateDirectory("agents");
+        Runner.CreateFile("agents/test-agent.yaml", TestYamlHelper.GetMinimalAgentV2("test-agent"));
 
         // Act - Generate Bicep templates only (no EV2 options)
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "extension", "generate-ev2",
             "--tools-folder", "tools",
             "--agent-folder", "agents",
@@ -53,17 +52,17 @@ public class GenerateEv2CommandTests : IDisposable
         Assert.True(result.Success, $"Command should succeed. Exit code: {result.ExitCode}, Error: {result.StandardError}");
 
         // Verify BicepTemplates folder was created
-        Assert.True(_cli.DirectoryExists("output-bicep/BicepTemplates"), "BicepTemplates folder should exist");
-        Assert.True(_cli.FileExists("output-bicep/BicepTemplates/modules/sreagentExtensionFile.bicep"),
+        Assert.True(Runner.DirectoryExists("output-bicep/BicepTemplates"), "BicepTemplates folder should exist");
+        Assert.True(Runner.FileExists("output-bicep/BicepTemplates/modules/sreagentExtensionFile.bicep"),
             "sreagentExtensionFile.bicep should exist");
 
         // Verify EV2 artifacts were NOT created
-        Assert.False(_cli.FileExists("output-bicep/serviceModel.json"), "serviceModel.json should NOT exist without EV2 options");
-        Assert.False(_cli.FileExists("output-bicep/configurationSettings.jsonc"), "configurationSettings.jsonc should NOT exist without EV2 options");
-        Assert.False(_cli.FileExists("output-bicep/Deploy-Extension.ps1"), "Deploy-Extension.ps1 should NOT exist without EV2 options");
+        Assert.False(Runner.FileExists("output-bicep/serviceModel.json"), "serviceModel.json should NOT exist without EV2 options");
+        Assert.False(Runner.FileExists("output-bicep/configurationSettings.jsonc"), "configurationSettings.jsonc should NOT exist without EV2 options");
+        Assert.False(Runner.FileExists("output-bicep/Deploy-Extension.ps1"), "Deploy-Extension.ps1 should NOT exist without EV2 options");
 
         // Verify ARM templates were generated
-        Assert.True(_cli.DirectoryExists("output-bicep/ArmTemplates"), "ArmTemplates folder should exist");
+        Assert.True(Runner.DirectoryExists("output-bicep/ArmTemplates"), "ArmTemplates folder should exist");
     }
 
     [Fact]
@@ -72,14 +71,14 @@ public class GenerateEv2CommandTests : IDisposable
     public async Task GenerateEv2_WithAllOptions_CreatesFullEv2Artifacts()
     {
         // Arrange - Create test tools and agents folders
-        _cli.CreateDirectory("tools");
-        _cli.CreateFile("tools/test-tool.yaml", TestYamlHelper.GetMinimalKustoToolV2("test-tool"));
+        Runner.CreateDirectory("tools");
+        Runner.CreateFile("tools/test-tool.yaml", TestYamlHelper.GetMinimalKustoToolV2("test-tool"));
 
-        _cli.CreateDirectory("agents");
-        _cli.CreateFile("agents/test-agent.yaml", TestYamlHelper.GetMinimalAgentV2("test-agent"));
+        Runner.CreateDirectory("agents");
+        Runner.CreateFile("agents/test-agent.yaml", TestYamlHelper.GetMinimalAgentV2("test-agent"));
 
         // Act - Generate full EV2 artifacts with all options
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "extension", "generate-ev2",
             "--tools-folder", "tools",
             "--agent-folder", "agents",
@@ -102,20 +101,20 @@ public class GenerateEv2CommandTests : IDisposable
         Assert.True(result.Success, $"Command should succeed. Exit code: {result.ExitCode}, Error: {result.StandardError}");
 
         // Verify BicepTemplates folder was created
-        Assert.True(_cli.DirectoryExists("output-ev2/BicepTemplates"), "BicepTemplates folder should exist");
-        Assert.True(_cli.FileExists("output-ev2/BicepTemplates/modules/sreagentExtensionFile.bicep"),
+        Assert.True(Runner.DirectoryExists("output-ev2/BicepTemplates"), "BicepTemplates folder should exist");
+        Assert.True(Runner.FileExists("output-ev2/BicepTemplates/modules/sreagentExtensionFile.bicep"),
             "sreagentExtensionFile.bicep should exist");
 
         // Verify EV2 artifacts were created
-        Assert.True(_cli.FileExists("output-ev2/serviceModel.json"), "serviceModel.json should exist");
-        Assert.True(_cli.FileExists("output-ev2/serviceGroupSpecification.json"), "serviceGroupSpecification.json should exist");
-        Assert.True(_cli.FileExists("output-ev2/configurationSettings.jsonc"), "configurationSettings.jsonc should exist");
-        Assert.True(_cli.FileExists("output-ev2/Deploy-Extension.ps1"), "Deploy-Extension.ps1 should exist");
-        Assert.True(_cli.FileExists("output-ev2/RolloutSpec.json"), "RolloutSpec.json should exist");
-        Assert.True(_cli.FileExists("output-ev2/ScopeBindings.json"), "ScopeBindings.json should exist");
+        Assert.True(Runner.FileExists("output-ev2/serviceModel.json"), "serviceModel.json should exist");
+        Assert.True(Runner.FileExists("output-ev2/serviceGroupSpecification.json"), "serviceGroupSpecification.json should exist");
+        Assert.True(Runner.FileExists("output-ev2/configurationSettings.jsonc"), "configurationSettings.jsonc should exist");
+        Assert.True(Runner.FileExists("output-ev2/Deploy-Extension.ps1"), "Deploy-Extension.ps1 should exist");
+        Assert.True(Runner.FileExists("output-ev2/RolloutSpec.json"), "RolloutSpec.json should exist");
+        Assert.True(Runner.FileExists("output-ev2/ScopeBindings.json"), "ScopeBindings.json should exist");
 
         // Verify placeholders were replaced in configurationSettings.jsonc
-        var configContent = _cli.ReadFile("output-ev2/configurationSettings.jsonc");
+        var configContent = Runner.ReadFile("output-ev2/configurationSettings.jsonc");
         _output.WriteLine("=== Configuration Settings ===");
         _output.WriteLine(configContent);
         _output.WriteLine("==============================");
@@ -129,21 +128,21 @@ public class GenerateEv2CommandTests : IDisposable
         Assert.DoesNotContain("{{AGENT_NAME}}", configContent);
 
         // Verify placeholders were replaced in serviceModel.json
-        var serviceModelContent = _cli.ReadFile("output-ev2/serviceModel.json");
+        var serviceModelContent = Runner.ReadFile("output-ev2/serviceModel.json");
         Assert.Contains("\"serviceIdentifier\": \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\"", serviceModelContent);
         Assert.Contains("\"serviceGroup\": \"TestServiceGroup\"", serviceModelContent);
         Assert.DoesNotContain("{{SERVICE_IDENTIFIER}}", serviceModelContent);
         Assert.DoesNotContain("{{SERVICE_GROUP}}", serviceModelContent);
 
         // Verify placeholders were replaced in serviceGroupSpecification.json
-        var serviceGroupSpecContent = _cli.ReadFile("output-ev2/serviceGroupSpecification.json");
+        var serviceGroupSpecContent = Runner.ReadFile("output-ev2/serviceGroupSpecification.json");
         Assert.Contains("\"name\": \"TestServiceGroup\"", serviceGroupSpecContent);
         Assert.Contains("\"identifier\": \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\"", serviceGroupSpecContent);
         Assert.DoesNotContain("{{SERVICE_IDENTIFIER}}", serviceGroupSpecContent);
         Assert.DoesNotContain("{{SERVICE_GROUP}}", serviceGroupSpecContent);
 
         // Verify ARM templates were generated
-        Assert.True(_cli.DirectoryExists("output-ev2/ArmTemplates"), "ArmTemplates folder should exist");
+        Assert.True(Runner.DirectoryExists("output-ev2/ArmTemplates"), "ArmTemplates folder should exist");
     }
 
     [Fact]
@@ -152,11 +151,11 @@ public class GenerateEv2CommandTests : IDisposable
     public async Task GenerateEv2_WithEmptyFolders_Succeeds()
     {
         // Arrange - Create empty tools and agents folders
-        _cli.CreateDirectory("tools");
-        _cli.CreateDirectory("agents");
+        Runner.CreateDirectory("tools");
+        Runner.CreateDirectory("agents");
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "extension", "generate-ev2",
             "--tools-folder", "tools",
             "--agent-folder", "agents",
@@ -169,7 +168,7 @@ public class GenerateEv2CommandTests : IDisposable
         _output.WriteLine("======================");
 
         Assert.True(result.Success, $"Command should succeed even with empty folders. Exit code: {result.ExitCode}");
-        Assert.True(_cli.DirectoryExists("output-empty/BicepTemplates"), "BicepTemplates folder should exist");
+        Assert.True(Runner.DirectoryExists("output-empty/BicepTemplates"), "BicepTemplates folder should exist");
     }
 
     [Fact]
@@ -178,10 +177,10 @@ public class GenerateEv2CommandTests : IDisposable
     public async Task GenerateEv2_NonExistentToolsFolder_Fails()
     {
         // Arrange - Create only agents folder
-        _cli.CreateDirectory("agents");
+        Runner.CreateDirectory("agents");
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "extension", "generate-ev2",
             "--tools-folder", "nonexistent-tools",
             "--agent-folder", "agents",
@@ -199,10 +198,10 @@ public class GenerateEv2CommandTests : IDisposable
     public async Task GenerateEv2_NonExistentAgentFolder_Fails()
     {
         // Arrange - Create only tools folder
-        _cli.CreateDirectory("tools");
+        Runner.CreateDirectory("tools");
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "extension", "generate-ev2",
             "--tools-folder", "tools",
             "--agent-folder", "nonexistent-agents",
@@ -212,10 +211,5 @@ public class GenerateEv2CommandTests : IDisposable
         // Assert
         Assert.False(result.Success, "Command should fail when agent folder doesn't exist");
         Assert.Contains("does not exist", result.Output, StringComparison.OrdinalIgnoreCase);
-    }
-
-    public void Dispose()
-    {
-        _cli?.Dispose();
     }
 }

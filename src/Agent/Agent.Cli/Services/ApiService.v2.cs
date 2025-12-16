@@ -130,38 +130,14 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Message)> ApplyExtendedToolAsync(string toolName, bool dryRun = false)
+    public async Task<(bool Success, string Message)> ApplyExtendedToolAsync(ExtendedToolV2 tool, bool dryRun = false)
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            var toolName = tool.Metadata?.Name;
+            if (string.IsNullOrWhiteSpace(toolName))
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            // Find tool YAML file using flexible search
-            var toolFilePath = ExtendedToolHelper.FindToolFile(toolName);
-            if (toolFilePath == null)
-            {
-                return (false, $"Tool file not found for '{toolName}'. Searched in tools directory and subdirectories for '{toolName}.yaml'");
-            }
-
-            // Check tool version before attempting to apply
-            var detectedVersion = ExtendedToolHelper.DetectVersion(toolFilePath);
-            if (detectedVersion != YamlApiVersion.V2)
-            {
-                var versionName = detectedVersion == YamlApiVersion.V1 ? "V1" : "unknown";
-                return (false, $"❌ Tool '{toolName}' is using {versionName} format and must be migrated to V2 before applying.\n" +
-                              $"   Run: srectl tool migrate --name {toolName}\n" +
-                              $"   Or:  srectl tool migrate --all");
-            }
-
-            // Read and parse the YAML file as ExtendedToolV2
-            var tool = await ExtendedToolV2.LoadYamlAsync(toolFilePath);
-            if (tool == null)
-            {
-                return (false, $"Failed to parse tool YAML file: {toolFilePath}");
+                return (false, "Tool name is required in metadata.");
             }
 
             // Serialize spec to JSON node with camelCase properties
@@ -170,10 +146,10 @@ public partial class ApiService : IDisposable
             // Build the API request envelope in camelCase
             var requestBody = new
             {
-                name = tool.Metadata.Name,
+                name = toolName,
                 type = "ExtendedAgentTool",
-                tags = tool.Metadata.Tags ?? new List<string>(),
-                owner = tool.Metadata.Owner,
+                tags = tool.Metadata?.Tags ?? new List<string>(),
+                owner = tool.Metadata?.Owner,
                 properties = propertiesNode
             };
 

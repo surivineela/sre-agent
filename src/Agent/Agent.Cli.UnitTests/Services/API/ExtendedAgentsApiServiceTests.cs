@@ -473,20 +473,6 @@ spec:
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task ApplyToolAsync_WithInvalidToolName_ReturnsError(string toolName)
-    {
-        // Act
-        var (Success, Response) = await _apiService.ApplyExtendedToolAsync(toolName);
-
-        // Assert
-        Assert.False(Success);
-        Assert.Contains("Tool file not found", Response);
-    }
-
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
     public async Task ApplyYamlFileAsync_WithNullOrEmptyPath_ReturnsError(string filePath)
     {
         // Act

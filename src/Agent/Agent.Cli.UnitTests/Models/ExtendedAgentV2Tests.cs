@@ -136,8 +136,10 @@ spec:
         Assert.NotNull(agent.Spec);
         Assert.Equal("Simple instructions", agent.Spec.Instructions);
         Assert.Null(agent.Spec.HandoffDescription);
-        Assert.Null(agent.Spec.Handoffs);
-        Assert.Null(agent.Spec.Tools);
+        Assert.NotNull(agent.Spec.Handoffs);
+        Assert.Empty(agent.Spec.Handoffs);
+        Assert.NotNull(agent.Spec.Tools);
+        Assert.Empty(agent.Spec.Tools);
         Assert.Null(agent.Spec.OutputType);
     }
 

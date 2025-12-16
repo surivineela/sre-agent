@@ -151,8 +151,44 @@ public static class ToolCommandHandlers
 
         DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
 
+        // Find tool YAML file using flexible search
+        var toolFilePath = ExtendedToolHelper.FindToolFile(name!);
+        if (toolFilePath == null)
+        {
+            ConsoleUI.WriteStatus(false, $"Tool file not found for '{name}'. Searched in tools directory and subdirectories for '{name}.yaml'");
+            return 1;
+        }
+
+        // Check tool version before attempting to apply
+        var detectedVersion = ExtendedToolHelper.DetectVersion(toolFilePath);
+        if (detectedVersion != YamlApiVersion.V2)
+        {
+            var versionName = detectedVersion == YamlApiVersion.V1 ? "V1" : "unknown";
+            ConsoleUI.WriteStatus(false, $"Tool '{name}' is using {versionName} format and must be migrated to V2 before applying.");
+            ConsoleUI.WriteBullet($"Run: srectl tool migrate --name {name}", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet("Or:  srectl tool migrate --all", ConsoleColor.Yellow);
+            return 1;
+        }
+
+        // Read and parse the YAML file as ExtendedToolV2
+        var tool = await ExtendedToolV2.LoadYamlAsync(toolFilePath);
+        if (tool == null)
+        {
+            ConsoleUI.WriteStatus(false, $"Failed to parse tool YAML file: {toolFilePath}");
+            return 1;
+        }
+
+        // Check if --name parameter differs from the name in YAML
+        var yamlName = tool.Metadata?.Name;
+        if (!string.IsNullOrEmpty(yamlName) && !string.Equals(name, yamlName, StringComparison.OrdinalIgnoreCase))
+        {
+            ConsoleUI.WriteBullet($"Warning: --name parameter '{name}' differs from YAML metadata.name '{yamlName}'", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet($"Using name from YAML: '{yamlName}'", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
+
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ApplyExtendedToolAsync(name!, dryRun);
+        var (success, response) = await apiService.ApplyExtendedToolAsync(tool, dryRun);
 
         Console.WriteLine(response);
         return success ? 0 : 1;
@@ -262,7 +298,7 @@ public static class ToolCommandHandlers
         {
             ConsoleUI.WriteInfo("No extended tools found on the server.", ConsoleColor.Yellow);
             ConsoleUI.WriteInfo("Use 'srectl tool apply <tool-name>' to add tools to the server.", ConsoleColor.Gray);
-            return 0;
+            return 1;
         }
 
         // Filter by name if specified
@@ -310,7 +346,7 @@ public static class ToolCommandHandlers
     /// <summary>
     /// Handles the tool delete command.
     /// </summary>
-    public static async Task HandleDeleteCommand(ParseResult parseResult)
+    public static async Task<int> HandleDeleteCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool delete command");
 
@@ -319,56 +355,48 @@ public static class ToolCommandHandlers
 
         DebugLogger.Debug("Parameters", $"ToolName: {toolName}, DryRun: {dryRun}");
 
+        // Null check (validation should have caught this, but be defensive)
         if (string.IsNullOrWhiteSpace(toolName))
         {
-            ConsoleUI.WriteStatus(false, "Tool name is required.");
-            Environment.Exit(1);
-            return;
+            throw new InvalidOperationException("Tool name validation should have been caught by the validator.");
         }
 
-        try
+        using var apiService = new ApiService();
+
+        if (dryRun)
         {
-            using var apiService = new ApiService();
-
-            if (dryRun)
-            {
-                ConsoleUI.WriteInfo($"Validating tool deletion for '{toolName}' (dry run)...", ConsoleColor.Yellow);
-            }
-            else
-            {
-                ConsoleUI.WriteInfo($"Deleting tool '{toolName}'...", ConsoleColor.Yellow);
-            }
-
-            var (success, message) = await apiService.DeleteExtendedToolAsync(toolName, dryRun);
-
-            if (success)
-            {
-                ConsoleUI.WriteStatus(true, message);
-
-                // After successful server deletion (not dry-run), offer to clean up local files
-                if (!dryRun)
-                {
-                    OfferLocalToolCleanup(toolName);
-                }
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(false, message);
-                Environment.Exit(1);
-            }
+            ConsoleUI.WriteInfo($"Validating tool deletion for '{toolName}' (dry run)...", ConsoleColor.Yellow);
         }
-        catch (Exception ex)
+        else
         {
-            DebugLogger.Debug("Exception", $"DeleteTool failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Failed to delete tool: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteInfo($"Deleting tool '{toolName}'...", ConsoleColor.Yellow);
+        }
+
+        var (success, message) = await apiService.DeleteExtendedToolAsync(toolName, dryRun);
+
+        if (success)
+        {
+            ConsoleUI.WriteStatus(true, message);
+
+            // After successful server deletion (not dry-run), offer to clean up local files
+            if (!dryRun)
+            {
+                OfferLocalToolCleanup(toolName);
+            }
+
+            return 0;
+        }
+        else
+        {
+            ConsoleUI.WriteStatus(false, message);
+            return 1;
         }
     }
 
     /// <summary>
     /// Handles the tool diff command to compare local and remote configurations.
     /// </summary>
-    public static async Task HandleDiffCommand(ParseResult parseResult)
+    public static async Task<int> HandleDiffCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting tool diff command");
 
@@ -381,8 +409,7 @@ public static class ToolCommandHandlers
         if (string.IsNullOrWhiteSpace(toolName))
         {
             ConsoleUI.WriteStatus(false, "Tool name is required.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
         try
@@ -393,8 +420,7 @@ public static class ToolCommandHandlers
             {
                 ConsoleUI.WriteStatus(false, $"Local tool file not found for '{toolName}'");
                 ConsoleUI.WriteBullet($"Expected: tools/{toolName}.yaml or tools/{toolName}/{toolName}.yaml", ConsoleColor.Yellow);
-                Environment.Exit(1);
-                return;
+                return 1;
             }
 
             ConsoleUI.WriteInfo($"Comparing tool '{toolName}'...", ConsoleColor.Cyan);
@@ -406,10 +432,8 @@ public static class ToolCommandHandlers
             if (!success)
             {
                 ConsoleUI.WriteStatus(false, $"Failed to get remote configuration: {errorMessage}");
-                Environment.Exit(1);
-                return;
+                return 1;
             }
-
 
 
             // Read local configuration
@@ -417,11 +441,12 @@ public static class ToolCommandHandlers
 
             // If both are identical, no need to diff
             if (string.Equals(localYaml.Trim(), remoteYaml.Trim(), StringComparison.Ordinal))
-            {
-                ConsoleUI.WriteStatus(true, "Local and remote configurations are identical");
-                Environment.Exit(0);
-                return;
-            }
+                // If both are identical, no need to diff
+                if (string.Equals(localYaml.Trim(), remoteYaml.Trim(), StringComparison.Ordinal))
+                {
+                    ConsoleUI.WriteStatus(true, "Local and remote configurations are identical");
+                    return 0;
+                }
 
             // Parse the remote YAML content to get tool type first, then deserialize using specific tool type class
             string localContent, remoteContent;
@@ -514,17 +539,19 @@ public static class ToolCommandHandlers
             else
             {
                 // Use external diff tool
+                // Use external diff tool
                 await LaunchDiffTool(localContent, remoteContent, toolName, diffTool, ".yaml");
             }
+
+            return 0;
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"Diff failed: {ex.Message}");
             ConsoleUI.WriteStatus(false, $"Failed to compare tool: {ex.Message}");
-            Environment.Exit(1);
+            return 1;
         }
     }
-
     /// <summary>
     /// Determines if we should use V2 structured creation based on provided parameters.
     /// </summary>

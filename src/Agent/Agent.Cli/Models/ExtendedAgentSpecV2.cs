@@ -16,7 +16,7 @@ namespace Agent.Cli.Models
         public string? Instructions { get; set; }
 
         [YamlMember(Alias = "handoffDescription")]
-        public string? HandoffDescription { get; set; } = string.Empty;
+        public string? HandoffDescription { get; set; }
 
         private List<string> _handoffs = new();
         [YamlMember(Alias = "handoffs")]

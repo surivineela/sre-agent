@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 using YamlDotNet.Serialization;
@@ -13,17 +14,15 @@ namespace Agent.Cli.Tests.E2E.Tool;
 /// In-process tests for 'srectl tool create' command.
 /// These tests are fast, debuggable, and don't require spawning processes.
 /// </summary>
-[Collection("ToolTests")]
-public class CreateCommandTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class CreateCommandTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public CreateCommandTests(ITestOutputHelper output)
+    public CreateCommandTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -37,7 +36,7 @@ public class CreateCommandTests : IDisposable
         var description = "Test Kusto tool for E2E testing";
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", toolName,
             "--type", toolType,
@@ -55,10 +54,10 @@ public class CreateCommandTests : IDisposable
 
         // Verify the YAML file was created
         var expectedPath = $"tools/{toolName}/{toolName}.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
         // Verify the YAML content
-        var yamlContent = _cli.ReadFile(expectedPath);
+        var yamlContent = Runner.ReadFile(expectedPath);
         _output.WriteLine("=== YAML Content ===");
         _output.WriteLine(yamlContent);
         _output.WriteLine("====================");
@@ -100,7 +99,7 @@ public class CreateCommandTests : IDisposable
         Assert.Contains(normalizedExpectedPath, result.Output, StringComparison.OrdinalIgnoreCase);
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -118,7 +117,7 @@ public class CreateCommandTests : IDisposable
         var toolName = "FlatTool";
 
         // Act - using empty string for --path means flat structure
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", toolName,
             "--type", "KustoTool",
@@ -130,14 +129,14 @@ public class CreateCommandTests : IDisposable
 
         // Verify file is in flat structure: tools/FlatTool.yaml (not tools/FlatTool/FlatTool.yaml)
         var expectedPath = $"tools/{toolName}.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
         // Verify legacy structure does NOT exist
         var legacyPath = $"tools/{toolName}/{toolName}.yaml";
-        Assert.False(_cli.FileExists(legacyPath), $"File should not exist at legacy path {legacyPath}");
+        Assert.False(Runner.FileExists(legacyPath), $"File should not exist at legacy path {legacyPath}");
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -156,7 +155,7 @@ public class CreateCommandTests : IDisposable
         var customPath = "monitoring";
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", toolName,
             "--type", "KustoTool",
@@ -168,10 +167,10 @@ public class CreateCommandTests : IDisposable
 
         // Verify file is in custom subfolder: tools/monitoring/CustomPathTool.yaml
         var expectedPath = $"tools/{customPath}/{toolName}.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -191,7 +190,7 @@ public class CreateCommandTests : IDisposable
         var template = "https://example.com/{id}";
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", toolName,
             "--type", "LinkTool",
@@ -205,14 +204,14 @@ public class CreateCommandTests : IDisposable
         Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
 
         var expectedPath = $"tools/{toolName}/{toolName}.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
-        var yamlContent = _cli.ReadFile(expectedPath);
+        var yamlContent = Runner.ReadFile(expectedPath);
         Assert.Contains("LinkTool", yamlContent);
         Assert.Contains(template, yamlContent);
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -227,7 +226,7 @@ public class CreateCommandTests : IDisposable
     public async Task ToolCreate_MissingRequiredOption_ReturnsError()
     {
         // Act - missing --type option
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", "InvalidTool"
         );
@@ -243,7 +242,7 @@ public class CreateCommandTests : IDisposable
     public async Task ToolCreate_KustoToolMinimal_CreatesValidTool()
     {
         // Act - KustoTool with minimal parameters (defaults provided by template)
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", "TestKustoMinimal",
             "--type", "KustoTool"
@@ -254,14 +253,14 @@ public class CreateCommandTests : IDisposable
         Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
 
         var expectedPath = "tools/TestKustoMinimal/TestKustoMinimal.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
-        var yamlContent = _cli.ReadFile(expectedPath);
+        var yamlContent = Runner.ReadFile(expectedPath);
         Assert.Contains("connector:", yamlContent);
         Assert.Contains("database:", yamlContent);
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", "TestKustoMinimal"
         );
@@ -276,7 +275,7 @@ public class CreateCommandTests : IDisposable
     public async Task ToolCreate_LinkToolMinimal_CreatesValidTool()
     {
         // Act - LinkTool with minimal parameters (defaults provided by template)
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", "TestLinkMinimal",
             "--type", "LinkTool"
@@ -287,13 +286,13 @@ public class CreateCommandTests : IDisposable
         Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
 
         var expectedPath = "tools/TestLinkMinimal/TestLinkMinimal.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
-        var yamlContent = _cli.ReadFile(expectedPath);
+        var yamlContent = Runner.ReadFile(expectedPath);
         Assert.Contains("template:", yamlContent);
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", "TestLinkMinimal"
         );
@@ -308,7 +307,7 @@ public class CreateCommandTests : IDisposable
     public async Task ToolCreate_NameWithSpecialCharacters_HandlesGracefully()
     {
         // Act - name with special characters that might cause issues
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", "Test-Tool_123",
             "--type", "KustoTool"
@@ -320,7 +319,7 @@ public class CreateCommandTests : IDisposable
         Assert.True(result.Success, $"Command should accept valid special characters. Error: {result.StandardError}");
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", "Test-Tool_123"
         );
@@ -335,7 +334,7 @@ public class CreateCommandTests : IDisposable
     public async Task ToolCreate_MultipleParameters_ParsesCorrectly()
     {
         // Act - multiple parameter definitions
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "create",
             "--name", "MultiParamTool",
             "--type", "LinkTool",
@@ -350,25 +349,20 @@ public class CreateCommandTests : IDisposable
         Assert.True(result.Success, $"Command should handle multiple parameters. Error: {result.StandardError}");
 
         var expectedPath = "tools/MultiParamTool/MultiParamTool.yaml";
-        Assert.True(_cli.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
 
-        var yamlContent = _cli.ReadFile(expectedPath);
+        var yamlContent = Runner.ReadFile(expectedPath);
         Assert.Contains("id", yamlContent);
         Assert.Contains("type", yamlContent);
         Assert.Contains("region", yamlContent);
 
         // Validate the created tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", "MultiParamTool"
         );
         _output.WriteLine($"Validation output: {validateResult.Output}");
         Assert.True(validateResult.Success, "Created tool should be valid");
         Assert.Equal(0, validateResult.ExitCode);
-    }
-
-    public void Dispose()
-    {
-        _cli.Dispose();
     }
 }

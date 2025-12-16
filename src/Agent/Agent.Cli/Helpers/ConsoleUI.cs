@@ -14,6 +14,12 @@ public static class ConsoleUI
     public static readonly Palette Chars;
     public static readonly bool SupportsColor;
 
+    /// <summary>
+    /// Test injection point for Console.ReadLine. When set, this function is called instead of Console.ReadLine().
+    /// Used by E2E tests to simulate user input without requiring interactive console.
+    /// </summary>
+    public static Func<string?>? ReadLineHandler { get; set; }
+
     static ConsoleUI()
     {
         // Force UTF-8 when possible, but gracefully fall back (works in bash/cmd/PowerShell)
@@ -307,7 +313,10 @@ public static class ConsoleUI
     {
         var options = defaultYes ? "[Y/n]" : "[y/N]";
         WriteInline($"? {message} {options} ", ConsoleColor.Yellow);
-        var input = Console.ReadLine()?.Trim().ToLowerInvariant();
+
+        // Use test injection if available (for E2E tests)
+        var input = (ReadLineHandler?.Invoke() ?? Console.ReadLine())?.Trim().ToLowerInvariant();
+
         if (string.IsNullOrEmpty(input)) return defaultYes;
         return input.StartsWith('y');
     }

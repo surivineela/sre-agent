@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cli.Tests.E2E.Helpers;
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,17 +13,15 @@ namespace Agent.Cli.Tests.E2E.Tool;
 /// Tests for 'srectl tool migrate' command functionality.
 /// Validates migration of V1 tools to V2 format.
 /// </summary>
-[Collection("ToolTests")]
-public class MigrateCommandTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class MigrateCommandTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public MigrateCommandTests(ITestOutputHelper output)
+    public MigrateCommandTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -43,10 +42,10 @@ public class MigrateCommandTests : IDisposable
             {
                 ("param1", "string", "Test parameter")
             });
-        _cli.CreateFile($"tools/{toolName}.yaml", v1Yaml);
+        Runner.CreateFile($"tools/{toolName}.yaml", v1Yaml);
 
         // Act - Migrate the tool
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolName
         );
@@ -57,7 +56,7 @@ public class MigrateCommandTests : IDisposable
         Assert.Equal(0, result.ExitCode);
 
         // Verify V2 format (migrated in place)
-        var migratedYaml = _cli.ReadFile($"tools/{toolName}.yaml");
+        var migratedYaml = Runner.ReadFile($"tools/{toolName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", migratedYaml);
         Assert.Contains("kind: ExtendedAgentTool", migratedYaml);
         Assert.Contains("type: KustoTool", migratedYaml);
@@ -66,7 +65,7 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("TestQuery", migratedYaml);
 
         // Validate the migrated tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -91,10 +90,10 @@ public class MigrateCommandTests : IDisposable
             {
                 ("param1", "string", "Test parameter")
             });
-        _cli.CreateFile($"tools/{toolName}.yaml", v1Yaml);
+        Runner.CreateFile($"tools/{toolName}.yaml", v1Yaml);
 
         // Act - Migrate the tool
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolName
         );
@@ -105,14 +104,14 @@ public class MigrateCommandTests : IDisposable
         Assert.Equal(0, result.ExitCode);
 
         // Verify V2 format (migrated in place)
-        var migratedYaml = _cli.ReadFile($"tools/{toolName}.yaml");
+        var migratedYaml = Runner.ReadFile($"tools/{toolName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", migratedYaml);
         Assert.Contains("kind: ExtendedAgentTool", migratedYaml);
         Assert.Contains("type: LinkTool", migratedYaml);
         Assert.Contains("template: https://example.com/{param1}", migratedYaml);
 
         // Validate the migrated tool
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -130,10 +129,10 @@ public class MigrateCommandTests : IDisposable
         // Arrange - Create a V1 KustoTool
         var toolName = "TestKustoToolDryRun";
         var v1Yaml = TestYamlHelper.GetMinimalKustoToolV1(toolName);
-        _cli.CreateFile($"tools/{toolName}.yaml", v1Yaml);
+        Runner.CreateFile($"tools/{toolName}.yaml", v1Yaml);
 
         // Act - Migrate with --dry-run
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolName,
             "--dry-run"
@@ -146,7 +145,7 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("dry run", result.Output, StringComparison.OrdinalIgnoreCase);
 
         // Verify original file is unchanged
-        var originalYaml = _cli.ReadFile($"tools/{toolName}.yaml");
+        var originalYaml = Runner.ReadFile($"tools/{toolName}.yaml");
         Assert.Contains("version: v1", originalYaml);
     }
 
@@ -157,7 +156,7 @@ public class MigrateCommandTests : IDisposable
     public async Task ToolMigrate_NonExistentTool_ReturnsError()
     {
         // Act - Try to migrate a non-existent tool
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", "NonExistentTool"
         );
@@ -182,10 +181,10 @@ public class MigrateCommandTests : IDisposable
             connector: "TestConnector",
             database: "TestDatabase",
             query: "TestQuery");
-        _cli.CreateFile($"tools/{toolName}.yaml", v2Yaml);
+        Runner.CreateFile($"tools/{toolName}.yaml", v2Yaml);
 
         // Act - Try to migrate a V2 tool
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolName
         );
@@ -220,11 +219,11 @@ public class MigrateCommandTests : IDisposable
             description: "Tool 2",
             template: "https://example.com");
 
-        _cli.CreateFile($"tools/{tool1}.yaml", v1Yaml1);
-        _cli.CreateFile($"tools/{tool2}.yaml", v1Yaml2);
+        Runner.CreateFile($"tools/{tool1}.yaml", v1Yaml1);
+        Runner.CreateFile($"tools/{tool2}.yaml", v1Yaml2);
 
         // Act - Migrate all tools
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--all"
         );
@@ -235,8 +234,8 @@ public class MigrateCommandTests : IDisposable
         Assert.Equal(0, result.ExitCode);
 
         // Verify both tools were migrated (in place)
-        var yaml1 = _cli.ReadFile($"tools/{tool1}.yaml");
-        var yaml2 = _cli.ReadFile($"tools/{tool2}.yaml");
+        var yaml1 = Runner.ReadFile($"tools/{tool1}.yaml");
+        var yaml2 = Runner.ReadFile($"tools/{tool2}.yaml");
 
         Assert.Contains("api_version: azuresre.ai/v2", yaml1);
         Assert.Contains("type: KustoTool", yaml1);
@@ -245,7 +244,7 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("type: LinkTool", yaml2);
 
         // Validate all migrated tools
-        var validateResult = await _cli.RunAsync(
+        var validateResult = await Runner.RunAsync(
             "tool", "validate",
             "--all"
         );
@@ -276,10 +275,10 @@ public class MigrateCommandTests : IDisposable
                 ("Tool3", "LinkTool", "Third tool", null, null, null, "https://example.com/{id}")
             });
 
-        _cli.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
+        Runner.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
 
         // Act - Migrate the ToolList
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolListName
         );
@@ -291,9 +290,9 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("Migrated 3 tools to V2", result.Output);
 
         // Verify three separate V2 files were created
-        var tool1Yaml = _cli.ReadFile("tools/Tool1.yaml");
-        var tool2Yaml = _cli.ReadFile("tools/Tool2.yaml");
-        var tool3Yaml = _cli.ReadFile("tools/Tool3.yaml");
+        var tool1Yaml = Runner.ReadFile("tools/Tool1.yaml");
+        var tool2Yaml = Runner.ReadFile("tools/Tool2.yaml");
+        var tool3Yaml = Runner.ReadFile("tools/Tool3.yaml");
 
         // Verify Tool1
         Assert.Contains("api_version: azuresre.ai/v2", tool1Yaml);
@@ -318,15 +317,15 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("https://example.com/{id}", tool3Yaml);
 
         // Verify original ToolList file was backed up
-        var backupExists = _cli.FileExists($"tools/{toolListName}.yaml.v1.bak");
+        var backupExists = Runner.FileExists($"tools/{toolListName}.yaml.v1.bak");
         Assert.True(backupExists, "Original ToolList should be backed up");
 
         // Verify original ToolList file no longer exists
-        var originalExists = _cli.FileExists($"tools/{toolListName}.yaml");
+        var originalExists = Runner.FileExists($"tools/{toolListName}.yaml");
         Assert.False(originalExists, "Original ToolList should be moved to backup");
 
         // Validate all migrated tools
-        var validateResult = await _cli.RunAsync("tool", "validate", "--all");
+        var validateResult = await Runner.RunAsync("tool", "validate", "--all");
         _output.WriteLine($"Validation output: {validateResult.Output}");
         Assert.True(validateResult.Success, "All migrated tools should be valid");
     }
@@ -349,10 +348,10 @@ public class MigrateCommandTests : IDisposable
                 ("AnotherTool", "LinkTool", "Different tool", null, null, null, "https://example.com")
             });
 
-        _cli.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
+        Runner.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
 
         // Act - Migrate the ToolList
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolListName
         );
@@ -365,18 +364,18 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("original file overwritten", result.Output);
 
         // Verify the original file was overwritten with Tool1's V2 format (not backed up)
-        var myToolListYaml = _cli.ReadFile($"tools/{toolListName}.yaml");
+        var myToolListYaml = Runner.ReadFile($"tools/{toolListName}.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", myToolListYaml);
         Assert.Contains("kind: ExtendedAgentTool", myToolListYaml);
         Assert.Contains("name: MyToolList", myToolListYaml);
 
         // Verify AnotherTool was created
-        var anotherToolYaml = _cli.ReadFile("tools/AnotherTool.yaml");
+        var anotherToolYaml = Runner.ReadFile("tools/AnotherTool.yaml");
         Assert.Contains("name: AnotherTool", anotherToolYaml);
         Assert.Contains("type: LinkTool", anotherToolYaml);
 
         // Verify backup was NOT created (since original was overwritten)
-        var backupExists = _cli.FileExists($"tools/{toolListName}.yaml.v1.bak");
+        var backupExists = Runner.FileExists($"tools/{toolListName}.yaml.v1.bak");
         Assert.False(backupExists, "Backup should not exist when original file is overwritten");
     }
 
@@ -397,10 +396,10 @@ public class MigrateCommandTests : IDisposable
                 ("DryTool2", "LinkTool", "Tool 2", null, null, null, "https://example.com")
             });
 
-        _cli.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
+        Runner.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
 
         // Act - Migrate with dry-run
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolListName,
             "--dry-run"
@@ -414,18 +413,18 @@ public class MigrateCommandTests : IDisposable
         Assert.Contains("dry run", result.Output, StringComparison.OrdinalIgnoreCase);
 
         // Verify no V2 files were created
-        var tool1Exists = _cli.FileExists("tools/DryTool1.yaml");
-        var tool2Exists = _cli.FileExists("tools/DryTool2.yaml");
+        var tool1Exists = Runner.FileExists("tools/DryTool1.yaml");
+        var tool2Exists = Runner.FileExists("tools/DryTool2.yaml");
         Assert.False(tool1Exists, "DryTool1.yaml should not be created in dry-run");
         Assert.False(tool2Exists, "DryTool2.yaml should not be created in dry-run");
 
         // Verify original ToolList still exists and unchanged
-        var originalYaml = _cli.ReadFile($"tools/{toolListName}.yaml");
+        var originalYaml = Runner.ReadFile($"tools/{toolListName}.yaml");
         Assert.Contains("api_version: agent.platform.ai/v1", originalYaml);
         Assert.Contains("kind: ToolList", originalYaml);
 
         // Verify no backup was created
-        var backupExists = _cli.FileExists($"tools/{toolListName}.yaml.v1.bak");
+        var backupExists = Runner.FileExists($"tools/{toolListName}.yaml.v1.bak");
         Assert.False(backupExists, "Backup should not be created in dry-run");
     }
 
@@ -447,10 +446,10 @@ spec:
   tools:
 ";
 
-        _cli.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
+        Runner.CreateFile($"tools/{toolListName}.yaml", toolListYaml);
 
         // Act - Migrate the empty ToolList
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--name", toolListName
         );
@@ -483,11 +482,11 @@ spec:
             database: "DB2",
             query: "Query2");
 
-        _cli.CreateFile("tools/MixedList.yaml", toolListYaml);
-        _cli.CreateFile("tools/SingleTool.yaml", singleToolYaml);
+        Runner.CreateFile("tools/MixedList.yaml", toolListYaml);
+        Runner.CreateFile("tools/SingleTool.yaml", singleToolYaml);
 
         // Act - Migrate all
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "migrate",
             "--all"
         );
@@ -498,22 +497,17 @@ spec:
         Assert.Equal(0, result.ExitCode);
 
         // Verify tool from ToolList was created
-        var listTool1Yaml = _cli.ReadFile("tools/ListTool1.yaml");
+        var listTool1Yaml = Runner.ReadFile("tools/ListTool1.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", listTool1Yaml);
         Assert.Contains("name: ListTool1", listTool1Yaml);
 
         // Verify standalone tool was migrated in place
-        var singleToolMigratedYaml = _cli.ReadFile("tools/SingleTool.yaml");
+        var singleToolMigratedYaml = Runner.ReadFile("tools/SingleTool.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", singleToolMigratedYaml);
         Assert.Contains("name: SingleTool", singleToolMigratedYaml);
 
         // Verify ToolList backup exists
-        var backupExists = _cli.FileExists("tools/MixedList.yaml.v1.bak");
+        var backupExists = Runner.FileExists("tools/MixedList.yaml.v1.bak");
         Assert.True(backupExists, "ToolList should be backed up");
-    }
-
-    public void Dispose()
-    {
-        _cli.Dispose();
     }
 }

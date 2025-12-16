@@ -15,11 +15,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Reference CLI project to get built CLI path -->
     <ProjectReference Include="..\Agent.Cli\Agent.Cli.csproj" />
+    <!-- Reference Web project for mock backend -->
+    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

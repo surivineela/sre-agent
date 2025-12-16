@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,17 +12,15 @@ namespace Agent.Cli.Tests.E2E.Tool;
 /// Tests for invalid parameter validation in 'srectl tool validate' command.
 /// Validates error handling for mutually exclusive parameters.
 /// </summary>
-[Collection("ToolTests")]
-public class ValidateCommandInvalidParameterTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class ValidateCommandInvalidParameterTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public ValidateCommandInvalidParameterTests(ITestOutputHelper output)
+    public ValidateCommandInvalidParameterTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -31,7 +30,7 @@ public class ValidateCommandInvalidParameterTests : IDisposable
     public async Task ToolValidate_BothNameAndAll_ReturnsError()
     {
         // Act - both --name and --all provided (mutually exclusive)
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", "TestTool",
             "--all"
@@ -51,7 +50,7 @@ public class ValidateCommandInvalidParameterTests : IDisposable
     public async Task ToolValidate_NeitherNameNorAll_ReturnsError()
     {
         // Act - neither --name nor --all provided
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate"
         );
 
@@ -68,7 +67,7 @@ public class ValidateCommandInvalidParameterTests : IDisposable
     public async Task ToolValidate_UnrecognizedOption_ReturnsError()
     {
         // Act - unrecognized option
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", "TestTool",
             "--invalid-option", "some-value"
@@ -79,10 +78,5 @@ public class ValidateCommandInvalidParameterTests : IDisposable
         Assert.False(result.Success, "Command should fail with unrecognized option");
         Assert.NotEqual(0, result.ExitCode);
         Assert.Contains("Unrecognized command or arguments: '--invalid-option'", result.Output, StringComparison.OrdinalIgnoreCase);
-    }
-
-    public void Dispose()
-    {
-        _cli.Dispose();
     }
 }

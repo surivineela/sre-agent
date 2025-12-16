@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,17 +12,15 @@ namespace Agent.Cli.Tests.E2E.Tool;
 /// In-process tests for 'srectl tool show-types' command.
 /// These tests are fast, debuggable, and don't require spawning processes.
 /// </summary>
-[Collection("ToolTests")]
-public class ShowTypesCommandTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class ShowTypesCommandTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public ShowTypesCommandTests(ITestOutputHelper output)
+    public ShowTypesCommandTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -30,7 +29,7 @@ public class ShowTypesCommandTests : IDisposable
     public async Task ToolShowTypes_WithoutParameters_ListsAllToolTypes()
     {
         // Act
-        var result = await _cli.RunAsync("tool", "show-types");
+        var result = await Runner.RunAsync("tool", "show-types");
 
         // Assert
         _output.WriteLine("=== Command Output ===");
@@ -66,7 +65,7 @@ public class ShowTypesCommandTests : IDisposable
     public async Task ToolShowTypes_WithKustoToolType_ShowsDetailedInformation()
     {
         // Act
-        var result = await _cli.RunAsync("tool", "show-types", "--type", "KustoTool");
+        var result = await Runner.RunAsync("tool", "show-types", "--type", "KustoTool");
 
         // Assert
         _output.WriteLine("=== Command Output ===");
@@ -112,7 +111,7 @@ public class ShowTypesCommandTests : IDisposable
     public async Task ToolShowTypes_WithLinkToolType_ShowsDetailedInformation()
     {
         // Act
-        var result = await _cli.RunAsync("tool", "show-types", "--type", "LinkTool");
+        var result = await Runner.RunAsync("tool", "show-types", "--type", "LinkTool");
 
         // Assert
         _output.WriteLine("=== Command Output ===");
@@ -156,7 +155,7 @@ public class ShowTypesCommandTests : IDisposable
     public async Task ToolShowTypes_WithCaseInsensitiveToolType_ShowsDetails()
     {
         // Act - test with lowercase
-        var result = await _cli.RunAsync("tool", "show-types", "--type", "kustotool");
+        var result = await Runner.RunAsync("tool", "show-types", "--type", "kustotool");
 
         // Assert
         _output.WriteLine("=== Command Output ===");
@@ -173,7 +172,7 @@ public class ShowTypesCommandTests : IDisposable
     public async Task ToolShowTypes_WithInvalidToolType_ShowsError()
     {
         // Act
-        var result = await _cli.RunAsync("tool", "show-types", "--type", "InvalidTool");
+        var result = await Runner.RunAsync("tool", "show-types", "--type", "InvalidTool");
 
         // Assert
         _output.WriteLine("=== Command Output ===");
@@ -185,10 +184,5 @@ public class ShowTypesCommandTests : IDisposable
         // Verify error message
         Assert.Contains("Tool type 'InvalidTool' not found", result.Output);
         Assert.Contains("Use 'srectl tool show-types' to see available tool types", result.Output);
-    }
-
-    public void Dispose()
-    {
-        _cli.Dispose();
     }
 }

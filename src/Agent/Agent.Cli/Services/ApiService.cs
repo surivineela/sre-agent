@@ -32,17 +32,37 @@ public partial class ApiService : IDisposable
         Converters = { new JsonStringEnumConverter() }
     };
 
+    // Static factory for creating HttpClient - allows test injection
+    private static Func<HttpClient>? _httpClientFactory;
+
+    /// <summary>
+    /// Sets a custom HttpClient factory for testing. This allows tests to inject
+    /// an in-memory test server's HttpClient.
+    /// </summary>
+    public static void SetHttpClientFactory(Func<HttpClient>? factory)
+    {
+        _httpClientFactory = factory;
+    }
+
     public ApiService()
     {
         _configService = new CliConfigurationService();
         _tokenService = new TokenService();
 
-        var handler = new AuthenticationHandler(_tokenService)
+        // Use factory if set (for tests), otherwise create default HttpClient
+        if (_httpClientFactory != null)
         {
-            InnerHandler = new HttpClientHandler()
-        };
+            _httpClient = _httpClientFactory();
+        }
+        else
+        {
+            var handler = new AuthenticationHandler(_tokenService)
+            {
+                InnerHandler = new HttpClientHandler()
+            };
 
-        _httpClient = new HttpClient(handler);
+            _httpClient = new HttpClient(handler);
+        }
     }
 
     // Constructor for dependency injection (primarily for testing)
@@ -2534,7 +2554,11 @@ public partial class ApiService : IDisposable
 
     private static bool LooksLikeJson(string content)
     {
-        if (string.IsNullOrWhiteSpace(content)) return false;
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return true;
+        }
+
         var t = content.TrimStart();
         return t.StartsWith("{") || t.StartsWith("[");
     }

@@ -51,13 +51,10 @@ public static partial class CommandBuilder
             {
                 // Validate tool name
                 var name = result.GetValue(ToolCommandOptions.Create.NameOption);
-                if (string.IsNullOrWhiteSpace(name))
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "tool");
+                if (!isValid)
                 {
-                    result.AddError(ErrorMessageHelper.InvalidParameter("Tool name must not be empty."));
-                }
-                else if (name.Any(char.IsWhiteSpace))
-                {
-                    result.AddError(ErrorMessageHelper.InvalidParameter("Tool name must not contain whitespace."));
+                    result.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
                 }
 
                 // Validate tool type
@@ -65,9 +62,9 @@ public static partial class CommandBuilder
                 if (!string.IsNullOrEmpty(type))
                 {
                     var availableTypes = ExtendedToolHelper.GetAvailableToolTypes();
-                    var isValid = availableTypes.Any(t => t.Name.Equals(type, StringComparison.OrdinalIgnoreCase));
+                    var isValidType = availableTypes.Any(t => t.Name.Equals(type, StringComparison.OrdinalIgnoreCase));
 
-                    if (!isValid)
+                    if (!isValidType)
                     {
                         var typeNames = string.Join(", ", availableTypes.Select(t => $"'{t.Name}'"));
                         result.AddError(ErrorMessageHelper.InvalidParameter($"Invalid tool type '{type}'. Supported types: {typeNames}"));
@@ -115,6 +112,17 @@ public static partial class CommandBuilder
                 ToolCommandOptions.Apply.DryRunOption
             };
 
+            cmd.Validators.Add(result =>
+            {
+                // Validate tool name
+                var name = result.GetValue(ToolCommandOptions.Apply.NameOption);
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "tool");
+                if (!isValid)
+                {
+                    result.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
+                }
+            });
+
             cmd.SetAction(ToolCommandHandlers.HandleApplyCommand);
             return cmd;
         }
@@ -126,6 +134,17 @@ public static partial class CommandBuilder
                 ToolCommandOptions.Delete.NameOption,
                 ToolCommandOptions.Delete.DryRunOption
             };
+
+            // Add validator for name
+            cmd.Validators.Add(result =>
+            {
+                var name = result.GetValue(ToolCommandOptions.Delete.NameOption);
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "tool");
+                if (!isValid)
+                {
+                    result.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
+                }
+            });
 
             cmd.SetAction(ToolCommandHandlers.HandleDeleteCommand);
             return cmd;

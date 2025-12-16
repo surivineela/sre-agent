@@ -18,9 +18,27 @@ public class CliTestRunner : IDisposable
     private readonly TextWriter _originalError;
     private readonly string _originalDirectory;
     private readonly string _testWorkingDirectory;
+    private readonly string? _mockServerUrl;
+    private readonly string _testConfigDir;
+    private readonly bool _useRealServer;
 
-    public CliTestRunner()
+    /// <summary>
+    /// Checks if tests should run against a real server instead of the in-memory mock server.
+    /// Set USE_REAL_SERVER environment variable to enable real server mode.
+    /// </summary>
+    public static bool UseRealServer => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USE_REAL_SERVER"));
+
+    /// <summary>
+    /// Gets the real server URL from environment variable.
+    /// Use SREAGENT_SERVER_URL to specify the server URL (defaults to http://localhost:5000 if not set).
+    /// </summary>
+    public static string RealServerUrl => Environment.GetEnvironmentVariable("SREAGENT_SERVER_URL") ?? "http://localhost:5000";
+
+    public CliTestRunner(string? mockServerUrl = null)
     {
+        _useRealServer = UseRealServer;
+        _mockServerUrl = _useRealServer ? null : mockServerUrl;
+
         // Save original console streams
         _originalOut = Console.Out;
         _originalError = Console.Error;
@@ -35,8 +53,55 @@ public class CliTestRunner : IDisposable
         Directory.CreateDirectory(_testWorkingDirectory);
         Directory.SetCurrentDirectory(_testWorkingDirectory);
 
+        // Create test-specific config directory
+        _testConfigDir = Path.Combine(_testWorkingDirectory, ".sreagent");
+        Directory.CreateDirectory(_testConfigDir);
+
+        // Override config directory via environment variable for test isolation
+        Environment.SetEnvironmentVariable("SRECTL_CONFIG_DIR", _testConfigDir);
+
         // Set UTF-8 encoding for better Unicode support
         Console.OutputEncoding = Encoding.UTF8;
+
+        // Configure server URL based on test mode
+        if (_useRealServer)
+        {
+            ConfigureRealServer(RealServerUrl);
+        }
+        else if (!string.IsNullOrEmpty(_mockServerUrl))
+        {
+            ConfigureMockServer(_mockServerUrl);
+        }
+    }
+
+    /// <summary>
+    /// Configure the CLI to use the mock server URL
+    /// </summary>
+    private void ConfigureMockServer(string serverUrl)
+    {
+        // Create CLI configuration file pointing to mock server
+        // Use snake_case property names to match CliConfiguration JSON annotations
+        var configContent = $@"{{
+  ""resource_url"": ""{serverUrl}"",
+  ""auth_required"": false
+}}";
+        var configFile = Path.Combine(_testConfigDir, "config.json");
+        File.WriteAllText(configFile, configContent);
+    }
+
+    /// <summary>
+    /// Configure the CLI to use a real server URL
+    /// </summary>
+    private void ConfigureRealServer(string serverUrl)
+    {
+        // Create CLI configuration file pointing to real server
+        // Use snake_case property names to match CliConfiguration JSON annotations
+        var configContent = $@"{{
+  ""resource_url"": ""{serverUrl}"",
+  ""auth_required"": true
+}}";
+        var configFile = Path.Combine(_testConfigDir, "config.json");
+        File.WriteAllText(configFile, configContent);
     }
 
     /// <summary>
@@ -150,6 +215,9 @@ public class CliTestRunner : IDisposable
     /// </summary>
     public void Dispose()
     {
+        // Clear environment variable override
+        Environment.SetEnvironmentVariable("SRECTL_CONFIG_DIR", null);
+
         // Restore original directory
         try
         {

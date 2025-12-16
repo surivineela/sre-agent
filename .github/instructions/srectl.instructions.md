@@ -54,7 +54,9 @@ The Unit Tests project for the CLI.
   - Focus on testing core functionality
   - Avoid adding trivial tests like null checks
   - Add sufficient comments to test code for readability
-  - Avoid making assumptions about test output
+  - The validation step of E2E should use the CLI itself to verify results
+  - The E2E test `*CommandInvalidParameterTests.cs` should only test invalid parameter combinations and error messages
+  - The E2E test for invalid scenario should validate the exit code and error message, avoid making assumptions about test output
 - When modifying existing code, gradually refactor to align with these guidelines rather than performing large-scale refactoring in a single change
 - When testing CLI commands manually, `cd` to `TestPlayground` folder first and use relative paths from there.
 

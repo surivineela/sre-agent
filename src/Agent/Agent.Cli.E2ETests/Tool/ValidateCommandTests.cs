@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cli.Tests.E2E.Helpers;
+using Agent.Cli.Tests.E2E.MockBackend;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,17 +13,15 @@ namespace Agent.Cli.Tests.E2E.Tool;
 /// E2E tests for 'srectl tool validate' command.
 /// Tests validation of tool YAML files in V2 format.
 /// </summary>
-[Collection("ToolTests")]
-public class ValidateCommandTests : IDisposable
+[Collection(AgentCommandTestCollection.Name)]
+public class ValidateCommandTests : AgentCommandTestBase
 {
     private readonly ITestOutputHelper _output;
-    private readonly CliTestRunner _cli;
 
-    public ValidateCommandTests(ITestOutputHelper output)
+    public ValidateCommandTests(MockWebApplicationFactory factory, ITestOutputHelper output) : base(factory)
     {
         _output = output;
-        _cli = new CliTestRunner();
-        _output.WriteLine($"Test working directory: {_cli.WorkingDirectory}");
+        _output.WriteLine($"Test working directory: {Runner.WorkingDirectory}");
     }
 
     [Fact]
@@ -43,10 +42,10 @@ public class ValidateCommandTests : IDisposable
             database: "test-database",
             query: "TestQuery | take 10",
             parameters: parameters);
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -75,10 +74,10 @@ public class ValidateCommandTests : IDisposable
             description: "A valid link tool for testing",
             template: "https://example.com/{id}",
             parameters: parameters);
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -103,10 +102,10 @@ public class ValidateCommandTests : IDisposable
             connector: "test-connector",
             database: "test-db",
             query: "TestQuery | take 10");
-        _cli.CreateFile($"tools/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -141,11 +140,11 @@ public class ValidateCommandTests : IDisposable
             description: "Second test tool",
             template: "https://example.com/{id}",
             parameters: parameters2);
-        _cli.CreateFile($"tools/{tool1}/{tool1}.yaml", yamlContent1);
-        _cli.CreateFile($"tools/{tool2}/{tool2}.yaml", yamlContent2);
+        Runner.CreateFile($"tools/{tool1}/{tool1}.yaml", yamlContent1);
+        Runner.CreateFile($"tools/{tool2}/{tool2}.yaml", yamlContent2);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--all"
         );
@@ -173,10 +172,10 @@ spec:
   description: Invalid Kusto tool missing connector
   database: test-database
 ";
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -207,10 +206,10 @@ spec:
       type: string
       description: ID parameter
 ";
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -245,11 +244,11 @@ spec:
   description: Invalid tool missing connector
   database: db1
 ";
-        _cli.CreateFile($"tools/{validTool}/{validTool}.yaml", validYaml);
-        _cli.CreateFile($"tools/{invalidTool}/{invalidTool}.yaml", invalidYaml);
+        Runner.CreateFile($"tools/{validTool}/{validTool}.yaml", validYaml);
+        Runner.CreateFile($"tools/{invalidTool}/{invalidTool}.yaml", invalidYaml);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--all"
         );
@@ -267,7 +266,7 @@ spec:
     public async Task ToolValidate_NonExistentTool_FailsWithName()
     {
         // Act - try to validate a tool that doesn't exist
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", "NonExistentTool"
         );
@@ -285,7 +284,7 @@ spec:
     public async Task ToolValidate_NoToolsDirectory_FailsWithAll()
     {
         // Act - validate all when no tools directory exists
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--all"
         );
@@ -303,10 +302,10 @@ spec:
     public async Task ToolValidate_EmptyToolsDirectory_FailsWithAll()
     {
         // Arrange - create empty tools directory
-        Directory.CreateDirectory(Path.Combine(_cli.WorkingDirectory, "tools"));
+        Directory.CreateDirectory(Path.Combine(Runner.WorkingDirectory, "tools"));
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--all"
         );
@@ -336,10 +335,10 @@ spec:
   invalid_indent
   database: test-db
 ";
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -361,10 +360,10 @@ spec:
 random_key: random_value
 another_key: another_value
 ";
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -396,10 +395,10 @@ another_key: another_value
             database: "test-db",
             query: "TestQuery | where Name == \"{param1}\" and ID == {param2}",
             parameters: parameters);
-        _cli.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -425,10 +424,10 @@ another_key: another_value
             connector: "test-connector",
             database: "test-db",
             query: "TestQuery | take 10");
-        _cli.CreateFile($"tools/{customPath}/{toolName}.yaml", yamlContent);
+        Runner.CreateFile($"tools/{customPath}/{toolName}.yaml", yamlContent);
 
         // Act
-        var result = await _cli.RunAsync(
+        var result = await Runner.RunAsync(
             "tool", "validate",
             "--name", toolName
         );
@@ -438,10 +437,5 @@ another_key: another_value
         Assert.True(result.Success, $"Command should find and validate tool in custom path. Exit code: {result.ExitCode}");
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("succeeded", result.Output, StringComparison.OrdinalIgnoreCase);
-    }
-
-    public void Dispose()
-    {
-        _cli.Dispose();
     }
 }

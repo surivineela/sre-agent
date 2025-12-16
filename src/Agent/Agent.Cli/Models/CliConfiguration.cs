@@ -17,18 +17,6 @@ public class CliConfiguration
     [JsonPropertyName("last_updated")]
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
-    [JsonPropertyName("version")]
-    public string Version { get; set; } = "1.0.0";
-
-    [JsonPropertyName("api_version")]
-    public string ApiVersion { get; set; } = "azuresre.ai/v1";
-
-    [JsonPropertyName("owner")]
-    public string Owner { get; set; } = "your-team@example.com";
-
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    [JsonPropertyName("tags")]
-    public List<string> Tags { get; set; } = ["example", "demo", "generic"];
 }

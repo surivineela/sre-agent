@@ -9,10 +9,21 @@ namespace Agent.Cli.Services;
 
 public class CliConfigurationService : ICliConfigurationService
 {
-    private static readonly string UserConfigDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sreagent");
-    private static readonly string ConfigFileName = Path.Combine(UserConfigDir, "config.json");
-    private static readonly string ProfilesDir = Path.Combine(UserConfigDir, "profiles");
-    private static readonly string CurrentProfileFile = Path.Combine(UserConfigDir, "current-profile");
+    private static string GetConfigDir()
+    {
+        // Allow override via environment variable for testing
+        var configDirOverride = Environment.GetEnvironmentVariable("SRECTL_CONFIG_DIR");
+        if (!string.IsNullOrEmpty(configDirOverride))
+            return configDirOverride;
+
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sreagent");
+    }
+
+    // Use properties instead of static readonly fields to support dynamic environment variable changes
+    private static string UserConfigDir => GetConfigDir();
+    private static string ConfigFileName => Path.Combine(UserConfigDir, "config.json");
+    private static string ProfilesDir => Path.Combine(UserConfigDir, "profiles");
+    private static string CurrentProfileFile => Path.Combine(UserConfigDir, "current-profile");
 
     static CliConfigurationService()
     {
