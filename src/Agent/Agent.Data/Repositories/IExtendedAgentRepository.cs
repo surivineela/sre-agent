@@ -14,6 +14,8 @@ public interface IExtendedAgentRepository
 
     Task<PaginatedList<AgentDocumentModel>> GetAgentsAsync(int limit = 50, string? search = null);
 
+    Task<IReadOnlyList<AgentDocumentModel>> GetAllAgentsAsync();
+
     Task<bool> DeleteAgentAsync(string name);
 
     Task<ToolDocumentModel> UpsertToolAsync(ToolDocumentModel tool, string operationId);
@@ -26,6 +28,8 @@ public interface IExtendedAgentRepository
 
     Task<PaginatedList<ToolDocumentModel>> GetToolsAsync(int limit = 50, string? search = null);
 
+    Task<IReadOnlyList<ToolDocumentModel>> GetAllToolsAsync();
+
     Task<bool> DeleteToolAsync(string name);
 
     Task<PlugInConfigDocumentModel> UpsertPluginConfigAsync(PlugInConfigDocumentModel config);
@@ -33,6 +37,8 @@ public interface IExtendedAgentRepository
     Task<PlugInConfigDocumentModel?> GetPluginConfigByNameAsync(string name);
 
     Task<PaginatedList<PlugInConfigDocumentModel>> GetPluginConfigsAsync(int limit = 50, string? search = null);
+
+    Task<IReadOnlyList<PlugInConfigDocumentModel>> GetAllPluginConfigsAsync();
 
     Task<bool> DeletePluginConfigAsync(string name);
 
@@ -42,13 +48,17 @@ public interface IExtendedAgentRepository
 
     Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name);
     Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null);
+    Task<IReadOnlyList<CommonPromptDocumentModel>> GetAllCommonPromptsAsync();
     Task<bool> DeleteCommonPromptAsync(string name);
 
     Task<CommonToolsListDocumentModel?> GetCommonToolsListByNameAsync(string name);
     Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null);
+    Task<IReadOnlyList<CommonToolsListDocumentModel>> GetAllCommonToolsListsAsync();
     Task<bool> DeleteCommonToolsListAsync(string name);
 
     Task<PaginatedList<ConnectorDocumentModel>> GetConnectorsAsync(int limit = 50, string? search = null);
+
+    Task<IReadOnlyList<ConnectorDocumentModel>> GetAllConnectorsAsync();
 
     Task<bool> DeleteConnectorAsync(string name);
 
@@ -59,6 +69,8 @@ public interface IExtendedAgentRepository
     Task<SkillDocumentModel?> GetSkillByNameAsync(string name);
 
     Task<PaginatedList<SkillDocumentModel>> GetSkillsAsync(int limit = 50, string? search = null, int pageIndex = 1);
+
+    Task<IReadOnlyList<SkillDocumentModel>> GetAllSkillsAsync();
 
     #region Migration Operations
     /// <summary>

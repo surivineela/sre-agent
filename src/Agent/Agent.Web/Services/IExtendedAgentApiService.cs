@@ -16,19 +16,19 @@ public interface IExtendedAgentApiService
     Task<ApiCommandResult<AgentDocumentModel>> GetAgentAsync(string agentName);
     Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<AgentDocumentModel>> DeleteAgentAsync(string agentName, bool dryRun = false);
-    Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync();
 
     // Tool operations
     Task<ApiCommandResult<ToolDocumentModel>> GetToolAsync(string toolName);
     Task<ApiCommandResult<ToolDocumentModel>> CreateOrUpdateToolAsync(string toolName, ToolDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<ToolDocumentModel>> DeleteToolAsync(string toolName, bool dryRun = false);
-    Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync();
 
     // Connector operations
     Task<ApiCommandResult<ConnectorDocumentModel>> GetConnectorAsync(string connectorName);
     Task<ApiCommandResult<ConnectorDocumentModel>> CreateOrUpdateConnectorAsync(string connectorName, ConnectorDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName, bool dryRun = false);
-    Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync();
     Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName);
 
     // Kusto tool test
@@ -38,24 +38,24 @@ public interface IExtendedAgentApiService
     Task<ApiCommandResult<PlugInConfigDocumentModel>> GetPluginConfigAsync(string pluginName);
     Task<ApiCommandResult<PlugInConfigDocumentModel>> CreateOrUpdatePluginConfigAsync(string pluginName, PlugInConfigDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false);
-    Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync();
 
     // CommonPrompt operations
     Task<ApiCommandResult<CommonPromptDocumentModel>> GetCommonPromptAsync(string promptName);
     Task<ApiCommandResult<CommonPromptDocumentModel>> CreateOrUpdateCommonPromptAsync(string promptName, CommonPromptDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false);
-    Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync();
 
     // CommonToolList operations
     Task<ApiCommandResult<CommonToolsListDocumentModel>> GetCommonToolListAsync(string listName);
     Task<ApiCommandResult<CommonToolsListDocumentModel>> CreateOrUpdateCommonToolListAsync(string listName, CommonToolsListDocumentModel model, bool dryRun = false);
     Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false);
-    Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync();
 
     // Skill operations
     Task<ApiCommandResult<SkillDocumentModel>> GetSkillAsync(string skillName);
     Task<ApiCommandResult<SkillDocumentModel>> CreateOrUpdateSkillAsync(string skillName, SkillDocumentModel model);
     Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName);
-    Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync(int limit = 50, string? search = null);
+    Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync();
     Task<ApiCommandResult<SkillDocumentModel>> ConvertAgentToSkillAsync(string agentName, List<string> topLevelAgents);
 }

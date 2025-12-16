@@ -33,7 +33,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
         List<YamlCommonToolsDescriptor> loadedCommonToolsLists = new List<YamlCommonToolsDescriptor>();
         try
         {
-            var commonToolsLists = await _extendedAgentRepository.GetCommonToolsListsAsync(limit: 1000);
+            var commonToolsLists = await _extendedAgentRepository.GetAllCommonToolsListsAsync();
             foreach (var toolsList in commonToolsLists)
             {
                 try
@@ -64,7 +64,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
 
         try
         {
-            var commonPrompts = await _extendedAgentRepository.GetCommonPromptsAsync(limit: 1000);
+            var commonPrompts = await _extendedAgentRepository.GetAllCommonPromptsAsync();
             foreach (var prompt in commonPrompts)
             {
                 try
@@ -106,7 +106,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
                 _logger.LogInternalInformation("Loading extended tools from Cosmos DB on demand...");
 
                 // Load all extended tools
-                var extendedTools = await _extendedAgentRepository.GetToolsAsync(limit: 1000);
+                var extendedTools = await _extendedAgentRepository.GetAllToolsAsync();
 
                 // Load new ones
                 foreach (var extendedTool in extendedTools)
@@ -147,7 +147,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
         List<YamlAgentDescriptor> loadedExtendedAgents = new List<YamlAgentDescriptor>();
         try
         {
-            var extendedAgents = await _extendedAgentRepository.GetAgentsAsync(limit: 1000);
+            var extendedAgents = await _extendedAgentRepository.GetAllAgentsAsync();
             foreach (var extendedAgent in extendedAgents)
             {
                 try
@@ -178,7 +178,7 @@ public class ExtensibilityLoader : IExtensibilityLoader
         List<SkillSpec> loadedExtendedSkills = [];
         try
         {
-            var extendedSkills = await _extendedAgentRepository.GetSkillsAsync(limit: 1000);
+            var extendedSkills = await _extendedAgentRepository.GetAllSkillsAsync();
             foreach (var extendedSkill in extendedSkills)
             {
                 try

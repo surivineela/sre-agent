@@ -146,14 +146,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting extended agents, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all extended agents, OperationId: {OperationId}", operationId);
 
-            var agents = await _repository.GetAgentsAsync(limit, search);
+            var agents = await _repository.GetAllAgentsAsync();
 
             return new ApiCommandResult<AgentDocumentModel[]>(agents.ToArray());
         }
@@ -255,14 +255,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting extended agent tools, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all extended agent tools, OperationId: {OperationId}", operationId);
 
-            var tools = await _repository.GetToolsAsync(limit, search);
+            var tools = await _repository.GetAllToolsAsync();
 
             return new ApiCommandResult<ToolDocumentModel[]>(tools.ToArray());
         }
@@ -364,14 +364,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting extended agent connectors, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all extended agent connectors, OperationId: {OperationId}", operationId);
 
-            var connectors = await _repository.GetConnectorsAsync(limit, search);
+            var connectors = await _repository.GetAllConnectorsAsync();
 
             return new ApiCommandResult<ConnectorDocumentModel[]>(connectors.ToArray());
         }
@@ -469,14 +469,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting plugin configs, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all plugin configs, OperationId: {OperationId}", operationId);
 
-            var plugins = await _repository.GetPluginConfigsAsync(limit, search);
+            var plugins = await _repository.GetAllPluginConfigsAsync();
             return new ApiCommandResult<PlugInConfigDocumentModel[]>(plugins.ToArray());
         }
         catch (Exception ex)
@@ -573,14 +573,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting common prompts, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all common prompts, OperationId: {OperationId}", operationId);
 
-            var prompts = await _repository.GetCommonPromptsAsync(limit, search);
+            var prompts = await _repository.GetAllCommonPromptsAsync();
 
             return new ApiCommandResult<CommonPromptDocumentModel[]>(prompts.ToArray());
         }
@@ -678,14 +678,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting common tool lists, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all common tool lists, OperationId: {OperationId}", operationId);
 
-            var toolLists = await _repository.GetCommonToolsListsAsync(limit, search);
+            var toolLists = await _repository.GetAllCommonToolsListsAsync();
 
             return new ApiCommandResult<CommonToolsListDocumentModel[]>(toolLists.ToArray());
         }
@@ -762,14 +762,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    public async Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync(int limit = 50, string? search = null)
+    public async Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync()
     {
         try
         {
             var operationId = Guid.NewGuid().ToString();
-            _logger.LogInternalInformation("Getting skills, Limit: {Limit}, Search: {Search}, OperationId: {OperationId}", limit, search, operationId);
+            _logger.LogInternalInformation("Getting all skills, OperationId: {OperationId}", operationId);
 
-            var skills = await _repository.GetSkillsAsync(limit, search);
+            var skills = await _repository.GetAllSkillsAsync();
 
             return new ApiCommandResult<SkillDocumentModel[]>(skills.ToArray());
         }

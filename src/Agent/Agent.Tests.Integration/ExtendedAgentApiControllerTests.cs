@@ -23,7 +23,7 @@ public class ExtendedAgentApiControllerTests : IDisposable
     private const string BaseUrl = "https://localhost:7023";
 
     // Set to null to enable all tests, or set to a message to skip them
-    private const string? SkipReason = "Only for local testing purpose";
+    private const string? SkipReason = null; // "Only for local testing purpose";
 
     public ExtendedAgentApiControllerTests(ITestOutputHelper output)
     {

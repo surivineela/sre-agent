@@ -132,6 +132,62 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         }
     }
 
+    public async Task<IReadOnlyList<AgentDocumentModel>> GetAllAgentsAsync()
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, AgentDocumentModel.ContainerName);
+
+            var queryAgentDocumentModelTask = Task.Run(async () =>
+            {
+                var query = container.GetItemLinqQueryable<AgentDocumentModel>()
+                .Where(d => d.DocumentType == AgentDocumentModel.DocumentTypeName && d.Spec != null); // ensures only query new model
+
+                using var iterator = query.ToFeedIterator();
+                var results = new List<AgentDocumentModel>();
+
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    results.AddRange(response);
+                }
+
+                return results;
+            });
+
+            var queryAgentDocumentModelLegacyTask = Task.Run(async () =>
+            {
+                var query = container.GetItemLinqQueryable<AgentDocumentModelLegacy>()
+                .Where(d => d.DocumentType == AgentDocumentModel.DocumentTypeName && d.Name != null); // ensures only query legacy model
+
+                using var iterator = query.ToFeedIterator();
+                var results = new List<AgentDocumentModel>();
+
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    results.AddRange(response.Select(d => d.ToAgentDocumentModel()));
+                }
+
+                return results;
+            });
+
+            await Task.WhenAll(queryAgentDocumentModelLegacyTask, queryAgentDocumentModelTask);
+
+            var results = new List<AgentDocumentModel>();
+            results.AddRange(queryAgentDocumentModelTask.Result);
+            results.AddRange(queryAgentDocumentModelLegacyTask.Result);
+
+            _logger.LogInternalInformation("Retrieved all {Count} agents (New: {NewCount}, Legacy: {LegacyCount})", results.Count, queryAgentDocumentModelTask.Result.Count, queryAgentDocumentModelLegacyTask.Result.Count);
+            return results;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve all agents");
+            throw;
+        }
+    }
+
     public async Task<bool> DeleteAgentAsync(string name)
     {
         try
@@ -252,6 +308,54 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         return new PaginatedList<ToolDocumentModel>(results, results.Count, 1, results.Count);
     }
 
+    public async Task<IReadOnlyList<ToolDocumentModel>> GetAllToolsAsync()
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, ToolDocumentModel.ContainerName);
+
+        var queryToolDocumentModelTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<ToolDocumentModel>()
+                .Where(d => d.DocumentType == ToolDocumentModel.DocumentTypeName && d.Spec != null); // ensures only query new model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<ToolDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        var queryToolDocumentModelLegacyTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<ToolDocumentModel>()
+                .Where(d => d.DocumentType == ToolDocumentModel.DocumentTypeName && d.Name != null); // ensures only query legacy model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<ToolDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        await Task.WhenAll(queryToolDocumentModelTask, queryToolDocumentModelLegacyTask);
+
+        var results = new List<ToolDocumentModel>();
+        results.AddRange(queryToolDocumentModelTask.Result);
+        results.AddRange(queryToolDocumentModelLegacyTask.Result);
+
+        _logger.LogInternalInformation("Retrieved all {Count} tools (New: {NewCount}, Legacy: {LegacyCount})", results.Count, queryToolDocumentModelTask.Result.Count, queryToolDocumentModelLegacyTask.Result.Count);
+        return results;
+    }
+
     public async Task<bool> DeleteToolAsync(string name)
     {
         try
@@ -358,6 +462,54 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
 
         _logger.LogInternalInformation("Retrieved {Count} common prompts with search '{Search}' (New: {NewCount}, Legacy: {LegacyCount})", results.Count, search ?? "none", queryCommonPromptDocumentModelTask.Result.Count, queryCommonPromptDocumentModelLegacyTask.Result.Count);
         return new PaginatedList<CommonPromptDocumentModel>(results, results.Count, 1, results.Count);
+    }
+
+    public async Task<IReadOnlyList<CommonPromptDocumentModel>> GetAllCommonPromptsAsync()
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, CommonPromptDocumentModel.ContainerName);
+
+        var queryCommonPromptDocumentModelTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<CommonPromptDocumentModel>()
+                .Where(d => d.DocumentType == CommonPromptDocumentModel.DocumentTypeName && d.Spec != null); // ensures only query new model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<CommonPromptDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        var queryCommonPromptDocumentModelLegacyTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<CommonPromptDocumentModel>()
+                .Where(d => d.DocumentType == CommonPromptDocumentModel.DocumentTypeName && d.Name != null); // ensures only query legacy model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<CommonPromptDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        await Task.WhenAll(queryCommonPromptDocumentModelTask, queryCommonPromptDocumentModelLegacyTask);
+
+        var results = new List<CommonPromptDocumentModel>();
+        results.AddRange(queryCommonPromptDocumentModelTask.Result);
+        results.AddRange(queryCommonPromptDocumentModelLegacyTask.Result);
+
+        _logger.LogInternalInformation("Retrieved all {Count} common prompts (New: {NewCount}, Legacy: {LegacyCount})", results.Count, queryCommonPromptDocumentModelTask.Result.Count, queryCommonPromptDocumentModelLegacyTask.Result.Count);
+        return results;
     }
 
     public async Task<bool> DeleteCommonPromptAsync(string name)
@@ -474,6 +626,55 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         return new PaginatedList<CommonToolsListDocumentModel>(results, results.Count, 1, results.Count);
     }
 
+    public async Task<IReadOnlyList<CommonToolsListDocumentModel>> GetAllCommonToolsListsAsync()
+    {
+        var container = _cosmosClient.GetContainer(_databaseName, CommonToolsListDocumentModel.ContainerName);
+
+        var queryCommonToolsListDocumentModelTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<CommonToolsListDocumentModel>()
+                .Where(d => d.DocumentType == CommonToolsListDocumentModel.DocumentTypeName && d.Spec != null); // ensures only query new model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<CommonToolsListDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        var queryCommonToolsListDocumentModelLegacyTask = Task.Run(async () =>
+        {
+            var query = container.GetItemLinqQueryable<CommonToolsListDocumentModel>()
+                .Where(d => d.DocumentType == CommonToolsListDocumentModel.DocumentTypeName && d.Name != null); // ensures only query legacy model
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<CommonToolsListDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            return results;
+        });
+
+        await Task.WhenAll(queryCommonToolsListDocumentModelTask, queryCommonToolsListDocumentModelLegacyTask);
+
+        var results = new List<CommonToolsListDocumentModel>();
+        results.AddRange(queryCommonToolsListDocumentModelTask.Result);
+        results.AddRange(queryCommonToolsListDocumentModelLegacyTask.Result);
+
+
+        _logger.LogInternalInformation("Retrieved all {Count} common tools lists (New: {NewCount}, Legacy: {LegacyCount})", results.Count, queryCommonToolsListDocumentModelTask.Result.Count, queryCommonToolsListDocumentModelLegacyTask.Result.Count);
+        return results;
+    }
+
     public async Task<bool> DeleteCommonToolsListAsync(string name)
     {
         try
@@ -554,6 +755,33 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         catch (CosmosException ex)
         {
             _logger.LogInternalError(ex, "Failed to retrieve plugin configs with search '{Search}'", search ?? "none");
+            throw;
+        }
+    }
+
+    public async Task<IReadOnlyList<PlugInConfigDocumentModel>> GetAllPluginConfigsAsync()
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, PlugInConfigDocumentModel.ContainerName);
+            var query = container.GetItemLinqQueryable<PlugInConfigDocumentModel>()
+                .Where(d => d.DocumentType == PlugInConfigDocumentModel.DocumentTypeName);
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<PlugInConfigDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            _logger.LogInternalInformation("Retrieved all {Count} plugin configs", results.Count);
+            return results;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve all plugin configs");
             throw;
         }
     }
@@ -652,6 +880,33 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         catch (CosmosException ex)
         {
             _logger.LogInternalError(ex, "Failed to retrieve extended agent connectors with search '{Search}'", search ?? "none");
+            throw;
+        }
+    }
+
+    public async Task<IReadOnlyList<ConnectorDocumentModel>> GetAllConnectorsAsync()
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, ConnectorDocumentModel.ContainerName);
+            var query = container.GetItemLinqQueryable<ConnectorDocumentModel>()
+                .Where(d => d.DocumentType == ConnectorDocumentModel.DocumentTypeName);
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<ConnectorDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            _logger.LogInternalInformation("Retrieved all {Count} extended agent connectors", results.Count);
+            return results;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve all extended agent connectors");
             throw;
         }
     }
@@ -779,6 +1034,33 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
         catch (CosmosException ex)
         {
             _logger.LogInternalError(ex, "Failed to retrieve skills with search '{Search}'", search ?? "none");
+            throw;
+        }
+    }
+
+    public async Task<IReadOnlyList<SkillDocumentModel>> GetAllSkillsAsync()
+    {
+        try
+        {
+            var container = _cosmosClient.GetContainer(_databaseName, SkillDocumentModel.ContainerName);
+            var query = container.GetItemLinqQueryable<SkillDocumentModel>()
+                .Where(d => d.DocumentType == SkillDocumentModel.DocumentTypeName);
+
+            using var iterator = query.ToFeedIterator();
+            var results = new List<SkillDocumentModel>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                results.AddRange(response.Resource);
+            }
+
+            _logger.LogInternalInformation("Retrieved all {Count} skills", results.Count);
+            return results;
+        }
+        catch (CosmosException ex)
+        {
+            _logger.LogInternalError(ex, "Failed to retrieve all skills");
             throw;
         }
     }

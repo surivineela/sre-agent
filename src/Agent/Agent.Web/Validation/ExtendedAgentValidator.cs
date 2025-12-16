@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Validation;
 using Agent.Data.DataModels;
@@ -18,6 +19,9 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
 {
     private readonly ILogger<ExtendedAgentValidator> _logger;
     private readonly IExtendedAgentRepository _repository;
+
+    // Regex pattern for validating resource names: alphanumeric, hyphens, underscores; 1-128 chars
+    private static readonly Regex NameValidationRegex = new Regex(@"^[a-zA-Z0-9\-_]{1,128}$", RegexOptions.Compiled);
 
     // use a predefined set to control which system common prompts we'd like to expose
     private readonly HashSet<string> _systemCommonPrompts = new HashSet<string>
@@ -107,12 +111,13 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
     {
         if (string.IsNullOrEmpty(metadata.Name))
         {
-            result.Errors.Add("Agent name is required.");
+            result.Errors.Add("Resource name is required.");
+            return;
         }
 
-        if (metadata.Name.Any(char.IsWhiteSpace))
+        if (!NameValidationRegex.IsMatch(metadata.Name))
         {
-            result.Errors.Add($"Agent name '{metadata.Name}' must not contain whitespace.");
+            result.Errors.Add($"Resource name '{metadata.Name}' is invalid. Name must be 1-128 characters and contain only alphanumeric characters, hyphens, underscores, or spaces.");
         }
     }
 

@@ -53,6 +53,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         return Task.FromResult(new PaginatedList<AgentDocumentModel>(items, totalCount, 0, limit));
     }
 
+    public Task<IReadOnlyList<AgentDocumentModel>> GetAllAgentsAsync()
+    {
+        return Task.FromResult<IReadOnlyList<AgentDocumentModel>>(agents.ToList());
+    }
+
     public Task<PaginatedList<CommonPromptDocumentModel>> GetCommonPromptsAsync(int limit = 50, string? search = null)
     {
         var filteredPrompts = commonPrompts.AsQueryable();
@@ -68,6 +73,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         return Task.FromResult(new PaginatedList<CommonPromptDocumentModel>(items, totalCount, 0, limit));
     }
 
+    public Task<IReadOnlyList<CommonPromptDocumentModel>> GetAllCommonPromptsAsync()
+    {
+        return Task.FromResult<IReadOnlyList<CommonPromptDocumentModel>>(commonPrompts.ToList());
+    }
+
     public Task<PaginatedList<CommonToolsListDocumentModel>> GetCommonToolsListsAsync(int limit = 50, string? search = null)
     {
         var filteredToolsLists = commonToolsLists.AsQueryable();
@@ -81,6 +91,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         var items = filteredToolsLists.Take(limit).ToList();
 
         return Task.FromResult(new PaginatedList<CommonToolsListDocumentModel>(items, totalCount, 0, limit));
+    }
+
+    public Task<IReadOnlyList<CommonToolsListDocumentModel>> GetAllCommonToolsListsAsync()
+    {
+        return Task.FromResult<IReadOnlyList<CommonToolsListDocumentModel>>(commonToolsLists.ToList());
     }
 
     public Task<ConnectorDocumentModel?> GetConnectorByNameAsync(string name)
@@ -104,6 +119,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         return Task.FromResult(new PaginatedList<ConnectorDocumentModel>(items, totalCount, 0, limit));
     }
 
+    public Task<IReadOnlyList<ConnectorDocumentModel>> GetAllConnectorsAsync()
+    {
+        return Task.FromResult<IReadOnlyList<ConnectorDocumentModel>>(connectors.ToList());
+    }
+
     public Task<ToolDocumentModel?> GetToolByNameAsync(string name)
     {
         return Task.FromResult(tools.FirstOrDefault(t => t.Name == name));
@@ -122,6 +142,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         var items = filteredTools.Take(limit).ToList();
 
         return Task.FromResult(new PaginatedList<ToolDocumentModel>(items, totalCount, 0, limit));
+    }
+
+    public Task<IReadOnlyList<ToolDocumentModel>> GetAllToolsAsync()
+    {
+        return Task.FromResult<IReadOnlyList<ToolDocumentModel>>(tools.ToList());
     }
 
     public Task<AgentDocumentModel> UpsertAgentAsync(AgentDocumentModel agent, string operationId)
@@ -180,6 +205,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
         throw new NotImplementedException();
     }
 
+    public Task<IReadOnlyList<SkillDocumentModel>> GetAllSkillsAsync()
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<CommonPromptDocumentModel?> GetCommonPromptByNameAsync(string name)
     {
         throw new NotImplementedException();
@@ -191,6 +221,11 @@ internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
     }
 
     public Task<PaginatedList<PlugInConfigDocumentModel>> GetPluginConfigsAsync(int limit = 50, string? search = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IReadOnlyList<PlugInConfigDocumentModel>> GetAllPluginConfigsAsync()
     {
         throw new NotImplementedException();
     }

@@ -149,11 +149,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListAgentsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListAgentsAsync()
     {
-        var result = await _extendedAgentApiService.GetAgentsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetAgentsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -316,11 +314,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListToolsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListToolsAsync()
     {
-        var result = await _extendedAgentApiService.GetToolsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetToolsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -483,11 +479,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListConnectorsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListConnectorsAsync()
     {
-        var result = await _extendedAgentApiService.GetConnectorsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetConnectorsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -670,11 +664,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListPluginConfigsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListPluginConfigsAsync()
     {
-        var result = await _extendedAgentApiService.GetPluginConfigsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetPluginConfigsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -817,11 +809,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListCommonPromptsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListCommonPromptsAsync()
     {
-        var result = await _extendedAgentApiService.GetCommonPromptsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetCommonPromptsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -984,11 +974,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListCommonToolListsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListCommonToolListsAsync()
     {
-        var result = await _extendedAgentApiService.GetCommonToolListsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetCommonToolListsAsync();
 
         if (result.IsStatusCodeResult)
         {
@@ -1167,11 +1155,9 @@ public class ExtendedAgentApiController : ControllerBase
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListSkillsAsync(
-        [FromQuery] int limit = 50,
-        [FromQuery] string? search = null)
+    public async Task<IActionResult> ListSkillsAsync()
     {
-        var result = await _extendedAgentApiService.GetSkillsAsync(limit, search);
+        var result = await _extendedAgentApiService.GetSkillsAsync();
 
         if (result.IsStatusCodeResult)
         {
