@@ -801,6 +801,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             var skillDocumentModel = new SkillDocumentModel(
                 Metadata: new ResourceMetadata
                 {
+                    Name = skill.Name,
                     CreatedAt = DateTime.UtcNow,
                 },
                 Spec: skill

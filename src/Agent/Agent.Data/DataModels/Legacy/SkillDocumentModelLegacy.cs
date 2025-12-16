@@ -8,14 +8,18 @@ using Agent.Framework;
 using Agent.Framework.Skills;
 
 // This is a dummy class to leverage the LegacyDocumentModelConverter for name property migration
-public record SkillDocumentModelLegacy : SkillDocumentModel, ILegacyModelConverter<SkillDocumentModel>
+public record SkillDocumentModelLegacy(
+    ResourceMetadata Metadata,
+    SkillSpec Spec
+) : ICosmosDocument, ILegacyModelConverter<SkillDocumentModel>
 {
-    public SkillDocumentModelLegacy(
-        ResourceMetadata Metadata,
-        SkillSpec Spec)
-        : base(Metadata, Spec)
-    {
-    }
+    public const string DocumentTypeName = "Skill";
+
+    public string Id => $"skill_{Spec.Name.ToLowerInvariant()}";
+    public string DocumentType => DocumentTypeName;
+    public string PartitionKey => Spec.Name;
+
+    public static string ContainerName => AgentDataConfiguration.ExtendedAgentContainerName;
 
     public SkillDocumentModel ToNewModel()
     {

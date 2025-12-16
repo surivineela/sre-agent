@@ -9,6 +9,7 @@ using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
+using Gremlin.Net.Process.Traversal;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Cli.Tests.E2E.MockBackend;
@@ -65,17 +66,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync()
     {
-        var agents = _agents.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            agents = agents.Where(a => a.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = agents.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<AgentDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<AgentDocumentModel[]>([.. _agents.Values]));
     }
 
     // Tool operations
@@ -114,17 +107,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync()
     {
-        var tools = _tools.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            tools = tools.Where(t => t.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = tools.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<ToolDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<ToolDocumentModel[]>([.. _tools.Values]));
     }
 
     // Connector operations
@@ -163,17 +148,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync()
     {
-        var connectors = _connectors.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            connectors = connectors.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = connectors.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel[]>([.. _connectors.Values]));
     }
 
     public Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
@@ -226,17 +203,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync()
     {
-        var plugins = _plugins.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            plugins = plugins.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = plugins.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel[]>([.. _plugins.Values]));
     }
 
     // CommonPrompt operations
@@ -275,17 +244,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync()
     {
-        var prompts = _commonPrompts.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            prompts = prompts.Where(p => p.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = prompts.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel[]>([.. _commonPrompts.Values]));
     }
 
     // CommonToolList operations
@@ -324,17 +285,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync()
     {
-        var lists = _commonToolLists.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            lists = lists.Where(l => l.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = lists.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel[]>([.. _commonToolLists.Values]));
     }
 
     // Skill operations
@@ -363,17 +316,9 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(new ApiCommandResult<SkillDocumentModel>(new NotFoundResult()));
     }
 
-    public Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync(int limit = 50, string? search = null)
+    public Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync()
     {
-        var skills = _skills.Values.AsEnumerable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            skills = skills.Where(s => s.Spec.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var result = skills.Take(limit).ToArray();
-        return Task.FromResult(new ApiCommandResult<SkillDocumentModel[]>(result));
+        return Task.FromResult(new ApiCommandResult<SkillDocumentModel[]>([.. _skills.Values]));
     }
 
     public Task<ApiCommandResult<SkillDocumentModel>> ConvertAgentToSkillAsync(string agentName, List<string> topLevelAgents)

@@ -204,6 +204,7 @@ public static class ApiToRuntimeMapper
         return new SkillDocumentModel(
             Metadata: new ResourceMetadata
             {
+                Name = skill.Spec.Name,
                 Tags = skill.Metadata.Tags,
                 UpdatedAt = skill.Metadata.UpdatedAt,
                 CreatedAt = skill.Metadata.CreatedAt
