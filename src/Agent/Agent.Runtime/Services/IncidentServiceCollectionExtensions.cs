@@ -31,7 +31,10 @@ public static class IncidentServiceCollectionExtensions
     private static IServiceCollection AddDefaultIncidentApiClientsAndScanner(this IServiceCollection services)
     {
         services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
-        services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+
+        //services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+        //Register ICMService for all platforms so to support Searching team in changing incident platform UI 
+        services.AddICMClientRelatedServices();
         services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
         services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();
         services.AddSingleton<IAzMonitorAlertService, NullableAzMonitorAlertService>();
