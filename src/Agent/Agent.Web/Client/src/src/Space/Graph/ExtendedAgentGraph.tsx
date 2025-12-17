@@ -1,16 +1,5 @@
 import { useTheme } from '@fluentui/react';
-import {
-    Button,
-    mergeClasses,
-    MessageBar,
-    MessageBarActions,
-    MessageBarBody,
-    Radio,
-    RadioGroup,
-    Spinner,
-    tokens,
-} from '@fluentui/react-components';
-import { ArrowClockwise20Regular, DividerTall20Regular } from '@fluentui/react-icons';
+import { Button, mergeClasses, MessageBar, MessageBarActions, MessageBarBody, Spinner } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -50,7 +39,6 @@ import { AddExistingToolDialog, AddExistingToolDialogProps } from './AddExisting
 import { AgentCreateDialog } from './AgentCreateDialog/AgentCreateDialog';
 import { AgentCreateOrEditInfo } from './AgentCreateDialog/Contracts';
 import { ConnectorCard } from './ConnectorCard';
-import CreateButton from './CreateButton';
 import { ExtendedAgentCard } from './ExtendedAgentCard';
 import { EntityType, EntityTypeExt } from './ExtendedAgentCreationDialog/types';
 import { ExtendedAgentCreationDialog } from './ExtendedAgentCreationDialogNew';
@@ -79,6 +67,7 @@ import { CollapsedToolboxCard, ExpandedToolboxCard } from './ExtendedAgents/Tool
 import { ExtendedAgentSelector } from './ExtendedAgentSelector';
 import ExtendedAgentTableView from './ExtendedAgentTableView/ExtendedAgentTableView';
 import { TableViewTabValue } from './ExtendedAgentTableView/ExtendedAgentTableView.Contracts';
+import { ExtendedAgentToolbar } from './ExtendedAgentToolbar';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
 import { KustoToolDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
@@ -160,8 +149,6 @@ const ExtendedAgentGraphContent = memo(() => {
         reactFlow,
         spinner,
         rootContainer,
-        toolbarWrapper,
-        toolbarRefreshButton,
         container,
         selectorOverlay,
         infoPanelContainer,
@@ -1883,37 +1870,18 @@ const ExtendedAgentGraphContent = memo(() => {
                 }}
             >
                 <div className={rootContainer}>
-                    <div className={toolbarWrapper}>
-                        <CreateButton
-                            handleCreateItemStandalone={handleCreateItemStandalone}
-                            disableCreateMetaAgent={hasMetaAgentOverride}
-                            disableCreateSubagent={hasSkills}
-                            disableCreateSkill={hasSubagents}
-                            disabled={isLoading || !hasData}
-                        />
-                        <RadioGroup
-                            value={currentView}
-                            layout="horizontal"
-                            onChange={(_, data) => onChangeViewType(data.value as ExtendedAgentGraphView)}
-                        >
-                            <Radio
-                                value={ExtendedAgentGraphView.Visual}
-                                label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)}
-                            />
-                            <Radio value={ExtendedAgentGraphView.Grid} label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)} />
-                        </RadioGroup>
-                        <div className={toolbarRefreshButton}>
-                            <DividerTall20Regular color={tokens.colorNeutralStroke2} />
-                            <Button
-                                appearance="transparent"
-                                icon={<ArrowClockwise20Regular />}
-                                onClick={handleRefresh}
-                                disabled={isLoading}
-                            >
-                                {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
-                            </Button>
-                        </div>
-                    </div>
+                    <ExtendedAgentToolbar
+                        currentView={currentView}
+                        onViewChange={onChangeViewType}
+                        onRefresh={handleRefresh}
+                        onCreateItem={handleCreateItemStandalone}
+                        isLoading={isLoading}
+                        hasData={hasData}
+                        showEmptyState={showEmptyState}
+                        disableCreateMetaAgent={hasMetaAgentOverride}
+                        disableCreateSubagent={hasSkills}
+                        disableCreateSkill={hasSubagents}
+                    />
                     {creationSuccessMessage && (
                         <div className={statusMessageContainer}>
                             <MessageBar intent="success" layout="multiline">

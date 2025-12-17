@@ -5,17 +5,7 @@ import { useIntl } from 'react-intl';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
-import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
-import { EntityIcon } from './EntityIcon';
 import { EntityTypeExt } from './ExtendedAgentCreationDialog/types';
-
-interface MenuOption {
-    label: string;
-    icon: React.ReactNode;
-    entityType: EntityTypeExt;
-    description?: string;
-    disabled?: boolean;
-}
 
 export interface CreateButtonProps {
     handleCreateItemStandalone: (targetType: EntityTypeExt) => void;
@@ -30,90 +20,10 @@ const CreateButton = memo(
         const allowMetaAgentOverride = useConfigSetting(SettingNames.AllowMetaAgentOverride);
         const showIncidentTriggerWithLearnings = useConfigSetting(SettingNames.ShowIncidentTriggerWithLearnings);
         const { features } = useFeatureFlags();
-        const { menuItemWithIcon, menuItemContent, menuIconDisabled } = useExtendedAgentGraphStyles();
         const intl = useIntl();
         const createButtonRef = useRef<HTMLButtonElement>(null);
 
-        // Determine primary action: use skill if skills exist (subagent disabled), otherwise use agent
-        const primaryAction = disableCreateSubagent ? 'skill' : 'agent';
-
-        const options: MenuOption[] = useMemo(() => {
-            const metaAgentOption = allowMetaAgentOverride
-                ? [
-                      {
-                          label: intl.formatMessage(ExtendedAgentsGraphResources.metaAgentCreateMenuLabel),
-                          description: intl.formatMessage(ExtendedAgentsGraphResources.metaAgentCreateMenuDescription),
-                          icon: <EntityIcon type="metaAgent" iconStyle={{ height: 24, width: 24 }} />,
-                          entityType: 'metaAgent' as EntityTypeExt,
-                          disabled: disableCreateMetaAgent,
-                      },
-                  ]
-                : [];
-
-            const pythonToolOption = features.pythonTool
-                ? [
-                      {
-                          label: intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuLabel),
-                          description: intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuDescription),
-                          icon: <EntityIcon type="pythonTool" />,
-                          entityType: 'pythonTool' as EntityTypeExt,
-                      },
-                  ]
-                : [];
-
-            const incidentTriggerWithLearningsOption = showIncidentTriggerWithLearnings
-                ? [
-                      {
-                          label: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerWithLearningsCreateMenuLabel),
-                          description: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerWithLearningsCreateMenuDescription),
-                          icon: <EntityIcon type="incidentTriggerWithLearnings" />,
-                          entityType: 'incidentTriggerWithLearnings' as EntityTypeExt,
-                      },
-                  ]
-                : [];
-
-            return [
-                {
-                    label: intl.formatMessage(ExtendedAgentsGraphResources.subAgentCreateMenuLabel),
-                    description: disableCreateSubagent
-                        ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSubagentWithSkills)
-                        : intl.formatMessage(ExtendedAgentsGraphResources.subAgentCreateMenuDescription),
-                    icon: <EntityIcon type="agent" />,
-                    entityType: 'agent' as EntityTypeExt,
-                    disabled: disableCreateSubagent,
-                },
-                ...metaAgentOption,
-                {
-                    label: intl.formatMessage(ExtendedAgentsGraphResources.skillCreateMenuLabel),
-                    description: disableCreateSkill
-                        ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSkillWithSubagents)
-                        : intl.formatMessage(ExtendedAgentsGraphResources.skillCreateMenuDescription),
-                    icon: <EntityIcon type="skill" />,
-                    entityType: 'skill' as EntityTypeExt,
-                    disabled: disableCreateSkill,
-                },
-                {
-                    label: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident),
-                    description: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerCreateMenuDescription),
-                    icon: <EntityIcon type="incidentTrigger" />,
-                    entityType: 'incidentTrigger' as EntityTypeExt,
-                },
-                ...incidentTriggerWithLearningsOption,
-                {
-                    label: intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuLabel),
-                    description: intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuDescription),
-                    icon: <EntityIcon type="scheduledTask" />,
-                    entityType: 'scheduledTask' as EntityTypeExt,
-                },
-                {
-                    label: intl.formatMessage(ExtendedAgentsGraphResources.kustoToolCreateMenuLabel),
-                    description: intl.formatMessage(ExtendedAgentsGraphResources.kustoToolCreateMenuDescription),
-                    icon: <EntityIcon type="toolWithGear" />,
-                    entityType: 'tool' as EntityTypeExt,
-                },
-                ...pythonToolOption,
-            ];
-        }, [intl, disableCreateMetaAgent, disableCreateSubagent, disableCreateSkill, allowMetaAgentOverride, features.pythonTool]);
+        const primaryAction = useMemo(() => (disableCreateSubagent ? 'skill' : 'agent'), [disableCreateSubagent]);
 
         return (
             <Menu positioning={{ target: createButtonRef.current, position: 'below', align: 'start' }}>
@@ -133,17 +43,63 @@ const CreateButton = memo(
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
-                        {options.map(option => (
-                            <MenuItem
-                                key={option.label}
-                                className={menuItemWithIcon}
-                                icon={<span className={option.disabled ? menuIconDisabled : undefined}>{option.icon}</span>}
-                                content={<div className={menuItemContent}>{option.label}</div>}
-                                subText={option.description}
-                                onClick={() => handleCreateItemStandalone(option.entityType)}
-                                disabled={option.disabled}
-                            />
-                        ))}
+                        <Menu>
+                            <MenuTrigger disableButtonEnhancement>
+                                <MenuItem>{intl.formatMessage(ExtendedAgentsGraphResources.agent)}</MenuItem>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    {allowMetaAgentOverride && (
+                                        <MenuItem onClick={() => handleCreateItemStandalone('metaAgent')} disabled={disableCreateMetaAgent}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.metaAgentCreateMenuLabel)}
+                                        </MenuItem>
+                                    )}
+                                    <MenuItem onClick={() => handleCreateItemStandalone('agent')} disabled={disableCreateSubagent}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.subAgentCreateMenuLabel)}
+                                    </MenuItem>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                        <MenuItem onClick={() => handleCreateItemStandalone('skill')} disabled={disableCreateSkill}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.skillCreateMenuLabel)}
+                        </MenuItem>
+                        <Menu>
+                            <MenuTrigger disableButtonEnhancement>
+                                <MenuItem>{intl.formatMessage(ExtendedAgentsGraphResources.trigger)}</MenuItem>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItem onClick={() => handleCreateItemStandalone('incidentTrigger')}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerCreateMenuLabel)}
+                                    </MenuItem>
+                                    {showIncidentTriggerWithLearnings && (
+                                        <MenuItem onClick={() => handleCreateItemStandalone('incidentTriggerWithLearnings')}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerWithLearningsCreateMenuLabel)}
+                                        </MenuItem>
+                                    )}
+                                    <MenuItem onClick={() => handleCreateItemStandalone('scheduledTask')}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuLabel)}
+                                    </MenuItem>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                        <Menu>
+                            <MenuTrigger disableButtonEnhancement>
+                                <MenuItem>{intl.formatMessage(ExtendedAgentsGraphResources.tool)}</MenuItem>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItem onClick={() => handleCreateItemStandalone('tool')}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.kustoToolCreateMenuLabel)}
+                                    </MenuItem>
+                                    {features.pythonTool && (
+                                        <MenuItem onClick={() => handleCreateItemStandalone('pythonTool')}>
+                                            {intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuLabel)}
+                                        </MenuItem>
+                                    )}
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
                     </MenuList>
                 </MenuPopover>
             </Menu>
