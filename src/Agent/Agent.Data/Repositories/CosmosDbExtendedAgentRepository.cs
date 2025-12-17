@@ -1318,7 +1318,7 @@ public class CosmosDbExtendedAgentRepository : IExtendedAgentRepository
                             documentTypeName, name, currentId, expectedId, currentPartitionKey, expectedPartitionKey);
 
                         // Create the document with correct id/partitionKey
-                        await container.CreateItemAsync(
+                        await container.UpsertItemAsync(
                             document,
                             new PartitionKey(expectedPartitionKey));
 
