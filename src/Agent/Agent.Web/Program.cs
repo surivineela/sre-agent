@@ -703,7 +703,7 @@ public class Program
             if (ShouldForceEnableSkills(builder))
             {
                 logger.LogInternalInformation("Forcing skill enablement.");
-                var runtimeForcedVariants = "agent_skills=single_agent_skills_responses_api";
+                var runtimeForcedVariants = "agent_skills=single_agent_with_skills";
                 forcedVariants = string.IsNullOrEmpty(forcedVariants)
                     ? runtimeForcedVariants
                     : $"{forcedVariants};{runtimeForcedVariants}";
