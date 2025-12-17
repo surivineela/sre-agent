@@ -92,6 +92,13 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                 var (thread, agentContext) = await CreateHandlerAwareIncidentThread(incident, handler, filterPayload);
 
+                _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Incident '{IncidentId}' matched Filter '{FilterId}' with HandlingAgent '{HandlingAgent}' and Handler '{HandlerId}', created Thread '{ThreadId}'",
+                    incidentId,
+                    filterPayload.Id,
+                    filterPayload.HandlingAgent ?? "none",
+                    handler?.Id ?? "none",
+                    thread.Id);
+
                 await InitiateIncidentInvestigationAsync(incident, thread, agentContext, handler);
 
                 try
@@ -124,6 +131,12 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
                 if (threadId.HasValue)
                 {
+                    _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Processed incident '{IncidentId}' matched Filter '{FilterId}' with HandlingAgent '{HandlingAgent}' and Handler '{HandlerId}', created Thread '{ThreadId}'",
+                        incidentId,
+                        filterPayload.Id,
+                        filterPayload.HandlingAgent ?? "none",
+                        handler?.Id ?? "none",
+                        threadId.Value);
                     _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] HandleIncidentAsync: Processed incident with ThreadId: {ThreadId} for IncidentId: {IncidentId}", threadId.Value, incidentId);
 
 

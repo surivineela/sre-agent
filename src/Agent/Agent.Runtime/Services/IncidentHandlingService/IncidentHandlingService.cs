@@ -495,6 +495,11 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
                 // use handler id from filter to set current agent for meta agent thread
                 thread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
+                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread for Incident '{IncidentId}' matched Filter '{FilterId}' with HandlingAgent '{HandlingAgent}' (no Handler), created Thread '{ThreadId}'",
+                    request.IncidentId,
+                    matchingFilter.Id,
+                    matchingFilter.HandlingAgent ?? "meta_agent",
+                    thread.Id);
                 _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, request.IncidentId);
 
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
@@ -533,6 +538,12 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 thread = await CreateIncidentHandlerAgentThreadAsync(incidentDetails, matchingHandler, matchingFilter, request);
             }
 
+            _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync:Created IncidentHandlerAgent thread for Incident '{IncidentId}' matched Filter '{FilterId}' with HandlingAgent '{HandlingAgent}' and Handler '{HandlerId}', created Thread '{ThreadId}'",
+                request.IncidentId,
+                matchingFilter.Id,
+                matchingFilter.HandlingAgent ?? "none",
+                matchingHandler.Id,
+                thread.Id);
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created IncidentHandlerAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} and HandlerId: {HandlerId}", thread.Id, request.IncidentId, matchingHandler.Id);
 
             try
