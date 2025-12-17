@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Prometheus.Extensions;
@@ -32,6 +33,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     private readonly Gauge _edgePropertyCountGauge;
     private readonly IGraphDatabaseClient _graphDatabaseClient;
     private readonly IRemoteWriteService _remoteWriteService;
+    private readonly DashboardSettings _dashboardSettings;
     private readonly string _agentName;
 
     private readonly Gauge _appHealthGauge;
@@ -47,6 +49,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         ILogger<GremlinMetricsService> logger,
         IGraphDatabaseClient graphDatabaseClient,
         IRemoteWriteService remoteWriteService,
+        DashboardSettings dashboardSettings,
         IHostEnvironment environment)
     {
         if (environment.IsDevelopment())
@@ -63,6 +66,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
         _graphDatabaseClient = graphDatabaseClient ?? throw new ArgumentNullException(nameof(graphDatabaseClient));
         _remoteWriteService = remoteWriteService ?? throw new ArgumentNullException(nameof(remoteWriteService));
+        _dashboardSettings = dashboardSettings ?? throw new ArgumentNullException(nameof(dashboardSettings));
         // Register static labels for all metrics so that metrics can be filtered by agent name
         // This is useful for multiple agents sharing the same Prometheus instance
         var staticLabels = new Dictionary<string, string>
@@ -80,69 +84,69 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         _edgeCountGauge = Metrics.CreateGauge("gremlin_edge_count", "Total number of edges");
         _queryLatencyGauge = Metrics.CreateGauge("gremlin_query_latency_seconds", "Latency of Gremlin queries in seconds", new GaugeConfiguration
         {
-            LabelNames = new[] { "query_type" }
+            LabelNames = ["query_type"]
         });
         _errorsCounter = Metrics.CreateCounter("gremlin_query_errors_total", "Total number of Gremlin query errors", new CounterConfiguration
         {
-            LabelNames = new[] { "query_type" }
+            LabelNames = ["query_type"]
         });
 
         // Resource type metrics
         _resourceTypeCountGauge = Metrics.CreateGauge("gremlin_resource_type_count", "Count of resources by type", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type" }
+            LabelNames = ["resource_type"]
         });
 
         // Edge type metrics
         _edgeTypeCountGauge = Metrics.CreateGauge("gremlin_edge_type_count", "Count of edges by type", new GaugeConfiguration
         {
-            LabelNames = new[] { "edge_type" }
+            LabelNames = ["edge_type"]
         });
 
         // Property metrics
         _vertexPropertyCountGauge = Metrics.CreateGauge("gremlin_vertex_property_count", "Count of vertex properties", new GaugeConfiguration
         {
-            LabelNames = new[] { "property" }
+            LabelNames = ["property"]
         });
 
         _edgePropertyCountGauge = Metrics.CreateGauge("gremlin_edge_property_count", "Count of edge properties", new GaugeConfiguration
         {
-            LabelNames = new[] { "property" }
+            LabelNames = ["property"]
         });
 
         _appHealthGauge = Metrics.CreateGauge("app_group_health", "App health status", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appAvailabilityGauge = Metrics.CreateGauge("app_group_availability", "App availability status", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appAvgCpuUsageGauge = Metrics.CreateGauge("app_group_avg_cpu_usage", "App average CPU usage", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appAvgLatencyInMsGauge = Metrics.CreateGauge("app_group_avg_latency_in_ms", "App average latency in milliseconds", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appAvgMemoryUsageGauge = Metrics.CreateGauge("app_group_avg_memory_usage", "App average memory usage", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appCostsGauge = Metrics.CreateGauge("app_group_costs", "App costs", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
 
         _appTransactionsGauge = Metrics.CreateGauge("app_group_transactions", "App transactions", new GaugeConfiguration
         {
-            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+            LabelNames = ["resource_type", "resource_id", "subscription_id", "location"]
         });
     }
 
@@ -190,6 +194,12 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     // Export metrics in Text format and remote write to Azure Managed Prometheus(Azure Monitor Workspace)
     private async Task RemoteWriteMetricsAsync(CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(_dashboardSettings.MetricsIngestionEndpoint))
+        {
+            _logger.LogInternalInformation("MetricsIngestionEndpoint is not configured. Skipping metrics export to Azure Managed Prometheus.");
+            return;
+        }
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -614,7 +624,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             {
                 var result = await ExecuteGroupCountQuery(metric.Query);
                 var gauge = Metrics.CreateGauge(metric.Name, metric.Description,
-                    new GaugeConfiguration { LabelNames = new[] { "value" } });
+                    new GaugeConfiguration { LabelNames = ["value"] });
 
                 foreach (var item in result)
                 {
@@ -626,7 +636,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             {
                 var result = await ExecuteDeduplicationQuery(metric.Query);
                 var gauge = Metrics.CreateGauge(metric.Name, metric.Description,
-                    new GaugeConfiguration { LabelNames = new[] { "value" } });
+                    new GaugeConfiguration { LabelNames = ["value"] });
 
                 foreach (var item in result)
                 {

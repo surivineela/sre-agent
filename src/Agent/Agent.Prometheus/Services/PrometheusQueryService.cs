@@ -1,9 +1,12 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
-using Agent.Logging;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 

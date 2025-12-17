@@ -2,8 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Prometheus;
-
 namespace Agent.Prometheus.Extensions;
 
 public static class GaugeExtensions
