@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Plugins.Connector;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -32,6 +33,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IMcpConnectionEventManager _mcpConnectionManager;
     private readonly IConnectorResolver _connectorResolver;
     private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
+    private readonly IOutlookConnectorPlugin _outlookConnectorPlugin;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -43,7 +45,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         ILoggerFactory loggerFactory,
         IMcpConnectionEventManager mcpConnectionEventManager,
         IConnectorResolver connectorResolver,
-        IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory)
+        IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
+        IOutlookConnectorPlugin outlookConnectorPlugin)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -55,6 +58,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _mcpConnectionManager = mcpConnectionEventManager;
         _connectorResolver = connectorResolver;
         _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
+        _outlookConnectorPlugin = outlookConnectorPlugin;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -930,6 +934,55 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: details);
     }
 
+    // Helper: Outlook connector status using ListEmailsAsync
+    private async Task<ConnectorStatusResponse> BuildOutlookConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message = "Unable to determine status";
+        object? details = null;
+
+        try
+        {
+            // Test connectivity by attempting to list emails with minimal impact (top=1)
+            var result = await _outlookConnectorPlugin.ListEmailsAsync(
+                folderPath: "Inbox",
+                fetchOnlyUnread: false,
+                top: 1,
+                mailboxAddress: null,
+                cancellationToken: CancellationToken.None);
+
+            healthy = result.Success;
+            message = healthy
+                ? "Outlook connectivity OK."
+                : $"Outlook connectivity failed: {result.Message}";
+
+            if (!healthy)
+            {
+                details = new { error = result.Message, statusCode = result.StatusCode };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "BuildOutlookConnectorStatusAsync: Exception occurred while checking Outlook connectivity for connector: {ConnectorName}", connectorName);
+            message = $"Outlook connectivity check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "Outlook",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
     public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
     {
         try
@@ -954,6 +1007,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "mcp" => BuildMcpConnectorStatus(connectorName),
                 "kusto" => await BuildKustoConnectorStatusAsync(connectorName),
                 "icm" => await BuildIcmConnectorStatusAsync(connectorName),
+                "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,
