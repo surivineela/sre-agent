@@ -238,7 +238,9 @@ public static class IncidentServiceCollectionExtensions
             }
             else
             {
-                throw new InvalidOperationException("For local environment, either UserToken or Certificate must be configured.");
+                // icm not configured for local env
+                services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
+                return services;
             }
         }
         else if (IcmApiAgentSpaceTokenAuthService.IsAgentSpaceProxyConfigured(icmAgentSpaceAuthOptions))
