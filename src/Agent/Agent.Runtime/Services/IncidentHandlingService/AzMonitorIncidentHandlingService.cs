@@ -33,7 +33,6 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload>
 {
 
-    private readonly IIncidentManagementService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocumentPayload> _incidentManagementService;
     private readonly IAzMonitorAlertService _azMonitorAlertService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly Container _dbContainer;
@@ -65,9 +64,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
-    ) : base(incidentFilterManagementService, incidentHandlerManagementService, agentFactory, logger)
+    ) : base(incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, agentFactory, logger)
     {
-        _incidentManagementService = incidentManagementService;
         _azMonitorAlertService = azMonitorAlertService;
         _outboundCommunicationService = outboundCommunicationService;
         _dbContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -77,29 +75,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         _inboundCommunicationService = inboundCommunicationService;
         _experimentalSettings = experimentalSettings;
         _incidentAnalysisService = incidentAnalysisService;
-    }
-
-    protected override async Task<AzMonitorAlertDocument> GetIncidentAsync(string incidentId)
-    {
-        _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
-        try
-        {
-            var incidentGUID = new ResourceIdentifier(incidentId).Name ?? incidentId;
-            var incidentDoc = await _incidentManagementService.GetIncidentDetails(incidentGUID);
-            if (incidentDoc is null)
-            {
-                _logger.LogInternalWarning("[AzMonitorIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                var lastestIncident = await _azMonitorAlertService.GetIncidentAsync(incidentId);
-                return AzMonitorAlertDocument.FromIncident(lastestIncident);
-            }
-            _logger.LogInternalInformation("[AzMonitorIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
-            return incidentDoc;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "[AzMonitorIncidentHandlingService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
-            throw;
-        }
     }
 
     protected async override Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(AzMonitorAlertDocument incidentDetails, AzMonitorIncidentFilterDocumentPayload filterPayload, IncidentHandlerDocumentPayload? handler, IncidentHandlingRequestModelBase request)
@@ -134,7 +109,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 return new IncidentHandlingResponseModel()
                 {
                     StatusCode = 200,
-                    Response = new { threadId = thread.Id, message = "Test incident received" }
+                    Message = "Test incident received",
+                    IncidentId = incidentId,
+                    ThreadId = thread.Id
                 };
             }
             else
@@ -163,7 +140,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                     return new IncidentHandlingResponseModel()
                     {
                         StatusCode = 200,
-                        Response = new { threadId = threadId.Value, message = "Incident received" }
+                        Message = "Incident received",
+                        IncidentId = incidentId,
+                        ThreadId = threadId
                     };
                 }
                 else
@@ -173,7 +152,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                     return new IncidentHandlingResponseModel()
                     {
                         StatusCode = 500,
-                        Response = "Failed to get thread ID for incident"
+                        Message = "Failed to get thread ID for incident",
+                        IncidentId = incidentId,
                     };
                 }
             }
@@ -185,7 +165,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             return new IncidentHandlingResponseModel()
             {
                 StatusCode = 500,
-                Response = "Failed to process Incident"
+                Message = "Failed to process Incident",
+                IncidentId = incidentId
             };
         }
     }

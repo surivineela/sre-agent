@@ -513,6 +513,31 @@ export class IncidentHandlerClient extends DataPlaneClient {
         }
     };
 
+    public processIncidentsHandler = async (request: TestHandlerPayload[]): Promise<Response<TestHandlerResponse[]>> => {
+        const url = this.getRequestUrl(`${this._apiBasePathPrefix}/IncidentWebhook/processIncidents`);
+        try {
+            const { data } = await axios.post<TestHandlerResponse[]>(url, request, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'processIncidentsHandler',
+                actionModifier: 'failed',
+                data: `Failed to process incidents handler: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
     public getIncidentPlatformType = async (): Promise<Response<IncidentPlatformTypeResponse>> => {
         const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/incidentPlatformType`);
         try {
@@ -580,7 +605,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
         assignableOnly: boolean,
         withOnCallRotationsOnly: boolean
     ): Promise<Response<IncidentTeamSearchResponse[]>> => {
-        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/searchTeams`);
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/icm/searchTeams`);
         try {
             const body = {
                 searchString: searchTerm,
@@ -604,6 +629,33 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'searchIncidentTeams',
                 actionModifier: 'failed',
                 data: `Failed to search incident teams: ${errorMessage}`,
+            });
+
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public getIcmTeamById = async (teamId: string): Promise<Response<IncidentTeamSearchResponse>> => {
+        const url = this.getRequestUrl(`${this._apiIncidentPlaygroundPathPrefix}/icm/teams/${teamId}`);
+        try {
+            const { data } = await axios.get<IncidentTeamSearchResponse>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+
+            this._log?.({
+                logLevel: 'error',
+                action: 'getIcmTeamById',
+                actionModifier: 'failed',
+                data: `Failed to get ICM team by ID: ${errorMessage}`,
             });
 
             return {

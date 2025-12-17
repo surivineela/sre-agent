@@ -49,6 +49,7 @@ export enum TimespanKeys {
     TwentyFourHours = 'TwentyFourHours',
     ThreeDays = 'ThreeDays',
     SevenDays = 'SevenDays',
+    FourteenDays = 'FourteenDays',
     Custom = 'Custom',
 }
 

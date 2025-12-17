@@ -138,7 +138,7 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
     protected override async Task<string> IncidentOverview(PagerDutyIncident incident)
     {
         // may need to use pagerDutyService to get most recent notes
-        PagerDutyIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.IncidentId);
+        PagerDutyIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentAsync(incident.IncidentId, false);
 
         var notes = existingIncidentDocument?.Notes;
         var notesContent = notes?.Select(n => n.Content).ToList();

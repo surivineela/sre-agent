@@ -253,7 +253,7 @@ namespace Agent.Runtime.Services
                 var pagerDutyService = _incidentManagementServiceFactory.GetService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload>();
                 if (pagerDutyService is not null)
                 {
-                    incidentDetails = await pagerDutyService.GetIncidentDetails(incident);
+                    incidentDetails = await pagerDutyService.GetIncidentAsync(incident, false);
                 }
             }
             catch (Exception ex)

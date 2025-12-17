@@ -32,16 +32,25 @@ public class IcmIncidentManagementService : IncidentManagementServiceBase<IcmInc
         _icmApiClient = icmApiClient;
     }
 
-    public override async Task<IcmIncidentDocument?> GetIncidentDetails(string incidentId)
+    public override async Task<IcmIncidentDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true)
     {
-        _logger.LogInternalInformation("GetIncidentDetails: Invoked for IncidentId: {IncidentId}", incidentId);
+        _logger.LogInternalInformation("[IcmIncidentManagementService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}, FetchFromAPI: {FetchFromAPI}", incidentId, fetchFromAPI);
         try
         {
-            return await GetIncidentDetailsInternal(incidentId);
+            _logger.LogInternalInformation("[IcmIncidentManagementService] GetIncidentAsync: Using Icm for IncidentId: {IncidentId}", incidentId);
+            var icmIncidentData = await GetIncidentFromDBAsync(incidentId);
+            if (icmIncidentData == null && fetchFromAPI == true)
+            {
+                _logger.LogInternalWarning("[IcmIncidentManagementService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                var lastestIncidentData = await _icmApiClient.GetIncidentAsync(incidentId);
+                icmIncidentData = new IcmIncidentDocument(lastestIncidentData);
+            }
+            _logger.LogInternalInformation("[IcmIncidentManagementService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
+            return icmIncidentData;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error fetching incident details for {IncidentId}", incidentId);
+            _logger.LogInternalError(ex, "[IcmIncidentManagementService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
             throw;
         }
     }

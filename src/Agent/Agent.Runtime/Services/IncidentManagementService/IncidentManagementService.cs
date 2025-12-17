@@ -14,7 +14,7 @@ public interface IIncidentManagementService<TIncidentDocument, TIncidentFilterDo
     where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
 {
     Task<IncidentQueryResult<TIncidentDocument>> QueryIncidents(IncidentQueryRequest<TIncidentFilterDocumentPayload> request);
-    Task<TIncidentDocument?> GetIncidentDetails(string incidentId);
+    Task<TIncidentDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true);
     Task<TIncidentDocument?> SaveDocument(TIncidentDocument? document);
 }
 
@@ -40,7 +40,7 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
 
     public abstract Task<IncidentQueryResult<TIncidentDocument>> QueryIncidents(IncidentQueryRequest<TIncidentFilterDocumentPayload> request);
 
-    public abstract Task<TIncidentDocument?> GetIncidentDetails(string incidentId);
+    public abstract Task<TIncidentDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true);
 
     public async Task<TIncidentDocument?> SaveDocument(TIncidentDocument? document)
     {
@@ -358,10 +358,10 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
         }
     }
 
-    protected async Task<TIncidentDocument?> GetIncidentDetailsInternal(string incidentId)
+    protected async Task<TIncidentDocument?> GetIncidentFromDBAsync(string incidentId)
     {
         _logger.LogInternalInformation(
-            "GetIncidentDetailsInternal: Invoked for IncidentId: {IncidentId}",
+            "GetIncidentFromDBAsync: Invoked for IncidentId: {IncidentId}",
             incidentId
         );
 
@@ -379,21 +379,21 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
                 if (result == null)
                 {
                     _logger.LogInternalWarning(
-                        "GetIncidentDetailsInternal: No incident found for IncidentId: {IncidentId}",
+                        "GetIncidentFromDBAsync: No incident found for IncidentId: {IncidentId}",
                         incidentId
                     );
                 }
                 else
                 {
                     _logger.LogInternalInformation(
-                        "GetIncidentDetailsInternal: Successfully retrieved incident for IncidentId: {IncidentId}",
+                        "GetIncidentFromDBAsync: Successfully retrieved incident for IncidentId: {IncidentId}",
                         incidentId
                     );
                 }
                 return result;
             }
             _logger.LogInternalWarning(
-                "GetIncidentDetailsInternal: No results for IncidentId: {IncidentId}",
+                "GetIncidentFromDBAsync: No results for IncidentId: {IncidentId}",
                 incidentId
             );
             return default;
@@ -402,7 +402,7 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
         {
             _logger.LogInternalError(
                 ex,
-                "GetIncidentDetailsInternal: Exception occurred for IncidentId: {IncidentId}",
+                "GetIncidentFromDBAsync: Exception occurred for IncidentId: {IncidentId}",
                 incidentId
             );
             throw;

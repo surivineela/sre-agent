@@ -448,7 +448,7 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
                     }
                 }
 
-                var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id);
+                var existingIncidentDocument = await incidentManagementService.GetIncidentAsync(incidentDocument.Id, false);
                 var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<ServiceNowDiscussionEntry>();
                 // Keep using IncidentId (sys_id) for API calls to get discussion entries
                 var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.IncidentSystemId);

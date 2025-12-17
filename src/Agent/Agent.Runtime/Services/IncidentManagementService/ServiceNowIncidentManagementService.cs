@@ -35,12 +35,9 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
         _serviceNowAPIClient = serviceNowAPIClient;
     }
 
-    public async override Task<ServiceNowIncidentDocument?> GetIncidentDetails(string incidentId)
+    public async override Task<ServiceNowIncidentDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true)
     {
-        _logger.LogInternalInformation(
-            "GetIncidentDetails: Invoked for IncidentId: {IncidentId}",
-            incidentId
-        );
+        _logger.LogInternalInformation("[ServiceNowIncidentManagementService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}, FetchFromAPI: {FetchFromAPI}", incidentId, fetchFromAPI);
         try
         {
             // For ServiceNow, incidentId is the incident number
@@ -48,43 +45,30 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
             var sysId = await GetServiceNowSysId(incidentId);
             if (string.IsNullOrEmpty(sysId))
             {
-                _logger.LogInternalWarning(
-                    "GetIncidentDetails: Could not find sys_id for ServiceNow incident number: {IncidentNumber}",
-                    incidentId
-                );
+                _logger.LogInternalWarning("[ServiceNowIncidentManagementService] GetIncidentAsync: Unable to find sys_id for ServiceNow incident number: {IncidentNumber}", incidentId);
                 return default;
             }
 
-            _logger.LogInternalInformation(
-                "GetIncidentDetails: Found sys_id {SysId} for ServiceNow incident number: {IncidentNumber}",
-                sysId, incidentId
-            );
+            _logger.LogInternalInformation("[ServiceNowIncidentManagementService] GetIncidentAsync: Found sys_id {SysId} for ServiceNow incident number: {IncidentNumber}", sysId, incidentId);
 
             // Now get the incident details using the sys_id
-            var serviceNowResult = await GetIncidentDetailsInternal(incidentId);
-            if (serviceNowResult == null)
+            var serviceNowResult = await GetIncidentFromDBAsync(incidentId);
+
+            if (serviceNowResult is null && fetchFromAPI == true)
             {
-                _logger.LogInternalWarning(
-                    "GetIncidentDetails: No incident found for ServiceNow incident number: {IncidentNumber}",
-                    incidentId
-                );
+                _logger.LogInternalWarning("[ServiceNowIncidentManagementService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                var latestIncidentData = await _serviceNowAPIClient.GetIncidentAsync(incidentId);
+                return new ServiceNowIncidentDocument(latestIncidentData);
             }
-            else
-            {
-                _logger.LogInternalInformation(
-                    "GetIncidentDetails: Successfully retrieved incident for ServiceNow incident number: {IncidentNumber}",
-                    incidentId
-                );
-            }
+            _logger.LogInternalInformation(
+                "[ServiceNowIncidentManagementService] GetIncidentAsync: Successfully retrieved incident for ServiceNow incident number: {IncidentNumber}",
+                incidentId
+            );
             return serviceNowResult;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(
-                ex,
-                "GetIncidentDetails: Exception occurred for ServiceNow incident number: {IncidentNumber}",
-                incidentId
-            );
+            _logger.LogInternalError(ex, "[ServiceNowIncidentManagementService] GetIncidentAsync: Exception occurred for ServiceNow incident number: {IncidentNumber}", incidentId);
             throw;
         }
     }

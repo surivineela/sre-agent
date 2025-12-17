@@ -50,7 +50,9 @@ public class IncidentHandlingRequestModelWithFilterOnly<TIncidentFilterDocumentP
 public class IncidentHandlingResponseModel
 {
     public int StatusCode { get; set; }
-    public object? Response { get; set; }
+    public string? Message { get; set; }
+    public required string IncidentId { get; set; }
+    public Guid? ThreadId { get; set; }
 }
 
 public interface IIncidentHandlingService<TIncidentFilterDocumentPayload> where TIncidentFilterDocumentPayload : IncidentFilterDocumentPayload
@@ -67,6 +69,13 @@ public interface IIncidentHandlingService<TIncidentFilterDocumentPayload> where 
     /// <param name="incidentDocument"></param>
     /// <returns></returns>
     Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModelWithFilterOnly<TIncidentFilterDocumentPayload> request);
+
+    /// <summary>
+    /// This method handles batch requests for multiple incidents
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>> request);
 }
 
 public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload> : IIncidentHandlingService<TIncidentFilterDocumentPayload>
@@ -75,17 +84,20 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     where TIncidentFilterDocument : TIncidentFilterDocumentPayload, IIncidentFilterDocument, new()
 {
     protected readonly IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> _incidentFilterManagementService;
+    protected readonly IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> _incidentManagementService;
     protected readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     protected readonly ILogger _logger;
     protected readonly IAgentFactory<AgentContext> _agentFactory;
 
     public IncidentHandlingServiceBase(
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
+        IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ILogger logger)
     {
         _incidentFilterManagementService = incidentFilterManagementService;
+        _incidentManagementService = incidentManagementService;
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _logger = logger;
         _agentFactory = agentFactory;
@@ -94,7 +106,6 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
     protected abstract Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(TIncidentDocument incidentDetails, TIncidentFilterDocumentPayload filter, IncidentHandlerDocumentPayload? handler, IncidentHandlingRequestModelBase baseRequest);
     protected abstract TIncidentFilterDocumentPayload GetDefaultIncidentFilter(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> request);
-    protected abstract Task<TIncidentDocument> GetIncidentAsync(string incidentId);
 
     public async Task<IncidentHandlingResponseModel> HandleIncidentAsync(IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>? request)
     {
@@ -103,13 +114,25 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 400,
-                Response = "Invalid request. IncidentHandlingRequestModel cannot be null."
+                Message = "Invalid request. IncidentHandlingRequestModel cannot be null.",
+                IncidentId = string.Empty
             };
         }
 
         try
         {
-            var incident = await GetIncidentAsync(request.IncidentId);
+            var incident = await _incidentManagementService.GetIncidentAsync(request.IncidentId);
+
+            if (incident is null)
+            {
+                return new IncidentHandlingResponseModel
+                {
+                    StatusCode = 404,
+                    Message = "Incident not found.",
+                    IncidentId = request.IncidentId
+                };
+            }
+
             var (filter, handler) = await GetIncidentFilterAndHandlerAsync(request, incident);
 
             var response = await HandleIncidentInternalAsync(incident, filter, handler, request);
@@ -121,7 +144,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 404,
-                Response = "No matching incident filters found for this incident."
+                Message = "No matching incident filters found for this incident.",
+                IncidentId = request.IncidentId
             };
         }
         catch (Exception ex)
@@ -130,7 +154,8 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 500,
-                Response = "Failed to process Incident"
+                Message = "Failed to process Incident",
+                IncidentId = request.IncidentId
             };
         }
     }
@@ -142,14 +167,24 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 400,
-                Response = "Invalid request. IncidentHandlingRequestModel cannot be null."
+                Message = "Invalid request. IncidentHandlingRequestModel cannot be null.",
+                IncidentId = string.Empty
             };
         }
 
         try
         {
             var (filter, handler) = await GetIncidentFilterAndHandlerAsync(request);
-            var incident = await GetIncidentAsync(request.IncidentId);
+            var incident = await _incidentManagementService.GetIncidentAsync(request.IncidentId);
+            if (incident is null)
+            {
+                return new IncidentHandlingResponseModel
+                {
+                    StatusCode = 404,
+                    Message = "Incident not found.",
+                    IncidentId = request.IncidentId
+                };
+            }
             var response = await HandleIncidentInternalAsync(incident, filter, handler, request);
             return response;
         }
@@ -160,9 +195,34 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 500,
-                Response = "Failed to process Incident"
+                Message = "Failed to process Incident",
+                IncidentId = request.IncidentId
             };
         }
+    }
+
+    public async Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>> request)
+    {
+        if (request is null || !request.Any())
+        {
+            return new List<IncidentHandlingResponseModel>()
+            {
+                new IncidentHandlingResponseModel
+                {
+                    StatusCode = 400,
+                    Message = "Invalid request. IncidentHandlingRequestModel list cannot be null or empty.",
+                    IncidentId = string.Empty
+                }
+            };
+        }
+
+        request = request.DistinctBy(r => r.IncidentId);
+
+        // Process each incident handling request
+        var tasks = request.Select(r => HandleIncidentAsync(r));
+        var results = await Task.WhenAll(tasks);
+
+        return results.ToList();
     }
 
 
@@ -335,6 +395,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
         IThreadRepository repository,
         IAgentInboundCommunicationService inboundCommunicationService,
         IIncidentFilterManagementService<TIncidentFilterDocument, TIncidentFilterDocumentPayload> incidentFilterManagementService,
+        IIncidentManagementService<TIncidentDocument, TIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IIncidentStatusMetricsService incidentStatusMetricsService,
         IAgentOutboundCommunicationService agentOutboundCommunicationService,
@@ -342,7 +403,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
-        ExperimentalSettings experimentalSettings) : base(incidentFilterManagementService, incidentHandlerManagementService, agentFactory, logger)
+        ExperimentalSettings experimentalSettings) : base(incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, agentFactory, logger)
     {
         _repository = repository;
         _inboundCommunicationService = inboundCommunicationService;
@@ -412,7 +473,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
     protected override async Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(TIncidentDocument incidentDetails, TIncidentFilterDocumentPayload matchingFilter, IncidentHandlerDocumentPayload? matchingHandler, IncidentHandlingRequestModelBase request)
     {
-        var response = new IncidentHandlingResponseModel();
+        Thread? thread = null;
         try
         {
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentDetails.Id);
@@ -433,11 +494,11 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
-                var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
-                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, request.IncidentId);
+                thread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
+                _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, request.IncidentId);
 
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
-                await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(defaultThread.Id, incidentStatusMetrics);
+                await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(thread.Id, incidentStatusMetrics);
 
                 try
                 {
@@ -449,14 +510,16 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                     _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
                 }
 
-                response.StatusCode = 200;
-                response.Response = new { threadId = defaultThread.Id, message = "Incident received" };
-                return response;
+                return new IncidentHandlingResponseModel
+                {
+                    StatusCode = 200,
+                    Message = "Incident received",
+                    IncidentId = request.IncidentId,
+                    ThreadId = thread.Id
+                };
             }
 
             _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", request.IncidentId, matchingFilter.Id, matchingHandler.Id);
-
-            Thread thread;
 
             // Check if YAML-based incident handling is enabled
             if (_experimentalSettings.UseYamlForIncidentHandling)
@@ -482,16 +545,24 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 _logger.LogInternalError($"[IncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
             }
 
-            response.StatusCode = 200;
-            response.Response = new { threadId = thread.Id, message = "Incident received" };
-            return response;
+            return new IncidentHandlingResponseModel
+            {
+                StatusCode = 200,
+                Message = "Incident received",
+                IncidentId = request.IncidentId,
+                ThreadId = thread.Id
+            };
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "[IncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", request.IncidentId);
-            response.StatusCode = 500;
-            response.Response = "Failed to process Incident";
-            return response;
+            return new IncidentHandlingResponseModel
+            {
+                StatusCode = 500,
+                Message = "Failed to process Incident",
+                IncidentId = request.IncidentId,
+                ThreadId = thread?.Id
+            };
         }
     }
 

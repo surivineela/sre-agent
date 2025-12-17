@@ -644,7 +644,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     }
                 }
 
-                var existingIncidentDocument = await incidentManagementService.GetIncidentDetails(incidentDocument.Id.ToString());
+                var existingIncidentDocument = await incidentManagementService.GetIncidentAsync(incidentDocument.Id.ToString(), false);
                 var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DescriptionEntry>();
                 var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.Id.ToString());
 

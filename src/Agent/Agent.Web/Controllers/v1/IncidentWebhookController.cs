@@ -60,62 +60,69 @@ public class IncidentWebhookController : ControllerBase
 
     [HttpPost("processIncident")]
 #pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
-    public async Task<IActionResult> IncidentWebhook([FromBody] JsonNode request)
+    public async Task<IActionResult> ProcessIncident([FromBody] JsonNode request)
 #pragma warning restore CUSTOM004
     {
-        _logger.LogInternalInformation(
-            "IncidentWebhook: Invoked with Request: {Request}",
-            request);
+        _logger.LogInternalInformation("[IncidentWebhookController] ProcessIncident: Process with Request: {Request}", request);
 
         if (request == null)
         {
-            _logger.LogInternalError("IncidentWebhook: Request is null");
-            throw new ArgumentNullException(nameof(request), "Request cannot be null");
+            _logger.LogInternalError("[IncidentWebhookController] ProcessIncident: Request is null");
+            return BadRequest("Request cannot be null");
         }
 
         try
         {
-            return await ProcessIncidentAsync(request);
+            var response = await _incidentHandlingServiceFactory.HandleIncidentAsync(request);
+            if (response == null)
+            {
+                _logger.LogInternalError("[IncidentWebhookController] ProcessIncident: Failed to handle incident for Request: {Request}", request);
+                return StatusCode(500, "Failed to handle incident");
+            }
+            else
+            {
+                _logger.LogInternalInformation("[IncidentWebhookController] ProcessIncident: Successfully handled incident for Request: {Request}, StatusCode: {StatusCode}",
+                request, response.StatusCode);
+                return StatusCode(response.StatusCode, response);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(
-                ex,
-                "IncidentWebhook: Error processing incident webhook for Request: {Request}",
-                request);
-
-            return StatusCode(500, "Failed to process incident webhook");
+            _logger.LogInternalError(ex, "[IncidentWebhookController] ProcessIncident: Error processing incident webhook for Request: {Request}", request);
+            return StatusCode(500, "Failed to processIncident");
         }
     }
 
-    private async Task<IActionResult> ProcessIncidentAsync(JsonNode request)
+    [HttpPost("processIncidents")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation: webhook
+    public async Task<IActionResult> ProcessIncidents([FromBody] List<JsonNode> request)
+#pragma warning restore CUSTOM004
     {
-        _logger.LogInternalInformation(
-            "ProcessIncidentAsync: Handling incident with Request: {Request}",
-            request);
-
+        _logger.LogInternalInformation("[IncidentWebhookController] ProcessIncidents: Process with Request: {Request}", request);
         if (request == null)
         {
-            throw new ArgumentNullException(nameof(request), "Request cannot be null");
+            _logger.LogInternalError("[IncidentWebhookController] ProcessIncidents: Request is null");
+            return BadRequest("Request cannot be null");
         }
-
-        var response = await _incidentHandlingServiceFactory.HandleIncidentAsync(request);
-
-        if (response == null)
+        try
         {
-            _logger.LogInternalError(
-                "ProcessIncidentAsync: Failed to handle incident for Request: {Request}",
-                request);
-
-            return StatusCode(500, "Failed to handle incident");
+            var response = await _incidentHandlingServiceFactory.HandleIncidentsAsync(request);
+            if (response == null)
+            {
+                _logger.LogInternalError("[IncidentWebhookController] ProcessIncidents: Failed to handle incidents for Request: {Request}", request);
+                return StatusCode(500, "Failed to handle incidents");
+            }
+            else
+            {
+                _logger.LogInternalInformation("[IncidentWebhookController] ProcessIncidents: Successfully handled incidents for Request: {Request}, Response: {Response}",
+                request, response);
+                return Ok(response);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogInternalInformation(
-                "ProcessIncidentAsync: Successfully handled incident for Request: {Request}, StatusCode: {StatusCode}",
-                request, response.StatusCode);
-
-            return StatusCode(response.StatusCode, response.Response);
+            _logger.LogInternalError(ex, "[IncidentWebhookController] ProcessIncidents: Error processing for Request: {Request}", request);
+            return StatusCode(500, "Failed to processIncidents");
         }
     }
 }

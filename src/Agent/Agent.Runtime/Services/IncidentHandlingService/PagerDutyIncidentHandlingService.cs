@@ -19,7 +19,6 @@ namespace Agent.Runtime.Services;
 public class PagerDutyIncidentHandlingService : IncidentHandlingService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident>
 {
     private readonly IPagerDutyService _pagerDutyService;
-    private readonly IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> _pagerDutyincidentManagementService;
 
     protected override IncidentManagementType IncidentType => IncidentManagementType.PagerDuty;
     public PagerDutyIncidentHandlingService(
@@ -31,49 +30,14 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingService<PagerDut
         IIncidentAnalysisService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload, PagerDutyIncident> incidentAnalysisService,
         ILogger<PagerDutyIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> pagerDutyincidentManagementService,
+        IIncidentManagementService<PagerDutyIncidentDocument, PagerDutyIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentFilterManagementService<PagerDutyIncidentFilterDocument, PagerDutyIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _pagerDutyService = pagerDutyService;
-        _pagerDutyincidentManagementService = pagerDutyincidentManagementService;
-    }
-
-    protected override async Task<PagerDutyIncidentDocument> GetIncidentAsync(string incidentId)
-    {
-        _logger.LogInternalInformation("[PagerDutyIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
-        try
-        {
-            _logger.LogInternalInformation("[PagerDutyIncidentHandlingService] GetIncidentAsync: Using PagerDuty for IncidentId: {IncidentId}", incidentId);
-            var incidentData = await _pagerDutyincidentManagementService.GetIncidentDetails(incidentId);
-            if (incidentData == null)
-            {
-                _logger.LogInternalWarning("[PagerDutyIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                var lastedIncidentData = await _pagerDutyService.GetPagerDutyIncidentAsync(incidentId);
-                incidentData = new PagerDutyIncidentDocument(
-                Id: lastedIncidentData.IncidentId,
-                HtmlUrl: lastedIncidentData.HtmlUrl,
-                Status: lastedIncidentData.Status,
-                Priority: lastedIncidentData.Priority?.Summary ?? string.Empty,
-                Urgency: lastedIncidentData.Urgency ?? string.Empty,
-                IncidentType: lastedIncidentData.IncidentType?.Name ?? string.Empty,
-                ImpactedServiceId: lastedIncidentData.ImpactedService?.Id ?? string.Empty,
-                ImpactedServiceName: lastedIncidentData.ImpactedService?.Summary ?? string.Empty,
-                CreatedAt: lastedIncidentData.CreatedAt);
-                incidentData.Title = lastedIncidentData.Title;
-                incidentData.Description = lastedIncidentData.Body?.Details.ToString() ?? string.Empty;
-            }
-            _logger.LogInternalInformation("[PagerDutyIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
-            return incidentData;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "[PagerDutyIncidentHandlingService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
-            throw;
-        }
     }
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(

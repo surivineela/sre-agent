@@ -20,8 +20,6 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
 {
     private readonly IICMAPIClient _icmApiClient;
 
-    private readonly IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> _icmIncidentManagementService;
-
     protected override IncidentManagementType IncidentType => IncidentManagementType.Icm;
 
     public IcmIncidentHandlingService(
@@ -33,20 +31,19 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
         IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService,
         ILogger<IcmIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> icmIncidentManagementService,
+        IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _icmApiClient = icmApiClient;
-        _icmIncidentManagementService = icmIncidentManagementService;
     }
 
     protected override async Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(IcmIncidentDocument incidentDetails, IcmIncidentFilterDocumentPayload matchingFilter, IncidentHandlerDocumentPayload? matchingHandler, IncidentHandlingRequestModelBase request)
     {
-        var response = new IncidentHandlingResponseModel();
+        Thread? thread = null;
         try
         {
             if (matchingHandler is null)
@@ -66,11 +63,11 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
-                var defaultThread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
-                _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", defaultThread.Id, request.IncidentId);
+                thread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
+                _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}", thread.Id, request.IncidentId);
 
                 var incidentStatusMetrics = await _incidentStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
-                await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(defaultThread.Id, incidentStatusMetrics);
+                await _agentOutboundCommunicationService.NotifyIncidentStatusMetrics(thread.Id, incidentStatusMetrics);
 
                 try
                 {
@@ -82,14 +79,16 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
                     _logger.LogInternalError($"[IcmIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
                 }
 
-                response.StatusCode = 200;
-                response.Response = new { threadId = defaultThread.Id, message = "Incident received" };
-                return response;
+                return new IncidentHandlingResponseModel
+                {
+                    StatusCode = 200,
+                    Message = "Incident received",
+                    IncidentId = request.IncidentId,
+                    ThreadId = thread.Id
+                };
             }
 
             _logger.LogInternalInformation("[IcmIncidentHandlingService] HandleIncidentAsync: Matched Handler. Creating IncidentHandlerAgent thread for IncidentId: {IncidentId}, FilterId: {FilterId} and HandlerId: {HandlerId}", request.IncidentId, matchingFilter.Id, matchingHandler.Id);
-
-            Thread thread;
 
             // Check if YAML-based incident handling is enabled
             if (_experimentalSettings.UseYamlForIncidentHandling)
@@ -115,40 +114,26 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
                 _logger.LogInternalError($"[IcmIncidentHandlingService] HandleIncidentAsync: Error logging incident handling data to Incident Analysis Service; {ex.Message}");
             }
 
-            response.StatusCode = 200;
-            response.Response = new { threadId = thread.Id, message = "Incident received" };
-            return response;
+            return new IncidentHandlingResponseModel
+            {
+                StatusCode = 200,
+                Message = "Incident received",
+                IncidentId = request.IncidentId,
+                ThreadId = thread.Id
+            };
+
         }
 
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "[IcmIncidentHandlingService] HandleIncidentAsync: Error processing IncidentId: {IncidentId}", request.IncidentId);
-            response.StatusCode = 500;
-            response.Response = "Failed to process Incident";
-            return response;
-        }
-    }
-
-    protected override async Task<IcmIncidentDocument> GetIncidentAsync(string incidentId)
-    {
-        _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
-        try
-        {
-            _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentAsync: Using Icm for IncidentId: {IncidentId}", incidentId);
-            var icmIncidentData = await _icmIncidentManagementService.GetIncidentDetails(incidentId);
-            if (icmIncidentData == null)
+            return new IncidentHandlingResponseModel
             {
-                _logger.LogInternalWarning("[IcmIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                var lastestIncidentData = await _icmApiClient.GetIncidentAsync(incidentId);
-                icmIncidentData = new IcmIncidentDocument(lastestIncidentData);
-            }
-            _logger.LogInternalInformation("[IcmIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
-            return icmIncidentData;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "[IcmIncidentHandlingService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
-            throw;
+                StatusCode = 500,
+                Message = "Failed to process Incident",
+                IncidentId = request.IncidentId,
+                ThreadId = thread?.Id
+            };
         }
     }
 

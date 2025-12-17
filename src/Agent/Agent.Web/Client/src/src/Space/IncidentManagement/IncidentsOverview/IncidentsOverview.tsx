@@ -22,7 +22,7 @@ import {
     Tooltip,
     useRestoreFocusSource,
 } from '@fluentui/react-components';
-import { ArrowClockwise16Regular, Branch16Regular } from '@fluentui/react-icons';
+import { ArrowClockwise16Regular, Branch16Regular, Flash16Regular } from '@fluentui/react-icons';
 import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -45,7 +45,12 @@ import { IncidentDocument, IncidentFilter } from '../../../Common/Contracts/Azur
 import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { InvestigationStatus, Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
-import { ActivitiesThreadHeaderResources, IncidentManagementResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import {
+    ActivitiesThreadHeaderResources,
+    IncidentManagementResources,
+    SreAgentResources,
+    TriggerIncidentManagementResources,
+} from '../../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { ChatBoxSidePanelData } from '../../Contracts/Activities';
 import { IncidentsOverviewContext, SreAgentContext } from '../../Contracts/Context';
@@ -70,6 +75,7 @@ import { BulkDeleteDialog } from './BulkDeleteDialog';
 import { IncidentsSummary } from './IncidentsSummary';
 import { ResponsePlanLinkWithIcon } from './ResponsePlanLinkWithIcon';
 import { StatusLabel } from './StatusLabel';
+import TriggerAgentDrawer from './TriggerAgentDrawer';
 import { useIncidentThreadList } from './useIncidentThreadList';
 
 interface SelectedThreadInfo {
@@ -150,6 +156,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const [isViewResponsePlanPanelOpen, setIsViewResponsePlanPanelOpen] = useState(false);
     const [openedResponsePlan, setOpenedResponsePlan] = useState<ResponsePlanDetailsDrawerProps['responsePlan'] | null>(null);
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
+    const [isTriggerAgentDrawerOpen, setIsTriggerAgentDrawerOpen] = useState(false);
 
     const traceFocusRestorationRef = useRef<HTMLButtonElement>(null);
 
@@ -166,6 +173,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     }, []);
 
     const openThreadDrawer = useCallback((thread: Thread) => {
+        setIsTriggerAgentDrawerOpen(false);
         setIsViewResponsePlanPanelOpen(false);
         setSelectedThreadInfo({ thread, fullScreen: false, showTrace: false });
     }, []);
@@ -201,6 +209,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
     const handleEditHandler = useCallback((filter: IncidentFilter | undefined, handlerId: string | undefined) => {
         setHandlerCreateOrEditInfo({ filter, handlerId });
         setIsViewResponsePlanPanelOpen(false);
+        setIsTriggerAgentDrawerOpen(false);
     }, []);
 
     useEffect(() => {
@@ -923,6 +932,17 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                             dynamicFilters={dynamicFilters}
                                             disabled={disableAllControls || !!selectedThreadInfo}
                                         />
+                                        {incidentPlatformType === IncidentManagementType.Icm && (
+                                            <Button
+                                                icon={<Flash16Regular />}
+                                                appearance="transparent"
+                                                className={styles.button}
+                                                disabled={disableAllControls || !!selectedThreadInfo}
+                                                onClick={() => setIsTriggerAgentDrawerOpen(true)}
+                                            >
+                                                {intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}
+                                            </Button>
+                                        )}
                                         <Button
                                             icon={<ArrowClockwise16Regular />}
                                             appearance="transparent"
@@ -1040,6 +1060,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     onEditHandler={handleEditHandler}
                 />
             )}
+            <TriggerAgentDrawer isOpen={isTriggerAgentDrawerOpen} onClose={() => setIsTriggerAgentDrawerOpen(false)} />
         </IncidentsOverviewContext.Provider>
     );
 };

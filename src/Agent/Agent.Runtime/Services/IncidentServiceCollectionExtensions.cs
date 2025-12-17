@@ -18,6 +18,7 @@ using Agent.Runtime.SubAgents.Scanner;
 using Azure.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Microsoft.SREAgent.Incidents.IcM.Service;
@@ -159,6 +160,28 @@ public static class IncidentServiceCollectionExtensions
 
         IHttpClientBuilder httpClientBuilder;
 
+
+        Func<IServiceProvider, Action<LogLevel, string>> loggerProvider = sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<IICMAPIClient>>();
+            return (level, message) =>
+            {
+                switch (level)
+                {
+                    case LogLevel.Critical:
+                    case LogLevel.Error:
+                        logger.LogInternalError($"[ICMSDK] {message}");
+                        break;
+                    case LogLevel.Warning:
+                        logger.LogInternalWarning($"[ICMSDK] {message}");
+                        break;
+                    default:
+                        logger.LogInternalInformation($"[ICMSDK] {message}");
+                        break;
+                }
+            };
+        };
+
         // if UserToken is not null -> local development, use UserToken/Cert from appsettings
         // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService
         // else if cert auth is configured, use ICMAPICertAuthService
@@ -177,6 +200,7 @@ public static class IncidentServiceCollectionExtensions
                             DateTimeOffset.MaxValue
                         ));
                     };
+                    options.LoggerProvider = loggerProvider;
                 });
             }
             else if (IcmDataConnectorCertAuthService.IsCertAuthConfigured(agentIcmConnector))
@@ -209,6 +233,7 @@ public static class IncidentServiceCollectionExtensions
                         var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
                         return certAuthService.GetClientCertificate();
                     };
+                    options.LoggerProvider = loggerProvider;
                 });
             }
             else
@@ -228,6 +253,7 @@ public static class IncidentServiceCollectionExtensions
                     var agentSpaceTokenService = sp.GetRequiredService<IIcmTokenAuthService>();
                     return await agentSpaceTokenService.GetAccessTokenAsync();
                 };
+                options.LoggerProvider = loggerProvider;
             });
         }
         else if (IcmDataConnectorCertAuthService.IsCertAuthConfigured(agentIcmConnector))
@@ -261,6 +287,7 @@ public static class IncidentServiceCollectionExtensions
                     var certAuthService = sp.GetRequiredService<IIcmCertAuthService>();
                     return certAuthService.GetClientCertificate();
                 };
+                options.LoggerProvider = loggerProvider;
             });
         }
         else
@@ -280,6 +307,7 @@ public static class IncidentServiceCollectionExtensions
                     var accessToken = await tokenCredential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
                     return accessToken;
                 };
+                options.LoggerProvider = loggerProvider;
             });
         }
 
@@ -460,6 +488,7 @@ public interface IIncidentHandlingServiceFactory : IServiceFactory
 {
     public IIncidentHandlingService<T>? GetService<T>() where T : IncidentFilterDocumentPayload;
     public Task<IncidentHandlingResponseModel> HandleIncidentAsync(JsonNode? incidentDocument);
+    public Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<JsonNode> request);
 }
 
 public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncidentHandlingServiceFactory
@@ -497,6 +526,19 @@ public class IncidentHandlingServiceFactory : IncidentServiceFactoryBase, IIncid
             IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>>()),
             IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>>()),
             IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>().HandleIncidentAsync(incidentDocument?.DeserializeJson<IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>>()),
+            _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
+        };
+    }
+
+    public async Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<JsonNode> request)
+    {
+        return _incidentManagementType switch
+        {
+            IncidentManagementType.None => throw new InvalidOperationException("Cannot handle incidents when incident management type is None"),
+            IncidentManagementType.AzMonitor => await _serviceProvider.GetRequiredService<IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload>>().HandleIncidentsAsync(request.Select(node => node.DeserializeJson<IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload>>())),
+            IncidentManagementType.PagerDuty => await _serviceProvider.GetRequiredService<IIncidentHandlingService<PagerDutyIncidentFilterDocumentPayload>>().HandleIncidentsAsync(request.Select(node => node.DeserializeJson<IncidentHandlingRequestModel<PagerDutyIncidentFilterDocumentPayload>>())),
+            IncidentManagementType.Icm => await _serviceProvider.GetRequiredService<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>>().HandleIncidentsAsync(request.Select(node => node.DeserializeJson<IncidentHandlingRequestModel<IcmIncidentFilterDocumentPayload>>())),
+            IncidentManagementType.ServiceNow => await _serviceProvider.GetRequiredService<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>>().HandleIncidentsAsync(request.Select(node => node.DeserializeJson<IncidentHandlingRequestModel<ServiceNowIncidentFilterDocumentPayload>>())),
             _ => throw new NotSupportedException($"Unsupported incident management type: {_incidentManagementType}")
         };
     }

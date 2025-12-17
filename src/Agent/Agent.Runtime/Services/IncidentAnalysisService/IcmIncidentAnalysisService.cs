@@ -109,7 +109,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
 
     protected override async Task<string> IncidentOverview(Incident incident)
     {
-        IcmIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.Id.ToString());
+        IcmIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentAsync(incident.Id.ToString(), false);
         var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DescriptionEntry>();
         var notes = existingDiscussionEntries
                 .Select(entry => new IncidentDiscussion(entry.DescriptionEntryId.ToString(), entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))

@@ -21,7 +21,6 @@ namespace Agent.Runtime.Services;
 public class ServiceNowIncidentHandlingService : IncidentHandlingService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident>
 {
     private readonly IServiceNowAPIClient _serviceNowAPIClient;
-    private readonly IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> _serviceNowIncidentManagementService;
 
     protected override IncidentManagementType IncidentType => IncidentManagementType.ServiceNow;
 
@@ -34,16 +33,15 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
         IIncidentAnalysisService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload, ServiceNowIncident> incidentAnalysisService,
         ILogger<ServiceNowIncidentHandlingService> logger,
         Tracer tracer,
-        IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> serviceNowIncidentManagementService,
+        IIncidentManagementService<ServiceNowIncidentDocument, ServiceNowIncidentFilterDocumentPayload> incidentManagementService,
         IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
         ExperimentalSettings experimentalSettings
         )
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
-        _serviceNowIncidentManagementService = serviceNowIncidentManagementService;
     }
 
     /// <summary>
@@ -52,7 +50,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
     protected override bool IsPriorityMatch(string filterPriority, string incidentPriority)
     {
         // Use the existing NormalizePriorityForFiltering method from ServiceNowIncidentManagementService
-        if (_serviceNowIncidentManagementService is ServiceNowIncidentManagementService serviceNowService)
+        if (_incidentManagementService is ServiceNowIncidentManagementService serviceNowService)
         {
             var normalizedFilterPriorities = serviceNowService.NormalizePriorityForFiltering(filterPriority);
             var normalizedIncidentPriorities = serviceNowService.NormalizePriorityForFiltering(incidentPriority);
@@ -63,29 +61,6 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
 
         // Fallback to base implementation if cast fails
         return base.IsPriorityMatch(filterPriority, incidentPriority);
-    }
-
-    protected override async Task<ServiceNowIncidentDocument> GetIncidentAsync(string incidentId)
-    {
-        _logger.LogInternalInformation("[ServiceNowIncidentHandlingService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}", incidentId);
-        try
-        {
-            _logger.LogInternalInformation("[ServiceNowIncidentHandlingService] GetIncidentAsync: Using ServiceNow for IncidentId: {IncidentId}", incidentId);
-            var serviceNowIncidentData = await _serviceNowIncidentManagementService.GetIncidentDetails(incidentId);
-            if (serviceNowIncidentData == null)
-            {
-                _logger.LogInternalWarning("[ServiceNowIncidentHandlingService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                var latestIncidentData = await _serviceNowAPIClient.GetIncidentAsync(incidentId);
-                serviceNowIncidentData = new ServiceNowIncidentDocument(latestIncidentData);
-            }
-            _logger.LogInternalInformation("[ServiceNowIncidentHandlingService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
-            return serviceNowIncidentData;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "[ServiceNowIncidentHandlingService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
-            throw;
-        }
     }
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(

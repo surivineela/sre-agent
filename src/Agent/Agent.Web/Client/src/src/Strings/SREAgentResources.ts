@@ -1735,6 +1735,7 @@ export const IncidentManagementResources = defineMessages({
     baseIncident: { defaultMessage: 'Base incident', id: 'UjETJe' },
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
     last30Days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
+    last14Days: { defaultMessage: 'Last 14 days', id: 'BVVhyH' },
     last7Days: { defaultMessage: 'Last 7 days', id: 'irFBKn' },
     last3Days: { defaultMessage: 'Last 3 days', id: 'gUQeKV' },
     last24Hours: { defaultMessage: 'Last 24 hours', id: '8O9cAb' },
@@ -1912,6 +1913,34 @@ export const IncidentManagementResources = defineMessages({
     whatHappened: { defaultMessage: 'What happened', id: 'Xup5P8' },
     incidentTeamSearchAssignableOnly: { defaultMessage: 'Only teams that allow incident assignment', id: 'Q0B/Lb' },
     incidentTeamSearchWithOncallRotation: { defaultMessage: 'Only teams with an on-call rotation', id: 'dLWrbO' },
+});
+
+export const TriggerIncidentManagementResources = defineMessages({
+    triggerAgent: { defaultMessage: 'Trigger agent', id: 'wAZ9A7' },
+    search: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    submit: { defaultMessage: 'Submit', id: 'wSZR47' },
+    incidentProcessSuccess: {
+        defaultMessage: 'Incident {incidentId} successfully processed.',
+        id: '7e84yC',
+    },
+    incidentProcessSuccessWithThread: {
+        defaultMessage: 'Incident {incidentId} successfully processed. (Thread ID: {threadId})',
+        id: 'LZXqGi',
+    },
+    incidentProcessFailure: {
+        defaultMessage: 'Incident {incidentId} cannot be processed. {message}',
+        id: 'B2HRS5',
+    },
+    incidentProcessFailureWithThread: {
+        defaultMessage: 'Incident {incidentId} cannot be processed. {message} (Thread ID: {threadId})',
+        id: 'I85tfP',
+    },
+    incidentId: { defaultMessage: 'Incident ID', id: 'MB9ceM' },
+    incidentProperties: { defaultMessage: 'Incident properties', id: 'UC9FAP' },
+    enterIncidentId: { defaultMessage: 'Enter incident ID', id: 'wTdxhX' },
+    incidentCreateTimeRange: { defaultMessage: 'Incident created time range', id: 'DlPyyy' },
+    searchBy: { defaultMessage: 'Search by', id: 'Vd/5xJ' },
+    showingTopResults: { defaultMessage: 'Showing top {count} results', id: 'aT1kVu' },
 });
 
 export const IncidentManagementPlatformResources = defineMessages({

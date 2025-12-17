@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.Interface.IncidentAPI;
+using Azure.Core;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -32,15 +33,25 @@ public class AzMonitorIncidentManagementService : IncidentManagementServiceBase<
         _azMonitorAlertService = azMonitorAlertService;
     }
 
-    public override async Task<AzMonitorAlertDocument?> GetIncidentDetails(string incidentId)
+    public override async Task<AzMonitorAlertDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true)
     {
+        _logger.LogInternalInformation("[AzMonitorIncidentManagementService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}, FetchFromAPI: {FetchFromAPI}", incidentId, fetchFromAPI);
         try
         {
-            return await GetIncidentDetailsInternal(incidentId);
+            var incidentGUID = new ResourceIdentifier(incidentId).Name ?? incidentId;
+            var incidentDoc = await GetIncidentFromDBAsync(incidentId);
+            if (incidentDoc is null && fetchFromAPI == true)
+            {
+                _logger.LogInternalWarning("[AzMonitorIncidentManagementService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                var lastestIncident = await _azMonitorAlertService.GetIncidentAsync(incidentId);
+                return AzMonitorAlertDocument.FromIncident(lastestIncident);
+            }
+            _logger.LogInternalInformation("[AzMonitorIncidentManagementService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
+            return incidentDoc;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error occurred while fetching AzMonitor incident details for IncidentId: {IncidentId}", incidentId);
+            _logger.LogInternalError(ex, "[AzMonitorIncidentManagementService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
             throw;
         }
     }

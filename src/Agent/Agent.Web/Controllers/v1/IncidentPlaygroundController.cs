@@ -100,7 +100,8 @@ public class IncidentPlaygroundController : ControllerBase
         _logger.LogInternalInformation("CheckConnectivity: Invoked");
         try
         {
-            _logger.LogInternalInformation("CheckConnectivity: Checking connectivity with IncidentFilterManagementService");
+            string incidentType = _incidentManagementSettings.Type?.ToString() ?? string.Empty;
+            _logger.LogInternalInformation($"CheckConnectivity: Checking connectivity with incident type: {incidentType}");
             bool result = false;
             result = await _incidentFilterManagementServiceFactory.GetServiceDynamic().CheckConnectivity();
             _logger.LogInternalInformation("CheckConnectivity: Connectivity check succeeded with result {Result}", result);
@@ -545,14 +546,18 @@ public class IncidentPlaygroundController : ControllerBase
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> ResetLastScanTime()
     {
-        var doc = new LastScanTimeDoc()
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(_incidentManagementSettings.Type);
+        var lastScanTimeDoc = new LastScanTimeDoc
         {
+            Id = lastScanTimeKey,
+            DocumentType = lastScanTimeKey,
+            PartitionKey = lastScanTimeKey,
             LastScanTime = DateTime.UtcNow.AddDays(-30)
         };
         try
         {
-            await _container.UpsertItemAsync(doc);
-            _logger.LogInternalInformation($"[IncidentPlaygroundController] Last scan time reset to: {doc.LastScanTime}");
+            await _container.UpsertItemAsync(lastScanTimeDoc);
+            _logger.LogInternalInformation($"[IncidentPlaygroundController] Last scan time reset to: {lastScanTimeDoc.LastScanTime} for {_incidentManagementSettings.Type}");
             return Ok("Reset to last 30 days");
         }
         catch (Exception)
@@ -573,7 +578,12 @@ public class IncidentPlaygroundController : ControllerBase
         }
         try
         {
-            var incident = await _incidentManagementServiceFactory.GetServiceDynamic().GetIncidentDetails(incidentId);
+            var incident = await _incidentManagementServiceFactory.GetServiceDynamic().GetIncidentAsync(incidentId);
+            if (incident is null)
+            {
+                _logger.LogInternalWarning("GetIncident: Incident not found for IncidentId: {IncidentId}", incidentId);
+                return NotFound();
+            }
             return Ok(incident);
         }
         catch (Exception ex)
@@ -598,7 +608,7 @@ public class IncidentPlaygroundController : ControllerBase
         }
     }
 
-    [HttpPost("searchTeams")]
+    [HttpPost("icm/searchTeams")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     public async Task<IActionResult> SearchTeams([FromBody] IcmSearchTeamsRequestPayload searchPayload)
     {
@@ -625,6 +635,34 @@ public class IncidentPlaygroundController : ControllerBase
             string incidentPlatformType = _incidentManagementSettings.Type.ToString() ?? string.Empty;
             _logger.LogInternalError(ex, "SearchTeams Error searching teams with payload: {SearchPayload}, IncidentPlatformType: {IncidentPlatformType}", searchPayload, incidentPlatformType);
             return StatusCode(500, "Failed to search teams");
+        }
+    }
+
+    [HttpGet("icm/teams/{teamId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public async Task<IActionResult> GetTeamById(string teamId)
+    {
+        if (string.IsNullOrWhiteSpace(teamId))
+        {
+            _logger.LogInternalWarning("GetTeamById: Invalid teamId");
+            return BadRequest("Invalid teamId");
+        }
+        try
+        {
+            var team = await _icmAPIClient.GetTeamAsync(teamId);
+            if (team is null)
+            {
+                _logger.LogInternalWarning("GetTeamById: Team not found for TeamId: {TeamId}", teamId);
+                return NotFound();
+            }
+            _logger.LogInternalInformation("GetTeamById: Team found for TeamId: {TeamId}", teamId);
+            return Ok(team);
+        }
+        catch (Exception ex)
+        {
+            string incidentPlatformType = _incidentManagementSettings.Type.ToString() ?? string.Empty;
+            _logger.LogInternalError(ex, "GetTeamById Error getting team with TeamId: {TeamId}, IncidentPlatformType: {IncidentPlatformType}", teamId, incidentPlatformType);
+            return StatusCode(500, "Failed to get team by ID");
         }
     }
 

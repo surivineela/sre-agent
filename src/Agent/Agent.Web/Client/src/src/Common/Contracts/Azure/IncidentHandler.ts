@@ -111,8 +111,10 @@ export interface TestHandlerPayload {
 }
 
 export interface TestHandlerResponse {
-    threadId: string;
-    message: string;
+    statusCode: number;
+    message?: string;
+    incidentId: string;
+    threadId?: string;
 }
 
 export interface IncidentPlatformTypeResponse {

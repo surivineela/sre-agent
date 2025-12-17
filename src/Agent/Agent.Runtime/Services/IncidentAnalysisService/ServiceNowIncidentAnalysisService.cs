@@ -97,7 +97,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
         // may need to use serviceapiclient to get most recent notes
         // var latestDiscussionEntries = await serviceNowApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.IncidentSystemId);
 
-        ServiceNowIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentDetails(incident.Number);
+        ServiceNowIncidentDocument? existingIncidentDocument = await _incidentManagementService.GetIncidentAsync(incident.Number, false);
         var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : [];
 
         var newNotes = existingDiscussionEntries.Select(entry => entry.Text).ToList();

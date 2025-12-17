@@ -32,17 +32,37 @@ public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<
 
     protected override string DocumentType => "PagerDutyIncident";
 
-    public async override Task<PagerDutyIncidentDocument?> GetIncidentDetails(string incidentId)
+    public async override Task<PagerDutyIncidentDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true)
     {
+        _logger.LogInternalInformation("[PagerDutyIncidentManagementService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}, FetchFromAPI: {FetchFromAPI}", incidentId, fetchFromAPI);
         try
         {
-            return await GetIncidentDetailsInternal(incidentId);
+            _logger.LogInternalInformation("[PagerDutyIncidentManagementService] GetIncidentAsync: Using PagerDuty for IncidentId: {IncidentId}", incidentId);
+            var incidentData = await GetIncidentFromDBAsync(incidentId);
+            if (incidentData == null && fetchFromAPI == true)
+            {
+                _logger.LogInternalWarning("[PagerDutyIncidentManagementService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
+                var lastedIncidentData = await _pagerDutyService.GetPagerDutyIncidentAsync(incidentId);
+                incidentData = new PagerDutyIncidentDocument(
+                Id: lastedIncidentData.IncidentId,
+                HtmlUrl: lastedIncidentData.HtmlUrl,
+                Status: lastedIncidentData.Status,
+                Priority: lastedIncidentData.Priority?.Summary ?? string.Empty,
+                Urgency: lastedIncidentData.Urgency ?? string.Empty,
+                IncidentType: lastedIncidentData.IncidentType?.Name ?? string.Empty,
+                ImpactedServiceId: lastedIncidentData.ImpactedService?.Id ?? string.Empty,
+                ImpactedServiceName: lastedIncidentData.ImpactedService?.Summary ?? string.Empty,
+                CreatedAt: lastedIncidentData.CreatedAt);
+                incidentData.Title = lastedIncidentData.Title;
+                incidentData.Description = lastedIncidentData.Body?.Details.ToString() ?? string.Empty;
+            }
+            _logger.LogInternalInformation("[PagerDutyIncidentManagementService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
+            return incidentData;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error occurred while fetching PagerDuty incident details for IncidentId: {IncidentId}", incidentId);
+            _logger.LogInternalError(ex, "[PagerDutyIncidentManagementService] GetIncidentAsync: Error occurred for IncidentId: {IncidentId}", incidentId);
             throw;
-
         }
     }
 

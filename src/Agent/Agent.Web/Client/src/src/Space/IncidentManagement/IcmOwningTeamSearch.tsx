@@ -1,10 +1,12 @@
 import { Checkbox, Combobox, Field, Option, OptionOnSelectData } from '@fluentui/react-components';
 import debounce from 'lodash/debounce';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 import { IncidentTeamSearchResponse } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
-import { useIncidentFilterFields } from '../Hooks/useIncidentFilterFields';
 
 export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
     defaultTeamId,
@@ -18,11 +20,16 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
     disabled,
 }) => {
     const intl = useIntl();
-    const { searchIncidentTeams } = useIncidentFilterFields();
 
-    const [owningTeamOptions, setOwningTeamOptions] = useState<IncidentTeamSearchResponse[]>(
-        defaultTeamId ? [{ id: parseInt(defaultTeamId), name: defaultTeamId, description: '', teamPublicId: '' }] : []
-    );
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { log } = useAzPortalContext();
+
+    const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint, log), [sreAgentEndpoint, log]);
+
+    const [owningTeamOptions, setOwningTeamOptions] = useState<IncidentTeamSearchResponse[]>([]);
+
+    const [searchValue, setSearchValue] = useState<string>(defaultTeamId ? `${defaultTeamId}` : '');
+
     const [icmTeamSearchOptions, setIcmTeamSearchOptions] = useState<{
         owningTeamAssignableOnly: boolean;
         owningTeamWithOnCallRotationsOnly: boolean;
@@ -33,17 +40,33 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
         searchTerm: '',
     });
 
+    useEffect(() => {
+        // Load default team if defaultTeamId is provided
+        const loadDefaultTeam = async () => {
+            if (defaultTeamId) {
+                const res = await incidentHandlerClient.getIcmTeamById(defaultTeamId);
+                if (res.isSuccessful && res.content) {
+                    setOwningTeamOptions([res.content]);
+                    setSearchValue(getDisplayName(res.content));
+                }
+            }
+        };
+        loadDefaultTeam();
+    }, [defaultTeamId, incidentHandlerClient]);
+
     const debouncedSearch = useMemo(
         () =>
             debounce(async () => {
-                const teams = await searchIncidentTeams(
+                const res = await incidentHandlerClient.searchIncidentTeams(
                     icmTeamSearchOptions.searchTerm,
                     icmTeamSearchOptions.owningTeamAssignableOnly,
                     icmTeamSearchOptions.owningTeamWithOnCallRotationsOnly
                 );
-                setOwningTeamOptions(teams);
+                if (res.isSuccessful && res.content) {
+                    setOwningTeamOptions(res.content);
+                }
             }, 500),
-        [icmTeamSearchOptions, searchIncidentTeams]
+        [icmTeamSearchOptions, incidentHandlerClient]
     );
 
     useEffect(() => {
@@ -58,6 +81,19 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
         if (selectedTeam) {
             onUpdateOwningTeam(selectedTeam);
         }
+        setSearchValue(selectedTeam ? getDisplayName(selectedTeam) : '');
+    };
+
+    const getDisplayName = (team: IncidentTeamSearchResponse) => {
+        return team.tenant ? `${team.tenant.name} / ${team.name}` : team.name;
+    };
+
+    const onSearchChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        setIcmTeamSearchOptions(prev => ({
+            ...prev,
+            searchTerm: ev.target.value,
+        }));
+        setSearchValue(ev.target.value);
     };
 
     return (
@@ -69,12 +105,7 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
             className={fieldClassName}
         >
             <Combobox
-                onChange={ev =>
-                    setIcmTeamSearchOptions(prev => ({
-                        ...prev,
-                        searchTerm: ev.target.value,
-                    }))
-                }
+                onChange={ev => onSearchChange(ev)}
                 style={comboboxStyles}
                 className={comboboxClassName}
                 onOptionSelect={(_, data) => {
@@ -82,12 +113,12 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
                 }}
                 placeholder={intl.formatMessage(IncidentManagementResources.owningIcmTeamPlaceholder)}
                 onBlur={() => onFieldTouched()}
-                defaultValue={defaultTeamId}
+                value={searchValue}
                 disabled={disabled}
             >
                 {owningTeamOptions.map(team => (
                     <Option key={team.id} value={`${team.id}`}>
-                        {team.tenant ? `${team.tenant.name} / ${team.name}` : team.name}
+                        {getDisplayName(team)}
                     </Option>
                 ))}
             </Combobox>
