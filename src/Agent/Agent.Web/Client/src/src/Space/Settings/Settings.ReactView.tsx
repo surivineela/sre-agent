@@ -1,3 +1,4 @@
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { initializeIcons, useTheme } from '@fluentui/react';
 import { NavDrawer, NavDrawerBody, NavItem, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
@@ -17,11 +18,11 @@ import Identity from './Identity.ReactView';
 import KnowledgeBase from './KnowledgeBaseComponents/KnowledgeBase.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import McpServer from './McpServer';
+import Permissions from './Permissions/Permissions.ReactView';
 import { useSettingsStyles } from './Styles/Settings.styles';
 import SubAgents from './SubAgents.ReactView';
 import Support from './Support';
 import Usage from './Usage';
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 
 export enum SettingsKeys {
     AccessControl = 'accessControl',
@@ -34,6 +35,7 @@ export enum SettingsKeys {
     SubAgents = 'subAgents',
     DataKnowledgeSpace = 'dataKnowledgeSpace',
     McpServers = 'mcpServers',
+    Permissions = 'permissions',
     Usage = 'usage',
     SessionInsights = 'sessionInsights',
     Support = 'support',
@@ -54,6 +56,7 @@ const Settings: FC = () => {
     const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
+    const showPermissionsInSettings = useConfigSetting(SettingNames.ShowPermissionsInSettings);
 
     const { features } = useFeatureFlags();
     const showSessionInsights = features.sessionInsights;
@@ -106,6 +109,12 @@ const Settings: FC = () => {
                 key: SettingsKeys.Identity,
             }
         );
+        if (showPermissionsInSettings) {
+            items.push({
+                name: intl.formatMessage(SettingsTabResources.permissions),
+                key: SettingsKeys.Permissions,
+            });
+        }
 
         if (showSubAgents) {
             items.push({
@@ -164,7 +173,12 @@ const Settings: FC = () => {
 
     return (
         iconsInitialized && (
-            <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme.isInverted ? webDarkTheme : webLightTheme} style={styles.navContainerStyles}>
+            <CopilotProvider
+                {...CopilotTheme}
+                mode={'canvas'}
+                theme={theme.isInverted ? webDarkTheme : webLightTheme}
+                style={styles.navContainerStyles}
+            >
                 <NavDrawer
                     defaultSelectedValue={selectedKey || SettingsKeys.Basics}
                     defaultSelectedCategoryValue=""
@@ -195,6 +209,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.KnowledgeBase && <KnowledgeBase />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.Identity && <Identity />}
+                    {selectedKey === SettingsKeys.Permissions && <Permissions />}
                     {selectedKey === SettingsKeys.SubAgents && showSubAgents && <SubAgents />}
                     {selectedKey === SettingsKeys.McpServers && <McpServer />}
                     {selectedKey === SettingsKeys.Usage && <Usage />}

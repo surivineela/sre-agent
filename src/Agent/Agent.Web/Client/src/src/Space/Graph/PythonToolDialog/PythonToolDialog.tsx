@@ -83,11 +83,7 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
             >
                 {({ submitForm, dirty, isValid, values }) => {
                     // Check if code changed after successful test
-                    const currentFingerprint = getPythonToolFingerprint(
-                        values.functionCode,
-                        values.parameters,
-                        values.timeoutSeconds
-                    );
+                    const currentFingerprint = getPythonToolFingerprint(values.functionCode, values.parameters, values.timeoutSeconds);
                     const testStillValid = hasSuccessRunTest && currentFingerprint === lastTestedFingerprint;
                     const canSubmit = dirty && isValid && testStillValid;
 

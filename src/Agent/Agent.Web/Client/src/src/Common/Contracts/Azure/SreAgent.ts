@@ -24,6 +24,13 @@ export interface ConnectorStatus {
     };
 }
 
+export interface Permission {
+    role: string;
+    displayName: string;
+    objectId: string;
+    tenantId: string;
+}
+
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;
@@ -40,6 +47,7 @@ export interface Agent {
     dashboardConfiguration: DashboardConfiguration;
     upgradeChannel?: UpgradeChannel;
     monthlyAgentUnitLimit?: number;
+    permissions?: Permission[];
 }
 
 export enum ProvisioningState {

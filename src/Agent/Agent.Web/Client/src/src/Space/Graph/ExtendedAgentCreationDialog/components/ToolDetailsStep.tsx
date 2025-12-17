@@ -26,12 +26,7 @@ interface ToolDetailsStepProps {
     fingerprint?: string | null;
 }
 
-export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({
-    tool,
-    existingConnectors,
-    onChange,
-    intl,
-}) => {
+export const ToolDetailsStep: FC<ToolDetailsStepProps> = ({ tool, existingConnectors, onChange, intl }) => {
     const styles = useCreationDialogStyles();
     const internalIntl = useIntl();
     const toolType = tool.type?.trim() || 'KustoTool';

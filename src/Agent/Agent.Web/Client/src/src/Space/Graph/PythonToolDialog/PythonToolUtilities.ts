@@ -100,7 +100,11 @@ const mapPythonType = (typeHint: string): string => {
     }
 
     // Normalize type hint (remove Optional, whitespace)
-    const normalized = typeHint.replace(/Optional\[/gi, '').replace(/]/g, '').replace(/\s/g, '').toLowerCase();
+    const normalized = typeHint
+        .replace(/Optional\[/gi, '')
+        .replace(/]/g, '')
+        .replace(/\s/g, '')
+        .toLowerCase();
 
     if (normalized.includes('int')) {
         return 'int';
@@ -147,7 +151,10 @@ const generateDescription = (name: string, typeHint: string, defaultValue: strin
     const readableName = convertSnakeCaseToWords(name);
 
     if (typeHint?.trim()) {
-        const cleanType = typeHint.replace(/Optional\[/gi, '').replace(/]/g, '').trim();
+        const cleanType = typeHint
+            .replace(/Optional\[/gi, '')
+            .replace(/]/g, '')
+            .trim();
         parts.push(`${readableName} (${cleanType})`);
     } else {
         parts.push(readableName);

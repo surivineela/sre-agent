@@ -1,7 +1,7 @@
-import { FC, useCallback, useMemo, useState } from 'react';
 import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
 import { Text, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
