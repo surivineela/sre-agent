@@ -2726,7 +2726,7 @@ public class ReasoningLoop : IDisposable
                 Contents = message.Contents?.Select(content => new
                 {
                     Type = content.GetType().Name,
-                    Value = content
+                    Value = FormatContentValue(content)
                 })
             }).ToList();
 
@@ -2737,6 +2737,22 @@ public class ReasoningLoop : IDisposable
             return $"Error formatting messages: {ex.Message}\n" +
                    string.Join("\n", messages.Select(m => $"{m.Role}: {m.Text?[..50]}..."));
         }
+    }
+
+    /// <summary>
+    /// Formats a content value for logging, excluding sensitive properties like ProtectedData from TextReasoningContent.
+    /// </summary>
+    private static object FormatContentValue(AIContent content)
+    {
+        if (content is TextReasoningContent reasoningContent)
+        {
+            return new
+            {
+                reasoningContent.Text
+            };
+        }
+
+        return content;
     }
 
     private static string FormatToolsByType(IEnumerable<AITool>? tools)
