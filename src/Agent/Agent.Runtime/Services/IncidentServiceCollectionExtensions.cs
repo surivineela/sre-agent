@@ -34,7 +34,7 @@ public static class IncidentServiceCollectionExtensions
         services.AddSingleton<IPagerDutyService, NullablePagerDutyService>();
 
         //services.AddSingleton<IICMAPIClient, NullableICMAPIClient>();
-        //Register ICMService for all platforms so to support Searching team in changing incident platform UI 
+        //Register ICMService for all platforms so to support Searching team in changing incident platform UI
         services.AddICMClientRelatedServices();
         services.AddSingleton<IServiceNowAPIClient, NullableServiceNowAPIClient>();
         services.AddSingleton<IIncidentScanner, NullableIncidentScanner>();

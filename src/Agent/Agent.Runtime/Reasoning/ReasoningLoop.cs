@@ -781,6 +781,81 @@ public class ReasoningLoop : IDisposable
         }
     }
 
+    /// <summary>
+    /// Scans the chat history for function calls that don't have corresponding tool results
+    /// and adds placeholder error messages for them. This prevents 400 errors from the API
+    /// when previous tool calls were cancelled or didn't return output in time.
+    /// </summary>
+    private async Task AddPlaceholderResultsForOrphanedToolCallsAsync(AgentChatHistory agentChatHistory)
+    {
+        if (_chatHistory == null || _chatHistory.Count == 0)
+        {
+            return;
+        }
+
+        // Collect all function call IDs from assistant messages
+        var functionCallIds = _chatHistory
+            .Where(m => m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents.OfType<FunctionCallContent>())
+            .Select(fc => fc.CallId)
+            .ToHashSet();
+
+        // Collect all function result IDs from tool messages
+        var functionResultIds = _chatHistory
+            .Where(m => m.Role == ChatRole.Tool)
+            .SelectMany(m => m.Contents.OfType<FunctionResultContent>())
+            .Select(fr => fr.CallId)
+            .ToHashSet();
+
+        // Find orphaned function calls (calls without results)
+        var orphanedCallIds = functionCallIds.Except(functionResultIds).ToList();
+
+        if (orphanedCallIds.Count == 0)
+        {
+            return;
+        }
+
+        _logger.LogInternalWarning(
+            "[{threadId}] Found {count} orphaned tool calls without results. Adding placeholder results to prevent API errors.",
+            _context.ThreadId,
+            orphanedCallIds.Count);
+
+        // Get the actual FunctionCallContent objects for orphaned calls
+        var orphanedCalls = _chatHistory
+            .Where(m => m.Role == ChatRole.Assistant)
+            .SelectMany(m => m.Contents.OfType<FunctionCallContent>())
+            .Where(fc => orphanedCallIds.Contains(fc.CallId))
+            .ToList();
+
+        // Add placeholder tool result messages for each orphaned call
+        var placeholderMessages = new List<ChatMessage>();
+        foreach (var orphanedCall in orphanedCalls)
+        {
+            _logger.LogInternalInformation(
+                "[{threadId}] Adding placeholder result for orphaned tool call: {toolName} (CallId: {callId})",
+                _context.ThreadId,
+                orphanedCall.Name,
+                orphanedCall.CallId);
+
+            var placeholderMessage = new ChatMessage(
+                role: ChatRole.Tool,
+                contents:
+                [
+                    new FunctionResultContent(orphanedCall.CallId, "Error: Either tool call was cancelled or didn't return output in time.")
+                ]
+            );
+
+            placeholderMessages.Add(placeholderMessage);
+            _chatHistory.Add(placeholderMessage);
+        }
+
+        // Persist the placeholder messages
+        if (placeholderMessages.Count > 0)
+        {
+            await PersistReasoningMessagesAsync(agentChatHistory, placeholderMessages);
+        }
+    }
+
     private async Task<ReasoningLoopIterationResult> RunInternalAsync(
         AgentChatHistory agentChatHistory,
         CancellationToken cancellationToken)
@@ -811,6 +886,10 @@ public class ReasoningLoop : IDisposable
                 _currentAgent.Name,
                 _currentAgent.IsExtended,
                 _currentAgent.EnableSkills);
+
+            // Fix any orphaned tool calls (function calls without corresponding tool results)
+            // This prevents 400 errors from the API when previous tool calls were cancelled or didn't return output
+            await AddPlaceholderResultsForOrphanedToolCallsAsync(agentChatHistory);
 
             var runResult = await Runner.RunAsync(
                 startingAgent: _currentAgent,
@@ -1054,7 +1133,6 @@ public class ReasoningLoop : IDisposable
                     else
                     {
                         _logger.LogInternalInformation("[{threadId}]Not all manual tool calls have results. executed {count} out of {total}", _context.ThreadId, toolResults.Count, runResult.ManualToolCalls?.Count);
-                        // partial tool execution, do not resume the runner yet because some of the tools don't have results. Resuming would cause 400 errors.
 
                         await _outboundCommunicationService.AppendAgentManualToolCallResult(
                             _context.ThreadId,
@@ -1072,6 +1150,7 @@ public class ReasoningLoop : IDisposable
                         await PersistReasoningMessagesAsync(agentChatHistory, toolResultMessages);
 
                         // Because we couldn't resume the runner yet, we need to break out of the manual tool call processing loop
+                        // Orphaned tool calls will be handled by AddPlaceholderResultsForOrphanedToolCallsAsync on the next iteration
                         break;
                     }
                 }
