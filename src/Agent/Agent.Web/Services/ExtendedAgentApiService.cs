@@ -35,6 +35,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
     private readonly IOutlookConnectorPlugin _outlookConnectorPlugin;
     private readonly ITeamsPlugin _teamsPlugin;
+    private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -48,7 +49,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         IConnectorResolver connectorResolver,
         IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
         IOutlookConnectorPlugin outlookConnectorPlugin,
-        ITeamsPlugin teamsPlugin)
+        ITeamsPlugin teamsPlugin,
+        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -62,6 +64,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
         _outlookConnectorPlugin = outlookConnectorPlugin;
         _teamsPlugin = teamsPlugin;
+        _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -1003,7 +1006,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("No connectors of type") || ex.Message.Contains("not found"))
         {
-            _logger.LogInternalWarning("BuildTeamsConnectorStatusAsync: Teams connector not configured for connector: {ConnectorName}", connectorName);
+            _logger.LogInternalError(ex, "BuildTeamsConnectorStatusAsync: Teams connector not configured for connector: {ConnectorName}", connectorName);
             message = "Teams connector not configured.";
             details = new { error = ex.Message };
         }
@@ -1021,6 +1024,55 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         return new ConnectorStatusResponse(
             Name: connectorName,
             Type: "Teams",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
+    // Helper: TsgCrawler (Azure DevOps) connector status - checks connectivity using the connector's DataSource URL
+    private async Task<ConnectorStatusResponse> BuildTsgCrawlerConnectorStatusAsync(string connectorName, string dataSource)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message = "Unable to determine status";
+        object? details = null;
+
+        try
+        {
+            if (string.IsNullOrEmpty(dataSource))
+            {
+                message = "Azure DevOps connector data source URL is not configured.";
+                details = new { error = "DataSource is empty" };
+            }
+            else
+            {
+                healthy = await _azureDevOpsWorkItemPlugin.CheckConnectivityAsync(dataSource, CancellationToken.None);
+                message = healthy
+                    ? "Azure DevOps connectivity OK."
+                    : "Azure DevOps connectivity failed.";
+
+                if (!healthy)
+                {
+                    details = new { error = "Connectivity check failed", dataSource };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "BuildTsgCrawlerConnectorStatusAsync: Exception occurred while checking Azure DevOps connectivity for connector: {ConnectorName}", connectorName);
+            message = $"Azure DevOps connectivity check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "TsgCrawler",
             Healthy: healthy,
             Message: message,
             Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
@@ -1054,6 +1106,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "icm" => await BuildIcmConnectorStatusAsync(connectorName),
                 "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),
                 "teams" => await BuildTeamsConnectorStatusAsync(connectorName),
+                "tsgcrawler" => await BuildTsgCrawlerConnectorStatusAsync(connectorName, connector.DataSource),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,

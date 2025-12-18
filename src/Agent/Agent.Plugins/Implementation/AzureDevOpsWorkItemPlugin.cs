@@ -545,6 +545,83 @@ public sealed class AzureDevOpsWorkItemPlugin : IAzureDevOpsWorkItemPlugin
         return new AzureDevOpsAccessToken(token, expiresOnUTC);
     }
 
+    public async Task<bool> CheckConnectivityAsync(string dataSource, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(dataSource))
+            {
+                _logger.LogInternalError("CheckConnectivityAsync: DataSource URL is not provided.");
+                return false;
+            }
+
+            // Get the token first
+            var tokenResult = await GetToken();
+            if (string.IsNullOrEmpty(tokenResult?.AccessToken))
+            {
+                _logger.LogInternalError("CheckConnectivityAsync: Unable to obtain Azure DevOps access token.");
+                return false;
+            }
+
+            // Parse the repository URL to extract organization URL
+            // Format: https://dev.azure.com/{org}/{project}/_git/{repo}
+            // or: https://{org}.visualstudio.com/{project}/_git/{repo}
+            var uri = new Uri(dataSource);
+            string orgUrl;
+
+            if (uri.Host == "dev.azure.com" || uri.Host.Contains(".dev.azure.com"))
+            {
+                var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 1)
+                {
+                    orgUrl = $"https://dev.azure.com/{parts[0]}";
+                }
+                else
+                {
+                    _logger.LogInternalError("CheckConnectivityAsync: Invalid Azure DevOps URL format - cannot extract organization.");
+                    return false;
+                }
+            }
+            else if (uri.Host.EndsWith("visualstudio.com"))
+            {
+                orgUrl = $"https://{uri.Host}";
+            }
+            else
+            {
+                _logger.LogInternalError("CheckConnectivityAsync: Unsupported Azure DevOps URL format: {Host}", uri.Host);
+                return false;
+            }
+
+            // Make a lightweight API call to verify connectivity
+            // Using the Projects API with $top=1 to minimize data transfer
+            var requestUrl = $"{orgUrl}/_apis/projects?$top=1&api-version=7.1";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalInformation("CheckConnectivityAsync: Azure DevOps connectivity verified successfully for endpoint: {Endpoint}", orgUrl);
+                return true;
+            }
+
+            _logger.LogInternalError("CheckConnectivityAsync: Azure DevOps API returned status code {StatusCode} for endpoint: {Endpoint}", response.StatusCode, orgUrl);
+            return false;
+        }
+        catch (UriFormatException ex)
+        {
+            _logger.LogInternalError("CheckConnectivityAsync: Invalid DataSource URL format: {Message}", ex.Message);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "CheckConnectivityAsync: Exception occurred while checking Azure DevOps connectivity.");
+            return false;
+        }
+    }
+
     public async Task<string> GetIaCForAzureDevOps(string resourceId, string branch, string fileMatches)
     {
         try
