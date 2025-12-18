@@ -16,9 +16,11 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITokenService, StaticTokenService>();
 builder.Services.AddScoped<IShellService, ShellService>();
 builder.Services.AddSingleton<McpProxyService>();
+builder.Services.AddSingleton<PythonProxyService>();
 
 var app = builder.Build();
 
@@ -39,5 +41,19 @@ app.UseRouting();
 
 app.MapGet("/", () => "Session Proxy Server is running.");
 app.MapControllers();
+
+// Fallback endpoint to proxy unmatched requests to another service
+app.MapFallback(async (HttpContext context, PythonProxyService proxyService, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        await proxyService.ForwardRequestAsync(context, cancellationToken);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status502BadGateway;
+        await context.Response.WriteAsJsonAsync(new { error = "Failed to proxy request", message = ex.Message }, cancellationToken);
+    }
+});
 
 app.Run();
