@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using System.Text;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Session.Proxy.Services.McpProtocol;
 
 namespace Session.Proxy.Services;
 
@@ -14,14 +15,16 @@ public class McpProxyService
     private readonly ILogger<McpProxyService> _logger;
     private readonly IServer _server;
     private readonly ITokenService _tokenService;
+    private readonly ProtocolHandlerFactory _protocolHandlerFactory;
     private readonly string _msiEndpoint;
     private static readonly UTF8Encoding NoBomUtf8 = new(encoderShouldEmitUTF8Identifier: false);
 
-    public McpProxyService(ILogger<McpProxyService> logger, IServer server, ITokenService tokenService, IConfiguration configuration)
+    public McpProxyService(ILogger<McpProxyService> logger, IServer server, ITokenService tokenService, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _logger = logger;
         _server = server;
         _tokenService = tokenService;
+        _protocolHandlerFactory = new ProtocolHandlerFactory(loggerFactory);
 
         // Get the MSI endpoint from configuration or use default
         var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
@@ -38,11 +41,15 @@ public class McpProxyService
         string[] args,
         Dictionary<string, string>? envVars,
         Dictionary<string, string>? actionTokens,
+        int protocolVersion,
         CancellationToken cancellationToken)
     {
         var connectionId = Guid.NewGuid().ToString("N")[..8];
-        _logger.LogInformation("Connection {ConnectionId}: Starting MCP proxy for command: {Command} {Args}",
-            connectionId, command, string.Join(" ", args));
+        _logger.LogInformation("Connection {ConnectionId}: Starting MCP proxy (protocol v{ProtocolVersion}) for command: {Command} {Args}",
+            connectionId, protocolVersion, command, string.Join(" ", args));
+
+        // Create protocol handler for this connection
+        var protocolHandler = _protocolHandlerFactory.CreateHandler(protocolVersion);
 
         if (envVars != null && envVars.Count > 0)
         {
@@ -74,7 +81,7 @@ public class McpProxyService
             _logger.LogInformation("Connection {ConnectionId}: MCP server launched successfully", connectionId);
 
             // Start bidirectional proxying
-            await ProxyBidirectionally(webSocket, process, connectionId, cancellationToken);
+            await ProxyBidirectionally(webSocket, process, connectionId, protocolHandler, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -203,6 +210,7 @@ public class McpProxyService
         WebSocket webSocket,
         Process process,
         string connectionId,
+        IProtocolHandler protocolHandler,
         CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -214,7 +222,6 @@ public class McpProxyService
             AutoFlush = false, // We'll flush explicitly after each write
             NewLine = "\n" // MCP uses LF line endings
         };
-        var stdoutReader = new StreamReader(process.StandardOutput.BaseStream, NoBomUtf8, leaveOpen: false);
 
         // Task to read from WebSocket and write to MCP server stdin
         var wsToMcpTask = Task.Run(async () =>
@@ -234,13 +241,13 @@ public class McpProxyService
         }, cts.Token);
 
         // Task to read from MCP server stdout and write to WebSocket
-        var mcpToWsTask = Task.Run(async () =>
+        var mcpStdoutTask = Task.Run(async () =>
         {
             try
             {
                 _logger.LogInformation("Connection {ConnectionId}: MCP process running: {IsRunning}, HasExited: {HasExited}",
                     connectionId, !process.HasExited, process.HasExited);
-                await ProxyMcpToWebSocket(stdoutReader, webSocket, connectionId, cts.Token);
+                await ProxyMcpStdoutToWebSocket(process, webSocket, connectionId, protocolHandler, cts.Token);
             }
             catch (Exception ex)
             {
@@ -252,12 +259,12 @@ public class McpProxyService
             }
         }, cts.Token);
 
-        // Task to read from MCP server stderr and log it
-        var stderrTask = Task.Run(async () =>
+        // Task to read from MCP server stderr and handle it
+        var mcpStderrTask = Task.Run(async () =>
         {
             try
             {
-                await LogStderr(process, connectionId, cts.Token);
+                await ProxyMcpStderrToWebSocket(process, connectionId, webSocket, protocolHandler);
             }
             catch (Exception ex)
             {
@@ -265,16 +272,19 @@ public class McpProxyService
             }
         }, cts.Token);
 
-        // Wait for either proxy task to complete (or fail)
-        await Task.WhenAny(wsToMcpTask, mcpToWsTask);
+        // Wait for any proxy task to complete (or fail)
+        await Task.WhenAny(wsToMcpTask, mcpStdoutTask, mcpStderrTask);
 
         // Cancel all tasks
         cts.Cancel();
 
+        // wait for the stderr flush
+        await Task.Delay(5000);
+
         // Wait for all tasks to complete with a timeout
         try
         {
-            await Task.WhenAll(wsToMcpTask, mcpToWsTask, stderrTask).WaitAsync(TimeSpan.FromSeconds(5));
+            await Task.WhenAll(wsToMcpTask, mcpStdoutTask, mcpStderrTask).WaitAsync(TimeSpan.FromSeconds(5));
         }
         catch (OperationCanceledException)
         {
@@ -287,7 +297,6 @@ public class McpProxyService
 
         // Dispose text wrappers
         await stdinWriter.DisposeAsync();
-        stdoutReader.Dispose();
 
         _logger.LogInformation("Connection {ConnectionId}: Bidirectional proxy completed", connectionId);
     }
@@ -363,13 +372,15 @@ public class McpProxyService
     /// <summary>
     /// Reads lines from MCP server stdout and writes them to WebSocket.
     /// </summary>
-    private async Task ProxyMcpToWebSocket(
-        StreamReader stdoutReader,
+    private async Task ProxyMcpStdoutToWebSocket(
+        Process process,
         WebSocket webSocket,
         string connectionId,
+        IProtocolHandler protocolHandler,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Connection {ConnectionId}: Starting to read from MCP stdout", connectionId);
+        var stdoutReader = new StreamReader(process.StandardOutput.BaseStream, NoBomUtf8, leaveOpen: false);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -408,15 +419,10 @@ public class McpProxyService
             _logger.LogInformation("Connection {ConnectionId}: Read from MCP stdout: {Message}",
                 connectionId, line.Length > 200 ? line[..200] + "..." : line);
 
-            // Send to WebSocket as a complete message
+            // Use protocol handler to format and send message
             try
             {
-                var bytes = Encoding.UTF8.GetBytes(line);
-                await webSocket.SendAsync(
-                    new ArraySegment<byte>(bytes),
-                    WebSocketMessageType.Text,
-                    true,
-                    cancellationToken);
+                await protocolHandler.SendStdoutMessageAsync(webSocket, line, cancellationToken);
 
                 _logger.LogDebug("Connection {ConnectionId}: Sent to WebSocket: {Message}",
                     connectionId, line.Length > 200 ? line[..200] + "..." : line);
@@ -434,21 +440,24 @@ public class McpProxyService
     /// <summary>
     /// Reads stderr from the MCP process and logs it.
     /// </summary>
-    private async Task LogStderr(Process process, string connectionId, CancellationToken cancellationToken)
+    private async Task ProxyMcpStderrToWebSocket(
+        Process process,
+        string connectionId,
+        WebSocket webSocket,
+        IProtocolHandler protocolHandler)
     {
-        var buffer = new byte[8192];
-        var stderr = process.StandardError.BaseStream;
+        // Use StreamReader to handle UTF-8 properly (including multi-byte characters)
+        var stderrReader = new StreamReader(process.StandardError.BaseStream, NoBomUtf8, leaveOpen: false);
+        var buffer = new char[8192];
 
-        while (!cancellationToken.IsCancellationRequested && !process.HasExited)
+        // Read until EOF to ensure we capture all stderr, even after cancellation is requested
+        while (true)
         {
-            int bytesRead;
+            int charsRead;
             try
             {
-                bytesRead = await stderr.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                break;
+                // Don't pass cancellationToken to ReadAsync - we want to drain the buffer completely
+                charsRead = await stderrReader.ReadAsync(buffer.AsMemory(), CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -456,13 +465,27 @@ public class McpProxyService
                 break;
             }
 
-            if (bytesRead == 0)
+            if (charsRead == 0)
             {
+                // EOF reached - all stderr has been read
                 break;
             }
 
-            var stderrText = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            var stderrText = new string(buffer, 0, charsRead);
             _logger.LogWarning("Connection {ConnectionId}: MCP stderr: {Stderr}", connectionId, stderrText);
+
+            if (webSocket?.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await protocolHandler.SendStderrMessageAsync(webSocket, stderrText, CancellationToken.None);
+                    _logger.LogInformation("Connection {ConnectionId}: Sent stderr to WebSocket: {Length}", connectionId, stderrText.Length);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Connection {ConnectionId}: Error sending stderr to WebSocket", connectionId);
+                }
+            }
         }
     }
 

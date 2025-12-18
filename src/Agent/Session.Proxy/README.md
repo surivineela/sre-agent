@@ -46,10 +46,11 @@ The MCP protocol uses line-based JSON-RPC communication:
      "envVars": {
        "API_KEY": "secret",
        "DEBUG": "true"
-     }
+     },
+     "protocolVersion": 2
    }
    ```
-3. Server validates the connection request
+3. Server validates the connection request and protocol version
 4. Server sends first message: `"ok"` on success, or an error message on failure
 5. If error, connection is closed immediately
 6. If success, server launches the MCP server process with the specified environment variables
@@ -61,14 +62,34 @@ The MCP protocol uses line-based JSON-RPC communication:
 - `args` (required, array): Array of command arguments
 - `envVars` (optional, object): Dictionary of environment variables to set for the MCP server process
 - `actionTokens` (optional, object): Dictionary of action tokens (scope -> token mapping) for managed identity authentication
+- `protocolVersion` (optional, integer): Protocol version to use (1 or 2, defaults to 1 if not specified)
 
-**Example Connection Request:**
+**Protocol Versions:**
 
-Basic usage:
+The MCP Proxy supports two protocol versions:
+
+**Protocol v2 (Recommended):**
+- All messages from the MCP server are prefixed with a channel indicator:
+  - `'1'` = stdout (JSON-RPC messages)
+  - `'2'` = stderr (diagnostic/error output)
+- Example stdout message: `1{"jsonrpc":"2.0","result":{...},"id":1}`
+- Example stderr message: `2Invalid arguments!`
+- Handshake message (`"ok"`) is NOT prefixed with a channel indicator
+- Stderr is forwarded to the client in real-time for debugging
+- Multi-line stderr and UTF-8 characters (including emojis) are properly handled
+
+**Protocol v1 (Legacy):**
+- Messages are sent as plain text without channel indicators
+- Only stdout is forwarded to the client
+- Stderr is logged on the server but not forwarded to the client
+
+**Example Connection Requests:**
+
 ```json
 {
   "cmd": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-everything"]
+  "args": ["-y", "@modelcontextprotocol/server-everything"],
+  "protocolVersion": 2
 }
 ```
 
@@ -80,7 +101,8 @@ With environment variables:
   "envVars": {
     "API_KEY": "secret",
     "DEBUG": "true"
-  }
+  },
+  "protocolVersion": 2
 }
 ```
 
@@ -107,7 +129,11 @@ The server will start on `http://localhost:5000` by default.
 
 ## Testing with the MCP Test Client
 
-A simple test client is included in the project. Run it with:
+A simple test client is included in the project. The test client uses **protocol v2** by default and displays:
+- Stdout messages normally
+- Stderr messages in **red** with a `[STDERR]` prefix
+
+Run it with:
 
 **Basic usage:**
 ```bash
@@ -132,7 +158,7 @@ After connecting, send the initialization message:
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{"roots":{"listChanged":true},"sampling":{},"elicitation":{}},"clientInfo":{"name":"ExampleClient","title":"Example Client Display Name","version":"1.0.0"}}}
 ```
 
-If everything is set up correctly, you should see responses from the MCP server like the following:
+If everything is set up correctly, you should see responses from the MCP server like the following (note the '1' prefix indicating stdout in protocol v2):
 ```json
 {"result":{"protocolVersion":"2024-11-05","capabilities":{"prompts":{},"resources":{"subscribe":true},"tools":{},"logging":{},"completions":{}},"serverInfo":{"name":"example-servers/everything","title":"Everything Example Server","version":"1.0.0"},"instructions":"Testing and demonstration server for MCP protocol features..."},"jsonrpc":"2.0","id":1}
 ```

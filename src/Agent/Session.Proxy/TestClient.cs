@@ -160,7 +160,8 @@ public static class TestClient
             {
                 Command = command,
                 Arguments = commandArgs,
-                EnvironmentVariables = envVars.Count > 0 ? envVars : null
+                EnvironmentVariables = envVars.Count > 0 ? envVars : null,
+                ProtocolVersion = 2  // Use protocol v2
             };
 
             var requestJson = JsonSerializer.Serialize(connectionRequest);
@@ -199,7 +200,30 @@ public static class TestClient
                         var message = await ReceiveMessage(ws, cts.Token);
                         if (message != null)
                         {
-                            Console.WriteLine($"<< {message}");
+                            // Parse channel indicator for v2 protocol
+                            if (message.Length >= 2 && (message[0] == McpProxyProtocol.ChannelStdout || message[0] == McpProxyProtocol.ChannelStderr))
+                            {
+                                char channelChar = message[0];
+                                string content = message.Substring(1);
+
+                                if (channelChar == McpProxyProtocol.ChannelStderr)
+                                {
+                                    // Display stderr in red
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.Error.WriteLine($"<< [STDERR] {content}");
+                                    Console.ResetColor();
+                                }
+                                else
+                                {
+                                    // Display stdout normally
+                                    Console.WriteLine($"<< {content}");
+                                }
+                            }
+                            else
+                            {
+                                // No channel indicator (e.g., handshake) - display normally
+                                Console.WriteLine($"<< {message}");
+                            }
                         }
                     }
                 }

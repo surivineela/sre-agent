@@ -2,12 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Sockets;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services.Mcp;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol;
 using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 namespace Agent.Runtime.Models;
 
@@ -16,6 +20,8 @@ namespace Agent.Runtime.Models;
 /// </summary>
 public class McpConnection
 {
+    private const int MaxErrorMessageLength = 4096;
+
     private readonly ILogger _logger;
     public required IMcpConnectable Backend { get; init; }
 
@@ -34,7 +40,7 @@ public class McpConnection
     /// <summary>
     /// Error message if connection failed.
     /// </summary>
-    public string? ErrorMessage { get; private set; }
+    public string? ErrorMessage;
 
     /// <summary>
     /// Number of consecutive ping failures for this connection.
@@ -54,6 +60,7 @@ public class McpConnection
 
     private bool _initialized = false;
     private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
+    private readonly object _errorMessageLock = new object();
 
     public McpConnection(ILogger logger, IClientTransport clientTransport)
     {
@@ -86,7 +93,23 @@ public class McpConnection
 
             McpClientOptions options = new()
             {
-                ClientInfo = new() { Name = Id, Version = "1.0.0" }
+                ClientInfo = new() { Name = Id, Version = "1.0.0" },
+                Handlers = new()
+                {
+                    NotificationHandlers =
+                    [
+                        new(NotificationMethods.LoggingMessageNotification, (notification, cancellationToken) =>
+                        {
+                            var log = JsonSerializer.Deserialize<LoggingMessageNotificationParams>(notification.Params, McpJsonUtilities.DefaultOptions);
+                            if (log != null && log.Level >= LoggingLevel.Error)
+                            {
+                                _logger.LogInternalWarning("[MCP Error] MCP Server '{Name}' '{ConnectionId}' Log [{Level}]: {Message}",
+                                    ClientTransport.Name, Id, log.Level, log.Data);
+                            }
+                            return default;
+                        })
+                    ]
+                }
             };
 
             _logger.LogInternalInformation("Attempting to connect to {endpoint}", Id);
@@ -95,23 +118,58 @@ public class McpConnection
             {
                 wsClientTransport.OnDisconnected = reason =>
                 {
-                    if (reason.Contains("closed by server", StringComparison.OrdinalIgnoreCase) ||
-                        reason.Contains("closed prematurely", StringComparison.OrdinalIgnoreCase))
+                    // Handle WebSocket disconnection after initial connection
+                    if (Status == DataConnectorStatus.Connected)
                     {
-                        _logger.LogInternalInformation(
-                            "MCP connection '{ConnectionId}' WebSocket closed gracefully, transitioning to Standby: {Reason}",
-                            Id,
-                            reason);
-                        MarkAsStandby();
+                        if (reason.Contains("closed by server", StringComparison.OrdinalIgnoreCase) ||
+                            reason.Contains("closed prematurely", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogInternalInformation(
+                                "MCP connection '{ConnectionId}' WebSocket closed gracefully, transitioning to Standby: {Reason}",
+                                Id,
+                                reason);
+                            MarkAsStandby();
+                        }
+                        else
+                        {
+                            _logger.LogInternalWarning(
+                                "MCP connection '{ConnectionId}' WebSocket disconnected with error: {Reason}",
+                                Id,
+                                reason);
+                            MarkAsDisconnected(reason);
+                        }
                     }
-                    else
+                };
+
+                wsClientTransport.OnStderrReceived = stderrMessage =>
+                {
+                    lock (_errorMessageLock)
                     {
-                        _logger.LogInternalWarning(
-                            "MCP connection '{ConnectionId}' WebSocket disconnected with error: {Reason}",
-                            Id,
-                            reason);
-                        MarkAsDisconnected(reason);
+                        string newErrorMessage;
+                        if (string.IsNullOrEmpty(ErrorMessage))
+                        {
+                            newErrorMessage = stderrMessage;
+                        }
+                        else
+                        {
+                            newErrorMessage = ErrorMessage + stderrMessage;
+                        }
+
+                        // Keep the latest messages if exceeds maximum length
+                        if (newErrorMessage.Length > MaxErrorMessageLength)
+                        {
+                            ErrorMessage = "... (truncated) " + newErrorMessage.Substring(newErrorMessage.Length - MaxErrorMessageLength + 10);
+                        }
+                        else
+                        {
+                            ErrorMessage = newErrorMessage;
+                        }
                     }
+
+                    _logger.LogInternalWarning(
+                        "MCP connection '{ConnectionId}' received stderr: {Stderr}",
+                        Id,
+                        stderrMessage);
                 };
             }
 
@@ -138,26 +196,21 @@ public class McpConnection
                 Status = DataConnectorStatus.Connected;
                 _initialized = true;
             }
-            catch (HttpRequestException hre)
+            catch (Exception ex) when (ex is SocketException || ex is IOException || ex is HttpRequestException)
             {
-                // Network/HTTP errors indicate server unreachable or authentication failure
-                _logger.LogInternalError(hre, "HTTP error connecting to MCP server at {endpoint}", Id);
+                // ErrorMessage should already contain stderr output from OnStderrReceived callback
+                _logger.LogInternalError(ex, "IO error connecting to MCP server at {endpoint}", Id);
 
                 Status = DataConnectorStatus.Failed;
-                ErrorMessage = hre.StatusCode.HasValue
-                    ? $"HTTP {(int)hre.StatusCode.Value} {hre.StatusCode.Value}: {hre.Message}"
-                    : $"Network error: {hre.Message}";
 
-                Tools = new List<AITool>();
-                _initialized = true;
-            }
-            catch (System.Net.Sockets.SocketException se)
-            {
-                // Socket errors indicate network/connectivity issues
-                _logger.LogInternalError(se, "Socket error connecting to MCP server at {endpoint}", Id);
-
-                Status = DataConnectorStatus.Failed;
-                ErrorMessage = $"Connection failed: {se.Message}";
+                // Only set ErrorMessage if we didn't capture any stderr output
+                lock (_errorMessageLock)
+                {
+                    if (string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        ErrorMessage = ex.Message;
+                    }
+                }
 
                 Tools = new List<AITool>();
                 _initialized = true;

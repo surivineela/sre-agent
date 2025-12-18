@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
+using Agent.Core.Models.Session;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 
@@ -31,6 +32,11 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
     /// Callback invoked when the WebSocket connection is lost or closed unexpectedly.
     /// </summary>
     public Action<string>? OnDisconnected { get; set; }
+
+    /// <summary>
+    /// Callback invoked when stderr data is received from the MCP server.
+    /// </summary>
+    public Action<string>? OnStderrReceived { get; set; }
 
     /// <summary>
     /// Gets the name of the transport.
@@ -115,10 +121,17 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
     /// <summary>
     /// Receives a single message from the WebSocket.
     /// </summary>
-    private async Task<string?> ReceiveMessageAsync(CancellationToken cancellationToken)
+    private async Task<(int Channel, string? Message)?> ReceiveMessageAsync(CancellationToken cancellationToken)
     {
         var webSocket = _webSocket;
-        if (webSocket == null || webSocket.State != WebSocketState.Open)
+        if (webSocket == null)
+        {
+            return null;
+        }
+
+        // Allow reading in Open or CloseReceived states to drain buffered messages
+        // CloseReceived means we received a close frame, but there may be pending data messages before it
+        if (webSocket.State != WebSocketState.Open && webSocket.State != WebSocketState.CloseReceived)
         {
             return null;
         }
@@ -127,22 +140,58 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
         using var ms = new MemoryStream();
 
         WebSocketReceiveResult result;
-        do
+        try
         {
-            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-
-            if (result.MessageType == WebSocketMessageType.Close)
+            do
             {
-                return null;
-            }
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-            ms.Write(buffer, 0, result.Count);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    return null;
+                }
+
+                ms.Write(buffer, 0, result.Count);
+            }
+            while (!result.EndOfMessage);
         }
-        while (!result.EndOfMessage);
+        catch (WebSocketException)
+        {
+            // WebSocket was closed between state check and ReceiveAsync (TOCTOU race)
+            return null;
+        }
+        catch (ObjectDisposedException)
+        {
+            // WebSocket was disposed between state check and ReceiveAsync (TOCTOU race)
+            return null;
+        }
 
         ms.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(ms, Encoding.UTF8);
-        return await reader.ReadToEndAsync(cancellationToken);
+        var fullMessage = await reader.ReadToEndAsync(cancellationToken);
+
+        if (string.IsNullOrEmpty(fullMessage))
+            return null;
+
+        // Parse channel indicator (first byte: '1' for stdout, '2' for stderr)
+        // Handshake messages (like "ok") are not prefixed and are treated as stdout
+        if (fullMessage.Length < 2)
+        {
+            // Too short to have channel indicator - treat as handshake/unprefixed message (stdout)
+            return (McpProxyProtocol.ChannelStdoutValue, fullMessage);
+        }
+
+        char channelChar = fullMessage[0];
+        if (channelChar == McpProxyProtocol.ChannelStdout || channelChar == McpProxyProtocol.ChannelStderr)
+        {
+            // Valid channel indicator found
+            int channel = channelChar - '0';  // '1' -> 1, '2' -> 2
+            string message = fullMessage.Substring(1);
+            return (channel, message);
+        }
+
+        // No valid channel indicator - treat as unprefixed message (stdout, e.g., handshake)
+        return (McpProxyProtocol.ChannelStdoutValue, fullMessage);
     }
 
     /// <summary>
@@ -152,17 +201,31 @@ public class SessionWebsocketTransport : ITransport, IAsyncDisposable
     {
         try
         {
+            // Keep reading until ReceiveMessageAsync returns null (connection closed or EOF)
+            // Don't check WebSocket.State here - let ReceiveMessageAsync handle it
+            // This ensures we drain all buffered messages before exiting
             while (!cancellationToken.IsCancellationRequested)
             {
-                var webSocket = _webSocket;
-                if (webSocket == null || webSocket.State != WebSocketState.Open)
+                var result = await ReceiveMessageAsync(cancellationToken);
+                if (result.HasValue)
                 {
-                    break;
-                }
+                    var (channel, message) = result.Value;
 
-                var message = await ReceiveMessageAsync(cancellationToken);
-                if (message != null)
-                {
+                    if (message == null)
+                        continue;
+
+                    // Handle channel 2 (stderr)
+                    if (channel == McpProxyProtocol.ChannelStderrValue)
+                    {
+                        _logger.LogInternalWarning("MCP stderr: {Stderr}", message);
+
+                        // Invoke callback if configured
+                        OnStderrReceived?.Invoke(message);
+
+                        continue;  // Don't parse as JSON-RPC
+                    }
+
+                    // Handle channel 1 (stdout) - JSON-RPC parsing
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         var displayMessage = message.Length > 200 ? message[..200] + "..." : message;

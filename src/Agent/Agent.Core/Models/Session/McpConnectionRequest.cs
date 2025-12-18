@@ -32,4 +32,17 @@ public class McpConnectionRequest
     /// </summary>
     [JsonPropertyName("actionTokens")]
     public Dictionary<string, string>? ActionTokens { get; set; }
+
+    /// <summary>
+    /// Optional protocol version. Defaults to 1 if not specified.
+    /// Supported versions:
+    ///   - 1: Plain messages (no channel indicators)
+    ///   - 2: Messages prefixed with channel indicator ('1' for stdout, '2' for stderr)
+    /// </summary>
+    [JsonPropertyName("protocolVersion")]
+    public int? ProtocolVersion { get; set; }
+
+    // Protocol version constants
+    public const int DefaultProtocolVersion = 1;
+    public const int MaxSupportedProtocolVersion = 2;
 }

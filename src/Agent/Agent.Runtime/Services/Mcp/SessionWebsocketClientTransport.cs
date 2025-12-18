@@ -30,6 +30,8 @@ public class SessionWebsocketClientTransport : IClientTransport
 
     public Action<string>? OnDisconnected { get; set; }
 
+    public Action<string>? OnStderrReceived { get; set; }
+
     /// <summary>
     /// Initializes a new instance of the McpSessionWebsocketClientTransport class.
     /// </summary>
@@ -115,7 +117,8 @@ public class SessionWebsocketClientTransport : IClientTransport
                 Command = _options.Command,
                 Arguments = _options.Arguments,
                 EnvironmentVariables = _options.EnvVars,
-                ActionTokens = actionTokens
+                ActionTokens = actionTokens,
+                ProtocolVersion = 2  // Hardcoded: always use protocol v2
             };
 
             var requestJson = JsonSerializer.Serialize(connectionRequest);
@@ -152,6 +155,7 @@ public class SessionWebsocketClientTransport : IClientTransport
                 _logger);
 
             transport.OnDisconnected = OnDisconnected;
+            transport.OnStderrReceived = OnStderrReceived;
 
             return transport;
         }

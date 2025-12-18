@@ -62,6 +62,9 @@ public class McpProxyController : ControllerBase
                 return;
             }
 
+            // Get protocol version (default to 1 if not specified)
+            var protocolVersion = connectionRequest.ProtocolVersion ?? McpConnectionRequest.DefaultProtocolVersion;
+
             // Parameters are valid, proceed with the connection
             await _proxyService.HandleWebSocketConnection(
                 webSocket,
@@ -69,6 +72,7 @@ public class McpProxyController : ControllerBase
                 connectionRequest.Arguments,
                 connectionRequest.EnvironmentVariables,
                 connectionRequest.ActionTokens,
+                protocolVersion,
                 cancellationToken);
         }
         catch (JsonException ex)
@@ -129,6 +133,13 @@ public class McpProxyController : ControllerBase
         if (request.Arguments == null)
         {
             return "Missing 'args' field in connection request";
+        }
+
+        // Validate protocol version
+        var protocolVersion = request.ProtocolVersion ?? McpConnectionRequest.DefaultProtocolVersion;
+        if (protocolVersion < 1 || protocolVersion > McpConnectionRequest.MaxSupportedProtocolVersion)
+        {
+            return $"Unsupported protocol version {protocolVersion}. Server supports versions 1-{McpConnectionRequest.MaxSupportedProtocolVersion}.";
         }
 
         return null;

@@ -120,6 +120,11 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             }
         };
 
+        if (_connections.ContainsKey(connection.Id))
+        {
+            throw new InvalidOperationException($"MCP connection '{connection.Id}' already exists");
+        }
+
         // Initialize connection
         try
         {
@@ -135,12 +140,9 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             // Check if initialization failed
             if (connection.Status == DataConnectorStatus.Failed)
             {
-                var errorMsg = connection.ErrorMessage ?? "Unknown error during initialization";
-                _logger.LogInternalError(
-                    "MCP connection '{Name}' failed to initialize: {Error}",
-                    connection.Id,
-                    errorMsg);
+                _connections[connection.Id] = connection;
 
+                var errorMsg = connection.ErrorMessage ?? "Unknown error during initialization";
                 throw new InvalidOperationException(
                     $"Failed to connect to MCP server '{name}': {errorMsg}");
             }
@@ -149,10 +151,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             _backend.TryAddServer(connection);
 
             // Track connection
-            if (!_connections.TryAdd(connection.Id, connection))
-            {
-                throw new InvalidOperationException($"Connection with ID '{connection.Id}' already exists");
-            }
+            _connections[connection.Id] = connection;
 
             // Fire event
             if (ConnectionAdded != null)
@@ -303,7 +302,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
 
         _logger.LogInternalDebug("Verifying {Count} dynamically added MCP connections", connections.Count);
 
-        var verificationTasks = connections.Select(async connection =>
+        var verificationTasks = connections.Where(c => c.Status == DataConnectorStatus.Connected).Select(async connection =>
         {
             try
             {
@@ -313,17 +312,6 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                     connection.MarkAsFailed("MCP client is null");
                     return;
                 }
-
-                //if (connection.ClientTransport is StdioClientTransport or SessionWebsocketClientTransport)
-                //{
-                //    _logger.LogTrace(
-                //        "Skipping periodic verification for connection '{ConnectionId}' (transport: {TransportType})",
-                //        connection.Id,
-                //        connection.ClientTransport.GetType().Name);
-                //    connection.UpdateHeartbeat();
-                //    connection.ResetPingFailures();
-                //    return;
-                //}
 
                 if (connection.Status != DataConnectorStatus.Connected)
                 {
