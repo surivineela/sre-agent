@@ -54,7 +54,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<AgentDocumentModel>> DeleteAgentAsync(string agentName, bool dryRun = false)
     {
         var exists = _agents.ContainsKey(agentName);
-        
+
         if (!dryRun && exists)
         {
             _agents.TryRemove(agentName, out _);
@@ -97,7 +97,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<ToolDocumentModel>> DeleteToolAsync(string toolName, bool dryRun = false)
     {
         var exists = _tools.ContainsKey(toolName);
-        
+
         if (!dryRun && exists)
         {
             _tools.TryRemove(toolName, out _);
@@ -140,7 +140,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName, bool dryRun = false)
     {
         var exists = _connectors.ContainsKey(connectorName);
-        
+
         if (!dryRun && exists)
         {
             _connectors.TryRemove(connectorName, out _);
@@ -197,7 +197,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false)
     {
         var exists = _plugins.ContainsKey(pluginName);
-        
+
         if (!dryRun && exists)
         {
             _plugins.TryRemove(pluginName, out _);
@@ -240,7 +240,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
     {
         var exists = _commonPrompts.ContainsKey(promptName);
-        
+
         if (!dryRun && exists)
         {
             _commonPrompts.TryRemove(promptName, out _);
@@ -283,7 +283,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false)
     {
         var exists = _commonToolLists.ContainsKey(listName);
-        
+
         if (!dryRun && exists)
         {
             _commonToolLists.TryRemove(listName, out _);
@@ -321,7 +321,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     public Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName)
     {
         var exists = _skills.ContainsKey(skillName);
-        
+
         if (exists)
         {
             _skills.TryRemove(skillName, out _);

@@ -898,10 +898,10 @@ public static class AgentCommandHandlers
         // Check both subdirectory and flat structure (matching FindAgentFile logic)
         var subdirPath = Path.Combine("agents", agentName, $"{agentName}.yaml");
         var flatPath = Path.Combine("agents", $"{agentName}.yaml");
-        
+
         string? agentFile = null;
         string? agentDir = null;
-        
+
         if (File.Exists(subdirPath))
         {
             agentFile = subdirPath;
@@ -963,8 +963,8 @@ public static class AgentCommandHandlers
 
             Console.WriteLine();
             ConsoleUI.WriteInfo($"To redeploy: srectl agent apply --name {agentName}", ConsoleColor.Cyan);
-            
-            var deleteCommand = agentDir != null 
+
+            var deleteCommand = agentDir != null
                 ? $"rm -rf {agentDir.Replace('\\', '/')}"
                 : $"rm {agentFile.Replace('\\', '/')}";
             ConsoleUI.WriteInfo($"To delete locally: {deleteCommand}", ConsoleColor.Gray);

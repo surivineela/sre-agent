@@ -527,7 +527,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             // Ensure all extended agents are included in meta agent handoffs
             foreach (var extendedAgent in extendedAgents)
             {
-                if (!metaAgent.Handoffs.Any(h => h.AgentName == extendedAgent.Name))
+                // A user can overwrite meta_agent using extended agents. So skip adding meta_agent to its own handoffs.
+                if (!metaAgent.Handoffs.Any(h => h.AgentName == extendedAgent.Name) && extendedAgent.Name != "meta_agent")
                 {
                     metaAgent.Handoffs.Add(Handoff<TContext>.Create(
                         agent: extendedAgent,

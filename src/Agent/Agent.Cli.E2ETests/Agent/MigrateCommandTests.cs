@@ -100,7 +100,7 @@ public class MigrateCommandTests : AgentCommandTestBase
     {
         // Arrange: Create multiple V1 agents and one V2 agent
         Runner.CreateDirectory("agents");
-        
+
         var v1Agent1 = "migrate-all-v1-1";
         var v1Agent2 = "migrate-all-v1-2";
         var v2Agent = "migrate-all-v2";
@@ -121,7 +121,7 @@ public class MigrateCommandTests : AgentCommandTestBase
         // Verify V1 agents were migrated
         var agent1Content = File.ReadAllText(Path.Combine(Runner.WorkingDirectory, "agents", $"{v1Agent1}.yaml"));
         var agent2Content = File.ReadAllText(Path.Combine(Runner.WorkingDirectory, "agents", $"{v1Agent2}.yaml"));
-        
+
         Assert.Contains("azuresre.ai/v2", agent1Content);
         Assert.Contains("azuresre.ai/v2", agent2Content);
     }
