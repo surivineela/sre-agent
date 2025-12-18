@@ -13,6 +13,7 @@ public static class ApplyYamlCommandOptions
 {
     public static readonly Option<string> FileOption = new("--file")
     {
-        Description = "Path to YAML file to apply"
+        Description = "Path to the YAML file to apply",
+        Required = true
     };
 }

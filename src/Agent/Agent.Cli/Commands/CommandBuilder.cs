@@ -20,10 +20,6 @@ public static partial class CommandBuilder
         // Add default action for list command to show formatted help
         //listCommand.SetAction(pr => ShowFormattedListHelp(listCommand));
 
-        var applyYamlCommand = CreateApplyYamlCommand();
-
-        // Add default action for thread command to show formatted help
-
         var chatCommand = CreateChatCommand();
         var welcomeCommand = CreateWelcomeCommand();
         var helpCommand = CreateEnhancedHelpCommand();
@@ -43,7 +39,7 @@ public static partial class CommandBuilder
             versionCommand,
             InitCommand.Build(),
             syncCommand,
-            applyYamlCommand,
+            ApplyYamlCommand.Build(),
             ThreadCommand.Build(),
             chatCommand,
             AgentCommand.Build(),
@@ -104,29 +100,6 @@ public static partial class CommandBuilder
     //    };
     //    return cmd;
     //}
-
-    private static Command CreateApplyYamlCommand()
-    {
-        var cmd = new Command("apply-yaml", CommandExamples.General.ApplyYamlDescription)
-        {
-            ApplyYamlCommandOptions.FileOption
-        };
-
-        cmd.SetAction(pr =>
-
-        {
-            // If no file option provided, show formatted help
-            var filePath = pr.GetValue(ApplyYamlCommandOptions.FileOption);
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return ShowFormattedApplyYamlHelp(cmd);
-            }
-
-            return ApplyYamlCommand.HandleCommand(pr);
-        });
-
-        return cmd;
-    }
 
     private static Command CreateChatCommand()
     {

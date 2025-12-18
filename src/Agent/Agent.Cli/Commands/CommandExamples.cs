@@ -416,17 +416,22 @@ Examples:
   # List data connectors
   srectl list data-connectors";
 
-        public const string ApplyYamlDescription = @"Apply any YAML configuration file to the server
+        public const string ApplyYamlDescription = @"Apply YAML configuration files to the server
+Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+Automatically detects and applies tools, agents, and common prompts.
 
 Examples:
-  # Apply an agent YAML file
+  # Apply a single resource YAML file
   srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
 
-  # Apply a tool YAML file
-  srectl apply-yaml --file tools/CustomTool/CustomTool.yaml
+  # Apply a multi-document YAML file
+  srectl apply-yaml --file manifests/all-resources.yaml
 
-  # Apply any configuration file
-  srectl apply-yaml --file configs/my-config.yaml";
+  # Apply a tool YAML file
+  srectl apply-yaml --file tools/KustoTool.yaml
+
+  # Apply a common prompt YAML file
+  srectl apply-yaml --file CommonPrompts/prompt.yaml";
 
         public const string ChatDescription = @"Start an interactive chat session with the SRE Agent
 

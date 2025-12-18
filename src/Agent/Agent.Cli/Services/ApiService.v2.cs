@@ -241,6 +241,55 @@ public partial class ApiService : IDisposable
         }
     }
 
+    public async Task<(bool Success, string Message)> ApplyExtendedAgentAsync(ExtendedAgentV2 agent, bool dryRun = false)
+    {
+        try
+        {
+            var agentName = agent.Metadata?.Name;
+            if (string.IsNullOrWhiteSpace(agentName))
+            {
+                return (false, "Agent name is required in metadata.");
+            }
+
+            // Serialize spec to JSON node with camelCase properties
+            var propertiesNode = JsonSerializer.SerializeToNode(agent.Spec, _camelCaseJsonOptions);
+
+            // Build the API request envelope in camelCase
+            var requestBody = new
+            {
+                name = agent.Metadata?.Name ?? agentName,
+                type = "ExtendedAgent",
+                tags = agent.Metadata?.Tags ?? new List<string>(),
+                owner = agent.Metadata?.Owner,
+                properties = propertiesNode
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
+
+            // Use V2 API endpoint: PUT /api/v2/extendedAgent/agents/{agentName}
+            var dryRunQuery = dryRun ? "?dryRun=true" : "";
+            var relativeUrl = $"api/v2/extendedAgent/agents/{Uri.EscapeDataString(agentName)}{dryRunQuery}";
+
+            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
+
+            if (errorMessage == null)
+            {
+                var message = dryRun
+                    ? $"✅ Agent '{agentName}' validated successfully (dry run)"
+                    : $"✅ Agent '{agentName}' applied successfully!";
+                return (true, message);
+            }
+            else
+            {
+                return (false, $"❌ Failed to apply agent: {statusCode} - {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to apply agent: {ex.Message}");
+        }
+    }
+
     public async Task<(bool Success, string Message)> ApplyExtendedAgentAsync(string agentName, bool dryRun = false)
     {
         try
@@ -301,38 +350,8 @@ public partial class ApiService : IDisposable
                 return (false, $"Unsupported YAML version: {detectedVersion}");
             }
 
-            // Serialize spec to JSON node with camelCase properties
-            var propertiesNode = JsonSerializer.SerializeToNode(agent.Spec, _camelCaseJsonOptions);
-
-            // Build the API request envelope in camelCase
-            var requestBody = new
-            {
-                name = agent.Metadata.Name,
-                type = "ExtendedAgent",
-                tags = agent.Metadata.Tags ?? new List<string>(),
-                owner = agent.Metadata.Owner,
-                properties = propertiesNode
-            };
-
-            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
-
-            // Use V2 API endpoint: PUT /api/v2/extendedAgent/agents/{agentName}
-            var dryRunQuery = dryRun ? "?dryRun=true" : "";
-            var relativeUrl = $"api/v2/extendedAgent/agents/{Uri.EscapeDataString(agentName)}{dryRunQuery}";
-
-            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
-
-            if (errorMessage == null)
-            {
-                var message = dryRun
-                    ? $"✅ Agent '{agentName}' validated successfully (dry run)"
-                    : $"✅ Agent '{agentName}' applied successfully!";
-                return (true, message);
-            }
-            else
-            {
-                return (false, $"❌ Failed to apply agent: {statusCode} - {responseContent}");
-            }
+            // Call the overload that takes ExtendedAgentV2
+            return await ApplyExtendedAgentAsync(agent, dryRun);
         }
         catch (Exception ex)
         {

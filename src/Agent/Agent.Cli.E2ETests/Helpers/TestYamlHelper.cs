@@ -269,4 +269,26 @@ spec:
     {instructions}{toolsYaml}{handoffsYaml}
 ";
     }
+
+    // ============================================================
+    // Common Prompt YAML Generators
+    // ============================================================
+
+    /// <summary>
+    /// Generates a minimal V2 CommonPrompt YAML string for testing.
+    /// </summary>
+    public static string GetMinimalCommonPromptV2(
+        string name,
+        string prompt = "This is a test common prompt")
+    {
+        return $@"api_version: azuresre.ai/v2
+kind: CommonPrompt
+metadata:
+  name: {name}
+  owner: someone
+spec:
+  prompt: |
+    {prompt}
+";
+    }
 }
