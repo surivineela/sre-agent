@@ -141,4 +141,9 @@ public interface IAuthenticationService
     public TokenCredential GetPostgresSqlCredential();
 
     public Task<AccessToken> GetTokenFromAgentSpaceProxy(string scope, string resourceId);
+
+    /// <summary>
+    /// Get the OBO credential to access Geneva Actions Proxy API
+    /// </summary>
+    public Task<TokenCredential> GetGenevaActionOboCredential();
 }

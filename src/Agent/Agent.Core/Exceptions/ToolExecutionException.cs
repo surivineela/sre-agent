@@ -22,4 +22,7 @@ public class ToolExecutionUnauthorizedException : ToolExecutionException
     public ToolExecutionUnauthorizedException(string message, Exception innerException) : base(message, innerException)
     {
     }
+
+    public string? CustomDescription { get; set; }
+
 }

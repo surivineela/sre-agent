@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel;
+using Agent.Core;
+using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
@@ -31,6 +33,7 @@ public class GenevaActionsPluginDefinition
     }
 
     [AgentTool(ToolMode.Manual)]
+    [OboContext(scope: Constants.AgentSpaceOboTokenScope)]
     [Description("Execute a geneva action for a specific incident with extension name, action name, and input parameters.\nIf Geneva Action execution fails due to incorrect parameters, then correct the parameters and try again.\nThe inputParameters parameter is a semicolon-delimited list of key-value pairs.")]
     public Task<string> ExecuteGenevaAction(string incidentId, string extensionName, string actionName, string inputParameters)
     {

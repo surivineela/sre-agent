@@ -2204,7 +2204,7 @@ public class ReasoningLoop : IDisposable
 
         _logger.LogInternalInformation($"Trigger obo flow for tool {aiTool.Name}.");
         var title = GetApprovalTitle(functionCall);
-        await CreateAndPersistApproval(title, aiTool.Name, attr.Scope, ApprovalDecision.PendingAuthorization);
+        await CreateAndPersistApproval(title, ex.CustomDescription ?? aiTool.Name, attr.Scope, ApprovalDecision.PendingAuthorization);
     }
 
     private async Task<Approval> CreateAndPersistApproval(

@@ -683,6 +683,11 @@ public class AuthenticationService : IAuthenticationService
 
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
+
+    public async Task<TokenCredential> GetGenevaActionOboCredential()
+    {
+        return await ApprovalAwareCredentialHelper(() => DelegatedTokenCredential.Create((context, _) => new AccessToken()));
+    }
     #endregion
 }
 

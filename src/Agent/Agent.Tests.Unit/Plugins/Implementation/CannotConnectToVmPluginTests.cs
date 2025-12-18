@@ -301,6 +301,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetDiagnosticServiceCredential() => _credential;
         public TokenCredential GetAzureAnthropicCredential() => _credential;
 
+        public Task<TokenCredential> GetGenevaActionOboCredential() => Task.FromResult(_credential);
     }
 
     internal sealed class FakeTokenCredential : TokenCredential
