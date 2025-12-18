@@ -1754,36 +1754,6 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> DeleteAgentAsync(string agentName)
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v2/extendedAgent/agents/{agentName}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return (true, $"✅ Agent '{agentName}' deleted successfully!");
-            }
-            else
-            {
-                return (false, $"❌ Failed to delete agent: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
-        }
-        catch (Exception ex)
-        {
-            return (false, $"❌ Failed to delete agent: {ex.Message}");
-        }
-    }
-
     // Scheduled Tasks API methods
     public async Task<List<JsonNode>?> GetScheduledTasksAsync()
     {

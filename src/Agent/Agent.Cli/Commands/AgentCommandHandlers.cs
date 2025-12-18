@@ -18,7 +18,7 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Handles the agent create command.
     /// </summary>
-    public static async Task HandleCreateCommand(ParseResult parseResult)
+    public static async Task<int> HandleCreateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting agent create command");
 
@@ -84,8 +84,7 @@ public static class AgentCommandHandlers
                     "Check your server connection with --debug",
                     "Verify your server supports AI completion"
                 ]);
-                Environment.Exit(1);
-                return;
+                return 1;
             }
 
             ProgressService.MultiStepProgress.NextStep("AI generation completed successfully");
@@ -177,7 +176,7 @@ public static class AgentCommandHandlers
                         Console.WriteLine();
                         ConsoleUI.WriteCommand("Create missing tools first", "srectl tool create --name <tool_name> --type <tool_type>");
                         ConsoleUI.WriteCommand("List all available tools", "srectl list tools");
-                        Environment.Exit(1);
+                        return 1;
                     }
 
                     DebugLogger.Debug("ToolValidation", $"All {finalTools.Count} tools validated successfully");
@@ -230,7 +229,7 @@ public static class AgentCommandHandlers
                 ConsoleUI.WriteSection("Troubleshooting");
                 ConsoleUI.WriteBullet("Check the agent configuration in the YAML file", ConsoleColor.Yellow);
                 ConsoleUI.WriteBullet($"Location: agents/{name}/{name}.yaml", ConsoleColor.Gray);
-                Environment.Exit(1);
+                return 1;
             }
 
             ProgressService.MultiStepProgress.NextStep("Validation successful");
@@ -251,6 +250,8 @@ public static class AgentCommandHandlers
         ConsoleUI.WriteCommand("Apply to server", $"srectl agent apply --name {name}");
         ConsoleUI.WriteCommand("Test the agent", $"srectl agent test --name {name} --message \"Hello\"");
         ConsoleUI.Write(string.Empty);
+
+        return 0;
     }
 
     /// <summary>
@@ -297,19 +298,26 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Handles the agent apply command.
     /// </summary>
-    public static async Task HandleApplyCommand(ParseResult parseResult)
+    public static async Task<int> HandleApplyCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting agent apply command");
 
         var name = parseResult.GetValue(AgentCommandOptions.Apply.NameOption);
+        var dryRun = parseResult.GetValue(AgentCommandOptions.Apply.DryRunOption);
 
-        DebugLogger.Debug("Parameters", $"Name: {name}");
+        DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            ConsoleUI.WriteStatus(false, "Agent name is required.");
+            return 1;
+        }
 
         using var apiService = new ApiService();
-        var (success, response) = await apiService.ApplyExtendedAgentAsync(name!, dryRun: false);
+        var (success, response) = await apiService.ApplyExtendedAgentAsync(name, dryRun: dryRun);
 
-        ConsoleUI.WriteInfo(response, success ? ConsoleColor.Green : ConsoleColor.Red);
-        Environment.Exit(success ? 0 : 1);
+        Console.WriteLine(response);
+        return success ? 0 : 1;
     }
 
     /// <summary>
@@ -438,7 +446,7 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Handles the agent delete command.
     /// </summary>
-    public static async Task HandleDeleteCommand(ParseResult parseResult)
+    public static async Task<int> HandleDeleteCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting agent delete command");
 
@@ -449,42 +457,33 @@ public static class AgentCommandHandlers
         if (string.IsNullOrWhiteSpace(agentName))
         {
             ConsoleUI.WriteStatus(false, "Agent name is required.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
-        try
+        using var apiService = new ApiService();
+        ConsoleUI.WriteInfo($"Deleting agent '{agentName}'...", ConsoleColor.Yellow);
+
+        var (success, response) = await apiService.DeleteExtendedAgentAsync(agentName);
+
+        if (success)
         {
-            using var apiService = new ApiService();
-            ConsoleUI.WriteInfo($"Deleting agent '{agentName}'...", ConsoleColor.Yellow);
+            ConsoleUI.WriteStatus(true, response);
 
-            var (success, response) = await apiService.DeleteAgentAsync(agentName);
-
-            if (success)
-            {
-                ConsoleUI.WriteStatus(true, response);
-
-                // After successful server deletion, offer to clean up local files
-                OfferLocalAgentCleanup(agentName);
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(false, response);
-                Environment.Exit(1);
-            }
+            // After successful server deletion, offer to clean up local files
+            OfferLocalAgentCleanup(agentName);
+            return 0;
         }
-        catch (Exception ex)
+        else
         {
-            DebugLogger.Debug("Exception", $"DeleteAgent failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Failed to delete agent: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(false, response);
+            return 1;
         }
     }
 
     /// <summary>
     /// Handles the agent migrate command to migrate V1 agents to V2 format.
     /// </summary>
-    public static async Task HandleMigrateCommand(ParseResult parseResult)
+    public static async Task<int> HandleMigrateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting agent migrate command");
 
@@ -497,23 +496,20 @@ public static class AgentCommandHandlers
         if (!migrateAll && string.IsNullOrWhiteSpace(agentName))
         {
             ConsoleUI.WriteStatus(false, "Please specify --name or --all to migrate agents.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
         if (migrateAll && !string.IsNullOrWhiteSpace(agentName))
         {
             ConsoleUI.WriteStatus(false, "Cannot specify both --name and --all. Choose one.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
         var agentsDir = "agents";
         if (!Directory.Exists(agentsDir))
         {
             ConsoleUI.WriteStatus(false, "No agents directory found.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
         List<string> filesToMigrate = [];
@@ -529,8 +525,7 @@ public static class AgentCommandHandlers
             {
                 ConsoleUI.WriteStatus(false, $"Agent file not found for '{agentName}'");
                 ConsoleUI.WriteInfo($"Expected: agents/{agentName}.yaml", ConsoleColor.Gray);
-                Environment.Exit(1);
-                return;
+                return 1;
             }
             filesToMigrate.Add(agentFile);
         }
@@ -538,8 +533,7 @@ public static class AgentCommandHandlers
         if (filesToMigrate.Count == 0)
         {
             ConsoleUI.WriteStatus(false, "No agent YAML files found to migrate.");
-            Environment.Exit(1);
-            return;
+            return 1;
         }
 
         ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} agent(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
@@ -620,13 +614,13 @@ public static class AgentCommandHandlers
             ConsoleUI.WriteCommand("Apply to server", "srectl sync");
         }
 
-        Environment.Exit(errorCount > 0 ? 1 : 0);
+        return errorCount > 0 ? 1 : 0;
     }
 
     /// <summary>
     /// Handles the list agents command.
     /// </summary>
-    public static async Task HandleListCommand(ParseResult parseResult)
+    public static async Task<int> HandleListCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting agent list command");
 
@@ -643,14 +637,14 @@ public static class AgentCommandHandlers
         if (error != null)
         {
             ConsoleUI.WriteStatus(false, error);
-            Environment.Exit(1);
+            return 1;
         }
 
         if (agentsList.Count == 0)
         {
             ConsoleUI.WriteInfo("No extended agents found on the server.", ConsoleColor.Yellow);
             ConsoleUI.WriteInfo("Use 'srectl agent apply <agent-name>' to add agents to the server.", ConsoleColor.Gray);
-            Environment.Exit(0);
+            return 1;
         }
 
         // Filter by name if specified
@@ -662,12 +656,12 @@ public static class AgentCommandHandlers
             if (agent == null)
             {
                 ConsoleUI.WriteStatus(false, $"Agent '{name}' not found.");
-                Environment.Exit(1);
+                return 1;
             }
 
             ConsoleUI.WriteSection("Remote Extended Agent");
             Console.WriteLine(agent.ToYaml());
-            Environment.Exit(0);
+            return 0;
         }
 
         ConsoleUI.WriteSection("Remote Extended Agents");
@@ -692,7 +686,7 @@ public static class AgentCommandHandlers
 
         Console.WriteLine();
         ConsoleUI.WriteKeyValue("Total", $"{agentsList.Count} extended agent(s)", 0);
-        Environment.Exit(0);
+        return 0;
     }
 
     /// <summary>
@@ -901,10 +895,25 @@ public static class AgentCommandHandlers
     /// </summary>
     private static void OfferLocalAgentCleanup(string agentName)
     {
-        var agentDir = Path.Combine("agents", agentName);
-        var agentFile = Path.Combine(agentDir, $"{agentName}.yaml");
+        // Check both subdirectory and flat structure (matching FindAgentFile logic)
+        var subdirPath = Path.Combine("agents", agentName, $"{agentName}.yaml");
+        var flatPath = Path.Combine("agents", $"{agentName}.yaml");
+        
+        string? agentFile = null;
+        string? agentDir = null;
+        
+        if (File.Exists(subdirPath))
+        {
+            agentFile = subdirPath;
+            agentDir = Path.Combine("agents", agentName);
+        }
+        else if (File.Exists(flatPath))
+        {
+            agentFile = flatPath;
+            agentDir = null; // For flat structure, we only delete the file, not a directory
+        }
 
-        if (!File.Exists(agentFile))
+        if (agentFile == null)
         {
             return; // No local files to clean up
         }
@@ -919,10 +928,17 @@ public static class AgentCommandHandlers
         {
             try
             {
-                if (Directory.Exists(agentDir))
+                if (agentDir != null && Directory.Exists(agentDir))
                 {
+                    // Subdirectory structure: delete entire directory
                     Directory.Delete(agentDir, true);
                     ConsoleUI.WriteStatus(true, $"Local agent files deleted: {agentDir}");
+                }
+                else if (File.Exists(agentFile))
+                {
+                    // Flat structure: delete just the file
+                    File.Delete(agentFile);
+                    ConsoleUI.WriteStatus(true, $"Local agent file deleted: {agentFile}");
                 }
 
                 Console.WriteLine();
@@ -947,7 +963,11 @@ public static class AgentCommandHandlers
 
             Console.WriteLine();
             ConsoleUI.WriteInfo($"To redeploy: srectl agent apply --name {agentName}", ConsoleColor.Cyan);
-            ConsoleUI.WriteInfo($"To delete locally: rm -rf {agentDir.Replace('\\', '/')}", ConsoleColor.Gray);
+            
+            var deleteCommand = agentDir != null 
+                ? $"rm -rf {agentDir.Replace('\\', '/')}"
+                : $"rm {agentFile.Replace('\\', '/')}";
+            ConsoleUI.WriteInfo($"To delete locally: {deleteCommand}", ConsoleColor.Gray);
         }
     }
 

@@ -184,31 +184,6 @@ spec:
     public static string GetMinimalLinkToolV2(string name) => GetLinkToolV2(name);
 
     // ============================================================
-    // V2 Agent YAML Generator
-    // ============================================================
-
-    /// <summary>
-    /// Generates a V2 Agent YAML string.
-    /// </summary>
-    public static string GetAgentV2(
-        string name,
-        string model = "gpt-4")
-    {
-        return $@"apiVersion: v1
-kind: Agent
-metadata:
-  name: {name}
-spec:
-  model: {model}
-";
-    }
-
-    /// <summary>
-    /// Generates a minimal V2 Agent with common test defaults.
-    /// </summary>
-    public static string GetMinimalAgentV2(string name) => GetAgentV2(name);
-
-    // ============================================================
     // V1 ToolList YAML Generator
     // ============================================================
 
@@ -248,6 +223,50 @@ metadata:
   owner: someone
 spec:
   tools:{toolsYaml}
+";
+    }
+
+    // ============================================================
+    // Agent YAML Generators
+    // ============================================================
+
+    /// <summary>
+    /// Generates a minimal V2 Agent YAML string for testing.
+    /// </summary>
+    public static string GetMinimalAgentV2(
+        string name,
+        string instructions = "This is a test agent",
+        List<string>? tools = null,
+        List<string>? handoffs = null)
+    {
+        var toolsYaml = "";
+        if (tools != null && tools.Count > 0)
+        {
+            toolsYaml = "\n  tools:";
+            foreach (var tool in tools)
+            {
+                toolsYaml += $"\n    - {tool}";
+            }
+        }
+
+        var handoffsYaml = "";
+        if (handoffs != null && handoffs.Count > 0)
+        {
+            handoffsYaml = "\n  handoffs:";
+            foreach (var handoff in handoffs)
+            {
+                handoffsYaml += $"\n    - {handoff}";
+            }
+        }
+
+        return $@"api_version: azuresre.ai/v2
+kind: ExtendedAgent
+metadata:
+  name: {name}
+  owner: someone
+spec:
+  instructions: |
+    {instructions}{toolsYaml}{handoffsYaml}
 ";
     }
 }

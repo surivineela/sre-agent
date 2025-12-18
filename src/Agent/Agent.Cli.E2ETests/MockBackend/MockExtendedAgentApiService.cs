@@ -53,17 +53,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<AgentDocumentModel>> DeleteAgentAsync(string agentName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _agents.ContainsKey(agentName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(new NoContentResult()));
+            _agents.TryRemove(agentName, out _);
         }
 
-        if (_agents.TryRemove(agentName, out var agent))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(agent, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<AgentDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<AgentDocumentModel[]>> GetAgentsAsync()
@@ -94,17 +96,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<ToolDocumentModel>> DeleteToolAsync(string toolName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _tools.ContainsKey(toolName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(new NoContentResult()));
+            _tools.TryRemove(toolName, out _);
         }
 
-        if (_tools.TryRemove(toolName, out var tool))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(tool, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<ToolDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<ToolDocumentModel[]>> GetToolsAsync()
@@ -135,17 +139,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<ConnectorDocumentModel>> DeleteConnectorAsync(string connectorName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _connectors.ContainsKey(connectorName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(new NoContentResult()));
+            _connectors.TryRemove(connectorName, out _);
         }
 
-        if (_connectors.TryRemove(connectorName, out var connector))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(connector, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<ConnectorDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<ConnectorDocumentModel[]>> GetConnectorsAsync()
@@ -190,17 +196,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<PlugInConfigDocumentModel>> DeletePluginConfigAsync(string pluginName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _plugins.ContainsKey(pluginName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NoContentResult()));
+            _plugins.TryRemove(pluginName, out _);
         }
 
-        if (_plugins.TryRemove(pluginName, out var plugin))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(plugin, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<PlugInConfigDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<PlugInConfigDocumentModel[]>> GetPluginConfigsAsync()
@@ -231,17 +239,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<CommonPromptDocumentModel>> DeleteCommonPromptAsync(string promptName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _commonPrompts.ContainsKey(promptName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NoContentResult()));
+            _commonPrompts.TryRemove(promptName, out _);
         }
 
-        if (_commonPrompts.TryRemove(promptName, out var prompt))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(prompt, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<CommonPromptDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<CommonPromptDocumentModel[]>> GetCommonPromptsAsync()
@@ -272,17 +282,19 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<CommonToolsListDocumentModel>> DeleteCommonToolListAsync(string listName, bool dryRun = false)
     {
-        if (dryRun)
+        var exists = _commonToolLists.ContainsKey(listName);
+        
+        if (!dryRun && exists)
         {
-            return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NoContentResult()));
+            _commonToolLists.TryRemove(listName, out _);
         }
 
-        if (_commonToolLists.TryRemove(listName, out var list))
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(list, Guid.NewGuid().ToString()));
+            return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<CommonToolsListDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<CommonToolsListDocumentModel[]>> GetCommonToolListsAsync()
@@ -308,12 +320,15 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
 
     public Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName)
     {
-        if (_skills.TryRemove(skillName, out var skill))
+        var exists = _skills.ContainsKey(skillName);
+        
+        if (exists)
         {
-            return Task.FromResult(new ApiCommandResult<SkillDocumentModel>(skill, Guid.NewGuid().ToString()));
+            _skills.TryRemove(skillName, out _);
+            return Task.FromResult(new ApiCommandResult<SkillDocumentModel>(new AcceptedResult()));
         }
 
-        return Task.FromResult(new ApiCommandResult<SkillDocumentModel>(new NotFoundResult()));
+        return Task.FromResult(new ApiCommandResult<SkillDocumentModel>(new NoContentResult()));
     }
 
     public Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync()

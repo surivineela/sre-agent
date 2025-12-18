@@ -54,6 +54,18 @@ public static partial class CommandBuilder
                 AgentCommandOptions.Create.AddSystemSkillsOption
             };
 
+            // Add name validation
+            cmd.AddValidator(pr =>
+            {
+                var name = pr.GetValue(AgentCommandOptions.Create.NameOption);
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "agent");
+
+                if (!isValid)
+                {
+                    pr.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
+                }
+            });
+
             cmd.SetAction(AgentCommandHandlers.HandleCreateCommand);
             return cmd;
         }
@@ -80,6 +92,18 @@ public static partial class CommandBuilder
                 AgentCommandOptions.Apply.DryRunOption
             };
 
+            // Add name validation
+            cmd.AddValidator(pr =>
+            {
+                var name = pr.GetValue(AgentCommandOptions.Apply.NameOption);
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "agent");
+
+                if (!isValid)
+                {
+                    pr.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
+                }
+            });
+
             cmd.SetAction(AgentCommandHandlers.HandleApplyCommand);
             return cmd;
         }
@@ -90,6 +114,18 @@ public static partial class CommandBuilder
             {
                 AgentCommandOptions.Delete.NameOption
             };
+
+            // Add name validation
+            cmd.AddValidator(pr =>
+            {
+                var name = pr.GetValue(AgentCommandOptions.Delete.NameOption);
+                var (isValid, errorMessage) = ValidationHelper.ValidateResourceName(name, "agent");
+
+                if (!isValid)
+                {
+                    pr.AddError(ErrorMessageHelper.InvalidParameter(errorMessage!));
+                }
+            });
 
             cmd.SetAction(AgentCommandHandlers.HandleDeleteCommand);
             return cmd;

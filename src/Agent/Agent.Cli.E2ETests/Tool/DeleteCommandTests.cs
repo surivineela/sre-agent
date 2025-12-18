@@ -82,15 +82,15 @@ public class DeleteCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task ToolDelete_NonExistentTool_ReturnsError()
+    public async Task ToolDelete_NonExistentTool_ReturnsSuccess()
     {
         // Act: Try to delete a non-existent tool
         var result = await Runner.RunAsync("tool", "delete", "--name", "non-existent-tool");
 
-        // Assert: Command should fail
-        Assert.False(result.Success);
-        Assert.Equal(1, result.ExitCode);
-        Assert.Contains("not found", result.Output, StringComparison.OrdinalIgnoreCase);
+        // Assert: Command should succeed (deleting non-existent item is idempotent)
+        Assert.True(result.Success, $"Command failed: {result.Output}");
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("does not exist", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

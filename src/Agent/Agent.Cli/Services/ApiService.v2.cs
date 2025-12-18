@@ -82,6 +82,12 @@ public partial class ApiService : IDisposable
 
             var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
 
+            // NoContent (204) means the item was not found - this is a success case
+            if (statusCode == HttpStatusCode.NoContent)
+            {
+                return (true, $"Tool '{toolName}' does not exist (already deleted or never created)");
+            }
+
             if (errorMessage != null)
             {
                 // Check specific status codes for better error messages
@@ -113,10 +119,6 @@ public partial class ApiService : IDisposable
                     }
 
                     return (false, $"Cannot delete tool '{toolName}': it is being used by agents");
-                }
-                else if (statusCode == HttpStatusCode.NotFound)
-                {
-                    return (false, $"Tool '{toolName}' not found");
                 }
 
                 return (false, errorMessage);
@@ -338,6 +340,38 @@ public partial class ApiService : IDisposable
         }
     }
 
+    public async Task<(bool Success, string Message)> DeleteExtendedAgentAsync(string agentName, bool dryRun = false)
+    {
+        try
+        {
+            // Use V2 API endpoint: DELETE /api/v2/extendedAgent/agents/{agentName}
+            var relativeUrl = $"api/v2/extendedAgent/agents/{Uri.EscapeDataString(agentName)}";
+            if (dryRun)
+            {
+                relativeUrl += "?dryRun=true";
+            }
+
+            var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
+
+            // NoContent (204) means the item was not found - this is a success case
+            if (statusCode == HttpStatusCode.NoContent)
+            {
+                return (true, $"Agent '{agentName}' does not exist (already deleted or never created)");
+            }
+
+            if (errorMessage != null)
+            {
+                return (false, errorMessage);
+            }
+
+            return (true, $"✅ Agent '{agentName}' deleted successfully!");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete agent: {ex.Message}");
+        }
+    }
+
     #endregion
 
     #region Extended API for Common Prompts
@@ -411,6 +445,12 @@ public partial class ApiService : IDisposable
 
             var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
 
+            // NoContent (204) means the item was not found - this is a success case
+            if (statusCode == HttpStatusCode.NoContent)
+            {
+                return (true, $"Common prompt '{promptName}' does not exist (already deleted or never created)");
+            }
+
             if (errorMessage != null)
             {
                 // Check specific status codes for better error messages
@@ -442,10 +482,6 @@ public partial class ApiService : IDisposable
                     }
 
                     return (false, $"Cannot delete common prompt '{promptName}': it is being used by agents");
-                }
-                else if (statusCode == HttpStatusCode.NotFound)
-                {
-                    return (false, $"Common prompt '{promptName}' not found");
                 }
 
                 return (false, errorMessage);

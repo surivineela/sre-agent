@@ -259,7 +259,7 @@ spec:
     public async Task DeleteAgentAsync_WithInvalidAgentName_ReturnsError(string agentName)
     {
         // Act
-        var (Success, Response) = await _apiService.DeleteAgentAsync(agentName);
+        var (Success, Response) = await _apiService.DeleteExtendedAgentAsync(agentName);
 
         // Assert
         Assert.False(Success);
@@ -281,7 +281,7 @@ spec:
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response) = await apiService.DeleteAgentAsync(agentName);
+        var (Success, Response) = await apiService.DeleteExtendedAgentAsync(agentName);
 
         // Assert
         Success.ShouldBeTrue();
@@ -305,7 +305,7 @@ spec:
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
         // Act
-        var (Success, Response) = await apiService.DeleteAgentAsync(agentName);
+        var (Success, Response) = await apiService.DeleteExtendedAgentAsync(agentName);
 
         // Assert
         Success.ShouldBeFalse();
