@@ -17,6 +17,10 @@
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="start-session-proxy.sh" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <Target Name="CopyEv2McpServer" AfterTargets="Publish">
     <ItemGroup>
       <Ev2McpServerFiles Include="$(PkgEv2_McpServer)\tools\$(TargetFramework)\any\**\*" />
