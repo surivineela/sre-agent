@@ -930,4 +930,107 @@ Maintenance Workflow:
     }
 
     #endregion
+
+    #region MCP Command Examples
+
+    public static class Mcp
+    {
+        public const string StartDescription = @"Start the MCP (Model Context Protocol) server using stdio transport
+
+The MCP server provides tools for AI assistants to help build SRE agents,
+scheduled tasks, incident handlers, and custom subagents. It includes
+comprehensive documentation about the SRE Agent platform and maintains
+session memory for multi-turn conversations.
+
+Examples:
+  # Start MCP server
+  srectl mcp start
+
+  # Start with verbose logging (logs to stderr)
+  srectl mcp start --verbose
+
+MCP Server Configuration for Claude Desktop:
+  Add to your claude_desktop_config.json:
+  {
+    ""mcpServers"": {
+      ""sre-agent"": {
+        ""command"": ""srectl"",
+        ""args"": [""mcp"", ""start""]
+      }
+    }
+  }
+
+Available MCP Tools:
+
+  Agent Building:
+    - get_documentation: Get SRE Agent platform documentation
+    - start_agent_build: Begin building a new agent
+    - configure_agent: Configure agent settings
+    - configure_trigger: Set up triggers (incidents, schedules)
+    - generate_yaml: Generate agent YAML configuration
+    - generate_srectl_commands: Generate CLI commands
+    - validate_agent: Validate agent configuration
+    - list_agents_in_progress: List agents being built
+    - get_agent_status: Get specific agent status
+
+  Subagent Building:
+    - start_subagent_build: Begin building a custom C# subagent
+    - add_subagent_tool: Add tool methods to a subagent
+    - add_subagent_dependency: Add DI dependencies
+    - configure_subagent_delegation: Configure handoffs
+    - generate_subagent_code: Generate C# code for the subagent
+    - list_subagents_in_progress: List subagents being built
+    - get_subagent_status: Get specific subagent status
+    - get_platform_subagents_reference: Get platform subagent examples
+
+  Knowledge Base & Deep Dives:
+    - learn_topic: Store information in session knowledge base
+    - search_knowledge: Search the knowledge base
+    - list_knowledge: List all knowledge entries
+    - get_deep_dive_example: Get complete end-to-end examples
+    - get_all_options: Get exhaustive configuration options reference
+
+  Session Management:
+    - get_session_summary: Get current session info
+    - add_note: Add notes to agent/subagent context
+    - clear_session: Clear session memory";
+
+        public const string InfoDescription = @"Display SRE Agent documentation for various topics
+
+Examples:
+  # Show overview
+  srectl mcp info
+
+  # Show architecture (trigger->agent->tool flow)
+  srectl mcp info --topic architecture
+
+  # Show CLI command structure
+  srectl mcp info --topic cli
+
+  # Show specific topic
+  srectl mcp info --topic agents
+  srectl mcp info --topic tools
+  srectl mcp info --topic triggers
+  srectl mcp info --topic scheduled-tasks
+  srectl mcp info --topic subagent-building
+
+  # Show all documentation
+  srectl mcp info --all
+
+Available Topics:
+  overview            - Platform overview
+  architecture        - Trigger -> Agent -> Tool flow
+  cli                 - CLI command structure with subcommands
+  agents              - Agent configuration
+  tools               - Tool configuration (System & BYO)
+  triggers            - Trigger types and setup
+  subagents           - Subagent/handoff concepts
+  subagent-building   - Building custom subagents (C# guide)
+  scheduled-tasks     - Scheduled task configuration
+  platform-subagents  - Platform-provided subagents
+  quickstart          - Getting started guide
+  all                 - All documentation";
+    }
+
+    #endregion
 }

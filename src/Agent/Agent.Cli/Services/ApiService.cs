@@ -906,7 +906,7 @@ public partial class ApiService : IDisposable
                 Content = new StringContent(yamlContent, Encoding.UTF8, "application/yaml")
             };
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            var (response, content, _) = await MakeHttpRequestAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

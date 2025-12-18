@@ -52,6 +52,7 @@ public static partial class CommandBuilder
             IncidentHandlerCommand.Build(),
             ScheduledTaskCommand.Build(),
             ExtensionCommand.Build(),
+            McpCommand.Build(),
         };
 
         // Single root action (runs when no verb provided)
