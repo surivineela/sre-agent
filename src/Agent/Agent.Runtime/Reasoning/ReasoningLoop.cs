@@ -841,7 +841,7 @@ public class ReasoningLoop : IDisposable
                 role: ChatRole.Tool,
                 contents:
                 [
-                    new FunctionResultContent(orphanedCall.CallId, "Error: Either tool call was cancelled or didn't return output in time.")
+                    new FunctionResultContent(orphanedCall.CallId, "Error: Tool execution was interrupted before completion (likely due to a system restart or unexpected termination). You may retry this operation. But if the same operation continues to fail multiple times, do not retry again—inform the user there was a system issue and consider an alternative approach.")
                 ]
             );
 
