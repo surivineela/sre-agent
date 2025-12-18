@@ -40,6 +40,7 @@ public static partial class CommandBuilder
             InitCommand.Build(),
             syncCommand,
             ApplyYamlCommand.Build(),
+            ApplyCommand.Build(),
             ThreadCommand.Build(),
             chatCommand,
             AgentCommand.Build(),

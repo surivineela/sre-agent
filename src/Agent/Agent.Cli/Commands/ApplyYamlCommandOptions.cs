@@ -11,7 +11,7 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class ApplyYamlCommandOptions
 {
-    public static readonly Option<string> FileOption = new("--file")
+    public static readonly Option<string> FileOption = new("--file", "-f")
     {
         Description = "Path to the YAML file to apply",
         Required = true

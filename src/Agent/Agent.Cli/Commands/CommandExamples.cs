@@ -433,6 +433,22 @@ Examples:
   # Apply a common prompt YAML file
   srectl apply-yaml --file CommonPrompts/prompt.yaml";
 
+        public const string ApplyDescription = @"Apply YAML configuration files to the server
+Supports multi-document YAML files (separated by ---).
+Automatically detects and applies tools, agents, and common prompts.
+
+Examples:
+  # Apply a single resource YAML file
+  srectl apply -f agents/MyAgent/MyAgent.yaml
+
+  # Apply a multi-document YAML file
+  srectl apply -f manifests/all-resources.yaml
+
+  # Apply a tool YAML file
+  srectl apply -f tools/KustoTool.yaml
+
+Alias for: srectl apply-yaml --file <file>";
+
         public const string ChatDescription = @"Start an interactive chat session with the SRE Agent
 
 Examples:
