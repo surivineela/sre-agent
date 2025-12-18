@@ -2311,6 +2311,37 @@ public partial class ApiService : IDisposable
 
     #endregion
 
+    #region Agent Metadata
+
+    /// <summary>
+    /// Gets metadata about the current agent instance including name, subscription, and resource group.
+    /// </summary>
+    /// <returns>Tuple containing success status, metadata response, and error message if any</returns>
+    public async Task<(bool Success, AgentMetadataResponse? Metadata, string? ErrorMessage)> GetAgentMetadataAsync()
+    {
+        try
+        {
+            var (metadata, statusCode, errorMessage) = await MakeHttpRequestAsync<AgentMetadataResponse>(
+                HttpMethod.Get,
+                "api/v1/metadata"
+            );
+
+            if (metadata != null)
+            {
+                return (true, metadata, null);
+            }
+
+            return (false, null, errorMessage ?? $"Failed to retrieve agent metadata: {statusCode}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetAgentMetadata failed: {ex.Message}");
+            return (false, null, $"Failed to retrieve agent metadata: {ex.Message}");
+        }
+    }
+
+    #endregion
+
     public void Dispose()
     {
         _httpClient?.Dispose();
@@ -3217,4 +3248,5 @@ public class StructuredToolListYaml : StructuredAgentYamlWrapper<ToolListSpec>
 
 public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
 public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
+public record AgentMetadataResponse(string Name, string SubscriptionId, string ResourceGroup);
 

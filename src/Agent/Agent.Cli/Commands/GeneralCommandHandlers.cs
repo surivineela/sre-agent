@@ -884,6 +884,22 @@ public static class GeneralCommandHandlers
                     DebugLogger.Debug("API Response", $"Connection test successful: {response}");
                     DebugLogger.Debug("API Response", $"Agents check success: {agentsSuccess}");
                     DebugLogger.Debug("API Response", $"Tools check success: {toolsSuccess}");
+
+                    // Fetch and display agent metadata
+                    var (metadataSuccess, metadata, metadataError) = await apiService.GetAgentMetadataAsync();
+                    if (metadataSuccess && metadata != null)
+                    {
+                        Console.WriteLine();
+                        ConsoleUI.WriteSection("Remote Agent");
+                        ConsoleUI.WriteBullet($"Name: {metadata.Name}");
+                        ConsoleUI.WriteBullet($"Subscription: {metadata.SubscriptionId}");
+                        ConsoleUI.WriteBullet($"Resource Group: {metadata.ResourceGroup}");
+                        DebugLogger.Debug("API Response", $"Agent metadata retrieved: {metadata.Name}");
+                    }
+                    else
+                    {
+                        DebugLogger.Debug("API Response", $"Agent metadata not available: {metadataError}");
+                    }
                 }
                 else
                 {
