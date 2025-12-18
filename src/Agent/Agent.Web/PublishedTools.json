@@ -200,6 +200,36 @@
       "description": "Gets the names of all organizations a GitHub user is part of. Many enterprises organize repositories across multiple GitHub organizations for different teams, products, or purposes. This tool provides visibility into which organizations you can access, including organization names, avatars, descriptions, and your role in each. The information helps you locate repositories, understand access boundaries, and navigate to the correct organization. Use this when you need to find repositories across organizations, when verifying access permissions, or when orienting yourself within a complex GitHub organization structure."
     },
     {
+      "name": "CreateAzureDevOpsWorkItem",
+      "version": "latest",
+      "description": "Creates a work item in Azure DevOps (AzDo/TFS). Creates any work item type: tasks, user stories, bugs, features, epics, test cases, issues, tickets, cards. Works with linked repositories. Use for any request to add, create, make, generate, file, track, or manage work items regardless of phrasing ('add task', 'create bug', 'make story', 'file ticket', 'track work', 'add to backlog', 'create issue', 'new item', etc.). Handles all work tracking scenarios in Azure DevOps. Requires an Azure resource ID to link the work item to a connected repository. You provide the resource ID, title, work item type (Task, Bug, Epic, Feature), description in well-formatted markdown, tags, and optionally an assignee."
+    },
+    {
+      "name": "CreateAzureDevOpsWorkItemWithoutResourceLinkage",
+      "version": "latest",
+      "description": "Creates a work item directly in an Azure DevOps (AzDo/TFS) repository without needing a linked Azure resource. Creates any work item type: tasks, user stories, bugs, features, epics, test cases, issues, tickets, cards. Works directly with repository URLs. Use when you have a specific Azure DevOps repository URL and want to create work items without resource linkage. Handles requests like 'create a task in this specific Azure DevOps repo', 'add a bug to this AzDo repository', 'file an issue in this project', etc. Supports additional options including area path, iteration path, priority, severity, and state."
+    },
+    {
+      "name": "FindConnectedRepositoryForAzureDevOps",
+      "version": "latest",
+      "description": "Finds the connected or linked Azure DevOps (AzDo/TFS) repository for a given Azure Resource ID. Locates associated repos, git repositories, source code repositories, or code bases linked to Azure resources. Works with any Azure resource type (App Service, Function App, Container Instance, AKS, etc.). Use for requests to find, locate, discover, identify, or get the repository, repo, source code, git repo, or code base connected to Azure resources. Handles variations like 'what repo is linked to this resource', 'find the source code', 'get the repository', 'where is the code', etc."
+    },
+    {
+      "name": "ConnectRepositoryToResourceForAzureDevOps",
+      "version": "latest",
+      "description": "Connects or links an Azure Resource to an Azure DevOps (AzDo) repository. This creates an integration link that enables features like deployment status updates, issue linking, and commit tracking. Use this when setting up CI/CD integrations, when linking newly deployed Azure resources to their source code repositories, or when establishing traceability between infrastructure and code. Provide the Azure resource ID and the Azure DevOps repository URL to create the connection."
+    },
+    {
+      "name": "DisconnectRepositoryFromResourceForAzureDevOps",
+      "version": "latest",
+      "description": "Disconnects or unlinks an Azure Resource from an Azure DevOps (AzDo) repository. Removes the connection between a repository and an Azure resource, severing the integration link. Use this when reorganizing projects, migrating between repositories, cleaning up stale integrations after resource moves, or troubleshooting deployment issues. The disconnection removes the link without affecting either the repository or the Azure resource themselves."
+    },
+    {
+      "name": "GetIaCForAzureDevOps",
+      "version": "latest",
+      "description": "Retrieves Infrastructure as Code (IaC) files and identifies the IaC type used in the connected Azure DevOps (AzDo) repository for a given Azure Resource. Analyzes and returns IaC templates, configuration files, and deployment scripts from the linked repository. Supports Bicep, ARM templates, Terraform, YAML, and JSON configurations. Use for requests to find, get, analyze, identify, or discover infrastructure code, deployment templates, IaC files, configuration files, or infrastructure definitions associated with Azure resources. Helps understand how resources should be configured and comparing deployed vs. intended configurations."
+    },
+    {
       "name": "UpdateGithubIssue",
       "version": "latest",
       "description": "Updates a GitHub issue. If the user requests to update something that isn't supported, let them know. This tool can modify an issue's title, description (body), state (open/closed), labels, assignees, and milestone. You can update any combination of fields in a single operation. Common use cases include: closing resolved issues, adding labels for categorization, assigning issues to team members, updating descriptions with findings, changing titles to better reflect the actual problem, and moving issues to appropriate milestones. All changes are tracked in GitHub's audit history."
