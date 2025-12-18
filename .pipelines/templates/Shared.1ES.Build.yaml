@@ -275,8 +275,8 @@ extends:
               packDirectory: '$(Build.ArtifactStagingDirectory)\packages'
               versioningScheme: 'byBuildNumber'
               includeNuGetOrg: false
-              nobuild: false  # Build the project to ensure React assets are included
-              arguments: '--configuration $(BuildConfiguration) -p:Version=$(Build.BuildNumber) -p:SkipReactBuild=true'
+              nobuild: false
+              arguments: '-p:SkipClientBuild=true'
 
         # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
         - task: RoslynAnalyzers@3

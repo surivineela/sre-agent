@@ -350,7 +350,7 @@ jobs:
       if: ${{ needs.changes.outputs.backend == 'true' }}
       uses: actions/checkout@v4
       with:
-        fetch-depth: 1
+        fetch-depth: 0  # Full history needed for three-dot diff
 
     - name: 🧰 Setup .NET
       if: ${{ needs.changes.outputs.backend == 'true' }}
@@ -377,31 +377,40 @@ jobs:
             --locked-mode \
             --use-current-runtime
 
-    - name: 💄 Run dotnet format
-      if: ${{ needs.changes.outputs.backend == 'true' }}
+    - name: 📋 Get files changed in PR
+      if: ${{ needs.changes.outputs.backend == 'true' && github.event_name == 'pull_request' }}
       run: |
-        dotnet format ${{ env.BUILD_SOLUTION }}
+        git fetch origin ${{ github.base_ref }}
+        git diff --name-only origin/${{ github.base_ref }}...HEAD > /tmp/changed_files.txt
+        echo "Files changed in PR:"
+        cat /tmp/changed_files.txt
 
-    - name: 📝 Check and prepare format changes
-      if: ${{ needs.changes.outputs.backend == 'true' }}
+    - name: 💄 Run dotnet format
+      if: ${{ needs.changes.outputs.backend == 'true' && github.event_name == 'pull_request' }}
+      run: dotnet format ${{ env.BUILD_SOLUTION }}
+
+    - name: 📝 Check format changes
+      if: ${{ needs.changes.outputs.backend == 'true' && github.event_name == 'pull_request' }}
       id: format_changes
       run: |
-        git add -A
+        # Get files modified by dotnet format
+        git diff --name-only > /tmp/format_changes.txt
 
-        # Unstage nuget.config if it was changed
-        git reset HEAD -- nuget.config 2>/dev/null || true
+        if [ ! -s /tmp/format_changes.txt ]; then
+          echo "✅ No formatting changes needed"
+          echo "status=clean" >> $GITHUB_OUTPUT
+          exit 0
+        fi
 
-        if ! git diff --staged --quiet; then
+        # Only fail if format changes overlap with files in this PR
+        comm -12 <(sort /tmp/format_changes.txt) <(sort /tmp/changed_files.txt) > changed_files.txt
+        if [ -s changed_files.txt ]; then
           echo "status=needs_suggestions" >> $GITHUB_OUTPUT
-          echo "✨ Formatting changes detected, will post suggestions"
-
-          # Get the list of changed files
-          git diff --staged --name-only > changed_files.txt
-          echo "Changed files:"
+          echo "✨ Formatting changes needed:"
           cat changed_files.txt
           exit 1
         else
-          echo "✅ No formatting changes to commit"
+          echo "✅ Format changes only affect other files"
           echo "status=clean" >> $GITHUB_OUTPUT
         fi
 

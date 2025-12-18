@@ -37,7 +37,8 @@
   </Target>
 
   <!-- Packaging targets: Copy Client/dist to wwwroot for NuGet package consumption -->
-  <Target Name="PrepareStaticWebAssetsForPackaging" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
+  <!-- IMPORTANT: BeforeTargets="_GetPackageFiles" ensures files are added before NuGet collects package contents -->
+  <Target Name="PrepareStaticWebAssetsForPackaging" BeforeTargets="_GetPackageFiles" Condition="'$(IsPackable)' == 'true'">
     <Message Importance="high" Text="Preparing static web assets for NuGet packaging..." />
 
     <!-- Ensure Client is built first -->
@@ -52,13 +53,14 @@
           DestinationFolder="wwwroot\%(RecursiveDir)"
           SkipUnchangedFiles="true" />
 
+    <!-- Add wwwroot files to package at staticwebassets/ path -->
+    <!-- Must be inside target so files exist when ItemGroup is evaluated -->
+    <ItemGroup>
+      <Content Include="wwwroot\**\*.*" Pack="true" PackagePath="staticwebassets\%(RecursiveDir)" />
+    </ItemGroup>
+
     <Message Importance="high" Text="Copied Client/dist to wwwroot for NuGet packaging" />
   </Target>
-
-  <!-- Include wwwroot in package as static web assets -->
-  <ItemGroup>
-    <Content Include="wwwroot\**\*.*" Pack="true" BuildAction="Content" CopyToOutputDirectory="PreserveNewest" Condition="Exists('wwwroot')" />
-  </ItemGroup>
 
   <!-- Clean up wwwroot after packaging to keep repository clean -->
   <Target Name="CleanPackagingArtifacts" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true'">
