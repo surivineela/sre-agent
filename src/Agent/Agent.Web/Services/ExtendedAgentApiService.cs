@@ -34,6 +34,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IConnectorResolver _connectorResolver;
     private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
     private readonly IOutlookConnectorPlugin _outlookConnectorPlugin;
+    private readonly ITeamsPlugin _teamsPlugin;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -46,7 +47,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         IMcpConnectionEventManager mcpConnectionEventManager,
         IConnectorResolver connectorResolver,
         IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
-        IOutlookConnectorPlugin outlookConnectorPlugin)
+        IOutlookConnectorPlugin outlookConnectorPlugin,
+        ITeamsPlugin teamsPlugin)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -59,6 +61,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _connectorResolver = connectorResolver;
         _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
         _outlookConnectorPlugin = outlookConnectorPlugin;
+        _teamsPlugin = teamsPlugin;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -983,6 +986,48 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: details);
     }
 
+    // Helper: Teams connector status using CheckConnectivityAsync
+    private async Task<ConnectorStatusResponse> BuildTeamsConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message = "Unable to determine status";
+        object? details = null;
+
+        try
+        {
+            healthy = await _teamsPlugin.CheckConnectivityAsync(CancellationToken.None);
+            message = healthy
+                ? "Teams connectivity OK."
+                : "Teams connectivity failed.";
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("No connectors of type") || ex.Message.Contains("not found"))
+        {
+            _logger.LogInternalWarning("BuildTeamsConnectorStatusAsync: Teams connector not configured for connector: {ConnectorName}", connectorName);
+            message = "Teams connector not configured.";
+            details = new { error = ex.Message };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "BuildTeamsConnectorStatusAsync: Exception occurred while checking Teams connectivity for connector: {ConnectorName}", connectorName);
+            message = $"Teams connectivity check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "Teams",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
     public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
     {
         try
@@ -1008,6 +1053,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "kusto" => await BuildKustoConnectorStatusAsync(connectorName),
                 "icm" => await BuildIcmConnectorStatusAsync(connectorName),
                 "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),
+                "teams" => await BuildTeamsConnectorStatusAsync(connectorName),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,

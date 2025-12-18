@@ -234,6 +234,34 @@ namespace Agent.Plugins.Implementation
 
         private record TeamsMessagesResponse(List<TeamsChannelMessage> Value);
 
+        /// <summary>
+        /// Check connectivity to the Teams channel by making a lightweight API call with $top=1.
+        /// </summary>
+        public async Task<bool> CheckConnectivityAsync(CancellationToken cancellationToken = default)
+        {
+            EnsureInitialized();
+            _logger.LogInternalInformation($"[CheckConnectivityAsync] Checking Teams connectivity. Url: {_teamsApiHubConnector!.ConnectionRuntimeUrl}, GroupId: {_teamsApiHubConnector.GroupId}, ChannelId: {_teamsApiHubConnector.ChannelId}");
+
+            var accessToken = await GetAccessTokenAsync(cancellationToken);
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(_apiHubRuntimeUrl!, UriKind.Absolute);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // Use $top=1 to minimize data transfer - we only need to verify connectivity
+            using var response = await httpClient.GetAsync($"beta/teams/{_teamsApiHubConnector!.GroupId}/channels/{_teamsApiHubConnector.ChannelId}/messages?$top=1", cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogInternalWarning($"[CheckConnectivityAsync] Teams connectivity check failed. StatusCode: {response.StatusCode}, Response: {errorContent}");
+                return false;
+            }
+
+            _logger.LogInternalInformation("[CheckConnectivityAsync] Teams connectivity check succeeded.");
+            return true;
+        }
+
         private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
         {
             var credential = _authenticationService.GetDataConnectorCredential(_teamsApiHubConnector!.Auth);

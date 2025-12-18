@@ -30,5 +30,12 @@ namespace Agent.Plugins.Interface
             string messageHtml,
             string? subject = null,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Check connectivity to the Teams channel by making a lightweight API call.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>True if connectivity is successful, false otherwise</returns>
+        Task<bool> CheckConnectivityAsync(CancellationToken cancellationToken = default);
     }
 }
