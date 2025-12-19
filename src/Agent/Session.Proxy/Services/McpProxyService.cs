@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Session.Proxy.Services.McpProtocol;
 
 namespace Session.Proxy.Services;
@@ -13,23 +11,17 @@ namespace Session.Proxy.Services;
 public class McpProxyService
 {
     private readonly ILogger<McpProxyService> _logger;
-    private readonly IServer _server;
-    private readonly ITokenService _tokenService;
+    private readonly IdentityProviderClient _identityProviderClient;
     private readonly ProtocolHandlerFactory _protocolHandlerFactory;
     private readonly string _msiEndpoint;
     private static readonly UTF8Encoding NoBomUtf8 = new(encoderShouldEmitUTF8Identifier: false);
 
-    public McpProxyService(ILogger<McpProxyService> logger, IServer server, ITokenService tokenService, IConfiguration configuration, ILoggerFactory loggerFactory)
+    public McpProxyService(ILogger<McpProxyService> logger, IdentityProviderClient identityProviderClient, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _logger = logger;
-        _server = server;
-        _tokenService = tokenService;
         _protocolHandlerFactory = new ProtocolHandlerFactory(loggerFactory);
-
-        // Get the MSI endpoint from configuration or use default
-        var addressesFeature = _server.Features.Get<IServerAddressesFeature>();
-        var httpAddress = addressesFeature?.Addresses.FirstOrDefault() ?? throw new InvalidOperationException("No HTTP address found");
-        _msiEndpoint = $"http://localhost:{new Uri(httpAddress).Port}/msi/token";
+        _identityProviderClient = identityProviderClient;
+        _msiEndpoint = identityProviderClient.MsiEndpoint;
     }
 
     /// <summary>
@@ -69,7 +61,7 @@ public class McpProxyService
             // Add action tokens to the token service if provided
             if (actionTokens != null && actionTokens.Count > 0)
             {
-                await _tokenService.AddTokensAsync(actionTokens);
+                await _identityProviderClient.AddTokensAsync(actionTokens);
                 _logger.LogInformation("Connection {ConnectionId}: Action tokens added to token service", connectionId);
             }
 

@@ -1,4 +1,7 @@
+using Session.Identity;
+using Session.Identity.Attributes;
 using Session.Proxy;
+using Session.Proxy.Configuration;
 using Session.Proxy.Services;
 
 // Check if running in test client mode
@@ -14,9 +17,31 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
                      .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                      .AddEnvironmentVariables();
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddSingleton<ITokenService, StaticTokenService>();
+var port = builder.Configuration.GetValue<int>("SessionProxy:Port", 5000);
+var identityProviderSettings = builder.Configuration.GetSection("IdentityProvider").Get<IdentityProviderSettings>() ?? new IdentityProviderSettings();
+var runIdentityProviderSidecar = identityProviderSettings.RunIdentityProviderSidecar;
+
+builder.WebHost.UseUrls($"http://*:{port}");
+
+if (runIdentityProviderSidecar)
+{
+    // Sidecar mode: only host Proxy controllers, identity provider runs separately
+    builder.Services.AddControllersForMode(SessionMode.Proxy);
+}
+else
+{
+    // Integrated mode: host both Proxy and IdentityProvider controllers
+    // Override the BaseUrl to point to this process
+    identityProviderSettings.BaseUrl = $"http://localhost:{port}";
+    builder.Services.AddControllersForMode(
+        SessionMode.Proxy | SessionMode.IdentityProvider,
+        typeof(IdentityProviderExtensions).Assembly);
+    builder.Services.AddIdentityProviderServices();
+}
+
+builder.Services.AddHttpClient("IdentityProvider");
+builder.Services.AddSingleton(identityProviderSettings);
+builder.Services.AddSingleton<IdentityProviderClient>();
 builder.Services.AddScoped<IShellService, ShellService>();
 builder.Services.AddSingleton<McpProxyService>();
 
@@ -37,7 +62,16 @@ var webSocketOptions = new WebSocketOptions
 app.UseWebSockets(webSocketOptions);
 app.UseRouting();
 
-app.MapGet("/", () => "Session Proxy Server is running.");
+if (runIdentityProviderSidecar)
+{
+    app.MapGet("/", () => "Session Proxy Server is running.");
+}
+else
+{
+    app.MapGet("/", () => "Session Proxy Server is running (with integrated Identity Provider).");
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+}
+
 app.MapControllers();
 
 app.Run();

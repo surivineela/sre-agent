@@ -1,32 +1,20 @@
 using System.Diagnostics;
 using Agent.Core.Models.Session;
 using Agent.Core.Services;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace Session.Proxy.Services;
 
 public class ShellService : IShellService
 {
     private readonly ILogger<ShellService> _logger;
-    private readonly ITokenService _tokenService;
+    private readonly IdentityProviderClient _identityProviderClient;
     private readonly string _msiEndpoint;
 
-    public ShellService(ILogger<ShellService> logger, ITokenService tokenService, IServer server)
+    public ShellService(ILogger<ShellService> logger, IdentityProviderClient identityProviderClient)
     {
         _logger = logger;
-        _tokenService = tokenService;
-        var feature = server.Features.Get<IServerAddressesFeature>();
-        var addresses = feature?.Addresses;
-        var httpAddress = addresses?.FirstOrDefault(a => a.StartsWith("http"));
-        if (string.IsNullOrEmpty(httpAddress))
-        {
-            _msiEndpoint = "http://localhost:8080/msi/token";
-        }
-        else
-        {
-            _msiEndpoint = $"http://localhost:{new Uri(httpAddress).Port}/msi/token";
-        }
+        _identityProviderClient = identityProviderClient;
+        _msiEndpoint = identityProviderClient.MsiEndpoint;
     }
 
     public async Task<ShellExecuteResponse> ExecuteAzCli(AzCliExecutionRequest request, string identifier, CancellationToken cancellationToken)
@@ -42,7 +30,7 @@ public class ShellService : IShellService
         }
 
         // add static tokens
-        await _tokenService.AddTokensAsync(request.AccessTokens);
+        await _identityProviderClient.AddTokensAsync(request.AccessTokens);
 
         var configDir = Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
         var commonEnvs = new Dictionary<string, string>()

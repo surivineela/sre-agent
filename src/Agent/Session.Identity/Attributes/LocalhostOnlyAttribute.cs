@@ -1,8 +1,9 @@
 using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Session.Proxy.Attributes;
+namespace Session.Identity.Attributes;
 
 public sealed class LocalhostOnlyAttribute : ActionFilterAttribute
 {

@@ -1,10 +1,12 @@
-using System;
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
-using Session.Proxy.Models;
+using Session.Identity.Models;
 
-namespace Session.Proxy.Services;
+namespace Session.Identity.Services;
 
+/// <summary>
+/// Token service that stores tokens statically in memory.
+/// </summary>
 public class StaticTokenService : ITokenService
 {
     private readonly ILogger<StaticTokenService> _logger;
@@ -13,13 +15,13 @@ public class StaticTokenService : ITokenService
     public StaticTokenService(ILogger<StaticTokenService> logger)
     {
         _logger = logger;
-
         _tokens = new ConcurrentDictionary<string, Token>(StringComparer.OrdinalIgnoreCase);
     }
 
     public Task<Token?> GetTokenAsync(string resource)
     {
-        _logger.LogInformation($"Getting token for resource: {resource}");
+        _logger.LogInformation("Getting token for resource: {Resource}", resource);
+
         if (_tokens.TryGetValue(resource, out var token))
         {
             return Task.FromResult<Token?>(token);
@@ -29,12 +31,12 @@ public class StaticTokenService : ITokenService
         {
             if (key.StartsWith(resource, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation($"Found token for resource: {resource} using prefix match: {key}");
+                _logger.LogInformation("Found token for resource: {Resource} using prefix match: {Key}", resource, key);
                 return Task.FromResult<Token?>(value);
             }
         }
 
-        _logger.LogError($"No token found for resource: {resource}.");
+        _logger.LogDebug("No static token found for resource: {Resource}", resource);
         return Task.FromResult<Token?>(null);
     }
 
@@ -54,12 +56,11 @@ public class StaticTokenService : ITokenService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to parse token for resource: {resource}.");
+                _logger.LogError(ex, "Failed to parse token for resource: {Resource}", resource);
             }
         }
 
-        _logger.LogInformation($"Added {tokens.Count} tokens. New resources: {string.Join(", ", _tokens.Keys)}");
-
+        _logger.LogInformation("Added {Count} tokens. Resources: {Resources}", tokens.Count, string.Join(", ", _tokens.Keys));
         return Task.CompletedTask;
     }
 }

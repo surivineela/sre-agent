@@ -2,11 +2,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Agent.Core.Models.Session;
 using Microsoft.AspNetCore.Mvc;
+using Session.Identity.Attributes;
 using Session.Proxy.Services;
 
 [Produces("application/json")]
 [ApiController]
 [Route("/shellexecute")]
+[SessionMode(SessionMode.Proxy)]
 public partial class CliExecutionController : Controller
 {
     private readonly IShellService _shellService;

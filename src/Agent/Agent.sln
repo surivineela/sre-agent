@@ -60,6 +60,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Cli.UnitTests", "Agen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Cli.E2ETests", "Agent.Cli.E2ETests\Agent.Cli.E2ETests.csproj", "{55766371-6AFB-4ACC-8B26-682F4BE7C60C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Session.Identity", "Session.Identity\Session.Identity.csproj", "{8AEAC580-51E4-4793-B675-EFA7D2C77E53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -370,6 +372,18 @@ Global
 		{55766371-6AFB-4ACC-8B26-682F4BE7C60C}.Release|x64.Build.0 = Release|Any CPU
 		{55766371-6AFB-4ACC-8B26-682F4BE7C60C}.Release|x86.ActiveCfg = Release|Any CPU
 		{55766371-6AFB-4ACC-8B26-682F4BE7C60C}.Release|x86.Build.0 = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|x64.Build.0 = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Debug|x86.Build.0 = Debug|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|x64.ActiveCfg = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|x64.Build.0 = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|x86.ActiveCfg = Release|Any CPU
+		{8AEAC580-51E4-4793-B675-EFA7D2C77E53}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

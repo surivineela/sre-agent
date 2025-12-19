@@ -57,6 +57,40 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "build Session.Proxy",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "src/Agent/Session.Proxy/Session.Proxy.csproj"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build Session.Identity",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "src/Agent/Session.Identity/Session.Identity.csproj"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "watch Agent.Web",
             "command": "dotnet",
             "type": "process",

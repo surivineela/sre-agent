@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using Session.Proxy.Attributes;
-using Session.Proxy.Models;
-using Session.Proxy.Services;
+using Session.Identity.Attributes;
+using Session.Identity.Models;
+using Session.Identity.Services;
 
-namespace Session.Proxy.Controllers;
+namespace Session.Identity.Controllers;
 
 [Produces("application/json")]
 [ApiController]
 [Route("/msi/token")]
 [LocalhostOnly]
+[SessionMode(SessionMode.IdentityProvider)]
 public class MsiController : Controller
 {
     private readonly ILogger<MsiController> _logger;

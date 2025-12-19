@@ -5,6 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Session.Proxy (Proxy Mode)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Session.Proxy",
+            "program": "${workspaceFolder}/src/Agent/Session.Proxy/bin/Debug/net9.0/Session.Proxy.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Agent/Session.Proxy",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5000",
+                "IdentityProvider__RunIdentityProviderSidecar": "true"
+            }
+        },
+        {
+            "name": "Session.Identity",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Session.Identity",
+            "program": "${workspaceFolder}/src/Agent/Session.Identity/bin/Debug/net9.0/Session.Identity.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Agent/Session.Identity",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
             "name": "Launch Agent.Web (HTTPS)",
             "type": "coreclr",
             "request": "launch",
