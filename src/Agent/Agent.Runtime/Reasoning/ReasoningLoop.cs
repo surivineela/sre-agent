@@ -889,7 +889,7 @@ public class ReasoningLoop : IDisposable
 
             // Fix any orphaned tool calls (function calls without corresponding tool results)
             // This prevents 400 errors from the API when previous tool calls were cancelled or didn't return output
-            await AddPlaceholderResultsForOrphanedToolCallsAsync(agentChatHistory);
+            // await AddPlaceholderResultsForOrphanedToolCallsAsync(agentChatHistory);
 
             var runResult = await Runner.RunAsync(
                 startingAgent: _currentAgent,
