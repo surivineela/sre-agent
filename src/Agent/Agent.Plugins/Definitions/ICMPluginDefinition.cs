@@ -133,7 +133,7 @@ public class ICMPluginDefinition
     [Description("Mitigate ICM incident")]
     public async Task<string> MitigateIncident(
        [Description("Incident ID")] string incidentId,
-       [Description("Discussion Entry (HTML) - reason for mitigating the incident")] string discussionEntry)
+       [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for mitigating the incident")] string discussionEntry)
     {
         return await _icmPlugin.MitigateIncident(incidentId, discussionEntry);
     }
@@ -141,7 +141,7 @@ public class ICMPluginDefinition
     [Description("Downgrade severity of ICM incident 2 to 3")]
     public async Task<string> DowngradeSeverity(
         [Description("Incident ID")] string incidentId,
-        [Description("Discussion Entry (HTML) - reason for downgrading the incident")] string discussionEntry)
+        [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for downgrading the incident")] string discussionEntry)
     {
         return await _icmPlugin.DowngradeSeverity(incidentId, discussionEntry);
     }
@@ -151,7 +151,7 @@ public class ICMPluginDefinition
     public async Task<string> UpdateIncidentSeverity(
         [Description("Incident ID")] string incidentId,
         [Description("New severity level (2=Highest, 25 (reserved for Security Incidents), 3, 4=Lowest)")] int severity,
-        [Description("Discussion Entry (HTML) - reason for updating the incident severity")] string discussionEntry)
+        [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for updating the incident severity")] string discussionEntry)
     {
         return await _icmPlugin.UpdateIncidentSeverity(incidentId, severity, discussionEntry);
     }
@@ -159,15 +159,15 @@ public class ICMPluginDefinition
     [Description("Resolve ICM incident")]
     public async Task<string> ResolveIncident(
            [Description("Incident ID")] string incidentId,
-           [Description("Discussion Entry (HTML) - reason for resolving the incident")] string discussionEntry)
+           [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for resolving the incident")] string discussionEntry)
     {
         return await _icmPlugin.ResolveIncident(incidentId, discussionEntry);
     }
 
-    [Description("Post ICM discussion entry")]
+    [Description("Post an ICM discussion entry. IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
     public async Task<string> PostDiscussionEntry(
        [Description("Incident ID")] string incidentId,
-       [Description("Discussion Entry (HTML)")] string discussionEntry)
+       [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
     {
         return await _icmPlugin.PostDiscussionEntry(incidentId, discussionEntry);
     }
