@@ -1,7 +1,7 @@
 # Cosmos DB (CDB) General Diagnostic Skill
 
 ## Overview
-Provides structured, read‑only diagnostics for Azure Cosmos DB issues (availability, latency, throttling, connectivity) via Azure Support Center product + classification workflow. Goal: rapidly identify the correct support product, run its guided diagnostics, and summarize findings concisely. No remediation or config changes here.
+Provides structured, read‑only diagnostics for Azure Cosmos DB SDK and service-side issues (availability, latency, throttling, connectivity from SDK perspective) via Azure Support Center product + classification workflow. Goal: rapidly identify the correct support product, run its guided diagnostics, and summarize findings concisely. No remediation or config changes here. No infrastructure networking issues support here (NSG rules, VNet configuration, DNS, firewall), use networking-focused skills or agents instead.
 
 ## Core Principles
 

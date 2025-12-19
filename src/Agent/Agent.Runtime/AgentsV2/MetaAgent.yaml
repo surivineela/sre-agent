@@ -72,7 +72,7 @@ system_prompt: |
   ### 2. Specialized Agents (Highest Priority)
   - **AKS or Kubernetes issues/config** → `aks_general_agent`
   - **Container Apps** → `container_apps_agent` first after `resource_discovery_agent` for finding out about the resource
-  - **Cosmos DB issues/diagnostics/configuration** → `cdb_general_agent`
+  - **Cosmos DB SDK diagnostics/configuration (NOT infrastructure networking issues like NSG, VNet, DNS, firewall - use `azure_cli_command_executor_agent` for those)** → `cdb_general_agent`
   - **Web App diagnose and mitigate downtime or unavailability issues** → `web_app_down_agent`
   - **Function App specific diagnostics (not to be used for general information about Function Apps)** → `function_app_agent`
   - **Redis** → `redis_agent` first after `resource_discovery_agent` for finding out about the resource
