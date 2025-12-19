@@ -111,6 +111,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     {
         if (request is null)
         {
+            _logger.LogInternalWarning("[IncidentHandlingServiceBase] HandleIncidentAsync: Received null request");
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 400,
@@ -125,6 +126,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
             if (incident is null)
             {
+                _logger.LogInternalWarning("[IncidentHandlingServiceBase] HandleIncidentAsync: Incident not found for IncidentId: {IncidentId}", request.IncidentId);
                 return new IncidentHandlingResponseModel
                 {
                     StatusCode = 404,
@@ -164,6 +166,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     {
         if (request is null)
         {
+            _logger.LogInternalWarning("[IncidentHandlingServiceBase] HandleIncidentAsync: Received null request");
             return new IncidentHandlingResponseModel
             {
                 StatusCode = 400,
@@ -178,6 +181,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             var incident = await _incidentManagementService.GetIncidentAsync(request.IncidentId);
             if (incident is null)
             {
+                _logger.LogInternalWarning("[IncidentHandlingServiceBase] HandleIncidentAsync: Incident not found for IncidentId: {IncidentId}", request.IncidentId);
                 return new IncidentHandlingResponseModel
                 {
                     StatusCode = 404,

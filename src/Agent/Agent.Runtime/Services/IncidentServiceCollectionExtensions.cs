@@ -170,13 +170,13 @@ public static class IncidentServiceCollectionExtensions
                 {
                     case LogLevel.Critical:
                     case LogLevel.Error:
-                        logger.LogInternalError($"[ICMSDK] {message}");
+                        logger.LogInternalError($"[ICMSDK]{message}");
                         break;
                     case LogLevel.Warning:
-                        logger.LogInternalWarning($"[ICMSDK] {message}");
+                        logger.LogInternalWarning($"[ICMSDK]{message}");
                         break;
                     default:
-                        logger.LogInternalInformation($"[ICMSDK] {message}");
+                        logger.LogInternalInformation($"[ICMSDK]{message}");
                         break;
                 }
             };

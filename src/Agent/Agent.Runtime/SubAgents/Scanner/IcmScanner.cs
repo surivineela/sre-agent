@@ -231,7 +231,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         }
                         catch (Exception ex)
                         {
-                            logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident data into App Insights");
+                            logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident with {incidentId} data into App Insights", incidentDocument.Id);
                         }
                     }
 
@@ -362,7 +362,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         {
             if (incidentDocument is null)
             {
-                logger.LogInternalInformation("[IcmScanner] Creating new incident document for IcM by id {incidentId}", incident.Id);
+                logger.LogInternalInformation("[IcmScanner] Creating new incident document for incident id {incidentId}", incident.Id);
 
                 incidentDocument = new IcmIncidentDocument(incident);
 
@@ -371,36 +371,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
             else if (incidentDocument.Id == incident.Id.ToString())
             {
-                //var patchOperationList = new List<PatchOperation>();
-                //// PatchOperation.Add is used to update existing fields or add new fields if they don't exist.
-                //// Current is incorrect! PatchPath should be aligin with serialized string, which first character is lowercase
-                //// https://learn.microsoft.com/en-us/azure/cosmos-db/partial-document-update
-                //if (string.IsNullOrEmpty(incident.Title) && incidentDocument.Title != incident.Title)
-                //{
-                //    patchOperationList.Add(PatchOperation.Add($"/{nameof(IcmIncidentDocument.Title)}", incident.Title));
-                //}
-
-                //if (string.IsNullOrEmpty(incident.Summary) && incidentDocument.Description != incident.Summary)
-                //{
-                //    patchOperationList.Add(PatchOperation.Add($"/{nameof(IcmIncidentDocument.Description)}", incident.Summary));
-                //}
-
-                //if (incidentDocument.Status != incident.Status.ToString())
-                //{
-                //    patchOperationList.Add(PatchOperation.Add($"/{nameof(IcmIncidentDocument.Status)}", incident.Status.ToString()));
-                //}
-
-                //if (incidentDocument.Priority != incident.Severity)
-                //{
-                //    patchOperationList.Add(PatchOperation.Add($"/{nameof(IcmIncidentDocument.Priority)}", incident.Severity));
-                //}
-                //if(patchOperationList.Count >= 0)
-                //{
-                //    logger.LogInternalInformation("Updating existing incident document for Icm incident {incidentId}", incident.IncidentId);
-                //    patchOperationList.Add(PatchOperation.Add($"/{nameof(IcmIncidentDocument.UpdatedAt)}", DateTime.UtcNow));
-                //    incidentDocument = await container.PatchItemAsync<IcmIncidentDocument>(incidentDocument.Id, new PartitionKey(incidentDocument.PartitionKey), patchOperationList, cancellationToken: cancellationToken);
-                //}
-
+                logger.LogInternalInformation("[IcmScanner] Incident document already exists for incident id {incidentId}", incident.Id);
                 //For now use UpsertItemAsync for updating IcmIncidentDocument with latest non-critical fields, later can switch to PatchItemAsync if needed.
                 var updatedDoc = new IcmIncidentDocument(incident)
                 {
@@ -448,7 +419,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     }
                 }
 
-                logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.Id.ToString());
+                logger.LogInternalInformation("[IcmScanner] Upserting existing incident document for IcM incident {incidentId}", incident.Id);
                 var response = await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
                 incidentDocument = response.Resource;
             }
@@ -463,7 +434,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
         {
-            logger.LogInternalWarning("[IcmScanner] Original IcM is too large, truncate incident details");
+            logger.LogInternalWarning("[IcmScanner] Original IcM {incidentId} is too large, truncate incident details", incident.Id);
             incidentDocument = IcmIncidentDocument.TruncateIcmIncidentDocument(incident);
             await container.UpsertItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
             return incidentDocument;
@@ -484,6 +455,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 logger.LogInternalWarning("[IcmScanner] Incident document is null, skipping notification.");
                 return;
             }
+
+            logger.LogInternalInformation("[IcmScanner] Notifying user about incident {incidentId}", incidentDocument.Id);
 
             if (incidentDocument.State.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.State.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
             {
@@ -571,23 +544,22 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         {
                             if (needsUpsertForDetailsChange)
                             {
-                                logger.LogInternalInformation("[IcmScanner] Title or priority changed for ICM incident {incidentId}", incidentDocument.Id);
-                                logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident thread {threadId}", existingThreadDocument.Id);
+                                logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, existingThreadDocument.Id);
                             }
                             if (needsUpsertForResolvedStatus)
                             {
-                                logger.LogInternalInformation("[IcmScanner] Updating thread status to {status} for ICM incident {incidentId}", newStatus, incidentDocument.Id);
+                                logger.LogInternalInformation("[IcmScanner] Updating thread status to {status} for ICM incident {incidentId}, thread {threadId}", newStatus, incidentDocument.Id, existingThreadDocument.Id);
                             }
 
                             await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
 
                             if (needsUpsertForDetailsChange)
                             {
-                                logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident thread {threadId}", existingThreadDocument.Id);
+                                logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, existingThreadDocument.Id);
                             }
                             if (needsUpsertForResolvedStatus)
                             {
-                                logger.LogInternalInformation("[IcmScanner] Updated thread status to {status} for ICM incident {incidentId}", newStatus, incidentDocument.Id);
+                                logger.LogInternalInformation("[IcmScanner] Updated thread status to {status} for ICM incident {incidentId}, thread {threadId}", newStatus, incidentDocument.Id, existingThreadDocument.Id);
                             }
                         }
                     }
@@ -637,10 +609,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                             threadDocument.IncidentDetails.HandlerId,
                             threadDocument.IncidentDetails.InvestigationStatus);
                         threadDocument.IncidentDetails = updatedIncidentDetails;
-                        logger.LogInternalInformation("[IcmScanner] Title or priority changed for ICM incident {incidentId}", incidentDocument.Id);
-                        logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident thread {threadId}", threadDocument.Id);
+                        logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, threadDocument.Id);
                         await container.UpsertItemAsync(threadDocument, new PartitionKey(threadDocument.Id));
-                        logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident thread {threadId}", threadDocument.Id);
+                        logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, threadDocument.Id);
                     }
                 }
 
@@ -658,7 +629,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 {
                     logger.LogInternalInformation("[IcmScanner] Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
                     await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
-                    logger.LogInternalInformation("[IcmScanner] Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
+                    logger.LogInternalInformation("[IcmScanner] Added {newNotesCount} new notes to incident {incidentId}, thread {threadId}", newNotes.Count, incidentDocument.Id, threadDocument.Id);
                 }
                 else
                 {
@@ -674,6 +645,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
     private async Task<ThreadDocument?> GetIncidentThread(string incidentId)
     {
+        logger.LogInternalInformation("[IcmScanner] Retrieving thread for incident {incidentId}", incidentId);
         var threads = container.GetItemLinqQueryable<ThreadDocument>()
             .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
             .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId) || doc.IncidentId == incidentId)
@@ -685,12 +657,14 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             var response = await threads.ReadNextAsync();
             if (response.Count == 1)
             {
+                logger.LogInternalInformation("[IcmScanner] Found thread {threadId} for incident {incidentId}", response.FirstOrDefault()?.Id, incidentId);
                 return response.FirstOrDefault();
             }
             else if (response.Count > 1)
             {
-                logger.LogInternalWarning("[IcmScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
-                return response.FirstOrDefault();
+                var thread = response.OrderByDescending(p => p.CreatedTimestamp).FirstOrDefault();
+                logger.LogInternalWarning("[IcmScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the lastest created thread {threadId}.", string.Join(',', response.Select(t => t.Id)), incidentId, thread?.Id);
+                return thread;
             }
         }
         return null;
@@ -865,7 +839,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         //check if is newly created
         if (incident.CreatedDate > DateTime.UtcNow.AddMinutes(-5))
         {
-            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly created.", incident.Id);
+            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly created, need to be handled", incident.Id);
             return true;
         }
         //check if is newly transferred
@@ -873,9 +847,10 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         var hasTransferDiscussionEntry = discussionEntries.Any(entry => entry.Date > DateTime.UtcNow.AddMinutes(-5) && entry.Text.StartsWith("<div>Transferred from", StringComparison.OrdinalIgnoreCase));
         if (hasTransferDiscussionEntry)
         {
-            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly transferred.", incident.Id);
+            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly transferred, need to be handled", incident.Id);
             return true;
         }
+        logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is not newly created or transferred, no need to be handled. Incident created at {createdDate}, current UTC time is {currentUtcTime}, Allowed window is 5 minutes. Incident hasTransferDiscussionEntry: {hasTransferDiscussionEntry}", incident.Id, incident.CreatedDate, DateTime.UtcNow, hasTransferDiscussionEntry);
         return false;
     }
 

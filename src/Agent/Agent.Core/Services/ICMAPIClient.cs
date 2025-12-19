@@ -43,6 +43,7 @@ public interface IICMAPIClient
     //Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
     Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true);
     Task<IcmTeamResult> GetTeamAsync(string teamId);
+    Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null);
 }
 
 public class ICMAPIClient : IICMAPIClient
@@ -114,7 +115,7 @@ public class ICMAPIClient : IICMAPIClient
             incidentType: incidentType,
             createdBy: createdBy,
             monitorId: monitorId,
-            severity: severity,
+            severities: severity is null ? null : new List<string> { severity },
             statuses: statuses
         );
     }
@@ -388,6 +389,16 @@ public class ICMAPIClient : IICMAPIClient
     {
         return await _icmApiClientSDKService.GetTeamAsync(teamId);
     }
+
+    public async Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null)
+    {
+        var res = await _icmApiClientSDKService.CreateRepairItemAsync(incidentId, title, workItemType, areaPath, repairItemType, deliveryType, adoProjectName, owner, incidentSeverity);
+        if (!res.Success)
+        {
+            throw new Exception($"Failed to create repair item for incident {incidentId}. Error: {res.Message}");
+        }
+        return res.Message;
+    }
 }
 
 public class NullableICMAPIClient : IICMAPIClient
@@ -528,6 +539,11 @@ public class NullableICMAPIClient : IICMAPIClient
     }
 
     public Task<IcmTeamResult> GetTeamAsync(string teamId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null)
     {
         throw new NotImplementedException();
     }
