@@ -4,6 +4,7 @@
 
 using System.Buffers;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
@@ -190,7 +191,8 @@ public static partial class ChatClientExtensions
     {
         var start = DateTime.UtcNow;
         var deadline = start.AddSeconds(60); // Extended to 60 seconds to accommodate rate limit retries
-        var nonRateLimitRetried = false;
+        int rateLimitRetried = 0;
+        const int maxRateLimitRetries = 3;
 
         Debug.Assert(client is ReasoningChatClient);
 
@@ -342,7 +344,9 @@ public static partial class ChatClientExtensions
                         // convert to client result exceptions to retry the loop with delay
                         if (update.RawRepresentation is OpenAI.Responses.StreamingResponseErrorUpdate responseErrorUpdate)
                         {
-                            throw new ClientResultException($"Got StreamingResponseErrorUpdate code {responseErrorUpdate.Code ?? ""}, message: {responseErrorUpdate.Message ?? ""}");
+                            var jsonData = ModelReaderWriter.Write(responseErrorUpdate, ModelReaderWriterOptions.Json);
+                            throw new ClientResultException(
+                                $"Got StreamingResponseErrorUpdate: code {responseErrorUpdate.Code ?? ""}, message: {responseErrorUpdate.Message ?? ""}, rawJson: {jsonData?.ToString() ?? ""}");
                         }
                     }
                 }
@@ -417,19 +421,19 @@ public static partial class ChatClientExtensions
             }
             catch (ClientResultException)
             {
-                if (!nonRateLimitRetried)
+                if (rateLimitRetried <= maxRateLimitRetries)
                 {
-                    nonRateLimitRetried = true;
-                    await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
+                    rateLimitRetried++;
+                    await Task.Delay(TimeSpan.FromMilliseconds(1000), cancellationToken);
                     continue;
                 }
                 throw;
             }
             catch (HttpRequestException)
             {
-                if (!nonRateLimitRetried)
+                if (rateLimitRetried <= maxRateLimitRetries)
                 {
-                    nonRateLimitRetried = true;
+                    rateLimitRetried++;
                     await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
                     continue;
                 }
@@ -446,9 +450,9 @@ public static partial class ChatClientExtensions
             }
             catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                if (!nonRateLimitRetried)
+                if (rateLimitRetried <= maxRateLimitRetries)
                 {
-                    nonRateLimitRetried = true;
+                    rateLimitRetried++;
                     await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
                     continue;
                 }
