@@ -13,6 +13,7 @@ namespace Agent.Web.Views.v2;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(KustoToolView), ToolDocumentModel.KustoToolType)]
 [JsonDerivedType(typeof(LinkToolView), ToolDocumentModel.LinkToolType)]
+[JsonDerivedType(typeof(PythonToolView), ToolDocumentModel.PythonToolType)]
 public class ToolView
 {
     [JsonIgnore] // this is a must because type is already be serialized due to polymorphic deserialization
@@ -34,6 +35,7 @@ public class ToolView
         {
             KustoToolDocumentModel kustoToolDocumentModel => KustoToolView.CreateApiResponseEnvelope(kustoToolDocumentModel).Properties!,
             LinkToolDocumentModel linkToolDocumentModel => LinkToolView.CreateApiResponseEnvelope(linkToolDocumentModel).Properties!,
+            PythonToolDocumentModel pythonToolDocumentModel => PythonToolView.CreateApiResponseEnvelope(pythonToolDocumentModel).Properties!,
             _ => throw new NotSupportedException($"Unsupported tool type: {toolDoc.Type}"),
         };
 
@@ -72,6 +74,18 @@ public class ToolView
                         Properties = new Settable<LinkToolView>(linkToolView),
                     };
                     return LinkToolView.CreateModel(newEnvelope, metadata, (LinkToolDocumentModel?)baseModel);
+                }
+
+            case PythonToolView pythonToolView:
+                {
+                    var newEnvelope = new ApiRequestEnvelope<PythonToolView>
+                    {
+                        Name = envelope.Name,
+                        Type = envelope.Type,
+                        Tags = envelope.Tags,
+                        Properties = new Settable<PythonToolView>(pythonToolView),
+                    };
+                    return PythonToolView.CreateModel(newEnvelope, metadata, (PythonToolDocumentModel?)baseModel);
                 }
 
             case null:
@@ -363,6 +377,122 @@ public class LinkToolView : ToolView
             });
             properties.Attributes.ApplyTo(value => result.Spec.Attributes = value!);
             properties.Template.ApplyTo(value => result.Spec.Template = value!);
+            properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
+        });
+
+        return result;
+    }
+}
+
+public class PythonToolView : ToolView
+{
+    public Settable<string> FunctionCode { get; set; }
+
+    public Settable<int> TimeoutSeconds { get; set; }
+
+    public Settable<List<string>> Dependencies { get; set; }
+
+    public static ApiResponseEnvelope<PythonToolView> CreateApiResponseEnvelope(PythonToolDocumentModel toolDoc)
+    {
+        var tool = toolDoc.Spec;
+        var toolView = new PythonToolView
+        {
+            Type = tool.Type,
+            Connector = tool.Connector,
+            Description = tool.Description,
+            Attributes = tool.Attributes,
+            FunctionCode = tool.FunctionCode,
+            TimeoutSeconds = tool.TimeoutSeconds,
+            Dependencies = tool.Dependencies,
+            ToolMode = tool.ToolMode,
+        };
+
+        var paramView = new List<ParameterView>();
+        foreach (var parameter in tool.Parameters ?? [])
+        {
+            var parameterView = new ParameterView
+            {
+                Name = parameter.Name,
+                Type = parameter.Type,
+                Description = parameter.Description,
+                MapTo = parameter.MapTo,
+                Required = parameter.Required,
+                Target = parameter.Target,
+                Value = parameter.Value,
+            };
+            paramView.Add(parameterView);
+        }
+        toolView.Parameters = paramView;
+
+        ApiResponseEnvelope<PythonToolView> apiResponse = new()
+        {
+            Name = toolDoc.Name,
+            Type = toolDoc.DocumentType,
+            Tags = toolDoc.Metadata.Tags,
+            Properties = toolView,
+        };
+
+        return apiResponse;
+    }
+
+    public static PythonToolDocumentModel CreateModel(ApiRequestEnvelope<PythonToolView> envelope, ResourceMetadata? metadata = null, PythonToolDocumentModel? baseModel = null)
+    {
+        var result = baseModel ?? new PythonToolDocumentModel(
+            new ResourceMetadata
+            {
+                CreatedAt = DateTime.UtcNow,
+            },
+            new PythonToolSpec()
+            {
+                Type = ToolDocumentModel.PythonToolType, // This is a must because PythonToolView.Type is always not set due to polymorphic deserialization
+            }
+        );
+
+        if (metadata != null)
+        {
+            result = result with
+            {
+                Metadata = metadata,
+            };
+        }
+
+        result.Metadata.UpdatedAt = DateTime.UtcNow;
+
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
+        envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
+        envelope.Properties.ApplyTo(properties =>
+        {
+            if (properties == null)
+            {
+                return;
+            }
+
+            properties.Type.ApplyTo(value => result.Spec.Type = value!);
+            properties.Connector.ApplyTo(value => result.Spec.Connector = value!);
+            properties.Description.ApplyTo(value => result.Spec.Description = value!);
+            properties.Parameters.ApplyTo(value =>
+            {
+                if (value == null)
+                {
+                    result.Spec.Parameters = null;
+                    return;
+                }
+
+                result.Spec.Parameters = value.Select(p => new YamlParameter
+                {
+                    Name = p.Name!,
+                    Type = p.Type!,
+                    Description = p.Description!,
+                    MapTo = p.MapTo!,
+                    Required = p.Required,
+                    Target = p.Target!,
+                    Value = p.Value,
+                }).ToList();
+            });
+            properties.Attributes.ApplyTo(value => result.Spec.Attributes = value!);
+            properties.FunctionCode.ApplyTo(value => result.Spec.FunctionCode = value!);
+            properties.TimeoutSeconds.ApplyTo(value => result.Spec.TimeoutSeconds = value);
+            properties.Dependencies.ApplyTo(value => result.Spec.Dependencies = value);
             properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
         });
 
