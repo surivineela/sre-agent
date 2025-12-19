@@ -1223,7 +1223,7 @@ public class ReasoningLoop : IDisposable
                     }
                     else if (needsReiteration)
                     {
-                        _logger.LogInternalInformation("Asking {AgentName} agent to continue action...", _currentAgent.Name);
+                        _logger.LogInternalInformation("Asking {subAgentName} agent to continue action...", _currentAgent.Name);
 
                         var userPromptMessage = new ChatMessage(ChatRole.User, $"You mentioned request is {AgentProcessingState.Processing}. " +
                             $"Continue taking actions to complete the request.");
@@ -1447,7 +1447,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.CompactionStart += (context, agent) =>
         {
-            _logger.LogInternalInformation("Trace starting Compaction for agent: {AgentName}.", agent.Name);
+            _logger.LogInternalInformation("Trace starting Compaction for agent: {subAgentName}.", agent.Name);
             _currentCompactionSpan = _tracer.StartSpan($"compaction", SpanKind.Internal, _currentAgentSpan);
             _currentCompactionSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
@@ -1457,7 +1457,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.CompactionEnd += (context, agent) =>
         {
-            _logger.LogInternalInformation("Trace ending Compaction for agent: {AgentName}.", agent.Name);
+            _logger.LogInternalInformation("Trace ending Compaction for agent: {subAgentName}.", agent.Name);
             _currentCompactionSpan?.End();
             _currentCompactionSpan = null;
             return Task.CompletedTask;
@@ -1530,7 +1530,7 @@ public class ReasoningLoop : IDisposable
             _currentAgentSpan?.End();
             _currentAgentSpan = null;
 
-            _logger.LogInternalInformation("Trace invoke agent: {AgentName}", agent.Name);
+            _logger.LogInternalInformation("Trace invoke agent: {subAgentName}", agent.Name);
             _currentAgentSpan = _tracer.StartActiveSpan($"invoke.agent.{agent.Name}", SpanKind.Internal, _rootSpan);
             _currentAgentSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentAgentSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
@@ -1551,7 +1551,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.AgentEnd += (context, agent, output) =>
         {
-            _logger.LogInternalInformation("Trace Ending agent: {AgentName}", agent.Name);
+            _logger.LogInternalInformation("Trace Ending agent: {subAgentName}", agent.Name);
             _currentAgentSpan?.End();
             _currentAgentSpan = null;
             return Task.CompletedTask;
@@ -1559,7 +1559,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.Handoff += async (context, agent, handoffAgent, handoffReasoning) =>
         {
-            _logger.LogInternalInformation("Trace Handoff from agent: {AgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
+            _logger.LogInternalInformation("Trace Handoff from agent: {subAgentName} to agent: {HandoffAgentName}", agent.Name, handoffAgent.Name);
             var currentToolSpan = _tracer.StartSpan($"handoff", SpanKind.Internal, _currentAgentSpan);
             currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Handoff);
@@ -1575,7 +1575,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.ToolStart += async (context, agent, functionCall, tool, input) =>
         {
-            _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _logger.LogInternalInformation("Trace Starting tool: {ToolName} for agent: {subAgentName}", tool.Name, agent.Name);
             var currentToolSpan = _tracer.StartActiveSpan($"tool.{tool.Name}", SpanKind.Internal, _currentAgentSpan);
             currentToolSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             currentToolSpan.SetAttribute(TraceAttribute.OperationName, TraceOperationName.Tool);
@@ -1620,7 +1620,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.ToolEnd += async (context, agent, functionCallContent, tool, output) =>
         {
-            _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {AgentName}", tool.Name, agent.Name);
+            _logger.LogInternalInformation("Trace Ending tool: {ToolName} for agent: {subAgentName}", tool.Name, agent.Name);
             var currentToolSpan = _toolSpans.GetValueOrDefault(functionCallContent.CallId);
             currentToolSpan?.SetAttribute(TraceAttribute.ToolOutput, output?.ToString() ?? string.Empty);
             currentToolSpan?.End();
@@ -1656,7 +1656,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.ModelGenerationStart += (context, agent, messages, chatOptions) =>
         {
-            _logger.LogInternalInformation("Trace Starting model generation for agent: {AgentName}", agent.Name);
+            _logger.LogInternalInformation("Trace Starting model generation for agent: {subAgentName}", agent.Name);
             _currentGenerationSpan = _tracer.StartActiveSpan($"model_generation", SpanKind.Internal, _currentAgentSpan);
 
             // start timing the model generation
@@ -1687,7 +1687,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.ModelGenerationEnd += (context, agent, response) =>
         {
-            _logger.LogInternalInformation("Trace Ending model generation for agent: {AgentName}", agent?.Name ?? "Unknown");
+            _logger.LogInternalInformation("Trace Ending model generation for agent: {subAgentName}", agent?.Name ?? "Unknown");
             _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutput, FormatChatMessages(response?.Messages ?? []));
             _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelInputTokensCount, response?.Usage?.InputTokenCount?.ToString() ?? string.Empty);
             _currentGenerationSpan?.SetAttribute(TraceAttribute.ModelOutputTokensCount, response?.Usage?.OutputTokenCount?.ToString() ?? string.Empty);
@@ -1781,7 +1781,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.SummarizerStart += (context, agent) =>
         {
-            _logger.LogInternalInformation("Trace starting Summarizer for agent: {AgentName}.", agent.Name);
+            _logger.LogInternalInformation("Trace starting Summarizer for agent: {subAgentName}.", agent.Name);
             _currentSummarizerSpan = _tracer.StartSpan($"summarizer", SpanKind.Internal, _currentAgentSpan);
             _currentSummarizerSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentSummarizerSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
@@ -1791,7 +1791,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.SummarizerEnd += (context, agent, extractedUserIntent) =>
         {
-            _logger.LogInternalInformation("Trace ending Summarizer for agent: {AgentName}.", agent.Name);
+            _logger.LogInternalInformation("Trace ending Summarizer for agent: {subAgentName}.", agent.Name);
             _currentSummarizerSpan?.SetAttribute("summarizer.extracted_user_query", extractedUserIntent);
             _currentSummarizerSpan?.End();
             _currentSummarizerSpan = null;
@@ -1801,7 +1801,7 @@ public class ReasoningLoop : IDisposable
         hooks.CriticStart += (context, agent, currentTurn) =>
         {
             var maxTurns = agent.MaxReflectionCount;
-            _logger.LogInternalInformation("Trace starting Critic for agent: {AgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
+            _logger.LogInternalInformation("Trace starting Critic for agent: {subAgentName}. Turn# {CurrentTurn}/{MaxTurns}", agent.Name, currentTurn, maxTurns);
             _currentCriticSpan = _tracer.StartSpan($"critic", SpanKind.Internal, _currentAgentSpan);
             _currentCriticSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentCriticSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
@@ -1814,7 +1814,7 @@ public class ReasoningLoop : IDisposable
 
         hooks.CriticEnd += (context, agent, userQuery, criticResult, wasApproved) =>
         {
-            _logger.LogInternalInformation("Trace ending Critic for agent: {AgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
+            _logger.LogInternalInformation("Trace ending Critic for agent: {subAgentName}, Approved: {WasApproved}", agent.Name, wasApproved);
             _currentCriticSpan?.SetAttribute("critic.user_query", userQuery);
             _currentCriticSpan?.SetAttribute("critic.result", criticResult);
             _currentCriticSpan?.SetAttribute("critic.was_approved", wasApproved.ToString());
