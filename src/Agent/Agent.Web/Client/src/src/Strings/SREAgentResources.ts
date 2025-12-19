@@ -5539,6 +5539,16 @@ export const ConnectorsResources = defineMessages({
     url: { defaultMessage: 'URL', id: 'bWjdfa' },
     managedIdentity: { defaultMessage: 'Managed identity', id: 'Ys9AIu' },
     identityPlaceholder: { defaultMessage: 'Select identity', id: '8RdOD0' },
+    useManagedIdentityAsFic: { defaultMessage: 'Use managed identity as federated identity credential', id: 'SWvH2K' },
+    useManagedIdentityAsFicDescription: {
+        defaultMessage:
+            'Enable this to use the managed identity to acquire a federated identity credential for cross-tenant authentication.',
+        id: 'HZ13wA',
+    },
+    federatedClientId: { defaultMessage: 'Federated client ID', id: 'PTp9MX' },
+    federatedClientIdPlaceholder: { defaultMessage: 'Enter AAD application client ID', id: 'u+H5Wd' },
+    federatedTenantId: { defaultMessage: 'Federated tenant ID', id: 'syr24x' },
+    federatedTenantIdPlaceholder: { defaultMessage: 'Enter AAD application tenant ID', id: 'q9k0lN' },
     outlookAccount: { defaultMessage: 'Outlook account', id: 'R3eMOe' },
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     sendEmail: { defaultMessage: 'Send email', id: 'sZIoMy' },

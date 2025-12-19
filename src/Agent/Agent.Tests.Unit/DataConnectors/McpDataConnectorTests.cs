@@ -339,7 +339,9 @@ public class McpDataConnectorTests
             Name = "json-http-mcp",
             DataConnectorType = "Mcp",
             DataSource = "placeholder",
-            ExtendedPropertiesJson = json
+            ExtendedPropertiesJson = json,
+            // Simulate what RegisterDataConnectors does - parse JSON to ExtendedProperties
+            ExtendedProperties = ParseJsonToExtendedProperties(json)
         };
 
         string? capturedEndpoint = null;
@@ -399,7 +401,9 @@ public class McpDataConnectorTests
             Name = "json-stdio-mcp",
             DataConnectorType = "Mcp",
             DataSource = "placeholder",
-            ExtendedPropertiesJson = json
+            ExtendedPropertiesJson = json,
+            // Simulate what RegisterDataConnectors does - parse JSON to ExtendedProperties
+            ExtendedProperties = ParseJsonToExtendedProperties(json)
         };
 
         string? capturedCommand = null;
@@ -467,8 +471,10 @@ public class McpDataConnectorTests
             Name = "json-precedence-test-mcp",
             DataConnectorType = "Mcp",
             DataSource = "Endpoint=https://datasource.example.com/mcp",
-            ExtendedProperties = extendedProperties,
-            ExtendedPropertiesJson = json
+            ExtendedPropertiesJson = json,
+            // Simulate what RegisterDataConnectors does - parse JSON to ExtendedProperties
+            // This will overwrite the extendedProperties set above, demonstrating the precedence
+            ExtendedProperties = ParseJsonToExtendedProperties(json)
         };
 
         string? capturedEndpoint = null;
@@ -521,7 +527,9 @@ public class McpDataConnectorTests
             Name = "special-chars-mcp",
             DataConnectorType = "Mcp",
             DataSource = "placeholder",
-            ExtendedPropertiesJson = json
+            ExtendedPropertiesJson = json,
+            // Simulate what RegisterDataConnectors does - parse JSON to ExtendedProperties
+            ExtendedProperties = ParseJsonToExtendedProperties(json)
         };
 
         McpAuthenticationConfig? capturedAuth = null;
@@ -565,6 +573,20 @@ public class McpDataConnectorTests
     private static Dictionary<string, JsonElement> CreateExtendedProperties(object obj)
     {
         var json = JsonSerializer.Serialize(obj);
+        using var doc = JsonDocument.Parse(json);
+        var result = new Dictionary<string, JsonElement>();
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            result[property.Name] = property.Value.Clone();
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Simulates what DataConnectorRegistrationExtensions.ParseJsonToExtendedProperties does.
+    /// </summary>
+    private static Dictionary<string, JsonElement> ParseJsonToExtendedProperties(string json)
+    {
         using var doc = JsonDocument.Parse(json);
         var result = new Dictionary<string, JsonElement>();
         foreach (var property in doc.RootElement.EnumerateObject())

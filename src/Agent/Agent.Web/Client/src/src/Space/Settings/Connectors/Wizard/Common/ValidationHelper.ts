@@ -175,4 +175,20 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
                 then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 otherwise: schema => schema.notRequired(),
             }),
+        federatedClientId: string()
+            .ensure()
+            .when(['connectorType', 'useManagedIdentityAsFic'], {
+                is: (connectorType: string, useManagedIdentityAsFic: boolean) =>
+                    connectorType === ConnectorType.AzureDevOpsDocumentation && useManagedIdentityAsFic === true,
+                then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                otherwise: schema => schema.notRequired(),
+            }),
+        federatedTenantId: string()
+            .ensure()
+            .when(['connectorType', 'useManagedIdentityAsFic'], {
+                is: (connectorType: string, useManagedIdentityAsFic: boolean) =>
+                    connectorType === ConnectorType.AzureDevOpsDocumentation && useManagedIdentityAsFic === true,
+                then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                otherwise: schema => schema.notRequired(),
+            }),
     });

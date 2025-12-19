@@ -1,4 +1,4 @@
-import { Link } from '@fluentui/react-components';
+import { Checkbox, Field, Input, Link } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -19,10 +19,11 @@ interface ManagedIdentityDropdownWithValidationProps {
     agentIdentity: MsiIdentity | undefined;
     refreshAgent: () => void;
     required?: boolean;
+    showFicFields?: boolean;
 }
 
 export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDropdownWithValidationProps> = props => {
-    const { userAssignedIdentities, agentIdentity, refreshAgent, required = true } = props;
+    const { userAssignedIdentities, agentIdentity, refreshAgent, required = true, showFicFields = false } = props;
 
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
@@ -97,25 +98,56 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
     }, [openBlade, refreshAgent, resourceId]);
 
     return (
-        <DropdownFormik
-            name="identity"
-            label={intl.formatMessage(ConnectorsResources.managedIdentity)}
-            required={required}
-            value={
-                !values.identity
-                    ? intl.formatMessage(SreAgentResources.none)
-                    : values.identity === IdentityKeys.system
-                      ? intl.formatMessage(SreAgentResources.systemAssigned)
-                      : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''
-            }
-            orientation="vertical"
-            options={identityOptions}
-            placeholder={intl.formatMessage(ConnectorsResources.identityPlaceholder)}
-            sublabel={
-                <Link onClick={openIdentityBlade} className={styles.identityLink}>
-                    {intl.formatMessage(SreAgentResources.addIdentity)}
-                </Link>
-            }
-        />
+        <>
+            <DropdownFormik
+                name="identity"
+                label={intl.formatMessage(ConnectorsResources.managedIdentity)}
+                required={required}
+                value={
+                    !values.identity
+                        ? intl.formatMessage(SreAgentResources.none)
+                        : values.identity === IdentityKeys.system
+                          ? intl.formatMessage(SreAgentResources.systemAssigned)
+                          : userAssignedIdentities.find(option => option.id === values.identity)?.name || ''
+                }
+                orientation="vertical"
+                options={identityOptions}
+                placeholder={intl.formatMessage(ConnectorsResources.identityPlaceholder)}
+                sublabel={
+                    <Link onClick={openIdentityBlade} className={styles.identityLink}>
+                        {intl.formatMessage(SreAgentResources.addIdentity)}
+                    </Link>
+                }
+            />
+            {showFicFields && (
+                <>
+                    <Field>
+                        <Checkbox
+                            checked={values.useManagedIdentityAsFic || false}
+                            onChange={(_, data) => setFieldValue('useManagedIdentityAsFic', data.checked)}
+                            label={intl.formatMessage(ConnectorsResources.useManagedIdentityAsFic)}
+                        />
+                    </Field>
+                    {values.useManagedIdentityAsFic && (
+                        <>
+                            <Field label={intl.formatMessage(ConnectorsResources.federatedClientId)} required>
+                                <Input
+                                    value={values.federatedClientId || ''}
+                                    onChange={(_, data) => setFieldValue('federatedClientId', data.value)}
+                                    placeholder={intl.formatMessage(ConnectorsResources.federatedClientIdPlaceholder)}
+                                />
+                            </Field>
+                            <Field label={intl.formatMessage(ConnectorsResources.federatedTenantId)} required>
+                                <Input
+                                    value={values.federatedTenantId || ''}
+                                    onChange={(_, data) => setFieldValue('federatedTenantId', data.value)}
+                                    placeholder={intl.formatMessage(ConnectorsResources.federatedTenantIdPlaceholder)}
+                                />
+                            </Field>
+                        </>
+                    )}
+                </>
+            )}
+        </>
     );
 };

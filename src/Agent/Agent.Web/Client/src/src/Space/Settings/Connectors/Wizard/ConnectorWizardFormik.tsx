@@ -49,6 +49,10 @@ export interface ConnectorFormProps {
     command?: string;
     args?: { value: string }[];
     env?: KeyValuePair[];
+    // Managed Identity as FIC properties
+    useManagedIdentityAsFic?: boolean;
+    federatedClientId?: string;
+    federatedTenantId?: string;
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {
@@ -74,6 +78,9 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
             mcpConnectionType: McpConnectionType.Remote,
             args: [{ value: '' }],
             env: [{ key: '', value: '' }],
+            useManagedIdentityAsFic: false,
+            federatedClientId: '',
+            federatedTenantId: '',
         };
     }, []);
 

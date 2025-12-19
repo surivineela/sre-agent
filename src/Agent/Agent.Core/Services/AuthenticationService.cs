@@ -340,6 +340,8 @@ public class AuthenticationService : IAuthenticationService
 
     public TokenCredential GetDataConnectorCredential(ConnectorAuthSettings connectorAuthSettings)
     {
+        TokenCredential baseCredential;
+
         switch (connectorAuthSettings.AuthenticationType)
         {
             case ConnectorAuthType.AgentSpace:
@@ -347,7 +349,7 @@ public class AuthenticationService : IAuthenticationService
                 var resourceId = string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityResourceId)
                     ? "system"
                     : connectorAuthSettings.ManagedIdentityResourceId;
-                return DelegatedTokenCredential.Create(
+                baseCredential = DelegatedTokenCredential.Create(
                     getToken: (context, cancellationToken) =>
                     {
                         // Synchronous delegate can throw, because GetTokenAsync will be used
@@ -363,22 +365,25 @@ public class AuthenticationService : IAuthenticationService
 
                         return token;
                     });
+                break;
             case ConnectorAuthType.ManagedIdentity:
-                return GetManagedIdentityCredential(Constants.SystemManagedIdentityName);
+                baseCredential = GetManagedIdentityCredential(Constants.SystemManagedIdentityName);
+                break;
             case ConnectorAuthType.UAMI:
                 {
                     if (!string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityClientId))
                     {
-                        return GetManagedIdentityCredentialForClientId(connectorAuthSettings.ManagedIdentityClientId);
+                        baseCredential = GetManagedIdentityCredentialForClientId(connectorAuthSettings.ManagedIdentityClientId);
                     }
                     else if (!string.IsNullOrEmpty(connectorAuthSettings.ManagedIdentityResourceId))
                     {
-                        return GetManagedIdentityCredential(connectorAuthSettings.ManagedIdentityResourceId);
+                        baseCredential = GetManagedIdentityCredential(connectorAuthSettings.ManagedIdentityResourceId);
                     }
                     else
                     {
                         throw new InvalidOperationException("Either ManagedIdentityClientId or ManagedIdentityResourceId must be provided for UAMI authentication.");
                     }
+                    break;
                 }
             case ConnectorAuthType.App:
                 {
@@ -392,15 +397,41 @@ public class AuthenticationService : IAuthenticationService
                     var certificate = System.Security.Cryptography.X509Certificates.X509Certificate2
                         .CreateFromPem(connectorAuthSettings.ApplicationCertificate);
 
-                    return new ClientCertificateCredential(
+                    baseCredential = new ClientCertificateCredential(
                         connectorAuthSettings.Authority,
                         connectorAuthSettings.ApplicationClientId,
                         certificate);
+                    break;
                 }
             case ConnectorAuthType.User:
             default:
-                return GetDefaultAzureCredential();
+                baseCredential = GetDefaultAzureCredential();
+                break;
         }
+
+        // If Managed Identity as FIC mode is enabled, wrap the base credential in ClientAssertionCredential
+        if (connectorAuthSettings.UseManagedIdentityAsFic)
+        {
+            if (string.IsNullOrEmpty(connectorAuthSettings.FederatedClientId) ||
+                string.IsNullOrEmpty(connectorAuthSettings.FederatedTenantId))
+            {
+                throw new InvalidOperationException("Managed Identity as FIC mode requires both FederatedClientId and FederatedTenantId");
+            }
+
+            // Create ClientAssertionCredential using the managed identity token as assertion
+            return new ClientAssertionCredential(
+                connectorAuthSettings.FederatedTenantId,
+                connectorAuthSettings.FederatedClientId,
+                async (cancellationToken) =>
+                {
+                    // Use the base MI credential to get token with FederatedIdentityTokenScope
+                    var tokenContext = new TokenRequestContext(new[] { Constants.FederatedIdentityTokenScope });
+                    var token = await baseCredential.GetTokenAsync(tokenContext, cancellationToken);
+                    return token.Token;
+                });
+        }
+
+        return baseCredential;
     }
 
     public TokenCredential GetAzureSearchCredential()

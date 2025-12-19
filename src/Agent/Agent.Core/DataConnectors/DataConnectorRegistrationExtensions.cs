@@ -65,24 +65,35 @@ public static class DataConnectorRegistrationExtensions
 
             foreach (DataConnectorInstanceSettings dataConnectorInstanceSetting in dataConnectorInstanceSettings.Value)
             {
-                // Fix ExtendedProperties by re-parsing from configuration to handle arrays and nested objects
-                var configSection = hostBuilder.Configuration
-                    .GetSection($"AppSettings:Core:DataConnectors")
-                    .GetChildren()
-                    .FirstOrDefault(c => c["Name"] == dataConnectorInstanceSetting.Name);
-
-                var extPropsSection = configSection?.GetSection("ExtendedProperties");
-                if (extPropsSection?.Exists() == true)
+                // Priority: ExtendedPropertiesJson > ExtendedProperties (from configuration)
+                // This ensures all data connectors receive a consistent ExtendedProperties dictionary
+                if (!string.IsNullOrWhiteSpace(dataConnectorInstanceSetting.ExtendedPropertiesJson))
                 {
-                    var tempDict = new Dictionary<string, object?>();
-                    foreach (var child in extPropsSection.GetChildren())
-                    {
-                        tempDict[child.Key] = GetConfigurationValue(child);
-                    }
-
-                    var json = JsonSerializer.Serialize(tempDict);
+                    // Parse JSON string to ExtendedProperties
                     dataConnectorInstanceSetting.ExtendedProperties =
-                        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                        ParseJsonToExtendedProperties(dataConnectorInstanceSetting.ExtendedPropertiesJson);
+                }
+                else
+                {
+                    // Fix ExtendedProperties by re-parsing from configuration to handle arrays and nested objects
+                    var configSection = hostBuilder.Configuration
+                        .GetSection($"AppSettings:Core:DataConnectors")
+                        .GetChildren()
+                        .FirstOrDefault(c => c["Name"] == dataConnectorInstanceSetting.Name);
+
+                    var extPropsSection = configSection?.GetSection("ExtendedProperties");
+                    if (extPropsSection?.Exists() == true)
+                    {
+                        var tempDict = new Dictionary<string, object?>();
+                        foreach (var child in extPropsSection.GetChildren())
+                        {
+                            tempDict[child.Key] = GetConfigurationValue(child);
+                        }
+
+                        var json = JsonSerializer.Serialize(tempDict);
+                        dataConnectorInstanceSetting.ExtendedProperties =
+                            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                    }
                 }
 
                 Type? connectorType = dataConnectorTypes.FirstOrDefault(t => t.GetCustomAttribute<DataConnectorAttribute>()?.Type.Equals(dataConnectorInstanceSetting.DataConnectorType, StringComparison.OrdinalIgnoreCase) == true);
@@ -140,6 +151,32 @@ public static class DataConnectorRegistrationExtensions
                 dict[child.Key] = GetConfigurationValue(child);
             }
             return dict;
+        }
+    }
+
+    /// <summary>
+    /// Parses a JSON string into a dictionary of JsonElement values for use as ExtendedProperties.
+    /// </summary>
+    /// <param name="json">The JSON string to parse.</param>
+    /// <returns>A dictionary mapping property names to JsonElement values.</returns>
+    /// <exception cref="ArgumentException">Thrown if the JSON is null, empty, or invalid.</exception>
+    private static Dictionary<string, JsonElement> ParseJsonToExtendedProperties(string json)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var result = new Dictionary<string, JsonElement>();
+            foreach (var property in doc.RootElement.EnumerateObject())
+            {
+                result[property.Name] = property.Value.Clone();
+            }
+            return result;
+        }
+        catch (JsonException ex)
+        {
+            throw new ArgumentException("ExtendedPropertiesJson is not valid JSON.", ex);
         }
     }
 }

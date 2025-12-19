@@ -66,16 +66,9 @@ public partial class McpDataConnector : IDataConnector
     {
         _settings = instanceSettings ?? throw new ArgumentNullException(nameof(instanceSettings));
 
-        // Priority: ExtendedPropertiesJson > ExtendedProperties > DataSource
         McpConnectionSettings parsedSettings;
 
-        if (!string.IsNullOrWhiteSpace(instanceSettings.ExtendedPropertiesJson))
-        {
-            // Parse JSON string to dictionary
-            var properties = ParseJsonToExtendedProperties(instanceSettings.ExtendedPropertiesJson);
-            parsedSettings = ParseFromDictionary(instanceSettings.Name, properties);
-        }
-        else if (instanceSettings.ExtendedProperties != null)
+        if (instanceSettings.ExtendedProperties != null)
         {
             parsedSettings = ParseFromDictionary(instanceSettings.Name, instanceSettings.ExtendedProperties);
         }
@@ -472,25 +465,5 @@ public partial class McpDataConnector : IDataConnector
         }
 
         return endpoint;
-    }
-
-    private static Dictionary<string, System.Text.Json.JsonElement> ParseJsonToExtendedProperties(string json)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(json);
-
-        try
-        {
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
-            var result = new Dictionary<string, System.Text.Json.JsonElement>();
-            foreach (var property in doc.RootElement.EnumerateObject())
-            {
-                result[property.Name] = property.Value.Clone();
-            }
-            return result;
-        }
-        catch (System.Text.Json.JsonException ex)
-        {
-            throw new ArgumentException("ExtendedPropertiesJson is not valid JSON.", ex);
-        }
     }
 }

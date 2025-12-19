@@ -120,6 +120,15 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         } else {
             dataSource = values.url;
         }
+
+        // For Azure DevOps connector with FIC enabled, add extended properties
+        if (values.useManagedIdentityAsFic && connectorType === ConnectorType.AzureDevOpsDocumentation) {
+            extendedProperties = {
+                UseManagedIdentityAsFic: true,
+                FederatedClientId: values.federatedClientId,
+                FederatedTenantId: values.federatedTenantId,
+            };
+        }
     } else {
         // MCP connectors use extendedProperties
         if (values.mcpConnectionType === McpConnectionType.Local) {

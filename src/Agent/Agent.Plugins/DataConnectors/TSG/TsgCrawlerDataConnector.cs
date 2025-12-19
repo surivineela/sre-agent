@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Interfaces;
@@ -77,7 +78,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                 RepositoryName = repositoryInfo.Value.RepositoryName
             };
 
-            var authSettings = CreateAuthSettings(instanceSettings.Identity, _hostEnvironment.IsDevelopment());
+            var authSettings = CreateAuthSettings(instanceSettings.Identity, instanceSettings.ExtendedProperties, _hostEnvironment.IsDevelopment());
 
             _azureDevOpsClient = new TsgAzureDevOpsClient(
                 _logger,
@@ -89,9 +90,41 @@ namespace Agent.Plugins.DataConnectors.TSG
             return Task.CompletedTask;
         }
 
-        private static ConnectorAuthSettings CreateAuthSettings(string? managedIdentityResourceId, bool isDevelopment)
+        private static ConnectorAuthSettings CreateAuthSettings(string? managedIdentityResourceId, Dictionary<string, JsonElement>? extendedProperties, bool isDevelopment)
         {
-            return string.IsNullOrEmpty(managedIdentityResourceId) ?
+            // Parse Managed Identity as FIC configuration from ExtendedProperties
+            bool useManagedIdentityAsFic = false;
+            string? federatedClientId = null;
+            string? federatedTenantId = null;
+
+            if (extendedProperties != null)
+            {
+                if (extendedProperties.TryGetValue("UseManagedIdentityAsFic", out var useFicElement))
+                {
+                    var useFicValue = useFicElement.GetString();
+                    useManagedIdentityAsFic = bool.TryParse(useFicValue, out var parsedValue) && parsedValue;
+                }
+
+                if (useManagedIdentityAsFic)
+                {
+                    if (extendedProperties.TryGetValue("FederatedClientId", out var clientIdElement))
+                    {
+                        federatedClientId = clientIdElement.GetString();
+                    }
+                    if (extendedProperties.TryGetValue("FederatedTenantId", out var tenantIdElement))
+                    {
+                        federatedTenantId = tenantIdElement.GetString();
+                    }
+
+                    if (string.IsNullOrEmpty(federatedClientId) || string.IsNullOrEmpty(federatedTenantId))
+                    {
+                        throw new InvalidOperationException("Managed Identity as FIC mode requires both FederatedClientId and FederatedTenantId in ExtendedProperties");
+                    }
+                }
+            }
+
+            // Build ConnectorAuthSettings
+            var authSettings = string.IsNullOrEmpty(managedIdentityResourceId) ?
                 new ConnectorAuthSettings()
                 {
                     AuthenticationType = isDevelopment ? ConnectorAuthType.User : ConnectorAuthType.ManagedIdentity
@@ -101,6 +134,16 @@ namespace Agent.Plugins.DataConnectors.TSG
                     AuthenticationType = ConnectorAuthType.UAMI,
                     ManagedIdentityResourceId = managedIdentityResourceId
                 };
+
+            // Add Managed Identity as FIC configuration if enabled
+            if (useManagedIdentityAsFic)
+            {
+                authSettings.UseManagedIdentityAsFic = true;
+                authSettings.FederatedClientId = federatedClientId;
+                authSettings.FederatedTenantId = federatedTenantId;
+            }
+
+            return authSettings;
         }
 
         public async Task RunAsync(CancellationToken stoppingToken)

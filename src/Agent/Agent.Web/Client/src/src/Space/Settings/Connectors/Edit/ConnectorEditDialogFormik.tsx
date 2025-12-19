@@ -42,7 +42,20 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
             channelId: '',
             teamsGroupId: '',
             customHeaders: [{ key: '', value: '' }],
+            useManagedIdentityAsFic: false,
+            federatedClientId: '',
+            federatedTenantId: '',
         };
+
+        // Parse FIC properties from extendedProperties for Azure DevOps connector
+        if (connector.extendedProperties && connectorType === ConnectorType.AzureDevOpsDocumentation) {
+            const props = connector.extendedProperties;
+            if (props.UseManagedIdentityAsFic) {
+                initialFormProps.useManagedIdentityAsFic = Boolean(props.UseManagedIdentityAsFic);
+                initialFormProps.federatedClientId = (props.FederatedClientId as string) || '';
+                initialFormProps.federatedTenantId = (props.FederatedTenantId as string) || '';
+            }
+        }
 
         if (connectorType === ConnectorType.TeamsSendNotification) {
             const parts = connector.dataSource?.split(';');

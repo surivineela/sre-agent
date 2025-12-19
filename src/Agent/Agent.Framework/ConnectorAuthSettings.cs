@@ -26,5 +26,13 @@ namespace Agent.Framework
         public string ManagedIdentityClientId { get; set; } = string.Empty;
         [YamlMember(Alias = "managed_identity_resource_id")]
         public string ManagedIdentityResourceId { get; set; } = string.Empty;
+
+        // Managed Identity as FIC mode properties
+        [YamlMember(Alias = "use_managed_identity_as_fic")]
+        public bool UseManagedIdentityAsFic { get; set; } = false;
+        [YamlMember(Alias = "federated_client_id")]
+        public string? FederatedClientId { get; set; }
+        [YamlMember(Alias = "federated_tenant_id")]
+        public string? FederatedTenantId { get; set; }
     }
 }
