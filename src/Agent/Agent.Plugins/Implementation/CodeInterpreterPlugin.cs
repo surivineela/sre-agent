@@ -25,17 +25,20 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private readonly ILogger<CodeInterpreterPlugin> _logger;
     private readonly ISessionPoolService _sessionPoolService;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IToolOutputStorage _toolOutputStorage;
 
     public Guid? ThreadId { get; set; }
 
     public CodeInterpreterPlugin(
         ILogger<CodeInterpreterPlugin> logger,
         ISessionPoolService sessionPoolService,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        IToolOutputStorage toolOutputStorage)
     {
         _logger = logger;
         _sessionPoolService = sessionPoolService;
         _hostEnvironment = hostEnvironment;
+        _toolOutputStorage = toolOutputStorage;
     }
 
     public async Task<string> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
@@ -563,6 +566,53 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
         var threadId = ThreadId?.ToString() ?? Guid.NewGuid().ToString();
         return _sessionPoolService.BuildSessionIdentifier(agentName, threadId, false);
+    }
+
+    public async Task<string> UploadFileToSessionAsync(string fileKey)
+    {
+        try
+        {
+            _logger.LogInternalInformation("Uploading file to session: FileKey={FileKey}", fileKey);
+
+            // Get the local file path from tool output storage
+            var localFilePath = _toolOutputStorage.EnsureFileExist(fileKey);
+            if (localFilePath == null)
+            {
+                var errorMsg = $"Error: File with key '{fileKey}' not found in tool output storage.";
+                _logger.LogInternalWarning(errorMsg);
+                return errorMsg;
+            }
+
+            // Read file content
+            var fileContent = await File.ReadAllBytesAsync(localFilePath);
+
+            // Use original filename from fileKey
+            var filename = Path.GetFileName(fileKey);
+
+            // Get session identifier
+            var identifier = BuildIdentifier();
+
+            _logger.LogInternalInformation(
+                "Uploading file to session pool: FileKey={FileKey}, Identifier={Identifier}, Filename={Filename}, Size={Size} bytes",
+                fileKey, identifier, filename, fileContent.Length);
+
+            // Upload to session pool /mnt/data (don't pass destinationFilename, let it use default /mnt/data)
+            await _sessionPoolService.UploadSessionFileAsync(
+                identifier,
+                filename,
+                fileContent);
+
+            _logger.LogInternalInformation("Upload successful: FileKey={FileKey}, Filename={Filename}, Size={Size} bytes", fileKey, filename, fileContent.Length);
+
+            // Return the file path in /mnt/data
+            return $"filePath: /mnt/data/{filename}";
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = $"Error uploading file to session: {ex.Message}";
+            _logger.LogInternalError(ex, "Failed to upload file: FileKey={FileKey}", fileKey);
+            return errorMsg;
+        }
     }
 
     // Legacy shell path retained for backward compatibility (unused after inline API migration)

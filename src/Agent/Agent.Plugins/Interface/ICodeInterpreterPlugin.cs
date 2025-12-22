@@ -54,4 +54,10 @@ public interface ICodeInterpreterPlugin
     /// Search for text within files under /mnt/data using grep-like semantics with optional glob filtering.
     /// </summary>
     Task<string> GrepSessionFilesAsync(string query, bool isRegexp, string includePattern, int maxResults, int timeoutSeconds);
+
+    /// <summary>
+    /// Upload a file to the session's /mnt/data directory using a tool output file key.
+    /// Retrieves the file from tool output storage and uploads it to the session pool.
+    /// </summary>
+    Task<string> UploadFileToSessionAsync(string fileKey);
 }

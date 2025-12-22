@@ -123,4 +123,15 @@ The file is saved locally and made available via /api/files endpoint. All respon
         [Description("Filename in session /mnt/data (e.g. 'chart.png', 'output.csv')")] string filename,
         [Description("Local filename to save as (e.g. 'analysis_chart.png')")] string saveAsFilename)
         => _plugin.GetSessionFileAsync(filename, saveAsFilename);
+
+    [Description(@"Upload a file to the code interpreter session's /mnt/data directory using a tool output file key.
+Use cases:
+- Upload previously generated outputs or data files to the session for Python processing and analysis
+- Make files available for further processing within the code interpreter session
+The file will be uploaded to /mnt/data/ directory in the session where Python code can access it.
+Returns: The file path in the session (e.g., '/mnt/data/filename.json') on success, or error message if upload fails.")]
+    [AgentTool(ToolMode.Manual)]
+    public Task<string> UploadFileToSessionAsync(
+        [Description("Tool output file key to upload (e.g., 'thread-id-timestamp.json')")] string fileKey)
+        => _plugin.UploadFileToSessionAsync(fileKey);
 }
