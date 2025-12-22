@@ -17,7 +17,7 @@
 //   ...(other YAML content)
 // }
 //
-// Output: Deployed as subagents/tools with base64-encoded JSON content
+// Output: Deployed as subagents/tools/skills with base64-encoded JSON content
 // ============================================================
 
 @description('Name of the parent agent')
@@ -28,6 +28,8 @@ param subagents array
 
 @description('Array of parsed YAML objects for tool extensions')
 param tools array
+@description('Array of parsed YAML objects for skill extensions')
+param skills array
 
 // Reference to the existing parent agent
 resource parentAgent 'Microsoft.App/agents@2025-05-01-preview' existing = {
@@ -51,5 +53,20 @@ resource toolExtensions 'Microsoft.App/agents/tools@2025-05-01-preview' = [for t
   name: tool.metadata.name
   properties: {
     value: base64(string(tool.spec))
+  }
+}]
+
+// Deploy skill extensions sequentially
+@batchSize(1)
+resource skillExtensions 'Microsoft.App/agents/skills@2025-05-01-preview' = [for skill in skills: {
+  parent: parentAgent
+  name: skill.metadata.name
+  properties: {
+    value: base64(string({
+      name: skill.metadata.name
+      description: skill.metadata.description
+      skillContent: skill.skillContent
+      additionalFiles: skill.additionalFiles
+    }))
   }
 }]

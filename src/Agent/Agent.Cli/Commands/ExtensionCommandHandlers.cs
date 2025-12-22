@@ -14,6 +14,14 @@ namespace Agent.Cli.Commands;
 public static class ExtensionCommandHandlers
 {
     /// <summary>
+    /// Holds information about a skill directory and its files.
+    /// </summary>
+    private class SkillInfo
+    {
+        public string DirectoryPath { get; set; } = string.Empty;
+        public List<string> AdditionalFiles { get; set; } = new List<string>();
+    }
+    /// <summary>
     /// Handles the extension generate-ev2 command.
     /// </summary>
     public static async Task<int> HandleGenerateEv2Command(ParseResult parseResult, CancellationToken cancellationToken = default)
@@ -23,6 +31,7 @@ public static class ExtensionCommandHandlers
         // Extract required options
         var toolsFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ToolsFolderOption);
         var agentFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.AgentFolderOption);
+        var skillsFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.SkillsFolderOption);
         var outputFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.OutputOption);
 
         // Extract optional EV2 deployment options
@@ -35,7 +44,7 @@ public static class ExtensionCommandHandlers
         var resourceGroup = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ResourceGroupOption);
         var agentName = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.AgentNameOption);
 
-        DebugLogger.Debug("Parameters", $"Tools Folder: {toolsFolder}, Agent Folder: {agentFolder}, Output: {outputFolder}");
+        DebugLogger.Debug("Parameters", $"Tools Folder: {toolsFolder}, Agent Folder: {agentFolder}, Skill Folder: {skillsFolder}, Output: {outputFolder}");
 
         // Determine if EV2 deployment artifacts should be generated
         var generateEv2Artifacts = !string.IsNullOrWhiteSpace(serviceIdentifier) &&
@@ -71,6 +80,10 @@ public static class ExtensionCommandHandlers
         ConsoleUI.WriteSection("Generating EV2 deployment files");
         ConsoleUI.WriteBullet($"Tools folder: {toolsFolder}");
         ConsoleUI.WriteBullet($"Agent folder: {agentFolder}");
+        if (!string.IsNullOrWhiteSpace(skillsFolder))
+        {
+            ConsoleUI.WriteBullet($"Skills folder: {skillsFolder}");
+        }
         ConsoleUI.WriteBullet($"Output folder: {outputFolder}");
         if (generateEv2Artifacts)
         {
@@ -100,7 +113,7 @@ public static class ExtensionCommandHandlers
         }
 
         // Generate the sreagentExtensionFile.bicep dynamically
-        await GenerateSreagentExtensionFile(toolsFolder!, agentFolder!, outputFolder!);
+        await GenerateSreagentExtensionFile(toolsFolder!, agentFolder!, outputFolder!, skillsFolder);
 
         // Generate ARM templates from Bicep files
         await GenerateArmTemplates(outputFolder!);
@@ -191,9 +204,9 @@ public static class ExtensionCommandHandlers
     }
 
     /// <summary>
-    /// Generates the sreagentExtensionFile.bicep file based on YAML files in tools and agent folders.
+    /// Generates the sreagentExtensionFile.bicep file based on YAML files in tools, agent, and skill folders.
     /// </summary>
-    private static async Task GenerateSreagentExtensionFile(string toolsFolder, string agentFolder, string outputFolder)
+    private static async Task GenerateSreagentExtensionFile(string toolsFolder, string agentFolder, string outputFolder, string? skillFolder)
     {
         DebugLogger.Debug("Extension File Generation", "Starting generation of sreagentExtensionFile.bicep");
 
@@ -250,7 +263,47 @@ public static class ExtensionCommandHandlers
             DebugLogger.Debug("YAML Validation", $"Validated agent file: {agentFile} - version {version}");
         }
 
-        DebugLogger.Debug("YAML Validation", $"Validated {agentYamlFiles.Count} agent YAML files and {toolYamlFiles.Count} tool YAML files");
+        // Validate and discover V1 skill directories with their files
+        var skillInfoList = new List<SkillInfo>();
+        DebugLogger.Debug("YAML Validation", $"Validating skill files in {skillFolder}, {string.IsNullOrWhiteSpace(skillFolder)}, {Directory.Exists(skillFolder)}");
+        if (!string.IsNullOrWhiteSpace(skillFolder) && Directory.Exists(skillFolder))
+        {
+            // Get all subdirectories in the skills folder
+            var allDirectories = Directory.GetDirectories(skillFolder, "*", SearchOption.AllDirectories);
+            DebugLogger.Debug("YAML Validation", $"Validating skill files in {allDirectories}");
+            foreach (var dir in allDirectories)
+            {
+                var metadataPath = Path.Combine(dir, "metadata.yaml");
+                var skillMdPath = Path.Combine(dir, "SKILL.md");
+
+                DebugLogger.Debug("YAML Validation", $"{metadataPath}, {skillMdPath}");
+
+                if (File.Exists(metadataPath) && File.Exists(skillMdPath))
+                {
+                    // Get all files in the skill directory
+                    var allFiles = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
+
+                    // Filter out metadata.yaml and SKILL.md to get additional files
+                    var additionalFiles = allFiles
+                        .Where(f =>
+                        {
+                            var fileName = Path.GetFileName(f);
+                            return !fileName.Equals("metadata.yaml", StringComparison.OrdinalIgnoreCase) &&
+                                   !fileName.Equals("SKILL.md", StringComparison.OrdinalIgnoreCase);
+                        })
+                        .ToList();
+
+                    skillInfoList.Add(new SkillInfo
+                    {
+                        DirectoryPath = dir,
+                        AdditionalFiles = additionalFiles
+                    });
+
+                    DebugLogger.Debug("Skill Discovery", $"Found skill directory: {dir} with {additionalFiles.Count} additional files");
+                }
+            }
+        }
+        DebugLogger.Debug("YAML Validation", $"Validated {agentYamlFiles.Count} agent YAML files, {toolYamlFiles.Count} tool YAML files, and {skillInfoList.Count} skill directories");
 
         // The bicep file will be at: output/BicepTemplates/modules/sreagentExtensionFile.bicep
         // Calculate relative paths from that location to the YAML files
@@ -262,7 +315,7 @@ public static class ExtensionCommandHandlers
         var bicepOutputPath = Path.Combine(bicepFileDirectory, "sreagentExtensionFile.bicep");
         var templateContent = await File.ReadAllTextAsync(bicepOutputPath);
 
-        var bicepContent = ReplacePlaceholders(templateContent, agentRelativePaths, toolRelativePaths);
+        var bicepContent = ReplacePlaceholders(templateContent, agentRelativePaths, toolRelativePaths, skillInfoList, bicepFileDirectory);
 
         // Write the updated content back
         await File.WriteAllTextAsync(bicepOutputPath, bicepContent);
@@ -278,6 +331,7 @@ public static class ExtensionCommandHandlers
 
         if (!Directory.Exists(directory))
         {
+            DebugLogger.Debug("YAML Discovery", $"Error reading directory {directory}: Directory does not exist");
             return yamlFiles;
         }
 
@@ -312,7 +366,7 @@ public static class ExtensionCommandHandlers
     /// <summary>
     /// Replaces placeholders in the template with actual YAML file references.
     /// </summary>
-    private static string ReplacePlaceholders(string templateContent, List<string> agentPaths, List<string> toolPaths)
+    private static string ReplacePlaceholders(string templateContent, List<string> agentPaths, List<string> toolPaths, List<SkillInfo> skillInfoList, string bicepFileDirectory)
     {
         // Build agent YAML files list
         var agentFilesContent = new System.Text.StringBuilder();
@@ -348,6 +402,60 @@ public static class ExtensionCommandHandlers
         }
         templateContent = templateContent.Replace("  // {{TOOL_YAML_FILES}}", toolFilesContent.ToString());
 
+        // Build skill entries
+        var skillFilesContent = new System.Text.StringBuilder();
+        if (skillInfoList.Any())
+        {
+            for (int i = 0; i < skillInfoList.Count; i++)
+            {
+                var skillInfo = skillInfoList[i];
+                var skillDirRelativePath = GetRelativePath(bicepFileDirectory, skillInfo.DirectoryPath);
+
+                skillFilesContent.AppendLine("  {");
+                skillFilesContent.AppendLine($"    metadata: loadYamlContent('{skillDirRelativePath}/metadata.yaml')");
+                skillFilesContent.AppendLine($"    skillContent: loadTextContent('{skillDirRelativePath}/SKILL.md')");
+                skillFilesContent.AppendLine("    additionalFiles: [");
+
+                // Add additional files
+                if (skillInfo.AdditionalFiles.Any())
+                {
+                    for (int j = 0; j < skillInfo.AdditionalFiles.Count; j++)
+                    {
+                        var additionalFile = skillInfo.AdditionalFiles[j];
+                        var fileName = Path.GetFileName(additionalFile);
+                        var fileRelativePath = GetRelativePath(bicepFileDirectory, additionalFile);
+
+                        skillFilesContent.AppendLine("      {");
+                        skillFilesContent.AppendLine($"        fileName: '{fileName}'");
+                        skillFilesContent.Append($"        content: loadTextContent('{fileRelativePath}')");
+                        skillFilesContent.AppendLine();
+                        skillFilesContent.Append("      }");
+
+                        // Add comma if not the last additional file
+                        if (j < skillInfo.AdditionalFiles.Count - 1)
+                        {
+                            skillFilesContent.AppendLine();
+                        }
+                    }
+                    skillFilesContent.AppendLine();
+                }
+
+                skillFilesContent.Append("    ]");
+                skillFilesContent.AppendLine();
+                skillFilesContent.Append("  }");
+
+                // Add comma if not the last skill
+                if (i < skillInfoList.Count - 1)
+                {
+                    skillFilesContent.AppendLine();
+                }
+            }
+        }
+        else
+        {
+            skillFilesContent.Append("  // No skill directories found");
+        }
+        templateContent = templateContent.Replace("  // {{SKILL_YAML_FILES}}", skillFilesContent.ToString());
         return templateContent;
     }
 
@@ -472,5 +580,4 @@ public static class ExtensionCommandHandlers
 
         DebugLogger.Debug("EV2 Artifacts", "EV2 deployment artifacts generated successfully");
     }
-
 }

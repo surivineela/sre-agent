@@ -59,18 +59,29 @@ New-Item -ItemType Directory -Path $ArmTemplatesPath -Force | Out-Null
 New-Item -ItemType Directory -Path "$ArmTemplatesPath\modules" -Force | Out-Null
 
 $buildSuccess = $true
+$allWarnings = @()
 
 # Build main Bicep file
 $mainBicep = Join-Path $BicepTemplatesPath "sreagentContainerAppsExtension.bicep"
 if (Test-Path $mainBicep) {
     Write-Host "Building sreagentContainerAppsExtension.bicep..." -ForegroundColor Yellow
     try {
-        az bicep build --file $mainBicep --outdir $ArmTemplatesPath 2>&1 | Out-Null
+        $output = az bicep build --file $mainBicep --outdir $ArmTemplatesPath 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "  ✓ Generated sreagentContainerAppsExtension.json" -ForegroundColor Green
         } else {
             Write-Warning "  Failed to build sreagentContainerAppsExtension.bicep"
             $buildSuccess = $false
+        }
+        
+        # Display any warnings or errors from bicep
+        if ($output) {
+            $output | ForEach-Object {
+                if ($_ -match "Warning|Error") {
+                    Write-Host "  $_" -ForegroundColor Yellow
+                    $allWarnings += $_
+                }
+            }
         }
     } catch {
         Write-Warning "  Error: $_"
@@ -84,12 +95,21 @@ if (Test-Path $paramFile) {
     Write-Host "Building sreagentContainerAppsExtension.bicepparam..." -ForegroundColor Yellow
     try {
         $paramOutput = Join-Path $ArmTemplatesPath "sreagentContainerAppsExtension.parameters.json"
-        az bicep build-params --file $paramFile --outfile $paramOutput 2>&1 | Out-Null
+        $output = az bicep build-params --file $paramFile --outfile $paramOutput 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "  ✓ Generated sreagentContainerAppsExtension.parameters.json" -ForegroundColor Green
         } else {
             Write-Warning "  Failed to build parameter file"
             $buildSuccess = $false
+        }
+        
+        if ($output) {
+            $output | ForEach-Object {
+                if ($_ -match "Warning|Error") {
+                    Write-Host "  $_" -ForegroundColor Yellow
+                    $allWarnings += $_
+                }
+            }
         }
     } catch {
         Write-Warning "  Error: $_"
@@ -104,13 +124,22 @@ if (Test-Path $modulesPath) {
     foreach ($moduleFile in $moduleFiles) {
         Write-Host "Building $($moduleFile.Name)..." -ForegroundColor Yellow
         try {
-            az bicep build --file $moduleFile.FullName --outdir "$ArmTemplatesPath\modules" 2>&1 | Out-Null
+            $output = az bicep build --file $moduleFile.FullName --outdir "$ArmTemplatesPath\modules" 2>&1
             if ($LASTEXITCODE -eq 0) {
                 $jsonName = [System.IO.Path]::ChangeExtension($moduleFile.Name, ".json")
                 Write-Host "  ✓ Generated $jsonName" -ForegroundColor Green
             } else {
                 Write-Warning "  Failed to build $($moduleFile.Name)"
                 $buildSuccess = $false
+            }
+            
+            if ($output) {
+                $output | ForEach-Object {
+                    if ($_ -match "Warning|Error") {
+                        Write-Host "  $_" -ForegroundColor Yellow
+                        $allWarnings += $_
+                    }
+                }
             }
         } catch {
             Write-Warning "  Error: $_"

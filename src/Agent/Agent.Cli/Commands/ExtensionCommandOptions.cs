@@ -29,6 +29,12 @@ public static class ExtensionCommandOptions
             Description = "Path to the agent folder containing agent configurations"
         };
 
+        public static readonly Option<string> SkillsFolderOption = new("--skills-folder")
+        {
+            Required = false,
+            Description = "Path to the skills folder containing skill configurations"
+        };
+
         public static readonly Option<string> OutputOption = new("--output")
         {
             Required = true,

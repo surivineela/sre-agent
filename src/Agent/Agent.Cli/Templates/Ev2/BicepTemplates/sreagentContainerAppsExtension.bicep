@@ -17,5 +17,6 @@ module extensionDeployment 'modules/sreagentExtension.bicep' = {
     agentName: agentName
     subagents: extensionFiles.outputs.subagents
     tools: extensionFiles.outputs.tools
+    skills: extensionFiles.outputs.skills
   }
 }

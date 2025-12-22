@@ -31,3 +31,14 @@ output subagents array = [
 output tools array = [
   // {{TOOL_YAML_FILES}}
 ]
+
+
+// ------------------------------------------------------------
+// Skill Configuration Files
+// ------------------------------------------------------------
+// Loads skill YAML files and extracts extension data for
+// integration with the SRE Agent deployment.
+// ------------------------------------------------------------
+output skills array = [
+  // {{SKILL_YAML_FILES}}
+]

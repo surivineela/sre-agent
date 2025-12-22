@@ -16,7 +16,7 @@ public class SkillView
 
     public Settable<List<string>> Tools { get; set; }
 
-    public Settable<string> SkillMdContent { get; set; }
+    public Settable<string> SkillContent { get; set; }
 
     public Settable<List<SkillSubFileView>> AdditionalFiles { get; set; }
 
@@ -27,7 +27,7 @@ public class SkillView
         {
             Description = skill.Description,
             Tools = skill.Tools,
-            SkillMdContent = skill.SkillMdContent,
+            SkillContent = skill.SkillMdContent,
             AdditionalFiles = skill.AdditionalFiles?.Select(f => new SkillSubFileView
             {
                 FileName = f.FileName,
@@ -75,7 +75,7 @@ public class SkillView
 
             properties.Description.ApplyTo(value => result.Spec.Description = value ?? string.Empty);
             properties.Tools.ApplyTo(value => result.Spec.Tools = value ?? []);
-            properties.SkillMdContent.ApplyTo(value => result.Spec.SkillMdContent = value ?? string.Empty);
+            properties.SkillContent.ApplyTo(value => result.Spec.SkillMdContent = value ?? string.Empty);
             properties.AdditionalFiles.ApplyTo(value =>
             {
                 if (value == null)
