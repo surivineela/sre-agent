@@ -2,10 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -28,6 +25,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
     };
 
     private const int MaxEmailListPageSize = 50;
+    private static readonly string[] DefaultConnectorScopes = new[] { "https://management.core.windows.net/" };
 
     private readonly IAuthenticationService _authenticationService;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -81,30 +79,19 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
                 return new EmailSendResult
                 {
                     Success = false,
-                    StatusCode = 401,
+                    StatusCode = clientResult.FailureStatusCode,
                     ResponseContent = string.Empty,
-                    Message = "Failed to acquire access token for email connector."
+                    Message = clientResult.FailureMessage
                 };
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             var payload = new SendEmailPayload
             {
@@ -119,7 +106,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
             var content = new StringContent(JsonSerializer.Serialize(payload, SerializerOptions), Encoding.UTF8, "application/json");
 
-            _logger.LogInternalInformation("Sending email via Outlook connector endpoint {Endpoint}", baseUrl);
+            _logger.LogInternalInformation("Sending email via Outlook connector endpoint {Endpoint}", clientResult.BaseUrl);
 
             using var response = await client.PostAsync("v2/Mail", content, cancellationToken).ConfigureAwait(false);
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -182,30 +169,19 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
                 return new EmailMessageResult
                 {
                     Success = false,
-                    StatusCode = 401,
+                    StatusCode = clientResult.FailureStatusCode,
                     ResponseContent = string.Empty,
-                    Message = "Failed to acquire access token for email connector."
+                    Message = clientResult.FailureMessage
                 };
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             var requestUri = new StringBuilder($"v2/Mail/{Uri.EscapeDataString(trimmedMessageId)}");
             if (!string.IsNullOrEmpty(trimmedMailbox))
@@ -307,30 +283,20 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
                 return new EmailListResult
                 {
                     Success = false,
-                    StatusCode = 401,
+                    StatusCode = clientResult.FailureStatusCode,
                     ResponseContent = string.Empty,
-                    Message = "Failed to acquire access token for email connector."
+                    Message = clientResult.FailureMessage,
+                    Emails = Array.Empty<EmailMessage>()
                 };
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             var queryBuilder = new StringBuilder("v3/Mail?");
             queryBuilder
@@ -428,30 +394,19 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
                 return new EmailReplyResult
                 {
                     Success = false,
-                    StatusCode = 401,
+                    StatusCode = clientResult.FailureStatusCode,
                     ResponseContent = string.Empty,
-                    Message = "Failed to acquire access token for email connector."
+                    Message = clientResult.FailureMessage
                 };
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             var requestUri = new StringBuilder($"v3/Mail/ReplyTo/{Uri.EscapeDataString(trimmedMessageId)}");
             if (!string.IsNullOrEmpty(trimmedMailbox))
@@ -471,7 +426,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             _logger.LogInternalInformation(
                 "Replying to email {MessageId} via Outlook connector endpoint {Endpoint}",
                 trimmedMessageId,
-                baseUrl);
+                clientResult.BaseUrl);
 
             using var response = await client.PostAsync(requestUri.ToString(), content, cancellationToken).ConfigureAwait(false);
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -545,30 +500,19 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
                 return new EmailMoveResult
                 {
                     Success = false,
-                    StatusCode = 401,
+                    StatusCode = clientResult.FailureStatusCode,
                     ResponseContent = string.Empty,
-                    Message = "Failed to acquire access token for email connector."
+                    Message = clientResult.FailureMessage
                 };
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             var requestUri = new StringBuilder($"v3/Mail/Move/{Uri.EscapeDataString(trimmedMessageId)}?folderPath={Uri.EscapeDataString(trimmedFolderPath)}");
             if (!string.IsNullOrEmpty(trimmedMailbox))
@@ -582,7 +526,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 "Moving email {MessageId} to {FolderPath} via Outlook connector endpoint {Endpoint}",
                 trimmedMessageId,
                 trimmedFolderPath,
-                baseUrl);
+                clientResult.BaseUrl);
 
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -640,22 +584,13 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             _logger.LogInternalInformation("[CheckConnectivityAsync] Checking Outlook connectivity. Url: {Url}", _connector.Value.ConnectionRuntimeUrl);
 
-            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
-            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
-            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
+            if (!clientResult.IsSuccess)
             {
-                _logger.LogInternalWarning("[CheckConnectivityAsync] Failed to acquire access token for Outlook connector.");
-                return (false, "Failed to acquire access token for Outlook connector.");
+                return (false, clientResult.FailureMessage);
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
-            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+            var client = clientResult.Client!;
 
             using var response = await client.GetAsync("testconnection", cancellationToken).ConfigureAwait(false);
 
@@ -674,6 +609,53 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             _logger.LogInternalError(ex, "[CheckConnectivityAsync] Exception occurred while checking Outlook connectivity.");
             return (false, $"Exception occurred while checking Outlook connectivity: {ex.Message}");
         }
+    }
+
+    private async Task<HttpClientCreationResult> TryCreateAuthorizedClientAsync(
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
+        var tokenRequest = new TokenRequestContext(DefaultConnectorScopes);
+        var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken).ConfigureAwait(false);
+
+        if (string.IsNullOrWhiteSpace(accessToken.Token))
+        {
+            _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
+            return HttpClientCreationResult.Failure(401, "Failed to acquire access token for email connector.");
+        }
+
+        var client = _httpClientFactory.CreateClient();
+        var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
+        client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+        client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+        return HttpClientCreationResult.Success(client, baseUrl);
+    }
+
+    private readonly struct HttpClientCreationResult
+    {
+        private HttpClientCreationResult(bool isSuccess, HttpClient? client, string? baseUrl, int failureStatusCode, string failureMessage)
+        {
+            IsSuccess = isSuccess;
+            Client = client;
+            BaseUrl = baseUrl;
+            FailureStatusCode = failureStatusCode;
+            FailureMessage = failureMessage;
+        }
+
+        public bool IsSuccess { get; }
+        public HttpClient? Client { get; }
+        public string? BaseUrl { get; }
+        public int FailureStatusCode { get; }
+        public string FailureMessage { get; }
+
+        public static HttpClientCreationResult Success(HttpClient client, string baseUrl) => new(true, client, baseUrl, 0, string.Empty);
+
+        public static HttpClientCreationResult Failure(int statusCode, string message) => new(false, null, null, statusCode, message);
     }
 
     private EmailMessage? TryParseEmail(string responseContent)
