@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -529,6 +530,124 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 StatusCode = 500,
                 ResponseContent = string.Empty,
                 Message = "Unexpected error while replying to email."
+            };
+        }
+    }
+
+    public async Task<EmailMoveResult> MoveEmailAsync(
+        string messageId,
+        string destinationFolderPath,
+        string? mailboxAddress,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(messageId);
+        ArgumentNullException.ThrowIfNull(destinationFolderPath);
+
+        string trimmedMessageId = messageId.Trim();
+        string trimmedFolderPath = destinationFolderPath.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedMessageId) || string.IsNullOrWhiteSpace(trimmedFolderPath))
+        {
+            return new EmailMoveResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ResponseContent = string.Empty,
+                Message = "Message ID and destination folder path must both be provided."
+            };
+        }
+
+        string? trimmedMailbox = string.IsNullOrWhiteSpace(mailboxAddress) ? null : mailboxAddress.Trim();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
+                connectorName: string.Empty,
+                connectorType: "Outlook",
+                dataSource: string.Empty);
+
+            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
+            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            {
+                _logger.LogInternalError("Failed to acquire access token for Outlook connector.");
+                return new EmailMoveResult
+                {
+                    Success = false,
+                    StatusCode = 401,
+                    ResponseContent = string.Empty,
+                    Message = "Failed to acquire access token for email connector."
+                };
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            var requestUri = new StringBuilder($"v3/Mail/Move/{Uri.EscapeDataString(trimmedMessageId)}?folderPath={Uri.EscapeDataString(trimmedFolderPath)}");
+            if (!string.IsNullOrEmpty(trimmedMailbox))
+            {
+                requestUri.Append("&mailboxAddress=").Append(Uri.EscapeDataString(trimmedMailbox));
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, requestUri.ToString());
+
+            _logger.LogInternalInformation(
+                "Moving email {MessageId} to {FolderPath} via Outlook connector endpoint {Endpoint}",
+                trimmedMessageId,
+                trimmedFolderPath,
+                baseUrl);
+
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            bool success = response.IsSuccessStatusCode;
+            if (success)
+            {
+                _logger.LogInternalInformation(
+                    "Email {MessageId} moved to {FolderPath} with status code {StatusCode}",
+                    trimmedMessageId,
+                    trimmedFolderPath,
+                    (int)response.StatusCode);
+            }
+            else
+            {
+                _logger.LogInternalWarning(
+                    "Failed to move email {MessageId} to {FolderPath} with status code {StatusCode} and response {Response}",
+                    trimmedMessageId,
+                    trimmedFolderPath,
+                    (int)response.StatusCode,
+                    responseBody);
+            }
+
+            return new EmailMoveResult
+            {
+                Success = success,
+                StatusCode = (int)response.StatusCode,
+                ResponseContent = responseBody,
+                Message = success ? "Email moved successfully." : "Email move request failed."
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Unexpected error while moving email through Outlook connector.");
+            return new EmailMoveResult
+            {
+                Success = false,
+                StatusCode = 500,
+                ResponseContent = string.Empty,
+                Message = "Unexpected error while moving email."
             };
         }
     }

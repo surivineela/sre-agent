@@ -384,6 +384,12 @@
       "description": "Sends a reply to an existing email thread in Microsoft Outlook, continuing conversations while maintaining proper threading and context. Email threading keeps related communications organized and ensures recipients have context from previous messages. This tool creates a reply (or reply-all) to a specific message, automatically including the original message in the quote, maintaining the subject line with 'Re:', and preserving the conversation thread. Use this for responding to incident-related questions, providing updates in ongoing email threads, answering stakeholder inquiries, and continuing discussions with vendors or support teams."
     },
     {
+      "name": "MoveOutlookEmail",
+      "version": "latest",
+      "firstPartyOnly": true,
+      "description": "Moves an email message to a different Outlook folder via Microsoft 365 without breaking the conversation thread. Provide the message ID and the destination folder path (for example Inbox/Processed or Archive) to quickly triage alerts, clear noisy queues, or file customer communications. Supports shared mailboxes by specifying the mailbox address, making it ideal for inbox hygiene workflows, post-reply clean up, and automated routing during incident response."
+    },
+    {
       "name": "PostTeamsMessage",
       "version": "latest",
       "firstPartyOnly": true,

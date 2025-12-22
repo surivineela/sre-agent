@@ -834,5 +834,88 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.Equal(400, result.StatusCode);
             Assert.Equal("Message ID and body must both be provided.", result.Message);
         }
+
+        [Fact]
+        public async Task MoveEmailAsync_WithValidParameters_ReturnsSuccess()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var folderPath = "Inbox/Processed";
+            var mailbox = "shared@example.com";
+            HttpRequestMessage? capturedRequest = null;
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => capturedRequest = req)
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("Email moved")
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.MoveEmailAsync(messageId, folderPath, mailbox);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(200, result.StatusCode);
+            Assert.Equal("Email moved successfully.", result.Message);
+            Assert.NotNull(capturedRequest);
+            Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
+            Assert.Contains($"v3/Mail/Move/{messageId}", capturedRequest.RequestUri!.ToString());
+            Assert.Contains("folderPath=Inbox%2FProcessed", capturedRequest.RequestUri!.Query);
+            Assert.Contains("mailboxAddress=shared%40example.com", capturedRequest.RequestUri!.Query);
+        }
+
+        [Fact]
+        public async Task MoveEmailAsync_WithEmptyMessageId_ReturnsFailure()
+        {
+            // Act
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("   ", "Inbox", null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("Message ID and destination folder path must both be provided.", result.Message);
+        }
+
+        [Fact]
+        public async Task MoveEmailAsync_WithEmptyFolderPath_ReturnsFailure()
+        {
+            // Act
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", " ", null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("Message ID and destination folder path must both be provided.", result.Message);
+        }
+
+        [Fact]
+        public async Task MoveEmailAsync_WhenRequestFails_ReturnsFailure()
+        {
+            // Arrange
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Content = new StringContent("move failed")
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", "Inbox/Processed", null);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(400, result.StatusCode);
+            Assert.Equal("Email move request failed.", result.Message);
+        }
     }
 }

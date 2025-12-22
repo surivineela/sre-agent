@@ -109,4 +109,20 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
             importance,
             mailbox_address).ConfigureAwait(false);
     }
+
+    [Description(@"Moves an Outlook email message to a different folder. Provide the messageId and the destination folder path (e.g., Inbox/Processed). Use mailbox_address when working with shared mailboxes.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<EmailMoveResult> MoveOutlookEmail(
+        [Description("Unique Outlook message identifier to move.")]
+        string message_id,
+        [Description("Destination folder path, such as Inbox/Processed or Archive.")]
+        string destination_folder_path,
+        [Description("Optional mailbox address for shared mailboxes. Leave blank for the signed-in mailbox.")]
+        string? mailbox_address = null)
+    {
+        return await _outlookConnectorPlugin.MoveEmailAsync(
+            message_id,
+            destination_folder_path,
+            mailbox_address).ConfigureAwait(false);
+    }
 }

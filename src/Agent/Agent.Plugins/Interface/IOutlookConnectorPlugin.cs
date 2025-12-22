@@ -39,4 +39,10 @@ public interface IOutlookConnectorPlugin
         string importance,
         string? mailboxAddress,
         CancellationToken cancellationToken = default);
+
+    Task<EmailMoveResult> MoveEmailAsync(
+        string messageId,
+        string destinationFolderPath,
+        string? mailboxAddress,
+        CancellationToken cancellationToken = default);
 }
