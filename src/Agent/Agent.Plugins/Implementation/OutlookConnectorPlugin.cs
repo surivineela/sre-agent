@@ -29,10 +29,10 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
     private const int MaxEmailListPageSize = 50;
 
-    private readonly IConnectorResolver _connectorResolver;
     private readonly IAuthenticationService _authenticationService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OutlookConnectorPlugin> _logger;
+    private readonly Lazy<OutlookConnector> _connector;
 
     public OutlookConnectorPlugin(
         ILogger<OutlookConnectorPlugin> logger,
@@ -41,9 +41,13 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         IAuthenticationService authenticationService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _connectorResolver = connectorResolver ?? throw new ArgumentNullException(nameof(connectorResolver));
+        ArgumentNullException.ThrowIfNull(connectorResolver);
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _connector = new Lazy<OutlookConnector>(() => connectorResolver.GetConnectorFromSettings<OutlookConnector>(
+            connectorName: string.Empty,
+            connectorType: "Outlook",
+            dataSource: string.Empty));
     }
 
     public async Task<EmailSendResult> SendEmailAsync(
@@ -79,12 +83,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
-                connectorName: string.Empty,
-                connectorType: "Outlook",
-                dataSource: string.Empty);
-
-            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
 
@@ -101,7 +100,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             }
 
             var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -185,12 +184,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
-                connectorName: string.Empty,
-                connectorType: "Outlook",
-                dataSource: string.Empty);
-
-            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
 
@@ -207,7 +201,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             }
 
             var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -315,12 +309,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
-                connectorName: string.Empty,
-                connectorType: "Outlook",
-                dataSource: string.Empty);
-
-            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
 
@@ -337,7 +326,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             }
 
             var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -441,12 +430,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
-                connectorName: string.Empty,
-                connectorType: "Outlook",
-                dataSource: string.Empty);
-
-            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
 
@@ -463,7 +447,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             }
 
             var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -563,12 +547,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var connector = _connectorResolver.GetConnectorFromSettings<OutlookConnector>(
-                connectorName: string.Empty,
-                connectorType: "Outlook",
-                dataSource: string.Empty);
-
-            var credential = _authenticationService.GetDataConnectorCredential(connector.Auth);
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
             var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
             var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
 
@@ -585,7 +564,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             }
 
             var client = _httpClientFactory.CreateClient();
-            var baseUrl = EnsureTrailingSlash(connector.ConnectionRuntimeUrl);
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
             client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -649,6 +628,51 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 ResponseContent = string.Empty,
                 Message = "Unexpected error while moving email."
             };
+        }
+    }
+
+    /// <summary>
+    /// Check connectivity to the Outlook service by making a lightweight API call with top=1.
+    /// </summary>
+    public async Task<(bool Success, string ErrorMessage)> CheckConnectivityAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInternalInformation("[CheckConnectivityAsync] Checking Outlook connectivity. Url: {Url}", _connector.Value.ConnectionRuntimeUrl);
+
+            var credential = _authenticationService.GetDataConnectorCredential(_connector.Value.Auth);
+            var tokenRequest = new TokenRequestContext(new[] { "https://management.core.windows.net/" });
+            var accessToken = await credential.GetTokenAsync(tokenRequest, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(accessToken.Token))
+            {
+                _logger.LogInternalWarning("[CheckConnectivityAsync] Failed to acquire access token for Outlook connector.");
+                return (false, "Failed to acquire access token for Outlook connector.");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            var baseUrl = EnsureTrailingSlash(_connector.Value.ConnectionRuntimeUrl);
+            client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
+
+            using var response = await client.GetAsync("testconnection", cancellationToken).ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalInformation("[CheckConnectivityAsync] Outlook connectivity check succeeded.");
+                return (true, string.Empty);
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogInternalWarning("[CheckConnectivityAsync] Outlook connectivity check failed. StatusCode: {StatusCode}, Response: {Response}", response.StatusCode, errorContent);
+            return (false, $"Outlook connectivity check failed with status code {(int)response.StatusCode}.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "[CheckConnectivityAsync] Exception occurred while checking Outlook connectivity.");
+            return (false, $"Exception occurred while checking Outlook connectivity: {ex.Message}");
         }
     }
 

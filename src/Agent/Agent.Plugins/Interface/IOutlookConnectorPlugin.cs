@@ -45,4 +45,11 @@ public interface IOutlookConnectorPlugin
         string destinationFolderPath,
         string? mailboxAddress,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Check connectivity to the Outlook service by making a lightweight API call.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A tuple where the first element indicates success (true) or failure (false), and the second element contains an empty string on success or a human-readable error message on failure.</returns>
+    Task<(bool Success, string ErrorMessage)> CheckConnectivityAsync(CancellationToken cancellationToken = default);
 }

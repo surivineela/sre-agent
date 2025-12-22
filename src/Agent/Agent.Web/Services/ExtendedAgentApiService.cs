@@ -941,6 +941,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // Helper: Outlook connector status using ListEmailsAsync
+    // Helper: Outlook connector status using CheckConnectivityAsync
     private async Task<ConnectorStatusResponse> BuildOutlookConnectorStatusAsync(string connectorName)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -950,23 +951,17 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
 
         try
         {
-            // Test connectivity by attempting to list emails with minimal impact (top=1)
-            var result = await _outlookConnectorPlugin.ListEmailsAsync(
-                folderPath: "Inbox",
-                fetchOnlyUnread: false,
-                top: 1,
-                mailboxAddress: null,
-                cancellationToken: CancellationToken.None);
-
-            healthy = result.Success;
-            message = healthy
+            var (success, errorMessage) = await _outlookConnectorPlugin.CheckConnectivityAsync(CancellationToken.None);
+            healthy = success;
+            message = success
                 ? "Outlook connectivity OK."
-                : $"Outlook connectivity failed: {result.Message}";
-
-            if (!healthy)
-            {
-                details = new { error = result.Message, statusCode = result.StatusCode };
-            }
+                : $"Outlook connectivity failed: {errorMessage}";
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("No connectors of type") || ex.Message.Contains("not found"))
+        {
+            _logger.LogInternalError(ex, "BuildOutlookConnectorStatusAsync: Outlook connector not configured for connector: {ConnectorName}", connectorName);
+            message = "Outlook connector not configured.";
+            details = new { error = ex.Message };
         }
         catch (Exception ex)
         {
