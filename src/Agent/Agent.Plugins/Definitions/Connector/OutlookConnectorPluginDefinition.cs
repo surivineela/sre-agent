@@ -56,7 +56,9 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
            bcc).ConfigureAwait(false);
     }
 
-    [Description(@"Retrieves a specific email message from the Outlook connector using the v2 Mail API. Provide the messageId returned by other email calls. Use mailbox_address when accessing a shared mailbox.")]
+    [Description(@"Retrieves a specific email message from the Outlook connector using the v2 Mail API. Provide the messageId returned by other email calls. Use mailbox_address when accessing a shared mailbox.
+
+Note: Email body content is automatically truncated if it exceeds size limits (12,288 characters). Check IsBodyContentTruncated property to determine if content was truncated, and use BodyContentLength for the original content size. The ResponseContentSizeBytes property tracks the total response size.")]
     [AgentTool(ToolMode.Auto)]
     public async Task<EmailMessageResult> GetOutlookEmail(
         [Description("Unique Outlook message identifier returned by list or trigger operations.")]
@@ -69,7 +71,9 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
             mailbox_address).ConfigureAwait(false);
     }
 
-    [Description(@"Lists messages from a specific folder via the Outlook v3 Mail endpoint. Set fetch_only_unread to true to filter unread messages. The top parameter is required and caps the number of messages returned (max 50). Use mailbox_address for shared mailboxes.")]
+    [Description(@"Lists messages from a specific folder via the Outlook v3 Mail endpoint. Set fetch_only_unread to true to filter unread messages. The top parameter is required and caps the number of messages returned (max 50). Use mailbox_address for shared mailboxes.
+
+Note: To prevent context overflow, BodyContent is NOT included in list results - only metadata is returned. Use GetOutlookEmail with the message_id to retrieve the full email body (truncated to 12,288 characters). The ResponseContentSizeBytes property tracks the total response size.")]
     [AgentTool(ToolMode.Auto)]
     public async Task<EmailListResult> ListOutlookEmails(
         [Description("Maximum number of messages to return (1-50). This value is required.")]

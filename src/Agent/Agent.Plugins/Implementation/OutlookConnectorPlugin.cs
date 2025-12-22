@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Connector;
@@ -14,6 +15,7 @@ using Agent.Plugins.Interface;
 using Agent.Plugins.Models;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Plugins.Implementation;
 
@@ -25,18 +27,22 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
     };
 
     private const int MaxEmailListPageSize = 50;
+    // Reserve 25% of max output for metadata (subject, recipients, etc.), allocate 75% for email content
+    private const double EmailContentPercentage = 0.75;
     private static readonly string[] DefaultConnectorScopes = new[] { "https://management.core.windows.net/" };
 
     private readonly IAuthenticationService _authenticationService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OutlookConnectorPlugin> _logger;
     private readonly Lazy<OutlookConnector> _connector;
+    private readonly int _maxEmailContentChars;
 
     public OutlookConnectorPlugin(
         ILogger<OutlookConnectorPlugin> logger,
         IConnectorResolver connectorResolver,
         IHttpClientFactory httpClientFactory,
-        IAuthenticationService authenticationService)
+        IAuthenticationService authenticationService,
+        IOptions<ToolOutputSettings> toolOutputSettings)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ArgumentNullException.ThrowIfNull(connectorResolver);
@@ -46,6 +52,9 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             connectorName: string.Empty,
             connectorType: "Outlook",
             dataSource: string.Empty));
+
+        var settings = toolOutputSettings?.Value ?? throw new ArgumentNullException(nameof(toolOutputSettings));
+        _maxEmailContentChars = (int)(settings.MaxOutputChars * EmailContentPercentage);
     }
 
     public async Task<EmailSendResult> SendEmailAsync(
@@ -194,6 +203,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
             bool success = response.IsSuccessStatusCode;
             var email = success ? TryParseEmail(responseBody) : null;
+            int responseContentSizeBytes = Encoding.UTF8.GetByteCount(responseBody);
 
             if (success)
             {
@@ -217,7 +227,8 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 StatusCode = (int)response.StatusCode,
                 ResponseContent = responseBody,
                 Message = success ? "Email retrieved successfully." : "Failed to retrieve email.",
-                Email = email
+                Email = email,
+                ResponseContentSizeBytes = responseContentSizeBytes
             };
         }
         catch (OperationCanceledException)
@@ -338,6 +349,8 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                     responseBody);
             }
 
+            int responseContentSizeBytes = Encoding.UTF8.GetByteCount(responseBody);
+
             return new EmailListResult
             {
                 Success = success,
@@ -345,7 +358,8 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 ResponseContent = responseBody,
                 Message = success ? "Emails retrieved successfully." : "Failed to retrieve emails.",
                 Emails = emails,
-                ContinuationToken = continuationToken
+                ContinuationToken = continuationToken,
+                ResponseContentSizeBytes = responseContentSizeBytes
             };
         }
         catch (OperationCanceledException)
@@ -668,7 +682,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         try
         {
             using var document = JsonDocument.Parse(responseContent);
-            return CreateEmailMessage(document.RootElement);
+            return CreateEmailMessage(document.RootElement, _maxEmailContentChars);
         }
         catch (JsonException ex)
         {
@@ -694,16 +708,16 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             IReadOnlyList<EmailMessage> emails;
             if (root.ValueKind == JsonValueKind.Array)
             {
-                emails = ParseEmailArray(root);
+                emails = ParseEmailArray(root, _maxEmailContentChars, excludeBodyContent: true);
             }
             else if (TryGetPropertyCaseInsensitive(root, "value", out var valueElement) && valueElement.ValueKind == JsonValueKind.Array)
             {
-                emails = ParseEmailArray(valueElement);
+                emails = ParseEmailArray(valueElement, _maxEmailContentChars, excludeBodyContent: true);
                 continuationToken = ExtractContinuationToken(root);
             }
             else
             {
-                var single = CreateEmailMessage(root);
+                var single = CreateEmailMessage(root, _maxEmailContentChars, excludeBodyContent: true);
                 emails = single is null ? Array.Empty<EmailMessage>() : new[] { single };
             }
 
@@ -718,7 +732,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         }
     }
 
-    private static IReadOnlyList<EmailMessage> ParseEmailArray(JsonElement arrayElement)
+    private static IReadOnlyList<EmailMessage> ParseEmailArray(JsonElement arrayElement, int? bodyContentCharacterLimit = null, bool excludeBodyContent = false)
     {
         if (arrayElement.ValueKind != JsonValueKind.Array)
         {
@@ -728,7 +742,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         var emails = new List<EmailMessage>();
         foreach (var item in arrayElement.EnumerateArray())
         {
-            var email = CreateEmailMessage(item);
+            var email = CreateEmailMessage(item, bodyContentCharacterLimit, excludeBodyContent);
             if (email is not null)
             {
                 emails.Add(email);
@@ -738,7 +752,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         return emails;
     }
 
-    private static EmailMessage? CreateEmailMessage(JsonElement element)
+    private static EmailMessage? CreateEmailMessage(JsonElement element, int? bodyContentCharacterLimit = null, bool excludeBodyContent = false)
     {
         if (element.ValueKind != JsonValueKind.Object)
         {
@@ -747,6 +761,15 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         var rawClone = element.Clone();
         var id = GetStringCaseInsensitive(element, "Id") ?? GetStringCaseInsensitive(element, "id") ?? string.Empty;
+
+        var originalBodyContent = GetNestedStringCaseInsensitive(element, "Body", "Content");
+        var (bodyContent, isBodyTruncated) = excludeBodyContent
+            ? (null, false)
+            : ApplyBodyContentLimit(originalBodyContent, bodyContentCharacterLimit);
+
+        var truncatedRawPayload = isBodyTruncated
+            ? TruncateBodyContentInRawPayload(rawClone, bodyContent)
+            : rawClone;
 
         return new EmailMessage
         {
@@ -758,10 +781,11 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             IsRead = GetNullableBool(element, "IsRead"),
             Importance = GetStringCaseInsensitive(element, "Importance"),
             ReceivedDateTime = GetNullableDateTime(element, "ReceivedDateTime"),
-            BodyPreview = GetStringCaseInsensitive(element, "BodyPreview"),
             BodyContentType = GetNestedStringCaseInsensitive(element, "Body", "ContentType"),
-            BodyContent = GetNestedStringCaseInsensitive(element, "Body", "Content"),
-            RawPayload = rawClone
+            BodyContent = bodyContent,
+            BodyContentLength = excludeBodyContent ? null : originalBodyContent?.Length,
+            IsBodyContentTruncated = isBodyTruncated,
+            RawPayload = truncatedRawPayload
         };
     }
 
@@ -783,6 +807,22 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         }
 
         return null;
+    }
+
+    internal static (string? Content, bool IsTruncated) ApplyBodyContentLimit(string? content, int? maxCharacters)
+    {
+        if (string.IsNullOrEmpty(content) || maxCharacters is null)
+        {
+            return (content, false);
+        }
+
+        int limit = maxCharacters.Value;
+        if (content.Length <= limit)
+        {
+            return (content, false);
+        }
+
+        return (content[..limit], true);
     }
 
     private static string? GetStringCaseInsensitive(JsonElement element, string propertyName)
@@ -914,6 +954,64 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
         value = default;
         return false;
+    }
+
+    private static JsonElement TruncateBodyContentInRawPayload(JsonElement rawPayload, string? truncatedBodyContent)
+    {
+        if (truncatedBodyContent is null)
+        {
+            return rawPayload;
+        }
+
+        try
+        {
+            using var stream = new System.IO.MemoryStream();
+            using var writer = new Utf8JsonWriter(stream);
+
+            writer.WriteStartObject();
+
+            foreach (var property in rawPayload.EnumerateObject())
+            {
+                writer.WritePropertyName(property.Name);
+
+                if (string.Equals(property.Name, "Body", StringComparison.OrdinalIgnoreCase)
+                    && property.Value.ValueKind == JsonValueKind.Object)
+                {
+                    writer.WriteStartObject();
+                    foreach (var bodyProp in property.Value.EnumerateObject())
+                    {
+                        writer.WritePropertyName(bodyProp.Name);
+
+                        if (string.Equals(bodyProp.Name, "Content", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WriteStringValue(truncatedBodyContent);
+                        }
+                        else
+                        {
+                            bodyProp.Value.WriteTo(writer);
+                        }
+                    }
+                    writer.WriteEndObject();
+                }
+                else
+                {
+                    property.Value.WriteTo(writer);
+                }
+            }
+
+            writer.WriteEndObject();
+            writer.Flush();
+
+            stream.Position = 0;
+            using (var doc = JsonDocument.Parse(stream))
+            {
+                return doc.RootElement.Clone();
+            }
+        }
+        catch (Exception)
+        {
+            return rawPayload;
+        }
     }
 
     private static string NormalizeBodyType(string bodyType)

@@ -4,12 +4,14 @@
 
 using System.Net;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Implementation;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 
@@ -22,6 +24,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
         private readonly Mock<IAuthenticationService> _mockAuthenticationService;
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
+        private readonly Mock<IOptions<ToolOutputSettings>> _mockToolOutputSettings;
         private readonly HttpClient _httpClient;
         private readonly OutlookConnector _testConnector;
         private readonly OutlookConnectorPlugin _outlookConnectorPlugin;
@@ -36,6 +39,11 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockHttpClientFactory = new Mock<IHttpClientFactory>();
             _mockAuthenticationService = new Mock<IAuthenticationService>();
             _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            _mockToolOutputSettings = new Mock<IOptions<ToolOutputSettings>>();
+
+            _mockToolOutputSettings
+                .Setup(x => x.Value)
+                .Returns(new ToolOutputSettings { MaxOutputChars = 16384 });
 
             _testConnector = new OutlookConnector
             {
@@ -71,7 +79,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 _mockLogger.Object,
                 _mockConnectorResolver.Object,
                 _mockHttpClientFactory.Object,
-                _mockAuthenticationService.Object);
+                _mockAuthenticationService.Object,
+                _mockToolOutputSettings.Object);
         }
 
         [Fact]
@@ -83,7 +92,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     _mockLogger.Object,
                     null!,
                     _mockHttpClientFactory.Object,
-                    _mockAuthenticationService.Object));
+                    _mockAuthenticationService.Object,
+                    _mockToolOutputSettings.Object));
 
             // Assert
             Assert.Equal("connectorResolver", exception.ParamName);
@@ -98,7 +108,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     _mockLogger.Object,
                     _mockConnectorResolver.Object,
                     null!,
-                    _mockAuthenticationService.Object));
+                    _mockAuthenticationService.Object,
+                    _mockToolOutputSettings.Object));
 
             // Assert
             Assert.Equal("httpClientFactory", exception.ParamName);
@@ -113,7 +124,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                     _mockLogger.Object,
                     _mockConnectorResolver.Object,
                     _mockHttpClientFactory.Object,
-                    null!));
+                    null!,
+                    _mockToolOutputSettings.Object));
 
             // Assert
             Assert.Equal("authenticationService", exception.ParamName);
@@ -658,7 +670,6 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 				"ToRecipients": [
 					{ "EmailAddress": { "Address": "recipient@example.com" } }
 				],
-				"BodyPreview": "Preview",
 				"Body": { "ContentType": "HTML", "Content": "<p>Body</p>" }
 			}
 			""";
@@ -916,6 +927,318 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.False(result.Success);
             Assert.Equal(400, result.StatusCode);
             Assert.Equal("Email move request failed.", result.Message);
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_CalculatesResponseContentSizeBytes()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var responseJson = """
+			{
+				"Id": "message-123",
+				"Subject": "Test subject",
+				"From": { "EmailAddress": { "Address": "sender@example.com" } },
+				"Body": { "ContentType": "HTML", "Content": "<p>Body</p>" }
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync(messageId, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Email);
+            var expectedSize = System.Text.Encoding.UTF8.GetByteCount(responseJson);
+            Assert.Equal(expectedSize, result.ResponseContentSizeBytes);
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_TruncatesBodyContentWhenExceedingLimit()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var longBody = new string('x', 20000); // Exceeds default 75% of 16384 = 12288 chars
+            var responseJson = $$"""
+			{
+				"Id": "message-123",
+				"Subject": "Test subject",
+				"From": { "EmailAddress": { "Address": "sender@example.com" } },
+				"Body": { "ContentType": "HTML", "Content": "{{longBody}}" }
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync(messageId, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Email);
+            Assert.True(result.Email!.IsBodyContentTruncated);
+            Assert.Equal(20000, result.Email.BodyContentLength);
+            Assert.NotNull(result.Email.BodyContent);
+            Assert.True(result.Email.BodyContent!.Length < 20000);
+            Assert.Equal(12288, result.Email.BodyContent.Length); // 75% of 16384
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_DoesNotTruncateBodyContentWhenBelowLimit()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var shortBody = new string('x', 100);
+            var responseJson = $$"""
+			{
+				"Id": "message-123",
+				"Subject": "Test subject",
+				"From": { "EmailAddress": { "Address": "sender@example.com" } },
+				"Body": { "ContentType": "HTML", "Content": "{{shortBody}}" }
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync(messageId, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Email);
+            Assert.False(result.Email!.IsBodyContentTruncated);
+            Assert.Equal(100, result.Email.BodyContentLength);
+            Assert.Equal(shortBody, result.Email.BodyContent);
+        }
+
+        [Fact]
+        public async Task GetEmailAsync_SetsBodyContentLengthInRawPayload()
+        {
+            // Arrange
+            var messageId = "message-123";
+            var longBody = new string('x', 20000);
+            var responseJson = $$"""
+			{
+				"Id": "message-123",
+				"Subject": "Test subject",
+				"From": { "EmailAddress": { "Address": "sender@example.com" } },
+				"Body": { "ContentType": "HTML", "Content": "{{longBody}}" }
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.GetEmailAsync(messageId, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.NotNull(result.Email);
+            var bodyElement = result.Email!.RawPayload.GetProperty("Body");
+            Assert.Equal(12288, bodyElement.GetProperty("Content").GetString()!.Length);
+        }
+
+        [Fact]
+        public async Task ListEmailsAsync_ExcludesBodyContentFromEmails()
+        {
+            // Arrange
+            var responseJson = """
+			{
+				"value": [
+					{
+						"Id": "one",
+						"Subject": "First",
+						"From": { "EmailAddress": { "Address": "sender1@example.com" } },
+						"Body": { "ContentType": "HTML", "Content": "<p>Body 1</p>" }
+					},
+					{
+						"Id": "two",
+						"Subject": "Second",
+						"From": { "EmailAddress": { "Address": "sender2@example.com" } },
+						"Body": { "ContentType": "HTML", "Content": "<p>Body 2</p>" }
+					}
+				]
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.ListEmailsAsync("Inbox", false, 10, null);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(2, result.Emails.Count);
+            Assert.All(result.Emails, email => Assert.Null(email.BodyContent));
+            Assert.All(result.Emails, email => Assert.Null(email.BodyContentLength));
+            Assert.All(result.Emails, email => Assert.False(email.IsBodyContentTruncated));
+        }
+
+        [Fact]
+        public async Task ListEmailsAsync_CalculatesResponseContentSizeBytes()
+        {
+            // Arrange
+            var responseJson = """
+			{
+				"value": [
+					{
+						"Id": "one",
+						"Subject": "First"
+					}
+				]
+			}
+			""";
+
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(responseJson)
+                });
+
+            // Act
+            var result = await _outlookConnectorPlugin.ListEmailsAsync("Inbox", false, 10, null);
+
+            // Assert
+            Assert.True(result.Success);
+            var expectedSize = System.Text.Encoding.UTF8.GetByteCount(responseJson);
+            Assert.Equal(expectedSize, result.ResponseContentSizeBytes);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithNullContent_ReturnsUnchanged()
+        {
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(null, 100);
+
+            // Assert
+            Assert.Null(result.Content);
+            Assert.False(result.IsTruncated);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithEmptyContent_ReturnsUnchanged()
+        {
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(string.Empty, 100);
+
+            // Assert
+            Assert.Equal(string.Empty, result.Content);
+            Assert.False(result.IsTruncated);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithNullLimit_ReturnsUnchanged()
+        {
+            // Arrange
+            var content = "This is some content";
+
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(content, null);
+
+            // Assert
+            Assert.Equal(content, result.Content);
+            Assert.False(result.IsTruncated);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithContentBelowLimit_ReturnsUnchanged()
+        {
+            // Arrange
+            var content = "Short content";
+            var limit = 100;
+
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(content, limit);
+
+            // Assert
+            Assert.Equal(content, result.Content);
+            Assert.False(result.IsTruncated);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithContentAtLimit_ReturnsUnchanged()
+        {
+            // Arrange
+            var content = new string('x', 50);
+            var limit = 50;
+
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(content, limit);
+
+            // Assert
+            Assert.Equal(content, result.Content);
+            Assert.NotNull(result.Content);
+            Assert.Equal(50, result.Content!.Length);
+            Assert.False(result.IsTruncated);
+        }
+
+        [Fact]
+        public void ApplyBodyContentLimit_WithContentExceedingLimit_TruncatesContent()
+        {
+            // Arrange
+            var content = new string('x', 100);
+            var limit = 50;
+
+            // Act
+            var result = OutlookConnectorPlugin.ApplyBodyContentLimit(content, limit);
+
+            // Assert
+            Assert.NotNull(result.Content);
+            Assert.Equal(50, result.Content!.Length);
+            Assert.True(result.IsTruncated);
+            Assert.Equal(new string('x', 50), result.Content);
         }
     }
 }
