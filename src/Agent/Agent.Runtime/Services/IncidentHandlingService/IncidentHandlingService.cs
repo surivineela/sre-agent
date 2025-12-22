@@ -294,7 +294,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             default:
                 _logger.LogInternalInformation("[IncidentHandlingServiceBase] GetIncidentFilterAndHandlerAsync: Fetching incident filters for IncidentId: {IncidentId}", incidentDetails.Id);
                 var incidentFilterDocs = await _incidentFilterManagementService.ListIncidentFilters(false);
-                filters = incidentFilterDocs.Select(f => (TIncidentFilterDocumentPayload)f).ToList();
+                filters = [.. incidentFilterDocs.Select(f => (TIncidentFilterDocumentPayload)f)];
                 _logger.LogInternalInformation("[BaseIncidentService] GetIncidentFilterAndHandlerAsync: Retrieved {FilterCount} filters for IncidentId: {IncidentId}", filters.Count, incidentDetails.Id);
 
                 matchingFilter = GetIncidentFilter(filters, incidentDetails);

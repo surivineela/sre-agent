@@ -39,13 +39,13 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
     public async Task<bool> AcknowledgeAlert(string alertId)
     {
-        _logger.LogInternalInformation($"Acknowledging alert {alertId}");
+        _logger.LogInternalInformation($"[AzMonitorAlertService] Acknowledging alert {alertId}");
         return await UpdateAlertStatus(alertId, ServiceAlertState.Acknowledged);
     }
 
     public async Task<bool> ResolveAlert(string alertId)
     {
-        _logger.LogInternalInformation($"Resolving alert {alertId}");
+        _logger.LogInternalInformation($"[AzMonitorAlertService] Resolving alert {alertId}");
         var result = await UpdateAlertStatus(alertId, ServiceAlertState.Closed);
         if (result)
         {
@@ -68,7 +68,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                         ResolvedAt = DateTime.UtcNow
                     };
 
-                    _logger.LogInternalInformation("Upserting existing incident document for AzMonitor incident {incidentNumber}", alertId);
+                    _logger.LogInternalInformation("[AzMonitorAlertService] Upserting existing incident document for AzMonitor incident {incidentNumber}", alertId);
                     _ = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey));
                 }
                 // if not within CosmosDB, add the record
@@ -87,7 +87,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Error adding SREAgent_Resolved tag to AzMonitor incident document {alertId}: {ex.Message}";
+                var errorMessage = $"[AzMonitorAlertService] Error adding SREAgent_Resolved tag to AzMonitor incident document {alertId}: {ex.Message}";
                 _logger.LogInternalError(ex, errorMessage);
             }
         }
@@ -120,19 +120,19 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInternalInformation($"Alert {alertId} status updated to {alertState} successfully");
+                _logger.LogInternalInformation($"[AzMonitorAlertService] Alert {alertId} status updated to {alertState} successfully");
                 return true;
             }
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInternalError($"Failed to update alert status for {alertId}: {response.StatusCode} - {errorContent}");
+                _logger.LogInternalError($"[AzMonitorAlertService] Failed to update alert status for {alertId}: {response.StatusCode} - {errorContent}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"Failed to update alert status for {alertId}: {ex.Message}");
+            _logger.LogInternalError(ex, $"[AzMonitorAlertService] Failed to update alert status for {alertId}: {ex.Message}");
             return false;
         }
     }
@@ -141,7 +141,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     {
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
         string apiUrl = $"https://management.azure.com{alertId}?api-version=2019-05-05-preview";
-        _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
+        _logger.LogInternalInformation($"[AzMonitorAlertService] Calling Alert Management API with URL: {apiUrl}");
 
         var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
         var response = await httpClient.SendAsync(request);
@@ -200,13 +200,13 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             }
             catch (Exception ex)
             {
-                _logger.LogInternalWarning($"Failed to parse subscription id from managed RG entry '{rg}': {ex.Message}");
+                _logger.LogInternalWarning($"[AzMonitorAlertService] Failed to parse subscription id from managed RG entry '{rg}': {ex.Message}");
             }
         }
 
         if (subscriptionIds.Count == 0)
         {
-            _logger.LogInternalWarning("GetIncidentsAsync: No subscription ids derived from managed resource groups. Returning empty list.");
+            _logger.LogInternalWarning("[AzMonitorAlertService] GetIncidentsAsync: No subscription ids derived from managed resource groups. Returning empty list.");
             return [];
         }
 
@@ -229,7 +229,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, "GetIncidentsAsync: Failed polling subscription {SubscriptionId}", subId);
+                _logger.LogInternalError(ex, "[AzMonitorAlertService] GetIncidentsAsync: Failed polling subscription {SubscriptionId}", subId);
             }
         }
 
@@ -257,7 +257,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         });
 
         var finalList = filtered.Skip((int)offset).Take((int)limit).ToList();
-        _logger.LogInternalInformation("GetIncidentsAsync: Returning {Count} alerts (limit={Limit}, offset={Offset}) across {SubscriptionCount} subscriptions", finalList.Count, limit, offset, subscriptionIds.Count);
+        _logger.LogInternalInformation("[AzMonitorAlertService] GetIncidentsAsync: Returning {Count} alerts (limit={Limit}, offset={Offset}) across {SubscriptionCount} subscriptions", finalList.Count, limit, offset, subscriptionIds.Count);
         return finalList;
     }
 
@@ -270,7 +270,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
         try
         {
-            _logger.LogInternalInformation($"Getting token for Azure ARM operations for subscription {subscriptionId}");
+            _logger.LogInternalInformation($"[AzMonitorAlertService] Getting token for Azure ARM operations for subscription {subscriptionId}");
             var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
 
             // using 2019-05-05-preview API version
@@ -296,7 +296,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                 apiUrl += $"&alertState={conditions}";
             }
 
-            _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
+            _logger.LogInternalInformation($"[AzMonitorAlertService] Calling Alert Management API with URL: {apiUrl}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
 
@@ -311,27 +311,27 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
                 if (alertResponse?.Value != null)
                 {
-                    _logger.LogInternalInformation($"Found {alertResponse.Value.Count} alerts from REST API");
+                    _logger.LogInternalInformation($"[AzMonitorAlertService] Found {alertResponse.Value.Count} alerts from REST API");
 
                     foreach (var alertItem in alertResponse.Value)
                     {
                         var essentials = alertItem.Properties.Essentials;
 
-                        _logger.LogInternalInformation($"Adding alert {alertItem.Id} to alerts list - Rule: {essentials.AlertRule}, Time: {startTime}, State: {essentials.AlertState}, Condition: {essentials.MonitorCondition}");
+                        _logger.LogInternalInformation($"[AzMonitorAlertService] Adding alert {alertItem.Id} to alerts list - Rule: {essentials.AlertRule}, Time: {startTime}, State: {essentials.AlertState}, Condition: {essentials.MonitorCondition}");
                         newAlerts.Add(alertItem);
                     }
                 }
             }
             else
             {
-                _logger.LogInternalError($"API call failed with status: {response.StatusCode}");
+                _logger.LogInternalError($"[AzMonitorAlertService] API call failed with status: {response.StatusCode}");
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInternalError($"Error response: {errorContent}");
+                _logger.LogInternalError($"[AzMonitorAlertService] Error response: {errorContent}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError($"Exception thrown when polling for AzMonitor Alerts: {ex.Message}");
+            _logger.LogInternalError($"[AzMonitorAlertService] Exception thrown when polling for AzMonitor Alerts: {ex.Message}");
             _logger.LogDebug($"Stack trace: {ex.StackTrace}");
         }
 

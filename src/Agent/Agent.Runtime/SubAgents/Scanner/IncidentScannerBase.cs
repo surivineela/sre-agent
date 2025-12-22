@@ -28,7 +28,7 @@ public abstract class IncidentScannerBase<TIncidentDocument, TIncident, TInciden
     protected readonly TimeSpan _scanInterval = TimeSpan.FromMinutes(1);
     protected readonly Container _container;
     private bool isScanSucceeded = true;
-    protected DateTime lastScanTime { get; private set; }
+    protected DateTime lastScanTime;
     protected abstract IncidentManagementType incidentType { get; }
     public IncidentScannerBase(
         Container container,

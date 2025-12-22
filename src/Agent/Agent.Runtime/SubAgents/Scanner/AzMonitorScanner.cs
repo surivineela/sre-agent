@@ -34,12 +34,52 @@ public class AzMonitorScanner(
         logger)
 {
     private readonly IAzMonitorAlertService _azMonitorAlertService = azMonitorAlertService;
-    private readonly uint pageSize = 10;
+    private readonly uint _pageSize = 10;
     private readonly IIncidentHandlingService<AzMonitorIncidentFilterDocumentPayload> _incidentHandlingService = incidentHandlingService;
     private readonly IIncidentStatusMetricsService _incidentsStatusMetricsService = incidentsStatusMetricsService;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService = outboundCommunicationService;
 
     protected override IncidentManagementType incidentType => IncidentManagementType.AzMonitor;
+
+    /// <summary>
+    /// ScanAsync implementation for AzMonitor.
+    /// </summary>
+    public override async Task ScanAsync(CancellationToken cancellationToken)
+    {
+        var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(incidentType);
+        var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
+        lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                var filters = await GetIncidentFiltersAsync();
+                if (filters is null || filters.Count == 0)
+                {
+                    _logger.LogInternalInformation("[AzMonitorScanner] No incident filters found, skipping scan.");
+                }
+                else
+                {
+                    _logger.LogInternalInformation("[AzMonitorScanner] Found {filterCount} incident filters, starting scanner.", filters.Count);
+                    var scanStartTime = DateTime.UtcNow;
+
+                    await ScanAllIncidentsAsync(filters, cancellationToken);
+
+                    var adjustedLastScanTime = AdjustLastScanTime(lastScanTime);
+                    lastScanTime = await UpdateLastScanTimeDocAsync(adjustedLastScanTime, incidentType);
+                    _logger.LogInternalInformation("[AzMonitorScanner] Scan completed. Last scan time updated to {lastScanTime}", lastScanTime);
+                }
+                await PostScanningAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "[AzMonitorScanner] Error during scanning process.");
+            }
+
+            await Task.Delay(_scanInterval, cancellationToken);
+        }
+    }
 
     protected override string GetIncidentId(AlertItem incident)
     {
@@ -76,13 +116,11 @@ public class AzMonitorScanner(
             // could update thread with any new incident info
             return;
         }
-
     }
 
     /// <summary>
     /// Periodically refresh incident metrics.
     /// </summary>
-    /// <returns></returns>
     protected override async Task PostScanningAsync()
     {
         var incidentMetrics = await _incidentsStatusMetricsService.GetIncidentStatusMetricsAsync(null, DateTime.Now);
@@ -94,7 +132,7 @@ public class AzMonitorScanner(
         var incidents = new List<AlertItem>();
         if (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInternalInformation("Cancellation requested, stopping the AzMonitor scanner.");
+            _logger.LogInternalInformation("[AzMonitorScanner] Cancellation requested, stopping the AzMonitor scanner.");
             return incidents;
         }
 
@@ -103,8 +141,8 @@ public class AzMonitorScanner(
             uint page = 0;
             while (true)
             {
-                var offset = page * pageSize;
-                var result = await _azMonitorAlertService.GetIncidentsAsync(pageSize, offset, lastScanTime, filter);
+                var offset = page * _pageSize;
+                var result = await _azMonitorAlertService.GetIncidentsAsync(_pageSize, offset, lastScanTime, filter);
                 if (result is null || !result.Any())
                 {
                     break;
@@ -112,34 +150,26 @@ public class AzMonitorScanner(
                 incidents.AddRange(result);
                 page++;
             }
-
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error scanning incidents for filter {filterId}", filter.Id);
+            _logger.LogInternalError(ex, "[AzMonitorScanner] Error scanning incidents for filter {filterId}", filter.Id);
         }
         return incidents;
     }
 
-    /// <summary>
-    /// Placeholder for AzMonitor Alert, since alert will get updated in later NotifyUserIfNeededAsync
-    /// </summary>
-    /// <param name="incidentDocument"></param>
-    /// <param name="incident"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     protected override async Task<AzMonitorAlertDocument> UpsertIncidentDocumentIfNeededAsync(AzMonitorAlertDocument? incidentDocument, AlertItem incident, AzMonitorIncidentFilterDocument? filterDocument, CancellationToken cancellationToken = default)
     {
         try
         {
             if (incidentDocument is null)
             {
-                logger.LogInternalInformation("[AzMonitorAlertScanner] Creating new incident document for AzMonitor by id {incidentId}", incident.Id);
+                logger.LogInternalInformation("[AzMonitorScanner] Creating new incident document for AzMonitor by id {incidentId}", incident.Id);
 
                 incidentDocument = AzMonitorAlertDocument.FromIncident(incident);
 
                 await _container.CreateItemAsync(incidentDocument, new PartitionKey(incidentDocument.PartitionKey), cancellationToken: cancellationToken);
-                logger.LogInternalInformation("[AzMonitorAlertScanner] Created new incident document for AzMonitor incident {incidentId}", incident.Id);
+                logger.LogInternalInformation("[AzMonitorScanner] Created new incident document for AzMonitor incident {incidentId}", incident.Id);
             }
             else if (string.Equals(incidentDocument.AlertId, incident.Id, StringComparison.OrdinalIgnoreCase))
             {
@@ -175,7 +205,7 @@ public class AzMonitorScanner(
                     }
                     catch (Exception ex)
                     {
-                        logger.LogInternalError($"[AzMonitorAlertScanner] Error generating AI-generated insights for incident; {ex.Message}");
+                        logger.LogInternalError($"[AzMonitorScanner] Error generating AI-generated insights for incident; {ex.Message}");
                     }
                 }
 
@@ -188,11 +218,11 @@ public class AzMonitorScanner(
                     }
                     catch (Exception ex)
                     {
-                        logger.LogInternalError(ex, "[AzMonitorAlertScanner] Error during ingestion of AzMonitor incident {incidentId} data into App Insights", incident.Id);
+                        logger.LogInternalError(ex, "[AzMonitorScanner] Error during ingestion of AzMonitor incident {incidentId} data into App Insights", incident.Id);
                     }
                 }
 
-                logger.LogInternalInformation("[AzMonitorAlertScanner] Upserting existing incident document for AzMonitor incident {incidentId}", incident.Id.ToString());
+                logger.LogInternalInformation("[AzMonitorScanner] Upserting existing incident document for AzMonitor incident {incidentId}", incident.Id.ToString());
                 var response = await _container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
                 incidentDocument = response.Resource;
             }
@@ -206,7 +236,7 @@ public class AzMonitorScanner(
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "[AzMonitorAlertScanner] Error upserting incident document for AzMonitor incident {incidentId}", incident.Id);
+            logger.LogInternalError(ex, "[AzMonitorScanner] Error upserting incident document for AzMonitor incident {incidentId}", incident.Id);
             throw;
         }
     }
@@ -228,11 +258,10 @@ public class AzMonitorScanner(
             }
             else if (response.Count > 1)
             {
-                logger.LogInternalWarning("[IcmScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                logger.LogInternalWarning("[AzMonitorScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
                 return response.FirstOrDefault();
             }
         }
         return null;
     }
-
 }

@@ -591,7 +591,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
     }
 
-    private async Task<(Thread, AgentContext)> CreateIncidentThread(AlertItem alert)
+    private async Task<(Thread, AgentContext)> CreateIncidentThread(AlertItem alert, AzMonitorIncidentFilterDocumentPayload? filterPayload = null)
     {
         var essentials = alert.Properties.Essentials;
 
@@ -670,6 +670,19 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             _logger.LogInternalWarning(ex, "[AzMonitorIncidentHandlingService] CreateIncidentThread: Failed to emit LogAgentAction for CreateThread");
         }
 
+        // Apply HandlingAgent from filter if specified (when no specific handler is matched)
+        var handlingAgent = filterPayload?.HandlingAgent ?? string.Empty;
+        if (!string.IsNullOrEmpty(handlingAgent))
+        {
+            agentContext = agentContext with
+            {
+                CurrentAgent = handlingAgent.ToLower(),
+                AgentHandoffChain = [handlingAgent.ToLower()]
+            };
+            await _repository.UpdateAgentContextAsync(agentContext);
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThread: Set CurrentAgent to '{handlingAgent}' and initialized AgentHandoffChain for thread {thread.Id}");
+        }
+
         try
         {
             var agentMessage = $"Alert acknowledged ✅\n\nInitiating investigation to assess the situation and identify potential causes 🛠️";
@@ -702,8 +715,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         }
         else
         {
-            // Fallback to existing behavior when no handler
-            return await CreateIncidentThread(alert);
+            // Fallback to existing behavior when no handler, but pass filterPayload for HandlingAgent support
+            return await CreateIncidentThread(alert, filterPayload);
         }
     }
 
@@ -802,12 +815,14 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 InvestigationStatus.InProgress)
         );
 
-        // Update agent context for YAML mode
-        if (_experimentalSettings.UseYamlForIncidentHandling)
+        // Custom handler / subagent handoff
+        agentContext = agentContext with
         {
-            agentContext = agentContext with { CurrentAgent = dynamicAgentName };
-            await _repository.UpdateAgentContextAsync(agentContext);
-        }
+            CurrentAgent = dynamicAgentName.ToLower(),
+            AgentHandoffChain = [dynamicAgentName.ToLower()]
+        };
+        await _repository.UpdateAgentContextAsync(agentContext);
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThreadWithHandler: Set CurrentAgent to '{dynamicAgentName}' and initialized AgentHandoffChain for thread {thread.Id}");
 
         // Emit agent action telemetry for thread creation
         try

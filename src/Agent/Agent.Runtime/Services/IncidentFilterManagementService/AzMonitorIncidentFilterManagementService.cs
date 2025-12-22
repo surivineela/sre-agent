@@ -47,7 +47,7 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
 
     protected override Task<List<IncidentFilterFieldOption>> GetExtraFilterFieldOptions()
     {
-        _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Invoked.");
+        _logger.LogInternalInformation("[AzMonitorIncidentFilterManagementService] GetExtraFilterFieldOptions: Invoked.");
 
         var result = new List<IncidentFilterFieldOption>();
 
