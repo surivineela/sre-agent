@@ -41,8 +41,9 @@ public class ICMPlugin : IICMPlugin
     private const string AgentMitigatedTag = "SREAgent_Mitigated";
     private const bool ProcessImages = true;
 
-    //Use agent unique name  (agent name + unique suffix) since customer's may use the same name  under different subscription/resource group
-    private readonly string AgentName = string.Empty;
+    // Use agent unique name (agent name + unique suffix)
+    private string AgentName = string.Empty;
+    private string _agentResourceId = string.Empty;
 
     // Thread context identifier used for generating deep links in discussion entries
     public Guid? ThreadId { get; set; }
@@ -52,8 +53,33 @@ public class ICMPlugin : IICMPlugin
         _logger = logger;
         _icmApiClient = icmAPIClient;
         _threadContextAccessor = threadContextAccessor;
-        AgentName = AgentNameHelper.GetAgentName(!hostEnvironment.IsDevelopment());
+
+        ResolveAgentIdentity(hostEnvironment);
+
         _chatCompletionService = chatClientProvider.GeneralPurposeModel.AsChatCompletionService();
+    }
+
+    private void ResolveAgentIdentity(IHostEnvironment hostEnvironment)
+    {
+        var isProd = !hostEnvironment.IsDevelopment();
+
+        try
+        {
+            AgentName = AgentNameHelper.GetAgentName(isProd);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to resolve AGENT_NAME. Using default '{AgentName}'.", AgentName);
+        }
+
+        try
+        {
+            _agentResourceId = AgentNameHelper.GetAgentResourceId(isProd);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to resolve agent resource id. Deep links will be omitted.");
+        }
     }
 
     public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(DateTime? issueFirstOccurrence, DateTime? issueLastOccurrence, DateTime? reportedIssueObservedOnTime)
@@ -464,7 +490,7 @@ Example structure:
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(TransferIncident)}][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
         var result = await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         await UpdateAgentStatus(incidentId, AgentStatus.Transferred);
         return result;
@@ -475,7 +501,7 @@ Example structure:
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(MitigateIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
 
         var mitigationResult = await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry);
         var addMitigationTagResult = await AddTagToIncident(incidentId, AgentMitigatedTag);
@@ -501,7 +527,7 @@ Example structure:
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(DowngradeSeverity)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -521,7 +547,7 @@ Example structure:
         }
 
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
         var result = await _icmApiClient.ChangeSeverityAsync(incidentId, severity, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
@@ -532,7 +558,7 @@ Example structure:
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ResolveIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
         var result = await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry);
         await UpdateAgentStatus(incidentId, AgentStatus.Resolved);
         return result;
@@ -543,7 +569,7 @@ Example structure:
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(PostDiscussionEntry)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
         _logger.LogInternalInformation(logMessage);
         var effectiveThreadId = ThreadId ?? _threadContextAccessor?.CurrentThreadId;
-        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, effectiveThreadId);
+        discussionEntry = IcmPostTemplates.GenerateDiscussionEntryByTemplate(discussionEntry, AgentName, _agentResourceId, effectiveThreadId);
         var result = await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         await AddTagToIncident(incidentId, AgentProcessedTag);
         return result;
