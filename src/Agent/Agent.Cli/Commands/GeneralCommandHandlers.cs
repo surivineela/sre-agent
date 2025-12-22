@@ -751,9 +751,19 @@ public static class GeneralCommandHandlers
     }
 
     /// <summary>
+    /// Handles the welcome command to show welcome screen and getting started guide.
+    /// </summary>
+    public static async Task<int> HandleWelcomeCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        WelcomeService.ShowWelcomeBanner();
+        await WelcomeService.ShowContextualGuidance();
+        return 0;
+    }
+
+    /// <summary>
     /// Handles the version command to display version information with banner.
     /// </summary>
-    public static Task HandleVersionCommand(ParseResult parseResult)
+    public static Task<int> HandleVersionCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         StandardHelpFormatter.ShowSrectlHeader();
 
@@ -799,13 +809,13 @@ public static class GeneralCommandHandlers
 
         Console.WriteLine();
 
-        return Task.CompletedTask;
+        return Task.FromResult(0);
     }
 
     /// <summary>
     /// Handles the status command with debug support.
     /// </summary>
-    public static async Task HandleStatusCommand(ParseResult parseResult)
+    public static async Task<int> HandleStatusCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting status command");
 
@@ -860,7 +870,7 @@ public static class GeneralCommandHandlers
                 {
                     ProgressService.AnimatedSpinner.Stop();
                     ProgressService.ShowError("No configuration found. Please run 'srectl init' first.");
-                    return;
+                    return 1;
                 }
 
                 using var apiService = new ApiService();
@@ -934,6 +944,7 @@ public static class GeneralCommandHandlers
         else if (agentCount == 0)
         {
             ConsoleUI.WriteBullet("srectl agent create --name <agent-name>");
+            ConsoleUI.WriteBullet("srectl help quickstart");
         }
         else if (!serverConnected)
         {
@@ -953,5 +964,7 @@ public static class GeneralCommandHandlers
                 ConsoleUI.WriteBullet("srectl agent list  # List local agents");
             }
         }
+
+        return 0;
     }
 }

@@ -34,11 +34,13 @@ public static partial class CommandBuilder
                 ExtensionCommandOptions.GenerateEv2.ServiceGroupOption,
                 ExtensionCommandOptions.GenerateEv2.EnvironmentOption,
                 ExtensionCommandOptions.GenerateEv2.TenantIdOption,
-            ExtensionCommandOptions.GenerateEv2.SubscriptionKeyOption,
-            ExtensionCommandOptions.GenerateEv2.SubscriptionIdOption,
-            ExtensionCommandOptions.GenerateEv2.ResourceGroupOption,
-            ExtensionCommandOptions.GenerateEv2.AgentNameOption
-        };            // Validate that EV2 options are either all provided or all omitted
+                ExtensionCommandOptions.GenerateEv2.SubscriptionKeyOption,
+                ExtensionCommandOptions.GenerateEv2.SubscriptionIdOption,
+                ExtensionCommandOptions.GenerateEv2.ResourceGroupOption,
+                ExtensionCommandOptions.GenerateEv2.AgentNameOption
+            };
+
+            // Validate that EV2 options are either all provided or all omitted
             cmd.AddValidator(result =>
             {
                 var serviceIdentifier = result.GetValue(ExtensionCommandOptions.GenerateEv2.ServiceIdentifierOption);

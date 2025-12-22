@@ -60,6 +60,23 @@ public static class ToolCommandOptions
             Description = "URL template for LinkTool"
         };
 
+        public static readonly Option<string> FunctionCodeOption = new("--function-code")
+        {
+            Description = "Python function code for PythonTool"
+        };
+
+        public static readonly Option<int> TimeoutSecondsOption = new("--timeout")
+        {
+            Description = "Timeout in seconds for PythonTool (default: 30)"
+        };
+
+        public static readonly Option<string[]> DependenciesOption = new("--dependency")
+        {
+            Description = "Python package dependency for PythonTool (can be specified multiple times)",
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true
+        };
+
         public static readonly Option<string[]> ParameterOption = new("--parameter")
         {
             Description = "Tool parameter in format 'name:type:description' (can be specified multiple times)",

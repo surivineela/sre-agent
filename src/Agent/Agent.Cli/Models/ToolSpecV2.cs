@@ -15,6 +15,7 @@ namespace Agent.Cli.Models
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
     [JsonDerivedType(typeof(KustoToolSpecV2), ToolDocumentModel.KustoToolType)]
     [JsonDerivedType(typeof(LinkToolSpecV2), ToolDocumentModel.LinkToolType)]
+    [JsonDerivedType(typeof(PythonToolSpecV2), ToolDocumentModel.PythonToolType)]
     public class ToolSpecV2
     {
         private string? _type;
@@ -32,6 +33,7 @@ namespace Agent.Cli.Models
             {
                 KustoToolSpecV2 => ToolDocumentModel.KustoToolType,  // "KustoTool"
                 LinkToolSpecV2 => ToolDocumentModel.LinkToolType,    // "LinkTool"
+                PythonToolSpecV2 => ToolDocumentModel.PythonToolType, // "PythonTool"
                 _ => _type
             });
             set => _type = value;

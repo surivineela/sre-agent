@@ -18,6 +18,9 @@ public static partial class CommandBuilder
                 ApplyYamlCommandOptions.FileOption
             };
 
+            // Add 'apply' as an alias
+            cmd.Aliases.Add("apply");
+
             cmd.AddValidator(result =>
             {
                 var filePath = result.GetValue(ApplyYamlCommandOptions.FileOption);

@@ -9,7 +9,6 @@ using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Services;
-using Gremlin.Net.Process.Traversal;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agent.Cli.Tests.E2E.MockBackend;

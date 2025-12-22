@@ -44,13 +44,15 @@ public class ShowTypesCommandTests : AgentCommandTestBase
         // Verify both tool types are listed
         Assert.Contains("KustoTool", result.Output);
         Assert.Contains("LinkTool", result.Output);
+        Assert.Contains("PythonTool", result.Output);
 
         // Verify descriptions
         Assert.Contains("Execute Kusto queries against Azure Data Explorer clusters", result.Output);
         Assert.Contains("Generate URLs based on templates with parameter substitution", result.Output);
+        Assert.Contains("Execute custom Python code with configurable dependencies", result.Output);
 
         // Verify total count
-        Assert.Contains("2 tool type(s)", result.Output);
+        Assert.Contains("3 tool type(s)", result.Output);
 
         // Verify help text
         Assert.Contains("Use 'srectl tool show-types --type <ToolTypeName>' for detailed information", result.Output);
@@ -184,5 +186,51 @@ public class ShowTypesCommandTests : AgentCommandTestBase
         // Verify error message
         Assert.Contains("Tool type 'InvalidTool' not found", result.Output);
         Assert.Contains("Use 'srectl tool show-types' to see available tool types", result.Output);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "ShowTypes")]
+    public async Task ToolShowTypes_WithPythonToolType_ShowsDetailedInformation()
+    {
+        // Act
+        var result = await Runner.RunAsync("tool", "show-types", "--type", "PythonTool");
+
+        // Assert
+        _output.WriteLine("=== Command Output ===");
+        _output.WriteLine(result.Output);
+        _output.WriteLine("======================");
+
+        Assert.True(result.Success, $"Command should succeed. Exit code: {result.ExitCode}, Error: {result.StandardError}");
+
+        // Verify section header with tool name
+        Assert.Contains("Tool Type Details: PythonTool", result.Output);
+
+        // Verify description
+        Assert.Contains("Execute custom Python code with configurable dependencies", result.Output);
+
+        // Verify Sample YAML section
+        Assert.Contains("Sample YAML", result.Output);
+
+        // Verify YAML content - metadata
+        Assert.Contains("api_version: azuresre.ai/v2", result.Output);
+        Assert.Contains("kind: ExtendedAgentTool", result.Output);
+        Assert.Contains("metadata:", result.Output);
+        Assert.Contains("name: MyPythonTool", result.Output);
+
+        // Verify YAML content - spec
+        Assert.Contains("spec:", result.Output);
+        Assert.Contains("type: PythonTool", result.Output);
+        Assert.Contains("functionCode:", result.Output);
+        Assert.Contains("def execute(**kwargs):", result.Output);
+        Assert.Contains("timeoutSeconds: 30", result.Output);
+
+        // Verify parameters section
+        Assert.Contains("parameters:", result.Output);
+        Assert.Contains("- name: input", result.Output);
+        Assert.Contains("The input parameter for the Python function", result.Output);
+
+        // Verify success message
+        Assert.Contains("Tool type details displayed for 'PythonTool'", result.Output);
     }
 }

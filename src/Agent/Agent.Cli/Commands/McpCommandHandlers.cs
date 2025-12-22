@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
-using System.CommandLine.Parsing;
 using Agent.Cli.Mcp;
 
 namespace Agent.Cli.Commands;

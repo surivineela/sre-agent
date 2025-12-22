@@ -44,6 +44,9 @@ public static partial class CommandBuilder
                 ToolCommandOptions.Create.DescriptionOption,
                 ToolCommandOptions.Create.QueryOption,
                 ToolCommandOptions.Create.TemplateOption,
+                ToolCommandOptions.Create.FunctionCodeOption,
+                ToolCommandOptions.Create.TimeoutSecondsOption,
+                ToolCommandOptions.Create.DependenciesOption,
                 ToolCommandOptions.Create.ParameterOption
             };
 

@@ -28,6 +28,11 @@ public static class ExtendedToolHelper
             {
                 Name = ToolName.LinkTool,
                 Description = "Generate URLs based on templates with parameter substitution"
+            },
+            new ToolTypeInfo
+            {
+                Name = ToolName.PythonTool,
+                Description = "Execute custom Python code with configurable dependencies"
             }
         ];
     }
@@ -147,6 +152,63 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
                 Connector = string.Empty,
                 Description = description ?? "Sample LinkTool description",
                 Template = effectiveTemplate,
+                Parameters = CreateParameterSpecs(effectiveParameters, isKustoTool: false)
+            }
+        };
+
+        return tool;
+    }
+
+    /// <summary>
+    /// Creates a PythonTool ExtendedToolV2 instance with the provided parameters.
+    /// Defaults: functionCode uses defaults when not provided.
+    /// Parameters: Uses user's parameters if provided, otherwise uses default parameters.
+    /// </summary>
+    public static ExtendedToolV2 CreatePythonTool(
+        string name,
+        string? description = null,
+        string? functionCode = null,
+        int? timeoutSeconds = null,
+        string[]? dependencies = null,
+        string[]? parameters = null)
+    {
+        var defaultFunctionCode = "def execute(**kwargs):\n" +
+            "    \"\"\"\n" +
+            "    Sample Python tool function.\n" +
+            "    Modify this function to implement your custom logic.\n" +
+            "    \n" +
+            "    Args:\n" +
+            "        **kwargs: Keyword arguments passed from tool parameters\n" +
+            "    \n" +
+            "    Returns:\n" +
+            "        Result of the function execution\n" +
+            "    \"\"\"\n" +
+            "    # Your code here\n" +
+            "    return {\"message\": \"Hello from Python tool!\"}";
+
+        var defaultParameters = new[]
+        {
+            "input:The input parameter for the Python function"
+        };
+
+        // Apply defaults when not provided
+        var effectiveFunctionCode = functionCode ?? defaultFunctionCode;
+        var effectiveParameters = parameters?.Length > 0 ? parameters : defaultParameters;
+
+        var tool = new ExtendedToolV2
+        {
+            Metadata = new ResourceMetadataModel
+            {
+                Name = name
+            },
+            Spec = new PythonToolSpecV2
+            {
+                Type = ToolName.PythonTool,
+                Connector = string.Empty,
+                Description = description ?? "Sample PythonTool description",
+                FunctionCode = effectiveFunctionCode,
+                TimeoutSeconds = timeoutSeconds ?? 30,
+                Dependencies = dependencies?.ToList(),
                 Parameters = CreateParameterSpecs(effectiveParameters, isKustoTool: false)
             }
         };

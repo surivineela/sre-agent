@@ -438,4 +438,105 @@ another_key: another_value
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("succeeded", result.Output, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Validate")]
+    public async Task ToolValidate_ValidPythonTool_SucceedsWithName()
+    {
+        // Arrange - create a valid V2 PythonTool
+        var toolName = "ValidPythonTool";
+        var parameters = new List<(string name, string type, string description)>
+        {
+            ("input", "string", "The input parameter")
+        };
+        var yamlContent = TestYamlHelper.GetPythonToolV2(
+            toolName,
+            description: "A valid Python tool for testing",
+            timeoutSeconds: 60,
+            dependencies: new List<string> { "requests", "pandas" },
+            parameters: parameters);
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.True(result.Success, $"Command should succeed. Exit code: {result.ExitCode}");
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("succeeded", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(toolName, result.Output);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Validate")]
+    public async Task ToolValidate_PythonToolMissingFunctionCode_FailsWithName()
+    {
+        // Arrange - create a PythonTool without functionCode
+        var toolName = "InvalidPythonTool";
+        var yamlContent = @"api_version: azuresre.ai/v2
+kind: ExtendedAgentTool
+metadata:
+  name: InvalidPythonTool
+spec:
+  type: PythonTool
+  toolMode: Auto
+  description: ""Missing function code""
+  timeoutSeconds: 30
+";
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.False(result.Success, "Command should fail for PythonTool without functionCode");
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("functionCode", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Validate")]
+    public async Task ToolValidate_PythonToolWithInvalidTimeout_FailsWithName()
+    {
+        // Arrange - create a PythonTool with invalid timeout
+        var toolName = "InvalidTimeoutPythonTool";
+        var yamlContent = @"api_version: azuresre.ai/v2
+kind: ExtendedAgentTool
+metadata:
+  name: InvalidTimeoutPythonTool
+spec:
+  type: PythonTool
+  toolMode: Auto
+  description: ""Invalid timeout""
+  functionCode: |-
+    def execute(**kwargs):
+        return {}
+  timeoutSeconds: 0
+";
+        Runner.CreateFile($"tools/{toolName}/{toolName}.yaml", yamlContent);
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.False(result.Success, "Command should fail for PythonTool with invalid timeout");
+        Assert.NotEqual(0, result.ExitCode);
+        Assert.Contains("timeoutSeconds", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("greater than 0", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -77,6 +77,6 @@ public class ValidateCommandInvalidParameterTests : AgentCommandTestBase
         _output.WriteLine(result.Output);
         Assert.False(result.Success, "Command should fail with unrecognized option");
         Assert.NotEqual(0, result.ExitCode);
-        Assert.Contains("Unrecognized command or arguments: '--invalid-option'", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Unrecognized command or argument '--invalid-option'", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 }

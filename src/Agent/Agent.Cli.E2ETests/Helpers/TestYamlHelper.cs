@@ -159,6 +159,64 @@ spec:
 ";
     }
 
+    /// <summary>
+    /// Generates a V2 PythonTool YAML string.
+    /// </summary>
+    public static string GetPythonToolV2(
+        string name,
+        string description = "Test description",
+        string? functionCode = null,
+        int timeoutSeconds = 30,
+        List<string>? dependencies = null,
+        List<(string name, string type, string description)>? parameters = null)
+    {
+        var defaultFunctionCode = @"def execute(**kwargs):
+    """"""
+    Sample Python tool function.
+    """"""
+    return {""message"": ""Hello from Python tool!""}";
+
+        var code = functionCode ?? defaultFunctionCode;
+
+        var dependenciesYaml = "";
+        if (dependencies != null && dependencies.Count > 0)
+        {
+            dependenciesYaml = "\n  dependencies:";
+            foreach (var dep in dependencies)
+            {
+                dependenciesYaml += $"\n    - {dep}";
+            }
+        }
+
+        var parametersYaml = "";
+        if (parameters != null && parameters.Count > 0)
+        {
+            parametersYaml = "\n  parameters:";
+            foreach (var param in parameters)
+            {
+                parametersYaml += $@"
+    - name: {param.name}
+      type: {param.type}
+      description: {param.description}";
+            }
+        }
+
+        return $@"api_version: azuresre.ai/v2
+kind: ExtendedAgentTool
+metadata:
+  name: {name}
+  owner: someone
+  tags:
+spec:
+  type: PythonTool
+  toolMode: Auto
+  description: ""{description}""
+  functionCode: |-
+    {code}
+  timeoutSeconds: {timeoutSeconds}{dependenciesYaml}{parametersYaml}
+";
+    }
+
     // ============================================================
     // Convenience Methods with Default Values
     // ============================================================
@@ -182,6 +240,11 @@ spec:
     /// Generates a minimal V2 LinkTool with common test defaults.
     /// </summary>
     public static string GetMinimalLinkToolV2(string name) => GetLinkToolV2(name);
+
+    /// <summary>
+    /// Generates a minimal V2 PythonTool with common test defaults.
+    /// </summary>
+    public static string GetMinimalPythonToolV2(string name) => GetPythonToolV2(name);
 
     // ============================================================
     // V1 ToolList YAML Generator

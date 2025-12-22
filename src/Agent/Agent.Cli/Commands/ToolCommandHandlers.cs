@@ -33,6 +33,9 @@ public static class ToolCommandHandlers
         var description = parseResult.GetValue(ToolCommandOptions.Create.DescriptionOption);
         var query = parseResult.GetValue(ToolCommandOptions.Create.QueryOption);
         var template = parseResult.GetValue(ToolCommandOptions.Create.TemplateOption);
+        var functionCode = parseResult.GetValue(ToolCommandOptions.Create.FunctionCodeOption);
+        var timeoutSeconds = parseResult.GetValue(ToolCommandOptions.Create.TimeoutSecondsOption);
+        var dependencies = parseResult.GetValue(ToolCommandOptions.Create.DependenciesOption);
         var parameters = parseResult.GetValue(ToolCommandOptions.Create.ParameterOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}");
@@ -45,7 +48,8 @@ public static class ToolCommandHandlers
         DebugLogger.LogValidation($"Tool {name}", true);
 
         // Always use V2 structured creation with ExtendedToolV2
-        string toolYaml = CreateToolV2(name!, type!, connector, database, description, query, template, parameters);
+        string toolYaml = CreateToolV2(name!, type!, connector, database, description, query, template,
+            functionCode, timeoutSeconds, dependencies, parameters);
 
         // For KustoTool, prepend a helpful header with modification + permissions guidance
         if (ToolName.KustoTool == type)
@@ -559,7 +563,8 @@ public static class ToolCommandHandlers
     /// Creates a tool using V2 structured approach with ExtendedToolV2.
     /// </summary>
     private static string CreateToolV2(string name, string type, string? connector, string? database,
-        string? description, string? query, string? template, string[]? parameters)
+        string? description, string? query, string? template, string? functionCode, int? timeoutSeconds,
+        string[]? dependencies, string[]? parameters)
     {
         ExtendedToolV2 tool;
 
@@ -571,9 +576,13 @@ public static class ToolCommandHandlers
         {
             tool = ExtendedToolHelper.CreateLinkTool(name, description, template, parameters);
         }
+        else if (ToolName.PythonTool == type)
+        {
+            tool = ExtendedToolHelper.CreatePythonTool(name, description, functionCode, timeoutSeconds, dependencies, parameters);
+        }
         else
         {
-            throw new InvalidOperationException($"Unsupported tool type '{type}'. Only KustoTool and LinkTool are supported.");
+            throw new InvalidOperationException($"Unsupported tool type '{type}'. Supported types: KustoTool, LinkTool, PythonTool.");
         }
 
         // Serialize to YAML
@@ -762,6 +771,11 @@ public static class ToolCommandHandlers
         else if (ToolName.LinkTool == toolType.Name)
         {
             var sampleTool = ExtendedToolHelper.CreateLinkTool("MyLinkTool");
+            sampleYaml = sampleTool.ToYaml();
+        }
+        else if (ToolName.PythonTool == toolType.Name)
+        {
+            var sampleTool = ExtendedToolHelper.CreatePythonTool("MyPythonTool");
             sampleYaml = sampleTool.ToYaml();
         }
         else

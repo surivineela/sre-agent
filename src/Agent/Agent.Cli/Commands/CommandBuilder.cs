@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using Agent.Cli.Helpers;
 using Agent.Cli.Services;
 
@@ -21,38 +22,36 @@ public static partial class CommandBuilder
         //listCommand.SetAction(pr => ShowFormattedListHelp(listCommand));
 
         var chatCommand = CreateChatCommand();
-        var welcomeCommand = CreateWelcomeCommand();
-        var helpCommand = CreateEnhancedHelpCommand();
-        var statusCommand = CreateStatusCommand();
         var interactiveCommand = CreateInteractiveCommand();
-        var versionCommand = CreateVersionCommand();
 
         // ----- Root
-        var root = new RootCommand(
-            "SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response\n\n" +
-            "Incident Handler Commands: create, map-agent, list (run 'srectl incidenthandler --help' for details)")
+        var root = new RootCommand("SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response")
         {
-            welcomeCommand,
-            helpCommand,
-            statusCommand,
-            interactiveCommand,
-            versionCommand,
+            // Commands
+            WelcomeCommand.Build(),
+            VersionCommand.Build(),
             InitCommand.Build(),
-            syncCommand,
+            StatusCommand.Build(),
             ApplyYamlCommand.Build(),
-            ApplyCommand.Build(),
-            ThreadCommand.Build(),
-            chatCommand,
+            
+            // Subgroups
             AgentCommand.Build(),
             ToolCommand.Build(),
             CommonPromptCommand.Build(),
+            ExtensionCommand.Build(),
+            McpCommand.Build(),
+
+            // Other commands            
+            interactiveCommand,
+            syncCommand,
+            ThreadCommand.Build(),
+            chatCommand,
             DocumentCommand.Build(),
             ProfileCommand.Build(),
             SkillCommand.Build(),
             IncidentHandlerCommand.Build(),
             ScheduledTaskCommand.Build(),
-            ExtensionCommand.Build(),
-            McpCommand.Build(),
+
         };
 
         // Single root action (runs when no verb provided)
@@ -60,6 +59,9 @@ public static partial class CommandBuilder
 
         // Simulate global options on all commands (older System.CommandLine lacks AddGlobalOption)
         root.AddGlobalOptionsCompat(GlobalOptions.DebugOption, GlobalOptions.QuietOption);
+
+        // Customize help and version output for root command
+        CustomizeRootCommandOptions(root);
 
         return root;
     }
@@ -72,37 +74,6 @@ public static partial class CommandBuilder
         return cmd;
     }
 
-    //private static Command CreateListCommand()
-    //{
-    //    var listAgents = new Command("agents", "List remote extended agents from the server")
-    //    {
-    //        AgentCommandOptions.List.SearchOption,
-    //        AgentCommandOptions.List.NameOption,
-    //        AgentCommandOptions.List.DetailOption
-    //    };
-    //    listAgents.SetAction(AgentCommandHandlers.HandleListCommand);
-
-    //    var listExtendedTools = new Command("extended-tools", "List all extended tools added to the server through apply command");
-    //    listExtendedTools.SetAction(GeneralCommandHandlers.HandleListExtendedToolsCommand);
-
-    //    var listDataConnectors = new Command("data-connectors", "List all data connectors configured on the server");
-    //    listDataConnectors.SetAction(GeneralCommandHandlers.HandleListDataConnectorsCommand);
-
-    //    // List incident handlers subcommand
-    //    var listIncidentHandlersCommand = new Command("incidenthandlers", "List all incident handlers from the remote server")
-    //    {
-    //        IncidentHandlerCommandOptions.List.VerboseOption
-    //    };
-
-    //    listIncidentHandlersCommand.SetAction(IncidentHandlerCommandHandlers.HandleListCommand);
-
-    //    var cmd = new Command("list", CommandExamples.General.ListDescription)
-    //    {
-    //        listAgents, listExtendedTools, listDataConnectors, listIncidentHandlersCommand
-    //    };
-    //    return cmd;
-    //}
-
     private static Command CreateChatCommand()
     {
         var cmd = new Command("chat", CommandExamples.General.ChatDescription)
@@ -113,56 +84,10 @@ public static partial class CommandBuilder
         return cmd;
     }
 
-    private static Command CreateWelcomeCommand()
-    {
-        var cmd = new Command("welcome", "Show welcome screen and getting started guide");
-        cmd.SetAction(async _ =>
-
-        {
-            WelcomeService.ShowWelcomeBanner();
-            await WelcomeService.ShowContextualGuidance();
-        });
-        return cmd;
-    }
-
-    private static Command CreateEnhancedHelpCommand()
-    {
-        var topic = new Argument<string>("topic")
-        {
-            Description = "Help topic to display",
-            Arity = ArgumentArity.ZeroOrOne
-        };
-
-        var cmd = new Command("help", "Interactive help system with examples and troubleshooting") { topic };
-
-        // Bind the positional arg via ParseResult
-        cmd.SetAction(async pr =>
-
-        {
-            string? t = pr.GetValue(topic);
-            await InteractiveHelpService.ShowInteractiveHelp(t);
-        });
-        return cmd;
-    }
-
-    private static Command CreateStatusCommand()
-    {
-        var cmd = new Command("status", "Show workspace status and health check");
-        cmd.SetAction(GeneralCommandHandlers.HandleStatusCommand);
-        return cmd;
-    }
-
     private static Command CreateInteractiveCommand()
     {
         var cmd = new Command("interactive", "Start interactive guided mode for step-by-step assistance");
         cmd.SetAction(InteractiveCommandHandlers.HandleInteractiveMode);
-        return cmd;
-    }
-
-    private static Command CreateVersionCommand()
-    {
-        var cmd = new Command("version", "Show version information and build details");
-        cmd.SetAction(GeneralCommandHandlers.HandleVersionCommand);
         return cmd;
     }
 
@@ -186,126 +111,7 @@ public static partial class CommandBuilder
 
     public static async Task ShowWorkspaceStatus()
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-        ConsoleUI.WriteSection("Workspace Status Check");
-        ConsoleUI.DrawLine();
-
-        var configService = new CliConfigurationService();
-        var hasConfig = await configService.HasValidConfigurationAsync();
-
-        var configStatus = hasConfig ? "Configured" : "Not configured";
-        ConsoleUI.WriteStatus(hasConfig, $"Configuration: {configStatus}");
-
-        if (hasConfig)
-        {
-            try
-            {
-                var config = await configService.LoadConfigurationAsync();
-                ConsoleUI.WriteBullet($"Server URL: {config?.ResourceUrl ?? "Unknown"}");
-                ConsoleUI.WriteBullet($"Auth Required: {config?.AuthRequired ?? false}");
-            }
-            catch
-            {
-                ConsoleUI.WriteStatus(false, "Configuration file corrupted");
-            }
-        }
-
-        var agentCount = Directory.Exists("agents") ? Directory.GetDirectories("agents").Length : 0;
-        var toolCount = Directory.Exists("tools") ? Directory.GetDirectories("tools").Length : 0;
-
-        ConsoleUI.WriteInfo($"Agents: {agentCount} configured");
-        ConsoleUI.WriteInfo($"Tools: {toolCount} configured");
-
-        bool serverConnected = false;
-        bool remoteAgentsAvailable = false;
-        bool remoteToolsAvailable = false;
-
-        if (hasConfig)
-        {
-            ProgressService.AnimatedSpinner.Start("Testing server connection");
-
-            try
-            {
-                var config = await configService.LoadConfigurationAsync();
-                if (config == null)
-                {
-                    ProgressService.AnimatedSpinner.Stop();
-                    ProgressService.ShowError("No configuration found. Please run 'srectl init' first.");
-                    return;
-                }
-
-                using var apiService = new ApiService();
-                var (success, response) = await apiService.TestConnectionAsync(config.ResourceUrl);
-
-                ProgressService.AnimatedSpinner.Stop();
-                if (success)
-                {
-                    serverConnected = true;
-                    ConsoleUI.WriteStatus(true, "Server Connection: Connected");
-
-                    var (agents, agentError) = await apiService.ListExtendedAgentsAsync();
-                    var (toolsSuccess, _) = await apiService.ListToolsAsync();
-
-                    var agentsSuccess = agentError == null;
-                    remoteAgentsAvailable = agentsSuccess;
-                    remoteToolsAvailable = toolsSuccess;
-
-                    if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");
-                    if (toolsSuccess) ConsoleUI.WriteBullet("Remote Tools: Available");
-                }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, "Server Connection: Failed");
-                    ConsoleUI.WriteBullet($"Error: {response}");
-                }
-            }
-            catch (Exception ex)
-            {
-                ProgressService.AnimatedSpinner.Stop();
-                ConsoleUI.WriteStatus(false, "Server Connection: Failed");
-                ConsoleUI.WriteBullet($"Error: {ex.Message}");
-            }
-        }
-
-        stopwatch.Stop();
-        ProgressService.ShowTiming("Status check", stopwatch.Elapsed);
-
-        Console.WriteLine();
-        ConsoleUI.WriteSection("Suggested next steps");
-
-        if (!hasConfig)
-        {
-            ConsoleUI.WriteBullet("srectl init --resource-url <your-server>");
-        }
-        else if (agentCount == 0)
-        {
-            ConsoleUI.WriteBullet("srectl agent create --smart");
-            ConsoleUI.WriteBullet("srectl help quickstart");
-        }
-        else
-        {
-            ConsoleUI.WriteBullet("srectl chat");
-            ConsoleUI.WriteBullet("srectl agent test --name <agent>");
-
-            // Provide appropriate list commands based on connection status
-            if (serverConnected && remoteAgentsAvailable)
-            {
-                ConsoleUI.WriteBullet("srectl list agents  # List remote agents from server");
-            }
-            else if (serverConnected)
-            {
-                ConsoleUI.WriteBullet("srectl list agents  # Check remote agents (server connected)");
-            }
-            else
-            {
-                ConsoleUI.WriteBullet("srectl agent list  # List local agent configurations");
-                if (hasConfig)
-                {
-                    ConsoleUI.WriteBullet("srectl list agents  # List remote agents (requires server connection)");
-                }
-            }
-        }
+        await GeneralCommandHandlers.HandleStatusCommand(null!);
     }
 
     private static Task ShowFormattedAgentHelp(Command agentCommand)
@@ -465,30 +271,6 @@ public static partial class CommandBuilder
         return Task.CompletedTask;
     }
 
-    private static Task ShowFormattedListHelp(Command listCommand)
-    {
-        var examples = new[]
-        {
-            "srectl list agents",
-            "srectl list extended-tools",
-            "srectl list data-connectors",
-            "srectl list incidenthandlers",
-            "srectl agent list  # Alternative agent listing",
-            "srectl tool list   # Alternative tool listing"
-        };
-
-        StandardHelpFormatter.ShowCommandGroupHelp(
-            "List Commands",
-            "List resources from the remote server",
-            ConsoleColor.DarkYellow,
-            listCommand,
-            null, // Single group for all commands
-            null, // No group descriptions for single group
-            examples);
-
-        return Task.CompletedTask;
-    }
-
     private static Task ShowFormattedThreadHelp(Command threadCommand)
     {
         var commandGroups = new Dictionary<string, string[]>
@@ -588,27 +370,6 @@ public static partial class CommandBuilder
         return Task.CompletedTask;
     }
 
-    private static Task ShowFormattedApplyYamlHelp(Command applyYamlCommand)
-    {
-        var examples = new[]
-        {
-            "srectl apply-yaml --file agents/MyAgent/MyAgent.yaml",
-            "srectl apply-yaml --file tools/CustomTool/CustomTool.yaml",
-            "srectl apply-yaml --file configs/my-config.yaml"
-        };
-
-        StandardHelpFormatter.ShowCommandGroupHelp(
-            "Apply YAML Commands",
-            "Apply YAML configuration files to the server",
-            ConsoleColor.Green,
-            applyYamlCommand,
-            null, // Single command
-            null, // No group descriptions for single command
-            examples);
-
-        return Task.CompletedTask;
-    }
-
     private static Task ShowFormattedExtensionHelp(Command extensionCommand)
     {
         var examples = new[]
@@ -627,6 +388,167 @@ public static partial class CommandBuilder
             examples);
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Customizes the help and version output for the root command
+    /// Reference: https://learn.microsoft.com/en-us/dotnet/standard/commandline/how-to-customize-help
+    /// </summary>
+    private static void CustomizeRootCommandOptions(RootCommand root)
+    {
+        for (int i = 0; i < root.Options.Count; i++)
+        {
+            // Customize HelpOption
+            if (root.Options[i] is System.CommandLine.Help.HelpOption defaultHelpOption)
+            {
+                var defaultHelpAction = (System.CommandLine.Help.HelpAction)defaultHelpOption.Action!;
+                defaultHelpOption.Action = new CustomHelpAction(defaultHelpAction);
+            }
+            // Customize VersionOption
+            else if (root.Options[i] is System.CommandLine.VersionOption defaultVersionOption)
+            {
+                defaultVersionOption.Action = new CustomVersionAction();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Custom help action following Microsoft documentation pattern
+    /// </summary>
+    internal class CustomHelpAction : SynchronousCommandLineAction
+    {
+        private readonly System.CommandLine.Help.HelpAction _defaultHelp;
+
+        public CustomHelpAction(System.CommandLine.Help.HelpAction defaultHelp) => _defaultHelp = defaultHelp;
+
+        public override int Invoke(ParseResult parseResult)
+        {
+            // Only customize help for root command, use default for others
+            if (parseResult.CommandResult.Command is not RootCommand root)
+            {
+                return _defaultHelp.Invoke(parseResult);
+            }
+
+            // Custom help for root command
+            ShowCustomRootHelp(root);
+            return 0;
+        }
+
+        private void ShowCustomRootHelp(RootCommand? root)
+        {
+            if (root == null) return;
+
+            // Show description
+            ConsoleUI.Write("Description:", ConsoleColor.White);
+            var description = root.Description ?? "";
+            foreach (var line in description.Split('\n'))
+            {
+                ConsoleUI.Write($"  {line}");
+            }
+            ConsoleUI.Write("");
+
+            // Show usage
+            ConsoleUI.Write("Usage:", ConsoleColor.White);
+            ConsoleUI.Write($"  {root.Name} <command> [options]");
+            ConsoleUI.Write($"  {root.Name} <subgroup> <command> [options]");
+            ConsoleUI.Write("");
+
+            // Show options
+            ConsoleUI.Write("Options:", ConsoleColor.White);
+
+            foreach (var option in root.Options)
+            {
+                // Get aliases or fall back to option name
+                var aliases = option.Aliases.Count > 0
+                    ? string.Join(", ", option.Aliases)
+                    : option.Name;
+
+                var optionDescription = option.Description ?? "";
+
+                // Handle multi-line option descriptions
+                var lines = optionDescription.Split('\n');
+                if (lines.Length > 0)
+                {
+                    ConsoleUI.Write($"  {aliases,-15} {lines[0]}");
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        ConsoleUI.Write($"                   {lines[i]}");
+                    }
+                }
+                else
+                {
+                    ConsoleUI.Write($"  {aliases,-15} {optionDescription}");
+                }
+            }
+            ConsoleUI.Write("");
+
+            // Categorize commands
+            var subgroups = new List<Command>();
+            var commands = new List<Command>();
+
+            foreach (var cmd in root.Children.OfType<Command>())
+            {
+                // Check if command has subcommands
+                if (cmd.Children.OfType<Command>().Any())
+                {
+                    subgroups.Add(cmd);
+                }
+                else
+                {
+                    commands.Add(cmd);
+                }
+            }
+
+            // Calculate dynamic width based on longest command alias string
+            int maxWidth = 15; // Default minimum width
+            foreach (var cmd in subgroups.Concat(commands))
+            {
+                var cmdAliases = cmd.Name;
+                if (cmd.Aliases.Count > 0)
+                {
+                    var otherAliases = cmd.Aliases.Where(a => a != cmd.Name);
+                    if (otherAliases.Any())
+                    {
+                        cmdAliases = $"{cmd.Name}, {string.Join(", ", otherAliases)}";
+                    }
+                }
+                maxWidth = Math.Max(maxWidth, cmdAliases.Length + 1);
+            }
+
+            // Show Subgroups (commands with subcommands)
+            if (subgroups.Any())
+            {
+                ConsoleUI.Write("Subgroups:", ConsoleColor.White);
+                foreach (var cmd in subgroups)
+                {
+                    ConsoleUI.WriteCommand(cmd, maxWidth);
+                }
+                ConsoleUI.Write("");
+            }
+
+            // Show Commands (single-layer commands)
+            if (commands.Any())
+            {
+                ConsoleUI.Write("Commands:", ConsoleColor.White);
+                foreach (var cmd in commands)
+                {
+                    ConsoleUI.WriteCommand(cmd, maxWidth);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Custom version action that behaves the same as 'srectl version' command
+    /// </summary>
+    internal class CustomVersionAction : SynchronousCommandLineAction
+    {
+        public override int Invoke(ParseResult parseResult)
+        {
+            // Call the same handler as 'srectl version' command
+            GeneralCommandHandlers.HandleVersionCommand(parseResult).Wait();
+            return 0;
+        }
     }
 
     /// <summary>

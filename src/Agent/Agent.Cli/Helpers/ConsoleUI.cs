@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.CommandLine;
 using System.Text;
 
 namespace Agent.Cli.Helpers;
@@ -244,6 +245,41 @@ public static class ConsoleUI
     {
         if (color.HasValue) WithColor(color.Value, () => Console.WriteLine(message));
         else Console.WriteLine(message);
+    }
+
+    /// <summary>
+    /// Write a command with its aliases and multi-line description.
+    /// Output: Command name with aliases padded to specified width, followed by description.
+    /// Multi-line descriptions are indented to align with the first line.
+    /// Example: "apply, apply-yaml Apply YAML configuration files
+    ///                          Additional description line"
+    /// </summary>
+    public static void WriteCommand(Command command, int width)
+    {
+        // Build command name with aliases
+        var commandAliases = command.Name;
+        if (command.Aliases.Count > 0)
+        {
+            var otherAliases = command.Aliases.Where(a => a != command.Name);
+            if (otherAliases.Any())
+            {
+                commandAliases = $"{command.Name}, {string.Join(", ", otherAliases)}";
+            }
+        }
+
+        // Split description into lines
+        var cmdDescription = command.Description ?? "";
+        var lines = cmdDescription.Split('\n');
+
+        // First line with command name
+        var firstLine = lines.FirstOrDefault() ?? "";
+        Write($"  {commandAliases.PadRight(width)} {firstLine}");
+
+        // Remaining lines (indented continuation)
+        for (int i = 1; i < lines.Length; i++)
+        {
+            Write($"  {new string(' ', width)} {lines[i]}");
+        }
     }
 
     /// <summary>

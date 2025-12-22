@@ -56,6 +56,12 @@ namespace Agent.Cli.Models
                 {
                     linkSpec.Template = NormalizeString(linkSpec.Template);
                 }
+
+                // Normalize Python-specific fields if this is a Python tool
+                if (Spec is PythonToolSpecV2 pythonSpec)
+                {
+                    pythonSpec.FunctionCode = NormalizeString(pythonSpec.FunctionCode);
+                }
             }
         }
 
@@ -106,6 +112,7 @@ namespace Agent.Cli.Models
                         {
                             var t when ToolName.KustoTool == t => typeof(KustoToolSpecV2),
                             var t when ToolName.LinkTool == t => typeof(LinkToolSpecV2),
+                            var t when ToolName.PythonTool == t => typeof(PythonToolSpecV2),
                             _ => typeof(ToolSpecV2)
                         };
                     }
@@ -229,6 +236,10 @@ namespace Agent.Cli.Models
                 {
                     errors.AddRange(ValidateLinkTool());
                 }
+                else if (ToolName.PythonTool == Spec.Type)
+                {
+                    errors.AddRange(ValidatePythonTool());
+                }
                 else
                 {
                     errors.Add($"Unsupported tool type: {Spec.Type}");
@@ -285,6 +296,29 @@ namespace Agent.Cli.Models
             if (string.IsNullOrWhiteSpace(linkSpec.Template))
             {
                 errors.Add("LinkTool must have a 'template' specified.");
+            }
+
+            return errors;
+        }
+
+        private List<string> ValidatePythonTool()
+        {
+            var errors = new List<string>();
+
+            if (Spec is not PythonToolSpecV2 pythonSpec)
+            {
+                errors.Add("PythonTool must use PythonToolSpecV2.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(pythonSpec.FunctionCode))
+            {
+                errors.Add("PythonTool must have 'functionCode' specified.");
+            }
+
+            if (pythonSpec.TimeoutSeconds <= 0)
+            {
+                errors.Add("PythonTool 'timeoutSeconds' must be greater than 0.");
             }
 
             return errors;

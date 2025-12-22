@@ -29,8 +29,12 @@ public static class Program
             // Initialize debug mode globally before any command execution
             CommandExecutionContext.Initialize(parseResult);
 
+
             // Parse errors (unrecognized, missing subcommand, missing required options, etc.)
-            if (parseResult.Errors.Count > 0)
+
+            // [Hong:] I don't know why we need this as the System.CommandLine provide pretty good error handling.
+            // Make the count > 100 to skip the code below, 
+            if (parseResult.Errors.Count > 100)
             {
                 var unmatched = parseResult.UnmatchedTokens;
 
@@ -152,7 +156,7 @@ public static class Program
                     }
                 }
 
-                // Generic fallback (rare)
+                //Generic fallback(rare)
                 {
                     var configService = new CliConfigurationService();
                     var hasConfig = await configService.HasValidConfigurationAsync();

@@ -25,6 +25,7 @@ public sealed class ToolName : IEquatable<ToolName>, IEquatable<string>
     // Well-known tool names as static properties
     public static ToolName KustoTool => new("KustoTool");
     public static ToolName LinkTool => new("LinkTool");
+    public static ToolName PythonTool => new("PythonTool");
     public static ToolName KustoQuery => new("KustoQuery");
 
     // Implicit conversion from string to ToolName
@@ -89,6 +90,7 @@ public sealed class ToolName : IEquatable<ToolName>, IEquatable<string>
         {
             var v when string.Equals(v, "KustoTool", StringComparison.OrdinalIgnoreCase) => true,
             var v when string.Equals(v, "LinkTool", StringComparison.OrdinalIgnoreCase) => true,
+            var v when string.Equals(v, "PythonTool", StringComparison.OrdinalIgnoreCase) => true,
             var v when string.Equals(v, "KustoQuery", StringComparison.OrdinalIgnoreCase) => true,
             _ => false
         };

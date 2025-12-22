@@ -365,4 +365,215 @@ public class CreateCommandTests : AgentCommandTestBase
         Assert.True(validateResult.Success, "Created tool should be valid");
         Assert.Equal(0, validateResult.ExitCode);
     }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Create")]
+    public async Task ToolCreate_PythonTool_CreatesValidYaml()
+    {
+        // Arrange
+        var toolName = "TestPythonTool";
+        var description = "Test Python tool for E2E testing";
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "create",
+            "--name", toolName,
+            "--type", "PythonTool",
+            "--description", description
+        );
+
+        // Assert
+        _output.WriteLine("=== Command Output ===");
+        _output.WriteLine(result.Output);
+        _output.WriteLine("======================");
+
+        Assert.True(result.Success, $"Command should succeed. Exit code: {result.ExitCode}, Error: {result.StandardError}");
+
+        // Verify the YAML file was created
+        var expectedPath = $"tools/{toolName}/{toolName}.yaml";
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+
+        // Verify the YAML content
+        var yamlContent = Runner.ReadFile(expectedPath);
+        _output.WriteLine("=== YAML Content ===");
+        _output.WriteLine(yamlContent);
+        _output.WriteLine("====================");
+
+        // Parse and validate YAML structure
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
+
+        var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(yamlContent);
+
+        // Validate required fields
+        Assert.True(yamlDict.ContainsKey("api_version"), "YAML should contain api_version");
+        Assert.True(yamlDict.ContainsKey("kind"), "YAML should contain kind");
+        Assert.Equal("ExtendedAgentTool", yamlDict["kind"].ToString());
+
+        // Validate metadata
+        Assert.True(yamlDict.ContainsKey("metadata"), "YAML should contain metadata");
+        var metadata = yamlDict["metadata"] as Dictionary<object, object>;
+        Assert.NotNull(metadata);
+        Assert.Equal(toolName, metadata["name"].ToString());
+
+        // Validate spec
+        Assert.True(yamlDict.ContainsKey("spec"), "YAML should contain spec");
+        var spec = yamlDict["spec"] as Dictionary<object, object>;
+        Assert.NotNull(spec);
+        Assert.Equal("PythonTool", spec["type"].ToString());
+        Assert.Equal(description, spec["description"].ToString());
+
+        // Validate PythonTool-specific fields
+        Assert.True(spec.ContainsKey("functionCode"), "YAML should contain functionCode");
+        Assert.Contains("def execute", spec["functionCode"].ToString());
+
+        // Verify success message in output
+        Assert.Contains("created", result.Output, StringComparison.OrdinalIgnoreCase);
+
+        // Validate the created tool
+        var validateResult = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+        _output.WriteLine($"Validation output: {validateResult.Output}");
+        Assert.True(validateResult.Success, "Created tool should be valid");
+        Assert.Equal(0, validateResult.ExitCode);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Create")]
+    public async Task ToolCreate_PythonToolMinimal_CreatesValidTool()
+    {
+        // Act - PythonTool with minimal parameters (defaults provided by template)
+        var result = await Runner.RunAsync(
+            "tool", "create",
+            "--name", "TestPythonMinimal",
+            "--type", "PythonTool"
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
+
+        var expectedPath = "tools/TestPythonMinimal/TestPythonMinimal.yaml";
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+
+        var yamlContent = Runner.ReadFile(expectedPath);
+        Assert.Contains("functionCode:", yamlContent);
+        Assert.Contains("def execute", yamlContent);
+
+        // Validate the created tool
+        var validateResult = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", "TestPythonMinimal"
+        );
+        _output.WriteLine($"Validation output: {validateResult.Output}");
+        Assert.True(validateResult.Success, "Created tool should be valid");
+        Assert.Equal(0, validateResult.ExitCode);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Create")]
+    public async Task ToolCreate_PythonToolWithCustomOptions_CreatesValidYaml()
+    {
+        // Arrange
+        var toolName = "CustomPythonTool";
+        var timeout = 60;
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "create",
+            "--name", toolName,
+            "--type", "PythonTool",
+            "--timeout", timeout.ToString(),
+            "--dependency", "requests",
+            "--dependency", "pandas",
+            "--parameter", "url:The URL to fetch",
+            "--parameter", "limit:Maximum items to return",
+            "--path", ""
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
+
+        var expectedPath = $"tools/{toolName}.yaml";
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+
+        var yamlContent = Runner.ReadFile(expectedPath);
+        _output.WriteLine("=== YAML Content ===");
+        _output.WriteLine(yamlContent);
+        _output.WriteLine("====================");
+
+        // Verify custom timeout
+        Assert.Contains("timeoutSeconds: 60", yamlContent);
+
+        // Verify dependencies
+        Assert.Contains("dependencies:", yamlContent);
+        Assert.Contains("- requests", yamlContent);
+        Assert.Contains("- pandas", yamlContent);
+
+        // Verify custom parameters
+        Assert.Contains("url", yamlContent);
+        Assert.Contains("The URL to fetch", yamlContent);
+        Assert.Contains("limit", yamlContent);
+        Assert.Contains("Maximum items to return", yamlContent);
+
+        // Validate the created tool
+        var validateResult = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+        _output.WriteLine($"Validation output: {validateResult.Output}");
+        Assert.True(validateResult.Success, "Created tool should be valid");
+        Assert.Equal(0, validateResult.ExitCode);
+    }
+
+    [Fact]
+    [Trait("Category", "Tool")]
+    [Trait("Command", "Create")]
+    public async Task ToolCreate_PythonToolWithDependencies_CreatesValidYaml()
+    {
+        // Arrange
+        var toolName = "PythonToolWithDeps";
+
+        // Act
+        var result = await Runner.RunAsync(
+            "tool", "create",
+            "--name", toolName,
+            "--type", "PythonTool",
+            "--dependency", "numpy",
+            "--dependency", "matplotlib",
+            "--dependency", "scikit-learn"
+        );
+
+        // Assert
+        _output.WriteLine(result.Output);
+        Assert.True(result.Success, $"Command should succeed. Error: {result.StandardError}");
+
+        var expectedPath = $"tools/{toolName}/{toolName}.yaml";
+        Assert.True(Runner.FileExists(expectedPath), $"YAML file should exist at {expectedPath}");
+
+        var yamlContent = Runner.ReadFile(expectedPath);
+
+        // Verify all dependencies are present
+        Assert.Contains("dependencies:", yamlContent);
+        Assert.Contains("- numpy", yamlContent);
+        Assert.Contains("- matplotlib", yamlContent);
+        Assert.Contains("- scikit-learn", yamlContent);
+
+        // Validate the created tool
+        var validateResult = await Runner.RunAsync(
+            "tool", "validate",
+            "--name", toolName
+        );
+        _output.WriteLine($"Validation output: {validateResult.Output}");
+        Assert.True(validateResult.Success, "Created tool should be valid");
+        Assert.Equal(0, validateResult.ExitCode);
+    }
 }
