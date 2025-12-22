@@ -101,8 +101,8 @@ namespace Agent.Plugins.DataConnectors.TSG
             {
                 if (extendedProperties.TryGetValue("UseManagedIdentityAsFic", out var useFicElement))
                 {
-                    var useFicValue = useFicElement.GetString();
-                    useManagedIdentityAsFic = bool.TryParse(useFicValue, out var parsedValue) && parsedValue;
+                    var useFicString = useFicElement.ToString();
+                    useManagedIdentityAsFic = bool.TryParse(useFicString, out var parsedValue) && parsedValue;
                 }
 
                 if (useManagedIdentityAsFic)
