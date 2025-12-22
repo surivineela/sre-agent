@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
 using YamlDotNet.Serialization;
 
 namespace Agent.Cli.Models
@@ -16,7 +17,7 @@ namespace Agent.Cli.Models
         public string? FunctionCode { get; set; }
 
         [YamlMember(Alias = "timeoutSeconds", Order = 11, DefaultValuesHandling = DefaultValuesHandling.OmitDefaults)]
-        public int TimeoutSeconds { get; set; } = 30;
+        public int TimeoutSeconds { get; set; } = Constants.PythonToolDefaultTimeoutSeconds;
 
         [YamlMember(Alias = "dependencies", Order = 12, DefaultValuesHandling = DefaultValuesHandling.OmitEmptyCollections)]
         public List<string>? Dependencies { get; set; }

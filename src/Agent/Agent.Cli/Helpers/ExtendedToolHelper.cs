@@ -4,6 +4,7 @@
 
 using Agent.Cli.Models;
 using Agent.Cli.Services;
+using Agent.Core;
 
 namespace Agent.Cli.Helpers;
 
@@ -207,7 +208,7 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
                 Connector = string.Empty,
                 Description = description ?? "Sample PythonTool description",
                 FunctionCode = effectiveFunctionCode,
-                TimeoutSeconds = timeoutSeconds ?? 30,
+                TimeoutSeconds = timeoutSeconds ?? Constants.PythonToolDefaultTimeoutSeconds,
                 Dependencies = dependencies?.ToList(),
                 Parameters = CreateParameterSpecs(effectiveParameters, isKustoTool: false)
             }

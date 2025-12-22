@@ -282,5 +282,10 @@ public class Constants
     }
 
     public static readonly TimeSpan AzCliDefaultTimeout = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// Default timeout in seconds for BYO Python tool execution.
+    /// </summary>
+    public const int PythonToolDefaultTimeoutSeconds = 240;
 }
 
