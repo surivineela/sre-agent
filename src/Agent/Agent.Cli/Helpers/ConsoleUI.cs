@@ -173,19 +173,20 @@ public static class ConsoleUI
     ///     # Create a new tool
     ///     srectl tool create --name mytool
     /// </summary>
-    public static void WriteExamples((string Comment, string Command)[] examples, int indent = 2)
+    public static void WriteExamples((string Comment, string Command)[] examples, int indent = 2, int pad = 0)
     {
-        WithColor(ConsoleColor.DarkGray, () => Console.WriteLine("Examples:"));
-        string pad = new string(' ', indent);
+        string headerPad = new string(' ', pad);
+        Console.WriteLine($"{headerPad}Examples:");
+        string examplePad = new string(' ', pad + indent);
 
         for (int i = 0; i < examples.Length; i++)
         {
             var (comment, command) = examples[i];
 
             if (!string.IsNullOrWhiteSpace(comment))
-                WithColor(ConsoleColor.DarkGray, () => Console.WriteLine($"{pad}# {comment}"));
+                Console.WriteLine($"{examplePad}# {comment}");
 
-            WithColor(ConsoleColor.White, () => Console.WriteLine($"{pad}{command}"));
+            Console.WriteLine($"{examplePad}{command}");
             // no per-item blank line; keeps the block compact
         }
 
@@ -245,6 +246,61 @@ public static class ConsoleUI
     {
         if (color.HasValue) WithColor(color.Value, () => Console.WriteLine(message));
         else Console.WriteLine(message);
+    }
+
+    /// <summary>
+    /// Write a list of command-line options in standard format.
+    /// Output: Each option formatted as "--name <name> (REQUIRED)  Description text"
+    /// Example: --name <name> (REQUIRED)         Name of the tool
+    ///          --type <type> (REQUIRED)         Type of the tool
+    ///          --path <path>                    Custom path under tools directory
+    /// </summary>
+    public static void WriteOptions(IEnumerable<Option> options)
+    {
+        foreach (var option in options)
+        {
+            // Get the primary alias (usually the long form like --name)
+            var alias = option.Aliases.FirstOrDefault() ?? option.Name;
+
+            // Extract the argument name from the alias (remove leading dashes)
+            var argName = alias.TrimStart('-');
+
+            // Build the option string: --name <name>
+            var optionStr = $"{alias} <{argName}>";
+
+            // Check if option is required
+            var required = "";
+            try
+            {
+                var requiredProp = option.GetType().GetProperty("Required");
+                if (requiredProp != null && (bool)requiredProp.GetValue(option)!)
+                {
+                    required = " (REQUIRED)";
+                }
+            }
+            catch { /* ignore */ }
+
+            // Combine option string with required marker
+            var fullOption = optionStr + required;
+
+            // Get description
+            var description = option.Description ?? "";
+
+            // Handle multi-line descriptions
+            var lines = description.Split('\n');
+            if (lines.Length > 0)
+            {
+                Console.WriteLine($"  {fullOption,-35} {lines[0]}");
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    Console.WriteLine($"  {new string(' ', 35)} {lines[i]}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"  {fullOption,-35} {description}");
+            }
+        }
     }
 
     /// <summary>

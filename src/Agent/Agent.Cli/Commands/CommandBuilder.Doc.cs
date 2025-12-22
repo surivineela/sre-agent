@@ -19,8 +19,6 @@ public static partial class CommandBuilder
                 CreateDocumentReindexCommand()
             };
 
-            // Add default action for doc command to show formatted help
-            doc.SetAction(pr => ShowFormattedDocHelp(doc));
             return doc;
         }
 

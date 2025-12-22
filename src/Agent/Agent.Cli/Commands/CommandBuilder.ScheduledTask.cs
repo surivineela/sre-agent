@@ -24,8 +24,6 @@ public static partial class CommandBuilder
                 CreateApplyCommand()
             };
 
-            // Add default action for scheduled task command to show formatted help
-            scheduledTask.SetAction(pr => ShowFormattedScheduledTaskHelp(scheduledTask));
             return scheduledTask;
         }
 

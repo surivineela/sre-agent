@@ -22,9 +22,6 @@ public static partial class CommandBuilder
                 CreateSkillDeleteCommand()
             };
 
-            // Add default action for skill command to show formatted help
-            cmd.SetAction(pr => ShowFormattedSkillHelp(cmd));
-
             return cmd;
         }
 

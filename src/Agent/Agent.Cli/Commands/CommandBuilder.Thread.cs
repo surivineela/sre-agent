@@ -22,8 +22,6 @@ public static partial class CommandBuilder
                 CreateApplyCommand()
             };
 
-            // Add default action for thread command to show formatted help
-            thread.SetAction(pr => ShowFormattedThreadHelp(thread));
             return thread;
         }
 

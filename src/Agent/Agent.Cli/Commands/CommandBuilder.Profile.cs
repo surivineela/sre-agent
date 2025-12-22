@@ -21,9 +21,6 @@ public static partial class CommandBuilder
                 CreateProfileDeleteCommand()
             };
 
-            // Add default action for profile command to show formatted help
-            cmd.SetAction(pr => ShowFormattedProfileHelp(cmd));
-
             return cmd;
         }
 

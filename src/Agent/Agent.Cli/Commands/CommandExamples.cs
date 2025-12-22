@@ -134,29 +134,7 @@ Examples:
 
     public static class Tool
     {
-        public const string CreateDescription = @"Create a new tool YAML configuration file
-
-Examples:
-  # Create a KustoTool with all parameters (simple format)
-  srectl tool create --name QueryMetrics --type KustoTool --connector analytics-cluster --database LogsDB --description ""Query performance metrics"" --query ""MyTable | take 10"" --parameter limit --parameter offset
-
-  # Create a KustoTool with parameters including descriptions
-  srectl tool create --name AnalyzeErrors --type KustoTool --connector logs-cluster --database LogsDB --parameter ""hours:Hours to look back"" --parameter ""severity:Error severity level""
-
-  # Create a KustoTool with minimal options (query and parameters are optional)
-  srectl tool create --name GetLogs --type KustoTool --connector logs-cluster --database LogsDB
-
-  # Create a LinkTool with template and parameters
-  srectl tool create --name ServiceDashboard --type LinkTool --description ""Link to service dashboard"" --template ""https://dashboard.example.com/{serviceId}/{region}"" --parameter serviceId --parameter region
-
-  # Create a LinkTool with minimal options (template and parameters are optional)
-  srectl tool create --name DocLink --type LinkTool --description ""Link to documentation""
-
-  # Create a tool with custom path organization
-  srectl tool create --name StorageOps --type KustoTool --path ""Storage/Operations"" --connector storage-cluster
-
-  # View available tool types
-  srectl tool show-types";
+        public const string CreateDescription = "Create a new tool YAML configuration file";
 
         public const string ValidateDescription = @"Validate tool YAML configuration files
 

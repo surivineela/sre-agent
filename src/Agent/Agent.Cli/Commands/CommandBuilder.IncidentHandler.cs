@@ -19,8 +19,6 @@ public static partial class CommandBuilder
                 CreateCreateCommand()
             };
 
-            // Add default action for incidenthandler command to show formatted help
-            incidentHandler.SetAction(pr => ShowFormattedIncidentHandlerHelp(incidentHandler));
             return incidentHandler;
         }
 

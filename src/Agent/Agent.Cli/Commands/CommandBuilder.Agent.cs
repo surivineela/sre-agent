@@ -25,9 +25,6 @@ public static partial class CommandBuilder
                 CreateAgentListCommand()
             };
 
-            // Add default action for agent command to show formatted help
-            cmd.SetAction(pr => ShowFormattedAgentHelp(cmd));
-
             return cmd;
         }
 

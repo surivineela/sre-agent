@@ -18,8 +18,6 @@ public static partial class CommandBuilder
                 CreateGenerateEv2Command()
             };
 
-            // Add default action for extension command to show formatted help
-            extension.SetAction(pr => ShowFormattedExtensionHelp(extension));
             return extension;
         }
 
