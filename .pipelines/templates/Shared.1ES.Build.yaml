@@ -38,7 +38,7 @@ extends:
       name: Azure-Pipelines-1ESPT-ExDShared
       image: windows-latest
       os: windows
-    
+
     authenticatedContainerRegistries:
     - serviceConnection: sreagentdev
     - serviceConnection: sreagentprod
@@ -65,7 +65,7 @@ extends:
           ExtraBuildFlags: '/p:Version=$(Build.BuildNumber) /p:OfficialBuild=true'
         ${{ else }}:
           ExtraBuildFlags: ''
-      
+
       jobs:
       - job: build
         displayName: "🔨 Build Agent"
@@ -89,7 +89,7 @@ extends:
           fetchDepth: 1
           persistCredentials: true # For localized file check-in
 
-          # Used to get the packages that referenced by generated WorkerExtensions.csproj 
+          # Used to get the packages that referenced by generated WorkerExtensions.csproj
         - task: NuGetAuthenticate@1
           displayName: NuGetAuthenticate
 
@@ -146,7 +146,7 @@ extends:
             feedsToUse: config
             nugetConfigPath: $(BuildNugetConfigPath)
             ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
-        
+
         #
         # UX - Localization
         #
@@ -193,7 +193,7 @@ extends:
           inputs:
             command: 'install'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
-        
+
         #
         # UX - Agent.Portal - Install NPM packages
         #
@@ -202,7 +202,7 @@ extends:
           inputs:
             command: 'install'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
-        
+
         #
         # UX - Agent.Web - Build React app
         #
@@ -214,7 +214,7 @@ extends:
             command: 'custom'
             customCommand: 'run build'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
-        
+
         #
         # UX - Agent.Portal - Build React app
         #
@@ -224,7 +224,7 @@ extends:
             command: 'custom'
             customCommand: 'run build'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
-        
+
         #
         # Build Solution
         #
@@ -329,7 +329,7 @@ extends:
             path: '$(ArtifactDirectory)'
             artifact: drop_build_main
           displayName: 'Publish Artifact'
-        
+
         # - task: PowerShell@2
         #   displayName: 'Copy dockerfile to output directory'
         #   inputs:
@@ -368,7 +368,7 @@ extends:
           inputs:
             command: 'install'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
-        
+
         #
         # UX - Agent.Portal - Install NPM packages
         #
@@ -387,7 +387,7 @@ extends:
               command: 'custom'
               workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
               customCommand: 'run test'
-        
+
         #
         # UX - Agent.Web - Publish unit test results
         #
@@ -398,7 +398,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
             failTaskOnFailedTests: true
             testRunTitle: 'UX_AgentWeb_UnitTests'
-        
+
         #
         # UX - Agent.Portal - Unit tests
         #
@@ -408,7 +408,7 @@ extends:
               command: 'custom'
               workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
               customCommand: 'run test'
-        
+
         #
         # UX - Agent.Portal - Publish unit test results
         #
@@ -427,7 +427,7 @@ extends:
           fetchDepth: 1
           persistCredentials: true # For localized file check-in
 
-          # Used to get the packages that referenced by generated WorkerExtensions.csproj 
+          # Used to get the packages that referenced by generated WorkerExtensions.csproj
         - task: NuGetAuthenticate@1
           displayName: NuGetAuthenticate
 
@@ -454,7 +454,7 @@ extends:
             feedsToUse: config
             nugetConfigPath: $(BuildNugetConfigPath)
             ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
-        
+
         #
         # Build Solution
         #
@@ -472,7 +472,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit' 
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit'
             publishTestResults: false
 
         #
@@ -483,7 +483,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests'
             publishTestResults: false
 
         #
@@ -544,7 +544,7 @@ extends:
               dockerFile: $(Build.SourcesDirectory)/src/Deployment/Agent.Web/Dockerfile
               image: sre-agent-web:$(Build.BuildNumber)
               enableNetwork: true
-          
+
           templateContext:
             outputs:
             - output: containerImage
@@ -586,6 +586,4 @@ extends:
               image: session-proxy:$(Build.BuildNumber)
               # Commented out remote image push
               remoteImage:
-              - sreagentdev.azurecr.io/session-proxy:$(Build.BuildNumber)
-              - sreagentprod.azurecr.io/session-proxy:$(Build.BuildNumber)
               - k8seprod.azurecr.io/public/k8se/sreagent/session-proxy:$(Build.BuildNumber)

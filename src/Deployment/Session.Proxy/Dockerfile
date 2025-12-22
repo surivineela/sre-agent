@@ -1,11 +1,22 @@
-# Use the official .NET 9 runtime image to run the app
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+# Use the Python code interpreter image as the base
+FROM mcr.microsoft.com/k8se/services/codeinterpreter:0.9.34-python3.12 AS runtime
+
+USER root
 
 ARG AZCLI_VERSION=2.76.0
 
-# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-2-step-by-step-installation-instructions
+# Install .NET 9 SDK (includes runtime) for Session.Proxy
 RUN apt-get update && \
-    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
+    apt-get install -y wget libicu-dev && \
+    wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet && \
+    rm dotnet-install.sh && \
+    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
+# Install Azure CLI
+# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?view=azure-cli-latest&pivots=apt#option-2-step-by-step-installation-instructions
+RUN apt-get install -y ca-certificates curl gnupg lsb-release && \
     mkdir -p /etc/apt/keyrings && \
     curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null && \
     chmod go+r /etc/apt/keyrings/microsoft.gpg && \
@@ -18,13 +29,14 @@ RUN apt-get update && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
-# Install Node.js, npm, Python, and uvx (required for running MCP servers)
-RUN apt-get install -y curl python3 python3-pip python3-venv && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    pip3 install --break-system-packages uv
+# Install Node.js (if not already present - code interpreter base may have it)
+RUN if ! command -v node &> /dev/null; then \
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+        apt-get install -y nodejs; \
+    fi
 
-WORKDIR /app
+# Copy Session.Proxy application files to a separate directory
+WORKDIR /app/session-proxy
 COPY . .
 
 # Temporarily install azure devops mcp server from source code instead of npm registry due to federation auth
@@ -33,8 +45,8 @@ RUN apt-get install -y git && \
     cd /azdevop && \
     npm install && \
     npm run build && \
-    mkdir -p /app/mcp-tools && \
-    cp -r /azdevop /app/mcp-tools/ && \
+    mkdir -p /app/session-proxy/mcp-tools && \
+    cp -r /azdevop /app/session-proxy/mcp-tools/ && \
     cd / && \
     rm -rf /azdevop
 
@@ -42,10 +54,20 @@ RUN apt-get install -y git && \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Azure CLI extensions
 RUN az extension add --allow-preview -y --system --name containerapp && \
     az extension add --allow-preview -y --system --name log-analytics && \
     az extension add --allow-preview -y --system --name kusto && \
     az extension add --allow-preview -y --system --name vm-repair
 
-# Run the application
-ENTRYPOINT ["dotnet", "Session.Proxy.dll"]
+# Set environment variable for Session.Proxy to proxy to code interpreter
+ENV PythonProxyService__TargetUrl="http://localhost:6000"
+
+WORKDIR /app
+
+# Copy and set up the custom entrypoint script
+COPY start-session-proxy.sh /app/start-session-proxy.sh
+RUN chmod +x /app/start-session-proxy.sh
+
+# Run the custom entrypoint that starts Session.Proxy before the original entrypoint
+ENTRYPOINT ["/app/start-session-proxy.sh"]
