@@ -42,6 +42,13 @@ public class McpConnectionRequest
     [JsonPropertyName("protocolVersion")]
     public int? ProtocolVersion { get; set; }
 
+    /// <summary>
+    /// Optional flag indicating if the client is a first-party agent.
+    /// Used by Session.Proxy to determine if Ev2 MCP Server bits should be retained.
+    /// </summary>
+    [JsonPropertyName("isFirstParty")]
+    public bool? IsFirstParty { get; set; }
+
     // Protocol version constants
     public const int DefaultProtocolVersion = 1;
     public const int MaxSupportedProtocolVersion = 2;

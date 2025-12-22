@@ -118,7 +118,8 @@ public class SessionWebsocketClientTransport : IClientTransport
                 Arguments = _options.Arguments,
                 EnvironmentVariables = _options.EnvVars,
                 ActionTokens = actionTokens,
-                ProtocolVersion = 2  // Hardcoded: always use protocol v2
+                ProtocolVersion = 2,  // Hardcoded: always use protocol v2
+                IsFirstParty = Helpers.FirstPartyHelper.IsFirstPartyTenant()
             };
 
             var requestJson = JsonSerializer.Serialize(connectionRequest);

@@ -15,6 +15,12 @@ public class McpProxyService
     private readonly ProtocolHandlerFactory _protocolHandlerFactory;
     private readonly string _msiEndpoint;
     private static readonly UTF8Encoding NoBomUtf8 = new(encoderShouldEmitUTF8Identifier: false);
+    private static readonly object _internalBitsCleanupLock = new();
+    private static bool _internalBitsDeleted = false;
+    private static readonly string[] InternalBitsDirectories = new[]
+    {
+        Path.Combine("/app", "session-proxy", "mcp-tools", "ev2-mcp-server")
+    };
 
     public McpProxyService(ILogger<McpProxyService> logger, IdentityProviderClient identityProviderClient, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
@@ -22,6 +28,51 @@ public class McpProxyService
         _protocolHandlerFactory = new ProtocolHandlerFactory(loggerFactory);
         _identityProviderClient = identityProviderClient;
         _msiEndpoint = identityProviderClient.MsiEndpoint;
+    }
+
+    /// <summary>
+    /// Deletes internal MCP Server bits for non-first-party clients.
+    /// Thread-safe and idempotent.
+    /// </summary>
+    public void CleanupInternalBits()
+    {
+        // Thread-safe check and deletion
+        lock (_internalBitsCleanupLock)
+        {
+            if (_internalBitsDeleted)
+            {
+                _logger.LogInformation("Internal bits already deleted, skipping");
+                return;
+            }
+
+            foreach (var directory in InternalBitsDirectories)
+            {
+                if (!Directory.Exists(directory))
+                {
+                    _logger.LogInformation("Internal bits directory does not exist at {Path}, nothing to clean up", directory);
+                    continue;
+                }
+
+                try
+                {
+                    _logger.LogWarning(
+                        "Non-first-party client detected - deleting internal MCP Server bits at {Path}",
+                        directory);
+                    Directory.Delete(directory, recursive: true);
+                    _logger.LogInformation("Successfully deleted internal bits directory at {Path}", directory);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to delete internal bits directory at {Path}. This may waste resources but won't affect functionality",
+                        directory);
+                    // Don't throw - non-critical cleanup operation
+                }
+            }
+
+            _internalBitsDeleted = true;
+        }
     }
 
     /// <summary>

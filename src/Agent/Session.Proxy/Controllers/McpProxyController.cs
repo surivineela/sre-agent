@@ -64,6 +64,12 @@ public class McpProxyController : ControllerBase
                 return;
             }
 
+            // Cleanup Ev2 bits if non-first-party client
+            if (connectionRequest.IsFirstParty != true)
+            {
+                _proxyService.CleanupInternalBits();
+            }
+
             // Get protocol version (default to 1 if not specified)
             var protocolVersion = connectionRequest.ProtocolVersion ?? McpConnectionRequest.DefaultProtocolVersion;
 
