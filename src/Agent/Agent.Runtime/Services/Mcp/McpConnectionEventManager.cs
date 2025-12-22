@@ -302,61 +302,37 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
 
         _logger.LogInternalDebug("Verifying {Count} dynamically added MCP connections", connections.Count);
 
-        var verificationTasks = connections.Where(c => c.Status == DataConnectorStatus.Connected).Select(async connection =>
+        var verificationTasks = connections
+            .Where(c => c.Status == DataConnectorStatus.Connected || c.Status == DataConnectorStatus.Disconnected)
+            .Select(async connection =>
         {
+            if (connection.Client == null)
+            {
+                _logger.LogInternalWarning("MCP client is null for connection '{ConnectionId}', marking as failed", connection.Id);
+                connection.MarkAsFailed("MCP client is null");
+                return;
+            }
+
             try
             {
-                if (connection.Client == null)
-                {
-                    _logger.LogInternalWarning("MCP client is null for connection '{ConnectionId}', marking as failed", connection.Id);
-                    connection.MarkAsFailed("MCP client is null");
-                    return;
-                }
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds));
+                await connection.Client.PingAsync(cts.Token);
 
-                if (connection.Status != DataConnectorStatus.Connected)
-                {
-                    _logger.LogInternalInformation(
-                        "Connection '{ConnectionId}' is not in Connected state (current: '{Status}'), skipping ping",
-                        connection.Id,
-                        connection.Status);
-                    return;
-                }
+                _logger.LogInternalInformation("Successfully pinged '{ConnectionId}'", connection.Id);
+                connection.UpdateHeartbeat();
+                connection.ResetPingFailures();
 
-                // Attempt to ping the connection
-                var completed = false;
-
-                try
+                // Recover from transient failures
+                if (connection.Status == DataConnectorStatus.Disconnected)
                 {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds));
-                    await connection.Client.PingAsync(cts.Token).ContinueWith(t => completed = t.IsCompletedSuccessfully);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalWarning(ex, "Exception during ping for '{ConnectionId}'", connection.Id);
-                }
-
-                if (!completed)
-                {
-                    _logger.LogInternalWarning("Ping timed out for '{ConnectionId}', marking as disconnected", connection.Id);
-                    connection.IncrementPingFailures();
-                    connection.MarkAsDisconnected($"Ping timeout after {_mcpSettings.PingTimeoutInSeconds} seconds");
-                }
-                else
-                {
-                    _logger.LogInternalInformation("Successfully pinged '{ConnectionId}'", connection.Id);
-                    connection.UpdateHeartbeat();
-                    connection.ResetPingFailures();
-                    // If connection was previously disconnected due to ping issues, mark it as healthy again
-                    if (connection.Status == DataConnectorStatus.Disconnected)
-                    {
-                        connection.MarkAsConnected();
-                    }
+                    _logger.LogInternalInformation("Connection '{ConnectionId}' recovered from transient failure", connection.Id);
+                    connection.MarkAsConnected();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogInternalWarning(ex, "Ping failed for '{ConnectionId}', marking as disconnected", connection.Id);
                 connection.IncrementPingFailures();
+                _logger.LogInternalError(ex, "Exception during ping for '{ConnectionId}'", connection.Id);
                 connection.MarkAsDisconnected($"Ping failed: {ex.Message}");
             }
         });
