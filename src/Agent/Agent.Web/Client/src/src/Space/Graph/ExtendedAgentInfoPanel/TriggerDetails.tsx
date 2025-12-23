@@ -3,6 +3,7 @@ import { ArrowRightRegular } from '@fluentui/react-icons';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { getHumanReadableCronExpression } from '../../../Common/Helpers/CronExpression';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
@@ -71,7 +72,11 @@ export const TriggerDetails = memo(({ trigger }: TriggerDetailsProps) => {
                     </div>
                     <div className={styles.metadataRow}>
                         <Text className={styles.metadataKey}>{intl.formatMessage(ExtendedAgentsGraphResources.agentAutonomy)}</Text>
-                        <Text>{intl.formatMessage(SreAgentResources.reviewWord)}</Text>
+                        <Text>
+                            {trigger.agentMode === AgentMode.autonomous
+                                ? intl.formatMessage(SreAgentResources.autonomousWord)
+                                : intl.formatMessage(SreAgentResources.reviewWord)}
+                        </Text>
                     </div>
                 </>
             )}

@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { EntityType } from '../Graph/ExtendedAgentCreationDialog/types';
 
 // Skill Types
@@ -144,6 +145,7 @@ export type ExtendedTrigger = {
     executionCount?: number;
     id?: string;
     data?: any;
+    agentMode?: AgentMode;
     [key: string]: any;
 };
 

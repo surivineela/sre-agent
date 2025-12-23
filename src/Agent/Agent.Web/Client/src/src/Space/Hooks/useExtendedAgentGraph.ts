@@ -318,6 +318,7 @@ export const useExtendedAgentGraph = () => {
                         severity: filter?.priority || '-',
                         enabled: !!filter?.isEnabled,
                         createdAt: handler.createdAt || new Date().toISOString(),
+                        agentMode: filter?.agentMode,
                     });
                 }
             });
@@ -339,6 +340,7 @@ export const useExtendedAgentGraph = () => {
                         titleContains: filter.titleContains || '-',
                         enabled: !!filter.isEnabled,
                         createdAt: filter.createdAt || new Date().toISOString(),
+                        agentMode: filter.agentMode,
                     });
                 }
             });
