@@ -1976,50 +1976,6 @@ public partial class ApiService : IDisposable
     #region Skill Methods
 
     /// <summary>
-    /// Uploads a skill from a local directory to the server.
-    /// </summary>
-    /// <param name="skillDirectoryPath">Path to the skill directory containing metadata.yaml and SKILL.md</param>
-    /// <returns>Success status and response message</returns>
-    public async Task<(bool Success, string Response)> UploadSkillAsync(string skillDirectoryPath)
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            // Read and combine skill files into deployment model
-            var skillYaml = await YamlHelper.ReadSkillFromDirectory(skillDirectoryPath);
-            if (string.IsNullOrEmpty(skillYaml))
-            {
-                return (false, $"Failed to read skill from directory: {skillDirectoryPath}");
-            }
-
-            var url = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
-            var request = new HttpRequestMessage(HttpMethod.Put, url);
-            request.Content = new StringContent(skillYaml, Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/yaml"));
-
-            var (response, content, _) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return (true, "Skill uploaded successfully");
-            }
-            else
-            {
-                return (false, $"Upload failed: {response.StatusCode} - {content}");
-            }
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"UploadSkill failed: {ex.Message}");
-            return (false, $"Failed to upload skill: {ex.Message}");
-        }
-    }
-
-    /// <summary>
     /// Converts an agent to a skill and saves it locally.
     /// </summary>
     /// <param name="agentName">Name of the agent to convert</param>
@@ -2266,46 +2222,6 @@ public partial class ApiService : IDisposable
         {
             DebugLogger.Debug("Exception", $"GetSkillNames failed: {ex.Message}");
             return (false, [], $"Failed to get skill names: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Deletes a skill from the server.
-    /// </summary>
-    /// <param name="skillName">Name of the skill to delete</param>
-    /// <returns>Success status and response message</returns>
-    public async Task<(bool Success, string Response)> DeleteSkillAsync(string skillName)
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/skills/{skillName}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-
-            var (response, content, _) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return (true, $"Skill '{skillName}' deleted successfully");
-            }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return (false, $"Skill '{skillName}' not found");
-            }
-            else
-            {
-                return (false, $"Failed to delete skill: {response.StatusCode} - {content}");
-            }
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"DeleteSkill failed: {ex.Message}");
-            return (false, $"Failed to delete skill: {ex.Message}");
         }
     }
 

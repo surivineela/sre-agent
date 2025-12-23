@@ -30,7 +30,7 @@ public static partial class CommandBuilder
                 }
             });
 
-            cmd.SetAction(Commands.ApplyYamlCommand.HandleCommand);
+            cmd.SetAction(Commands.ApplyYamlCommandHandlers.HandleCommand);
 
             return cmd;
         }

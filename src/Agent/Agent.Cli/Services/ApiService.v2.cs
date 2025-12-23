@@ -149,7 +149,7 @@ public partial class ApiService : IDisposable
             var requestBody = new
             {
                 name = toolName,
-                type = "ExtendedAgentTool",
+                type = ResourceModel.ResourceKind.ExtendedAgentToolV2,
                 tags = tool.Metadata?.Tags ?? new List<string>(),
                 owner = tool.Metadata?.Owner,
                 properties = propertiesNode
@@ -258,7 +258,7 @@ public partial class ApiService : IDisposable
             var requestBody = new
             {
                 name = agent.Metadata?.Name ?? agentName,
-                type = "ExtendedAgent",
+                type = ResourceModel.ResourceKind.ExtendedAgentV2,
                 tags = agent.Metadata?.Tags ?? new List<string>(),
                 owner = agent.Metadata?.Owner,
                 properties = propertiesNode
@@ -531,7 +531,7 @@ public partial class ApiService : IDisposable
             var requestBody = new
             {
                 name = prompt.Metadata.Name,
-                type = "CommonPrompt",
+                type = ResourceModel.ResourceKind.CommonPromptV2,
                 tags = prompt.Metadata.Tags ?? new List<string>(),
                 owner = prompt.Metadata.Owner,
                 properties = propertiesNode
@@ -560,6 +560,223 @@ public partial class ApiService : IDisposable
         catch (Exception ex)
         {
             return (false, $"❌ Failed to apply common prompt: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Extended API for Skills
+
+    public async Task<(List<ExtendedSkillV2> Result, string? Error)> ListExtendedSkillsAsync(string? search = null)
+    {
+        var resultList = new List<ExtendedSkillV2>();
+
+        try
+        {
+            var relativeUrl = "api/v2/extendedAgent/skills";
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                relativeUrl += $"?search={Uri.EscapeDataString(search)}";
+            }
+
+            var (skillsEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiCollectionEnvelope<SkillSpecV2>>(HttpMethod.Get, relativeUrl);
+
+            if (errorMessage != null)
+            {
+                return (resultList, errorMessage);
+            }
+
+            if (skillsEnvelope?.Value == null || skillsEnvelope.Value.Count == 0)
+            {
+                return (resultList, null);
+            }
+
+            // Convert envelopes to ExtendedSkillV2
+            foreach (var envelope in skillsEnvelope.Value)
+            {
+                if (envelope.Properties == null)
+                {
+                    continue;
+                }
+
+                // Construct ExtendedSkillV2 from envelope
+                var extendedSkill = new ExtendedSkillV2
+                {
+                    Metadata = new ResourceMetadataModel
+                    {
+                        Name = envelope.Name,
+                        Owner = envelope.Owner,
+                        Tags = envelope.Tags ?? new List<string>()
+                    },
+                    Spec = envelope.Properties
+                };
+
+                resultList.Add(extendedSkill);
+            }
+
+            return (resultList, null);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListExtendedSkills failed: {ex.Message}");
+            return (resultList, $"Failed to list skills: {ex.Message}");
+        }
+    }
+
+    public async Task<(ExtendedSkillV2? Result, string? Error)> GetExtendedSkillAsync(string skillName)
+    {
+        try
+        {
+            var relativeUrl = $"api/v2/extendedAgent/skills/{Uri.EscapeDataString(skillName)}";
+
+            var (skillEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiEnvelope<SkillSpecV2>>(HttpMethod.Get, relativeUrl);
+
+            // NotFound (404) means the skill doesn't exist
+            if (statusCode == HttpStatusCode.NotFound)
+            {
+                return (null, $"Skill '{skillName}' not found");
+            }
+
+            if (errorMessage != null)
+            {
+                return (null, errorMessage);
+            }
+
+            if (skillEnvelope?.Properties == null)
+            {
+                return (null, "Invalid response from server");
+            }
+
+            // Convert envelope to ExtendedSkillV2
+            var skill = new ExtendedSkillV2
+            {
+                Metadata = new ResourceMetadataModel
+                {
+                    Name = skillEnvelope.Name,
+                    Owner = skillEnvelope.Owner,
+                    Tags = skillEnvelope.Tags ?? new List<string>()
+                },
+                Spec = skillEnvelope.Properties
+            };
+
+            return (skill, null);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"GetExtendedSkill failed: {ex.Message}");
+            return (null, $"Failed to get skill: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> DeleteExtendedSkillAsync(string skillName, bool dryRun = false)
+    {
+        try
+        {
+            // Use V2 API endpoint: DELETE /api/v2/extendedAgent/skills/{skillName}
+            var relativeUrl = $"api/v2/extendedAgent/skills/{Uri.EscapeDataString(skillName)}";
+            if (dryRun)
+            {
+                relativeUrl += "?dryRun=true";
+            }
+
+            var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
+
+            // NoContent (204) means the item was not found - this is a success case
+            if (statusCode == HttpStatusCode.NoContent)
+            {
+                return (true, $"Skill '{skillName}' does not exist (already deleted or never created)");
+            }
+
+            if (errorMessage != null)
+            {
+                // Check specific status codes for better error messages
+                if (statusCode == HttpStatusCode.Conflict)
+                {
+                    // Parse conflict response to show dependent agents
+                    try
+                    {
+                        var conflictData = JsonSerializer.Deserialize<JsonElement>(content ?? "{}");
+                        if (conflictData.TryGetProperty("dependentAgents", out var dependentAgentsElement))
+                        {
+                            var dependentAgents = dependentAgentsElement.EnumerateArray()
+                                .Select(x => x.GetString())
+                                .Where(x => !string.IsNullOrEmpty(x))
+                                .ToList();
+
+                            var agentList = dependentAgents.Count != 0 ? string.Join(", ", dependentAgents) : "unknown agents";
+                            return (false, $"Cannot delete skill '{skillName}': it is used by the following agents: {agentList}");
+                        }
+
+                        if (conflictData.TryGetProperty("message", out var messageElement))
+                        {
+                            return (false, messageElement.GetString() ?? $"Conflict deleting skill '{skillName}'");
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to generic conflict message if parsing fails
+                    }
+
+                    return (false, $"Cannot delete skill '{skillName}': it is being used by agents");
+                }
+
+                return (false, errorMessage);
+            }
+
+            return (true, $"Skill '{skillName}' deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete skill: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> ApplyExtendedSkillAsync(ExtendedSkillV2 skill, bool dryRun = false)
+    {
+        try
+        {
+            var skillName = skill.Metadata?.Name;
+            if (string.IsNullOrWhiteSpace(skillName))
+            {
+                return (false, "Skill name is required in metadata.");
+            }
+
+            // Serialize spec to JSON node with camelCase properties
+            var propertiesNode = JsonSerializer.SerializeToNode(skill.Spec, _camelCaseJsonOptions);
+
+            // Build the API request envelope in camelCase
+            var requestBody = new
+            {
+                name = skillName,
+                type = ResourceModel.ResourceKind.SkillV2,
+                tags = skill.Metadata?.Tags ?? new List<string>(),
+                owner = skill.Metadata?.Owner,
+                properties = propertiesNode
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
+
+            // Use V2 API endpoint: PUT /api/v2/extendedAgent/skills/{skillName}
+            var dryRunQuery = dryRun ? "?dryRun=true" : "";
+            var relativeUrl = $"api/v2/extendedAgent/skills/{Uri.EscapeDataString(skillName)}{dryRunQuery}";
+
+            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
+
+            if (errorMessage == null)
+            {
+                var message = dryRun
+                    ? $"✅ Skill '{skillName}' validated successfully (dry run)"
+                    : $"✅ Skill '{skillName}' applied successfully!";
+                return (true, message);
+            }
+            else
+            {
+                return (false, $"❌ Failed to apply skill: {statusCode} - {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to apply skill: {ex.Message}");
         }
     }
 

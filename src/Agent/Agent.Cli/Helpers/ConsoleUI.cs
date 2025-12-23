@@ -227,6 +227,18 @@ public static class ConsoleUI
     }
 
     /// <summary>
+    /// Write a bullet point with message and detail.
+    /// Output: Indented line with bullet (e.g., "  • Review and customize: Edit the generated YAML file").
+    /// </summary>
+    public static void WriteBullet(string message, string detail, ConsoleColor color = ConsoleColor.Gray, int indent = 2)
+    {
+        string indentStr = new string(' ', indent);
+        Console.Write(indentStr);
+        WithColor(color, () => Console.Write($"{Chars.Bullet} {message}: "));
+        Console.WriteLine(detail);
+    }
+
+    /// <summary>
     /// Write a tree-style hierarchical item.
     /// Output: Tree branch connector with message (e.g., "├── Item" or "└── Last item").
     /// </summary>

@@ -30,7 +30,6 @@ public class SkillView
             SkillContent = skill.SkillMdContent,
             AdditionalFiles = skill.AdditionalFiles?.Select(f => new SkillSubFileView
             {
-                FileName = f.FileName,
                 FilePath = f.FilePath,
                 Content = f.Content
             }).ToList()
@@ -86,7 +85,6 @@ public class SkillView
 
                 result.Spec.AdditionalFiles = [.. value.Select(f => new SkillSubFile
                 {
-                    FileName = f.FileName!,
                     FilePath = f.FilePath!,
                     Content = f.Content!
                 })];
@@ -99,8 +97,6 @@ public class SkillView
 
 public class SkillSubFileView
 {
-    public Settable<string> FileName { get; set; }
-
     public Settable<string> FilePath { get; set; }
 
     public Settable<string> Content { get; set; }

@@ -4,6 +4,7 @@
 
 using System.CommandLine;
 using Agent.Cli.Helpers;
+using Agent.Cli.Models;
 using Agent.Cli.Services;
 
 namespace Agent.Cli.Commands;
@@ -14,103 +15,88 @@ namespace Agent.Cli.Commands;
 public static class SkillCommandHandlers
 {
     /// <summary>
-    /// Handles the skill upload command.
+    /// Handles the skill apply command.
     /// </summary>
-    public static async Task HandleUploadCommand(ParseResult parseResult)
+    public static async Task<int> HandleApplyCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        DebugLogger.Debug("Command", "Starting skill upload command");
+        DebugLogger.Debug("Command", "Starting skill apply command");
 
-        try
+        var name = parseResult.GetValue(SkillCommandOptions.Apply.NameOption);
+        var dryRun = parseResult.GetValue(SkillCommandOptions.Apply.DryRunOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}, DryRun: {dryRun}");
+
+        // Check if 'upload' alias was used and show deprecation warning
+        var commandToken = parseResult.Tokens.FirstOrDefault(t => t.Type == System.CommandLine.Parsing.TokenType.Command && t.Value == "upload");
+        if (commandToken != null)
         {
-            // Extract options
-            var singlePath = parseResult.GetValue(SkillCommandOptions.UploadPathOption);
-            var folderPath = parseResult.GetValue(SkillCommandOptions.UploadFolderOption);
-
-            DebugLogger.Debug("Parameters", $"Path: {singlePath ?? "none"}, Folder: {folderPath ?? "none"}");
-
-            // Validate mutually exclusive options
-            if (!string.IsNullOrEmpty(singlePath) && !string.IsNullOrEmpty(folderPath))
-            {
-                ConsoleUI.WriteStatus(false, "Error: --path and --folder options are mutually exclusive. Use only one.");
-                Environment.Exit(1);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(singlePath) && string.IsNullOrEmpty(folderPath))
-            {
-                ConsoleUI.WriteStatus(false, "Error: Either --path or --folder must be specified.");
-                Environment.Exit(1);
-                return;
-            }
-
-            List<string> skillDirectoriesToUpload;
-
-            if (!string.IsNullOrEmpty(singlePath))
-            {
-                // Single skill directory upload
-                DebugLogger.Debug("SkillProcessing", $"Processing single skill directory: {singlePath}");
-                skillDirectoriesToUpload = await GetSingleSkillDirectory(singlePath);
-            }
-            else
-            {
-                // Multiple skill directories upload
-                DebugLogger.Debug("SkillProcessing", $"Processing skill folder: {folderPath}");
-                skillDirectoriesToUpload = await GetSkillDirectoriesFromFolder(folderPath!);
-            }
-
-            if (skillDirectoriesToUpload.Count == 0)
-            {
-                ConsoleUI.WriteStatus(false, "No valid skill directories found to upload.");
-                ConsoleUI.WriteInfo("A valid skill directory must contain 'metadata.yaml' and 'SKILL.md' files.", ConsoleColor.Yellow);
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteInfo($"Found {skillDirectoriesToUpload.Count} skill(s) to upload", ConsoleColor.Green);
-            foreach (var skillDir in skillDirectoriesToUpload)
-            {
-                ConsoleUI.WriteBullet(Path.GetFileName(skillDir.TrimEnd(Path.DirectorySeparatorChar)), ConsoleColor.Gray, 3);
-            }
-
-            // Upload each skill
-            using var apiService = new ApiService();
-            int successCount = 0;
-            int failCount = 0;
-
-            foreach (var skillDir in skillDirectoriesToUpload)
-            {
-                var skillName = Path.GetFileName(skillDir.TrimEnd(Path.DirectorySeparatorChar));
-                DebugLogger.Debug("SkillUpload", $"Uploading skill: {skillName}");
-
-                var (success, response) = await apiService.UploadSkillAsync(skillDir);
-
-                if (success)
-                {
-                    ConsoleUI.WriteStatus(true, $"Uploaded skill '{skillName}' successfully");
-                    successCount++;
-                }
-                else
-                {
-                    ConsoleUI.WriteStatus(false, $"Failed to upload skill '{skillName}': {response}");
-                    failCount++;
-                }
-            }
-
+            ConsoleUI.WriteInfo("⚠️  Warning: 'srectl skill upload' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Please use 'srectl skill apply' instead.", ConsoleColor.Yellow);
             Console.WriteLine();
-            ConsoleUI.WriteInfo($"Upload complete: {successCount} succeeded, {failCount} failed",
-                failCount == 0 ? ConsoleColor.Green : ConsoleColor.Yellow);
+        }
 
-            if (failCount > 0)
-            {
-                Environment.Exit(1);
-            }
-        }
-        catch (Exception ex)
+        // Find skill directory using flexible search
+        var skillDirectory = ExtendedSkillHelper.FindSkillDirectory(name!);
+        if (skillDirectory == null)
         {
-            DebugLogger.Debug("Exception", $"SkillUpload failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(false, $"Skill directory not found for '{name}'. Searched in skills directory and subdirectories.");
+            return 1;
         }
+
+        // Detect skill version
+        var metadataPath = Path.Combine(skillDirectory, ExtendedSkillHelper.MetadataFileName);
+        var detectedVersion = ExtendedSkillHelper.DetectVersion(metadataPath);
+
+        if (detectedVersion == null)
+        {
+            ConsoleUI.WriteStatus(false, $"Unable to detect skill format. The metadata.yaml file may be invalid or corrupted.");
+            return 1;
+        }
+
+        ExtendedSkillV2 skill;
+
+        // Handle V1 format - convert to V2
+        if (detectedVersion == YamlApiVersion.V1)
+        {
+            ConsoleUI.WriteInfo($"⚠️  Warning: Skill YAML is using V1 format.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo($"    Consider migrating to V2 format by running: srectl skill migrate --name [skill name]", ConsoleColor.Yellow);
+            Console.WriteLine();
+
+            var (v1Skill, v1Error) = await ExtendedSkillV1.LoadYamlAsync(metadataPath);
+            if (v1Skill == null || !string.IsNullOrEmpty(v1Error))
+            {
+                ConsoleUI.WriteStatus(false, v1Error ?? $"Failed to load V1 skill: {metadataPath}");
+                return 1;
+            }
+
+            // Convert V1 to V2
+            skill = Converters.ExtendedSkillConverter.ConvertToV2(v1Skill);
+        }
+        else // V2 format
+        {
+            var (v2Skill, v2Error) = await ExtendedSkillV2.LoadYamlAsync(metadataPath);
+            if (v2Skill == null || !string.IsNullOrEmpty(v2Error))
+            {
+                ConsoleUI.WriteStatus(false, v2Error ?? $"Failed to load skill: {metadataPath}");
+                return 1;
+            }
+            skill = v2Skill;
+        }
+
+        // Check if --name parameter differs from the name in YAML
+        var yamlName = skill.Metadata?.Name;
+        if (!string.IsNullOrEmpty(yamlName) && !string.Equals(name, yamlName, StringComparison.OrdinalIgnoreCase))
+        {
+            ConsoleUI.WriteBullet($"Warning: --name parameter '{name}' differs from YAML metadata.name '{yamlName}'", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet($"Using name from YAML: '{yamlName}'", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
+
+        using var apiService = new ApiService();
+        var (success, response) = await apiService.ApplyExtendedSkillAsync(skill, dryRun);
+
+        Console.WriteLine(response);
+        return success ? 0 : 1;
     }
 
     /// <summary>
@@ -122,9 +108,9 @@ public static class SkillCommandHandlers
 
         try
         {
-            var agentName = parseResult.GetValue(SkillCommandOptions.ConvertAgentNameOption);
-            var topLevelAgents = parseResult.GetValue(SkillCommandOptions.ConvertTopLevelAgentsOption);
-            var outputPath = parseResult.GetValue(SkillCommandOptions.ConvertOutputPathOption);
+            var agentName = parseResult.GetValue(SkillCommandOptions.Convert.AgentNameOption);
+            var topLevelAgents = parseResult.GetValue(SkillCommandOptions.Convert.TopLevelAgentsOption);
+            var outputPath = parseResult.GetValue(SkillCommandOptions.Convert.OutputPathOption);
 
             DebugLogger.Debug("Parameters", $"AgentName: {agentName}, TopLevelAgents: {topLevelAgents?.Length ?? 0}, OutputPath: {outputPath ?? "default"}");
 
@@ -169,7 +155,7 @@ public static class SkillCommandHandlers
             ConsoleUI.WriteSection("Next Steps");
             ConsoleUI.WriteBullet($"Review the generated skill at: {outputPath}", ConsoleColor.Cyan);
             ConsoleUI.WriteBullet($"Edit SKILL.md and metadata.yaml as needed", ConsoleColor.Cyan);
-            ConsoleUI.WriteBullet($"Upload the skill: srectl skill upload --path {outputPath}", ConsoleColor.Cyan);
+            ConsoleUI.WriteBullet($"Apply the skill: srectl skill apply --name {skillSpec?.Name}", ConsoleColor.Cyan);
         }
         catch (Exception ex)
         {
@@ -182,380 +168,587 @@ public static class SkillCommandHandlers
     /// <summary>
     /// Handles the skill list command.
     /// </summary>
-    public static async Task HandleListCommand(ParseResult parseResult)
+    public static async Task<int> HandleListCommand(ParseResult parseResult)
     {
         DebugLogger.Debug("Command", "Starting skill list command");
 
-        try
+        var search = parseResult.GetValue(SkillCommandOptions.List.SearchOption);
+        var name = parseResult.GetValue(SkillCommandOptions.List.NameOption);
+        var detail = parseResult.GetValue(SkillCommandOptions.List.DetailOption);
+
+        DebugLogger.Debug("Parameters", $"Search: {search}, Name: {name}, Detail: {detail}");
+
+        using var apiService = new ApiService();
+
+        var (skillsList, error) = await apiService.ListExtendedSkillsAsync(search);
+
+        if (error != null)
         {
-            var limit = parseResult.GetValue(SkillCommandOptions.ListLimitOption);
-            var page = parseResult.GetValue(SkillCommandOptions.ListPageOption);
-            var search = parseResult.GetValue(SkillCommandOptions.ListSearchOption);
+            ConsoleUI.WriteStatus(false, error);
+            return 1;
+        }
 
-            DebugLogger.Debug("Parameters", $"Limit: {limit}, Page: {page}, Search: {search ?? "none"}");
+        if (skillsList.Count == 0)
+        {
+            ConsoleUI.WriteInfo("No extended skills found on the server.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Use 'srectl skill apply --name <skill-name>' to add skills to the server.", ConsoleColor.Gray);
+            return 1;
+        }
 
-            using var apiService = new ApiService();
-            var (success, skills, totalCount, errorMessage) = await apiService.ListSkillsAsync(page, limit, search);
+        // Filter by name if specified
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var skill = skillsList.FirstOrDefault(s =>
+                string.Equals(s.Metadata?.Name, name, StringComparison.OrdinalIgnoreCase));
 
-            if (!success)
+            if (skill == null)
             {
-                ConsoleUI.WriteStatus(false, $"Failed to retrieve skills: {errorMessage}");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, $"Skill '{name}' not found.");
+                return 1;
             }
 
-            if (skills.Count == 0)
+            ConsoleUI.WriteSection("Remote Extended Skill");
+            Console.WriteLine(skill.ToYaml());
+            return 0;
+        }
+
+        ConsoleUI.WriteSection("Remote Extended Skills");
+
+        for (int i = 0; i < skillsList.Count; i++)
+        {
+            if (detail)
             {
-                ConsoleUI.WriteInfo("No skills found.", ConsoleColor.Yellow);
+                Console.WriteLine(skillsList[i].ToYaml());
                 Console.WriteLine();
-                ConsoleUI.WriteSection("Next Steps");
-                ConsoleUI.WriteBullet("Create a new skill: srectl skill create --name <name>", ConsoleColor.Cyan);
-                ConsoleUI.WriteBullet("Create a skill by converting an agent: srectl skill convert --agent-name <name>", ConsoleColor.Cyan);
-                ConsoleUI.WriteBullet("Upload a skill from a directory: srectl skill upload --path <directory>", ConsoleColor.Cyan);
-                return;
+                if (i < skillsList.Count - 1)
+                {
+                    ConsoleUI.DrawLine(80, ConsoleColor.DarkGray);
+                }
             }
-
-            ConsoleUI.WriteSection($"Skills (Page {page}, {skills.Count} of {totalCount} total):");
-            Console.WriteLine();
-
-            foreach (var skill in skills)
+            else
             {
-                ConsoleUI.WriteInfo($"• {skill.Name}", ConsoleColor.Cyan);
-                if (!string.IsNullOrEmpty(skill.Description))
-                {
-                    ConsoleUI.WriteBullet($"Description: {skill.Description}", ConsoleColor.Gray, 3);
-                }
-
-                if (skill.Tools?.Count > 0)
-                {
-                    ConsoleUI.WriteBullet($"Tools: {string.Join(", ", skill.Tools)}", ConsoleColor.Gray, 3);
-                }
-
-                Console.WriteLine();
-            }
-
-            // Show pagination info if there are more pages
-            var totalPages = (int)Math.Ceiling((double)totalCount / limit);
-            if (totalPages > 1)
-            {
-                Console.WriteLine();
-                ConsoleUI.WriteInfo($"Page {page} of {totalPages}", ConsoleColor.Gray);
-                if (page < totalPages)
-                {
-                    ConsoleUI.WriteCommand("View next page", $"srectl skill list --page {page + 1} --limit {limit}");
-                }
+                ConsoleUI.WriteBullet(skillsList[i].Metadata?.Name ?? "<unnamed>", ConsoleColor.Cyan);
             }
         }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"SkillList failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
-        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteKeyValue("Total", $"{skillsList.Count} extended skill(s)", 0);
+        return 0;
     }
 
     /// <summary>
-    /// Handles the skill download command.
+    /// Handles the skill sync command.
     /// </summary>
-    public static async Task HandleDownloadCommand(ParseResult parseResult)
+    public static async Task<int> HandleSyncCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        DebugLogger.Debug("Command", "Starting skill download command");
+        DebugLogger.Debug("Command", "Starting skill sync command");
 
-        try
+        var skillName = parseResult.GetValue(SkillCommandOptions.Sync.NameOption);
+        var all = parseResult.GetValue(SkillCommandOptions.Sync.AllOption);
+        var path = parseResult.GetValue(SkillCommandOptions.Sync.PathOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {skillName ?? "none"}, All: {all}, Path: {path ?? "default"}");
+
+        // Check if 'download' alias was used and show deprecation warning
+        var commandToken = parseResult.Tokens.FirstOrDefault(t => t.Type == System.CommandLine.Parsing.TokenType.Command && t.Value == "download");
+        if (commandToken != null)
         {
-            var skillName = parseResult.GetValue(SkillCommandOptions.DownloadNameOption);
-            var outputPath = parseResult.GetValue(SkillCommandOptions.DownloadOutputPathOption);
+            ConsoleUI.WriteInfo("⚠️  Warning: 'srectl skill download' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Please use 'srectl skill sync' instead.", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
 
-            DebugLogger.Debug("Parameters", $"SkillName: {skillName}, OutputPath: {outputPath ?? "default"}");
+        // Check if '--output-path' alias was used and show deprecation warning
+        var outputPathToken = parseResult.Tokens.FirstOrDefault(t => t.Type == System.CommandLine.Parsing.TokenType.Option && t.Value == "--output-path");
+        if (outputPathToken != null)
+        {
+            ConsoleUI.WriteInfo("⚠️  Warning: '--output-path' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Please use '--path' instead.", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
 
-            // Set default output path if not provided
-            if (string.IsNullOrEmpty(outputPath))
-            {
-                outputPath = Path.Combine("skills", skillName!);
-            }
+        using var apiService = new ApiService();
 
-            ProgressService.AnimatedSpinner.Start($"Downloading skill '{skillName}'");
+        // Fetch skills based on --name or --all and build dictionary of path -> skill
+        Dictionary<string, ExtendedSkillV2> skillsToSync = [];
 
-            using var apiService = new ApiService();
-            var (success, skillSpec, errorMessage) = await apiService.GetSkillByNameAsync(skillName!);
+        if (all)
+        {
+            // Set default base path for --all
+            var basePath = string.IsNullOrEmpty(path) ? ExtendedSkillHelper.DefaultSkillFolder : path;
 
+            ProgressService.AnimatedSpinner.Start("Fetching skills from server");
+            var (skillsList, error) = await apiService.ListExtendedSkillsAsync(null);
             ProgressService.AnimatedSpinner.Stop();
 
-            if (!success || skillSpec == null)
+            if (error != null)
             {
-                ConsoleUI.WriteStatus(false, $"Download failed: {errorMessage}");
-                ProgressService.ShowError("Download failed",
-                [
-                    $"Ensure skill '{skillName}' exists on the server",
-                    "Check server connection with --debug",
-                    "List available skills: srectl skill list"
-                ]);
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, $"Failed to fetch skills: {error}");
+                return 1;
             }
 
-            // Save skill to directory
-            DebugLogger.Debug("SkillDownload", $"Saving skill to: {outputPath}");
-            await YamlHelper.SaveSkillToDirectory(outputPath, skillSpec);
-
-            ConsoleUI.WriteStatus(true, $"Successfully downloaded skill '{skillName}' to {outputPath}");
-            Console.WriteLine();
-            ConsoleUI.WriteSection("Downloaded Files:");
-            ConsoleUI.WriteBullet($"{Path.Combine(outputPath, "metadata.yaml")}", ConsoleColor.Green, 3);
-            ConsoleUI.WriteBullet($"{Path.Combine(outputPath, "SKILL.md")}", ConsoleColor.Green, 3);
-
-            if (skillSpec != null && skillSpec.AdditionalFiles?.Count > 0)
+            if (skillsList.Count == 0)
             {
-                foreach (var file in skillSpec.AdditionalFiles)
+                ConsoleUI.WriteInfo("No skills found on the server.", ConsoleColor.Yellow);
+                return 1;
+            }
+
+            ConsoleUI.WriteSection($"Syncing {skillsList.Count} skill(s) from server");
+            Console.WriteLine();
+
+            // Build dictionary with path as key - each skill gets its own subdirectory
+            foreach (var skill in skillsList)
+            {
+                var name = skill.Metadata?.Name;
+                if (!string.IsNullOrEmpty(name))
                 {
-                    ConsoleUI.WriteBullet($"{Path.Combine(outputPath, file.FileName)}", ConsoleColor.Green, 3);
+                    var skillPath = Path.Combine(basePath, name);
+                    skillsToSync[skillPath] = skill;
                 }
             }
         }
-        catch (Exception ex)
+        else
         {
-            DebugLogger.Debug("Exception", $"SkillDownload failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
+            ProgressService.AnimatedSpinner.Start($"Syncing skill '{skillName}'");
+            var (skill, error) = await apiService.GetExtendedSkillAsync(skillName!);
+            ProgressService.AnimatedSpinner.Stop();
+
+            if (skill == null || error != null)
+            {
+                ConsoleUI.WriteStatus(false, $"Sync failed: {error}");
+                return 1;
+            }
+
+            // For --name: if path is provided, use it directly; otherwise use skills/<name>
+            string skillPath;
+            if (string.IsNullOrEmpty(path))
+            {
+                skillPath = Path.Combine(ExtendedSkillHelper.DefaultSkillFolder, skill.Metadata?.Name ?? skillName!);
+            }
+            else
+            {
+                skillPath = path;
+            }
+
+            skillsToSync[skillPath] = skill;
         }
+
+        // Sync all skills
+        int successCount = 0;
+        int errorCount = 0;
+
+        foreach (var (skillPath, skill) in skillsToSync)
+        {
+            var name = skill.Metadata?.Name;
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            try
+            {
+                DebugLogger.Debug("SkillSync", $"Saving skill '{name}' to: {skillPath}");
+                await skill.SaveAsync(skillPath);
+
+                ConsoleUI.WriteStatus(true, $"Successfully synced skill '{name}' to {skillPath}");
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Synced Files:");
+                ConsoleUI.WriteBullet($"{Path.Combine(skillPath, ExtendedSkillHelper.MetadataFileName)}", ConsoleColor.Green, 3);
+                ConsoleUI.WriteBullet($"{Path.Combine(skillPath, ExtendedSkillHelper.SkillContentFileName)}", ConsoleColor.Green, 3);
+
+                if (skill.Spec.AdditionalFiles != null && skill.Spec.AdditionalFiles.Count > 0)
+                {
+                    foreach (var file in skill.Spec.AdditionalFiles)
+                    {
+                        if (!string.IsNullOrEmpty(file.FilePath))
+                        {
+                            ConsoleUI.WriteBullet($"{Path.Combine(skillPath, file.FilePath)}", ConsoleColor.Green, 3);
+                        }
+                    }
+                }
+
+                Console.WriteLine();
+
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to sync skill '{name}': {ex.Message}");
+                errorCount++;
+            }
+        }
+
+        // Show summary if syncing multiple skills
+        if (all)
+        {
+            ConsoleUI.WriteSection("Sync Summary");
+            ConsoleUI.WriteKeyValue("Total", skillsToSync.Count.ToString());
+            ConsoleUI.WriteKeyValue("Success", successCount.ToString(), valueColor: ConsoleColor.Green);
+            ConsoleUI.WriteKeyValue("Errors", errorCount.ToString(), valueColor: errorCount > 0 ? ConsoleColor.Red : ConsoleColor.Gray);
+        }
+
+        return errorCount > 0 ? 1 : 0;
     }
 
     /// <summary>
     /// Handles the skill delete command.
     /// </summary>
-    public static async Task HandleDeleteCommand(ParseResult parseResult)
+    public static async Task<int> HandleDeleteCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting skill delete command");
 
-        try
+        var skillName = parseResult.GetValue(SkillCommandOptions.Delete.NameOption);
+        var dryRun = parseResult.GetValue(SkillCommandOptions.Delete.DryRunOption);
+
+        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, DryRun: {dryRun}");
+
+        // Null check (validation should have caught this, but be defensive)
+        if (string.IsNullOrWhiteSpace(skillName))
         {
-            var skillName = parseResult.GetValue(SkillCommandOptions.DeleteNameOption);
-
-            DebugLogger.Debug("Parameters", $"SkillName: {skillName}");
-
-            ConsoleUI.WriteInfo($"Deleting skill '{skillName}'...", ConsoleColor.Yellow);
-
-            using var apiService = new ApiService();
-            var (success, response) = await apiService.DeleteSkillAsync(skillName!);
-
-            if (success)
-            {
-                ConsoleUI.WriteStatus(true, $"Skill '{skillName}' deleted successfully");
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(false, $"Failed to delete skill: {response}");
-                Environment.Exit(1);
-            }
+            throw new InvalidOperationException("Skill name validation should have been caught by the validator.");
         }
-        catch (Exception ex)
+
+        using var apiService = new ApiService();
+
+        if (dryRun)
         {
-            DebugLogger.Debug("Exception", $"SkillDelete failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteInfo($"Validating skill deletion for '{skillName}' (dry run)...", ConsoleColor.Yellow);
+        }
+        else
+        {
+            ConsoleUI.WriteInfo($"Deleting skill '{skillName}'...", ConsoleColor.Yellow);
+        }
+
+        var (success, message) = await apiService.DeleteExtendedSkillAsync(skillName, dryRun);
+
+        if (success)
+        {
+            ConsoleUI.WriteStatus(true, message);
+
+            // After successful server deletion (not dry-run), offer to clean up local files
+            if (!dryRun)
+            {
+                OfferLocalSkillCleanup(skillName);
+            }
+
+            return 0;
+        }
+        else
+        {
+            ConsoleUI.WriteStatus(false, message);
+            return 1;
         }
     }
 
     /// <summary>
     /// Handles the skill create command.
     /// </summary>
-    public static async Task HandleCreateCommand(ParseResult parseResult)
+    public static async Task<int> HandleCreateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting skill create command");
 
-        try
+        var skillName = parseResult.GetValue(SkillCommandOptions.Create.NameOption);
+        var description = parseResult.GetValue(SkillCommandOptions.Create.DescriptionOption);
+
+        // Validate skill name
+        if (string.IsNullOrWhiteSpace(skillName))
         {
-            var skillName = parseResult.GetValue(SkillCommandOptions.CreateNameOption);
-            var outputPath = parseResult.GetValue(SkillCommandOptions.CreateOutputPathOption);
+            ConsoleUI.WriteStatus(false, "Skill name is required");
+            return 1;
+        }
 
-            DebugLogger.Debug("Parameters", $"SkillName: {skillName}, OutputPath: {outputPath ?? "default"}");
+        var outputPath = Path.Combine(ExtendedSkillHelper.DefaultSkillFolder, skillName);
 
-            // Set default output path if not provided
-            if (string.IsNullOrEmpty(outputPath))
+        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, OutputPath: {outputPath}");
+
+        // Check if directory already exists
+        if (Directory.Exists(outputPath))
+        {
+            ConsoleUI.WriteStatus(false, $"Directory already exists: {outputPath}");
+            ConsoleUI.WriteInfo("Please choose a different name or remove the existing directory.", ConsoleColor.Yellow);
+            return 1;
+        }
+
+        // Create directory
+        Directory.CreateDirectory(outputPath);
+        DebugLogger.Debug("SkillCreate", $"Created directory: {outputPath}");
+
+        // Create ExtendedSkillV2 model for metadata.yaml
+        var extendedSkill = ExtendedSkillHelper.CreateSkill(skillName, description);
+
+        // Write metadata.yaml
+        var metadataPath = Path.Combine(outputPath, ExtendedSkillHelper.MetadataFileName);
+        var metadataYaml = extendedSkill.ToYaml();
+        await File.WriteAllTextAsync(metadataPath, metadataYaml, System.Text.Encoding.UTF8, cancellationToken);
+        DebugLogger.Debug("SkillCreate", $"Created {ExtendedSkillHelper.MetadataFileName}: {metadataPath}");
+
+        // Create SKILL.md with template
+        var skillMdContent = ExtendedSkillHelper.CreateSkillContent(skillName);
+        var skillMdPath = Path.Combine(outputPath, ExtendedSkillHelper.SkillContentFileName);
+        await File.WriteAllTextAsync(skillMdPath, skillMdContent, System.Text.Encoding.UTF8, cancellationToken);
+        DebugLogger.Debug("SkillCreate", $"Created SKILL.md: {skillMdPath}");
+
+        ConsoleUI.WriteStatus(true, $"Successfully created skill '{skillName}' at {outputPath}");
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Created Files:");
+        ConsoleUI.WriteBullet(metadataPath, ConsoleColor.Green, 3);
+        ConsoleUI.WriteBullet(skillMdPath, ConsoleColor.Green, 3);
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Next Steps");
+        ConsoleUI.WriteBullet("Edit metadata.yaml", "Update the description and add tools if needed", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Edit SKILL.md", "Add skill instructions and capabilities", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Add additional files", "Include specialized markdown files and reference them in SKILL.md", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Apply the skill", $"srectl skill apply --name {skillName}", ConsoleColor.Cyan);
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Offers to clean up local skill files after successful server deletion.
+    /// </summary>
+    private static void OfferLocalSkillCleanup(string skillName)
+    {
+        var skillDirectory = ExtendedSkillHelper.FindSkillDirectory(skillName);
+
+        if (skillDirectory == null)
+        {
+            return; // No local files to clean up
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Local File Cleanup");
+        ConsoleUI.WriteInfo("Local configuration files still exist:", ConsoleColor.Yellow);
+        ConsoleUI.WriteBullet(skillDirectory, ConsoleColor.Gray);
+        Console.WriteLine();
+
+        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        {
+            try
             {
-                outputPath = Path.Combine("skills", skillName!);
-            }
+                Directory.Delete(skillDirectory, recursive: true);
+                DebugLogger.Debug("Cleanup", $"Deleted local skill directory: {skillDirectory}");
 
-            // Check if directory already exists
-            if (Directory.Exists(outputPath))
+                Console.WriteLine();
+                ConsoleUI.WriteSection("Summary");
+                ConsoleUI.WriteBullet($"Skill '{skillName}' deleted from server", ConsoleColor.Green);
+                ConsoleUI.WriteBullet($"Local configuration files deleted: {skillDirectory}", ConsoleColor.Green);
+            }
+            catch (Exception ex)
             {
-                ConsoleUI.WriteStatus(false, $"Directory already exists: {outputPath}");
-                ConsoleUI.WriteInfo("Please choose a different name or remove the existing directory.", ConsoleColor.Yellow);
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, $"Failed to delete local files: {ex.Message}");
             }
-
-            // Create directory
-            Directory.CreateDirectory(outputPath);
-            DebugLogger.Debug("SkillCreate", $"Created directory: {outputPath}");
-
-            // Create metadata.yaml with basic template
-            var metadataContent = GenerateMetadataTemplate(skillName!);
-            var metadataPath = Path.Combine(outputPath, "metadata.yaml");
-            await File.WriteAllTextAsync(metadataPath, metadataContent, System.Text.Encoding.UTF8);
-            DebugLogger.Debug("SkillCreate", $"Created metadata.yaml: {metadataPath}");
-
-            // Create SKILL.md with basic template
-            var skillMdContent = GenerateSkillMdTemplate(skillName!);
-            var skillMdPath = Path.Combine(outputPath, "SKILL.md");
-            await File.WriteAllTextAsync(skillMdPath, skillMdContent, System.Text.Encoding.UTF8);
-            DebugLogger.Debug("SkillCreate", $"Created SKILL.md: {skillMdPath}");
-
-            ConsoleUI.WriteStatus(true, $"Successfully created skill '{skillName}' at {outputPath}");
+        }
+        else
+        {
             Console.WriteLine();
-            ConsoleUI.WriteSection("Created Files:");
-            ConsoleUI.WriteBullet($"{metadataPath}", ConsoleColor.Green, 3);
-            ConsoleUI.WriteBullet($"{skillMdPath}", ConsoleColor.Green, 3);
+            ConsoleUI.WriteSection("Summary");
+            ConsoleUI.WriteBullet($"Skill '{skillName}' deleted from server", ConsoleColor.Green);
+            ConsoleUI.WriteBullet($"Local configuration files preserved: {skillDirectory}", ConsoleColor.Yellow);
 
             Console.WriteLine();
-            ConsoleUI.WriteSection("Next Steps");
-            ConsoleUI.WriteBullet($"Edit {Path.Combine(outputPath, "metadata.yaml")} to update the description", ConsoleColor.Cyan);
-            ConsoleUI.WriteBullet($"Edit {Path.Combine(outputPath, "SKILL.md")} to add skill instructions and capabilities", ConsoleColor.Cyan);
-            ConsoleUI.WriteBullet("Add additional markdown files as needed for specialized scenarios, and reference them in SKILL.md", ConsoleColor.Cyan);
-            ConsoleUI.WriteBullet($"Upload the skill: srectl skill upload --path {outputPath}", ConsoleColor.Cyan);
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"SkillCreate failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteInfo($"To reapply: srectl skill apply --name {skillName}", ConsoleColor.Cyan);
+            ConsoleUI.WriteInfo($"To delete locally: rm -rf {skillDirectory.Replace('\\', '/')}", ConsoleColor.Gray);
         }
     }
 
     /// <summary>
-    /// Generates a basic metadata.yaml template for a new skill.
+    /// Handles the skill migrate command to migrate V1 skills to V2 format.
     /// </summary>
-    private static string GenerateMetadataTemplate(string skillName)
+    public static async Task<int> HandleMigrateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        return $@"name: {skillName}
-description: |
-  Brief description of what this skill does and when to use it.
-  Update this with specific capabilities and use cases.
-";
-    }
+        DebugLogger.Debug("Command", "Starting skill migrate command");
 
-    /// <summary>
-    /// Generates a basic SKILL.md template for a new skill.
-    /// </summary>
-    private static string GenerateSkillMdTemplate(string skillName)
-    {
-        return $@"# {skillName}
+        var skillName = parseResult.GetValue(SkillCommandOptions.Migrate.NameOption);
+        var migrateAll = parseResult.GetValue(SkillCommandOptions.Migrate.AllOption);
+        var dryRun = parseResult.GetValue(SkillCommandOptions.Migrate.DryRunOption);
 
-## Overview
-Provide a clear overview of what this skill does and when it should be used.
+        DebugLogger.Debug("Parameters", $"Name: {skillName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
 
-## Capabilities
-- List the main capabilities of this skill
-- What problems does it solve?
-- What can it help with?
+        var skillsDirectory = ExtendedSkillHelper.DefaultSkillFolder;
 
-## Instructions
-Provide detailed instructions for using this skill:
-
-1. When to use this skill
-2. How to approach tasks with this skill
-3. Best practices and guidelines
-4. Any constraints or limitations
-
-## Example Workflows
-
-### Example 1: [Task Name]
-- Goal: Describe what the user wants to accomplish
-- Steps:
-  1. First step
-  2. Second step
-  3. Third step
-- Expected outcome: What should happen
-
-### Example 2: [Another Task]
-- Goal: Another use case
-- Steps:
-  1. Step one
-  2. Step two
-- Expected outcome: Result
-
-## Related Skills
-- List any related skills that might be used together with this one
-- When to handoff or use other skills
-
-## Additional Resources
-- Links to documentation
-- Related runbooks
-- Other helpful information
-";
-    }
-
-    /// <summary>
-    /// Gets and validates a single skill directory.
-    /// </summary>
-    private static Task<List<string>> GetSingleSkillDirectory(string skillPath)
-    {
-        var directories = new List<string>();
-
-        try
+        if (!Directory.Exists(skillsDirectory))
         {
-            // Convert relative path to absolute if needed
-            var absolutePath = Path.IsPathRooted(skillPath) ? skillPath : Path.GetFullPath(skillPath);
-
-            if (!Directory.Exists(absolutePath))
-            {
-                throw new DirectoryNotFoundException($"Skill directory not found: {skillPath}");
-            }
-
-            // Validate skill directory structure
-            if (!YamlHelper.IsValidSkillDirectory(absolutePath))
-            {
-                throw new ArgumentException($"Invalid skill directory: {skillPath}. Must contain 'metadata.yaml' and 'SKILL.md'");
-            }
-
-            directories.Add(absolutePath);
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("SkillValidation", $"Skill directory validation failed: {ex.Message}");
-            throw;
+            ConsoleUI.WriteStatus(false, "No skills directory found.");
+            return 1;
         }
 
-        return Task.FromResult(directories);
-    }
+        List<string> directoriesToMigrate = [];
 
-    /// <summary>
-    /// Gets all skill directories from a parent folder (non-recursive, skills should not be nested).
-    /// </summary>
-    private static Task<List<string>> GetSkillDirectoriesFromFolder(string folderPath)
-    {
-        var directories = new List<string>();
-
-        try
+        if (migrateAll)
         {
-            // Convert relative path to absolute if needed
-            var absolutePath = Path.IsPathRooted(folderPath) ? folderPath : Path.GetFullPath(folderPath);
-
-            if (!Directory.Exists(absolutePath))
+            // Find all directories that contain valid skill files
+            var allDirs = Directory.GetDirectories(skillsDirectory, "*", SearchOption.AllDirectories);
+            foreach (var dir in allDirs)
             {
-                throw new DirectoryNotFoundException($"Folder not found: {folderPath}");
-            }
-
-            // Find all immediate subdirectories that contain metadata.yaml (non-recursive)
-            var allSubdirectories = Directory.GetDirectories(absolutePath, "*", SearchOption.TopDirectoryOnly);
-
-            foreach (var dir in allSubdirectories)
-            {
-                if (YamlHelper.IsValidSkillDirectory(dir))
+                if (ExtendedSkillHelper.IsValidSkillDirectory(dir))
                 {
-                    directories.Add(dir);
-                    DebugLogger.Debug("SkillValidation", $"Found valid skill directory: {dir}");
+                    directoriesToMigrate.Add(dir);
                 }
             }
 
-            DebugLogger.Debug("SkillValidation", $"Found {directories.Count} valid skill directories");
+            // Also check root skills directory
+            if (ExtendedSkillHelper.IsValidSkillDirectory(skillsDirectory))
+            {
+                directoriesToMigrate.Add(skillsDirectory);
+            }
         }
-        catch (Exception ex)
+        else
         {
-            DebugLogger.Debug("SkillValidation", $"Folder processing failed: {ex.Message}");
-            throw;
+            if (string.IsNullOrWhiteSpace(skillName))
+            {
+                ConsoleUI.WriteStatus(false, "Skill name is required when not using --all");
+                return 1;
+            }
+
+            var skillDir = ExtendedSkillHelper.FindSkillDirectory(skillName);
+            if (skillDir == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Skill directory not found for '{skillName}'");
+                ConsoleUI.WriteInfo($"Expected: skills/{skillName}/ with metadata.yaml and SKILL.md", ConsoleColor.Gray);
+                return 1;
+            }
+            directoriesToMigrate.Add(skillDir);
         }
 
-        return Task.FromResult(directories);
+        if (directoriesToMigrate.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No skill directories found to migrate.");
+            return 1;
+        }
+
+        ConsoleUI.WriteSection($"Migrating {directoriesToMigrate.Count} skill(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        Console.WriteLine();
+
+        int migratedCount = 0;
+        int skippedCount = 0;
+        int errorCount = 0;
+
+        foreach (var skillDir in directoriesToMigrate)
+        {
+            try
+            {
+                var dirName = Path.GetFileName(skillDir);
+                var metadataPath = Path.Combine(skillDir, ExtendedSkillHelper.MetadataFileName);
+
+                if (!File.Exists(metadataPath))
+                {
+                    ConsoleUI.WriteBullet($"{dirName}: No {ExtendedSkillHelper.MetadataFileName} found", ConsoleColor.Yellow);
+                    skippedCount++;
+                    continue;
+                }
+
+                var content = await File.ReadAllTextAsync(metadataPath);
+
+                // Try to detect if this is V1 or V2
+                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+
+                var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(content);
+                var apiVersion = yamlDict.TryGetValue("api_version", out var apiObj) ? apiObj?.ToString() : null;
+                var kind = yamlDict.TryGetValue("kind", out var kindObj) ? kindObj?.ToString() : null;
+
+                // Check if already V2
+                if (string.Equals(apiVersion, Models.YamlApiVersion.V2, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(kind, Models.ResourceModel.ResourceKind.SkillV2, StringComparison.OrdinalIgnoreCase))
+                {
+                    ConsoleUI.WriteBullet($"{dirName}: Already V2 format", ConsoleColor.Gray);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Check if this is V1 format (no api_version/kind or V1)
+                bool isV1 = string.IsNullOrEmpty(apiVersion) || string.IsNullOrEmpty(kind) ||
+                           string.Equals(apiVersion, Models.YamlApiVersion.V1, StringComparison.OrdinalIgnoreCase);
+
+                if (!isV1)
+                {
+                    ConsoleUI.WriteBullet($"{dirName}: Unknown format", ConsoleColor.Yellow);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Parse as V1
+                var v1Skill = ExtendedSkillV1.ParseYaml(content);
+                if (v1Skill == null)
+                {
+                    ConsoleUI.WriteBullet($"{dirName}: Failed to parse V1 format", ConsoleColor.Red);
+                    errorCount++;
+                    continue;
+                }
+
+                // Load SKILL.md content
+                var skillMdPath = Path.Combine(skillDir, ExtendedSkillHelper.SkillContentFileName);
+                if (File.Exists(skillMdPath))
+                {
+                    v1Skill.SkillMdContent = await File.ReadAllTextAsync(skillMdPath);
+                }
+
+                // Load additional files content if they exist
+                if (v1Skill.AdditionalFiles != null && v1Skill.AdditionalFiles.Count > 0)
+                {
+                    foreach (var additionalFile in v1Skill.AdditionalFiles)
+                    {
+                        if (string.IsNullOrWhiteSpace(additionalFile.FilePath))
+                        {
+                            continue;
+                        }
+
+                        var additionalFilePath = Path.Combine(skillDir, additionalFile.FilePath);
+                        if (File.Exists(additionalFilePath))
+                        {
+                            additionalFile.Content = await File.ReadAllTextAsync(additionalFilePath);
+                        }
+                    }
+                }
+
+                // Convert to V2
+                var v2Skill = Converters.ExtendedSkillConverter.ConvertToV2(v1Skill);
+
+                if (dryRun)
+                {
+                    ConsoleUI.WriteBullet($"{dirName}: Would migrate to V2", ConsoleColor.Green);
+                }
+                else
+                {
+                    // Save V2 metadata.yaml (overwrites original)
+                    await v2Skill.SaveYamlAsync(metadataPath);
+                    ConsoleUI.WriteBullet($"{dirName}: Migrated to V2", ConsoleColor.Green);
+                }
+
+                migratedCount++;
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteBullet($"{Path.GetFileName(skillDir)}: Error - {ex.Message}", ConsoleColor.Red);
+                errorCount++;
+            }
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Migration Summary");
+        ConsoleUI.WriteKeyValue("Total Skills", directoriesToMigrate.Count.ToString());
+        ConsoleUI.WriteKeyValue("Migrated", migratedCount.ToString(), valueColor: ConsoleColor.Green);
+        ConsoleUI.WriteKeyValue("Skipped", skippedCount.ToString(), valueColor: ConsoleColor.Gray);
+        ConsoleUI.WriteKeyValue("Errors", errorCount.ToString(), valueColor: errorCount > 0 ? ConsoleColor.Red : ConsoleColor.Gray);
+
+        if (dryRun && migratedCount > 0)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteInfo("This was a dry run. No files were modified.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("Run without --dry-run to apply changes.", ConsoleColor.Yellow);
+        }
+
+        if (migratedCount > 0 && !dryRun)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Next Steps");
+            ConsoleUI.WriteBullet("Apply migrated skills", "srectl skill apply --name <skill-name>", ConsoleColor.Cyan);
+            ConsoleUI.WriteBullet("Or apply all", "srectl sync", ConsoleColor.Cyan);
+        }
+
+        return errorCount > 0 ? 1 : 0;
     }
 }

@@ -88,7 +88,7 @@ public class ConvertToSkillCommand(
         foreach (var subFile in skill.AdditionalFiles)
         {
             File.WriteAllText(Path.Combine(skillDir, subFile.FilePath), subFile.Content);
-            logger.LogInformation("Created additional file {FileName}", subFile.FileName);
+            logger.LogInformation("Created additional file {FileName}", Path.GetFileName(subFile.FilePath));
         }
 
         logger.LogInformation("Conversion completed successfully.");

@@ -68,11 +68,15 @@ public static class CommonPromptCommandHandlers
         DebugLogger.LogFile("WRITE", yamlPath, $"Common prompt YAML content size: {promptYaml.Length} characters");
 
         await File.WriteAllTextAsync(yamlPath, promptYaml);
-        ConsoleUI.WriteStatus(true, $"Common prompt YAML created at {yamlPath}");
+        ConsoleUI.WriteStatus(true, $"Successfully created common prompt '{name}' at {Path.GetDirectoryName(yamlPath)}");
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Created Files:");
+        ConsoleUI.WriteBullet(yamlPath, ConsoleColor.Green, 3);
+
         Console.WriteLine();
         ConsoleUI.WriteSection("Next Steps");
-        ConsoleUI.WriteCommand("Review and customize", "Edit the generated YAML file");
-        ConsoleUI.WriteCommand("Apply prompt", $"srectl common-prompt apply --name {name}");
+        ConsoleUI.WriteBullet("Review and customize", "Edit the generated YAML file", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Apply prompt", $"srectl common-prompt apply --name {name}", ConsoleColor.Cyan);
 
         return 0;
     }

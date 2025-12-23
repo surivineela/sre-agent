@@ -93,17 +93,17 @@ public static class ToolCommandHandlers
         DebugLogger.LogFile("WRITE", yamlPath, $"Tool YAML content size: {toolYaml.Length} characters");
 
         await File.WriteAllTextAsync(yamlPath, toolYaml);
-        ConsoleUI.WriteStatus(true, $"Tool YAML created at {yamlPath}");
-        if (toolTypeInfo != null)
-        {
-            ConsoleUI.WriteKeyValue("Tool type", $"{toolTypeInfo.Name} - {toolTypeInfo.Description}");
-        }
+        ConsoleUI.WriteStatus(true, $"Successfully created tool '{name}' at {Path.GetDirectoryName(yamlPath)}");
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Created Files:");
+        ConsoleUI.WriteBullet(yamlPath, ConsoleColor.Green, 3);
+
         Console.WriteLine();
         ConsoleUI.WriteSection("Next Steps");
-        ConsoleUI.WriteCommand("Review and customize", "Edit the generated YAML file");
-        ConsoleUI.WriteCommand("Update connector", "Set the correct connector reference");
-        ConsoleUI.WriteCommand("Validate tool", $"srectl tool validate --name {name}");
-        ConsoleUI.WriteCommand("Apply tool", $"srectl tool apply --name {name}");
+        ConsoleUI.WriteBullet("Review and customize", "Edit the generated YAML file", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Update connector", "Set the correct connector reference", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Validate tool", $"srectl tool validate --name {name}", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Apply tool", $"srectl tool apply --name {name}", ConsoleColor.Cyan);
 
         // Kusto-specific post-create reminders
         if (!string.IsNullOrWhiteSpace(type) && ToolName.KustoTool == type)
@@ -112,7 +112,7 @@ public static class ToolCommandHandlers
             ConsoleUI.WriteSection("Kusto prerequisites");
             ConsoleUI.WriteBullet("Edit YAML to set database, cluster, data connection and query.", ConsoleColor.Yellow);
             ConsoleUI.WriteBullet("Ensure the connector principal has the required ADX permissions.", ConsoleColor.Yellow);
-            ConsoleUI.WriteCommand("Docs", "http://aka.ms/1psreagent");
+            ConsoleUI.WriteBullet("Docs: http://aka.ms/1psreagent", ConsoleColor.Yellow);
         }
 
         return 0;

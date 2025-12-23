@@ -157,24 +157,6 @@ public static class YamlHelper
     #region Skill Helper Methods
 
     /// <summary>
-    /// Validates if a directory contains the required skill files (metadata.yaml and SKILL.md).
-    /// </summary>
-    /// <param name="directoryPath">Path to the skill directory</param>
-    /// <returns>True if the directory contains required skill files, false otherwise</returns>
-    public static bool IsValidSkillDirectory(string directoryPath)
-    {
-        if (!Directory.Exists(directoryPath))
-        {
-            return false;
-        }
-
-        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
-        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
-
-        return File.Exists(metadataPath) && File.Exists(skillMdPath);
-    }
-
-    /// <summary>
     /// Saves a SkillSpec to a directory with metadata.yaml, SKILL.md, and additional files.
     /// </summary>
     /// <param name="directoryPath">Path to save the skill</param>
@@ -184,7 +166,7 @@ public static class YamlHelper
         Directory.CreateDirectory(directoryPath);
 
         // Write metadata.yaml (contains name, description, tools from YamlSkillDescriptor)
-        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
+        var metadataPath = Path.Combine(directoryPath, ExtendedSkillHelper.MetadataFileName);
         var metadata = new YamlSkillDescriptor
         {
             Name = skillSpec.Name,
@@ -201,7 +183,7 @@ public static class YamlHelper
         await File.WriteAllTextAsync(metadataPath, metadataYaml, Encoding.UTF8);
 
         // Write SKILL.md (main skill content)
-        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
+        var skillMdPath = Path.Combine(directoryPath, ExtendedSkillHelper.SkillContentFileName);
         await File.WriteAllTextAsync(skillMdPath, skillSpec.SkillMdContent ?? string.Empty, Encoding.UTF8);
 
         // Write additional files if any
@@ -222,13 +204,13 @@ public static class YamlHelper
     /// <returns>YAML content representing the skill deployment</returns>
     public static async Task<string> ReadSkillFromDirectory(string directoryPath)
     {
-        if (!IsValidSkillDirectory(directoryPath))
+        if (!ExtendedSkillHelper.IsValidSkillDirectory(directoryPath))
         {
             throw new InvalidOperationException($"Invalid skill directory: {directoryPath}. Must contain 'metadata.yaml' and 'SKILL.md'");
         }
 
         // Read metadata.yaml
-        var metadataPath = Path.Combine(directoryPath, "metadata.yaml");
+        var metadataPath = Path.Combine(directoryPath, ExtendedSkillHelper.MetadataFileName);
         var metadataYaml = await File.ReadAllTextAsync(metadataPath, Encoding.UTF8);
 
         var deserializer = new DeserializerBuilder()
@@ -239,7 +221,7 @@ public static class YamlHelper
         var skillDescriptor = deserializer.Deserialize<YamlSkillDescriptor>(metadataYaml);
 
         // Read SKILL.md
-        var skillMdPath = Path.Combine(directoryPath, "SKILL.md");
+        var skillMdPath = Path.Combine(directoryPath, ExtendedSkillHelper.SkillContentFileName);
         var skillMdContent = await File.ReadAllTextAsync(skillMdPath, Encoding.UTF8);
 
         // Find additional files (all .md files except SKILL.md and metadata.yaml)
@@ -248,7 +230,7 @@ public static class YamlHelper
         foreach (var file in allFiles)
         {
             var fileName = Path.GetFileName(file);
-            if (fileName.Equals("SKILL.md", StringComparison.OrdinalIgnoreCase))
+            if (fileName.Equals(ExtendedSkillHelper.SkillContentFileName, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -256,7 +238,6 @@ public static class YamlHelper
             var content = await File.ReadAllTextAsync(file, Encoding.UTF8);
             additionalFiles.Add(new SkillSubFile
             {
-                FileName = fileName,
                 FilePath = Path.GetRelativePath(directoryPath, file), // Relative path within skill directory
                 Content = content
             });

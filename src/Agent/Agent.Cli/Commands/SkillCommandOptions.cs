@@ -11,82 +11,147 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class SkillCommandOptions
 {
-    // Upload command options
-    public static readonly Option<string> UploadPathOption = new("--path")
-    {
-        Description = "Path to a single skill directory to upload (e.g., skills/my-skill)"
-    };
+    // ============================================================
+    // Skill Create Command Options
+    // ============================================================
 
-    public static readonly Option<string> UploadFolderOption = new("--folder")
+    public static class Create
     {
-        Description = "Path to a folder containing multiple skill directories to upload"
-    };
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Required = true,
+            Description = "Name of the skill to create"
+        };
 
-    // Convert command options
-    public static readonly Option<string> ConvertAgentNameOption = new("--agent-name")
-    {
-        Required = true,
-        Description = "Name of the agent to convert to a skill"
-    };
+        public static readonly Option<string> DescriptionOption = new("--description")
+        {
+            Description = "Description of what the skill does and when to use it"
+        };
+    }
 
-    public static readonly Option<string[]> ConvertTopLevelAgentsOption = new("--top-level-agents")
-    {
-        Arity = ArgumentArity.ZeroOrMore,
-        AllowMultipleArgumentsPerToken = true,
-        Description = "List of top-level agent names for handoff context"
-    };
+    // ============================================================
+    // Skill Apply Command Options
+    // ============================================================
 
-    public static readonly Option<string> ConvertOutputPathOption = new("--output-path")
+    public static class Apply
     {
-        Description = "Output path for the generated skill (default: skills/{agent-name})"
-    };
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Required = true,
+            Description = "Name of the skill to apply to the server"
+        };
 
-    // List command options
-    public static readonly Option<int> ListLimitOption = new("--limit")
-    {
-        Description = "Number of skills per page (1-200, default: 50)",
-        DefaultValueFactory = _ => 50
-    };
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Preview changes without applying them"
+        };
+    }
 
-    public static readonly Option<int> ListPageOption = new("--page")
-    {
-        Description = "Page number (1-based, default: 1)",
-        DefaultValueFactory = _ => 1
-    };
+    // ============================================================
+    // Skill Convert Command Options
+    // ============================================================
 
-    public static readonly Option<string> ListSearchOption = new("--search")
+    public static class Convert
     {
-        Description = "Search skills by name or description"
-    };
+        public static readonly Option<string> AgentNameOption = new("--agent-name")
+        {
+            Required = true,
+            Description = "Name of the agent to convert to a skill"
+        };
 
-    // Download command options
-    public static readonly Option<string> DownloadNameOption = new("--name")
-    {
-        Required = true,
-        Description = "Name of the skill to download"
-    };
+        public static readonly Option<string[]> TopLevelAgentsOption = new("--top-level-agents")
+        {
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true,
+            Description = "List of top-level agent names for handoff context"
+        };
 
-    public static readonly Option<string> DownloadOutputPathOption = new("--output-path")
-    {
-        Description = "Output path for the downloaded skill (default: skills/{skill-name})"
-    };
+        public static readonly Option<string> OutputPathOption = new("--output-path")
+        {
+            Description = "Output path for the generated skill (default: skills/{agent-name})"
+        };
+    }
 
-    // Delete command options
-    public static readonly Option<string> DeleteNameOption = new("--name")
-    {
-        Required = true,
-        Description = "Name of the skill to delete"
-    };
+    // ============================================================
+    // Skill List Command Options
+    // ============================================================
 
-    // Create command options
-    public static readonly Option<string> CreateNameOption = new("--name")
+    public static class List
     {
-        Required = true,
-        Description = "Name of the skill to create"
-    };
+        public static readonly Option<string?> SearchOption = new("--search")
+        {
+            Description = "Search filter for skill names or descriptions"
+        };
 
-    public static readonly Option<string> CreateOutputPathOption = new("--output-path")
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Get a specific skill by name and output the full YAML"
+        };
+
+        public static readonly Option<bool> DetailOption = new("--detail")
+        {
+            Description = "Output the full YAML for all skills in the list"
+        };
+    }
+
+    // ============================================================
+    // Skill Sync Command Options
+    // ============================================================
+
+    public static class Sync
     {
-        Description = "Output path for the created skill (default: skills/{skill-name})"
-    };
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Name of the skill to sync"
+        };
+
+        public static readonly Option<bool> AllOption = new("--all")
+        {
+            Description = "Sync all skills from the server"
+        };
+
+        public static readonly Option<string?> PathOption = new("--path", "--output-path")
+        {
+            Description = "Output path for the synced skill(s) (default: skills/)"
+        };
+    }
+
+    // ============================================================
+    // Skill Delete Command Options
+    // ============================================================
+
+    public static class Delete
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Required = true,
+            Description = "Name of the skill to delete"
+        };
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Preview deletion without actually removing the skill"
+        };
+    }
+
+    // ============================================================
+    // Skill Migrate Command Options
+    // ============================================================
+
+    public static class Migrate
+    {
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Name of the skill to migrate from V1 to V2"
+        };
+
+        public static readonly Option<bool> AllOption = new("--all")
+        {
+            Description = "Migrate all V1 skills to V2 format"
+        };
+
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Preview migration without modifying files"
+        };
+    }
 }

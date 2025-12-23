@@ -354,4 +354,66 @@ spec:
     {prompt}
 ";
     }
+
+    // ============================================================
+    // V2 Skill YAML Generators
+    // ============================================================
+
+    /// <summary>
+    /// Generates a V2 Skill metadata YAML string.
+    /// </summary>
+    public static string GetSkillMetadataV2(
+        string name,
+        string description = "Test skill description",
+        string? owner = null,
+        string[]? tags = null,
+        string[]? additionalFiles = null)
+    {
+        var yaml = $@"api_version: azuresre.ai/v2
+kind: Skill
+metadata:
+  name: {name}";
+
+        if (!string.IsNullOrEmpty(owner))
+        {
+            yaml += $@"
+  owner: {owner}";
+        }
+
+        if (tags != null && tags.Length > 0)
+        {
+            yaml += "\n  tags:";
+            foreach (var tag in tags)
+            {
+                yaml += $@"
+    - {tag}";
+            }
+        }
+
+        yaml += $@"
+spec:
+  description: |-
+    {description}";
+
+        if (additionalFiles != null && additionalFiles.Length > 0)
+        {
+            yaml += "\n  additionalFiles:";
+            foreach (var file in additionalFiles)
+            {
+                yaml += $@"
+    - filePath: {file}";
+            }
+        }
+
+        return yaml + "\n";
+    }
+
+    /// <summary>
+    /// Generates a minimal V2 Skill metadata YAML string for testing.
+    /// </summary>
+    public static string GetMinimalSkillMetadataV2(string name)
+    {
+        return GetSkillMetadataV2(name, "Test skill for E2E testing");
+    }
 }
+

@@ -50,6 +50,7 @@ The Unit Tests project for the CLI.
 - Follow .NET best practices for CLI tools
 - Ensure the individual components are following the guidelines below
 - DO NOT create readme file unless you are explicitly instructed to do so
+- Unless there is a specific need, avoid using fully qualified type names such as Namespace.Class. Instead, add the appropriate using directive and refer to the type by its simple name (e.g., Class)
 - Write unit tests and E2E tests for command logic and utilities:
   - Focus on testing core functionality
   - Avoid adding trivial tests like null checks

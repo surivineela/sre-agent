@@ -21,12 +21,6 @@ public class SkillSpec : YamlSkillDescriptor
 public class SkillSubFile
 {
     /// <summary>
-    /// The name of the file.
-    /// </summary>
-    [YamlMember(Alias = "file_name")]
-    public required string FileName { get; set; }
-
-    /// <summary>
     /// The path to the file within the skill directory, including the file name.
     /// </summary>
     [YamlMember(Alias = "file_path")]

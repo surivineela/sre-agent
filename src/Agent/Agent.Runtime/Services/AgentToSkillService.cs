@@ -123,7 +123,6 @@ public class AgentToSkillService(
 
                 result.AdditionalFiles.Add(new SkillSubFile
                 {
-                    FileName = $"{GetAgentToSkillName(handoffAgent.Name)}.md",
                     FilePath = $"{GetAgentToSkillName(handoffAgent.Name)}.md",
                     Content = FormatFileContent(handoffMdContent)
                 });

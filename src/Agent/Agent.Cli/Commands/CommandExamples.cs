@@ -306,20 +306,23 @@ Examples:
         public const string CreateDescription = @"Create a new skill directory with template files
 
 Examples:
-  # Create a new skill
+  # Create a new skill with default template
   srectl skill create --name my-skill
 
-  # Create to a custom path
-  srectl skill create --name my-skill --output-path custom/path";
+  # Create with custom description
+  srectl skill create --name my-skill --description ""Handles database queries and analysis""";
 
-        public const string UploadDescription = @"Upload a custom skill or multiple skills from a directory
+        public const string ApplyDescription = @"Apply a skill configuration to the remote server
 
 Examples:
-  # Upload a single skill directory
-  srectl skill upload --path skills/my-skill
+  # Apply a skill to the server
+  srectl skill apply --name my-skill
 
-  # Upload all skills from a folder
-  srectl skill upload --folder skills";
+  # Preview what would be applied (dry run)
+  srectl skill apply --name database-analyzer --dry-run
+
+  # Apply with debug logging
+  srectl skill apply --name my-skill --debug";
 
         public const string ConvertDescription = @"Convert an existing agent to a skill
 
@@ -333,32 +336,62 @@ Examples:
   # Specify custom output path
   srectl skill convert --agent-name my-agent --output-path custom/path";
 
-        public const string ListDescription = @"List all available skills
+        public const string ListDescription = @"List all available skills from the remote server
 
 Examples:
   # List all skills
   srectl skill list
 
-  # List with pagination
-  srectl skill list --page 2 --limit 25
+  # List all skills with full YAML details
+  srectl skill list --detail
+
+  # Get a specific skill by name (full YAML output)
+  srectl skill list --name my-skill
 
   # Search for specific skills
   srectl skill list --search database";
 
-        public const string DownloadDescription = @"Download a skill from the server
+        public const string SyncDescription = @"Sync skill(s) from the server to local directory
 
 Examples:
-  # Download a skill
-  srectl skill download --name my-skill
+  # Sync a single skill
+  srectl skill sync --name my-skill
 
-  # Download to a specific path
-  srectl skill download --name my-skill --output-path custom/path";
+  # Sync a skill to a specific path
+  srectl skill sync --name my-skill --path custom/path
+
+  # Sync all skills
+  srectl skill sync --all
+
+  # Sync all skills to a specific directory
+  srectl skill sync --all --path my-skills";
 
         public const string DeleteDescription = @"Delete a skill from the server
 
 Examples:
-  # Delete a skill
-  srectl skill delete --name my-skill";
+  # Delete a skill from the server
+  srectl skill delete --name old-skill
+
+  # Preview what would be deleted (dry run)
+  srectl skill delete --name test-skill --dry-run
+
+  # Delete with debug logging
+  srectl skill delete --name unused-skill --debug";
+
+        public const string MigrateDescription = @"Migrate V1 skill configurations to V2 format
+
+Examples:
+  # Migrate a specific skill
+  srectl skill migrate --name my-skill
+
+  # Migrate all V1 skills
+  srectl skill migrate --all
+
+  # Preview migration without making changes (dry run)
+  srectl skill migrate --name my-skill --dry-run
+
+  # Migrate all skills with dry run
+  srectl skill migrate --all --dry-run";
     }
 
     #endregion

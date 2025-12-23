@@ -13,7 +13,7 @@ namespace Agent.Cli.Commands;
 /// Handles the apply-yaml command operations.
 /// Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
 /// </summary>
-public static class ApplyYamlCommand
+public static class ApplyYamlCommandHandlers
 {
     /// <summary>
     /// Handles the apply-yaml command.
@@ -66,7 +66,7 @@ public static class ApplyYamlCommand
                     Console.WriteLine();
                 }
 
-                var (success, message) = await ProcessYamlDocumentAsync(apiService, yamlDocument, documentNumber);
+                var (success, message) = await ProcessYamlDocumentAsync(apiService, yamlDocument, documentNumber, filePath);
 
                 if (success)
                 {
@@ -148,7 +148,8 @@ public static class ApplyYamlCommand
     private static async Task<(bool Success, string Message)> ProcessYamlDocumentAsync(
         ApiService apiService,
         string yamlContent,
-        int documentNumber)
+        int documentNumber,
+        string yamlFilePath)
     {
         try
         {
@@ -223,6 +224,48 @@ public static class ApplyYamlCommand
                 else
                 {
                     return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for common prompt '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
+                }
+            }
+
+            // Check for V2 Skill
+            if (string.Equals(kind, ResourceModel.ResourceKind.SkillV2, StringComparison.OrdinalIgnoreCase))
+            {
+                if (apiVersion == YamlApiVersion.V2)
+                {
+                    // For skills, we need to load from the actual file path because skills require
+                    // loading SKILL.md and additional files from the skill directory
+                    var yamlDirectory = Path.GetDirectoryName(yamlFilePath);
+                    if (string.IsNullOrEmpty(yamlDirectory))
+                    {
+                        return (false, "Failed to determine directory from YAML file path");
+                    }
+
+                    // Determine the metadata.yaml path:
+                    // If the YAML file is named metadata.yaml, use it directly
+                    // Otherwise, assume it's in the current directory
+                    string metadataPath;
+                    if (Path.GetFileName(yamlFilePath).Equals("metadata.yaml", StringComparison.OrdinalIgnoreCase))
+                    {
+                        metadataPath = yamlFilePath;
+                    }
+                    else
+                    {
+                        // For multi-document YAML files, we cannot determine which skill directory to use
+                        return (false, "Skill resources in multi-document YAML files are not supported. Please use separate metadata.yaml files or use 'srectl skill apply' command.");
+                    }
+
+                    var (skill, error) = await ExtendedSkillV2.LoadYamlAsync(metadataPath);
+                    if (skill == null || !string.IsNullOrEmpty(error))
+                    {
+                        return (false, error ?? "Failed to load skill");
+                    }
+
+                    var (success, message) = await apiService.ApplyExtendedSkillAsync(skill, dryRun: false);
+                    return (success, message);
+                }
+                else
+                {
+                    return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for skill '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
                 }
             }
 
