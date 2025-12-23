@@ -473,20 +473,19 @@ spec:
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task ApplyYamlFileAsync_WithNullOrEmptyPath_ReturnsError(string filePath)
+    public async Task ApplyYamlContentAsync_WithNullOrEmptyContent_ReturnsError(string yamlContent)
     {
         // Act
-        var (Success, _) = await _apiService.ApplyYamlFileAsync(filePath);
+        var (Success, _) = await _apiService.ApplyYamlContentAsync(yamlContent);
 
         // Assert
         Assert.False(Success);
     }
 
     [Fact]
-    public async Task ApplyYamlFileAsync_WithValidFile_ShouldReturnSuccess()
+    public async Task ApplyYamlContentAsync_WithValidContent_ShouldReturnSuccess()
     {
         // Arrange
-        var tempFilePath = Path.GetTempFileName();
         var yamlContent = @"
 spec:
   agent:
@@ -498,140 +497,50 @@ spec:
     handoffs:
       - escalation";
 
-        await File.WriteAllTextAsync(tempFilePath, yamlContent);
-
         var expectedResponse = "Agent applied successfully";
         var mockHandler = TestHelpers.CreateMockHttpMessageHandler(HttpStatusCode.OK, expectedResponse);
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
-        try
-        {
-            // Act
-            var (Success, Response) = await apiService.ApplyYamlFileAsync(tempFilePath);
-
-            // Assert
-            Success.ShouldBeTrue();
-            Response.ShouldContain("applied successfully");
-
-            // Verify the request was made correctly
-            mockHandler.Protected().Verify(
-                "SendAsync",
-                Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(req =>
-                    req.Method == HttpMethod.Put &&
-                    req.RequestUri!.ToString().Contains("/api/v1/extendedAgent/apply") &&
-                    req.Content!.Headers.ContentType!.MediaType == "application/yaml"
-                ),
-                ItExpr.IsAny<CancellationToken>()
-            );
-        }
-        finally
-        {
-            // Cleanup
-            if (File.Exists(tempFilePath))
-                File.Delete(tempFilePath);
-        }
-    }
-
-    [Fact]
-    public async Task ApplyYamlFileAsync_WithNonExistentFile_ShouldReturnFailure()
-    {
-        // Arrange
-        var nonExistentFilePath = "non-existent-file.yaml";
-        var mockHandler = new Mock<HttpMessageHandler>();
-        var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
-
         // Act
-        var (Success, Response) = await apiService.ApplyYamlFileAsync(nonExistentFilePath);
+        var (Success, Response) = await apiService.ApplyYamlContentAsync(yamlContent);
 
         // Assert
-        Success.ShouldBeFalse();
-        Response.ShouldContain("YAML file not found");
-        Response.ShouldContain(nonExistentFilePath);
-    }
+        Success.ShouldBeTrue();
+        Response.ShouldContain("applied successfully");
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData("   \n\t   ")]
-    public async Task ApplyYamlFileAsync_WithEmptyFile_ShouldReturnFailure(string fileContent)
-    {
-        // Arrange
-        var tempFilePath = Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFilePath, fileContent);
-
-        var mockHandler = new Mock<HttpMessageHandler>();
-        var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
-
-        try
-        {
-            // Act
-            var (Success, Response) = await apiService.ApplyYamlFileAsync(tempFilePath);
-
-            // Assert
-            Success.ShouldBeFalse();
-            Response.ShouldContain("YAML file is empty");
-            Response.ShouldContain(tempFilePath);
-        }
-        finally
-        {
-            // Cleanup
-            if (File.Exists(tempFilePath))
-            {
-                File.Delete(tempFilePath);
-            }
-        }
+        // Verify the request was made correctly
+        mockHandler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.Method == HttpMethod.Put &&
+                req.RequestUri!.ToString().Contains("/api/v1/extendedAgent/apply") &&
+                req.Content!.Headers.ContentType!.MediaType == "application/yaml"
+            ),
+            ItExpr.IsAny<CancellationToken>()
+        );
     }
 
     [Fact]
-    public async Task ApplyYamlFileAsync_WithServerError_ShouldReturnFailure()
+    public async Task ApplyYamlContentAsync_WithServerError_ShouldReturnFailure()
     {
         // Arrange
-        var tempFilePath = Path.GetTempFileName();
         var yamlContent = @"
 spec:
   agent:
     name: Invalid Agent
     invalid_field: bad_value";
 
-        await File.WriteAllTextAsync(tempFilePath, yamlContent);
-
         var errorResponse = "Validation failed: Invalid agent configuration";
         var mockHandler = TestHelpers.CreateMockHttpMessageHandler(HttpStatusCode.BadRequest, errorResponse);
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
 
-        try
-        {
-            // Act
-            var (Success, Response) = await apiService.ApplyYamlFileAsync(tempFilePath);
-
-            // Assert
-            Success.ShouldBeFalse();
-            Response.ShouldContain("Failed to apply YAML file");
-        }
-        finally
-        {
-            // Cleanup
-            if (File.Exists(tempFilePath))
-                File.Delete(tempFilePath);
-        }
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task ApplyYamlFileAsync_WithInvalidFilePath_ShouldReturnFailure(string filePath)
-    {
-        // Arrange
-        var mockHandler = new Mock<HttpMessageHandler>();
-        var apiService = TestHelpers.CreateApiServiceWithMockedHttp(mockHandler);
-
         // Act
-        var (Success, Response) = await apiService.ApplyYamlFileAsync(filePath);
+        var (Success, Response) = await apiService.ApplyYamlContentAsync(yamlContent);
 
         // Assert
         Success.ShouldBeFalse();
-        Response.ShouldContain("YAML file not found");
+        Response.ShouldContain("Failed to apply YAML content");
     }
 
     [Fact]

@@ -313,4 +313,176 @@ public static class CommonPromptCommandHandlers
             }
         }
     }
+
+    /// <summary>
+    /// Handles the common-prompt migrate command.
+    /// </summary>
+    public static async Task<int> HandleMigrateCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting common-prompt migrate command");
+
+        var promptName = parseResult.GetValue(CommonPromptCommandOptions.Migrate.NameOption);
+        var all = parseResult.GetValue(CommonPromptCommandOptions.Migrate.AllOption);
+        var dryRun = parseResult.GetValue(CommonPromptCommandOptions.Migrate.DryRunOption);
+
+        DebugLogger.Debug("Parameters", $"PromptName: {promptName}, All: {all}, DryRun: {dryRun}");
+
+        var filesToMigrate = new List<string>();
+
+        if (all)
+        {
+            if (!Directory.Exists(CommonPromptsDirectory))
+            {
+                ConsoleUI.WriteStatus(false, $"CommonPrompts directory not found.");
+                return 1;
+            }
+
+            filesToMigrate = Directory.GetFiles(CommonPromptsDirectory, "*.yaml", SearchOption.AllDirectories).ToList();
+        }
+        else
+        {
+            var promptFile = CommonPromptHelper.FindCommonPrompt(promptName!);
+            if (promptFile == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Common prompt file not found for '{promptName}'");
+                ConsoleUI.WriteInfo($"Expected: CommonPrompts/{promptName}.yaml or CommonPrompts/{promptName}/{promptName}.yaml", ConsoleColor.Gray);
+                return 1;
+            }
+            filesToMigrate.Add(promptFile);
+        }
+
+        if (filesToMigrate.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No common prompt YAML files found to migrate.");
+            return 1;
+        }
+
+        ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} common prompt file(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        Console.WriteLine();
+
+        int migratedCount = 0;
+        int skippedCount = 0;
+        int errorCount = 0;
+        bool hasMultiDocYaml = false;
+
+        foreach (var file in filesToMigrate)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(file);
+                var content = await File.ReadAllTextAsync(file);
+
+                // Detect version
+                var detectedVersion = CommonPromptHelper.DetectVersion(file);
+
+                // Check if file is already V2
+                if (detectedVersion == YamlApiVersion.V2)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Already V2 format", ConsoleColor.Gray);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Check if file is V1
+                if (detectedVersion != YamlApiVersion.V1)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Not a V1 common prompt file", ConsoleColor.Yellow);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Convert V1 to V2
+                var v1Prompt = CommonPromptV1.ParseYaml(content);
+                if (v1Prompt == null)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Failed to deserialize V1 format", ConsoleColor.Red);
+                    errorCount++;
+                    continue;
+                }
+
+                if (v1Prompt.Spec?.CommonPrompts == null || v1Prompt.Spec.CommonPrompts.Count == 0)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: No common prompts found in file", ConsoleColor.Yellow);
+                    skippedCount++;
+                    continue;
+                }
+
+                var v2Prompts = Converters.CommonPromptConverter.ConvertToV2(v1Prompt);
+
+                if (v2Prompts.Count == 0)
+                {
+                    ConsoleUI.WriteBullet($"{fileName}: Failed to convert to V2 format", ConsoleColor.Red);
+                    errorCount++;
+                    continue;
+                }
+
+                // Determine output format: single document or multi-document YAML
+                if (v2Prompts.Count == 1)
+                {
+                    // Single prompt - write to same file (overwrites original)
+                    if (!dryRun)
+                    {
+                        await v2Prompts[0].SaveYamlAsync(file);
+                        DebugLogger.LogFile("WRITE", file, $"Migrated to V2 format");
+                        ConsoleUI.WriteBullet($"{fileName}: Migrated to V2", ConsoleColor.Green);
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Would migrate to V2", ConsoleColor.Green);
+                    }
+
+                    migratedCount++;
+                }
+                else
+                {
+                    // Multiple prompts - create multi-document YAML (separated by ---)
+                    if (!dryRun)
+                    {
+                        var multiDocYaml = string.Join("\n---\n", v2Prompts.Select(p => p.ToYaml()));
+                        await File.WriteAllTextAsync(file, multiDocYaml);
+                        DebugLogger.LogFile("WRITE", file, $"Migrated {v2Prompts.Count} prompts to multi-document V2 format");
+                        ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Prompts.Count} prompts to V2 (multi-document YAML)", ConsoleColor.Green);
+                        hasMultiDocYaml = true;
+                    }
+                    else
+                    {
+                        ConsoleUI.WriteBullet($"{fileName}: Would migrate {v2Prompts.Count} prompts to V2 (multi-document YAML)", ConsoleColor.Green);
+                    }
+
+                    migratedCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                var fileName = Path.GetFileName(file);
+                ConsoleUI.WriteBullet($"{fileName}: Error - {ex.Message}", ConsoleColor.Red);
+                DebugLogger.Debug("Exception", $"Migration failed for {file}: {ex}");
+                errorCount++;
+            }
+        }
+
+        Console.WriteLine();
+
+        // Print multi-document YAML warning once if needed
+        if (hasMultiDocYaml && !dryRun)
+        {
+            ConsoleUI.WriteInfo("⚠️  Warning: Multi-document YAML files are not Ev2 deployment friendly", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Consider splitting to individual files for better deployment compatibility", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
+
+        ConsoleUI.WriteSection("Migration Summary");
+        ConsoleUI.WriteKeyValue("Total files", filesToMigrate.Count.ToString());
+        ConsoleUI.WriteKeyValue("Migrated", migratedCount.ToString(), valueColor: ConsoleColor.Green);
+        ConsoleUI.WriteKeyValue("Skipped", skippedCount.ToString(), valueColor: ConsoleColor.Gray);
+        ConsoleUI.WriteKeyValue("Errors", errorCount.ToString(), valueColor: errorCount > 0 ? ConsoleColor.Red : ConsoleColor.Gray);
+
+        if (dryRun && migratedCount > 0)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteInfo("Run without --dry-run to perform the migration", ConsoleColor.Cyan);
+        }
+
+        return errorCount > 0 ? 1 : 0;
+    }
 }

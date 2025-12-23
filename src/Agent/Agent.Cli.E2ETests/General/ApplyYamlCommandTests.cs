@@ -193,7 +193,7 @@ spec:
 
         // Assert: Command should fail with appropriate error
         Assert.False(result.Success);
-        Assert.Contains("Unsupported resource kind", result.Output);
+        Assert.Contains("Failed to apply YAML content", result.Output);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ spec:
 
         // Assert: Command should fail with version error
         Assert.False(result.Success);
-        Assert.Contains("Unsupported API version", result.Output);
+        Assert.Contains("Failed to apply YAML content", result.Output);
     }
 
     [Fact]

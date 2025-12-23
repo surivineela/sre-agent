@@ -875,7 +875,12 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string Response)> ApplyYamlFileAsync(string filePath)
+    /// <summary>
+    /// Applies YAML content directly to the server without requiring a file.
+    /// </summary>
+    /// <param name="yamlContent">The YAML content to apply</param>
+    /// <returns>Success status and response message</returns>
+    public async Task<(bool Success, string Response)> ApplyYamlContentAsync(string yamlContent)
     {
         try
         {
@@ -885,21 +890,11 @@ public partial class ApiService : IDisposable
                 return (false, "Configuration not found. Please run 'srectl init' first.");
             }
 
-            // Check if the YAML file exists
-            if (!File.Exists(filePath))
-            {
-                return (false, $"YAML file not found: {filePath}");
-            }
-
-            // Read the YAML file content
-            var yamlContent = await File.ReadAllTextAsync(filePath);
-
             if (string.IsNullOrWhiteSpace(yamlContent))
             {
-                return (false, $"YAML file is empty: {filePath}");
+                return (false, "YAML content is empty");
             }
 
-            // Create the request - send YAML directly to the same endpoint
             var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/extendedAgent/apply";
             var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {
@@ -910,16 +905,17 @@ public partial class ApiService : IDisposable
 
             if (response.IsSuccessStatusCode)
             {
-                return (true, $"✅ YAML file '{filePath}' applied successfully!");
+                return (true, $"✅ YAML content applied successfully!");
             }
             else
             {
-                return (false, $"❌ Failed to apply YAML file: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
+                return (false, $"❌ Failed to apply YAML content: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply YAML file: {ex.Message}");
+            DebugLogger.Debug("Exception", $"ApplyYamlContentAsync failed: {ex.Message}");
+            return (false, $"❌ Failed to apply YAML content: {ex.Message}");
         }
     }
 

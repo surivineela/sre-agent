@@ -295,6 +295,18 @@ Examples:
 
   # Delete with debug logging
   srectl common-prompt delete --name UnusedPrompt --debug";
+
+        public const string MigrateDescription = @"Migrate common prompt configurations from V1 to V2 format
+
+Examples:
+  # Migrate all common prompts in the CommonPrompts directory
+  srectl common-prompt migrate --all
+
+  # Migrate a specific common prompt
+  srectl common-prompt migrate --name ACACommonPrompts
+
+  # Preview migration without making changes
+  srectl common-prompt migrate --all --dry-run";
     }
 
     #endregion

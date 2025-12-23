@@ -17,6 +17,11 @@ namespace Agent.Cli.Models
         /// </summary>
         public static class ResourceKind
         {
+            // V1 Resource Kinds
+            public const string ToolListV1 = "ToolList";
+            public const string CommonPromptV1 = "CommonPrompt";
+
+            // V2 Resource Kinds
             public const string ExtendedAgentToolV2 = "ExtendedAgentTool";
             public const string ExtendedAgentV2 = "ExtendedAgent";
             public const string CommonPromptV2 = "CommonPrompt";

@@ -166,12 +166,9 @@ spec:
         // Act
         var result = await Runner.RunAsync("tool", "apply", "--name", toolName);
 
-        // Assert: Command should fail and suggest migration
+        // Assert: This format (kind: ExtendedTool) is not recognized as valid V1 or V2
         Assert.False(result.Success);
-        Assert.True(
-            result.Output.Contains("V1 format", StringComparison.OrdinalIgnoreCase) ||
-            result.Output.Contains("unknown format", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains("migrate", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Unable to detect tool format", result.Output);
     }
 
     [Fact]
@@ -210,7 +207,7 @@ spec:
         // Assert: Command should fail when spec is invalid/incomplete
         Assert.False(result.Success);
         Assert.Equal(1, result.ExitCode);
-        Assert.Contains("is using unknown format and must be migrated to V2", result.Output);
+        Assert.Contains("Unable to detect tool format", result.Output);
     }
 
     [Fact]

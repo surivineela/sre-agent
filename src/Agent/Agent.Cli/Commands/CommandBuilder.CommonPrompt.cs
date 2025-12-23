@@ -18,7 +18,8 @@ public static partial class CommandBuilder
                 CreateCreateCommand(),
                 CreateGetCommand(),
                 CreateApplyCommand(),
-                CreateDeleteCommand()
+                CreateDeleteCommand(),
+                CreateMigrateCommand()
             };
 
             return cmd;
@@ -99,6 +100,35 @@ public static partial class CommandBuilder
             };
 
             cmd.SetAction(CommonPromptCommandHandlers.HandleDeleteCommand);
+            return cmd;
+        }
+
+        private static Command CreateMigrateCommand()
+        {
+            var cmd = new Command("migrate", CommandExamples.CommonPrompt.MigrateDescription)
+            {
+                CommonPromptCommandOptions.Migrate.NameOption,
+                CommonPromptCommandOptions.Migrate.AllOption,
+                CommonPromptCommandOptions.Migrate.DryRunOption
+            };
+
+            // Validate mutually exclusive options
+            cmd.Validators.Add(result =>
+            {
+                var name = result.GetValue(CommonPromptCommandOptions.Migrate.NameOption);
+                var all = result.GetValue(CommonPromptCommandOptions.Migrate.AllOption);
+
+                if (all && !string.IsNullOrWhiteSpace(name))
+                {
+                    result.AddError(ErrorMessageHelper.InvalidParameter("Cannot use both --name and --all together"));
+                }
+                else if (!all && string.IsNullOrWhiteSpace(name))
+                {
+                    result.AddError(ErrorMessageHelper.InvalidParameter("Must specify either --name or --all"));
+                }
+            });
+
+            cmd.SetAction(CommonPromptCommandHandlers.HandleMigrateCommand);
             return cmd;
         }
     }

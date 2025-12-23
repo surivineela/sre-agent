@@ -140,8 +140,8 @@ public static class ExtendedAgentHelper
             // V1: api_version: "agent.platform.ai/v1" + kind: "AgentConfiguration"
             if (string.Equals(resourceModel.Kind, "AgentConfiguration", StringComparison.OrdinalIgnoreCase))
             {
-                var version = YamlApiVersion.Parse(resourceModel.ApiVersion);
-                return version;
+                // Consider AgentConfiguration always V1
+                return YamlApiVersion.V1;
             }
 
             // Not a recognized agent format

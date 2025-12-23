@@ -223,7 +223,7 @@ public class ShowTypesCommandTests : AgentCommandTestBase
         Assert.Contains("type: PythonTool", result.Output);
         Assert.Contains("functionCode:", result.Output);
         Assert.Contains("def execute(**kwargs):", result.Output);
-        Assert.Contains("timeoutSeconds: 30", result.Output);
+        Assert.Contains("timeoutSeconds: 240", result.Output);
 
         // Verify parameters section
         Assert.Contains("parameters:", result.Output);

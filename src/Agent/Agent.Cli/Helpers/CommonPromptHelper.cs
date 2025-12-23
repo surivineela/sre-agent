@@ -81,4 +81,51 @@ public static class CommonPromptHelper
 
         return null;
     }
+
+    /// <summary>
+    /// Detects the API version of a common prompt YAML file.
+    /// </summary>
+    /// <param name="filePath">The path to the common prompt YAML file</param>
+    /// <returns>The detected API version, or null if detection fails</returns>
+    public static YamlApiVersion? DetectVersion(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
+
+            var yamlContent = File.ReadAllText(filePath);
+
+            // Try to deserialize as ResourceModel to get Kind and ApiVersion
+            var deserializer = ResourceModel.GetDeserializerBuilder().Build();
+            var resourceModel = deserializer.Deserialize<ResourceModel>(yamlContent);
+
+            if (resourceModel == null)
+            {
+                return null;
+            }
+
+            // Check if this is a V2 CommonPrompt
+            if (string.Equals(resourceModel.Kind, ResourceModel.ResourceKind.CommonPromptV2, StringComparison.OrdinalIgnoreCase))
+            {
+                var version = YamlApiVersion.Parse(resourceModel.ApiVersion);
+                return version;
+            }
+
+            // Check if this is a V1 CommonPrompt (in fact the V1 and v2 kinds are the same)
+            if (string.Equals(resourceModel.Kind, ResourceModel.ResourceKind.CommonPromptV1, StringComparison.OrdinalIgnoreCase))
+            {
+                return YamlApiVersion.V1;
+            }
+
+            // Not a recognized common prompt format
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

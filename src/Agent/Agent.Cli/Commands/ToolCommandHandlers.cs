@@ -163,23 +163,58 @@ public static class ToolCommandHandlers
             return 1;
         }
 
-        // Check tool version before attempting to apply
+        // Detect tool version
         var detectedVersion = ExtendedToolHelper.DetectVersion(toolFilePath);
-        if (detectedVersion != YamlApiVersion.V2)
+
+        if (detectedVersion == null)
         {
-            var versionName = detectedVersion == YamlApiVersion.V1 ? "V1" : "unknown";
-            ConsoleUI.WriteStatus(false, $"Tool '{name}' is using {versionName} format and must be migrated to V2 before applying.");
-            ConsoleUI.WriteBullet($"Run: srectl tool migrate --name {name}", ConsoleColor.Yellow);
-            ConsoleUI.WriteBullet("Or:  srectl tool migrate --all", ConsoleColor.Yellow);
+            ConsoleUI.WriteStatus(false, $"Unable to detect tool format. The YAML file may be invalid or corrupted.");
             return 1;
         }
 
-        // Read and parse the YAML file as ExtendedToolV2
-        var tool = await ExtendedToolV2.LoadYamlAsync(toolFilePath);
-        if (tool == null)
+        ExtendedToolV2 tool;
+
+        // Handle V1 format - convert to V2
+        if (detectedVersion == YamlApiVersion.V1)
         {
-            ConsoleUI.WriteStatus(false, $"Failed to parse tool YAML file: {toolFilePath}");
-            return 1;
+            ConsoleUI.WriteInfo($"⚠️  Warning: Tool YAML is using V1 format.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo($"    Consider migrating to V2 format by running: srectl tool migrate --name {name}", ConsoleColor.Yellow);
+            Console.WriteLine();
+
+            var v1Tool = await ExtendedToolV1.LoadYamlAsync(toolFilePath);
+            if (v1Tool == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to load V1 tool: {toolFilePath}");
+                return 1;
+            }
+
+            // Determine tool type and convert to V2
+            var toolType = v1Tool.Type;
+            if (ToolName.KustoTool == toolType)
+            {
+                var kustoV1 = KustoToolV1.ParseYaml(await File.ReadAllTextAsync(toolFilePath));
+                tool = Converters.ExtendedToolConverter.ConvertToV2(kustoV1);
+            }
+            else if (ToolName.LinkTool == toolType)
+            {
+                var linkV1 = LinkToolV1.ParseYaml(await File.ReadAllTextAsync(toolFilePath));
+                tool = Converters.ExtendedToolConverter.ConvertToV2(linkV1);
+            }
+            else
+            {
+                ConsoleUI.WriteStatus(false, $"Unsupported V1 tool type '{toolType}'. Only KustoTool and LinkTool are supported.");
+                return 1;
+            }
+        }
+        else // V2 format
+        {
+            var v2Tool = await ExtendedToolV2.LoadYamlAsync(toolFilePath);
+            if (v2Tool == null)
+            {
+                ConsoleUI.WriteStatus(false, $"Failed to parse tool YAML file: {toolFilePath}");
+                return 1;
+            }
+            tool = v2Tool;
         }
 
         // Check if --name parameter differs from the name in YAML
@@ -1163,12 +1198,13 @@ public static class ToolCommandHandlers
             return 1;
         }
 
-        ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} tool(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        ConsoleUI.WriteSection($"Migrating {filesToMigrate.Count} tool file(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
         Console.WriteLine();
 
         int migratedCount = 0;
         int skippedCount = 0;
         int errorCount = 0;
+        bool hasMultiDocYaml = false;
 
         foreach (var file in filesToMigrate)
         {
@@ -1191,7 +1227,7 @@ public static class ToolCommandHandlers
                 var apiVersion = yamlDict.TryGetValue("api_version", out var apiObj) ? apiObj?.ToString() : null;
 
                 // Step 2: If kind = ToolList and api_version = V1, process as ToolList
-                if (string.Equals(kind, "ToolList", StringComparison.OrdinalIgnoreCase) &&
+                if (string.Equals(kind, ResourceModel.ResourceKind.ToolListV1, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(apiVersion, YamlApiVersion.V1, StringComparison.OrdinalIgnoreCase))
                 {
                     isToolList = true;
@@ -1268,9 +1304,9 @@ public static class ToolCommandHandlers
                 // Step 4: Process the v2Tools based on dry-run flag
                 if (dryRun)
                 {
-                    if (isToolList)
+                    if (isToolList && v2Tools.Count != 1)
                     {
-                        ConsoleUI.WriteBullet($"{fileName}: Would migrate {v2Tools.Count} tools to V2", ConsoleColor.Green);
+                        ConsoleUI.WriteBullet($"{fileName}: Would migrate {v2Tools.Count} tools to V2 (multi-document YAML)", ConsoleColor.Green);
                     }
                     else
                     {
@@ -1280,41 +1316,13 @@ public static class ToolCommandHandlers
                 else
                 {
                     // Perform actual migration
-                    var fileDir = Path.GetDirectoryName(file);
-
-                    if (isToolList)
+                    if (isToolList && v2Tools.Count != 1)
                     {
-                        // Save each tool from ToolList as separate V2 file
-                        bool originalFileOverwritten = false;
-                        foreach (var tool in v2Tools)
-                        {
-                            var convertedToolName = tool.Metadata?.Name ?? "UnnamedTool";
-                            var outputFile = Path.Combine(fileDir!, $"{convertedToolName}.yaml");
-
-                            // Check if we're about to overwrite the original file
-                            if (string.Equals(outputFile, file, StringComparison.OrdinalIgnoreCase))
-                            {
-                                originalFileOverwritten = true;
-                            }
-
-                            await tool.SaveYamlAsync(outputFile);
-                        }
-
-                        // Step 5: Backup original ToolList file only if it was not overwritten
-                        if (!originalFileOverwritten)
-                        {
-                            var backupFile = file + ".v1.bak";
-                            if (File.Exists(backupFile))
-                            {
-                                File.Delete(backupFile);
-                            }
-                            File.Move(file, backupFile);
-                            ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Tools.Count} tools to V2 (original backed up to {Path.GetFileName(backupFile)})", ConsoleColor.Green);
-                        }
-                        else
-                        {
-                            ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Tools.Count} tools to V2 (original file overwritten)", ConsoleColor.Green);
-                        }
+                        // Multiple tools: Save as multi-document YAML (separated by ---) to same filename
+                        var multiDocYaml = string.Join("\n---\n", v2Tools.Select(t => t.ToYaml()));
+                        await File.WriteAllTextAsync(file, multiDocYaml);
+                        ConsoleUI.WriteBullet($"{fileName}: Migrated {v2Tools.Count} tools to V2 (multi-document YAML)", ConsoleColor.Green);
+                        hasMultiDocYaml = true;
                     }
                     else
                     {
@@ -1334,6 +1342,15 @@ public static class ToolCommandHandlers
         }
 
         Console.WriteLine();
+
+        // Print multi-document YAML warning once if needed
+        if (hasMultiDocYaml && !dryRun)
+        {
+            ConsoleUI.WriteInfo("⚠️  Warning: Multi-document YAML files are not Ev2 deployment friendly", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Consider splitting to individual files for better deployment compatibility", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
+
         ConsoleUI.WriteSection("Migration Summary");
         ConsoleUI.WriteKeyValue("Total files", filesToMigrate.Count.ToString());
         ConsoleUI.WriteKeyValue("Migrated", migratedCount.ToString(), valueColor: ConsoleColor.Green);
@@ -1351,8 +1368,8 @@ public static class ToolCommandHandlers
         {
             Console.WriteLine();
             ConsoleUI.WriteSection("Next Steps");
-            ConsoleUI.WriteCommand("Validate migrated tools", "srectl tool validate --all");
-            ConsoleUI.WriteCommand("Apply to server", "srectl sync");
+            ConsoleUI.WriteBullet("Validate migrated tools", "srectl tool apply --dry-run --name [tool-name]", ConsoleColor.Cyan);
+            ConsoleUI.WriteBullet("Apply to server", "srectl tool apply --name [tool-name]", ConsoleColor.Cyan);
         }
 
         return errorCount > 0 ? 1 : 0;

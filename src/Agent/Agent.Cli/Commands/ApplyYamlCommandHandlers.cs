@@ -110,8 +110,8 @@ public static class ApplyYamlCommandHandlers
 
         foreach (var line in lines)
         {
-            // YAML document separator
-            if (line.Trim() == "---")
+            // YAML document separator (must be at start of line, no leading whitespace)
+            if (line == "---")
             {
                 // Save previous document if it has content
                 if (currentDocument.Count > 0)
@@ -178,12 +178,7 @@ public static class ApplyYamlCommandHandlers
                         return (false, $"Failed to parse tool YAML (kind: {kind})");
                     }
 
-                    var (success, message) = await apiService.ApplyExtendedToolAsync(tool, dryRun: false);
-                    return (success, message);
-                }
-                else
-                {
-                    return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for tool '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
+                    return await apiService.ApplyExtendedToolAsync(tool, dryRun: false);
                 }
             }
 
@@ -198,12 +193,7 @@ public static class ApplyYamlCommandHandlers
                         return (false, $"Failed to parse agent YAML (kind: {kind})");
                     }
 
-                    var (success, message) = await apiService.ApplyExtendedAgentAsync(agent, dryRun: false);
-                    return (success, message);
-                }
-                else
-                {
-                    return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for agent '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
+                    return await apiService.ApplyExtendedAgentAsync(agent, dryRun: false);
                 }
             }
 
@@ -218,12 +208,7 @@ public static class ApplyYamlCommandHandlers
                         return (false, $"Failed to parse common prompt YAML (kind: {kind})");
                     }
 
-                    var (success, message) = await apiService.ApplyCommonPromptAsync(prompt, dryRun: false);
-                    return (success, message);
-                }
-                else
-                {
-                    return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for common prompt '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
+                    return await apiService.ApplyCommonPromptAsync(prompt, dryRun: false);
                 }
             }
 
@@ -260,17 +245,13 @@ public static class ApplyYamlCommandHandlers
                         return (false, error ?? "Failed to load skill");
                     }
 
-                    var (success, message) = await apiService.ApplyExtendedSkillAsync(skill, dryRun: false);
-                    return (success, message);
-                }
-                else
-                {
-                    return (false, $"Unsupported API version '{resourceModel.ApiVersion}' for skill '{kind}'. Expected '{YamlApiVersion.V2}'. Please migrate to V2 format.");
+                    return await apiService.ApplyExtendedSkillAsync(skill, dryRun: false);
                 }
             }
 
-            // Unknown resource type
-            return (false, $"Unsupported resource kind '{kind}' with api_version '{resourceModel.ApiVersion}'");
+            // Unknown resource type - fallback to server-side processing
+            DebugLogger.Debug("Fallback", $"Attempting server-side processing for kind '{kind}' with api_version '{resourceModel.ApiVersion}'");
+            return await apiService.ApplyYamlContentAsync(yamlContent);
         }
         catch (Exception ex)
         {

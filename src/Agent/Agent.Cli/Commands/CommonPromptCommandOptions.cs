@@ -103,4 +103,26 @@ public static class CommonPromptCommandOptions
             Description = "Show what would be deleted without making changes"
         };
     }
+
+    // ============================================================
+    // Common-Prompt Migrate Command Options
+    // ============================================================
+
+    public static class Migrate
+    {
+        public static readonly Option<string?> NameOption = new("--name")
+        {
+            Description = "Name of a specific common prompt to migrate"
+        };
+
+        public static readonly Option<bool> AllOption = new("--all")
+        {
+            Description = "Migrate all common prompts in the CommonPrompts directory"
+        };
+
+        public static readonly Option<bool> DryRunOption = new("--dry-run")
+        {
+            Description = "Show what would be migrated without making changes"
+        };
+    }
 }

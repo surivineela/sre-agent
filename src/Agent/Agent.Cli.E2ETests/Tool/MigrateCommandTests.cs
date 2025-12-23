@@ -262,7 +262,7 @@ public class MigrateCommandTests : AgentCommandTestBase
     [Trait("Command", "Migrate")]
     [Trait("Type", "Functional")]
     [Trait("Feature", "ToolList")]
-    public async Task ToolMigrate_ToolListV1_CreatesMultipleV2Files()
+    public async Task ToolMigrate_ToolListV1_CreatesMultiDocumentYaml()
     {
         // Arrange - Create a V1 ToolList with multiple tools
         var toolListName = "TestToolList";
@@ -288,46 +288,37 @@ public class MigrateCommandTests : AgentCommandTestBase
         Assert.True(result.Success, "ToolList migration should succeed");
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Migrated 3 tools to V2", result.Output);
+        Assert.Contains("multi-document YAML", result.Output);
+        Assert.Contains("Warning: Multi-document YAML files are not Ev2 deployment friendly", result.Output);
 
-        // Verify three separate V2 files were created
-        var tool1Yaml = Runner.ReadFile("tools/Tool1.yaml");
-        var tool2Yaml = Runner.ReadFile("tools/Tool2.yaml");
-        var tool3Yaml = Runner.ReadFile("tools/Tool3.yaml");
+        // Verify multi-document YAML was created in the same file
+        var migratedYaml = Runner.ReadFile($"tools/{toolListName}.yaml");
+
+        // Verify it contains all three tools separated by ---
+        var documents = migratedYaml.Split("---", StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(3, documents.Length);
 
         // Verify Tool1
-        Assert.Contains("api_version: azuresre.ai/v2", tool1Yaml);
-        Assert.Contains("kind: ExtendedAgentTool", tool1Yaml);
-        Assert.Contains("name: Tool1", tool1Yaml);
-        Assert.Contains("type: KustoTool", tool1Yaml);
-        Assert.Contains("connector: Connector1", tool1Yaml);
-        Assert.Contains("database: DB1", tool1Yaml);
-        Assert.Contains("Query1", tool1Yaml);
+        Assert.Contains("api_version: azuresre.ai/v2", documents[0]);
+        Assert.Contains("kind: ExtendedAgentTool", documents[0]);
+        Assert.Contains("name: Tool1", documents[0]);
+        Assert.Contains("type: KustoTool", documents[0]);
+        Assert.Contains("connector: Connector1", documents[0]);
+        Assert.Contains("database: DB1", documents[0]);
+        Assert.Contains("Query1", documents[0]);
 
         // Verify Tool2
-        Assert.Contains("api_version: azuresre.ai/v2", tool2Yaml);
-        Assert.Contains("name: Tool2", tool2Yaml);
-        Assert.Contains("type: KustoTool", tool2Yaml);
-        Assert.Contains("connector: Connector2", tool2Yaml);
-        Assert.Contains("Query2", tool2Yaml);
+        Assert.Contains("api_version: azuresre.ai/v2", documents[1]);
+        Assert.Contains("name: Tool2", documents[1]);
+        Assert.Contains("type: KustoTool", documents[1]);
+        Assert.Contains("connector: Connector2", documents[1]);
+        Assert.Contains("Query2", documents[1]);
 
         // Verify Tool3
-        Assert.Contains("api_version: azuresre.ai/v2", tool3Yaml);
-        Assert.Contains("name: Tool3", tool3Yaml);
-        Assert.Contains("type: LinkTool", tool3Yaml);
-        Assert.Contains("https://example.com/{id}", tool3Yaml);
-
-        // Verify original ToolList file was backed up
-        var backupExists = Runner.FileExists($"tools/{toolListName}.yaml.v1.bak");
-        Assert.True(backupExists, "Original ToolList should be backed up");
-
-        // Verify original ToolList file no longer exists
-        var originalExists = Runner.FileExists($"tools/{toolListName}.yaml");
-        Assert.False(originalExists, "Original ToolList should be moved to backup");
-
-        // Validate all migrated tools
-        var validateResult = await Runner.RunAsync("tool", "validate", "--all");
-        _output.WriteLine($"Validation output: {validateResult.Output}");
-        Assert.True(validateResult.Success, "All migrated tools should be valid");
+        Assert.Contains("api_version: azuresre.ai/v2", documents[2]);
+        Assert.Contains("name: Tool3", documents[2]);
+        Assert.Contains("type: LinkTool", documents[2]);
+        Assert.Contains("https://example.com/{id}", documents[2]);
     }
 
     [Fact]
@@ -335,15 +326,14 @@ public class MigrateCommandTests : AgentCommandTestBase
     [Trait("Command", "Migrate")]
     [Trait("Type", "Functional")]
     [Trait("Feature", "ToolList")]
-    public async Task ToolMigrate_ToolListV1WithOverwrite_BacksUpOnlyWhenNotOverwritten()
+    public async Task ToolMigrate_ToolListV1_CreatesMultiDocumentYamlInPlace()
     {
-        // Arrange - Create a V1 ToolList where one tool has same name as the list file
+        // Arrange - Create a V1 ToolList with 2 tools
         var toolListName = "MyToolList";
         var toolListYaml = TestYamlHelper.GetToolListV1(
             listName: toolListName,
             tools: new List<(string, string, string, string?, string?, string?, string?)>
             {
-                // This tool has the same name as the ToolList file - will overwrite it
                 ("MyToolList", "KustoTool", "Tool with same name", "Connector1", "DB1", "Query1", null),
                 ("AnotherTool", "LinkTool", "Different tool", null, null, null, "https://example.com")
             });
@@ -361,22 +351,19 @@ public class MigrateCommandTests : AgentCommandTestBase
         Assert.True(result.Success, "ToolList migration should succeed");
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Migrated 2 tools to V2", result.Output);
-        Assert.Contains("original file overwritten", result.Output);
+        Assert.Contains("multi-document YAML", result.Output);
 
-        // Verify the original file was overwritten with Tool1's V2 format (not backed up)
-        var myToolListYaml = Runner.ReadFile($"tools/{toolListName}.yaml");
-        Assert.Contains("api_version: azuresre.ai/v2", myToolListYaml);
-        Assert.Contains("kind: ExtendedAgentTool", myToolListYaml);
-        Assert.Contains("name: MyToolList", myToolListYaml);
+        // Verify the file contains multi-document YAML
+        var migratedYaml = Runner.ReadFile($"tools/{toolListName}.yaml");
+        var documents = migratedYaml.Split("---", StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, documents.Length);
 
-        // Verify AnotherTool was created
-        var anotherToolYaml = Runner.ReadFile("tools/AnotherTool.yaml");
-        Assert.Contains("name: AnotherTool", anotherToolYaml);
-        Assert.Contains("type: LinkTool", anotherToolYaml);
+        Assert.Contains("api_version: azuresre.ai/v2", documents[0]);
+        Assert.Contains("kind: ExtendedAgentTool", documents[0]);
+        Assert.Contains("name: MyToolList", documents[0]);
 
-        // Verify backup was NOT created (since original was overwritten)
-        var backupExists = Runner.FileExists($"tools/{toolListName}.yaml.v1.bak");
-        Assert.False(backupExists, "Backup should not exist when original file is overwritten");
+        Assert.Contains("name: AnotherTool", documents[1]);
+        Assert.Contains("type: LinkTool", documents[1]);
     }
 
     [Fact]
@@ -468,7 +455,7 @@ spec:
     [Trait("Feature", "ToolList")]
     public async Task ToolMigrate_All_MigratesToolListAndSingleTools()
     {
-        // Arrange - Create both a ToolList and individual tools
+        // Arrange - Create both a ToolList with single tool and individual tools
         var toolListYaml = TestYamlHelper.GetToolListV1(
             listName: "MixedList",
             tools: new List<(string, string, string, string?, string?, string?, string?)>
@@ -496,18 +483,15 @@ spec:
         Assert.True(result.Success, "Migration should succeed");
         Assert.Equal(0, result.ExitCode);
 
-        // Verify tool from ToolList was created
-        var listTool1Yaml = Runner.ReadFile("tools/ListTool1.yaml");
-        Assert.Contains("api_version: azuresre.ai/v2", listTool1Yaml);
-        Assert.Contains("name: ListTool1", listTool1Yaml);
+        // Verify ToolList with single tool was migrated in place (not multi-doc)
+        var mixedListYaml = Runner.ReadFile("tools/MixedList.yaml");
+        Assert.Contains("api_version: azuresre.ai/v2", mixedListYaml);
+        Assert.Contains("name: ListTool1", mixedListYaml);
+        Assert.DoesNotContain("---", mixedListYaml); // Should not have document separator
 
         // Verify standalone tool was migrated in place
         var singleToolMigratedYaml = Runner.ReadFile("tools/SingleTool.yaml");
         Assert.Contains("api_version: azuresre.ai/v2", singleToolMigratedYaml);
         Assert.Contains("name: SingleTool", singleToolMigratedYaml);
-
-        // Verify ToolList backup exists
-        var backupExists = Runner.FileExists("tools/MixedList.yaml.v1.bak");
-        Assert.True(backupExists, "ToolList should be backed up");
     }
 }

@@ -1973,8 +1973,9 @@ description: A {type} tool created interactively";
             if (!isDryRun)
             {
                 // Use apply-yaml approach for consistency with regular commands
+                var yamlContent = await File.ReadAllTextAsync(toolPath);
                 using var apiService = new ApiService();
-                var (success, response) = await apiService.ApplyYamlFileAsync(toolPath);
+                var (success, response) = await apiService.ApplyYamlContentAsync(yamlContent);
 
                 if (success)
                 {
@@ -2256,8 +2257,9 @@ description: A {type} tool created interactively";
             }
 
             // Call the actual apply-yaml API service (same as regular apply-yaml command)
+            var yamlContent = await File.ReadAllTextAsync(filePath);
             using var apiService = new ApiService();
-            var (success, response) = await apiService.ApplyYamlFileAsync(filePath);
+            var (success, response) = await apiService.ApplyYamlContentAsync(yamlContent);
 
             if (success)
             {
