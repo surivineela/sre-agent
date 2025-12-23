@@ -260,6 +260,16 @@ extends:
             includeNuGetOrg: false
             zipAfterPublish: false
 
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish Session.Identity'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '.\src\Agent\Session.Identity\Session.Identity.csproj'
+            arguments: '--no-restore --output $(ArtifactDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            includeNuGetOrg: false
+            zipAfterPublish: false
+
         #
         # Build and Pack Agent.Portal NuGet Package
         # Only runs and packages when isNugetPublish and isOfficialBuild are both true
@@ -587,3 +597,37 @@ extends:
               # Commented out remote image push
               remoteImage:
               - k8seprod.azurecr.io/public/k8se/sreagent/session-proxy:$(Build.BuildNumber)
+
+      - stage: docker_session_identity
+        dependsOn:
+        - build_and_test
+        jobs:
+        - job: image_build
+          displayName: "🔨 Build Docker Image for Session.Identity"
+          pool:
+            name: Azure-Pipelines-1ESPT-ExDShared
+            image: ubuntu-latest
+            os: linux
+          steps:
+            # This task downloads the build artifacts from the previous stage.
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+              artifact: drop_build_main
+              patterns: 'Session.Identity/**'
+
+          - task: 1ES.BuildContainerImage@1
+            displayName: 'Build Docker image for Session.Identity'
+            inputs:
+              context: $(Build.SourcesDirectory)/dst/drop_build_main/Session.Identity
+              dockerFile: $(Build.SourcesDirectory)/src/Deployment/Session.Identity/Dockerfile
+              image: session-identity:$(Build.BuildNumber)
+              enableNetwork: true
+
+          templateContext:
+            outputs:
+            - output: containerImage
+              image: session-identity:$(Build.BuildNumber)
+              # Commented out remote image push
+              remoteImage:
+              - k8seprod.azurecr.io/public/k8se/sreagent/session-identity:$(Build.BuildNumber)
