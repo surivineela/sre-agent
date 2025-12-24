@@ -6,12 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Suppress NuGet warnings about .ps1 files in Templates folder - these are content files, not install scripts -->
+    <NoWarn>$(NoWarn);NU5110;NU5111</NoWarn>
 
     <!-- Global Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
     <PackageId>SREAgent.CLI</PackageId>
-    <Version>1.0.21</Version>
+    <Version>1.0.26</Version>
     <Authors>SRE Agent Team</Authors>
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
     <AssemblyTitle>srectl</AssemblyTitle>

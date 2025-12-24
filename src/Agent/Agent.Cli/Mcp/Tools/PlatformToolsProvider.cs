@@ -138,8 +138,8 @@ public static class PlatformToolsProvider
         yield return Path.Combine(currentDir, "PublishedTools.json");
         yield return Path.Combine(currentDir, "src", "Agent", "Agent.Web", "PublishedTools.json");
 
-        // Try paths relative to assembly location
-        var assemblyDir = Path.GetDirectoryName(typeof(PlatformToolsProvider).Assembly.Location);
+        // Try paths relative to assembly location (use AppContext.BaseDirectory for single-file apps)
+        var assemblyDir = AppContext.BaseDirectory;
         if (!string.IsNullOrEmpty(assemblyDir))
         {
             yield return Path.Combine(assemblyDir, "PublishedTools.json");
