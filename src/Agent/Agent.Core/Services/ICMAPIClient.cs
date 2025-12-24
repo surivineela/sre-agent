@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
@@ -11,9 +15,8 @@ using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 using IncidentStatus = Microsoft.AzureAd.Icm.Types.IncidentStatus;
 
 
-
-
 namespace Agent.Core.Services;
+
 public interface IICMAPIClient
 {
     Task<Incident> GetIncidentAsync(string incidentId);
