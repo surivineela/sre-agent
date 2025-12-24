@@ -45,6 +45,14 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
             Details: $"Invalid LinuxFxVersion format '{siteConfig.LinuxFxVersion}'",
             Recommendation: string.Empty);
 
+        // if linuxFxVersion runtime is not supported, skip validation
+        var runtime = siteConfig.LinuxFxVersion?.Split('|')[0]?.ToUpperInvariant();
+        if (runtime != null && !SupportedRuntimes.Contains(runtime))
+        {
+            // Unsupported runtime - skipping LinuxFxVersion validation
+            return null;
+        }
+
         // Check if it's a Linux App Service
         if (string.IsNullOrEmpty(siteConfig.AppKind)
             || !siteConfig.AppKind.Contains("linux", StringComparison.OrdinalIgnoreCase))
@@ -78,7 +86,7 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
             };
         }
 
-        var result = await ValidateLinuxFxVersionAsync(siteConfig.LinuxFxVersion);
+        var result = await ValidateLinuxFxVersionAsync(siteConfig.Name, siteConfig.LinuxFxVersion);
 
         if (result.IsValid)
         {
@@ -92,20 +100,11 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
         };
     }
 
-    private async Task<ValidationResult> ValidateLinuxFxVersionAsync(string linuxFxVersion)
+    private async Task<ValidationResult> ValidateLinuxFxVersionAsync(string siteName, string linuxFxVersion)
     {
         var parts = linuxFxVersion.Split('|');
         var runtime = parts[0].ToUpperInvariant();
         var version = parts[1];
-
-        if (!SupportedRuntimes.Contains(runtime))
-        {
-            return new ValidationResult()
-            {
-                IsValid = false,
-                Reason = $"LinuxFxVersion Validation is not supported for {runtime}",
-            };
-        }
 
         var systemPrompt = $@"
             You are LinuxFxVersion Validator agent. Always address yourself as 'LinuxFxVersion Validator'.
@@ -170,8 +169,8 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
 
             var validationResult = response.Result;
 
-            _logger.LogInternalInformation("LinuxFxVersion validation result for {LinuxFxVersion}: {IsValid}, Reason: {Reason}, RecommendedValue: {RecommendedValue}",
-                linuxFxVersion, validationResult.IsValid, validationResult.Reason, validationResult.RecommendedValue);
+            _logger.LogInternalInformation("LinuxFxVersion validation result for {SiteName} - {LinuxFxVersion}: {IsValid}, Reason: {Reason}, RecommendedValue: {RecommendedValue}",
+               siteName, linuxFxVersion, validationResult.IsValid, validationResult.Reason, validationResult.RecommendedValue);
 
             return validationResult;
         }
