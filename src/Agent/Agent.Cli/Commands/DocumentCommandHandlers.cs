@@ -17,308 +17,382 @@ public static class DocumentCommandHandlers
     /// Handles the document upload command.
     /// </summary>
     /// <param name="parseResult">Command line parse result</param>
-    public static async Task HandleUploadCommand(ParseResult parseResult)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public static async Task<int> HandleUploadCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting document upload command");
 
-        try
+        // Extract options
+        var filePaths = parseResult.GetValue(DocumentCommandOptions.Upload.FileOption);
+        var folderPath = parseResult.GetValue(DocumentCommandOptions.Upload.FolderOption);
+        var triggerIndexing = parseResult.GetValue(DocumentCommandOptions.Upload.TriggerIndexingOption);
+        var noIndexing = parseResult.GetValue(DocumentCommandOptions.Upload.NoIndexingOption);
+        var recursive = parseResult.GetValue(DocumentCommandOptions.Upload.RecursiveOption);
+
+        DebugLogger.Debug("Parameters", $"Files: {(filePaths?.Length > 0 ? string.Join(", ", filePaths) : "none")}, Folder: {folderPath ?? "none"}, TriggerIndexing: {triggerIndexing}, NoIndexing: {noIndexing}, Recursive: {recursive}");
+
+        // Show deprecation warnings
+        if (!string.IsNullOrEmpty(folderPath))
         {
-            // Extract options
-            var filePath = parseResult.GetValue(DocumentCommandOptions.FileOption);
-            var folderPath = parseResult.GetValue(DocumentCommandOptions.FolderOption);
-            var triggerIndexing = parseResult.GetValue(DocumentCommandOptions.TriggerIndexingOption);
-            var noIndexing = parseResult.GetValue(DocumentCommandOptions.NoIndexingOption);
-            var recursive = parseResult.GetValue(DocumentCommandOptions.RecursiveOption);
+            ConsoleUI.WriteInfo("⚠️  Warning: '--folder' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Please use '--file' instead, which supports both files and folders.", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
 
-            DebugLogger.Debug("Parameters", $"File: {filePath ?? "none"}, Folder: {folderPath ?? "none"}, TriggerIndexing: {triggerIndexing}, NoIndexing: {noIndexing}, Recursive: {recursive}");
+        if (triggerIndexing)
+        {
+            ConsoleUI.WriteInfo("⚠️  Warning: '--trigger-indexing' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Indexing is now triggered by default. Use '--no-indexing' to skip indexing.", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
 
-            // Validate mutually exclusive options
-            if (!string.IsNullOrEmpty(filePath) && !string.IsNullOrEmpty(folderPath))
+        if (recursive)
+        {
+            ConsoleUI.WriteInfo("⚠️  Warning: '--recursive' is deprecated and will be removed in a future release.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo("    Folders are now always searched recursively.", ConsoleColor.Yellow);
+            Console.WriteLine();
+        }
+
+        // Gather all input paths
+        var inputPaths = new List<string>();
+        if (filePaths != null && filePaths.Length > 0)
+        {
+            inputPaths.AddRange(filePaths);
+        }
+        if (!string.IsNullOrEmpty(folderPath))
+        {
+            inputPaths.Add(folderPath);
+        }
+
+        // Determine indexing setting (default to true unless --no-indexing is specified)
+        var shouldTriggerIndexing = !noIndexing;
+
+        // Gather all files from input paths
+        var filesToUpload = await GatherFilesFromPaths(inputPaths);
+
+        if (filesToUpload.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, "No valid files found to upload. Supported file types: .md, .txt");
+            return 1;
+        }
+
+        // Show what will be uploaded
+        if (filesToUpload.Count == 1)
+        {
+            ConsoleUI.WriteInfo($"Uploading file: {Path.GetFileName(filesToUpload[0])}", ConsoleColor.Cyan);
+        }
+        else
+        {
+            ConsoleUI.WriteInfo($"Uploading {filesToUpload.Count} files", ConsoleColor.Cyan);
+        }
+
+        // Validate all files before upload
+        var validationErrors = ValidateFiles(filesToUpload);
+        if (validationErrors.Count > 0)
+        {
+            ConsoleUI.WriteStatus(false, "Validation failed:");
+            foreach (var error in validationErrors)
             {
-                ConsoleUI.WriteStatus(false, "Error: --file and --folder options are mutually exclusive. Use only one.");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteBullet(error, ConsoleColor.Red, 3);
             }
+            return 1;
+        }
 
-            if (string.IsNullOrEmpty(filePath) && string.IsNullOrEmpty(folderPath))
-            {
-                ConsoleUI.WriteStatus(false, "Error: Either --file or --folder must be specified.");
-                Environment.Exit(1);
-                return;
-            }
-
-            // Determine indexing setting (default to true unless --no-indexing is specified)
-            var shouldTriggerIndexing = !noIndexing;
-
-            // Set default recursive behavior (true unless explicitly set to false)
-            var shouldSearchRecursive = recursive;
-
-            List<string> filesToUpload;
-
-            if (!string.IsNullOrEmpty(filePath))
-            {
-                // Single file upload
-                DebugLogger.Debug("FileProcessing", $"Processing single file: {filePath}");
-                filesToUpload = await GetSingleFileForUpload(filePath);
-            }
-            else
-            {
-                // Folder upload
-                DebugLogger.Debug("FileProcessing", $"Processing folder: {folderPath}, recursive: {shouldSearchRecursive}");
-                filesToUpload = await GetFilesFromFolder(folderPath!, shouldSearchRecursive);
-            }
-
-            if (filesToUpload.Count == 0)
-            {
-                ConsoleUI.WriteStatus(false, "No valid files found to upload. Supported file types: .md, .txt");
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteInfo($"Found {filesToUpload.Count} file(s) to upload", ConsoleColor.Green);
+        // Show file list for multiple files
+        if (filesToUpload.Count > 1)
+        {
             foreach (var file in filesToUpload)
             {
                 ConsoleUI.WriteBullet(Path.GetFileName(file), ConsoleColor.Gray, 3);
                 DebugLogger.LogFile("UPLOAD", file, $"Size: {new FileInfo(file).Length} bytes");
             }
-
-            // Perform the upload
-            using var apiService = new ApiService();
-            var (Success, Response) = await apiService.UploadDocumentsAsync(filesToUpload, shouldTriggerIndexing);
-            var success = Success;
-            var response = Response;
-
-            if (success)
-            {
-                ConsoleUI.WriteStatus(true, response);
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(false, response);
-                Environment.Exit(1);
-            }
         }
-        catch (Exception ex)
+
+        // Perform the upload
+        using var apiService = new ApiService();
+        var (Success, Response) = await apiService.UploadDocumentsAsync(filesToUpload, shouldTriggerIndexing);
+        var success = Success;
+        var response = Response;
+
+        if (success)
         {
-            DebugLogger.Debug("Exception", $"DocumentUpload failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Error: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(true, response);
+            return 0;
+        }
+        else
+        {
+            ConsoleUI.WriteStatus(false, response);
+            return 1;
         }
     }
 
     /// <summary>
-    /// Gets a single file for upload, validating its existence and type.
+    /// Gathers all files from the provided paths (files and/or directories).
+    /// Directories are searched recursively for supported file types.
     /// </summary>
-    /// <param name="filePath">Path to the file</param>
-    /// <returns>List containing the validated file path</returns>
-    private static Task<List<string>> GetSingleFileForUpload(string filePath)
-    {
-        var files = new List<string>();
-
-        try
-        {
-            // Convert relative path to absolute if needed
-            var absolutePath = Path.IsPathRooted(filePath) ? filePath : Path.GetFullPath(filePath);
-
-            if (!File.Exists(absolutePath))
-            {
-                throw new FileNotFoundException($"File not found: {filePath}");
-            }
-
-            // Validate file extension (matching AgentMemoryController allowedExtensions)
-            var extension = Path.GetExtension(absolutePath).ToLowerInvariant();
-            var allowedExtensions = new[] { ".md", ".txt" };
-
-            if (!allowedExtensions.Contains(extension))
-            {
-                throw new ArgumentException($"Unsupported file type: {extension}. Supported types: {string.Join(", ", allowedExtensions)}");
-            }
-
-            // Validate file size (16MB limit as per AgentMemoryController)
-            var fileInfo = new FileInfo(absolutePath);
-            const long maxFileSize = 16 * 1024 * 1024; // 16MB
-            if (fileInfo.Length > maxFileSize)
-            {
-                throw new ArgumentException($"File size ({fileInfo.Length} bytes) exceeds maximum limit of 16MB");
-            }
-
-            if (fileInfo.Length == 0)
-            {
-                throw new ArgumentException("File is empty");
-            }
-
-            files.Add(absolutePath);
-        }
-        catch (Exception ex)
-        {
-            throw new ArgumentException($"Invalid file '{filePath}': {ex.Message}", ex);
-        }
-
-        return Task.FromResult(files);
-    }
-
-    /// <summary>
-    /// Gets all supported files from a folder.
-    /// </summary>
-    /// <param name="folderPath">Path to the folder</param>
-    /// <param name="recursive">Whether to search recursively</param>
+    /// <param name="paths">List of file or directory paths</param>
     /// <returns>List of file paths to upload</returns>
-    private static Task<List<string>> GetFilesFromFolder(string folderPath, bool recursive)
+    private static Task<List<string>> GatherFilesFromPaths(List<string> paths)
     {
         var files = new List<string>();
+        var allowedExtensions = new[] { ".md", ".txt" };
 
-        try
+        foreach (var path in paths)
         {
-            // Convert relative path to absolute if needed
-            var absolutePath = Path.IsPathRooted(folderPath) ? folderPath : Path.GetFullPath(folderPath);
-
-            if (!Directory.Exists(absolutePath))
+            try
             {
-                throw new DirectoryNotFoundException($"Folder not found: {folderPath}");
-            }
+                var absolutePath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
 
-            // Supported extensions (matching AgentMemoryController)
-            var allowedExtensions = new[] { ".md", ".txt" };
-            const long maxFileSize = 16 * 1024 * 1024; // 16MB
-
-            var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-
-            foreach (var extension in allowedExtensions)
-            {
-                var pattern = $"*{extension}";
-                var foundFiles = Directory.GetFiles(absolutePath, pattern, searchOption);
-
-                foreach (var file in foundFiles)
+                if (File.Exists(absolutePath))
                 {
-                    try
+                    // It's a file - add it regardless of extension, but warn if not supported
+                    var extension = Path.GetExtension(absolutePath).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
                     {
-                        var fileInfo = new FileInfo(file);
-
-                        // Skip empty files
-                        if (fileInfo.Length == 0)
-                        {
-                            ConsoleUI.WriteInfo($"Skipping empty file: {Path.GetFileName(file)}", ConsoleColor.Yellow);
-                            continue;
-                        }
-
-                        // Skip files that are too large
-                        if (fileInfo.Length > maxFileSize)
-                        {
-                            ConsoleUI.WriteInfo($"Skipping file exceeding 16MB limit: {Path.GetFileName(file)} ({fileInfo.Length} bytes)", ConsoleColor.Yellow);
-                            continue;
-                        }
-
-                        files.Add(file);
+                        ConsoleUI.WriteInfo($"Warning: File type '{extension}' may not be supported. Recommended types: .md, .txt", ConsoleColor.Yellow);
                     }
-                    catch (Exception ex)
+                    files.Add(absolutePath);
+                }
+                else if (Directory.Exists(absolutePath))
+                {
+                    // It's a directory - search recursively for supported files
+                    foreach (var extension in allowedExtensions)
                     {
-                        ConsoleUI.WriteInfo($"Skipping file due to error: {Path.GetFileName(file)} - {ex.Message}", ConsoleColor.Yellow);
+                        var pattern = $"*{extension}";
+                        var foundFiles = Directory.GetFiles(absolutePath, pattern, SearchOption.AllDirectories);
+                        files.AddRange(foundFiles);
                     }
                 }
+                else
+                {
+                    ConsoleUI.WriteInfo($"Path not found: {path}", ConsoleColor.Yellow);
+                }
             }
-
-            if (files.Count == 0)
+            catch (Exception ex)
             {
-                var searchDescription = recursive ? "recursively" : "in top-level directory";
-                throw new ArgumentException($"No valid .md or .txt files found in '{folderPath}' {searchDescription}");
+                ConsoleUI.WriteInfo($"Error accessing path '{path}': {ex.Message}", ConsoleColor.Yellow);
             }
         }
-        catch (Exception ex) when (!(ex is ArgumentException))
+
+        // Remove duplicates - use case-insensitive comparison on Windows, case-sensitive on Unix
+        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var uniqueFiles = files.Distinct(comparer).ToList();
+
+        return Task.FromResult(uniqueFiles);
+    }
+
+    /// <summary>
+    /// Validates a list of files for upload.
+    /// Checks that files exist, are not empty, don't exceed size limits, and have valid extensions.
+    /// </summary>
+    /// <param name="files">List of file paths to validate</param>
+    /// <returns>List of validation error messages</returns>
+    private static List<string> ValidateFiles(List<string> files)
+    {
+        var errors = new List<string>();
+        var allowedExtensions = new[] { ".md", ".txt" };
+        const long maxFileSize = 16 * 1024 * 1024; // 16MB
+
+        foreach (var file in files)
         {
-            throw new ArgumentException($"Error accessing folder '{folderPath}': {ex.Message}", ex);
+            try
+            {
+                if (!File.Exists(file))
+                {
+                    errors.Add($"File not found: {file}");
+                    continue;
+                }
+
+                var fileInfo = new FileInfo(file);
+                var extension = fileInfo.Extension.ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    errors.Add($"Unsupported file type: {Path.GetFileName(file)} ({extension}). Supported types: .md, .txt");
+                    continue;
+                }
+
+                if (fileInfo.Length == 0)
+                {
+                    errors.Add($"File is empty: {Path.GetFileName(file)}");
+                    continue;
+                }
+
+                if (fileInfo.Length > maxFileSize)
+                {
+                    errors.Add($"File exceeds 16MB limit: {Path.GetFileName(file)} ({fileInfo.Length:N0} bytes)");
+                    continue;
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Error validating file '{Path.GetFileName(file)}': {ex.Message}");
+            }
         }
 
-        return Task.FromResult(files);
+        return errors;
     }
 
     /// <summary>
     /// Handles the document search command.
     /// </summary>
     /// <param name="parseResult">Command line parse result</param>
-    public static async Task HandleSearchCommand(ParseResult parseResult)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public static async Task<int> HandleSearchCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting document search command");
 
-        try
+        // Extract options
+        var query = parseResult.GetValue(DocumentCommandOptions.Search.QueryOption);
+        DebugLogger.Debug("Parameters", $"Query: {query}");
+
+        // Validate query parameter
+        if (string.IsNullOrWhiteSpace(query))
         {
-            // Extract options
-            var query = parseResult.GetValue(DocumentCommandOptions.QueryOption);
+            ConsoleUI.WriteStatus(false, "Error: --query parameter is required for document search.");
+            return 1;
+        }
 
-            DebugLogger.Debug("Parameters", $"Query: {query}");
+        ConsoleUI.WriteInfo($"Searching for documents related to: \"{query}\"", ConsoleColor.Cyan);
+        Console.WriteLine();
 
-            // Validate query parameter
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                ConsoleUI.WriteStatus(false, "Error: --query parameter is required for document search.");
-                Environment.Exit(1);
-                return;
-            }
+        // Perform the search
+        using var apiService = new ApiService();
+        var (results, message) = await apiService.SearchDocumentsAsync(query);
 
-            ConsoleUI.WriteInfo($"Searching for documents related to: \"{query}\"", ConsoleColor.Cyan);
+        if (results.Count == 0)
+        {
+            ConsoleUI.WriteStatus(false, message);
             Console.WriteLine();
-
-            // Perform the search
-            using var apiService = new ApiService();
-            var (Success, Response) = await apiService.SearchDocumentsAsync(query);
-            var success = Success;
-            var response = Response;
-
-            if (success)
-            {
-                ConsoleUI.WriteSection("Search Results");
-                Console.WriteLine(response);
-            }
-            else
-            {
-                Console.WriteLine(response);
-                Environment.Exit(1);
-            }
+            ConsoleUI.WriteInfo("Try:", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet("Using different keywords", ConsoleColor.Gray);
+            ConsoleUI.WriteBullet("Making your query more general", ConsoleColor.Gray);
+            ConsoleUI.WriteBullet("Checking if documents have been uploaded and indexed", ConsoleColor.Gray);
+            return 1;
         }
-        catch (Exception ex)
+
+        ConsoleUI.WriteSection("Search Results");
+        for (int i = 0; i < results.Count; i++)
         {
-            DebugLogger.Debug("Exception", $"DocumentSearch failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Search failed: {ex.Message}");
-            Environment.Exit(1);
+            var content = results[i];
+            Console.WriteLine();
+            ConsoleUI.WriteBullet($"Result {i + 1}", ConsoleColor.White, 0);
+
+            // Truncate content if too long for display
+            var displayContent = content.Length > 500 ? content.Substring(0, 500) + "..." : content;
+            Console.WriteLine();
+            Console.WriteLine(displayContent);
         }
+
+        Console.WriteLine();
+        ConsoleUI.WriteStatus(true, message);
+        return 0;
+    }
+
+    /// <summary>
+    /// Handles the document delete command.
+    /// </summary>
+    /// <param name="parseResult">Command line parse result</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public static async Task<int> HandleDeleteCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting document delete command");
+
+        // Extract options
+        var name = parseResult.GetValue(DocumentCommandOptions.Delete.NameOption);
+
+        DebugLogger.Debug("Parameters", $"Name: {name}");
+
+        ConsoleUI.WriteInfo($"Deleting document: {name}", ConsoleColor.Cyan);
+        Console.WriteLine();
+
+        // Perform the deletion
+        using var apiService = new ApiService();
+        var (success, response) = await apiService.DeleteDocumentAsync(name!);
+
+        if (success)
+        {
+            ConsoleUI.WriteStatus(true, response);
+            return 0;
+        }
+        else
+        {
+            ConsoleUI.WriteStatus(false, response);
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Handles the document get command.
+    /// </summary>
+    /// <param name="parseResult">Command line parse result</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public static async Task<int> HandleGetCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting document get command");
+
+        // Extract options
+        var prefix = parseResult.GetValue(DocumentCommandOptions.Get.PrefixOption);
+
+        DebugLogger.Debug("Parameters", $"Prefix: {prefix ?? "none"}");
+
+        // Perform the listing
+        using var apiService = new ApiService();
+        var (files, error) = await apiService.ListDocumentsAsync(prefix);
+
+        if (error != null)
+        {
+            ConsoleUI.WriteStatus(false, error);
+            return 1;
+        }
+
+        if (files.Count == 0)
+        {
+            ConsoleUI.WriteInfo("No documents found.", ConsoleColor.Yellow);
+            return 0;
+        }
+
+        ConsoleUI.WriteSection("Uploaded Documents");
+
+        foreach (var file in files)
+        {
+            ConsoleUI.WriteBullet(file);
+        }
+
+        Console.WriteLine();
+        ConsoleUI.WriteKeyValue("Total", $"{files.Count} document(s)", 0);
+
+        return 0;
     }
 
     /// <summary>
     /// Handles the document reindex command.
     /// </summary>
     /// <param name="parseResult">Command line parse result</param>
-    public static async Task HandleReindexCommand(ParseResult parseResult)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public static async Task<int> HandleReindexCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
         DebugLogger.Debug("Command", "Starting document reindex command");
 
-        try
+        ConsoleUI.WriteInfo("Triggering document reindexing...", ConsoleColor.Cyan);
+        Console.WriteLine();
+
+        // Perform the reindexing
+        using var apiService = new ApiService();
+        var (success, message) = await apiService.ReindexDocumentsAsync();
+
+        if (success)
         {
-            ConsoleUI.WriteInfo("Triggering document reindexing...", ConsoleColor.Cyan);
+            ConsoleUI.WriteStatus(true, message);
             Console.WriteLine();
-
-            // Perform the reindexing
-            using var apiService = new ApiService();
-            var (Success, Response) = await apiService.ReindexDocumentsAsync();
-            var success = Success;
-            var response = Response;
-
-            if (success)
-            {
-                Console.WriteLine(response);
-                Console.WriteLine();
-                ConsoleUI.WriteInfo("All documents in the knowledge base will be reprocessed and reindexed.", ConsoleColor.Gray);
-                ConsoleUI.WriteBullet("This may take a few minutes depending on the number of documents.", ConsoleColor.Gray);
-            }
-            else
-            {
-                Console.WriteLine(response);
-                Environment.Exit(1);
-            }
+            ConsoleUI.WriteInfo("All documents in the knowledge base will be reprocessed and reindexed.", ConsoleColor.Gray);
+            ConsoleUI.WriteInfo("This may take a few minutes depending on the number of documents.", ConsoleColor.Gray);
+            return 0;
         }
-        catch (Exception ex)
+        else
         {
-            DebugLogger.Debug("Exception", $"DocumentReindex failed: {ex.Message}");
-            ConsoleUI.WriteStatus(false, $"Reindexing failed: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(false, message);
+            return 1;
         }
     }
 }

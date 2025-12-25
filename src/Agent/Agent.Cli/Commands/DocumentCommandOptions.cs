@@ -11,44 +11,76 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class DocumentCommandOptions
 {
-    // Document upload options (mutually exclusive)
-    public static readonly Option<string> FileOption = new("--file")
-    {
-        Description = "Path to a single document file to upload (.md, .txt files supported)"
-    };
+    // ============================================================
+    // Document Upload Command Options
+    // ============================================================
 
-    public static readonly Option<string> FolderOption = new("--folder")
+    public static class Upload
     {
-        Description = "Path to a folder containing documents to upload (.md, .txt files will be discovered recursively)"
-    };
+        public static readonly Option<string[]> FileOption = new("--file")
+        {
+            Description = "Path(s) to file(s) or folder(s) to upload (.md, .txt). Can be specified multiple times. Folders are searched recursively.",
+            AllowMultipleArgumentsPerToken = true,
+            Arity = ArgumentArity.OneOrMore
+        };
 
-    // Optional parameters for upload
-    public static readonly Option<bool> TriggerIndexingOption = new("--trigger-indexing")
-    {
-        Description = "Trigger indexing after upload for immediate availability (default: true)",
-        Arity = ArgumentArity.ZeroOrOne
-    };
+        public static readonly Option<string> FolderOption = new("--folder")
+        {
+            Description = "[DEPRECATED] Use --file instead. Path to a folder containing documents to upload"
+        };
 
-    public static readonly Option<bool> NoIndexingOption = new("--no-indexing")
-    {
-        Description = "Skip indexing after upload (files will need manual indexing later)"
-    };
+        public static readonly Option<bool> TriggerIndexingOption = new("--trigger-indexing")
+        {
+            Description = "[DEPRECATED] Indexing is triggered by default. Use --no-indexing to skip.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
 
-    public static readonly Option<bool> RecursiveOption = new("--recursive")
-    {
-        Description = "Search for files recursively in subdirectories when using --folder (default: true)",
-        Arity = ArgumentArity.ZeroOrOne
-    };
+        public static readonly Option<bool> NoIndexingOption = new("--no-indexing")
+        {
+            Description = "Skip indexing after upload"
+        };
 
-    // Document search options
-    public static readonly Option<string> QueryOption = new("--query")
-    {
-        Description = "Search query to find relevant documents in the knowledge base"
-    };
+        public static readonly Option<bool> RecursiveOption = new("--recursive")
+        {
+            Description = "[DEPRECATED] Folders are always searched recursively.",
+            Arity = ArgumentArity.ZeroOrOne
+        };
+    }
 
-    // Document reindex option
-    public static readonly Option<bool> ReindexOption = new("--reindex")
+    // ============================================================
+    // Document Search Command Options
+    // ============================================================
+
+    public static class Search
     {
-        Description = "Trigger reindexing of all documents in the knowledge base"
-    };
+        public static readonly Option<string> QueryOption = new("--query")
+        {
+            Description = "Search query to find relevant documents"
+        };
+    }
+
+    // ============================================================
+    // Document Get Command Options
+    // ============================================================
+
+    public static class Get
+    {
+        public static readonly Option<string> PrefixOption = new("--prefix")
+        {
+            Description = "Filter files by prefix"
+        };
+    }
+
+    // ============================================================
+    // Document Delete Command Options
+    // ============================================================
+
+    public static class Delete
+    {
+        public static readonly Option<string> NameOption = new("--name")
+        {
+            Description = "Name of the document to delete",
+            Required = true
+        };
+    }
 }

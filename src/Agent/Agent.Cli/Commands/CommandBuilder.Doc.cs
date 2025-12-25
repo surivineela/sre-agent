@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.CommandLine;
+using Agent.Cli.Helpers;
 
 namespace Agent.Cli.Commands;
 
@@ -16,6 +17,8 @@ public static partial class CommandBuilder
             {
                 CreateDocumentUploadCommand(),
                 CreateDocumentSearchCommand(),
+                CreateDocumentGetCommand(),
+                CreateDocumentDeleteCommand(),
                 CreateDocumentReindexCommand()
             };
 
@@ -26,12 +29,25 @@ public static partial class CommandBuilder
         {
             var cmd = new Command("upload", CommandExamples.Document.UploadDescription)
             {
-                DocumentCommandOptions.FileOption,
-                DocumentCommandOptions.FolderOption,
-                DocumentCommandOptions.TriggerIndexingOption,
-                DocumentCommandOptions.NoIndexingOption,
-                DocumentCommandOptions.RecursiveOption
+                DocumentCommandOptions.Upload.FileOption,
+                DocumentCommandOptions.Upload.NoIndexingOption,
+
+                // Deprecated options kept for backward compatibility
+                DocumentCommandOptions.Upload.FolderOption,
+                DocumentCommandOptions.Upload.TriggerIndexingOption,
+                DocumentCommandOptions.Upload.RecursiveOption
             };
+
+            cmd.AddValidator(result =>
+            {
+                var filePaths = result.GetValue(DocumentCommandOptions.Upload.FileOption);
+                var folderPath = result.GetValue(DocumentCommandOptions.Upload.FolderOption);
+
+                if ((filePaths == null || filePaths.Length == 0) && string.IsNullOrEmpty(folderPath))
+                {
+                    result.AddError(ErrorMessageHelper.InvalidParameter("--file must be specified with at least one path."));
+                }
+            });
 
             cmd.SetAction(DocumentCommandHandlers.HandleUploadCommand);
             return cmd;
@@ -41,10 +57,32 @@ public static partial class CommandBuilder
         {
             var cmd = new Command("search", CommandExamples.Document.SearchDescription)
             {
-                DocumentCommandOptions.QueryOption
+                DocumentCommandOptions.Search.QueryOption
             };
 
             cmd.SetAction(DocumentCommandHandlers.HandleSearchCommand);
+            return cmd;
+        }
+
+        private static Command CreateDocumentGetCommand()
+        {
+            var cmd = new Command("get", CommandExamples.Document.GetDescription)
+            {
+                DocumentCommandOptions.Get.PrefixOption
+            };
+
+            cmd.SetAction(DocumentCommandHandlers.HandleGetCommand);
+            return cmd;
+        }
+
+        private static Command CreateDocumentDeleteCommand()
+        {
+            var cmd = new Command("delete", CommandExamples.Document.DeleteDescription)
+            {
+                DocumentCommandOptions.Delete.NameOption
+            };
+
+            cmd.SetAction(DocumentCommandHandlers.HandleDeleteCommand);
             return cmd;
         }
 

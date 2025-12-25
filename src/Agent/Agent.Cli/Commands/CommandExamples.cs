@@ -535,11 +535,11 @@ Examples:
   # Upload a single document
   srectl doc upload --file ./docs/runbook.md
 
-  # Upload multiple documents
-  srectl doc upload --file ./docs/guide1.pdf --file ./docs/guide2.md
+  # Upload multiple files
+  srectl doc upload --file ./docs/guide1.md --file ./docs/guide2.md
 
-  # Upload with specific category
-  srectl doc upload --file ./runbook.md --category troubleshooting";
+  # Upload an entire folder (searches recursively)
+  srectl doc upload --file ./docs";
 
         public const string SearchDescription = @"Search documents in the knowledge base
 
@@ -550,17 +550,29 @@ Examples:
   # Search with multiple terms
   srectl doc search --query ""memory leak debugging""
 
-  # Search with filters
-  srectl doc search --query ""deployment"" --category runbooks";
+  # Search for deployment documentation
+  srectl doc search --query ""deployment procedures""";
+
+        public const string GetDescription = @"List uploaded documents
+
+Examples:
+  # List all documents
+  srectl doc get
+
+  # List documents with a specific prefix
+  srectl doc get --prefix runbook";
+
+        public const string DeleteDescription = @"Delete a document from the knowledge base
+
+Examples:
+  # Delete a specific document
+  srectl doc delete --name runbook.md";
 
         public const string ReindexDescription = @"Reindex all documents in the knowledge base
 
 Examples:
   # Reindex all documents
-  srectl doc reindex
-
-  # Reindex with debug logging
-  srectl doc reindex --debug";
+  srectl doc reindex";
     }
 
     #endregion

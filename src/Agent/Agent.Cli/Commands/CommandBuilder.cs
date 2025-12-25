@@ -36,13 +36,13 @@ public static partial class CommandBuilder
             CommonPromptCommand.Build(),
             ExtensionCommand.Build(),
             McpCommand.Build(),
+            DocumentCommand.Build(),
 
             // Other commands            
             interactiveCommand,
             syncCommand,
             ThreadCommand.Build(),
             chatCommand,
-            DocumentCommand.Build(),
             ProfileCommand.Build(),
             SkillCommand.Build(),
             IncidentHandlerCommand.Build(),

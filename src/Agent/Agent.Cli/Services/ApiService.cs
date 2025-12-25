@@ -2722,144 +2722,69 @@ public partial class ApiService : IDisposable
     /// Searches documents in the SRE Agent's memory storage.
     /// </summary>
     /// <param name="query">Search query to find relevant documents</param>
-    /// <returns>Success status and response message with search results</returns>
-    public async Task<(bool Success, string Response)> SearchDocumentsAsync(string query)
+    /// <returns>List of document contents and message</returns>
+    public async Task<(List<string> Result, string Message)> SearchDocumentsAsync(string query)
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
             if (string.IsNullOrWhiteSpace(query))
             {
-                return (false, "Search query cannot be empty.");
+                return (new List<string>(), "Search query cannot be empty");
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/documents";
-
-            // Create request payload
-            var requestPayload = new
-            {
-                query = query,
-                limit = 10 // Default limit for search results
-            };
-
-            // Try GET method with query parameter first
             var encodedQuery = Uri.EscapeDataString(query);
-            var getRequestUrl = $"{requestUrl}?query={encodedQuery}&k=10";
-            var request = new HttpRequestMessage(HttpMethod.Get, getRequestUrl);
+            var relativeUrl = $"api/v1/AgentMemory/documents?query={encodedQuery}&k=10";
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            var (responseObject, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(
+                HttpMethod.Get,
+                relativeUrl);
 
-            if (response.IsSuccessStatusCode)
+            if (errorMessage != null)
             {
-                try
-                {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    var searchResults = new List<string>();
-
-                    if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) &&
-                        resultsElement.ValueKind == JsonValueKind.Array)
-                    {
-                        var results = resultsElement.EnumerateArray().ToArray();
-
-                        if (results.Length == 0)
-                        {
-                            searchResults.Add("No documents found matching your query.");
-                            searchResults.Add("");
-                            searchResults.Add("Try:");
-                            searchResults.Add("• Using different keywords");
-                            searchResults.Add("• Making your query more general");
-                            searchResults.Add("• Checking if documents have been uploaded and indexed");
-                        }
-                        else
-                        {
-                            for (int i = 0; i < results.Length; i++)
-                            {
-                                var result = results[i];
-                                var title = result.TryGetProperty("title", out var titleElement) ?
-                                    titleElement.GetString() ?? "Untitled" : "Untitled";
-                                var content_snippet = result.TryGetProperty("content", out var contentElement) ?
-                                    contentElement.GetString() ?? "" : "";
-                                var score = result.TryGetProperty("score", out var scoreElement) ?
-                                    scoreElement.GetDecimal() : 0m;
-                                var source = result.TryGetProperty("source", out var sourceElement) ?
-                                    sourceElement.GetString() ?? "Unknown" : "Unknown";
-
-                                var resultOutput = ConsoleUI.CaptureOutput(() =>
-                                {
-                                    Console.WriteLine();
-                                    ConsoleUI.WriteBullet($"Result {i + 1}: {title}", ConsoleColor.White, 0);
-
-                                    ConsoleUI.WriteKeyValue("  Source", source, 15, ConsoleColor.Gray, ConsoleColor.White);
-                                    ConsoleUI.WriteKeyValue("  Relevance", $"{score:F2}", 15, ConsoleColor.Gray, ConsoleColor.White);
-
-                                    if (!string.IsNullOrEmpty(content_snippet))
-                                    {
-                                        // Truncate content snippet if too long
-                                        var snippet = content_snippet.Length > 200 ?
-                                            content_snippet.Substring(0, 200) + "..." : content_snippet;
-                                        ConsoleUI.WriteKeyValue("  Content", snippet, 15, ConsoleColor.Gray, ConsoleColor.White);
-                                    }
-                                });
-                                searchResults.Add(resultOutput);
-                            }
-
-                            searchResults.Add($"Found {results.Length} document(s) matching your query.");
-                        }
-                    }
-                    else if (jsonDoc.RootElement.TryGetProperty("message", out var messageElement))
-                    {
-                        var message = messageElement.GetString() ?? "Search completed successfully";
-                        searchResults.Add(message);
-                    }
-                    else
-                    {
-                        searchResults.Add("Search completed, but no results were found.");
-                    }
-
-                    return (true, string.Join("\n", searchResults));
-                }
-                catch (JsonException)
-                {
-                    // If JSON parsing fails, return the raw content
-                    return (true, $"Search completed successfully.\n\nResponse:\n{content}");
-                }
+                return (new List<string>(), $"Failed to search documents: {statusCode} - {errorMessage}");
             }
-            else
+
+            if (responseObject == null)
             {
-                // Try to extract error details from response
-                var errorMessage = "Search failed";
-                try
+                return (new List<string>(), "Failed to search documents: Empty response");
+            }
+
+            try
+            {
+                var jsonDoc = JsonDocument.Parse(responseObject);
+
+                if (jsonDoc.RootElement.TryGetProperty("results", out var resultsElement) &&
+                    resultsElement.ValueKind == JsonValueKind.Array)
                 {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
+                    var results = new List<string>();
+                    foreach (var result in resultsElement.EnumerateArray())
                     {
-                        errorMessage = errorElement.GetString() ?? errorMessage;
+                        // API returns array of strings (document contents)
+                        var content = result.GetString();
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            results.Add(content);
+                        }
                     }
-                    else if (jsonDoc.RootElement.TryGetProperty("detail", out var detailElement))
+
+                    if (results.Count == 0)
                     {
-                        errorMessage = detailElement.ToString();
+                        return (results, "No documents found matching your query");
                     }
-                }
-                catch
-                {
-                    // If JSON parsing fails, use the raw content
-                    if (!string.IsNullOrWhiteSpace(content))
-                    {
-                        errorMessage = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
-                    }
+
+                    return (results, $"Found {results.Count} document(s)");
                 }
 
-                return (false, $"Failed to search documents: {response.StatusCode} - {errorMessage}");
+                return (new List<string>(), "Unexpected response format");
+            }
+            catch (JsonException ex)
+            {
+                return (new List<string>(), $"Failed to parse response: {ex.Message}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"Search failed: {ex.Message}");
+            return (new List<string>(), $"Search failed: {ex.Message}");
         }
     }
 
@@ -2867,70 +2792,155 @@ public partial class ApiService : IDisposable
     /// Triggers reindexing of all documents in the SRE Agent's memory storage.
     /// </summary>
     /// <returns>Success status and response message</returns>
-    public async Task<(bool Success, string Response)> ReindexDocumentsAsync()
+    public async Task<(bool Success, string Message)> ReindexDocumentsAsync()
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            var relativeUrl = "api/v1/AgentMemory/rebuildIndex";
+
+            var (_, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(
+                HttpMethod.Post,
+                relativeUrl);
+
+            if (statusCode == HttpStatusCode.OK)
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
+                return (true, "Document reindexing triggered successfully");
             }
-
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/AgentMemory/rebuildIndex";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
+            else if (errorMessage != null)
             {
-                try
-                {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    if (jsonDoc.RootElement.TryGetProperty("message", out var messageElement))
-                    {
-                        var message = messageElement.GetString() ?? "Reindexing triggered successfully";
-                        return (true, $"✅ {message}");
-                    }
-                }
-                catch
-                {
-                    // If JSON parsing fails, fall back to simple success message
-                }
-
-                return (true, "✅ Document reindexing triggered successfully.");
+                return (false, $"Failed to trigger reindexing: {statusCode} - {errorMessage}");
             }
             else
             {
-                // Try to extract error details from response
-                var errorMessage = "Reindexing failed";
-                try
-                {
-                    var jsonDoc = JsonDocument.Parse(content);
-                    if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement))
-                    {
-                        errorMessage = errorElement.GetString() ?? errorMessage;
-                    }
-                    else if (jsonDoc.RootElement.TryGetProperty("detail", out var detailElement))
-                    {
-                        errorMessage = detailElement.ToString();
-                    }
-                }
-                catch
-                {
-                    // If JSON parsing fails, use the raw content
-                    if (!string.IsNullOrWhiteSpace(content))
-                    {
-                        errorMessage = content.Length > 200 ? content.Substring(0, 200) + "..." : content;
-                    }
-                }
-
-                return (false, $"❌ Failed to trigger reindexing: {response.StatusCode} - {errorMessage}");
+                return (false, $"Failed to trigger reindexing: {statusCode}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Reindexing failed: {ex.Message}");
+            return (false, $"Reindexing failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes a document from the SRE Agent's memory storage.
+    /// </summary>
+    /// <param name="fileName">Name of the document to delete</param>
+    /// <returns>Success status and response message</returns>
+    public async Task<(bool Success, string Response)> DeleteDocumentAsync(string fileName)
+    {
+        try
+        {
+            var relativeUrl = $"api/v1/AgentMemory/document/{Uri.EscapeDataString(fileName)}";
+
+            var (_, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(
+                HttpMethod.Delete,
+                relativeUrl);
+
+            if (statusCode == HttpStatusCode.OK)
+            {
+                return (true, $"Document '{fileName}' deleted successfully");
+            }
+            else if (statusCode == HttpStatusCode.NotFound)
+            {
+                return (false, $"Document '{fileName}' not found");
+            }
+            else if (errorMessage != null)
+            {
+                return (false, $"Failed to delete document: {statusCode} - {errorMessage}");
+            }
+            else
+            {
+                return (false, $"Failed to delete document: {statusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Delete failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Lists all uploaded documents in the SRE Agent's memory storage.
+    /// Handles pagination internally to return all documents.
+    /// </summary>
+    /// <param name="prefix">Optional prefix filter for file names</param>
+    /// <returns>List of document file names and error message if any</returns>
+    public async Task<(List<string> Result, string? Error)> ListDocumentsAsync(string? prefix = null)
+    {
+        try
+        {
+            var allFiles = new List<string>();
+            string? continuationToken = null;
+
+            do
+            {
+                var queryParams = new List<string>();
+                if (!string.IsNullOrEmpty(prefix))
+                {
+                    queryParams.Add($"prefix={Uri.EscapeDataString(prefix)}");
+                }
+                if (!string.IsNullOrEmpty(continuationToken))
+                {
+                    queryParams.Add($"continuationToken={Uri.EscapeDataString(continuationToken)}");
+                }
+
+                var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+                var relativeUrl = $"api/v1/AgentMemory/files{queryString}";
+
+                var (responseObject, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(
+                    HttpMethod.Get,
+                    relativeUrl);
+
+                if (errorMessage != null)
+                {
+                    return (new List<string>(), $"Failed to list documents: {statusCode} - {errorMessage}");
+                }
+
+                if (responseObject == null)
+                {
+                    return (new List<string>(), "Failed to list documents: Empty response");
+                }
+
+                try
+                {
+                    var jsonDoc = JsonDocument.Parse(responseObject);
+
+                    if (jsonDoc.RootElement.TryGetProperty("files", out var filesElement) &&
+                        filesElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var file in filesElement.EnumerateArray())
+                        {
+                            var fileName = file.GetString();
+                            if (!string.IsNullOrEmpty(fileName))
+                            {
+                                allFiles.Add(fileName);
+                            }
+                        }
+                    }
+
+                    // Check for continuation token
+                    continuationToken = null;
+                    if (jsonDoc.RootElement.TryGetProperty("continuationToken", out var tokenElement))
+                    {
+                        var token = tokenElement.GetString();
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            continuationToken = token;
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    return (new List<string>(), $"Failed to parse response: {ex.Message}");
+                }
+            }
+            while (!string.IsNullOrEmpty(continuationToken));
+
+            return (allFiles, null);
+        }
+        catch (Exception ex)
+        {
+            return (new List<string>(), $"List documents failed: {ex.Message}");
         }
     }
 
