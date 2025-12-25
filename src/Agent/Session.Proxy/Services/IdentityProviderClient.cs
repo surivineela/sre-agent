@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using Session.Identity.Models;
+using Agent.Common.ApiModels;
 using Session.Proxy.Configuration;
 
 namespace Session.Proxy.Services;

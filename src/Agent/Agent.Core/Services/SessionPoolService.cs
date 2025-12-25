@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Agent.Common.ApiModels;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -19,17 +21,20 @@ public class SessionPoolService : ISessionPoolService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SessionPoolSettings _sessionPoolSettings;
     private readonly FederationSettings _federationSettings;
+    private readonly IManagedIdentityConfigService _managedIdentityConfigService;
     private readonly ILogger<SessionPoolService> _logger;
     private readonly string _defaultApiVersion = "2025-02-02-preview";
 
     public SessionPoolService(
         ILogger<SessionPoolService> logger,
         IHttpClientFactory httpClientFactory,
+        IManagedIdentityConfigService managedIdentityConfigService,
         AzureSettings azureSettings)
     {
         _httpClientFactory = httpClientFactory;
         _sessionPoolSettings = azureSettings.SessionPool;
         _federationSettings = azureSettings.Federation;
+        _managedIdentityConfigService = managedIdentityConfigService;
         _logger = logger;
     }
 
@@ -58,57 +63,104 @@ public class SessionPoolService : ISessionPoolService
         return string.Join("--", parts);
     }
 
-    public async Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier)
+    public async Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens, string? identityResourceId = null)
     {
-        if (string.IsNullOrEmpty(accessToken))
-        {
-            throw new InvalidOperationException("Access token must be provided to execute CLI commands.");
-        }
-
         if (string.IsNullOrEmpty(identifier))
         {
             throw new InvalidOperationException("Identifier must be provided to execute CLI commands.");
         }
 
-        _logger.LogInternalInformation($"Executing CLI command: {command} with identifier {identifier}");
+        await BootstrapSessionAsync(identifier, tokens, identityResourceId);
 
-        command = command.StartsWith("az ", StringComparison.OrdinalIgnoreCase) ? command : $"az {command}";
-        var finalCommand = $"export AZURE_CLI_ACCESS_TOKEN={accessToken} && {command}".Trim();
-
-        var req = new SessionRequest
-        {
-            Commands = ["/bin/bash", "-c", finalCommand],
-            TimeoutInSeconds = 900 // 15 minutes
-        };
-        var sessionResponse = await ExecuteShellCommandAsync<SessionRequest, SessionResponse>(req, identifier);
-
-        return (sessionResponse.ExitCode ?? -1, sessionResponse.Result?.Stdout ?? string.Empty, sessionResponse.Result?.Stderr ?? string.Empty);
-    }
-
-    public async Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens)
-    {
-        if (tokens == null || tokens.Count == 0)
-        {
-            throw new InvalidOperationException("Access token must be provided to execute CLI commands.");
-        }
-
-        if (string.IsNullOrEmpty(identifier))
-        {
-            throw new InvalidOperationException("Identifier must be provided to execute CLI commands.");
-        }
-
-        _logger.LogInternalInformation($"Executing CLI command: {command} with identifier {identifier}. Token scopes: {string.Join(", ", tokens.Keys)}");
+        _logger.LogInternalInformation($"Executing CLI command: {command} with identifier {identifier}.");
 
         var req = new AzCliExecutionRequest
         {
             ShellScripts = command,
-            AccessTokens = tokens,
-            TimeoutInSeconds = (int)Constants.AzCliDefaultTimeout.TotalSeconds // 15 minutes
+            AccessTokens = new Dictionary<string, string>(), // Empty tokens - This is a required legacy property that will be removed in the future
+            TimeoutInSeconds = (int)Constants.AzCliDefaultTimeout.TotalSeconds
         };
 
         var resp = await ExecuteShellCommandAsync<AzCliExecutionRequest, ShellExecuteResponse>(req, identifier);
-
         return (resp.ExitCode ?? -1, resp.Result?.Stdout ?? string.Empty, resp.Result?.Stderr ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Bootstraps the session with managed identity and tokens.
+    /// This is called for every session request to ensure the session has the latest identity and tokens.
+    /// </summary>
+    private async Task BootstrapSessionAsync(string identifier, Dictionary<string, string>? tokens, string? identityResourceId)
+    {
+        _logger.LogInternalInformation($"Bootstrapping session {identifier}...");
+
+        var bootstrapRequest = await BuildBootstrapRequestAsync(tokens, identityResourceId);
+        await SendBootstrapRequestAsync(identifier, bootstrapRequest);
+
+        _logger.LogInternalInformation($"Session {identifier} bootstrapped successfully.");
+    }
+
+    /// <summary>
+    /// Builds the bootstrap request with managed identity info loaded from config and tokens.
+    /// </summary>
+    /// <param name="tokens">Optional tokens to include in the bootstrap request.</param>
+    /// <param name="identityResourceId">The ARM resource ID of the managed identity to use, or null for system-assigned.</param>
+    private async Task<BootstrapRequest> BuildBootstrapRequestAsync(Dictionary<string, string>? tokens, string? identityResourceId)
+    {
+        var request = new BootstrapRequest
+        {
+            Tokens = tokens ?? new Dictionary<string, string>()
+        };
+
+        // Load managed identity info using the provided identity resource ID
+        var managedIdentityInfo = await _managedIdentityConfigService.GetManagedIdentityInfoAsync(identityResourceId);
+        if (managedIdentityInfo != null)
+        {
+            request.ManagedIdentity = managedIdentityInfo;
+        }
+
+        return request;
+    }
+
+    /// <summary>
+    /// Sends the bootstrap request to the session pool.
+    /// </summary>
+    private async Task SendBootstrapRequestAsync(string identifier, BootstrapRequest request)
+    {
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
+        var url = $"{baseEndpoint.TrimEnd('/')}/bootstrap?identifier={identifier}&api-version={_defaultApiVersion}";
+
+        _logger.LogInternalInformation($"Sending bootstrap request to {url}");
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
+            var json = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            });
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await client.SendAsync(httpRequest);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalError($"Bootstrap request failed: {(int)response.StatusCode} {response.ReasonPhrase}: {content}");
+                throw new InvalidOperationException($"Bootstrap request failed: {response.StatusCode}");
+            }
+
+            _logger.LogInternalInformation($"Bootstrap response: {content}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error sending bootstrap request to session pool.");
+            throw;
+        }
     }
 
     public async Task<TResp> ExecuteShellCommandAsync<TReq, TResp>(TReq request, string identifier)

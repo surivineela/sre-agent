@@ -1,5 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
-using Session.Identity.Models;
+using Agent.Common.ApiModels;
 
 namespace Session.Identity.Services;
 

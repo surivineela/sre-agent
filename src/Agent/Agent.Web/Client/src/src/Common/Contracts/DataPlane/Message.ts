@@ -98,6 +98,7 @@ export interface AzCliExecution {
         userId: string;
         role: string;
     };
+    requiredScopes?: string;
 }
 
 export interface KubectlExecution {

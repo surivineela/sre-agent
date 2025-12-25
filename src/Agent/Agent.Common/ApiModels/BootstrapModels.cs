@@ -1,6 +1,41 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json.Serialization;
 
-namespace Session.Proxy.Models;
+namespace Agent.Common.ApiModels;
+
+/// <summary>
+/// Request model for bootstrapping the identity provider with managed identity and tokens.
+/// </summary>
+public class BootstrapRequest
+{
+    /// <summary>
+    /// Managed identity information. Optional.
+    /// </summary>
+    [JsonPropertyName("managedIdentity")]
+    public ManagedIdentityInfo? ManagedIdentity { get; set; }
+
+    /// <summary>
+    /// Dictionary of resource/scope to raw token string. Optional.
+    /// </summary>
+    [JsonPropertyName("tokens")]
+    public Dictionary<string, string>? Tokens { get; set; }
+}
+
+/// <summary>
+/// Request model for adding tokens to the identity provider.
+/// Used by the /bootstrap/tokens endpoint.
+/// </summary>
+public class AddTokensRequest
+{
+    /// <summary>
+    /// Dictionary of resource/scope to raw token string.
+    /// </summary>
+    [JsonPropertyName("tokens")]
+    public Dictionary<string, string>? Tokens { get; set; }
+}
 
 /// <summary>
 /// Response model for the bootstrap endpoint.

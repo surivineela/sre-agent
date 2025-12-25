@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using Agent.Common.ApiModels;
 using Microsoft.Identity.Client;
 using Session.Identity.Models;
 

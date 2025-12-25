@@ -302,16 +302,18 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public TokenCredential GetAzureAnthropicCredential() => _credential;
 
         public Task<TokenCredential> GetGenevaActionOboCredential() => Task.FromResult(_credential);
+
+        public Task<Dictionary<string, string>?> GetAllOboTokens() => Task.FromResult<Dictionary<string, string>?>(null);
+
+        internal sealed class FakeTokenCredential : TokenCredential
+        {
+            public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+                => new("fake-token", DateTimeOffset.UtcNow.AddHours(1));
+
+            public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+                => new(new AccessToken("fake-token", DateTimeOffset.UtcNow.AddHours(1)));
+        }
+
+        #endregion
     }
-
-    internal sealed class FakeTokenCredential : TokenCredential
-    {
-        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            => new("fake-token", DateTimeOffset.UtcNow.AddHours(1));
-
-        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            => new(new AccessToken("fake-token", DateTimeOffset.UtcNow.AddHours(1)));
-    }
-
-    #endregion
 }

@@ -20,13 +20,15 @@ public class AzCliExecution
     private readonly bool _isDevelopment;
     private readonly SessionPoolSettings _sessionPoolSettings;
     private readonly ISessionPoolService _sessionPoolService;
+    private readonly string? _identityResourceId;
     public AzCliExecution(ILogger logger,
         string command,
         SessionPoolSettings sessionPoolSettings,
         ISessionPoolService sessionPoolService,
         string? accessToken = null,
         bool isDevelopment = false,
-        Dictionary<string, string>? additionalTokens = null)
+        Dictionary<string, string>? additionalTokens = null,
+        string? identityResourceId = null)
     {
         _logger = logger;
         _command = command.Trim();
@@ -36,6 +38,7 @@ public class AzCliExecution
         _additionalTokens = additionalTokens;
         _configDir = isDevelopment ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
         _isDevelopment = isDevelopment;
+        _identityResourceId = identityResourceId;
     }
 
     public async Task<string> ExecuteAsync(CancellationToken cancellationToken = default)
@@ -48,7 +51,7 @@ public class AzCliExecution
             if (_sessionPoolSettings.Enabled
                 && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint))
             {
-                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(randomSuffix: true), _additionalTokens);
+                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(randomSuffix: true), _additionalTokens, _identityResourceId);
             }
             else
             {

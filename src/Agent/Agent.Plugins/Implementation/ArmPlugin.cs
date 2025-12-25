@@ -387,7 +387,7 @@ namespace Agent.Plugins.Implementation
                     // sometimes agent will see the resource as not found when it doesn't have permission
                     if (result.ErrorType == CliErrorType.AuthorizationError || result.ErrorType == CliErrorType.NotFoundError)
                     {
-                        await UpdateAzCliExecutionWithOboFlow(execution);
+                        await UpdateAzCliExecutionWithOboFlow(execution, result.RequiredScopes);
                         return new(new CliExecutionResult { Output = $"Azure CLI {cmdType} command has been prepared for approval. Please click 'Run' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
                     }
                     else
@@ -441,7 +441,7 @@ namespace Agent.Plugins.Implementation
             await NotifyAzCliExecutionUpdated(updatedExecution);
         }
 
-        private async Task UpdateAzCliExecutionWithOboFlow(AzCliExecution execution)
+        private async Task UpdateAzCliExecutionWithOboFlow(AzCliExecution execution, string? requiredScopes)
         {
             var updatedExecution = execution with
             {
@@ -452,6 +452,7 @@ namespace Agent.Plugins.Implementation
                 Error = null,
                 StartedTimestamp = null,
                 CompletedTimestamp = null,
+                RequiredScopes = requiredScopes,
             };
 
             await _threadRepository.UpdateAzCliExecutionAsync(ThreadId!.Value, updatedExecution);

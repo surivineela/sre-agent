@@ -453,7 +453,8 @@ export class ThreadClient extends DataPlaneClient {
         threadId: string,
         executionId: string,
         action: 'run' | 'cancel',
-        userId: string
+        userId: string,
+        oboScope?: string
     ): Promise<Response<any>> => {
         const url = this.getRequestUrl(`/api/v1/${basePath}/${threadId}/${executionId}/action`);
         try {
@@ -463,7 +464,7 @@ export class ThreadClient extends DataPlaneClient {
                     action,
                     user: userId,
                 },
-                { headers: getAgentHeaders() }
+                { headers: getAgentHeaders(oboScope) }
             );
             return {
                 isSuccessful: true,

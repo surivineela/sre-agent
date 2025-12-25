@@ -229,6 +229,7 @@ public class AzCliExecutionController : ControllerBase
                                     Error = null,
                                     StartedTimestamp = null,
                                     CompletedTimestamp = null,
+                                    RequiredScopes = result.RequiredScopes,
                                 };
                                 await _threadRepository.UpdateAzCliExecutionAsync(threadGuid, updatedExecution);
                                 await _agentOutboundCommunicationService.NotifyAzCliUpdate(threadGuid, updatedExecution, messageId);

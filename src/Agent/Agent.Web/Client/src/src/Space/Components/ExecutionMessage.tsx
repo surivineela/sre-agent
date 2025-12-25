@@ -298,6 +298,8 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
 
     const isKubectlExecution = (e: ExecutionLike): e is KubectlExecution => 'stdin' in e;
 
+    const isAzCliExecution = (_e: ExecutionLike): _e is AzCliExecution => type === ExecutionMessageType.AzCli;
+
     const handleAction = async (action: 'run' | 'cancel') => {
         setIsActionLoading(true);
         setLoadingAction(action);
@@ -319,13 +321,20 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
         const maxRetries = 3;
         const baseDelay = 1000;
 
+        // Get required scopes for OBO flow if this is an AzCli execution in PendingAuthorization status
+        const oboScope =
+            currentExecution.status === ExecutionStatus.PendingAuthorization && isAzCliExecution(currentExecution)
+                ? currentExecution.requiredScopes
+                : undefined;
+
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const result = await threadClient.postExecutionAction(
                 basePath,
                 threadId,
                 execution.id,
                 action,
-                userIdAndDisplayName?.userId || 'sreagent-client'
+                userIdAndDisplayName?.userId || 'sreagent-client',
+                oboScope
             );
 
             if (result.isSuccessful && result.content) {

@@ -72,6 +72,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
     <ProjectReference Include="..\Agent.Framework\Agent.Framework.csproj" />
+    <ProjectReference Include="..\Agent.Common\Agent.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

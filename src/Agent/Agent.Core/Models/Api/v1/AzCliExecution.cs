@@ -18,7 +18,8 @@ public record AzCliExecution(
     DateTime? StartedTimestamp,
     DateTime? CompletedTimestamp,
     Author? ExecutedBy,
-    Guid? AgentContextId
+    Guid? AgentContextId,
+    string? RequiredScopes = null
 );
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

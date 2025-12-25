@@ -22,6 +22,7 @@ public class CliExecutionResult
 {
     public string Output { get; set; } = string.Empty;
     public CliErrorType ErrorType { get; set; } = CliErrorType.None;
+    public string? RequiredScopes { get; set; }
 
     public bool ErrorOccurred => ErrorType != CliErrorType.None;
 }
@@ -38,6 +39,11 @@ public class CliErrorIndicator
     """)]
     public string ErrorType { get; set; } = string.Empty;
 
+    [Description("""
+    The required AAD scopes/audiences for the Azure CLI command to succeed, inferred from the command and error message.
+    """)]
+    public string? RequiredScopes { get; set; }
+
     // [Description("""
     // A one-line summary of the error, if any. If no error is detected, this should be an empty string.
     // The summary should be user friendly and descriptive.
@@ -49,11 +55,10 @@ public class CliErrorIndicator
 
 public static class CliExecutionHelper
 {
-    public static async Task<CliExecutionResult> ParseCliExecutionResult(IChatClient chatClient, string output)
+    public static async Task<CliExecutionResult> ParseCliExecutionResult(IChatClient chatClient, string output, string? command = null)
     {
         var msg = new ChatMessage(ChatRole.System, $"""
             You are a helpful assistant that analyzes Azure CLI and kubectl command outputs to determine if the COMMAND EXECUTION itself failed.
-            
             IMPORTANT: You must distinguish between:
             1. Command execution errors (the command itself failed to run properly)
             2. Resource status information (the command ran successfully but shows unhealthy resource states)
@@ -88,7 +93,13 @@ public static class CliExecutionHelper
             - "Connection refused"
             - "The resource 'xyz' was not found"
             
-            Analyze this command output and determine if the COMMAND EXECUTION failed:
+            Also, infer the required AAD scopes based on the command and the output. Always consider that if commands may require multiple scopes; in such cases, return a comma-separated list of scopes.
+            
+            Analyze determine if the COMMAND EXECUTION failed:
+            Command:
+            {command}
+
+            Output:
             {output}
             """);
 
@@ -110,6 +121,7 @@ public static class CliExecutionHelper
             {
                 Output = output,
                 ErrorType = errorType,
+                RequiredScopes = errorType == CliErrorType.AuthorizationError ? result.RequiredScopes : null,
             };
         }
 

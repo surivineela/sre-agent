@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Agent.Common.ApiModels;
 using Microsoft.AspNetCore.Mvc;
 using Session.Identity.Attributes;
-using Session.Proxy.Models;
 using Session.Proxy.Services;
 
 namespace Session.Proxy.Controllers;

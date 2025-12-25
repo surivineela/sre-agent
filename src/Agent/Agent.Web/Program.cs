@@ -654,6 +654,7 @@ public class Program
             .AddSingleton<IAzureBlobStorageClient, AzureBlobStorageClient>()
             .AddSingleton<IAzureDevOpsService, AzureDevOpsService>()
             .AddSingleton<IGitHubService, GitHubService>()
+            .AddSingleton<IManagedIdentityConfigService, ManagedIdentityConfigService>()
             .AddSingleton<ISessionPoolService, SessionPoolService>()
             .AddSingleton<IRagEvaluator, RagEvaluator>()
             .AddSingleton<IExtensibilityLoader, ExtensibilityLoader>()

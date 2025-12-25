@@ -146,4 +146,6 @@ public interface IAuthenticationService
     /// Get the OBO credential to access Geneva Actions Proxy API
     /// </summary>
     public Task<TokenCredential> GetGenevaActionOboCredential();
+
+    public Task<Dictionary<string, string>?> GetAllOboTokens();
 }

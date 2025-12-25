@@ -1,4 +1,5 @@
 using System.Security.Cryptography.X509Certificates;
+using Agent.Common.ApiModels;
 using Microsoft.AspNetCore.Mvc;
 using Session.Identity.Attributes;
 using Session.Identity.Models;

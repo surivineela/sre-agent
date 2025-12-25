@@ -472,6 +472,41 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
+    public async Task<Dictionary<string, string>?> GetAllOboTokens()
+    {
+        var approval = ToolStatic.AsyncLocalApprovalContext.Value;
+
+        // no approval in context
+        if (approval == null || !approval.UseOboToken || approval.ApprovalId == null)
+        {
+            return null;
+        }
+
+        var approvalDoc = await _threadRepository.Value.GetApprovalAsync(approval.ThreadId, approval.ApprovalId.Value);
+        if (approvalDoc == null || string.IsNullOrEmpty(approvalDoc.OboToken))
+        {
+            return null;
+        }
+
+        var oboTokens = approvalDoc.OboToken.Split(","); // Do not remove empty entries, as YARP sets empty token when failed to exchange obo token
+        var scopes = (approvalDoc.OboTokenScope ?? Constants.DefaultOboTokenScope).Split(",");
+        if (oboTokens.Length != scopes.Length)
+        {
+            throw new InvalidOperationException("The number of OboTokens does not match the number of OboTokenScopes in the approval document");
+        }
+
+        var tokens = new Dictionary<string, string>();
+        for (int i = 0; i < oboTokens.Length; i++)
+        {
+            if (!tokens.ContainsKey(scopes[i]))
+            {
+                tokens[scopes[i]] = oboTokens[i];
+            }
+        }
+
+        return tokens;
+    }
+
     #endregion
 
     // helper method that prefers to use obo if approval is available in the context

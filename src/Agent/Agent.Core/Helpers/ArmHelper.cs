@@ -4397,23 +4397,10 @@ public class ArmHelper
             var cred = await _authService.GetArmOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext([Constants.DefaultOboTokenScope]), default);
 
-            // pre-fetch obo tokens for other scopes for az cli to use
-            var additionalTokens = new Dictionary<string, string>();
+            // obo token is pre-fetched by YARP
+            var additionalTokens = await _authService.GetAllOboTokens();
 
-            var tokenTasks = new List<Task>
-            {
-                Task.Run(async () => additionalTokens[Constants.ArmOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.ArmOboTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.AksOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AksOboTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.AkvOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AkvOboTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.StorageOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.StorageOboTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.SynapseOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.SynapseOboTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.AppInsightsTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.AppInsightsTokenScope]), default)).Token),
-                Task.Run(async () => additionalTokens[Constants.LogAnalyticsOboTokenScope] = (await cred.GetTokenAsync(new TokenRequestContext([Constants.LogAnalyticsOboTokenScope]), default)).Token),
-            };
-
-            await Task.WhenAll(tokenTasks);
-
-            var cliExecution = new AzCliExecution(_logger, command, _azureSettings.SessionPool, _sessionPoolService, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment(), additionalTokens: additionalTokens);
+            var cliExecution = new AzCliExecution(_logger, command, _azureSettings.SessionPool, _sessionPoolService, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment(), additionalTokens: additionalTokens, identityResourceId: _azureSettings.Action.Identity);
             var result = await cliExecution.ExecuteAsync();
 
             if (IsWriteCommand(command))
@@ -4429,7 +4416,8 @@ public class ArmHelper
         }
         catch (Exception ex)
         {
-            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.GeneralPurposeModel, ex.Message);
+            var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.GeneralPurposeModel, ex.Message, command);
+            _logger.LogInternalInformation($"[RunAzCliCommandsAsync] LLM-parsed execution result: {JsonSerializer.Serialize(executionResult)}");
             return executionResult;
         }
     }

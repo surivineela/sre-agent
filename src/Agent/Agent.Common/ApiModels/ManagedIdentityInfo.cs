@@ -1,6 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json.Serialization;
 
-namespace Session.Identity.Models;
+namespace Agent.Common.ApiModels;
 
 /// <summary>
 /// Represents managed identity information.

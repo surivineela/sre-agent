@@ -10,8 +10,7 @@ namespace Agent.Core.Interfaces;
 public interface ISessionPoolService
 {
     string BuildSessionIdentifier(string? agentName = null, string? threadId = null, bool randomSuffix = true);
-    Task<(int, string, string)> ExecuteCliLegacyAsync(string command, string accessToken, string identifier);
-    Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens);
+    Task<(int, string, string)> ExecuteCliAsync(string command, string identifier, Dictionary<string, string>? tokens, string? identityResourceId = null);
 
     /// <summary>
     /// Execute a bash command within the dedicated Code Interpreter session pool (isolated ACA environment for Python/report generation).
