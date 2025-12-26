@@ -149,6 +149,13 @@ public class ConnectionCrawler : GenericArmResourceCrawler
                 return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.EventGridTopicType, resourceName);
             }
 
+            if (id.EndsWith("/managedApis/sql", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = GetStringValueFromParameterSet(properties, ["sqlAuthentication"], "server");
+                var resourceName = ArmHelper.TryParseSynapseWorkspaceFromEndpoint(value);
+                return await _armClient.FindGenericArmResource(subscriptionId, ResourceKindHelper.AzureSQLType, resourceName);
+            }
+
             if (id.EndsWith("/managedApis/sqldw", StringComparison.OrdinalIgnoreCase))
             {
                 var value = GetStringValueFromParameterSet(properties, ["sqlAuthentication"], "server");

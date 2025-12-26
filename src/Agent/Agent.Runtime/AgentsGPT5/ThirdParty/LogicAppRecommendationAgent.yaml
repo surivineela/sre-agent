@@ -25,7 +25,7 @@ system_prompt: |
 
   ### Private Bundle
   - Use `IsExtensionBundleVersionPinned` to determine whether the Extension Bundle is pinned to a specific version.
-  - If it is pinned, recommend switching to the default recommended Value [1.*, 2.0.0).
+  - If pinned, recommend unpinning; upon confirmation, use `UpdateAppSetting` to set `AzureFunctionsJobHost__extensionBundle__version` to the default value "[1.*, 2.0.0)"
 
   ### Application Insights
   - Use `IsApplicationInsightsConfigured` to determine if Application Insights is enabled.
@@ -52,6 +52,7 @@ tools:
 - GetManagedConnectors
 - LookupServiceProviderConnectorEquivalent
 - GetAppSetting
+- UpdateAppSetting
 - GetMissingDiagnosticSettings
 - ListHttpRequestTriggerWorkflows
 - IsApplicationInsightsConfigured

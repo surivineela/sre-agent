@@ -309,8 +309,7 @@ public class LogicAppsPlugin : ILogicAppsPlugin
             foreach (var workflow in result)
             {
                 var properties = workflow["properties"];
-                var id = workflow["id"].ToString();
-                var resourceId = id.Replace("_", "/");
+                var resourceId = GetFirstPropertyValue(properties, "resourceId");
                 var name = workflow["name"]?.ToString();
 
                 var workflowDescriptor = new Workflow(
@@ -372,7 +371,7 @@ public class LogicAppsPlugin : ILogicAppsPlugin
             var query = $@"g.V()
                 .has('id', '{id.ToLower().Replace("/", "_")}')
                 .has('isDeleted', false)
-                .outE('USES')
+                .outE('USES_ACTION', 'USES_TRIGGER', 'USES_TRIGGER_ACTION')
                 .inV()
                     .has('isDeleted', false)
                     .hasLabel('microsoft.web/connections')
@@ -409,16 +408,8 @@ public class LogicAppsPlugin : ILogicAppsPlugin
 
     public Task<ServiceProviderConnector?> LookupServiceProviderConnectorEquivalent(string managedConnectorId)
     {
-        var lookup = new Dictionary<string, ServiceProviderConnector?>()
-        {
-            {
-                "managedApis/sftpwithssh",
-                new ServiceProviderConnector("serviceProviders/sftp", "sftp")
-            }
-        };
-
         return Task.FromResult(
-            lookup.TryGetValue(managedConnectorId, out var connector) ? connector : null);
+            ManagedToServiceProviderLookup.TryGetValue(managedConnectorId, out var connector) ? connector : null);
     }
 
     public async Task<IReadOnlyList<string>> GetMissingDiagnosticSettingsAsync(string logicAppResourceId)
@@ -673,6 +664,30 @@ public class LogicAppsPlugin : ILogicAppsPlugin
 
         return null;
     }
+
+    // TODO: Fetch this mapping dynamically (maybe via ARM/REST API) instead of hard-coding.
+    private static readonly IReadOnlyDictionary<string, ServiceProviderConnector> ManagedToServiceProviderLookup =
+        new Dictionary<string, ServiceProviderConnector>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "managedApis/azureblob", new ServiceProviderConnector("serviceProviders/AzureBlob", "AzureBlob") },
+            { "managedApis/azuretables", new ServiceProviderConnector("serviceProviders/azureTables", "azureTables") },
+            { "managedApis/azurequeues", new ServiceProviderConnector("serviceProviders/azurequeues", "azurequeues") },
+            { "managedApis/azurefile", new ServiceProviderConnector("serviceProviders/AzureFile", "AzureFile") },
+            { "managedApis/servicebus", new ServiceProviderConnector("serviceProviders/serviceBus", "serviceBus") },
+            { "managedApis/eventhubs", new ServiceProviderConnector("serviceProviders/eventhub", "eventhub") },
+            { "managedApis/azureeventgridpublish", new ServiceProviderConnector("serviceProviders/eventGridPublisher", "eventGridPublisher") },
+            { "managedApis/sql", new ServiceProviderConnector("serviceProviders/sql", "sql") },
+            { "managedApis/documentdb", new ServiceProviderConnector("serviceProviders/AzureCosmosDB", "AzureCosmosDB") },
+            { "managedApis/keyvault", new ServiceProviderConnector("serviceProviders/keyVault", "keyVault") },
+            { "managedApis/ftp", new ServiceProviderConnector("serviceProviders/Ftp", "Ftp") },
+            { "managedApis/sftpwithssh", new ServiceProviderConnector("serviceProviders/sftp", "sftp") },
+            { "managedApis/smtp", new ServiceProviderConnector("serviceProviders/Smtp", "Smtp") },
+            { "managedApis/sap", new ServiceProviderConnector("serviceProviders/sap", "sap") },
+            { "managedApis/mq", new ServiceProviderConnector("serviceProviders/mq", "mq") },
+            { "managedApis/db2", new ServiceProviderConnector("serviceProviders/DB2", "DB2") },
+            { "managedApis/azureaisearch", new ServiceProviderConnector("serviceProviders/azureaisearch", "azureaisearch") },
+            { "managedApis/azureopenai", new ServiceProviderConnector("serviceProviders/openai", "azureopenai") }
+        };
 }
 
 public record OperationDescriptor(

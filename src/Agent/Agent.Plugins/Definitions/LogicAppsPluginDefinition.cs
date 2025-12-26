@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Implementation;
@@ -27,6 +28,8 @@ namespace Agent.Plugins.Definitions
             return await this._plugin.GetLogicAppInfoAsync(logicAppResourceId);
         }
 
+        [WriteAction]
+        [RequiresApproval]
         [Description("Update the app setting for a given Logic App")]
         public async Task<UpdateAppSettingResult> UpdateAppSetting(string resourceId, string key, string value)
         {
@@ -109,7 +112,8 @@ namespace Agent.Plugins.Definitions
 
         [Description("Looks up a service provider connector equivalent for a managed connector.")]
         [AgentTool(ToolMode.Auto)]
-        public async Task<ServiceProviderConnector?> LookupServiceProviderConnectorEquivalent(string managedConnectorId)
+        public async Task<ServiceProviderConnector?> LookupServiceProviderConnectorEquivalent(
+            [Description("Managed connector ID (e.g., managedApis/sftpwithssh).")] string managedConnectorId)
         {
             return await _plugin.LookupServiceProviderConnectorEquivalent(managedConnectorId);
         }
