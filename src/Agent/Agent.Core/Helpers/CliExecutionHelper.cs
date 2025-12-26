@@ -94,6 +94,8 @@ public static class CliExecutionHelper
             - "The resource 'xyz' was not found"
             
             Also, infer the required AAD scopes based on the command and the output. Always consider that if commands may require multiple scopes; in such cases, return a comma-separated list of scopes.
+            Special cases for scope inference:
+            - If you infer that the command requires ARM scope, include both "https://management.azure.com/.default" and "https://management.core.windows.net/.default".
             
             Analyze determine if the COMMAND EXECUTION failed:
             Command:
@@ -121,7 +123,7 @@ public static class CliExecutionHelper
             {
                 Output = output,
                 ErrorType = errorType,
-                RequiredScopes = errorType == CliErrorType.AuthorizationError ? result.RequiredScopes : null,
+                RequiredScopes = result.RequiredScopes,
             };
         }
 

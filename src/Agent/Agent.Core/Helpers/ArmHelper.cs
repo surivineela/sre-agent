@@ -4417,7 +4417,7 @@ public class ArmHelper
         catch (Exception ex)
         {
             var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.GeneralPurposeModel, ex.Message, command);
-            _logger.LogInternalInformation($"[RunAzCliCommandsAsync] LLM-parsed execution result: {JsonSerializer.Serialize(executionResult)}");
+            _logger.LogInternalInformation($"[RunAzCliCommandsAsync] LLM-parsed execution result: ErrorType={executionResult.ErrorType}, RequiredScopes={executionResult.RequiredScopes}");
             return executionResult;
         }
     }
