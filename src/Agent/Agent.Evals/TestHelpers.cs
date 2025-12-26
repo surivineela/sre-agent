@@ -106,7 +106,6 @@ public static class TestHelpers
                 ["AppSettings:Core:Azure:OpenAI:Endpoint"] = aiEndpoint,
                 ["AppSettings:Core:Azure:OpenAI:ApiKey"] = apiKey,
                 ["AppSettings:Core:Azure:OpenAI:EmbeddingGeneratorDeploymentName"] = embeddingModelName,
-                ["AppSettings:Core:ChatClientProvider:ModelNames"] = modelNames,
                 ["AppSettings:Core:AgentModel:AvailableModels"] = modelNames,
                 ["AppSettings:Core:ChatClientProvider:EmbeddingModelName"] = embeddingModelName,
             };
@@ -149,7 +148,6 @@ public static class TestHelpers
             }
             builder.Services.PostConfigure<ChatClientProviderSettings>(o =>
             {
-                o.ModelNames = modelNames;
                 o.EmbeddingModelName = embeddingModelName;
                 o.ScenarioConfiguration = scenarioConfig;
             });

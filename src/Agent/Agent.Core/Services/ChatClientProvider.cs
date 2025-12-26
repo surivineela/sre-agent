@@ -111,7 +111,7 @@ namespace Agent.Core.Services
 
             ValidateScenarioConfiguration(_chatClientProviderSettings.ScenarioConfiguration);
 
-            _availableModels = agentModelSettings.Value?.AvailableModelList.Count > 0 ? agentModelSettings.Value.AvailableModelList : _chatClientProviderSettings.ModelNames.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            _availableModels = agentModelSettings.Value.AvailableModelList;
 
             // Resolve model names at construction time (cheap operation)
             _embeddingModelName = string.IsNullOrWhiteSpace(_chatClientProviderSettings.EmbeddingModelName) ? openAISettings.Value.EmbeddingGeneratorDeploymentName : _chatClientProviderSettings.EmbeddingModelName;

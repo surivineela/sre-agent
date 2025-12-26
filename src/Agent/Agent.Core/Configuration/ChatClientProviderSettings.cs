@@ -10,13 +10,6 @@ namespace Agent.Core.Configuration
     public class ChatClientProviderSettings
     {
         /// <summary>
-        /// Comma-separated list of model deployment names to register
-        /// Example: "gpt-4.1,gpt-5"
-        /// This is for backward compatibility; Once we have available models discovery in place, this can be deprecated.
-        /// </summary>
-        public string ModelNames { get; set; } = string.Empty;
-
-        /// <summary>
         /// Embedding model name for vector generation
         /// </summary>
         public string EmbeddingModelName { get; set; } = string.Empty;

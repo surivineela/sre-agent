@@ -429,24 +429,13 @@ public static class AgentsConfigurationExtensions
 
     public static IServiceCollection ConfigureIChatClient(this IServiceCollection services, IConfiguration configuration)
     {
-        // backward compatibility
-        // TODO: Will remove these settings once AvailableModels is fully rolled out
-        var chatClientProviderSettings = configuration.GetSection("AppSettings:Core:ChatClientProvider").Get<ChatClientProviderSettings>();
         var agentModelSettings = configuration.GetSection("AppSettings:Core:AgentModel").Get<AgentModelSettings>();
 
-        // Merge models from both ChatClientProviderSettings.ModelNames and AgentModelSettings.AvailableModels
-        var modelsFromChatClientProvider = chatClientProviderSettings != null && !string.IsNullOrWhiteSpace(chatClientProviderSettings.ModelNames)
-            ? chatClientProviderSettings.ModelNames.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(m => m.Trim())
-            : [];
-        var modelsFromAgentModel = agentModelSettings?.AvailableModelList ?? [];
-
-        var availableModels = modelsFromChatClientProvider
-            .Concat(modelsFromAgentModel)
-            .Where(m => !string.IsNullOrWhiteSpace(m))
-            .Distinct();
+        var availableModels = agentModelSettings?.AvailableModelList.Where(m => !string.IsNullOrWhiteSpace(m))
+            .Distinct() ?? [];
 
         // Group models by provider and register keyed IChatClient for each
-        var modelsByProvider = availableModels
+        var modelsInGroup = availableModels
             .GroupBy(m =>
                 m.Contains("embedding", StringComparison.OrdinalIgnoreCase) ? "embedding" :
                 m.Contains("claude", StringComparison.OrdinalIgnoreCase) ? "claude" :
@@ -454,7 +443,7 @@ public static class AgentsConfigurationExtensions
                 "other")
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        if (modelsByProvider.TryGetValue("gpt", out var openaiModels))
+        if (modelsInGroup.TryGetValue("gpt", out var openaiModels))
         {
             foreach (var modelName in openaiModels)
             {
@@ -465,12 +454,12 @@ public static class AgentsConfigurationExtensions
             }
         }
 
-        if (modelsByProvider.TryGetValue("claude", out var anthropicModels))
+        if (modelsInGroup.TryGetValue("claude", out var anthropicModels))
         {
             ConfigureAnthropicChatClients(services, configuration, anthropicModels);
         }
 
-        if (modelsByProvider.TryGetValue("other", out var unsupportedModels))
+        if (modelsInGroup.TryGetValue("other", out var unsupportedModels))
         {
             throw new InvalidOperationException($"Unsupported model(s) found in available models: {string.Join(", ", unsupportedModels)}");
         }
