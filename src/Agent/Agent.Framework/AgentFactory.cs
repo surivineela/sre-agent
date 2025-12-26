@@ -263,8 +263,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         AugmentMemoryTools(agentDescriptor, agent);
 
         //TODO: This func could be replaced when experiment is working on extended agents. When experiment is working, use ApplyParamOverlay to set enablePartialOutput and common prompt in agent
-        // Add ToolOutputRetriever tool and common prompt if enabled
-        AugmentPartialOutputTool(agentDescriptor, agent);
+        // Add ToolOutputRetriever tool if enabled
+        AugmentPartialOutputTool(agent);
 
         // Add common tools to the agent
         if (agentDescriptor.CommonTools is not null
@@ -374,10 +374,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
     }
 
-    private void AugmentPartialOutputTool(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    private void AugmentPartialOutputTool(Agent<TContext> agent)
     {
         const string ToolOutputRetrieverTool = "ToolOutputRetriever";
-        const string ToolOutputRetrieverCommonPrompt = "tool_output_retriever";
 
         // Add ToolOutputRetriever tool if partial output is enabled
         if (_enablePartialOutput)
@@ -387,13 +386,6 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             {
                 agent.FactoryTools.Add(ToolOutputRetrieverTool);
             }
-        }
-
-        // Add ToolOutputRetriever common prompt to agents if tool is added
-        if (agent.FactoryTools.Contains(ToolOutputRetrieverTool)
-            && !agentDescriptor.CommonPrompts.Contains(ToolOutputRetrieverCommonPrompt))
-        {
-            agentDescriptor.CommonPrompts.Add(ToolOutputRetrieverCommonPrompt);
         }
     }
 

@@ -22,9 +22,17 @@ public class ToolOutputRetrieverPluginDefinition
 
     [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     [Description("""
-        Access large stored tool outputs (text/json/yaml) by fileKey.
+        Access large stored tool outputs (text/json/yaml) by fileKey. This tool MUST be called with valid file key obtained from the previous truncated tool output.
 
         Supports reading by line or byte offset, filtering JSON/YAML via JMESPath, summarizing using LLM, and searching with regex.
+
+        Output Format:
+        - Errors: <error>error message</error>
+        - read_by_line: <content line_start="X" line_end="Y">content</content>
+        - read_by_offset: <content offset_start="X" offset_end="Y">content</content>
+        - summarize: <summary>summarized text</summary>
+        - filter_structured: <result>filtered data</result>
+        - search_regex: <match line="X" column="Y" offset="Z">preview</match> (one per match)
 
         Operations & Examples:
 
@@ -71,12 +79,12 @@ public class ToolOutputRetrieverPluginDefinition
         - Summarize or analyze file content
      """)]
     public async Task<string> ToolOutputRetrieverAsync(
-        [Description("Unique ID for the stored file (fileKey)")] string fileKey,
+        [Description("Unique ID for the stored file (fileKey). It MUST be obtained from the previous truncated tool output")] string fileKey,
         [Description("Operation to perform: read_by_line, read_by_offset, summarize, filter_structured, search_regex")] string operation,
-        [Description("Starting line number (1-based, for read_by_line and summarize with scope=lines)")] int? lineStart = null,
-        [Description("Ending line number (1-based, optional, for read_by_line and summarize with scope=lines)")] int? lineEnd = null,
-        [Description("Starting byte offset (0-based, for read_by_offset and summarize with scope=offset)")] long? offsetStart = null,
-        [Description("Ending byte offset (0-based, optional, for read_by_offset and summarize with scope=offset)")] long? offsetEnd = null,
+        [Description("Starting line number (1-based, for read_by_line and summarize)")] int? lineStart = null,
+        [Description("Ending line number (1-based, optional, for read_by_line and summarize")] int? lineEnd = null,
+        [Description("Starting byte offset (0-based, for read_by_offset and summarize)")] long? offsetStart = null,
+        [Description("Ending byte offset (0-based, optional, for read_by_offset and summarize)")] long? offsetEnd = null,
         [Description("Prompt for summarization (required for summarize operation)")] string? summaryPrompt = null,
         [Description("JMESPath expression for filtering (required for filter_structured operation). Example: '[?level==`ERROR`]' or 'items[*].{name:name, status:status} *Don't use unicode in JMESPath expressions*'")] string? jmesPath = null,
         [Description("Regex pattern to search for (required for search_regex operation)")] string? regexPattern = null,

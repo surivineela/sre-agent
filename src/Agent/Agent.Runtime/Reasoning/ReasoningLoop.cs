@@ -993,7 +993,7 @@ public class ReasoningLoop : IDisposable
                                     var isValidCliToolResult = isCliTool && TryGetCliToolExecutionResult(functionResult, out cliToolExecutionResult);
 
                                     CliToolExecution? cliExecution = null;
-                                    if (isCliTool && isValidCliToolResult && cliToolExecutionResult?.ExecutionId is not null)
+                                    if (isValidCliToolResult && cliToolExecutionResult?.ExecutionId is not null)
                                     {
                                         cliExecution = await GetCliToolExecution(_context.ThreadId, CliTools[toolCall.Tool.Name], cliToolExecutionResult.ExecutionId.Value);
                                     }
@@ -1005,10 +1005,12 @@ public class ReasoningLoop : IDisposable
                                     {
                                         if (_featureConfig.PartialOutputEnabled)
                                         {
+                                            // Unwrap cli tool output for better truncation handling
+                                            object? result = isValidCliToolResult ? cliToolExecutionResult!.CliExecutionResult.Output : functionResult;
                                             var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
                                                 toolCall.Tool,
-                                                functionResult,
+                                                result,
                                                 cancellationToken);
 
                                             toolResults.Add(new ManualToolCallResult()

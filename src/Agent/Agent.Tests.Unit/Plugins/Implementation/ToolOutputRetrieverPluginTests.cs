@@ -61,8 +61,7 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.Contains("lineStart: 1", result);
-        Assert.Contains("lineEnd: 5", result);
+        Assert.Contains("<content line_start=\"1\" line_end=\"5\">", result);
         Assert.Contains("VSTS agentless phase log", result);
         Assert.Contains("Rollout Details", result);
     }
@@ -87,10 +86,8 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.Contains("offsetStart: 0", result);
-        Assert.Contains("offsetEnd: 50", result);
-        // File starts with newlines, so verify we got some content
-        Assert.Contains("Content:", result);
+        Assert.Contains("<content offset_start=\"0\" offset_end=\"50\">", result);
+        Assert.Contains("</content>", result);
     }
 
     [Fact]
@@ -123,7 +120,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.Equal(expectedSummary, result);
+        Assert.Contains("<summary>", result);
+        Assert.Contains(expectedSummary, result);
+        Assert.Contains("</summary>", result);
         _mockChatClient.Verify(c => c.GetResponseAsync(
             It.IsAny<IList<ChatMessage>>(),
             It.IsAny<ChatOptions>(),
@@ -149,7 +148,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("Container", result);
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -171,7 +172,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("true", result.ToLower());
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -195,7 +198,7 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches:", result);
-        Assert.Contains("**Match", result);
+        Assert.Contains("<match", result);
     }
 
     [Fact]
@@ -217,9 +220,11 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("id", result);
         Assert.Contains("lines", result);
         Assert.Contains("type", result);
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -241,8 +246,11 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        // Should return a number
-        Assert.True(int.TryParse(result.Trim(), out var count));
+        // Should return a number wrapped in result tags
+        Assert.Contains("<result>", result);
+        Assert.Contains("</result>", result);
+        var numberStr = result.Replace("<result>", "").Replace("</result>", "").Trim();
+        Assert.True(int.TryParse(numberStr, out var count));
         Assert.True(count > 0);
     }
 
@@ -265,7 +273,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("prod-sql-01.database.windows.net", result);
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -287,7 +297,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("TLSv1.2", result);
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -309,7 +321,9 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
+        Assert.Contains("<result>", result);
         Assert.Contains("8080", result);
+        Assert.Contains("</result>", result);
     }
 
     [Fact]
@@ -330,8 +344,9 @@ public class ToolOutputRetrieverPluginTests
         // Act
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
-        // Assert - When returning complex object, it should be serialized as YAML
-        Assert.NotEmpty(result);
+        // Assert - When returning complex object, it should be serialized as YAML wrapped in result tags
+        Assert.Contains("<result>", result);
+        Assert.Contains("</result>", result);
         // Should not contain the error pattern "valueKind"
         Assert.DoesNotContain("valueKind", result, StringComparison.OrdinalIgnoreCase);
     }
@@ -355,7 +370,8 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.StartsWith("Error: jmesPath is required", result);
+        Assert.StartsWith("<error>", result);
+        Assert.Contains("jmesPath is required", result);
     }
 
     [Fact]
@@ -379,7 +395,7 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches: 3", result);
-        Assert.Contains("**Match", result);
+        Assert.Contains("<match", result);
     }
 
     [Fact]
@@ -403,8 +419,8 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert
         Assert.Contains("Total matches:", result);
-        Assert.Contains("**Match", result);
-        Assert.Contains("Line", result);
+        Assert.Contains("<match", result);
+        Assert.Contains("column=", result);
     }
 
     [Fact]
@@ -449,7 +465,8 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.Contains("Error:", result);
+        Assert.StartsWith("<error>", result);
+        Assert.Contains("</error>", result);
     }
 
     [Fact]
@@ -474,6 +491,7 @@ public class ToolOutputRetrieverPluginTests
 
         // Assert - should find "Status:" (capital S) because of the 'i' flag
         Assert.Contains("Total matches:", result);
+        Assert.Contains("<match", result);
     }
 
     [Fact]
@@ -494,7 +512,8 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.StartsWith("Error: Unknown operation", result);
+        Assert.StartsWith("<error>", result);
+        Assert.Contains("Unknown operation", result);
     }
 
     [Fact]
@@ -514,7 +533,8 @@ public class ToolOutputRetrieverPluginTests
         var result = await _plugin.RetrieveToolOutputAsync(options);
 
         // Assert
-        Assert.StartsWith("Error: File with key", result);
+        Assert.StartsWith("<error>", result);
+        Assert.Contains("not found in storage", result);
     }
 
 }

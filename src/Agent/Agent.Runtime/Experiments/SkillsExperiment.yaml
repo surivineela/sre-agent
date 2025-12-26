@@ -34,6 +34,7 @@ variants:
             - GetResourceIdForResourceName
             - SearchMemory
             - SearchIncidentKnowledge
+            - ToolOutputRetriever
       handoffs:
         - agent_names:
             - meta_agent

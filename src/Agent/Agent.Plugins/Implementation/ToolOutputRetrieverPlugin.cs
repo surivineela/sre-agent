@@ -44,6 +44,8 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
         _maxOutputChars = toolOutputSettings.Value.MaxOutputChars;
     }
 
+    private static string FormatError(string message) => $"<error>{message}</error>";
+
     /// <inheritdoc/>
     public async Task<string> RetrieveToolOutputAsync(ToolOutputRetrieverOptions options)
     {
@@ -57,7 +59,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             var filePath = _toolOutputStorage.EnsureFileExist(options.FileKey);
             if (string.IsNullOrEmpty(filePath))
             {
-                return $"Error: File with key '{options.FileKey}' not found in storage.";
+                return FormatError($"Invalid file key '{options.FileKey}': not found in storage. The file key MUST be obtained from the previous truncated tool output.");
             }
 
             // Route to appropriate operation handler
@@ -68,13 +70,13 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 "summarize" => await SummarizeAsync(filePath, options.SummaryPrompt),
                 "filter_structured" => await FilterStructuredAsync(filePath, options.JmesPath),
                 "search_regex" => await SearchRegexAsync(filePath, options.RegexPattern, options.RegexFlags, options.RegexMaxMatches ?? 100),
-                _ => $"Error: Unknown operation '{options.Operation}'. Supported operations: read_by_line, read_by_offset, summarize, filter_structured, search_regex"
+                _ => FormatError($"Unknown operation '{options.Operation}'. Supported operations: read_by_line, read_by_offset, summarize, filter_structured, search_regex")
             };
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error in RetrieveToolOutput for fileKey={FileKey}, operation={Operation}", options.FileKey, options.Operation);
-            return $"Error: {ex.Message}";
+            return FormatError(ex.Message);
         }
     }
 
@@ -93,7 +95,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
     {
         if (!lineStart.HasValue || lineStart.Value < 1)
         {
-            return "Error: lineStart is required and must be >= 1 for read_by_line operation.";
+            return FormatError("lineStart is required and must be >= 1 for read_by_line operation.");
         }
 
         // Default lineEnd to 50 lines from start if not specified
@@ -127,24 +129,19 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             if (selectedLines.Count == 0)
             {
                 return startIndex == 0
-                    ? "Error: File is empty."
-                    : $"Error: lineStart ({lineStart.Value}) exceeds total lines in file.";
+                    ? FormatError("File is empty.")
+                    : FormatError($"lineStart ({lineStart.Value}) exceeds total lines in file.");
             }
 
             var content = string.Join(Environment.NewLine, selectedLines);
+            var actualLineEnd = Math.Min(currentLineNumber + 1, lineEnd.Value);
 
-            var result = new StringBuilder();
-            result.AppendLine($"lineStart: {lineStart.Value}");
-            result.AppendLine($"lineEnd: {Math.Min(currentLineNumber + 1, lineEnd.Value)}");
-            result.AppendLine("Content:");
-            result.AppendLine(content);
-
-            return result.ToString();
+            return $"<content line_start=\"{lineStart.Value}\" line_end=\"{actualLineEnd}\">\n{content}\n</content>";
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error reading file by line: {FilePath}", filePath);
-            return $"Error reading file: {ex.Message}";
+            return FormatError($"Error reading file: {ex.Message}");
         }
     }
 
@@ -152,7 +149,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
     {
         if (!offsetStart.HasValue || offsetStart.Value < 0)
         {
-            return "Error: offsetStart is required and must be >= 0 for read_by_offset operation.";
+            return FormatError("offsetStart is required and must be >= 0 for read_by_offset operation.");
         }
 
         try
@@ -166,12 +163,12 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
 
             if (start >= fileSize)
             {
-                return $"Error: offsetStart ({start}) exceeds file size ({fileSize} bytes).";
+                return FormatError($"offsetStart ({start}) exceeds file size ({fileSize} bytes).");
             }
 
             if (start > end)
             {
-                return $"Error: offsetStart ({start}) is greater than offsetEnd ({end}).";
+                return FormatError($"offsetStart ({start}) is greater than offsetEnd ({end}).");
             }
 
             var bytesToRead = (int)(end - start);
@@ -183,20 +180,15 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 var bytesRead = await stream.ReadAsync(buffer, 0, bytesToRead);
 
                 var content = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                var actualOffsetEnd = start + bytesRead;
 
-                var result = new StringBuilder();
-                result.AppendLine($"offsetStart: {start}");
-                result.AppendLine($"offsetEnd: {start + bytesRead}");
-                result.AppendLine("Content:");
-                result.AppendLine(content);
-
-                return result.ToString();
+                return $"<content offset_start=\"{start}\" offset_end=\"{actualOffsetEnd}\">\n{content}\n</content>";
             }
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error reading file by offset: {FilePath}", filePath);
-            return $"Error reading file: {ex.Message}";
+            return FormatError($"Error reading file: {ex.Message}");
         }
     }
 
@@ -206,7 +198,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
     {
         if (string.IsNullOrWhiteSpace(summaryPrompt))
         {
-            return "Error: summaryPrompt is required for summarize operation.";
+            return FormatError("summaryPrompt is required for summarize operation.");
         }
 
         try
@@ -220,12 +212,14 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             };
 
             var response = await _chatClientProvider.LargeContextModel.GetResponseAsync(messages);
-            return response.Messages.Last().Text ?? "No summary generated.";
+            var summaryText = response.Messages.Last().Text ?? "No summary generated.";
+
+            return $"<summary>\n{summaryText}\n</summary>";
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error summarizing file: {FilePath}", filePath);
-            return $"Error summarizing file: {ex.Message}";
+            return FormatError($"Error summarizing file: {ex.Message}");
         }
     }
 
@@ -233,7 +227,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
     {
         if (string.IsNullOrWhiteSpace(jmesPath))
         {
-            return "Error: jmesPath is required for filter_structured operation.";
+            return FormatError("jmesPath is required for filter_structured operation.");
         }
 
         try
@@ -253,7 +247,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             }
             else
             {
-                return "Error: filter_structured operation requires JSON or YAML file format.";
+                return FormatError("filter_structured operation requires JSON or YAML file format.");
             }
 
             // Apply JMESPath query
@@ -270,17 +264,17 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 output = JsonSerializer.Serialize(result);
             }
 
-            return output;
+            return $"<result>\n{output}\n</result>";
         }
         catch (JsonException ex)
         {
             _logger.LogInternalError(ex, "Error parsing file as JSON/YAML: {FilePath}", filePath);
-            return $"Error parsing file: {ex.Message}";
+            return FormatError($"Error parsing file: {ex.Message}");
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error filtering structured data: {FilePath}", filePath);
-            return $"Error filtering data: {ex.Message}";
+            return FormatError($"Error filtering data: {ex.Message}");
         }
     }
 
@@ -288,7 +282,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
     {
         if (string.IsNullOrWhiteSpace(regexPattern))
         {
-            return "Error: regexPattern is required for search_regex operation.";
+            return FormatError("regexPattern is required for search_regex operation.");
         }
 
         try
@@ -322,8 +316,9 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 var match = matches[i];
                 var lineNumber = GetLineNumber(content, match.Index);
                 var columnNumber = GetColumnNumber(content, match.Index);
+                var preview = GetPreviewContext(content, match.Index, match.Length, 30);
 
-                result.AppendLine($"**Match {i + 1}** (Line {lineNumber}, Column {columnNumber}, Offset {match.Index}):");
+                result.AppendLine($"<match line=\"{lineNumber}\" column=\"{columnNumber}\" offset=\"{match.Index}\">\n{preview}\n</match>");
                 result.AppendLine();
                 actualMatchesShown = i + 1;
             }
@@ -338,12 +333,12 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
         catch (ArgumentException ex)
         {
             _logger.LogInternalError(ex, "Invalid regex pattern: {Pattern}", regexPattern);
-            return $"Error: Invalid regex pattern - {ex.Message}";
+            return FormatError($"Invalid regex pattern - {ex.Message}");
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error searching with regex: {FilePath}", filePath);
-            return $"Error searching file: {ex.Message}";
+            return FormatError($"Error searching file: {ex.Message}");
         }
     }
 
@@ -372,5 +367,16 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
             column++;
         }
         return column;
+    }
+
+    private string GetPreviewContext(string content, int matchIndex, int matchLength, int contextChars)
+    {
+        var start = Math.Max(0, matchIndex - contextChars);
+        var end = Math.Min(content.Length, matchIndex + matchLength + contextChars);
+
+        var prefix = start > 0 ? "..." : string.Empty;
+        var suffix = end < content.Length ? "..." : string.Empty;
+
+        return $"{prefix}{content.Substring(start, end - start)}{suffix}";
     }
 }
