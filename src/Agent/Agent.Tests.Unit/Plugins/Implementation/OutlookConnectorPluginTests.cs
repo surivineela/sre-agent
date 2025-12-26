@@ -852,7 +852,6 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             // Arrange
             var messageId = "message-123";
             var folderPath = "Inbox/Processed";
-            var mailbox = "shared@example.com";
             HttpRequestMessage? capturedRequest = null;
 
             _mockHttpMessageHandler.Protected()
@@ -868,7 +867,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 });
 
             // Act
-            var result = await _outlookConnectorPlugin.MoveEmailAsync(messageId, folderPath, mailbox);
+            var result = await _outlookConnectorPlugin.MoveEmailAsync(messageId, folderPath);
 
             // Assert
             Assert.True(result.Success);
@@ -876,16 +875,15 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             Assert.Equal("Email moved successfully.", result.Message);
             Assert.NotNull(capturedRequest);
             Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
-            Assert.Contains($"v3/Mail/Move/{messageId}", capturedRequest.RequestUri!.ToString());
+            Assert.Contains($"Mail/Move/{messageId}", capturedRequest.RequestUri!.ToString());
             Assert.Contains("folderPath=Inbox%2FProcessed", capturedRequest.RequestUri!.Query);
-            Assert.Contains("mailboxAddress=shared%40example.com", capturedRequest.RequestUri!.Query);
         }
 
         [Fact]
         public async Task MoveEmailAsync_WithEmptyMessageId_ReturnsFailure()
         {
             // Act
-            var result = await _outlookConnectorPlugin.MoveEmailAsync("   ", "Inbox", null);
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("   ", "Inbox");
 
             // Assert
             Assert.False(result.Success);
@@ -897,7 +895,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
         public async Task MoveEmailAsync_WithEmptyFolderPath_ReturnsFailure()
         {
             // Act
-            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", " ", null);
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", " ");
 
             // Assert
             Assert.False(result.Success);
@@ -921,7 +919,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 });
 
             // Act
-            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", "Inbox/Processed", null);
+            var result = await _outlookConnectorPlugin.MoveEmailAsync("message-123", "Inbox/Processed");
 
             // Assert
             Assert.False(result.Success);

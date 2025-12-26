@@ -114,19 +114,16 @@ Note: To prevent context overflow, BodyContent is NOT included in list results -
             mailbox_address).ConfigureAwait(false);
     }
 
-    [Description(@"Moves an Outlook email message to a different folder. Provide the messageId and the destination folder path (e.g., Inbox/Processed). Use mailbox_address when working with shared mailboxes.")]
+    [Description(@"Moves an Outlook email message to a different folder. Provide the messageId and the destination folder path (e.g., Inbox/Processed for nested folders).")]
     [AgentTool(ToolMode.Auto)]
     public async Task<EmailMoveResult> MoveOutlookEmail(
         [Description("Unique Outlook message identifier to move.")]
         string message_id,
         [Description("Destination folder path, such as Inbox/Processed or Archive.")]
-        string destination_folder_path,
-        [Description("Optional mailbox address for shared mailboxes. Leave blank for the signed-in mailbox.")]
-        string? mailbox_address = null)
+        string destination_folder_path)
     {
         return await _outlookConnectorPlugin.MoveEmailAsync(
             message_id,
-            destination_folder_path,
-            mailbox_address).ConfigureAwait(false);
+            destination_folder_path).ConfigureAwait(false);
     }
 }

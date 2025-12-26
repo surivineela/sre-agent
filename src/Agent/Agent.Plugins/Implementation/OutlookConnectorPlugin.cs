@@ -490,7 +490,6 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
     public async Task<EmailMoveResult> MoveEmailAsync(
         string messageId,
         string destinationFolderPath,
-        string? mailboxAddress,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(messageId);
@@ -510,8 +509,6 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
             };
         }
 
-        string? trimmedMailbox = string.IsNullOrWhiteSpace(mailboxAddress) ? null : mailboxAddress.Trim();
-
         try
         {
             var clientResult = await TryCreateAuthorizedClientAsync(cancellationToken).ConfigureAwait(false);
@@ -528,11 +525,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
 
             var client = clientResult.Client!;
 
-            var requestUri = new StringBuilder($"v3/Mail/Move/{Uri.EscapeDataString(trimmedMessageId)}?folderPath={Uri.EscapeDataString(trimmedFolderPath)}");
-            if (!string.IsNullOrEmpty(trimmedMailbox))
-            {
-                requestUri.Append("&mailboxAddress=").Append(Uri.EscapeDataString(trimmedMailbox));
-            }
+            var requestUri = new StringBuilder($"Mail/Move/{Uri.EscapeDataString(trimmedMessageId)}?folderPath={Uri.EscapeDataString(trimmedFolderPath)}");
 
             using var request = new HttpRequestMessage(HttpMethod.Post, requestUri.ToString());
 

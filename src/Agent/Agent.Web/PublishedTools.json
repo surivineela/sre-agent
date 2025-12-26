@@ -387,7 +387,7 @@
       "name": "MoveOutlookEmail",
       "version": "latest",
       "firstPartyOnly": true,
-      "description": "Moves an email message to a different Outlook folder via Microsoft 365 without breaking the conversation thread. Provide the message ID and the destination folder path (for example Inbox/Processed or Archive) to quickly triage alerts, clear noisy queues, or file customer communications. Supports shared mailboxes by specifying the mailbox address, making it ideal for inbox hygiene workflows, post-reply clean up, and automated routing during incident response."
+      "description": "Moves an email message to a different Outlook folder via Microsoft 365 without breaking the conversation thread. Provide the message ID and the destination folder path, using slash notation for subfolders (for example Inbox/Processed) to quickly triage alerts, clear noisy queues, or file customer communications. Ideal for inbox hygiene workflows, post-reply clean up, and automated routing during incident response."
     },
     {
       "name": "PostTeamsMessage",
