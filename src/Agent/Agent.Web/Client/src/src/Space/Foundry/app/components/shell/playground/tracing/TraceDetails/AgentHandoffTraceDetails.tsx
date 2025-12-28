@@ -1,9 +1,10 @@
-import { ArrowTurnDownRightRegular, ArrowTurnUpLeftRegular } from '@fluentui/react-icons';
-import { FC, useMemo } from 'react';
+import { ArrowTurnDownRightRegular, ArrowTurnUpLeftRegular, Lightbulb20Regular } from '@fluentui/react-icons';
+import { FC, useMemo, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { ThreadTraceResources } from '../../../../../../../../Strings/SREAgentResources';
 import { ISpan } from '../../../../../../packages/components/tracing/src/types/trace';
 import { useTracePanelStyles } from '../TracePanel.Styles';
+import { ExpandCollapseButton } from './Common/ExpandCollapseButton';
 
 interface AgentHandoffTraceDetailsProps {
     span: ISpan;
@@ -13,13 +14,15 @@ interface AgentHandoffTraceDetailsProps {
 export const AgentHandoffTraceDetails: FC<AgentHandoffTraceDetailsProps> = ({ span, isHandback }) => {
     const intl = useIntl();
     const styles = useTracePanelStyles();
+    const [reasoningExpanded, setReasoningExpanded] = useState(false);
 
-    const { fromAgent, toAgent } = useMemo(
+    const { fromAgent, toAgent, handoffReasoning } = useMemo(
         () => ({
             fromAgent: span.attributes?.fromAgent ?? '-',
             toAgent: span.attributes?.toAgent ?? '-',
+            handoffReasoning: span.attributes?.handoffReasoning,
         }),
-        [span.attributes?.fromAgent, span.attributes?.toAgent]
+        [span.attributes?.fromAgent, span.attributes?.toAgent, span.attributes?.handoffReasoning]
     );
 
     const { icon, header } = useMemo(
@@ -49,6 +52,23 @@ export const AgentHandoffTraceDetails: FC<AgentHandoffTraceDetailsProps> = ({ sp
                     </div>
                 </div>
             </div>
+            {handoffReasoning && (
+                <div className={styles.rightPaneSection}>
+                    <div className={styles.rightPaneSectionHeader}>
+                        <Lightbulb20Regular aria-hidden={true} />
+                        <div className={styles.rightPaneSectionHeaderText}>{intl.formatMessage(ThreadTraceResources.handoffReasoning)}</div>
+                        <ExpandCollapseButton isExpanded={reasoningExpanded} setIsExpanded={setReasoningExpanded} />
+                    </div>
+
+                    <div className={styles.rightPaneSubsectionsContainer}>
+                        <div className={styles.rightPaneSubsection}>
+                            <pre className={reasoningExpanded ? styles.rightPaneSubsectionBodyExpanded : styles.rightPaneSubsectionBody}>
+                                {handoffReasoning}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

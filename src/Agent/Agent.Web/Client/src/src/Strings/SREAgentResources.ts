@@ -5402,10 +5402,18 @@ export const ThreadTraceResources = defineMessages({
     toolAndSubagentActivitySentToUser: { defaultMessage: 'Tool and subagent activity sent to user', id: '/Z1fHN' },
     toolDetails: { defaultMessage: 'Tool details', id: 'yX3QcY' },
     toolUsageId: { defaultMessage: 'Tool usage ID', id: 'x25AjF' },
+    toolInputArguments: { defaultMessage: 'Arguments passed to tool', id: 'oyOUhv' },
+    toolOutputResult: { defaultMessage: 'Result returned from tool', id: '87DT+o' },
     tool: { defaultMessage: 'Tool', id: 'h6183G' },
     tree: { defaultMessage: 'Tree', id: '4/aFfy' },
     userPrompt: { defaultMessage: 'User prompt', id: 'mbb8vl' },
     response: { defaultMessage: 'Response', id: 'MgdnPi' },
+    systemPrompt: { defaultMessage: 'System prompt', id: '/rHnDp' },
+    modelThinking: { defaultMessage: 'Model thinking', id: 'x/ocZz' },
+    reasoning: { defaultMessage: 'Reasoning', id: 'Aw3qRf' },
+    tokenUsage: { defaultMessage: 'Token usage', id: 'oDA49h' },
+    tokenUsageDetails: { defaultMessage: 'Input: {input} | Output: {output} | Total: {total}', id: '4biGe0' },
+    messageVisibleToUser: { defaultMessage: 'Message visible to user', id: 'effV14' },
     user: { defaultMessage: 'User', id: 'EwRIOm' },
     secondsWithLabel: { defaultMessage: '{seconds} sec', id: '6+mbvY' },
     spanIdCompleted: { defaultMessage: '{id} completed', id: 'MHkWzD' },
@@ -5414,8 +5422,10 @@ export const ThreadTraceResources = defineMessages({
     agentHandoff: { defaultMessage: 'Handoff', id: '2+atxY' },
     modelGeneration: { defaultMessage: 'Model Generation', id: 'eVjPEQ' },
     agentResponse: { defaultMessage: 'Agent Response', id: '0i3Qrd' },
+    agentThinking: { defaultMessage: 'Reasoning', id: 'Aw3qRf' },
     handoffFromAgent: { defaultMessage: 'From agent', id: 'UNXega' },
     handoffToAgent: { defaultMessage: 'To agent', id: 'yhZZjG' },
+    handoffReasoning: { defaultMessage: 'Handoff reasoning', id: 'v84FgY' },
     agentInvoked: { defaultMessage: 'Agent invoked', id: 'ncB14A' },
     subAgentInvoked: { defaultMessage: 'Subagent invoked', id: 'sjlioi' },
     agentName: { defaultMessage: 'Agent name', id: 'ctcA0c' },
@@ -5429,6 +5439,18 @@ export const ThreadTraceResources = defineMessages({
     failedToLoadTraceData: { defaultMessage: 'Failed to load trace data: {message}', id: 'fjgqNG' },
     hide: { defaultMessage: 'Hide', id: 'VA/Z1S' },
     show: { defaultMessage: 'Show', id: 'K7AkdL' },
+    traceInfoTitle: { defaultMessage: 'About traces', id: 'W3d1We' },
+    traceInfoDescription: {
+        defaultMessage:
+            'Traces visualize the internal activity of your agent session. Data is queried from Application Insights custom events. Select an item on the left to view details.',
+        id: 'HZoKF5',
+    },
+    traceDataAvailable: { defaultMessage: 'What you can see', id: 'cNB4/9' },
+    traceDataList: {
+        defaultMessage:
+            '• Agent start/end events with timing\n• Model generation calls with token usage (prompt, completion, total)\n• Model thinking (internal reasoning from o1/Claude reasoning models)\n• Agent reasoning (from reasoningScratchPad)\n• Agent responses (from notifyUserMessage)\n• Tool executions with inputs and outputs\n• Agent handoffs between meta_agent and specialized agents\n• Azure CLI command status (PendingAuthorization, Failed, Success)\n• User messages that triggered agent actions',
+        id: 'RPuopt',
+    },
 });
 
 export const DeleteConfirmationDialogResources = defineMessages({

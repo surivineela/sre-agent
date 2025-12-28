@@ -708,6 +708,11 @@ public static class Runner
                     cancellationToken: cancellationToken);
             }
         }
+        catch (Exception ex)
+        {
+            await hooks.OnModelGenerationError(contextWrapper, agent, ex);
+            throw;
+        }
         finally
         {
             await hooks.OnModelGenerationEnd(contextWrapper, agent, response);

@@ -13,6 +13,10 @@ export const useTraceBadgeStyles = makeStyles({
         color: tokens.colorPaletteSeafoamForeground2,
         backgroundColor: tokens.colorPaletteSeafoamBackground2,
     },
+    agentThinking: {
+        color: tokens.colorPaletteGrapeForeground2,
+        backgroundColor: tokens.colorPaletteGrapeBackground2,
+    },
     agentHandoff: {
         color: tokens.colorPaletteMarigoldForeground2,
         backgroundColor: tokens.colorPaletteMarigoldBackground2,

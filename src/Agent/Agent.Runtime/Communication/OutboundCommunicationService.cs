@@ -64,11 +64,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}", threadId, message.Text);
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
-        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-        {
-            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
-            { "Message", message.Text ?? string.Empty }
-        });
+        _customerLogger.LogCustomEvent("AgentResponse", BuildAgentResponseProperties(threadId, message.Text, type));
         _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
         {
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
@@ -86,11 +82,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}", threadId, message.Text);
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
-        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-        {
-            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
-            { "Message", message.Text ?? string.Empty }
-        });
+        _customerLogger.LogCustomEvent("AgentResponse", BuildAgentResponseProperties(threadId, message.Text, type));
         _customerLogger.LogAgentResponseEvents("AgentResponse", message.Text ?? string.Empty, properties: new Dictionary<string, string>
         {
             { "ChatThreadId", threadId?.ToString() ?? string.Empty },
@@ -109,12 +101,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _logger.LogExternalInformation("Message to thread {ThreadId}: {Message}, with approval: {HasApproval}", threadId, message.Text, approval != null);
 
         _customerLogger.LogMessage($"[ChatThreadId {threadId}] Agent responding: {message.Text}");
-        _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-        {
-            { "ChatThreadId", threadId?.ToString() ?? string.Empty },
-            { "Message", message.Text ?? string.Empty },
-            { "HasApproval", (approval != null).ToString() }
-        });
+        var properties = BuildAgentResponseProperties(threadId, message.Text, type);
+        properties["HasApproval"] = (approval != null).ToString();
+        _customerLogger.LogCustomEvent("AgentResponse", properties);
 
         var resolvedMessageId = messageId ?? Guid.NewGuid();
         var recordedDateTime = DateTime.UtcNow;
@@ -162,11 +151,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 // No existing message, use the passed content
                 finalText = message.Text ?? string.Empty;
             }
-            _customerLogger.LogCustomEvent("AgentResponse", new Dictionary<string, string>
-            {
-                { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
-                { "Message", finalText }
-            });
+            _customerLogger.LogCustomEvent("AgentResponse", BuildAgentResponseProperties(context.ThreadId, finalText, type, GetCurrentAgentName(context)));
             _customerLogger.LogAgentResponseEvents("AgentResponse", finalText, properties: new Dictionary<string, string>
             {
                 { "ChatThreadId", context.ThreadId.ToString() ?? string.Empty },
@@ -1078,5 +1063,44 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             _logger.LogInternalError(ex, "Failed to handle agent task Memory result for task {AgentTaskId}", agentTaskId.Value);
         }
+    }
+
+    /// <summary>
+    /// Builds properties dictionary for AgentResponse events logged to App Insights.
+    /// Uses StreamMessageType to identify reasoning/intermediate messages.
+    /// </summary>
+    private static Dictionary<string, string> BuildAgentResponseProperties(Guid? threadId, string? messageText, StreamMessageType? type = null, string? agentName = null)
+    {
+        var properties = new Dictionary<string, string>
+        {
+            { "ChatThreadId", threadId?.ToString() ?? string.Empty }
+        };
+
+        if (!string.IsNullOrEmpty(messageText))
+        {
+            properties["Message"] = messageText;
+        }
+
+        if (!string.IsNullOrEmpty(agentName))
+        {
+            properties["AgentName"] = agentName;
+        }
+
+        // Mark as reasoning if the message type indicates intermediate/reasoning content
+        if (type == StreamMessageType.IntermediateUpdate || type == StreamMessageType.Reasoning)
+        {
+            properties["Reasoning"] = messageText ?? string.Empty;
+        }
+
+        return properties;
+    }
+
+    /// <summary>
+    /// Gets the current agent name from the context's handoff chain.
+    /// </summary>
+    private static string? GetCurrentAgentName(AgentContext? context)
+    {
+        if (context == null) return null;
+        return context.AgentHandoffChain?.LastOrDefault() ?? context.CurrentAgent;
     }
 }

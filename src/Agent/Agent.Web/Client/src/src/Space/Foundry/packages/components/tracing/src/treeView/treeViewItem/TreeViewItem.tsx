@@ -1,5 +1,5 @@
 import { Caption1, mergeClasses, TreeItemLayout } from '@fluentui/react-components';
-import { ChevronDown16Regular, ChevronUp16Regular } from '@fluentui/react-icons';
+import { ChevronDown16Regular, ChevronRight16Regular } from '@fluentui/react-icons';
 import { useMemo, type JSX } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { Thread } from '../../../../../../../../Common/Contracts/DataPlane/Thread';
@@ -48,7 +48,7 @@ export function TreeViewItem({ span, isOpen, isSelected, onToggleOpen, thread }:
             appearance="subtle"
             aria-label={intl.formatMessage(ThreadTraceResources.expandSpanWithId, { id })}
             className={styles.expandButton}
-            icon={<ChevronUp16Regular aria-hidden={true} />}
+            icon={<ChevronRight16Regular aria-hidden={true} />}
             onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();

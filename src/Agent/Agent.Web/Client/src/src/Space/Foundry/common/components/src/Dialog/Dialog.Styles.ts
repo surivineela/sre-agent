@@ -77,11 +77,11 @@ export const useDialogStyles = makeStyles({
     },
 
     dialogSurfaceLarge: {
-        width: '72%',
-        maxWidth: '72%',
+        width: '85%',
+        maxWidth: '1400px',
         '@media (width < 1312px)': {
-            width: '84%',
-            maxWidth: '84%',
+            width: '90%',
+            maxWidth: '90%',
         },
         '@media (width < 1056px)': {
             width: '96%',

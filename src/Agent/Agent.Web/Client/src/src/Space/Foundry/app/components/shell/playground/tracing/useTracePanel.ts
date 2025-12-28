@@ -24,6 +24,7 @@ export const getThreadTracesDataQuery = (threadId: string) => {
         ToAgent = tostring(customDimensions.ToAgent),
         ToolName = tostring(customDimensions.ToolName),
         ToolDescription = tostring(customDimensions.ToolDescription),
+        ToolInput = tostring(customDimensions.ToolInput),
         ToolOutput = tostring(customDimensions.ToolOutput),
         UserId = tostring(customDimensions.UserId),
         DisplayName = tostring(customDimensions.DisplayName),
@@ -33,7 +34,15 @@ export const getThreadTracesDataQuery = (threadId: string) => {
         ModelInput = tostring(customDimensions.ModelInput),
         OutputTokens = tostring(customDimensions.OutputTokens),
         ModelOutput = tostring(customDimensions.ModelOutput),
-        Result = tostring(customDimensions.Result)
+        SystemPrompt = tostring(customDimensions.SystemPrompt),
+        ModelThinking = tostring(customDimensions.ModelThinking),
+        Reasoning = tostring(customDimensions.Reasoning),
+        Response = tostring(customDimensions.Response),
+        Result = tostring(customDimensions.Result),
+        HandoffReasoning = tostring(customDimensions.HandoffReasoning),
+        SpanId = tostring(customDimensions.SpanId),
+        ParentSpanId = tostring(customDimensions.ParentSpanId),
+        TraceId = tostring(customDimensions.TraceId)
     | extend
         EventName = iff(name == 'MetaAgent', iff(isempty(Message), 'Incident', 'UserMessage'), name)
     | project
@@ -49,6 +58,7 @@ export const getThreadTracesDataQuery = (threadId: string) => {
             'toAgent', ToAgent,
             'toolName', ToolName,
             'toolDescription', ToolDescription,
+            'toolInput', ToolInput,
             'toolOutput', ToolOutput,
             'userId', UserId,
             'displayName', DisplayName,
@@ -58,7 +68,15 @@ export const getThreadTracesDataQuery = (threadId: string) => {
             'modelInput', ModelInput,
             'outputTokens', OutputTokens,
             'modelOutput', ModelOutput,
-            'result', Result
+            'systemPrompt', SystemPrompt,
+            'modelThinking', ModelThinking,
+            'reasoning', Reasoning,
+            'response', Response,
+            'result', Result,
+            'handoffReasoning', HandoffReasoning,
+            'spanId', SpanId,
+            'parentSpanId', ParentSpanId,
+            'traceId', TraceId
         )
     | order by timestamp asc
     `;

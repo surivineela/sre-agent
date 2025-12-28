@@ -6,6 +6,10 @@ export interface ITokenUsageInfo {
     total_tokens?: number;
     model_input?: [{ role: string; contentLength: number; contentPreview: string }];
     model_output?: [{ role: string; contentLength: number; contentPreview: string }];
+    systemPrompt?: string;
+    modelThinking?: string;
+    reasoning?: string;
+    response?: string;
 }
 
 interface Attributes {
@@ -18,8 +22,11 @@ interface Attributes {
     toAgent?: string;
     toolName?: string;
     toolDescription?: string;
+    toolInput?: string;
     toolOutput?: string;
     duration?: number;
+    handoffReasoning?: string;
+    thinkingSteps?: { timestamp: Date; message: string }[];
 }
 
 export interface ISpan {
@@ -53,7 +60,8 @@ export type SpanKind =
     | 'AgentHandoff'
     | 'AgentHandback'
     | 'ModelGeneration'
-    | 'AgentResponse';
+    | 'AgentResponse'
+    | 'AgentThinking'; // Grouped thinking/intermediate messages
 
 export type EventName =
     | 'UserMessage'
@@ -85,6 +93,7 @@ export interface ThreadEventLog {
     toAgent?: string;
     toolName?: string;
     toolDescription?: string;
+    toolInput?: string;
     toolOutput?: string;
     userId?: string;
     displayName?: string;
@@ -94,7 +103,15 @@ export interface ThreadEventLog {
     modelInput?: [{ role: string; contentLength: number; contentPreview: string }];
     outputTokens?: number;
     modelOutput?: [{ role: string; contentLength: number; contentPreview: string }];
+    systemPrompt?: string; // Complete system prompt sent to the model
+    modelThinking?: string; // Model's internal "thinking" from Responses API
+    reasoning?: string; // Agent's structured reasoningScratchPad
+    response?: string; // Agent's structured notifyUserMessage
     result?: string;
+    handoffReasoning?: string;
+    spanId?: string;
+    parentSpanId?: string;
+    traceId?: string;
 }
 
 export interface INodeDetailProps {

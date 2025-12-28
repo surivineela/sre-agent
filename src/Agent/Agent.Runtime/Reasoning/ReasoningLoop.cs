@@ -1854,6 +1854,7 @@ public class ReasoningLoop : IDisposable
             hooks.Handoff += customerLoggerHooks.OnHandoff;
             hooks.ModelGenerationStart += customerLoggerHooks.OnModelGenerationStart;
             hooks.ModelGenerationEnd += customerLoggerHooks.OnModelGenerationEnd;
+            hooks.ModelGenerationError += customerLoggerHooks.OnModelGenerationError;
         }
 
         return hooks;

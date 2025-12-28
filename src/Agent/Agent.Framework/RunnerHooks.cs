@@ -16,6 +16,7 @@ public class RunHooks<TContext> where TContext : class
     public delegate Task<List<AIFunction>> ResolveFactoryToolsDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<string> additionalToolNames);
     public delegate Task ModelGenerationStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption);
     public delegate Task ModelGenerationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse? response);
+    public delegate Task ModelGenerationErrorDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, Exception error);
     public delegate Task SummarizerStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
     public delegate Task SummarizerEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string extractedUserIntent);
     public delegate Task CriticStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn);
@@ -31,6 +32,7 @@ public class RunHooks<TContext> where TContext : class
     public event ResolveFactoryToolsDelegate? ResolveFactoryTools;
     public event ModelGenerationStartDelegate? ModelGenerationStart;
     public event ModelGenerationEndDelegate? ModelGenerationEnd;
+    public event ModelGenerationErrorDelegate? ModelGenerationError;
     public event SummarizerStartDelegate? SummarizerStart;
     public event SummarizerEndDelegate? SummarizerEnd;
     public event CriticStartDelegate? CriticStart;
@@ -46,6 +48,7 @@ public class RunHooks<TContext> where TContext : class
     public Task<List<AIFunction>> OnResolveFactoryTools(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<string> additionalToolNames) => ResolveFactoryTools?.Invoke(context, agent, additionalToolNames) ?? Task.FromResult(new List<AIFunction>());
     public Task OnModelGenerationStart(RunContextWrapper<TContext> context, Agent<TContext> agent, IEnumerable<ChatMessage> chatMessages, ChatOptions chatOption) => ModelGenerationStart?.Invoke(context, agent, chatMessages, chatOption) ?? Task.CompletedTask;
     public Task OnModelGenerationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, ChatResponse? response) => ModelGenerationEnd?.Invoke(context, agent, response) ?? Task.CompletedTask;
+    public Task OnModelGenerationError(RunContextWrapper<TContext> context, Agent<TContext> agent, Exception error) => ModelGenerationError?.Invoke(context, agent, error) ?? Task.CompletedTask;
     public Task OnSummarizerStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => SummarizerStart?.Invoke(context, agent) ?? Task.CompletedTask;
     public Task OnSummarizerEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string extractedUserIntent) => SummarizerEnd?.Invoke(context, agent, extractedUserIntent) ?? Task.CompletedTask;
     public Task OnCriticStart(RunContextWrapper<TContext> context, Agent<TContext> agent, int currentTurn) => CriticStart?.Invoke(context, agent, currentTurn) ?? Task.CompletedTask;

@@ -2,6 +2,7 @@ import {
     AgentsRegular,
     ArrowTurnDownRightRegular,
     ArrowTurnUpLeftRegular,
+    BrainCircuitRegular,
     ChatRegular,
     CubeRegular,
     Person12Regular,
@@ -23,7 +24,8 @@ export type TraceBadgeTypes =
     | 'agentHandoff'
     | 'agentHandback'
     | 'modelGeneration'
-    | 'agentResponse';
+    | 'agentResponse'
+    | 'agentThinking';
 
 export interface ITraceBadgeProps {
     type: TraceBadgeTypes;
@@ -88,6 +90,12 @@ export const TraceBadge = forwardRef<HTMLDivElement, ITraceBadgeProps>(({ type }
                     label: intl.formatMessage(ThreadTraceResources.agentResponse),
                     className: styles.agentResponse,
                     icon: <ChatRegular aria-hidden="true" />,
+                };
+            case 'agentThinking':
+                return {
+                    label: intl.formatMessage(ThreadTraceResources.agentThinking),
+                    className: styles.agentThinking,
+                    icon: <BrainCircuitRegular aria-hidden="true" />,
                 };
             default:
                 return {

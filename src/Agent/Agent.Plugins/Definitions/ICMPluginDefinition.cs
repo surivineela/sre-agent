@@ -30,15 +30,15 @@ public class ICMPluginDefinition
     }
 
     private static readonly string[] KnownFormats =
-{
-    "yyyy-MM-ddTHH:mm:ssZ",   // ISO 8601 UTC
-    "yyyy-MM-ddTHH:mm:ss",    // ISO without Z
-    "yyyy-MM-dd",             // Date only
-    "MM/dd/yyyy HH:mm:ss",
-    "MM/dd/yyyy",
-    "dd/MM/yyyy",
-    "dd-MMM-yyyy",
-};
+    {
+        "yyyy-MM-ddTHH:mm:ssZ",   // ISO 8601 UTC
+        "yyyy-MM-ddTHH:mm:ss",    // ISO without Z
+        "yyyy-MM-dd",             // Date only
+        "MM/dd/yyyy HH:mm:ss",
+        "MM/dd/yyyy",
+        "dd/MM/yyyy",
+        "dd-MMM-yyyy",
+    };
 
     public static bool TryParseSmart(string? input, out DateTimeOffset result)
     {

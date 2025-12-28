@@ -1,5 +1,43 @@
 import { ISpan, ThreadEventLog } from '../../../../../packages/components/tracing/src/types/trace';
 
+/**
+ * Attempts to parse reasoning from model output content preview as a fallback
+ * when the backend doesn't provide separate Reasoning/Response fields.
+ * This is best-effort since content is truncated.
+ */
+const parseReasoningFromOutputFallback = (
+    modelOutput?: { role: string; contentLength: number; contentPreview: string }[]
+): { reasoning?: string; response?: string } => {
+    if (!modelOutput || modelOutput.length === 0) {
+        return {};
+    }
+
+    // Look for assistant messages that might contain reasoning
+    const assistantOutput = modelOutput.find(msg => msg.role.toLowerCase() === 'assistant');
+    if (!assistantOutput?.contentPreview) {
+        return {};
+    }
+
+    const content = assistantOutput.contentPreview;
+
+    // Try to parse as JSON to extract reasoningScratchPad (best effort - may be truncated)
+    try {
+        if (content.trim().startsWith('{')) {
+            const parsed = JSON.parse(content);
+            if (parsed.reasoningScratchPad || parsed.ReasoningScratchPad) {
+                return {
+                    reasoning: parsed.reasoningScratchPad || parsed.ReasoningScratchPad,
+                    response: parsed.notifyUserMessage || parsed.NotifyUserMessage || parsed.response || undefined,
+                };
+            }
+        }
+    } catch {
+        // JSON parsing failed (likely truncated), return empty
+    }
+
+    return {};
+};
+
 export const generateSpans = (events: ThreadEventLog[]) => {
     const spans: ISpan[] = [];
     const parseWarnings: string[] = [];
@@ -10,6 +48,26 @@ export const generateSpans = (events: ThreadEventLog[]) => {
     const unclosedAgentSpanIds: { [agentName: string]: number } = {};
     const unclosedModelGenerationSpanIds: { [agentName: string]: number } = {};
     const unclosedToolCallSpanIds: { [toolAndAgentName: string]: number } = {};
+    // Map from telemetry spanId to UI span index for parent lookups
+    const telemetrySpanIdToUiSpanIndex: { [spanId: string]: number } = {};
+
+    // Helper to find parent span using telemetry parentSpanId, with fallback to agent name lookup
+    const findParentSpanId = (event: ThreadEventLog): number | undefined => {
+        // First try to use telemetry parentSpanId
+        if (event.parentSpanId && telemetrySpanIdToUiSpanIndex[event.parentSpanId] !== undefined) {
+            return telemetrySpanIdToUiSpanIndex[event.parentSpanId];
+        }
+        // Fallback to agent name lookup
+        const agentName = event.agentName ?? metaAgentName ?? 'unknown';
+        return unclosedAgentSpanIds[agentName];
+    };
+
+    // Helper to register a span's telemetry spanId for parent lookups
+    const registerSpanId = (event: ThreadEventLog, uiSpanIndex: number) => {
+        if (event.spanId) {
+            telemetrySpanIdToUiSpanIndex[event.spanId] = uiSpanIndex;
+        }
+    };
 
     for (let index = 0; index < events.length; index++) {
         const event = events[index];
@@ -48,19 +106,60 @@ export const generateSpans = (events: ThreadEventLog[]) => {
         }
 
         if (event.eventName === 'AgentResponse') {
-            const newSpan: ISpan = {
-                kind: 'AgentResponse',
-                context: {
-                    span_id: spans.length.toString(),
-                    span_id_number: spans.length,
-                },
-                parent_id: undefined,
-                start_time: event.timeStamp,
-                attributes: {
-                    message: event.message,
-                },
-            };
-            spans.push(newSpan);
+            const message = event.message ?? '';
+            // Use telemetry parentSpanId for proper hierarchy, fallback to agent name
+            const parentSpanIndex = findParentSpanId(event);
+
+            // Determine if this is a thinking step or final response
+            // Check explicit fields first, then fall back to heuristic detection from message content
+            // Messages starting with **Header** pattern are intermediate thinking steps
+            const hasExplicitThinking = !!(event.modelThinking || event.reasoning);
+            const messageStartsWithHeader = message.trimStart().startsWith('**') && !message.trimStart().startsWith('**Error');
+            const isThinkingStep = hasExplicitThinking || messageStartsWithHeader;
+
+            if (isThinkingStep) {
+                // Group consecutive thinking steps into AgentThinking span
+                const lastSpan = spans[spans.length - 1];
+                const canGroup =
+                    lastSpan?.kind === 'AgentThinking' &&
+                    lastSpan.attributes?.thinkingSteps &&
+                    lastSpan.parent_id === parentSpanIndex?.toString();
+
+                if (canGroup) {
+                    lastSpan.attributes!.thinkingSteps!.push({ timestamp: event.timeStamp, message });
+                } else {
+                    const newSpan: ISpan = {
+                        kind: 'AgentThinking',
+                        context: {
+                            span_id: spans.length.toString(),
+                            span_id_number: spans.length,
+                        },
+                        parent_id: parentSpanIndex?.toString(),
+                        start_time: event.timeStamp,
+                        attributes: {
+                            thinkingSteps: [{ timestamp: event.timeStamp, message }],
+                        },
+                    };
+                    spans.push(newSpan);
+                    registerSpanId(event, newSpan.context.span_id_number);
+                }
+            } else {
+                // Final response - create AgentResponse span
+                const newSpan: ISpan = {
+                    kind: 'AgentResponse',
+                    context: {
+                        span_id: spans.length.toString(),
+                        span_id_number: spans.length,
+                    },
+                    parent_id: parentSpanIndex?.toString(),
+                    start_time: event.timeStamp,
+                    attributes: {
+                        message,
+                    },
+                };
+                spans.push(newSpan);
+                registerSpanId(event, newSpan.context.span_id_number);
+            }
             continue;
         }
 
@@ -98,6 +197,7 @@ export const generateSpans = (events: ThreadEventLog[]) => {
 
             unclosedAgentSpanIds[event.agentName] = newSpan.context.span_id_number;
             spans.push(newSpan);
+            registerSpanId(event, newSpan.context.span_id_number);
             continue;
         }
 
@@ -108,12 +208,29 @@ export const generateSpans = (events: ThreadEventLog[]) => {
             }
 
             const agentType = event.agentName === metaAgentName ? 'Agent' : 'SubAgent';
-            const existingAgentSpanId = unclosedAgentSpanIds[event.agentName];
+            let existingAgentSpanId = unclosedAgentSpanIds[event.agentName];
+
+            // If no open span exists, create a synthetic one (AgentStart event may have been missed)
             if (existingAgentSpanId === undefined) {
-                parseErrors.push(
-                    `[AgentEnd] ${event.timeStamp.toUTCString()} AgentEnd found for ${agentType} ${event.agentName} but there is no open span for this agent.`
+                parseWarnings.push(
+                    `[AgentEnd] ${event.timeStamp.toUTCString()} AgentEnd found for ${agentType} ${event.agentName} but there is no open span for this agent. Creating synthetic span.`
                 );
-                continue;
+
+                // Create a synthetic span - we don't know the real start time, so use the end time
+                const syntheticSpan: ISpan = {
+                    kind: agentType,
+                    context: {
+                        span_id: spans.length.toString(),
+                        span_id_number: spans.length,
+                    },
+                    parent_id: undefined,
+                    start_time: event.timeStamp, // Best we can do without the start event
+                    attributes: {
+                        agentName: event.agentName,
+                    },
+                };
+                existingAgentSpanId = syntheticSpan.context.span_id_number;
+                spans.push(syntheticSpan);
             }
 
             const existingAgentSpan = spans[existingAgentSpanId];
@@ -169,10 +286,12 @@ export const generateSpans = (events: ThreadEventLog[]) => {
                 },
                 usage_info: {
                     model_input: event.modelInput,
+                    systemPrompt: event.systemPrompt,
                     temperature: event.temperature,
                 },
             };
             spans.push(newSpan);
+            registerSpanId(event, newSpan.context.span_id_number);
 
             unclosedModelGenerationSpanIds[event.agentName] = newSpan.context.span_id_number;
             continue;
@@ -211,6 +330,15 @@ export const generateSpans = (events: ThreadEventLog[]) => {
                 continue;
             }
 
+            // Prefer backend-provided reasoning/response fields, fall back to parsing from output
+            let reasoning = event.reasoning;
+            let response = event.response;
+            if (!reasoning && !response) {
+                const fallback = parseReasoningFromOutputFallback(event.modelOutput);
+                reasoning = fallback.reasoning;
+                response = fallback.response;
+            }
+
             existingModelGenerationSpan.end_time = event.timeStamp;
             existingModelGenerationSpan.usage_info = {
                 ...existingModelGenerationSpan.usage_info,
@@ -222,6 +350,9 @@ export const generateSpans = (events: ThreadEventLog[]) => {
                         ? event.inputTokens + event.outputTokens
                         : undefined,
                 model_output: event.modelOutput,
+                modelThinking: event.modelThinking, // Model's internal thinking from Responses API
+                reasoning,
+                response,
             };
             delete unclosedModelGenerationSpanIds[event.agentName];
             continue;
@@ -263,6 +394,7 @@ export const generateSpans = (events: ThreadEventLog[]) => {
                     agentName: event.fromAgent,
                     fromAgent: event.fromAgent,
                     toAgent: event.toAgent,
+                    handoffReasoning: event.handoffReasoning,
                 },
             };
             spans.push(newSpan);
@@ -350,9 +482,11 @@ export const generateSpans = (events: ThreadEventLog[]) => {
                     agentName: event.agentName,
                     toolName: event.toolName,
                     toolDescription: event.toolDescription,
+                    toolInput: event.toolInput,
                 },
             };
             spans.push(newSpan);
+            registerSpanId(event, newSpan.context.span_id_number);
 
             unclosedToolCallSpanIds[unclosedToolCallSpanIdKey] = newSpan.context.span_id_number;
             continue;

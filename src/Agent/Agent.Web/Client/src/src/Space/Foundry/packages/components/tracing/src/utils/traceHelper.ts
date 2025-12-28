@@ -41,6 +41,10 @@ export const getBadgeType = (span: ISpan): TraceBadgeTypes | undefined => {
             badgeType = 'agentResponse';
             break;
         }
+        case 'AgentThinking': {
+            badgeType = 'agentThinking';
+            break;
+        }
         case undefined:
         default: {
             badgeType = undefined;
@@ -105,6 +109,17 @@ export const getSpanTitle = (span: ISpan, thread: Thread): string => {
                     : '';
             case 'ModelGeneration':
                 return span.usage_info?.modelName || '';
+            case 'AgentThinking': {
+                const steps = span.attributes?.thinkingSteps;
+                if (!steps?.length) return '';
+                const firstMessage = steps[0].message;
+                if (firstMessage.trimStart().startsWith('**')) {
+                    const start = firstMessage.indexOf('**');
+                    const end = firstMessage.indexOf('**', start + 2);
+                    if (end !== -1) return firstMessage.substring(start + 2, end);
+                }
+                return `${steps.length} thinking step${steps.length !== 1 ? 's' : ''}`;
+            }
             case 'AgentResponse':
             default:
                 return '';

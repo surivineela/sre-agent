@@ -209,6 +209,10 @@ public sealed class CustomerLoggerHelper : IDisposable
             _currentModelSpan.SetAttribute("model.temperature", agent.Temperature.ToString());
             _currentModelSpan.SetAttribute("event.type", "ModelGenerationStart");
 
+            // Extract the complete system prompt from chat messages
+            var systemPrompt = chatMessages
+                .FirstOrDefault(m => m.Role == ChatRole.System)?.Text ?? string.Empty;
+
             var properties = new Dictionary<string, string>
             {
                 ["EventType"] = "ModelGenerationStart",
@@ -216,6 +220,7 @@ public sealed class CustomerLoggerHelper : IDisposable
                 ["ThreadId"] = agentContext.ThreadId.ToString(),
                 ["TaskType"] = _taskType,
                 ["ModelInput"] = FormatChatMessages(chatMessages),
+                ["SystemPrompt"] = systemPrompt,
                 ["Temperature"] = agent.Temperature.ToString(),
                 ["SpanId"] = GetCurrentSpanId(),
                 ["ParentSpanId"] = GetCurrentParentSpanId(),
@@ -230,6 +235,9 @@ public sealed class CustomerLoggerHelper : IDisposable
         {
             var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
 
+            // Extract model thinking (Responses API) and structured reasoning/response
+            var (modelThinking, structuredReasoning, userResponse) = ExtractReasoningFromOutput(response?.Messages ?? []);
+
             var properties = new Dictionary<string, string>
             {
                 ["EventType"] = "ModelGenerationEnd",
@@ -242,6 +250,24 @@ public sealed class CustomerLoggerHelper : IDisposable
                 ["ModelId"] = response?.ModelId ?? ""
             };
 
+            // Add model thinking (from Responses API reasoning models like o1, Claude)
+            if (!string.IsNullOrEmpty(modelThinking))
+            {
+                properties["ModelThinking"] = modelThinking;
+            }
+
+            // Add structured reasoning (from agent's reasoningScratchPad)
+            if (!string.IsNullOrEmpty(structuredReasoning))
+            {
+                properties["Reasoning"] = structuredReasoning;
+            }
+
+            // Add user response (from agent's notifyUserMessage)
+            if (!string.IsNullOrEmpty(userResponse))
+            {
+                properties["Response"] = userResponse;
+            }
+
             // Add span correlation and end model span
             if (_currentModelSpan != null)
             {
@@ -251,6 +277,38 @@ public sealed class CustomerLoggerHelper : IDisposable
                 _currentModelSpan.SetAttribute("model.input_tokens", response?.Usage?.InputTokenCount?.ToString() ?? "0");
                 _currentModelSpan.SetAttribute("model.output_tokens", response?.Usage?.OutputTokenCount?.ToString() ?? "0");
                 _currentModelSpan.SetAttribute("model.id", response?.ModelId ?? "");
+                _currentModelSpan.End();
+                _currentModelSpan = null;
+            }
+
+            _customerLogger.LogCustomEvent("ModelGeneration", properties);
+            return Task.CompletedTask;
+        };
+
+        hooks.ModelGenerationError += (context, agent, error) =>
+        {
+            var agentContext = context.Context ?? throw new InvalidOperationException("Invalid agent context");
+
+            var properties = new Dictionary<string, string>
+            {
+                ["EventType"] = "ModelGenerationError",
+                ["AgentName"] = agent.Name,
+                ["ThreadId"] = agentContext.ThreadId.ToString(),
+                ["TaskType"] = _taskType,
+                ["ErrorMessage"] = error.Message,
+                ["ErrorType"] = error.GetType().Name
+            };
+
+            // Add span correlation and end model span with error status
+            if (_currentModelSpan != null)
+            {
+                properties["SpanId"] = GetCurrentSpanId();
+                properties["ParentSpanId"] = GetCurrentParentSpanId();
+                properties["TraceId"] = GetCurrentTraceId();
+                _currentModelSpan.SetAttribute("error", true);
+                _currentModelSpan.SetAttribute("error.message", error.Message);
+                _currentModelSpan.SetAttribute("error.type", error.GetType().Name);
+                _currentModelSpan.SetStatus(OpenTelemetry.Trace.Status.Error.WithDescription(error.Message));
                 _currentModelSpan.End();
                 _currentModelSpan = null;
             }
@@ -299,7 +357,7 @@ public sealed class CustomerLoggerHelper : IDisposable
             {
                 Role = m.Role.ToString(),
                 ContentLength = m.Text?.Length ?? 0,
-                ContentPreview = m.Text?.Substring(0, Math.Min(200, m.Text?.Length ?? 0)) ?? ""
+                ContentPreview = TruncateString(m.Text ?? "", 500)
             }).ToList();
 
             return JsonSerializer.Serialize(messagesSummary, _toolArgumentsJsonOptions);
@@ -308,6 +366,70 @@ public sealed class CustomerLoggerHelper : IDisposable
         {
             return $"Error formatting messages: {ex.Message}";
         }
+    }
+
+    /// <summary>
+    /// Extracts reasoning and response from model output. This method looks for:
+    /// 1. TextReasoningContent - the model's internal "thinking" from Responses API (reasoning models like o1, Claude)
+    /// 2. Structured JSON output with reasoningScratchPad and notifyUserMessage fields (agent's structured output schema)
+    /// </summary>
+    private static (string? modelThinking, string? structuredReasoning, string? response) ExtractReasoningFromOutput(IEnumerable<ChatMessage> messages)
+    {
+        if (messages == null || !messages.Any())
+        {
+            return (null, null, null);
+        }
+
+        string? modelThinking = null;
+        string? structuredReasoning = null;
+        string? response = null;
+
+        var assistantMessage = messages.FirstOrDefault(m => m.Role.ToString().Equals("assistant", StringComparison.OrdinalIgnoreCase));
+        if (assistantMessage != null)
+        {
+            // 1. Extract TextReasoningContent (model's internal thinking from Responses API)
+            var reasoningContents = assistantMessage.Contents
+                .OfType<TextReasoningContent>()
+                .Select(r => r.Text)
+                .Where(t => !string.IsNullOrEmpty(t));
+
+            if (reasoningContents.Any())
+            {
+                modelThinking = TruncateString(string.Join("\n", reasoningContents), 4000);
+            }
+
+            // 2. Try to parse structured JSON output for reasoningScratchPad
+            var content = assistantMessage.Text;
+            if (!string.IsNullOrEmpty(content))
+            {
+                try
+                {
+                    if (content.TrimStart().StartsWith("{"))
+                    {
+                        using var doc = JsonDocument.Parse(content);
+                        var root = doc.RootElement;
+
+                        if (root.TryGetProperty("reasoningScratchPad", out var reasoningProp) ||
+                            root.TryGetProperty("ReasoningScratchPad", out reasoningProp))
+                        {
+                            structuredReasoning = TruncateString(reasoningProp.GetString() ?? "", 2000);
+                        }
+
+                        if (root.TryGetProperty("notifyUserMessage", out var responseProp) ||
+                            root.TryGetProperty("NotifyUserMessage", out responseProp))
+                        {
+                            response = TruncateString(responseProp.GetString() ?? "", 2000);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Not valid JSON, continue
+                }
+            }
+        }
+
+        return (modelThinking, structuredReasoning, response);
     }
 
     private static string TruncateString(string input, int maxLength)

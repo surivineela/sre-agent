@@ -34,13 +34,15 @@ export const AgentResponseTraceDetails: FC<AgentResponseTraceDetailsProps> = ({ 
             <div className={styles.rightPaneSection}>
                 <div className={styles.rightPaneSectionHeader}>
                     <Chat20Regular aria-hidden={true} />
-                    <div className={styles.rightPaneSectionHeaderText}>{intl.formatMessage(ThreadTraceResources.output)}</div>
+                    <div className={styles.rightPaneSectionHeaderText}>{intl.formatMessage(ThreadTraceResources.responseToUser)}</div>
                     <ExpandCollapseButton isExpanded={responseExpanded} setIsExpanded={setResponseExpanded} />
                 </div>
 
                 <div className={styles.rightPaneSubsectionsContainer}>
                     <div className={styles.rightPaneSubsection}>
-                        <div className={styles.rightPaneSubsectionHeader}>{intl.formatMessage(ThreadTraceResources.response)}</div>
+                        <div className={styles.rightPaneSubsectionHeader}>
+                            {intl.formatMessage(ThreadTraceResources.messageVisibleToUser)}
+                        </div>
                         <pre className={responseExpanded ? styles.rightPaneSubsectionBodyExpanded : styles.rightPaneSubsectionBody}>
                             {message}
                         </pre>

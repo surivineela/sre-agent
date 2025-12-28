@@ -1,6 +1,6 @@
 import { MessageBar, MessageBarType } from '@fluentui/react';
-import { Link, Spinner } from '@fluentui/react-components';
-import { Timer12Regular } from '@fluentui/react-icons';
+import { Link, Spinner, Text } from '@fluentui/react-components';
+import { Info16Regular, Timer12Regular } from '@fluentui/react-icons';
 import type { JSX } from 'react';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -20,6 +20,7 @@ import {
 } from '../../../../../packages/components/tracing/src/utils/traceHelper';
 import { AgentHandoffTraceDetails } from './TraceDetails/AgentHandoffTraceDetails';
 import { AgentResponseTraceDetails } from './TraceDetails/AgentResponseTraceDetails';
+import { AgentThinkingTraceDetails } from './TraceDetails/AgentThinkingTraceDetails';
 import { AgentTraceDetails } from './TraceDetails/AgentTraceDetails';
 import { IncidentTraceDetails } from './TraceDetails/IncidentTraceDetails';
 import { ModelGenerationTraceDetails } from './TraceDetails/ModelGenerationTraceDetails';
@@ -145,9 +146,38 @@ export function TracePanel({ isOpen, onClose, focusRestorationRef, appInsightsAp
                                     )}
                                     {selectedSpan.kind === 'ModelGeneration' && <ModelGenerationTraceDetails span={selectedSpan} />}
                                     {selectedSpan.kind === 'AgentResponse' && <AgentResponseTraceDetails span={selectedSpan} />}
+                                    {selectedSpan.kind === 'AgentThinking' && <AgentThinkingTraceDetails span={selectedSpan} />}
                                 </div>
                             </div>
-                        ) : null}
+                        ) : (
+                            <div className={styles.rightPaneInner}>
+                                <div className={styles.rightPaneHeaderWrapper}>
+                                    <Info16Regular aria-hidden={true} />
+                                    <div className={styles.rightPaneHeader}>
+                                        <div className={styles.rightPaneHeaderText}>
+                                            {intl.formatMessage(ThreadTraceResources.traceInfoTitle)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={styles.rightPaneContent}>
+                                    <div className={styles.rightPaneSection}>
+                                        <Text>{intl.formatMessage(ThreadTraceResources.traceInfoDescription)}</Text>
+                                    </div>
+                                    <div className={styles.rightPaneSection}>
+                                        <div className={styles.rightPaneSectionHeader}>
+                                            <div className={styles.rightPaneSectionHeaderText}>
+                                                {intl.formatMessage(ThreadTraceResources.traceDataAvailable)}
+                                            </div>
+                                        </div>
+                                        <div className={styles.rightPaneSubsectionsContainer}>
+                                            <Text style={{ whiteSpace: 'pre-line' }}>
+                                                {intl.formatMessage(ThreadTraceResources.traceDataList)}
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
