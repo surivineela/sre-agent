@@ -89,9 +89,23 @@ public class KustoClient
            string fullQuery,
            CancellationToken cancellationToken = default)
     {
-        cluster = cluster.Replace(".kusto.windows.net", "");
-        cluster = cluster.Replace("https://", "");
-        var reader = await PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery, cancellationToken);
+        // Normalize the cluster URL
+        cluster = cluster.Replace("https://", "").Replace("http://", "");
+
+        // Only append .kusto.windows.net if the cluster doesn't already have a domain suffix
+        string clusterUrl;
+        if (cluster.Contains('.'))
+        {
+            // Cluster is already a FQDN (e.g., kusto.aria.microsoft.com or mycluster.kusto.windows.net)
+            clusterUrl = $"https://{cluster}";
+        }
+        else
+        {
+            // Legacy: Cluster is just a name, append the default suffix
+            clusterUrl = $"https://{cluster}.kusto.windows.net";
+        }
+
+        var reader = await PerformQueryAsync(clusterUrl, database, fullQuery, cancellationToken);
         return new KustoQueryResult(reader, fullQuery);
     }
     private static void ApplyParameters(ClientRequestProperties properties, Dictionary<string, object> parameters)
