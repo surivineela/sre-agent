@@ -63,6 +63,9 @@ RUN az extension add --allow-preview -y --system --name containerapp && \
 # Set environment variable for Session.Proxy to proxy to code interpreter
 ENV PythonProxyService__TargetUrl="http://localhost:6000"
 
+# Set ENABLE_EGRESS to true to skip connectivity configuration in entrypoint
+ENV ENABLE_EGRESS=true
+
 WORKDIR /app
 
 # Copy and set up the custom entrypoint script
