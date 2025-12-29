@@ -136,4 +136,20 @@ public class AgentNameHelper
 
         return $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/agents/{agentName}";
     }
+
+    public static string GetAgentEndpoint(bool isProd)
+    {
+        var endpoint = Environment.GetEnvironmentVariable("AGENT_ENDPOINT");
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            if (isProd)
+            {
+                throw new InvalidOperationException("AGENT_ENDPOINT environment variable is not set.");
+            }
+
+            return "https://localhost:7023/";
+        }
+
+        return endpoint;
+    }
 }
