@@ -447,14 +447,27 @@ public partial class KustoPlugin : IKustoPlugin
         string database,
         string fullQuery)
     {
-        cluster = cluster.Replace(".kusto.windows.net", "");
-        cluster = cluster.Replace("https://", "");
+        // Normalize the cluster URL
+        cluster = cluster.Replace("https://", "").Replace("http://", "");
+
+        // Only append .kusto.windows.net if the cluster doesn't already have a domain suffix
+        string clusterUrl;
+        if (cluster.Contains('.'))
+        {
+            // Cluster is already a FQDN (e.g., kusto.aria.microsoft.com or mycluster.kusto.windows.net)
+            clusterUrl = $"https://{cluster}";
+        }
+        else
+        {
+            // Cluster is just a name, append the default suffix
+            clusterUrl = $"https://{cluster}.kusto.windows.net";
+        }
 
         var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
         try
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
+            var reader = await _kustoClient.PerformQueryAsync(clusterUrl, database, fullQuery);
             var result = new KustoQueryResult(reader, fullQuery);
             stopwatch.Stop();
             if (result.Result != null && result.Result != string.Empty)
