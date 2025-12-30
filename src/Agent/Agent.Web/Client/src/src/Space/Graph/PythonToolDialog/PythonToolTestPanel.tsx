@@ -36,7 +36,7 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
 }) => {
     const intl = useIntl();
     const styles = usePythonToolDialogStyles();
-    const { values, setFieldValue, setValues, dirty, isValid } = useFormikContext<PythonToolFormProps>();
+    const { values, setFieldValue, setValues, isValid } = useFormikContext<PythonToolFormProps>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     // Local state
@@ -345,7 +345,7 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
                             appearance="primary"
                             icon={<Play16Regular />}
                             onClick={handleTest}
-                            disabled={!dirty || !isValid || !canTest || isTesting}
+                            disabled={!isValid || !canTest || isTesting}
                         >
                             {isTesting
                                 ? intl.formatMessage(SreAgentResources.pythonToolBuilderTestRunning)
