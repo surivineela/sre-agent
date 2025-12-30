@@ -35,7 +35,10 @@ RUN if ! command -v node &> /dev/null; then \
         apt-get install -y nodejs; \
     fi
 
-# Copy Session.Proxy application files to a separate directory
+# Install Python packages
+RUN pip install azure-identity GitPython
+
+# Copy Session.Proxy published output
 WORKDIR /app/session-proxy
 COPY . .
 
