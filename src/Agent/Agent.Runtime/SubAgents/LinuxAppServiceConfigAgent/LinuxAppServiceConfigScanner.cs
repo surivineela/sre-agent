@@ -155,12 +155,8 @@ public class LinuxAppServiceConfigScanner(
         {
             foreach (var validator in _validators)
             {
-                var result = await validator.ValidateAsync(siteConfig);
-
-                if (result != null)
-                {
-                    issues.Add(result);
-                }
+                var results = await validator.ValidateAsync(siteConfig);
+                issues.AddRange(results);
             }
 
             return issues;

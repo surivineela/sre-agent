@@ -417,6 +417,7 @@ public class Program
             .AddSingleton<AzureResourceGraphClient>()
             .AddSingleton<ArmHelper>()
             .AddSingleton<ILinuxAppServiceConfigValidator, LinuxFxVersionValidator>()
+            .AddSingleton<ILinuxAppServiceConfigValidator, AppSettingValidator>()
             .AddSingleton<AzureMonitorMetricsHelper>()
             .AddSingleton<PostgresSQLCommandHelper>()
             .AddSingleton<ArmResourceCrawlerFactory>()

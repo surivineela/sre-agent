@@ -34,8 +34,8 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
     /// Validates the LinuxFxVersion format and runtime configuration.
     /// </summary>
     /// <param name="siteConfig">The Linux App Service configuration to validate</param>
-    /// <returns>LinuxAppServiceConfigIssue if validation fails; otherwise, null.</returns>
-    public async Task<LinuxAppServiceConfigIssue?> ValidateAsync(LinuxAppServiceConfiguration siteConfig)
+    /// <returns>A list of LinuxAppServiceConfigIssue if validation fails; otherwise, an empty list.</returns>
+    public async Task<List<LinuxAppServiceConfigIssue>> ValidateAsync(LinuxAppServiceConfiguration siteConfig)
     {
         var issue = new LinuxAppServiceConfigIssue(
             ResourceId: siteConfig.ResourceId,
@@ -50,7 +50,7 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
         if (runtime != null && !SupportedRuntimes.Contains(runtime))
         {
             // Unsupported runtime - skipping LinuxFxVersion validation
-            return null;
+            return [];
         }
 
         // Check if it's a Linux App Service
@@ -58,46 +58,46 @@ public class LinuxFxVersionValidator : ILinuxAppServiceConfigValidator
             || !siteConfig.AppKind.Contains("linux", StringComparison.OrdinalIgnoreCase))
         {
             // Not a Linux App Service - skipping LinuxFxVersion validation
-            return null;
+            return [];
         }
 
         // Check if LinuxFxVersion is empty or null
         if (string.IsNullOrEmpty(siteConfig.LinuxFxVersion))
         {
             // LinuxFxVersion is empty - defaulting to PHP|8.2
-            return null;
+            return [];
         }
 
         // Check for invalid or malformed LinuxFxVersion formats
         if (!siteConfig.LinuxFxVersion.Contains('|'))
         {
-            return issue with
+            return [issue with
             {
                 Recommendation = "Specify LinuxFxVersion in the format : RUNTIME|VERSION (e.g., 'PYTHON|3.11', 'NODE|18-lts', 'DOTNETCORE|8.0')"
-            };
+            }];
         }
 
         var parts = siteConfig.LinuxFxVersion.Split('|');
         if (parts.Length != 2)
         {
-            return issue with
+            return [issue with
             {
                 Recommendation = "Specify LinuxFxVersion in the format : RUNTIME|VERSION (e.g., 'PYTHON|3.11', 'NODE|18-lts', 'DOTNETCORE|8.0')"
-            };
+            }];
         }
 
         var result = await ValidateLinuxFxVersionAsync(siteConfig.Name, siteConfig.LinuxFxVersion);
 
         if (result.IsValid)
         {
-            return null;
+            return [];
         }
 
-        return issue with
+        return [issue with
         {
             Details = result.Reason,
             Recommendation = result.RecommendedValue ?? string.Empty
-        };
+        }];
     }
 
     private async Task<ValidationResult> ValidateLinuxFxVersionAsync(string siteName, string linuxFxVersion)

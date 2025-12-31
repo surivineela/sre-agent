@@ -14,12 +14,13 @@ public interface ILinuxAppServiceConfigValidator
     /// Validates and Identifies config issues.
     /// </summary>
     /// <param name="siteConfig">The Linux App Service configuration to validate.</param>
-    /// <returns>A <see cref="LinuxAppServiceConfigIssue"/> if a configuration issue is detected; otherwise null.</returns>
-    Task<LinuxAppServiceConfigIssue?> ValidateAsync(LinuxAppServiceConfiguration siteConfig);
+    /// <returns>A list of <see cref="LinuxAppServiceConfigIssue"/> if configuration issues are detected; otherwise an empty list.</returns>
+    Task<List<LinuxAppServiceConfigIssue>> ValidateAsync(LinuxAppServiceConfiguration siteConfig);
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LinuxAppServiceConfigIssueType
 {
-    InvalidLinuxFxVersion
+    InvalidLinuxFxVersion,
+    InvalidAppSettingValue
 }
