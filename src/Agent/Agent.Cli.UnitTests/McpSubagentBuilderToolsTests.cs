@@ -24,15 +24,15 @@ public class McpSubagentBuilderToolsTests
         result.Success.ShouldBeTrue(result.Error ?? "expected success");
         result.Yaml.ShouldNotBeNullOrWhiteSpace();
         result.Yaml!.ShouldContain("api_version: azuresre.ai/v2");
-        result.Yaml.ShouldContain("kind: ExtendedAgent");
-        result.Yaml.ShouldContain("name: kusto-analyst");
-        result.Yaml.ShouldContain("instructions:");
-        result.Yaml.ShouldContain("tools:");
-        result.Yaml.ShouldContain("- RunAzCliReadCommands");
+        result.Yaml!.ShouldContain("kind: ExtendedAgent");
+        result.Yaml!.ShouldContain("name: kusto-analyst");
+        result.Yaml!.ShouldContain("instructions:");
+        result.Yaml!.ShouldContain("tools:");
+        result.Yaml!.ShouldContain("- RunAzCliReadCommands");
 
         // Should NOT contain invalid fields
-        result.Yaml.ShouldNotContain("connectors:");
-        result.Yaml.ShouldNotContain("toolsFile:");
+        result.Yaml!.ShouldNotContain("connectors:");
+        result.Yaml!.ShouldNotContain("toolsFile:");
     }
 
     [Fact]
@@ -47,8 +47,8 @@ public class McpSubagentBuilderToolsTests
 
         result.Success.ShouldBeTrue();
         result.Yaml!.ShouldContain("tools:");
-        result.Yaml.ShouldContain("- RunAzCliReadCommands");
-        result.Yaml.ShouldContain("- GetArmResourceAsJson");
+        result.Yaml!.ShouldContain("- RunAzCliReadCommands");
+        result.Yaml!.ShouldContain("- GetArmResourceAsJson");
     }
 
     [Fact]
@@ -77,8 +77,8 @@ public class McpSubagentBuilderToolsTests
         result.Success.ShouldBeTrue();
         result.Yaml!.ShouldContain("handoffs:");
         // Handoffs are now just agent names
-        result.Yaml.ShouldContain("kusto-analyst");
-        result.Yaml.ShouldContain("incident-manager");
+        result.Yaml!.ShouldContain("kusto-analyst");
+        result.Yaml!.ShouldContain("incident-manager");
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public class McpSubagentBuilderToolsTests
         result.Success.ShouldBeTrue();
         // Just check it contains basic KustoTool elements
         result.Yaml!.ShouldContain("KustoTool");
-        result.Yaml.ShouldContain("metrics-connector");
-        result.Yaml.ShouldContain("Metrics");
+        result.Yaml!.ShouldContain("metrics-connector");
+        result.Yaml!.ShouldContain("Metrics");
     }
 
     [Fact]
@@ -111,6 +111,6 @@ public class McpSubagentBuilderToolsTests
 
         // KustoTool requires connector and database - should fail without them
         result.Success.ShouldBeFalse();
-        result.Error.ShouldContain("connector");
+        result.Error!.ShouldContain("connector");
     }
 }
