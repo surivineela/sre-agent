@@ -41,6 +41,7 @@ export interface Message {
     isComplete: boolean | null | undefined;
     isImageContent: boolean | null | undefined;
     messageType: MessageType | null | undefined;
+    memoryCommand?: 'remember' | 'retrieve' | null | undefined;
 }
 
 export interface Approval {

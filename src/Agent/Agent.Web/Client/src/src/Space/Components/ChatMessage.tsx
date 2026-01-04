@@ -1,5 +1,6 @@
 import { CopilotMessage, CopilotMessageProps, UserMessage } from '@fluentui-copilot/react-copilot-chat';
-import { Image, Text, tokens } from '@fluentui/react-components';
+import { Badge, Image, Text, Tooltip, tokens } from '@fluentui/react-components';
+import { Bookmark16Regular, Search16Regular } from '@fluentui/react-icons';
 import mermaid from 'mermaid';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,7 +8,7 @@ import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownCompone
 import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
@@ -165,6 +166,11 @@ const ChatMessage = ({
         default:
             return messages.map((message, index) => {
                 const userScheduledTaskData = getScheduledTaskMessage(message.text || '');
+                // Detect memory command from message text if not explicitly set
+                const memoryCommand =
+                    message.memoryCommand ||
+                    (message.text?.startsWith('#remember ') ? 'remember' : null) ||
+                    (message.text?.startsWith('#retrieve ') ? 'retrieve' : null);
                 return (
                     <div className={chatBoxStyles.userMessage} key={message.id}>
                         {index !== 0 ? null : (
@@ -173,6 +179,24 @@ const ChatMessage = ({
                                     <Text block={true} weight={'semibold'} className={chatStyles.userName}>
                                         {message.author.displayName}
                                     </Text>
+                                )}
+                                {memoryCommand && (
+                                    <Tooltip
+                                        content={intl.formatMessage(
+                                            memoryCommand === 'remember'
+                                                ? ActivitiesResources.memoryRememberBadge
+                                                : ActivitiesResources.memoryRetrieveBadge
+                                        )}
+                                        relationship="label"
+                                    >
+                                        <Badge
+                                            appearance="tint"
+                                            size="small"
+                                            color="informative"
+                                            icon={memoryCommand === 'remember' ? <Bookmark16Regular /> : <Search16Regular />}
+                                            style={{ marginRight: tokens.spacingHorizontalS }}
+                                        />
+                                    </Tooltip>
                                 )}
                                 <Text size={200} color={tokens.colorNeutralForeground3} style={{ lineHeight: '26px' }}>
                                     {formatDateTimeWithShortYear(getSafeDateTime(message.timeStamp))}

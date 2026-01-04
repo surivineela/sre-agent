@@ -1374,6 +1374,12 @@ export const ActivitiesResources = defineMessages({
     incidentsShortcutPlaceholer: { defaultMessage: 'Search for an incident by name', id: 'D9WytX' },
     resourceShortcutDescription: { defaultMessage: 'List all agent-managed resources', id: 'lbah5J' },
     resourceShortcutPlaceholder: { defaultMessage: 'Search for a resource by name', id: 'E7aYCD' },
+    rememberShortcutDescription: { defaultMessage: 'Save information for the agent to remember.', id: 'ca8tFg' },
+    retrieveShortcutDescription: { defaultMessage: 'Retrieve previously saved information.', id: 'DadUqS' },
+    rememberShortcutPlaceholder: { defaultMessage: 'Type what you want me to remember...', id: 'sXnnRR' },
+    retrieveShortcutPlaceholder: { defaultMessage: 'What would you like to retrieve?', id: 'B14lk3' },
+    memoryRememberBadge: { defaultMessage: 'Saved to memory', id: '/fkwgv' },
+    memoryRetrieveBadge: { defaultMessage: 'Retrieved from memory', id: 'DYeZrX' },
     removeAttachmentButtonAriaLabel: { defaultMessage: 'Remove attachment', id: '6SKklv' },
     removeExtendedAgentAriaLabel: { defaultMessage: 'Remove extended agent: {agentName}', id: 'uMF+CT' },
     knowledgeGraphBuildStatus: {

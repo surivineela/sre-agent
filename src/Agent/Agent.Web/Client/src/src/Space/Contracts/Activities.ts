@@ -341,4 +341,6 @@ export enum Shortcut {
     Compact = 'compact',
     Incident = 'incident',
     Resource = 'resource',
+    Remember = 'remember',
+    Retrieve = 'retrieve',
 }

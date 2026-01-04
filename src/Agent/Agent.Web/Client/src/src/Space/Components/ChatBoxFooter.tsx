@@ -340,6 +340,12 @@ const ChatBoxFooter = ({
             return;
         }
 
+        // Remember/Retrieve don't need a resource popover - user just types content after the pill
+        if (shortcut === Shortcut.Remember || shortcut === Shortcut.Retrieve) {
+            closeShortcutList();
+            return;
+        }
+
         if (shortcut) {
             setSelectedShortcut(shortcut);
         }
@@ -365,7 +371,10 @@ const ChatBoxFooter = ({
         if (nodes) {
             nodes.forEach(node => {
                 if (node.getParent()) {
-                    node.replace($createTextNode(`/${$getShortcutValuefromShortcutNode(node)} `));
+                    const shortcut = $getShortcutValuefromShortcutNode(node);
+                    // Use # prefix for remember/retrieve commands (backend expects this format)
+                    const prefix = shortcut === Shortcut.Remember || shortcut === Shortcut.Retrieve ? '#' : '/';
+                    node.replace($createTextNode(`${prefix}${shortcut} `));
                 }
             });
         }
@@ -538,6 +547,38 @@ const ChatBoxFooter = ({
                 case Shortcut.Compact:
                     closeShortcutList();
                     chatInputHandleSendClick('/compact');
+                    return;
+                case Shortcut.Remember:
+                case Shortcut.Retrieve:
+                    // Create a pill for remember/retrieve, user types content after
+                    closeShortcutList();
+                    editorRef.current?.update(() => {
+                        const selection = $getSelection();
+                        if (!$isRangeSelection(selection)) {
+                            return;
+                        }
+                        const { anchor } = selection;
+                        const node: ElementNode = anchor.getNode();
+
+                        if (!$isTextNode(node)) {
+                            return;
+                        }
+
+                        const text = node?.getTextContent() ?? '';
+                        const offset = anchor.offset ?? -1;
+                        const currentText = text.substring(0, offset);
+                        const lastSlashIndex = currentText.lastIndexOf('/');
+                        if (lastSlashIndex !== -1) {
+                            const rangeSelection = selection.clone();
+                            rangeSelection.setTextNodeRange(node, lastSlashIndex, node, offset);
+                            $setSelection(rangeSelection);
+
+                            const shortcutNode = $createShortcutNode(shortcut);
+                            const emptySpaceNode = $createTextNode(' ');
+                            rangeSelection.insertNodes([shortcutNode, emptySpaceNode]);
+                            emptySpaceNode.select(1, 1);
+                        }
+                    });
                     return;
                 case Shortcut.Agent:
                 case Shortcut.Incident:
@@ -743,6 +784,10 @@ const ChatBoxFooter = ({
                 return intl.formatMessage(ActivitiesResources.incidentsShortcutDescription);
             case Shortcut.Resource:
                 return intl.formatMessage(ActivitiesResources.resourceShortcutDescription);
+            case Shortcut.Remember:
+                return intl.formatMessage(ActivitiesResources.rememberShortcutDescription);
+            case Shortcut.Retrieve:
+                return intl.formatMessage(ActivitiesResources.retrieveShortcutDescription);
             default:
                 return '';
         }
@@ -756,6 +801,10 @@ const ChatBoxFooter = ({
                 return intl.formatMessage(ActivitiesResources.incidentsShortcutPlaceholer);
             case Shortcut.Resource:
                 return intl.formatMessage(ActivitiesResources.resourceShortcutPlaceholder);
+            case Shortcut.Remember:
+                return intl.formatMessage(ActivitiesResources.rememberShortcutPlaceholder);
+            case Shortcut.Retrieve:
+                return intl.formatMessage(ActivitiesResources.retrieveShortcutPlaceholder);
             default:
                 return '';
         }
