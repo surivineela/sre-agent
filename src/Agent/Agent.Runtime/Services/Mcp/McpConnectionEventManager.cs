@@ -3,9 +3,11 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.Logging;
@@ -143,6 +145,15 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 _connections[connection.Id] = connection;
 
                 var errorMsg = connection.ErrorMessage ?? "Unknown error during initialization";
+
+                // Log failed MCP connection
+                _logger.LogAgentAction(
+                    action: AgentActionEvents.McpConnection,
+                    parameter: BuildAgentActionParameter(name, type, endpoint, command, arguments),
+                    status: AgentActionStatus.Fail,
+                    duration: 0,
+                    threadId: string.Empty);
+
                 throw new InvalidOperationException(
                     $"Failed to connect to MCP server '{name}': {errorMsg}");
             }
@@ -159,11 +170,25 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 await ConnectionAdded.Invoke(connection);
             }
 
+            // Log successful MCP connection
+            _logger.LogAgentAction(
+                action: AgentActionEvents.McpConnection,
+                parameter: BuildAgentActionParameter(name, type, endpoint, command, arguments),
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: string.Empty);
+
             return connection;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to initialize MCP connection '{Name}'", name);
+            _logger.LogAgentAction(
+                action: AgentActionEvents.McpConnection,
+                parameter: BuildAgentActionParameter(name, type, endpoint, command, arguments),
+                status: AgentActionStatus.Fail,
+                duration: 0,
+                threadId: string.Empty);
             throw;
         }
     }
@@ -338,5 +363,37 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         });
 
         await Task.WhenAll(verificationTasks);
+    }
+
+    private static string BuildAgentActionParameter(string name, McpTransportType type, string? endpoint, string? command, string[]? arguments)
+    {
+        string mcpName;
+        if (type == McpTransportType.Http)
+        {
+            mcpName = endpoint!;
+        }
+        else
+        {
+            // try to extract the exact tool name from the command
+            mcpName = command!;
+            if (mcpName == "npx" || mcpName == "uvx")
+            {
+                if (arguments != null && arguments.Length > 0)
+                {
+                    mcpName += " " + arguments.First(arg => !arg.StartsWith('-'));
+                }
+            }
+        }
+
+        var parameter = new
+        {
+            name,
+            type,
+            endpoint,
+            command,
+            arguments,
+            mcpName,
+        };
+        return JsonSerializer.Serialize(parameter);
     }
 }

@@ -23,6 +23,7 @@ public static class AgentActionEvents
     public const string ExtendedTool = nameof(ExtendedTool);
     public const string ExtendedSkill = nameof(ExtendedSkill);
     public const string IncidentHandlers = nameof(IncidentHandlers);
+    public const string McpConnection = nameof(McpConnection);
 
     // LLM-as-Judge Evals
     public const string EvaluateHandoffs = "evaluate.handoffs";
