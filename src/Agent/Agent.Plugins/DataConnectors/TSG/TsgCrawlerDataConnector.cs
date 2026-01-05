@@ -99,7 +99,7 @@ namespace Agent.Plugins.DataConnectors.TSG
 
             if (extendedProperties != null)
             {
-                if (extendedProperties.TryGetValue("UseManagedIdentityAsFic", out var useFicElement))
+                if (extendedProperties.TryGetValue("useManagedIdentityAsFic", out var useFicElement))
                 {
                     var useFicString = useFicElement.ToString();
                     useManagedIdentityAsFic = bool.TryParse(useFicString, out var parsedValue) && parsedValue;
@@ -107,11 +107,11 @@ namespace Agent.Plugins.DataConnectors.TSG
 
                 if (useManagedIdentityAsFic)
                 {
-                    if (extendedProperties.TryGetValue("FederatedClientId", out var clientIdElement))
+                    if (extendedProperties.TryGetValue("federatedClientId", out var clientIdElement))
                     {
                         federatedClientId = clientIdElement.GetString();
                     }
-                    if (extendedProperties.TryGetValue("FederatedTenantId", out var tenantIdElement))
+                    if (extendedProperties.TryGetValue("federatedTenantId", out var tenantIdElement))
                     {
                         federatedTenantId = tenantIdElement.GetString();
                     }

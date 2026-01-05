@@ -124,9 +124,9 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         // For Azure DevOps connector with FIC enabled, add extended properties
         if (values.useManagedIdentityAsFic && connectorType === ConnectorType.AzureDevOpsDocumentation) {
             extendedProperties = {
-                UseManagedIdentityAsFic: true,
-                FederatedClientId: values.federatedClientId,
-                FederatedTenantId: values.federatedTenantId,
+                useManagedIdentityAsFic: true,
+                federatedClientId: values.federatedClientId,
+                federatedTenantId: values.federatedTenantId,
             };
         }
     } else {
