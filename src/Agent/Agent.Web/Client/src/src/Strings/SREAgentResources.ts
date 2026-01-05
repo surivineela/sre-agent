@@ -3849,6 +3849,19 @@ export const ExtendedAgentsGraphResources = defineMessages({
     noAgentsFound: { defaultMessage: 'No agents available yet', id: '3H77Ic' },
     searchLabel: { defaultMessage: 'Search', id: 'xmcVZ0' },
     refreshGraphButton: { defaultMessage: 'Refresh', id: 'rELDbB' },
+    installMcp: { defaultMessage: 'Build Subagents in VS Code', id: 'LZPnC6' },
+    installMcpTooltip: {
+        defaultMessage: 'Install the SRE Agent MCP server to VS Code to build the subagents more easily.',
+        id: 'cX0aie',
+    },
+    installMcpDialogTitle: { defaultMessage: 'Install SRE Agent MCP Server to VS Code', id: 'CA4K2B' },
+    installMcpDialogDescription: {
+        defaultMessage:
+            'Install the SRE Agent MCP server to enable AI-assisted development of custom agents, subagents, scheduled tasks, and incident handlers. It provides tools for configuration, validation, code generation, and includes comprehensive platform documentation with session memory for multi-turn conversations.\n\n**Available Tools:**\n- **Agent Building:** Documentation, configuration, trigger setup, YAML generation, validation\n- **Subagent Building:** Custom C# subagent creation, tool methods, dependencies, handoffs, code generation\n- **Knowledge Base:** Session memory, topic learning, knowledge search, deep dive examples\n- **Session Management:** Session summary, notes, and memory management',
+        id: 'EEzLAA',
+    },
+    installMcpDialogInstallButton: { defaultMessage: 'Install', id: 'ubmFc8' },
+    installMcpDialogCloseButton: { defaultMessage: 'Close', id: 'rbrahO' },
     toolsCountBadge: { defaultMessage: 'Tools · {count}', id: '5walLE' },
     systemToolsCountBadge: { defaultMessage: 'System tools · {count}', id: 'IvKdxU' },
     mcpToolsCountBadge: { defaultMessage: 'MCP tools · {count}', id: '9jaWOF' },

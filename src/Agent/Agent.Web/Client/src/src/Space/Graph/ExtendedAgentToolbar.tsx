@@ -1,12 +1,15 @@
-import { Button, Radio, RadioGroup, tokens } from '@fluentui/react-components';
-import { ArrowClockwise20Regular, DividerTall20Regular } from '@fluentui/react-icons';
-import { FC } from 'react';
+import { Button, Radio, RadioGroup, tokens, Tooltip } from '@fluentui/react-components';
+import { ArrowClockwise20Regular, ArrowDown20Regular, DividerTall20Regular } from '@fluentui/react-icons';
+import { FC, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphView } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import CreateButton from './CreateButton';
 import { EntityTypeExt } from './ExtendedAgentCreationDialog/types';
+import { InstallMcpDialog } from './InstallMcpDialog';
 
 interface ExtendedAgentToolbarProps {
     currentView: ExtendedAgentGraphView;
@@ -33,8 +36,13 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
     disableCreateSubagent,
     disableCreateSkill,
 }) => {
-    const { toolbarWrapper, toolbarRefreshButton } = useExtendedAgentGraphStyles();
+    const { toolbarWrapper, toolbarRefreshButton, toolbarInstallMcpButton } = useExtendedAgentGraphStyles();
     const intl = useIntl();
+    const [showMcpDialog, setShowMcpDialog] = useState(false);
+
+    const { userInfo } = useContext(EnvironmentContext);
+    const tenantId = userInfo?.directoryId || '';
+    const isFirstParty = FirstPartyHelper.isFirstPartyAgent(tenantId);
 
     return (
         <div className={toolbarWrapper}>
@@ -64,6 +72,16 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                     {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
                 </Button>
             </div>
+            {isFirstParty && (
+                <div className={toolbarInstallMcpButton}>
+                    <Tooltip content={intl.formatMessage(ExtendedAgentsGraphResources.installMcpTooltip)} relationship="label">
+                        <Button appearance="primary" icon={<ArrowDown20Regular />} onClick={() => setShowMcpDialog(true)}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.installMcp)}
+                        </Button>
+                    </Tooltip>
+                </div>
+            )}
+            {isFirstParty && <InstallMcpDialog isOpen={showMcpDialog} onOpenChange={setShowMcpDialog} />}
         </div>
     );
 };

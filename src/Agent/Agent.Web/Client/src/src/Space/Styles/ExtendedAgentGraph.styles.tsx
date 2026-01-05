@@ -69,6 +69,7 @@ export const useExtendedAgentGraphStyles = makeStyles({
         gap: '16px',
     },
     toolbarRefreshButton: { display: 'flex', alignItems: 'center', fontWeight: 'normal' },
+    toolbarInstallMcpButton: { display: 'flex', alignItems: 'center', marginLeft: 'auto' },
     statusMessageContainer: {
         paddingRight: '16px',
         marginBottom: tokens.spacingVerticalS,

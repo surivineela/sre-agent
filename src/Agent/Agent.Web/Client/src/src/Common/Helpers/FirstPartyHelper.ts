@@ -45,4 +45,14 @@ export class FirstPartyHelper {
             (type === TenantType.Corp && Url.getFeatureValue('showIcmForMsftCorp') === 'true')
         );
     }
+
+    public static isFirstPartyAgent(tenantId: string): boolean {
+        // For local development, always enable
+        if (import.meta.env.MODE === 'development') {
+            return true;
+        }
+
+        const type = FirstPartyHelper.getTenantType(tenantId);
+        return type === TenantType.AME || type === TenantType.Corp || type === TenantType.PME || type === TenantType.TORUS;
+    }
 }
