@@ -23,7 +23,6 @@ public class CustomGraphSON2Reader : GraphSON2Reader
         graphSon.ValueKind switch
         {
             // numbers
-            JsonValueKind.Number when graphSon.TryGetInt32(out var intValue) => intValue,
             JsonValueKind.Number when graphSon.TryGetInt64(out var longValue) => longValue,
             JsonValueKind.Number when graphSon.TryGetDecimal(out var decimalValue) => decimalValue,
 
