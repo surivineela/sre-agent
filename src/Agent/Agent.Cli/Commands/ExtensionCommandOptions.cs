@@ -35,6 +35,12 @@ public static class ExtensionCommandOptions
             Description = "Path to the skills folder containing skill configurations"
         };
 
+        public static readonly Option<string> ScheduledTasksFolderOption = new("--scheduled-task-folder")
+        {
+            Required = false,
+            Description = "Path to the scheduled task folder containing scheduled task configurations"
+        };
+
         public static readonly Option<string> OutputOption = new("--output")
         {
             Required = true,

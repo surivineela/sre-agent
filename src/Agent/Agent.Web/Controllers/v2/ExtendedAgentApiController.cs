@@ -1223,6 +1223,171 @@ public class ExtendedAgentApiController : ControllerBase
         return UnexpectedError();
     }
 
+    // ScheduledTask endpoints
+    [HttpPut("scheduledtasks/{taskName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<ScheduledTaskView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateOrUpdateScheduledTaskAsync(
+        string taskName,
+        [FromBody] ApiRequestEnvelope<ScheduledTaskView> request,
+        [FromQuery] bool dryRun = false)
+    {
+        if (request.Type != null && request.Type != "ScheduledTask")
+        {
+            return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
+        }
+
+        if (taskName != request.Name)
+        {
+            return BadRequest(ErrorMap.ObjectNameMismatch.CreateErrorEntity(taskName, request.Name));
+        }
+
+        var existingTaskResult = await _extendedAgentApiService.GetScheduledTaskAsync(taskName);
+
+        var model = ScheduledTaskView.CreateModel(request, existingTaskResult.Response);
+
+        var result = await _extendedAgentApiService.CreateOrUpdateScheduledTaskAsync(taskName, model, dryRun);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsAsyncCreated)
+        {
+            return Accepted(ScheduledTaskView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(ScheduledTaskView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpPatch("scheduledtasks/{taskName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskWriteActionId)]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<ScheduledTaskView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> PatchScheduledTaskAsync(
+        string taskName,
+        [FromBody] ApiRequestEnvelope<ScheduledTaskView> request,
+        [FromQuery] bool dryRun = false)
+    {
+        if (request.Type != null && request.Type != "ScheduledTask")
+        {
+            return BadRequest(ErrorMap.InvalidObjectType.CreateErrorEntity(request.Type));
+        }
+
+        if (taskName != request.Name)
+        {
+            return BadRequest(ErrorMap.ObjectNameMismatch.CreateErrorEntity(taskName, request.Name));
+        }
+
+        var baseModelResult = await _extendedAgentApiService.GetScheduledTaskAsync(taskName);
+        if (baseModelResult.IsStatusCodeResult)
+        {
+            return baseModelResult.ActionResult;
+        }
+
+        var model = ScheduledTaskView.CreateModel(request, baseModel: baseModelResult.Response);
+
+        var result = await _extendedAgentApiService.CreateOrUpdateScheduledTaskAsync(taskName, model, dryRun);
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsAsyncCreated)
+        {
+            return Accepted(ScheduledTaskView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(ScheduledTaskView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpDelete("scheduledtasks/{taskName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskDeleteActionId)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteScheduledTaskAsync(
+        string taskName,
+        [FromQuery] bool dryRun = false)
+    {
+        var result = await _extendedAgentApiService.DeleteScheduledTaskAsync(taskName, dryRun);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        return Accepted();
+    }
+
+    [HttpGet("scheduledtasks")]
+    [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskReadActionId)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ListScheduledTasksAsync()
+    {
+        var result = await _extendedAgentApiService.GetScheduledTasksAsync();
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            var responseEnvelope = new ApiCollectionEnvelope<ScheduledTaskView>
+            {
+                Value = [.. result.Response.Select(ScheduledTaskView.CreateApiResponseEnvelope)]
+            };
+            return Ok(responseEnvelope);
+        }
+
+        return UnexpectedError();
+    }
+
+    [HttpGet("scheduledtasks/{taskName}")]
+    [AuthorizeArmOperation(ArmOperations.AgentScheduledTaskReadActionId)]
+    [ProducesResponseType(typeof(ApiRequestEnvelope<ScheduledTaskView>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetScheduledTaskAsync(string taskName)
+    {
+        var result = await _extendedAgentApiService.GetScheduledTaskAsync(taskName);
+
+        if (result.IsStatusCodeResult)
+        {
+            return result.ActionResult;
+        }
+
+        if (result.IsSyncObjectResult)
+        {
+            return Ok(ScheduledTaskView.CreateApiResponseEnvelope(result.Response));
+        }
+
+        return UnexpectedError();
+    }
+
     private IActionResult UnexpectedError()
     {
         var error = ErrorMap.InternalServerError.CreateErrorEntity();

@@ -32,6 +32,7 @@ public static class ExtensionCommandHandlers
         var toolsFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ToolsFolderOption);
         var agentFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.AgentFolderOption);
         var skillsFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.SkillsFolderOption);
+        var scheduledTasksFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ScheduledTasksFolderOption);
         var outputFolder = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.OutputOption);
 
         // Extract optional EV2 deployment options
@@ -44,7 +45,7 @@ public static class ExtensionCommandHandlers
         var resourceGroup = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.ResourceGroupOption);
         var agentName = parseResult.GetValue(ExtensionCommandOptions.GenerateEv2.AgentNameOption);
 
-        DebugLogger.Debug("Parameters", $"Tools Folder: {toolsFolder}, Agent Folder: {agentFolder}, Skill Folder: {skillsFolder}, Output: {outputFolder}");
+        DebugLogger.Debug("Parameters", $"Tools Folder: {toolsFolder}, Agent Folder: {agentFolder}, Skill Folder: {skillsFolder}, Scheduled Tasks Folder: {scheduledTasksFolder}, Output: {outputFolder}");
 
         // Determine if EV2 deployment artifacts should be generated
         var generateEv2Artifacts = !string.IsNullOrWhiteSpace(serviceIdentifier) &&
@@ -84,6 +85,10 @@ public static class ExtensionCommandHandlers
         {
             ConsoleUI.WriteBullet($"Skills folder: {skillsFolder}");
         }
+        if (!string.IsNullOrWhiteSpace(scheduledTasksFolder))
+        {
+            ConsoleUI.WriteBullet($"Scheduled Tasks folder: {scheduledTasksFolder}");
+        }
         ConsoleUI.WriteBullet($"Output folder: {outputFolder}");
         if (generateEv2Artifacts)
         {
@@ -113,7 +118,7 @@ public static class ExtensionCommandHandlers
         }
 
         // Generate the sreagentExtensionFile.bicep dynamically
-        await GenerateSreagentExtensionFile(toolsFolder!, agentFolder!, outputFolder!, skillsFolder);
+        await GenerateSreagentExtensionFile(toolsFolder!, agentFolder!, outputFolder!, skillsFolder, scheduledTasksFolder);
 
         // Generate ARM templates from Bicep files
         await GenerateArmTemplates(outputFolder!);
@@ -206,15 +211,16 @@ public static class ExtensionCommandHandlers
     /// <summary>
     /// Generates the sreagentExtensionFile.bicep file based on YAML files in tools, agent, and skill folders.
     /// </summary>
-    private static async Task GenerateSreagentExtensionFile(string toolsFolder, string agentFolder, string outputFolder, string? skillFolder)
+    private static async Task GenerateSreagentExtensionFile(string toolsFolder, string agentFolder, string outputFolder, string? skillFolder, string? scheduledTaskFolder)
     {
         DebugLogger.Debug("Extension File Generation", "Starting generation of sreagentExtensionFile.bicep");
 
         // Get all YAML files from tools and agent folders
         var allToolYamlFiles = GetYamlFiles(toolsFolder);
         var allAgentYamlFiles = GetYamlFiles(agentFolder);
+        var allScheduledTaskYamlFiles = scheduledTaskFolder != null ? GetYamlFiles(scheduledTaskFolder) : new List<string>();
 
-        DebugLogger.Debug("YAML Discovery", $"Found {allAgentYamlFiles.Count} agent YAML files and {allToolYamlFiles.Count} tool YAML files");
+        DebugLogger.Debug("YAML Discovery", $"Found {allAgentYamlFiles.Count} agent YAML files and {allToolYamlFiles.Count} tool YAML files and {allScheduledTaskYamlFiles.Count} scheduledtask YAML files.");
 
         // Validate and filter tool YAML files
         var toolYamlFiles = new List<string>();
@@ -263,7 +269,18 @@ public static class ExtensionCommandHandlers
             DebugLogger.Debug("YAML Validation", $"Validated agent file: {agentFile} - version {version}");
         }
 
-        // Validate and discover V1 skill directories with their files
+        // get and validate scheduled task YAML files
+        var scheduledTaskFiles = new List<string>();
+        foreach (var taskFile in allScheduledTaskYamlFiles)
+        {
+            var yamlContent = await File.ReadAllTextAsync(taskFile);
+            // var version = ExtendedAgentHelper.DetectVersion(yamlContent);
+            // TODO: validate and use V2 version
+            scheduledTaskFiles.Add(taskFile);
+            DebugLogger.Debug("YAML Validation", $"Validated task file: {taskFile}");
+        }
+
+        // Validate and discover skill directories with their files
         var skillInfoList = new List<SkillInfo>();
         DebugLogger.Debug("YAML Validation", $"Validating skill files in {skillFolder}, {string.IsNullOrWhiteSpace(skillFolder)}, {Directory.Exists(skillFolder)}");
         if (!string.IsNullOrWhiteSpace(skillFolder) && Directory.Exists(skillFolder))
@@ -303,19 +320,20 @@ public static class ExtensionCommandHandlers
                 }
             }
         }
-        DebugLogger.Debug("YAML Validation", $"Validated {agentYamlFiles.Count} agent YAML files, {toolYamlFiles.Count} tool YAML files, and {skillInfoList.Count} skill directories");
+        DebugLogger.Debug("YAML Validation", $"Validated {agentYamlFiles.Count} agent YAML files, {toolYamlFiles.Count} tool YAML files, {scheduledTaskFiles.Count} scheduled task YAML files, and {skillInfoList.Count} skill directories");
 
         // The bicep file will be at: output/BicepTemplates/modules/sreagentExtensionFile.bicep
         // Calculate relative paths from that location to the YAML files
         var bicepFileDirectory = Path.Combine(outputFolder, "BicepTemplates", "modules");
         var agentRelativePaths = agentYamlFiles.Select(file => GetRelativePath(bicepFileDirectory, file)).ToList();
         var toolRelativePaths = toolYamlFiles.Select(file => GetRelativePath(bicepFileDirectory, file)).ToList();
+        var scheduledTaskRelativePaths = scheduledTaskFiles.Select(file => GetRelativePath(bicepFileDirectory, file)).ToList();
 
         // Read the template file and replace placeholders
         var bicepOutputPath = Path.Combine(bicepFileDirectory, "sreagentExtensionFile.bicep");
         var templateContent = await File.ReadAllTextAsync(bicepOutputPath);
 
-        var bicepContent = ReplacePlaceholders(templateContent, agentRelativePaths, toolRelativePaths, skillInfoList, bicepFileDirectory);
+        var bicepContent = ReplacePlaceholders(templateContent, agentRelativePaths, toolRelativePaths, skillInfoList, scheduledTaskRelativePaths, bicepFileDirectory);
 
         // Write the updated content back
         await File.WriteAllTextAsync(bicepOutputPath, bicepContent);
@@ -366,7 +384,7 @@ public static class ExtensionCommandHandlers
     /// <summary>
     /// Replaces placeholders in the template with actual YAML file references.
     /// </summary>
-    private static string ReplacePlaceholders(string templateContent, List<string> agentPaths, List<string> toolPaths, List<SkillInfo> skillInfoList, string bicepFileDirectory)
+    private static string ReplacePlaceholders(string templateContent, List<string> agentPaths, List<string> toolPaths, List<SkillInfo> skillInfoList, List<string> scheduledTaskPaths, string bicepFileDirectory)
     {
         // Build agent YAML files list
         var agentFilesContent = new System.Text.StringBuilder();
@@ -401,6 +419,24 @@ public static class ExtensionCommandHandlers
             toolFilesContent.Append("  // No tool YAML files found");
         }
         templateContent = templateContent.Replace("  // {{TOOL_YAML_FILES}}", toolFilesContent.ToString());
+
+
+        // Build scheduled task YAML files list
+        var taskFileContent = new System.Text.StringBuilder();
+        if (scheduledTaskPaths.Any())
+        {
+            foreach (var path in scheduledTaskPaths)
+            {
+                taskFileContent.AppendLine($"  loadYamlContent('{path}')");
+            }
+            // Remove the last newline
+            taskFileContent.Length -= Environment.NewLine.Length;
+        }
+        else
+        {
+            taskFileContent.Append("  // No scheduled task YAML files found");
+        }
+        templateContent = templateContent.Replace("  // {{SCHEDULED_TASK_YAML_FILES}}", taskFileContent.ToString());
 
         // Build skill entries
         var skillFilesContent = new System.Text.StringBuilder();

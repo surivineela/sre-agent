@@ -30,6 +30,8 @@ param subagents array
 param tools array
 @description('Array of parsed YAML objects for skill extensions')
 param skills array
+@description('Array of parsed YAML objects for scheduled task extensions')
+param scheduledTasks array
 
 // Reference to the existing parent agent
 resource parentAgent 'Microsoft.App/agents@2025-05-01-preview' existing = {
@@ -68,5 +70,15 @@ resource skillExtensions 'Microsoft.App/agents/skills@2025-05-01-preview' = [for
       skillContent: skill.skillContent
       additionalFiles: skill.additionalFiles
     }))
+  }
+}]
+
+// Deploy scheduledTasks extensions sequentially
+@batchSize(1)
+resource scheduledTasksExtension 'Microsoft.App/agents/scheduledTasks@2025-05-01-preview' = [for scheduledTask in scheduledTasks: {
+  parent: parentAgent
+  name: scheduledTask.metadata.name
+  properties: {
+    value: base64(string(scheduledTask.spec))
   }
 }]

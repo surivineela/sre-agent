@@ -58,4 +58,10 @@ public interface IExtendedAgentApiService
     Task<ApiCommandResult<SkillDocumentModel>> DeleteSkillAsync(string skillName);
     Task<ApiCommandResult<SkillDocumentModel[]>> GetSkillsAsync();
     Task<ApiCommandResult<SkillDocumentModel>> ConvertAgentToSkillAsync(string agentName, List<string> topLevelAgents);
+
+    // ScheduledTask operations
+    Task<ApiCommandResult<ScheduledTaskDocument>> GetScheduledTaskAsync(string taskName);
+    Task<ApiCommandResult<ScheduledTaskDocument>> CreateOrUpdateScheduledTaskAsync(string taskName, ScheduledTaskDocument model, bool dryRun = false);
+    Task<ApiCommandResult<ScheduledTaskDocument>> DeleteScheduledTaskAsync(string taskName, bool dryRun = false);
+    Task<ApiCommandResult<ScheduledTaskDocument[]>> GetScheduledTasksAsync();
 }

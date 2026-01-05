@@ -42,3 +42,14 @@ output tools array = [
 output skills array = [
   // {{SKILL_YAML_FILES}}
 ]
+
+
+// ------------------------------------------------------------
+// ScheduledTask Configuration Files
+// ------------------------------------------------------------
+// Loads ScheduledTask YAML files and extracts extension data for
+// integration with the SRE Agent deployment.
+// ------------------------------------------------------------
+output scheduledTasks array = [
+  // {{SCHEDULED_TASK_YAML_FILES}}
+]

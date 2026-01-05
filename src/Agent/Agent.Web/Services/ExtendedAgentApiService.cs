@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
+using Agent.Data.Repositories;
 using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Interface;
@@ -12,6 +13,7 @@ using Agent.Plugins.Kusto;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.Services;
+using Agent.ScheduledTasks.Services;
 using Agent.Web.ApiResources;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
@@ -36,6 +38,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IOutlookConnectorPlugin _outlookConnectorPlugin;
     private readonly ITeamsPlugin _teamsPlugin;
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
+    private readonly IScheduledTaskManagementService _scheduledTaskManagementService;
+    private readonly IScheduledTaskRepository _scheduledTaskRepository;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -50,7 +54,9 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
         IOutlookConnectorPlugin outlookConnectorPlugin,
         ITeamsPlugin teamsPlugin,
-        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin)
+        IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
+        IScheduledTaskManagementService scheduledTaskManagementService,
+        IScheduledTaskRepository scheduledTaskRepository)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -65,6 +71,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _outlookConnectorPlugin = outlookConnectorPlugin;
         _teamsPlugin = teamsPlugin;
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
+        _scheduledTaskManagementService = scheduledTaskManagementService;
+        _scheduledTaskRepository = scheduledTaskRepository;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -1237,6 +1245,153 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 QueryExecuted = request.Query,
                 ErrorMessage = ex.Message
             };
+        }
+    }
+
+    // ScheduledTask operations
+    public async Task<ApiCommandResult<ScheduledTaskDocument>> GetScheduledTaskAsync(string taskName)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Retrieving scheduled task: {TaskName}, OperationId: {OperationId}", taskName, operationId);
+
+            // Get all tasks and find by name since IScheduledTaskManagementService uses ID
+            var allTasks = await _scheduledTaskManagementService.ListScheduledTasks();
+            var task = allTasks.FirstOrDefault(t => t.Name.Equals(taskName, StringComparison.OrdinalIgnoreCase));
+
+            if (task == null)
+            {
+                return new ApiCommandResult<ScheduledTaskDocument>(new NotFoundResult());
+            }
+
+            return new ApiCommandResult<ScheduledTaskDocument>(task);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while retrieving scheduled task: {TaskName}", taskName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<ScheduledTaskDocument>> CreateOrUpdateScheduledTaskAsync(string taskName, ScheduledTaskDocument model, bool dryRun = false)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Creating or updating scheduled task: {TaskName}, DryRun: {DryRun}, OperationId: {OperationId}", taskName, dryRun, operationId);
+
+            // If dry-run, skip actual operations and return the model
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping operations for scheduled task: {TaskName}", taskName);
+                return new ApiCommandResult<ScheduledTaskDocument>(model, operationId);
+            }
+
+            // Check if task already exists
+            var allTasks = await _scheduledTaskManagementService.ListScheduledTasks();
+            var existingTask = allTasks.FirstOrDefault(t => t.Name.Equals(taskName, StringComparison.OrdinalIgnoreCase));
+
+            ScheduledTaskDocument resultTask;
+
+            if (existingTask != null)
+            {
+                // Update existing task
+                var updateRequest = new UpdateScheduledTaskRequest(
+                    Name: model.Name,
+                    Description: model.Description,
+                    CronExpression: model.CronExpression,
+                    StartTime: model.StartTime,
+                    EndTime: model.EndTime,
+                    AgentPrompt: model.AgentPrompt,
+                    Status: model.Status,
+                    ExecutionContext: model.ExecutionContext,
+                    MaxExecutions: model.MaxExecutions,
+                    NotificationChannel: model.NotificationChannel
+                );
+
+                resultTask = await _scheduledTaskManagementService.UpdateScheduledTask(existingTask.Id, updateRequest);
+            }
+            else
+            {
+                // Create new task
+                var createRequest = new CreateScheduledTaskRequest(
+                    Name: model.Name,
+                    Description: model.Description,
+                    CronExpression: model.CronExpression,
+                    StartTime: model.StartTime,
+                    EndTime: model.EndTime,
+                    AgentPrompt: model.AgentPrompt,
+                    Agent: model.Agent,
+                    ThreadId: model.ThreadId,
+                    CreatedBy: model.CreatedBy,
+                    ExecutionContext: model.ExecutionContext,
+                    MaxExecutions: model.MaxExecutions,
+                    NotificationChannel: model.NotificationChannel
+                );
+
+                resultTask = await _scheduledTaskManagementService.CreateScheduledTask(createRequest);
+            }
+
+            return new ApiCommandResult<ScheduledTaskDocument>(resultTask, operationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while creating or updating scheduled task: {TaskName}", taskName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<ScheduledTaskDocument>> DeleteScheduledTaskAsync(string taskName, bool dryRun = false)
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Deleting scheduled task: {TaskName}, DryRun: {DryRun}, OperationId: {OperationId}", taskName, dryRun, operationId);
+
+            // Get all tasks and find by name
+            var allTasks = await _scheduledTaskManagementService.ListScheduledTasks();
+            var task = allTasks.FirstOrDefault(t => t.Name.Equals(taskName, StringComparison.OrdinalIgnoreCase));
+
+            if (task == null)
+            {
+                return new ApiCommandResult<ScheduledTaskDocument>(new NoContentResult());
+            }
+
+            // If dry-run, skip actual delete operation
+            if (dryRun)
+            {
+                _logger.LogInternalInformation("Dry-run mode: Skipping delete operation for scheduled task: {TaskName}", taskName);
+                return new ApiCommandResult<ScheduledTaskDocument>(task, operationId);
+            }
+
+            // Perform actual delete operation
+            await _scheduledTaskManagementService.DeleteScheduledTask(task.Id);
+
+            return new ApiCommandResult<ScheduledTaskDocument>(task, operationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while deleting scheduled task: {TaskName}", taskName);
+            throw;
+        }
+    }
+
+    public async Task<ApiCommandResult<ScheduledTaskDocument[]>> GetScheduledTasksAsync()
+    {
+        try
+        {
+            var operationId = Guid.NewGuid().ToString();
+            _logger.LogInternalInformation("Getting all scheduled tasks, OperationId: {OperationId}", operationId);
+
+            var tasks = await _scheduledTaskManagementService.ListScheduledTasks();
+
+            return new ApiCommandResult<ScheduledTaskDocument[]>(tasks.ToArray());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error occurred while retrieving all scheduled tasks");
+            throw;
         }
     }
 }

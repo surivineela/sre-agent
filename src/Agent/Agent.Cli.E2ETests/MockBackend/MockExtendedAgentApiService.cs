@@ -26,6 +26,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
     private readonly ConcurrentDictionary<string, CommonPromptDocumentModel> _commonPrompts = new();
     private readonly ConcurrentDictionary<string, CommonToolsListDocumentModel> _commonToolLists = new();
     private readonly ConcurrentDictionary<string, SkillDocumentModel> _skills = new();
+    private readonly ConcurrentDictionary<string, ScheduledTaskDocument> _scheduledTasks = new();
 
     // Agent operations
     public Task<ApiCommandResult<AgentDocumentModel>> GetAgentAsync(string agentName)
@@ -382,6 +383,49 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         return Task.FromResult(response);
     }
 
+    // ScheduledTask operations
+    public Task<ApiCommandResult<ScheduledTaskDocument>> GetScheduledTaskAsync(string taskName)
+    {
+        if (_scheduledTasks.TryGetValue(taskName, out var task))
+        {
+            return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(task));
+        }
+        return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(new NotFoundResult()));
+    }
+
+    public Task<ApiCommandResult<ScheduledTaskDocument>> CreateOrUpdateScheduledTaskAsync(string taskName, ScheduledTaskDocument model, bool dryRun = false)
+    {
+        if (dryRun)
+        {
+            return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(model, Guid.NewGuid().ToString()));
+        }
+
+        _scheduledTasks[taskName] = model;
+        return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(model, Guid.NewGuid().ToString()));
+    }
+
+    public Task<ApiCommandResult<ScheduledTaskDocument>> DeleteScheduledTaskAsync(string taskName, bool dryRun = false)
+    {
+        var exists = _scheduledTasks.ContainsKey(taskName);
+
+        if (!dryRun && exists)
+        {
+            _scheduledTasks.TryRemove(taskName, out _);
+        }
+
+        if (exists)
+        {
+            return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(new AcceptedResult()));
+        }
+
+        return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument>(new NoContentResult()));
+    }
+
+    public Task<ApiCommandResult<ScheduledTaskDocument[]>> GetScheduledTasksAsync()
+    {
+        return Task.FromResult(new ApiCommandResult<ScheduledTaskDocument[]>([.. _scheduledTasks.Values]));
+    }
+
     /// <summary>
     /// Clear all data - useful for test cleanup
     /// </summary>
@@ -394,6 +438,7 @@ public class MockExtendedAgentApiService : IExtendedAgentApiService
         _commonPrompts.Clear();
         _commonToolLists.Clear();
         _skills.Clear();
+        _scheduledTasks.Clear();
     }
 
     // Helper methods for test assertions

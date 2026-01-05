@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
@@ -11,12 +10,10 @@ using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
-using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Models.ScheduledTasks.Request;
 using Agent.Web.Models.ScheduledTasks.Response;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
-using OpenAI.Chat;
 using static Agent.Core.Constants;
 
 namespace Agent.Web.Controllers.v1
