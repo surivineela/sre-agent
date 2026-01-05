@@ -23,8 +23,8 @@ const getQueryStringForIFrame = () => {
 
 /**
  * Converts a path segment into a hash route for Agent.Web's hash-based router
- * @param sreLink - Path extracted from Portal URL (e.g., "views/activities/threads/123")
- * @returns Hash fragment for iframe URL (e.g., "#/views/activities/threads/123")
+ * @param sreLink - Path extracted from Portal URL (e.g., "views/thread/123")
+ * @returns Hash fragment for iframe URL (e.g., "#/views/thread/123")
  */
 const getDeeplinkHash = (sreLink?: string): string => {
     const deepLink = sreLink || getFeatureFlag(SettingNames.SreLink);
@@ -52,7 +52,7 @@ const getOrigin = (url: string): string | undefined => {
  * - Optional: Hash-based route for deep linking
  *
  * @param uxEndpoint - Agent site endpoint (e.g., "https://agent.contoso.com")
- * @param deepLink - Optional deep link path (e.g., "views/activities/threads/123")
+ * @param deepLink - Optional deep link path (e.g., "views/thread/123")
  * @returns Complete iframe URL with query params and hash route
  *
  * @example

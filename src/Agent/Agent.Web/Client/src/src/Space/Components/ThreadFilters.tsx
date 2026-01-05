@@ -5,8 +5,7 @@ import { SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useThreadFiltersStyles = makeStyles({
     root: {
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-        padding: '15px 0px',
+        padding: '5px 0px',
         margin: '0px 15px',
     },
     filterContainer: {

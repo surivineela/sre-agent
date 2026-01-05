@@ -1,4 +1,4 @@
-import { Link, SearchBox } from '@fluentui/react-components';
+import { Body1, Link, SearchBox } from '@fluentui/react-components';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -232,9 +232,9 @@ export const GraphGridView: React.FC<GraphGridViewProps> = ({
     }, [allTableResources, searchQuery, selectedPrimaryResourceType]);
 
     return (
-        <div style={{ padding: '20px', overflow: 'auto' }}>
-            <div style={{ fontSize: '14px', marginBottom: '12px', lineHeight: 1.4 }}>
-                {intl.formatMessage(GraphResources.resourceSelectorDescription)}
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div style={{ minWidth: '0px', marginBottom: '12px' }}>
+                <Body1>{intl.formatMessage(GraphResources.resourceSelectorDescription)}</Body1>
             </div>
             <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <SearchBox

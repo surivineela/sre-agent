@@ -87,6 +87,7 @@ export interface TestPanelProps {
     threadAutoTerminated: boolean;
     testStarted: boolean;
     addThread: (threadId: string) => void;
+    selectThread: (threadId: string | null) => void;
     chatKey: string | undefined;
     onClose: () => void;
 }

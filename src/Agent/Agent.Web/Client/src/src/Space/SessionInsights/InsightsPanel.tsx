@@ -12,11 +12,12 @@ import {
 import { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { PrimaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 
 const useStyles = makeStyles({
     container: {
@@ -287,7 +288,7 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
     const styles = useStyles();
     const intl = useIntl();
     const { resourceId } = useContext(EnvironmentContext);
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const [loading, setLoading] = useState(true);
     const [insight, setInsight] = useState<SessionInsightData | null>(null);
     const [generating, setGenerating] = useState(false);
@@ -367,7 +368,10 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
     }, [thread.id, resourceId, loadInsights, onInsightsGenerated]);
 
     const handleGoToThread = useCallback(() => {
-        navigate(`/views/activities/threads/${thread.id}`);
+        navigate({
+            primaryNavItemValue: PrimaryNavItemValues.Threads,
+            threadId: thread.id,
+        });
     }, [navigate, thread.id]);
 
     const handleFeedbackSubmit = useCallback(async () => {
@@ -447,7 +451,7 @@ const InsightsPanel: FC<InsightsPanelProps> = ({ thread, onInsightsGenerated }) 
                     </Button>
                 </div>
                 <div className={styles.threadMeta}>
-                    <span>Thread ID: /views/activities/threads/{thread.id}</span>
+                    <span>Thread ID: /views/thread/{thread.id}</span>
                     <span>
                         <ChatMultiple20Regular style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                         Created: {formatDate(thread.createdTimestamp)}

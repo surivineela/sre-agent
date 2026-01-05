@@ -37,7 +37,7 @@ const playgroundChatStyles: ChatBoxStyleProps = {
 };
 
 export const TestPanel: FC<TestPanelProps> = memo(
-    ({ agentName, threadId, restartTest, threadAutoTerminated, testStarted, addThread, onClose, chatKey }) => {
+    ({ agentName, threadId, restartTest, threadAutoTerminated, testStarted, addThread, selectThread, onClose, chatKey }) => {
         const intl = useIntl();
         const styles = useAgentCreateDialogStyles();
 
@@ -68,6 +68,7 @@ export const TestPanel: FC<TestPanelProps> = memo(
                         key={chatKey}
                         threadId={threadId}
                         addThread={addThread}
+                        selectThread={selectThread}
                         updateThreadLastReadTime={() => {}}
                         threadSource={ThreadSource.playground}
                         stylesProps={playgroundChatStyles}

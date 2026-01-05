@@ -1,187 +1,82 @@
 import { initializeIcons, MessageBar, MessageBarType } from '@fluentui/react';
-import { Button, NavDrawer, NavDrawerBody, NavDrawerHeader, NavItem, Spinner } from '@fluentui/react-components';
-import {
-    ChartMultiple24Filled,
-    ChartMultiple24Regular,
-    ClipboardTaskList16Filled,
-    ClipboardTaskList16Regular,
-    LinkSettings24Filled,
-    LinkSettings24Regular,
-    PanelLeftContractRegular,
-    PanelLeftExpandRegular,
-    Warning24Filled,
-    Warning24Regular,
-} from '@fluentui/react-icons';
+import { mergeClasses, Spinner } from '@fluentui/react-components';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
-import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { NoAccessError } from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
-import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { useUserPermissions } from '../../Common/Hooks/useUserPermissions';
-import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { SreAgentContext } from '../Contracts/Context';
+import { IncidentManagementResources } from '../../Strings/SREAgentResources';
+import { SreAgentContext, SreAgentSpaceContext } from '../Contracts/Context';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
-import { useIncidentManagementStyles, useNavStyles } from '../Styles/IncidentManagement.styles';
+import { useCommonStyles } from '../Styles/Common.styles';
+import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import Analysis from './Analysis';
-import { IncidentManagementMenuKeys } from './CreateIncidentHandler/Contracts';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
 import ResponsePlanOverview from './ReponsePlanOverview';
 
-// TODO: Tooltip for disabled NavItems with reason
-
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 
-const IncidentManagement: FC = () => {
-    const { menuItem } = useParams();
-    const location = useLocation();
-    const navigate = useNavigate();
+interface IIncidentManagementProps {
+    menuItem?: SecondaryNavItemValues;
+}
+
+const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
     const intl = useIntl();
 
-    const {
-        agentObj,
-        agentLoading,
-        agentLoadFailure,
-        incidentManagement: { incidentPlatformType },
-    } = useContext(SreAgentContext);
-    const { logAmplitudeNavigationEvent } = useAzPortalContext();
+    const navigate = useAgentSiteNavigate();
+
+    const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
     const { canReadIncidentManagement } = useUserPermissions();
     const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
+    const { onExpandOrCollapseNavBar } = useContext(SreAgentSpaceContext);
 
     const showControlPlaneDependentFeatures = useMemo(() => !inStandaloneMode && !isCrossTenantPortalMode, [isCrossTenantPortalMode]);
 
     const styles = useIncidentManagementStyles();
-    const navigationStyles = useNavStyles();
+    const commonStyles = useCommonStyles();
 
-    const [disableAnalysis, setDisableAnalysis] = useState(false);
     const [iconsInitialized, setIconsInitialized] = useState(false);
-    const [navigationHidden, setNavigationHidden] = useState<boolean>(false);
-    const [navigationCollapsed, setNavigationCollapsed] = useState<boolean>(false);
+    const [selectedKey, setSelectedKey] = useState<SecondaryNavItemValues | undefined>(undefined);
 
     const agentAppInsightsAppId = useMemo<string | undefined>(
         () => agentObj?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId,
         [agentObj]
     );
 
-    const selectedKey = useMemo(() => {
-        return (
-            Object.values(IncidentManagementMenuKeys).find(
-                settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()
-            ) || IncidentManagementMenuKeys.IncidentOverview
+    const setNavigationHidden = useCallback(
+        (hidden: boolean) => {
+            onExpandOrCollapseNavBar(!hidden);
+        },
+        [onExpandOrCollapseNavBar]
+    );
+
+    useEffect(() => {
+        const key = Object.values(SecondaryNavItemValues).find(
+            settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()
         );
-    }, [menuItem]);
 
-    const navItems = useMemo(() => {
-        const items = [
-            {
-                key: IncidentManagementMenuKeys.IncidentOverview,
-                label: intl.formatMessage(SreAgentResources.incidents),
-                disabled: false,
-            },
-        ];
-
-        if (showControlPlaneDependentFeatures) {
-            items.push({
-                key: IncidentManagementMenuKeys.Metrics,
-                label: intl.formatMessage(IncidentManagementResources.metrics),
-                disabled: disableAnalysis || !agentAppInsightsAppId,
+        if (key) {
+            setSelectedKey(key);
+        } else {
+            navigate({
+                primaryNavItemValue: PrimaryNavItemValues.Activities,
+                secondaryNavItemValue: SecondaryNavItemValues.IncidentOverview,
             });
         }
-
-        items.push({
-            key: IncidentManagementMenuKeys.ResponsePlans,
-            label: intl.formatMessage(IncidentManagementResources.responsePlans),
-            disabled: false,
-        });
-
-        if (showControlPlaneDependentFeatures) {
-            items.push({
-                key: IncidentManagementMenuKeys.IncidentPlatform,
-                label: intl.formatMessage(IncidentManagementResources.incidentPlatform),
-                disabled: false,
-            });
-        }
-
-        return items;
-    }, [intl, disableAnalysis, agentAppInsightsAppId, showControlPlaneDependentFeatures]);
-
-    const renderNavIcon = useCallback(
-        (key: IncidentManagementMenuKeys) => {
-            const isSelected = key === selectedKey;
-            switch (key) {
-                case IncidentManagementMenuKeys.IncidentOverview:
-                    return isSelected ? (
-                        <Warning24Filled className={navigationStyles.itemIcon} />
-                    ) : (
-                        <Warning24Regular className={navigationStyles.itemIcon} />
-                    );
-                case IncidentManagementMenuKeys.ResponsePlans:
-                    return isSelected ? (
-                        <ClipboardTaskList16Filled className={navigationStyles.itemIcon} />
-                    ) : (
-                        <ClipboardTaskList16Regular className={navigationStyles.itemIcon} />
-                    );
-                case IncidentManagementMenuKeys.Metrics:
-                    return isSelected ? (
-                        <ChartMultiple24Filled className={navigationStyles.itemIcon} />
-                    ) : (
-                        <ChartMultiple24Regular className={navigationStyles.itemIcon} />
-                    );
-                case IncidentManagementMenuKeys.IncidentPlatform:
-                    return isSelected ? (
-                        <LinkSettings24Filled className={navigationStyles.itemIcon} />
-                    ) : (
-                        <LinkSettings24Regular className={navigationStyles.itemIcon} />
-                    );
-                default:
-                    return null;
-            }
-        },
-        [selectedKey, navigationStyles.itemIcon]
-    );
-
-    const onNavigationClick = useCallback(
-        (navKey: string) => {
-            if (
-                navKey &&
-                Object.values(IncidentManagementMenuKeys).includes(navKey as IncidentManagementMenuKeys) &&
-                navKey !== selectedKey
-            ) {
-                logAmplitudeNavigationEvent({
-                    targetType: 'tab',
-                    targetAction: 'tabItem',
-                    targetName: navKey,
-                    targetFriendlyName: navKey,
-                });
-
-                navigate({ ...location, pathname: `/views/incidentmanagement/${navKey}` });
-            }
-        },
-        [selectedKey, logAmplitudeNavigationEvent, navigate, location]
-    );
+    }, [menuItem, navigate]);
 
     useEffect(() => {
         initializeIcons();
         setIconsInitialized(true);
     }, []);
 
-    useEffect(() => {
-        if (incidentPlatformType) {
-            if (incidentPlatformType === IncidentManagementType.None) {
-                setDisableAnalysis(true);
-                navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` });
-            } else {
-                setDisableAnalysis(false);
-            }
-        }
-    }, [incidentPlatformType]);
-
     return (
         iconsInitialized && (
-            <div className={styles.root}>
+            <div className={mergeClasses(styles.root, commonStyles.contentRootBorderAndBackground)}>
                 {agentLoading || !iconsInitialized ? (
                     <div className={styles.spinner}>
                         <Spinner size="huge" />
@@ -203,62 +98,19 @@ const IncidentManagement: FC = () => {
                     </div>
                 ) : (
                     <>
-                        <NavDrawer
-                            selectedValue={selectedKey || IncidentManagementMenuKeys.IncidentOverview}
-                            selectedCategoryValue=""
-                            open={!navigationHidden}
-                            type="inline"
-                            className={navigationCollapsed ? navigationStyles.drawerCollapsed : navigationStyles.drawer}
-                        >
-                            <NavDrawerHeader className={navigationStyles.drawerHeader}>
-                                <Button
-                                    icon={
-                                        navigationCollapsed ? (
-                                            <PanelLeftExpandRegular className={navigationStyles.itemIcon} />
-                                        ) : (
-                                            <PanelLeftContractRegular className={navigationStyles.itemIcon} />
-                                        )
-                                    }
-                                    onClick={() => setNavigationCollapsed(!navigationCollapsed)}
-                                    aria-label={intl.formatMessage(
-                                        navigationCollapsed
-                                            ? IncidentManagementResources.expandNavigation
-                                            : IncidentManagementResources.collapseNavigation
-                                    )}
-                                    className={navigationStyles.headerButton}
-                                    appearance="transparent"
-                                />
-                            </NavDrawerHeader>
-                            <NavDrawerBody className={navigationStyles.drawerBody}>
-                                {navItems.map(navItem => (
-                                    <NavItem
-                                        icon={renderNavIcon(navItem.key)}
-                                        aria-label={navItem.label}
-                                        key={navItem.key}
-                                        value={navItem.key}
-                                        href=""
-                                        onClick={() => onNavigationClick(navItem.key)}
-                                        className={navigationCollapsed ? navigationStyles.itemCollapsed : navigationStyles.item}
-                                        disabled={navItem.disabled}
-                                    >
-                                        {!navigationCollapsed && <span className={navigationStyles.itemText}>{navItem.label}</span>}
-                                    </NavItem>
-                                ))}
-                            </NavDrawerBody>
-                        </NavDrawer>
-                        {selectedKey === IncidentManagementMenuKeys.IncidentOverview && (
+                        {selectedKey === SecondaryNavItemValues.IncidentOverview && (
                             <IncidentsOverview
                                 agentAppInsightsAppId={agentAppInsightsAppId}
                                 showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
                             />
                         )}
-                        {selectedKey === IncidentManagementMenuKeys.ResponsePlans && (
+                        {selectedKey === SecondaryNavItemValues.ResponsePlans && (
                             <ResponsePlanOverview setNavigationHidden={setNavigationHidden} />
                         )}
-                        {agentAppInsightsAppId && selectedKey === IncidentManagementMenuKeys.Metrics && (
+                        {agentAppInsightsAppId && selectedKey === SecondaryNavItemValues.Metrics && (
                             <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
                         )}
-                        {selectedKey === IncidentManagementMenuKeys.IncidentPlatform && <IncidentManagementSettings />}
+                        {selectedKey === SecondaryNavItemValues.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}
             </div>

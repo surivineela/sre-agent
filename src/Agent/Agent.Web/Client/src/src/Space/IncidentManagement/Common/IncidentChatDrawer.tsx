@@ -121,8 +121,8 @@ const IncidentChatDrawer: React.FC<IncidentChatDrawerProps> = ({
 
 const useIncidentChatDrawerStyles = makeStyles({
     drawerRoot: {
-        marginTop: '50px',
-        marginBottom: '8px',
+        marginTop: '11px',
+        marginBottom: '10px',
         borderRadius: '12px',
     },
     header: {

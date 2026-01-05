@@ -1,4 +1,5 @@
-import { Dropdown, Field, Option, Skeleton, SkeletonItem } from '@fluentui/react-components';
+import { tokens } from '@fluentui-copilot/react-copilot';
+import { Dropdown, Field, makeStyles, mergeClasses, Option, Skeleton, SkeletonItem } from '@fluentui/react-components';
 import { Dispatch, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -8,12 +9,28 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActivitiesThreadHeaderResources, DailyReportsTabResources } from '../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../Activities/ThreadActionsMenu';
 import { useThreadList } from '../Hooks/useThreadList';
-import { tokens } from '@fluentui-copilot/react-copilot';
+import { useCommonStyles } from '../Styles/Common.styles';
 
 interface DailyReportThreadDropdownProps {
     selectedThread: Thread | null;
     setSelectedThread: Dispatch<React.SetStateAction<Thread | null>>;
 }
+
+const useStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '8px',
+        alignItems: 'center',
+        justifyContent: 'start',
+        margin: `${tokens.spacingVerticalSNudge} 0px`,
+    },
+    field: {
+        display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+    },
+});
 
 const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ selectedThread, setSelectedThread }) => {
     const intl = useIntl();
@@ -21,6 +38,9 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
     const [selectedThreadId, setSelectedThreadId] = useState<string | undefined>();
     const [value, setValue] = useState<string>('');
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+
+    const styles = useStyles();
+    const commonStyles = useCommonStyles();
 
     const includedSources = useMemo(() => [ThreadSource.dailyReport], []);
 
@@ -113,13 +133,8 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
     }, [selectedThread]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', alignItems: 'center', justifyContent: 'start' }}>
-            <Field
-                label={<FormattedMessage {...DailyReportsTabResources.selectADate} />}
-                orientation="horizontal"
-                size={'small'}
-                style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', margin: `${tokens.spacingVerticalL} 0px` }}
-            >
+        <div className={mergeClasses(styles.root, commonStyles.contentHeader)}>
+            <Field label={<FormattedMessage {...DailyReportsTabResources.selectADate} />} orientation="horizontal" className={styles.field}>
                 {isLoadingInitialThreads ? (
                     <Skeleton aria-label={intl.formatMessage(DailyReportsTabResources.loadingReportsAriaLabel)} style={{ width: '500px' }}>
                         <SkeletonItem style={{ height: '25px' }} />
@@ -134,6 +149,7 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                         onOpenChange={(_, data) => setIsDropdownListBoxHidden(!data.open)}
                         positioning={{ autoSize: true, overflowBoundaryPadding: { bottom: 20 } }}
                         listbox={{ style: { overflowY: 'auto' }, ref: threadListDivRef, onScroll }}
+                        size={'small'}
                     >
                         {threads.map(thread => {
                             return (
@@ -158,8 +174,6 @@ const DailyReportThreadDropdown: React.FC<DailyReportThreadDropdownProps> = ({ s
                     thread={selectedThread}
                     handleThreadDelete={() => handleThreadDelete(selectedThread)}
                     hideCopyDeeplink={true}
-                    hideFavorite={true}
-                    hideRename={true}
                 />
             )}
         </div>

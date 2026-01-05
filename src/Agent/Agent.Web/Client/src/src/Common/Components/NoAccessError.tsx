@@ -17,6 +17,7 @@ export interface NoAccessErrorProps {
 
 const useStyles = makeStyles({
     root: {
+        flex: '1 0 auto',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

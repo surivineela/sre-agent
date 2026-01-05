@@ -1,5 +1,5 @@
 import { DataVizPalette, getColorFromToken, IChartProps } from '@fluentui/react-charting';
-import { MessageBar, MessageBarBody, MessageBarTitle } from '@fluentui/react-components';
+import { mergeClasses, MessageBar, MessageBarBody, MessageBarTitle } from '@fluentui/react-components';
 import { WrenchScrewdriverColor } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -328,137 +328,133 @@ const Analysis = ({ agentAppInsightsAppId }: AnalysisProps) => {
 
     return (
         <div className={styles.navPanelWrapper}>
-            <div className={styles.navPanelContent}>
-                <div className={styles.navPanelPadding}>
-                    {handlerOperationStatus === 'succeeded' && (
-                        <div style={{ marginBottom: 20 }}>
-                            <MessageBar intent="success">
-                                <MessageBarBody>
-                                    <MessageBarTitle>{intl.formatMessage(IncidentManagementResources.responsePlanSaved)}</MessageBarTitle>
-                                </MessageBarBody>
-                            </MessageBar>
-                        </div>
-                    )}
+            <div className={mergeClasses(styles.navPanelContent, styles.navPanelPadding)}>
+                {handlerOperationStatus === 'succeeded' && (
+                    <div style={{ marginBottom: 20 }}>
+                        <MessageBar intent="success">
+                            <MessageBarBody>
+                                <MessageBarTitle>{intl.formatMessage(IncidentManagementResources.responsePlanSaved)}</MessageBarTitle>
+                            </MessageBarBody>
+                        </MessageBar>
+                    </div>
+                )}
 
-                    {handlerOperationStatus === 'failed' && (
-                        <div style={{ marginBottom: 20 }}>
-                            <MessageBar intent="error">
-                                <MessageBarBody>
-                                    <MessageBarTitle>
-                                        {intl.formatMessage(IncidentManagementResources.responsePlanSaveFailed)}
-                                    </MessageBarTitle>
-                                </MessageBarBody>
-                            </MessageBar>
-                        </div>
-                    )}
+                {handlerOperationStatus === 'failed' && (
+                    <div style={{ marginBottom: 20 }}>
+                        <MessageBar intent="error">
+                            <MessageBarBody>
+                                <MessageBarTitle>{intl.formatMessage(IncidentManagementResources.responsePlanSaveFailed)}</MessageBarTitle>
+                            </MessageBarBody>
+                        </MessageBar>
+                    </div>
+                )}
 
-                    {!isAppInsightsTokenLoading && !appInsightsToken ? (
-                        <div
-                            style={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 20,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <WrenchScrewdriverColor fontSize={96} />
-                            <TextWithLink
-                                text={intl.formatMessage(SreAgentResources.thisFeatureIsntAvailableInThisPortalYet)}
-                                linkText={intl.formatMessage(SreAgentResources.openInAzurePortal)}
-                                linkUrl={`https://portal.azure.com#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/views%2Fincidentmanagement%2FMetrics`}
-                            />
-                        </div>
-                    ) : !openedResponsePlan ? (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
-                            <PillFilter
-                                label={intl.formatMessage(SreAgentResources.timeRange)}
-                                labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                filterType="timeRange"
-                                options={timeRangeOptions}
-                                selectedValue={selectedTimeRange}
-                                onApply={value => setSelectedTimeRange(value)}
-                                customTimeRangeProps={{
-                                    addCustomOption: true,
-                                }}
-                            />
-
-                            {queryErrorMessage && (
-                                <div style={{ maxWidth: 1000 }}>
-                                    <MessageBar intent="error">
-                                        <MessageBarBody>
-                                            <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
-                                            {queryErrorMessage}
-                                        </MessageBarBody>
-                                    </MessageBar>
-                                </div>
-                            )}
-
-                            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                                <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.acrossAllIncidentsInPeriod, {
-                                        platform: getLocalizedIncidentPlatformName(incidentPlatformType ?? '', intl),
-                                    })}
-                                    data={incidentsReviewedStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                                <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
-                                    data={mitigatedByAgentStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                                <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
-                                    data={assistedByAgentStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                                <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
-                                    data={mitigatedByUserStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                                <StatCard
-                                    title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
-                                    subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
-                                    data={pendingUserActionStatCardData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                                <ChartCard
-                                    title={intl.formatMessage(IncidentManagementResources.incidentSummary)}
-                                    data={incidentSummaryChartData}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', flex: '1 1 0', minHeight: 400, marginBottom: 20 }}>
-                                <IncidentResponsePlanGrid
-                                    responsePlans={incidentHandlersResponse ?? []}
-                                    isLoading={isAppInsightsTokenLoading || isIncidentHandlersLoading}
-                                    setOpenedResponsePlan={setOpenedResponsePlan}
-                                />
-                            </div>
-                        </div>
-                    ) : (
-                        <ResponsePlanView
-                            openedResponsePlan={openedResponsePlan}
-                            setOpenedResponsePlan={setOpenedResponsePlan}
-                            timeRangeOptions={timeRangeOptions}
-                            selectedTimeRange={selectedTimeRange}
-                            setSelectedTimeRange={setSelectedTimeRange}
-                            appInsightsId={agentAppInsightsAppId}
-                            appInsightsToken={appInsightsToken}
-                            onEditHandler={handleEditHandler}
+                {!isAppInsightsTokenLoading && !appInsightsToken ? (
+                    <div
+                        style={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 20,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <WrenchScrewdriverColor fontSize={96} />
+                        <TextWithLink
+                            text={intl.formatMessage(SreAgentResources.thisFeatureIsntAvailableInThisPortalYet)}
+                            linkText={intl.formatMessage(SreAgentResources.openInAzurePortal)}
+                            linkUrl={`https://portal.azure.com#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/views%2Fincidentmanagement%2FMetrics`}
                         />
-                    )}
-                </div>
+                    </div>
+                ) : !openedResponsePlan ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <PillFilter
+                            label={intl.formatMessage(SreAgentResources.timeRange)}
+                            labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                            filterType="timeRange"
+                            options={timeRangeOptions}
+                            selectedValue={selectedTimeRange}
+                            onApply={value => setSelectedTimeRange(value)}
+                            customTimeRangeProps={{
+                                addCustomOption: true,
+                            }}
+                        />
+
+                        {queryErrorMessage && (
+                            <div style={{ maxWidth: 1000 }}>
+                                <MessageBar intent="error">
+                                    <MessageBarBody>
+                                        <MessageBarTitle>{intl.formatMessage(SreAgentResources.requestError)}</MessageBarTitle>
+                                        {queryErrorMessage}
+                                    </MessageBarBody>
+                                </MessageBar>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.incidentsReviewed)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.acrossAllIncidentsInPeriod, {
+                                    platform: getLocalizedIncidentPlatformName(incidentPlatformType ?? '', intl),
+                                })}
+                                data={incidentsReviewedStatCardData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.mitigatedByAgent)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByAgent)}
+                                data={mitigatedByAgentStatCardData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.assistedByAgent)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsAssistedByAgent)}
+                                data={assistedByAgentStatCardData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.mitigatedByUser)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsMitigatedByUser)}
+                                data={mitigatedByUserStatCardData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                            <StatCard
+                                title={intl.formatMessage(IncidentManagementResources.pendingUserAction)}
+                                subtitle={intl.formatMessage(IncidentManagementResources.incidentsThatRequireAttention)}
+                                data={pendingUserActionStatCardData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                            <ChartCard
+                                title={intl.formatMessage(IncidentManagementResources.incidentSummary)}
+                                data={incidentSummaryChartData}
+                                isLoading={isAppInsightsTokenLoading || isIncidentSummaryLoading}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flex: '1 1 0', minHeight: 400, marginBottom: 20 }}>
+                            <IncidentResponsePlanGrid
+                                responsePlans={incidentHandlersResponse ?? []}
+                                isLoading={isAppInsightsTokenLoading || isIncidentHandlersLoading}
+                                setOpenedResponsePlan={setOpenedResponsePlan}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <ResponsePlanView
+                        openedResponsePlan={openedResponsePlan}
+                        setOpenedResponsePlan={setOpenedResponsePlan}
+                        timeRangeOptions={timeRangeOptions}
+                        selectedTimeRange={selectedTimeRange}
+                        setSelectedTimeRange={setSelectedTimeRange}
+                        appInsightsId={agentAppInsightsAppId}
+                        appInsightsToken={appInsightsToken}
+                        onEditHandler={handleEditHandler}
+                    />
+                )}
             </div>
         </div>
     );

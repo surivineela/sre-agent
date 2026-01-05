@@ -4,8 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useRouteError } from 'react-router-dom';
 import GithubIssueDialog from '../../Space/Components/GithubIssueDialog';
-import { SreAgentContext } from '../../Space/Contracts/Context';
-import { GithubIssueIcon } from '../../Space/SREAgentSpace';
+import { GithubIssueIcon } from '../../Space/Components/Nav/FeedbackNavItem';
 import { GithubIssueResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
@@ -52,9 +51,6 @@ export const RouteErrorBoundary = () => {
     const styles = useStyles();
     const azPortalContext = useContext(AzPortalContext);
     const { resourceId, sessionId } = useContext(EnvironmentContext);
-    const {
-        activities: { lastVisitedThreadId },
-    } = useContext(SreAgentContext);
 
     const [isGithubIssueDialogOpen, setIsGithubIssueDialogOpen] = useState(false);
 
@@ -139,7 +135,7 @@ export const RouteErrorBoundary = () => {
                     {intl.formatMessage(GithubIssueResources.createGithubIssueTitle)}
                 </Button>
             </div>
-            <GithubIssueDialog isOpen={isGithubIssueDialogOpen} setIsOpen={setIsGithubIssueDialogOpen} threadId={lastVisitedThreadId} />
+            <GithubIssueDialog isOpen={isGithubIssueDialogOpen} setIsOpen={setIsGithubIssueDialogOpen} />
         </div>
     );
 };

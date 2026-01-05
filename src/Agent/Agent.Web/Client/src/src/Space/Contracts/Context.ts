@@ -1,4 +1,4 @@
-import { createContext, Dispatch, SetStateAction } from 'react';
+import { createContext } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType, MonthlyUsage } from '../../Common/Contracts/Azure/SreAgent';
@@ -12,10 +12,6 @@ import { ChatBoxSidePanelData } from './Activities';
 export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
 
 type SreAgentContextProps = {
-    activities: {
-        lastVisitedThreadId: string | undefined;
-        setLastVisitedThreadId: (lastVisitedThreadId: string | undefined) => void;
-    };
     grafana: {
         isGrafanaUpdating: boolean;
         deploymentId: string;
@@ -56,19 +52,6 @@ type SreAgentContextProps = {
     refresh: () => void;
     startAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
     stopAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
-};
-
-type AgentContextProps = {
-    threadContentAndActionKey: string;
-    activeThreadId: string;
-    selectThread: (thread: Thread | null) => void;
-    updateThreadTitle: (threadId: string, newTitle: string) => void;
-    notifyThreadTitleUpdate: (threadId: string, newTitle: string) => void;
-    subscribeThreadTitleUpdate: (callBack: (threadId: string, newTitle: string) => void) => () => void;
-    setMenuCollapsed: Dispatch<SetStateAction<boolean>>;
-    updateThreadFavorite: (threadId: string, isFavorite: boolean) => void;
-    notifyThreadFavoriteUpdate: (threadId: string, isFavorite: boolean) => void;
-    subscribeThreadFavoriteUpdate: (callBack: (threadId: string, isFavorite: boolean) => void) => () => void;
 };
 
 type StreamingContextProps = {
@@ -136,11 +119,30 @@ type AgentWarningContextProps = {
     isCheckingUsage: boolean;
 };
 
+type SreAgentSpaceContextProps = {
+    isNavOpen: boolean;
+    onExpandOrCollapseNavBar: (newState: boolean) => void;
+    threadsRenderKey: string;
+    addThread: (threadId: string) => void;
+    selectThread: (threadId: string | null) => void;
+    updateThreadLastReadTime: (threadId: string) => Promise<void>;
+    deleteThread: (thread: Thread) => Promise<void>;
+    updateThreadTitle: (threadId: string, newTitle: string) => void;
+    updateThreadFavorite: (threadId: string, isFavorite: boolean) => void;
+    subscribeThreadFavoriteUpdate: (listener: (threadId: string, isFavorite: boolean) => void) => () => void;
+    subscribeThreadTitleUpdate: (listener: (threadId: string, newTitle: string) => void) => () => void;
+};
+
+type ThreadNavContextProps = {
+    unreadThreadIds: Set<string>;
+    updateThreadTitle: (threadId: string, newTitle: string) => void;
+    updateThreadFavorite: (threadId: string, isFavorite: boolean) => void;
+    selectThread: (threadId: string | null) => void;
+    deleteThread: (thread: Thread) => void;
+    assignThreadItemDivRef: (threadId: string, el: HTMLDivElement) => void;
+};
+
 export const SreAgentContext = createContext<SreAgentContextProps>({
-    activities: {
-        lastVisitedThreadId: undefined,
-        setLastVisitedThreadId: () => {},
-    },
     grafana: {
         isGrafanaUpdating: false,
         deploymentId: '',
@@ -181,19 +183,6 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     refresh: () => {},
     startAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
     stopAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
-});
-
-export const AgentContext = createContext<AgentContextProps>({
-    threadContentAndActionKey: '',
-    activeThreadId: '',
-    selectThread: () => {},
-    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
-    notifyThreadTitleUpdate: async (_threadId: string, _newTitle: string) => {},
-    subscribeThreadTitleUpdate: (_callBack: (threadId: string, newTitle: string) => void) => () => {},
-    setMenuCollapsed: () => {},
-    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
-    notifyThreadFavoriteUpdate: async (_threadId: string, _isFavorite: boolean) => {},
-    subscribeThreadFavoriteUpdate: (_callBack: (threadId: string, isFavorite: boolean) => void) => () => {},
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({
@@ -261,4 +250,27 @@ export const AgentWarningContext = createContext<AgentWarningContextProps>({
     handleDismissUsageWarning: () => {},
     onUsageUpdate: (_newUsages: MonthlyUsage | null | undefined) => {},
     isCheckingUsage: true,
+});
+
+export const SreAgentSpaceContext = createContext<SreAgentSpaceContextProps>({
+    isNavOpen: true,
+    onExpandOrCollapseNavBar: (_newState: boolean) => {},
+    addThread: (_threadId: string) => {},
+    selectThread: (_threadId: string | null) => {},
+    threadsRenderKey: '',
+    updateThreadLastReadTime: async (_threadId: string) => {},
+    deleteThread: async (_thread: Thread) => {},
+    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
+    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
+    subscribeThreadFavoriteUpdate: (_listener: (threadId: string, isFavorite: boolean) => void) => () => {},
+    subscribeThreadTitleUpdate: (_listener: (threadId: string, newTitle: string) => void) => () => {},
+});
+
+export const ThreadNavContext = createContext<ThreadNavContextProps>({
+    unreadThreadIds: new Set<string>(),
+    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
+    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
+    selectThread: (_threadId: string | null) => {},
+    deleteThread: (_thread: Thread) => {},
+    assignThreadItemDivRef: (_threadId: string, _el: HTMLDivElement) => {},
 });

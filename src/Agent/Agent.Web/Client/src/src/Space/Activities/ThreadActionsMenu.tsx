@@ -10,6 +10,8 @@ import {
     Menu,
     MenuItem,
     MenuList,
+    MenuOpenChangeData,
+    MenuOpenEvent,
     MenuPopover,
     MenuTrigger,
     tokens,
@@ -37,7 +39,6 @@ import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { copyToClipboard } from '../../Common/Helpers/Clipboard';
 import { useThreadDeepLink } from '../../Common/Hooks/useThreadDeepLink';
 import { ActivitiesResources, ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { AgentContext } from '../Contracts/Context';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useStyles = makeStyles({
@@ -75,27 +76,34 @@ const useStyles = makeStyles({
 });
 
 interface ThreadActionsMenuProps {
+    trigger?: JSX.Element | null | ((val: any) => JSX.Element);
     thread: Thread;
     handleThreadDelete: () => void;
     hideCopyDeeplink?: boolean;
     hideDelete?: boolean;
-    hideFavorite?: boolean;
-    hideRename?: boolean;
+    updateThreadTitle?: (threadId: string, newTitle: string) => void;
+    updateThreadFavorite?: (threadId: string, isFavorite: boolean) => void;
+    // Leave it undefined if you don't want to control the open state from outside
+    open?: boolean;
+    // Leave it undefined if you don't want to control the open state from outside
+    onOpenChange?: (e: MenuOpenEvent, data: MenuOpenChangeData) => void;
 }
 
 const ThreadActionsMenu = ({
+    trigger,
+    open,
+    onOpenChange,
     thread,
     handleThreadDelete,
     hideCopyDeeplink,
     hideDelete,
-    hideFavorite,
-    hideRename,
+    updateThreadTitle,
+    updateThreadFavorite,
 }: ThreadActionsMenuProps) => {
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
     const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { updateThreadTitle, updateThreadFavorite } = useContext(AgentContext);
     const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -106,7 +114,7 @@ const ThreadActionsMenu = ({
     const onUpdateThreadTitle = useCallback(
         (newTitle: string) => {
             setIsThreadRenamingDialogOpen(false);
-            updateThreadTitle(thread.id, newTitle);
+            updateThreadTitle?.(thread.id, newTitle);
         },
         [updateThreadTitle, thread.id]
     );
@@ -114,7 +122,7 @@ const ThreadActionsMenu = ({
     const onUpdateThreadFavorite = useCallback(
         (isFavorite: boolean) => {
             setIsFavoriteSwitchButtonDisabled(true);
-            updateThreadFavorite(thread.id, isFavorite);
+            updateThreadFavorite?.(thread.id, isFavorite);
             setIsFavoriteSwitchButtonDisabled(false);
         },
         [updateThreadFavorite, thread.id]
@@ -212,19 +220,21 @@ const ThreadActionsMenu = ({
 
     return (
         <>
-            <Menu>
+            <Menu open={open} onOpenChange={onOpenChange}>
                 <MenuTrigger>
-                    <Button
-                        style={{ marginTop: '3px' }}
-                        appearance="transparent"
-                        icon={<MoreHorizontal20Regular />}
-                        aria-label={intl.formatMessage(SreAgentResources.moreOptions)}
-                        {...restoreFocusTargetAttributes}
-                    />
+                    {trigger || (
+                        <Button
+                            style={{ marginTop: '3px' }}
+                            appearance="transparent"
+                            icon={<MoreHorizontal20Regular />}
+                            aria-label={intl.formatMessage(SreAgentResources.moreOptions)}
+                            {...restoreFocusTargetAttributes}
+                        />
+                    )}
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
-                        {!hideFavorite && (
+                        {updateThreadFavorite && (
                             <PermissionedMenuItem
                                 canPerform={canWriteThreads}
                                 disabledReason={isFavoriteSwitchButtonDisabled}
@@ -249,7 +259,7 @@ const ThreadActionsMenu = ({
                                 {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                             </MenuItem>
                         )}
-                        {!hideRename && (
+                        {updateThreadTitle && (
                             <PermissionedMenuItem
                                 {...restoreFocusTargetAttributes}
                                 canPerform={canWriteThreads}

@@ -94,58 +94,62 @@ const ResponsePlanOverview: FC<ResponsePlanOverviewProps> = ({ setNavigationHidd
         <div className={styles.navPanelWrapper}>
             <div className={styles.navPanelContent}>
                 <div className={styles.navPanelPadding}>
-                    <PlatformConnectionMessageBar />
-                    <div className={styles.description}>
-                        {intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                        <IncidentFiltersToolbar
-                            onRefreshClick={() => {
-                                refresh();
-                            }}
-                            onDeleteIncidentFilterClick={() => {
-                                deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
-                            }}
-                            onNewIncidentFilterClick={() => {
-                                setVisibleHandler({});
-                                logAmplitudeControlEvent({
-                                    targetAction: 'clicked',
-                                    targetType: 'button',
-                                    targetName: 'newIncidentHandler',
-                                    targetFriendlyName: 'New incident handler',
-                                    valueObjectName: SpecialControlValue.DoAction,
-                                    valueObjectFriendlyName: SpecialControlValue.DoAction,
-                                    metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
-                                });
-                            }}
-                            onTurnOffIncidentFilterClick={() => {
-                                if (selectedIncidentFilter?.isEnabled) {
-                                    disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() =>
-                                        setSelectedIncidentFilter(undefined)
-                                    );
-                                } else {
-                                    enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() => setSelectedIncidentFilter(undefined));
-                                }
-                            }}
-                            isFilterSelected={!!selectedIncidentFilter}
-                            isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
-                            connected={platformConfiguredAndConnected}
+                    <div className={styles.fullHeightFlexContainer}>
+                        <PlatformConnectionMessageBar />
+                        <div className={styles.description}>
+                            {intl.formatMessage(IncidentManagementResources.incidentManagementTabDescription)}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                            <IncidentFiltersToolbar
+                                onRefreshClick={() => {
+                                    refresh();
+                                }}
+                                onDeleteIncidentFilterClick={() => {
+                                    deleteIncidentFilter(selectedIncidentFilter?.id ?? '');
+                                }}
+                                onNewIncidentFilterClick={() => {
+                                    setVisibleHandler({});
+                                    logAmplitudeControlEvent({
+                                        targetAction: 'clicked',
+                                        targetType: 'button',
+                                        targetName: 'newIncidentHandler',
+                                        targetFriendlyName: 'New incident handler',
+                                        valueObjectName: SpecialControlValue.DoAction,
+                                        valueObjectFriendlyName: SpecialControlValue.DoAction,
+                                        metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
+                                    });
+                                }}
+                                onTurnOffIncidentFilterClick={() => {
+                                    if (selectedIncidentFilter?.isEnabled) {
+                                        disableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() =>
+                                            setSelectedIncidentFilter(undefined)
+                                        );
+                                    } else {
+                                        enableIncidentFilter(selectedIncidentFilter?.id ?? '').then(() =>
+                                            setSelectedIncidentFilter(undefined)
+                                        );
+                                    }
+                                }}
+                                isFilterSelected={!!selectedIncidentFilter}
+                                isFilterEnabled={!selectedIncidentFilter || selectedIncidentFilter?.isEnabled}
+                                connected={platformConfiguredAndConnected}
+                                canWriteIncidentManagement={canWriteIncidentManagement}
+                                canDeleteIncidentManagement={canDeleteIncidentManagement}
+                            />
+                            <PlatformConnectionIndicator style={{ marginLeft: 'auto', marginRight: '16px' }} />
+                        </div>
+                        <ResponsePlanGrid
+                            handlerOperationStatus={handlerOperationStatus}
+                            openHandlerCreate={setVisibleHandler}
+                            incidentFilters={incidentFilters ?? []}
+                            incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
+                            selectedFilter={selectedIncidentFilter}
+                            setSelectedFilter={setSelectedIncidentFilter}
+                            filterIdToHandlerMap={filterIdToHandlerMap}
+                            disabled={!platformConfiguredAndConnected}
                             canWriteIncidentManagement={canWriteIncidentManagement}
-                            canDeleteIncidentManagement={canDeleteIncidentManagement}
                         />
-                        <PlatformConnectionIndicator style={{ marginLeft: 'auto', marginRight: '16px' }} />
                     </div>
-                    <ResponsePlanGrid
-                        handlerOperationStatus={handlerOperationStatus}
-                        openHandlerCreate={setVisibleHandler}
-                        incidentFilters={incidentFilters ?? []}
-                        incidentFiltersLoading={incidentFiltersLoading || checkingConnectivity}
-                        selectedFilter={selectedIncidentFilter}
-                        setSelectedFilter={setSelectedIncidentFilter}
-                        filterIdToHandlerMap={filterIdToHandlerMap}
-                        disabled={!platformConfiguredAndConnected}
-                        canWriteIncidentManagement={canWriteIncidentManagement}
-                    />
                 </div>
             </div>
         </div>

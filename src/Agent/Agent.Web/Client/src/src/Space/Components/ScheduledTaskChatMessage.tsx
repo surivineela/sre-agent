@@ -5,8 +5,9 @@ import { ArrowRightRegular, MoreHorizontalRegular } from '@fluentui/react-icons'
 import * as React from 'react';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { GroupMessageKey } from '../ScheduledTasks/ScheduledTasksUtilities';
 
 export interface ScheduledTaskExecutionCardProps {
@@ -35,14 +36,13 @@ const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({
     actions,
 }) => {
     const intl = useIntl();
-    const location = useLocation();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const badgeProps: Partial<BadgeProps> = {
         appearance: 'outline',
         color: 'important',
         size: 'large',
-        style: { padding: tokens.spacingVerticalM },
+        style: { height: 'fit-content', padding: `0px ${tokens.spacingHorizontalM}` },
     };
 
     return (
@@ -72,7 +72,12 @@ const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({
                                             {actions?.menuItems}
                                             <MenuItem
                                                 icon={<ArrowRightRegular />}
-                                                onClick={() => navigate({ ...location, pathname: '/views/scheduledtasks' })}
+                                                onClick={() =>
+                                                    navigate({
+                                                        primaryNavItemValue: PrimaryNavItemValues.Builder,
+                                                        secondaryNavItemValue: SecondaryNavItemValues.ScheduledTasks,
+                                                    })
+                                                }
                                             >
                                                 {intl.formatMessage(ScheduledTasksResources.goToScheduledTasks)}
                                             </MenuItem>

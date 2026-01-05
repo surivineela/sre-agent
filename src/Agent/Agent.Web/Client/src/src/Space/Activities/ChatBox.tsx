@@ -18,7 +18,7 @@ import { ChatBoxSidePanelContext, ThreadAgentModeContext } from '../Contracts/Co
 import { useChatBox } from '../Hooks/useChatBox';
 import { useChatBoxSidePanel } from '../Hooks/useChatBoxSidePanel';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
-import { getChatBoxStyles, ThreadTitleHeight } from '../Styles/Activities.styles';
+import { getChatBoxStyles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
 import AzureSREWelcome from './AzureSREWelcome';
 import { ChatSuggestions } from './ChatSuggestions';
@@ -27,6 +27,7 @@ import TodoPlan from './TodoPlan/TodoPlan';
 export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) => {
     const {
         addThread,
+        selectThread,
         updateThreadLastReadTime,
         threadId,
         threadSource,
@@ -36,7 +37,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         canOpenSidePanel,
         onOpenSidePanel,
         onCloseSidePanel,
-        setMenuCollapsed,
+        expandOrCollapseNavBar,
         setHasToDoPlans,
         forcedAgentName,
         lockAgentSelection,
@@ -62,12 +63,11 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         cancelStreaming,
         prompts,
         messagePromptsUsed,
+        threadIdUsedForCreatingNewThread,
         onScroll,
         downButtonState,
         onClickDownButton,
         updateApprovalOrCliMessageInStreamingMessage,
-        userDefinedThreadIdRef,
-
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
         isDeepInvestigationDialogVisible,
@@ -84,11 +84,11 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         knowledgeGraphSearchResultProps: { openKnowledgeGraphSearchResult, closeKnowledgeGraphSearchResult, knowledgeGraphSearchResult },
     } = useChatBoxSidePanel(
         threadId,
-        userDefinedThreadIdRef.current,
+        threadIdUsedForCreatingNewThread,
         initialSidePanelData,
         isLoading,
         canOpenSidePanel,
-        setMenuCollapsed,
+        expandOrCollapseNavBar,
         onOpenSidePanel,
         onCloseSidePanel,
         setHasToDoPlans,
@@ -176,7 +176,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
             {...CopilotTheme}
             mode={'canvas'}
             theme={theme.isInverted ? webDarkTheme : webLightTheme}
-            style={stylesProps?.rootStyle || { height: `calc(100% - ${ThreadTitleHeight + 5}px)` }}
+            style={stylesProps?.rootStyle || { minHeight: '0px', flex: '1' }}
         >
             <ChatBoxSidePanelContext.Provider
                 value={{ openAgentTask, openTodoPlan, openMemorySearchResult, openKnowledgeGraphSearchResult }}
@@ -204,7 +204,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                             ))}
 
                                         {/* Insert the richer welcome experience once at the top for welcome threads */}
-                                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} addThread={addThread} />}
+                                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} selectThread={selectThread} />}
 
                                         {/* Display permission error message if any*/}
                                         <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />

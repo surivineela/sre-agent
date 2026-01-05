@@ -11,15 +11,15 @@ import ChatBox from '../Activities/ChatBox';
 import DailyReportThreadDropdown from './DailyReportThreadDropdown';
 
 const useStyles = makeStyles({
-    root: {
-        padding: `10px ${tokens.spacingHorizontalXXL} 0px`,
-        height: '100%',
-        backgroundColor: tokens.colorNeutralBackground3,
-    },
     errorRoot: {
         padding: `10px ${tokens.spacingHorizontalXXL} 0px`,
         height: '100vh',
         backgroundColor: tokens.colorNeutralBackground3,
+    },
+    chatBoxContainer: {
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
     },
 });
 
@@ -46,30 +46,25 @@ const DailyReports: FC = () => {
             mode={'canvas'}
             theme={theme.isInverted ? webDarkTheme : webLightTheme}
             style={{
-                padding: `10px ${tokens.spacingHorizontalXXL} 0px`,
-                height: '100%',
-                backgroundColor: tokens.colorNeutralBackground3,
+                flex: '1 1 auto',
+                overflowY: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
             <DailyReportThreadDropdown selectedThread={selectedThread} setSelectedThread={setSelectedThread} />
             {selectedThread ? (
-                <div key={selectedThread?.id}>
+                <div key={selectedThread?.id} className={styles.chatBoxContainer}>
                     <ChatBox
                         addThread={() => { }}
+                        selectThread={() => { }}
                         updateThreadLastReadTime={() => { }}
                         threadId={selectedThread?.id}
                         threadSource={selectedThread?.source}
-                        stylesProps={{
-                            chatBox: {
-                                height: 'calc(100vh - 126px)',
-                            },
-                        }}
                         canOpenSidePanel={true}
                     />
                 </div>
-            ) : (
-                <div style={{ height: 'calc(100vh - 126px)' }} />
-            )}
+            ) : null}
         </CopilotProvider>
     );
 };

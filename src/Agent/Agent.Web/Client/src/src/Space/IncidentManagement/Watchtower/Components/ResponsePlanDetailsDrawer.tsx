@@ -232,7 +232,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
 
 const useResponsePlanDetailsDrawerStyles = makeStyles({
     drawerRoot: {
-        marginTop: '50px',
+        marginTop: '11px',
         marginBottom: '8px',
         borderRadius: '12px',
         paddingRight: '15px',

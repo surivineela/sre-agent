@@ -3,9 +3,6 @@ import { ExtendedAgentNodeSize } from '../Contracts/ExtendedAgentGraph';
 
 const containerCommonStyles: GriffelStyle = {
     flex: '1 1 auto',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderTopLeftRadius: tokens.borderRadiusXLarge,
-    boxShadow: tokens.shadow4,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -38,9 +35,10 @@ export const useExtendedAgentGraphStyles = makeStyles({
         height: '100%',
         minHeight: 0,
         position: 'relative',
+        overflow: 'hidden',
     },
     spinner: {
-        position: 'fixed',
+        position: 'absolute',
         left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)',
@@ -48,20 +46,11 @@ export const useExtendedAgentGraphStyles = makeStyles({
     container: {
         ...containerCommonStyles,
     },
-    gridViewContainer: {
-        ...containerCommonStyles,
-        paddingBottom: '16px',
-        paddingLeft: '16px',
-    },
     rootContainer: {
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 45px - 16px)',
-        paddingTop: '16px',
-        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-        backgroundColor: tokens.colorNeutralBackground3,
-        paddingLeft: '15px',
         gap: '16px',
+        height: '100%',
     },
     toolbarWrapper: {
         display: 'flex',

@@ -8,6 +8,7 @@ import { ChatMessage, ChatMessageGroup, MessageLoadingCounts } from '../Contract
 export const useChatHistory = (
     setMessageGroups: Dispatch<SetStateAction<ChatMessageGroup[]>>,
     threadId: string | null | undefined,
+    threadIdUsedForCreatingNewThread: string,
     prepareForAddingChatHistory: () => void,
     scrollToBottom: (smooth: boolean) => void,
     setStreamingMessageGroup: Dispatch<SetStateAction<ChatMessageGroup | null | undefined>>,
@@ -90,7 +91,10 @@ export const useChatHistory = (
     }, [threadId, isLoadingInitialChatHistory]);
 
     useEffect(() => {
-        if (threadId) {
+        // If it is a new thread which means the threadId is empty, then do not load chat history.
+        // If the thread id is not null, but it is same as the one used for creating new thread, that means the thread is just created. In this case, do not load chat history either.
+        const doNotLoadChatHistory = !threadId || threadId === threadIdUsedForCreatingNewThread;
+        if (!doNotLoadChatHistory) {
             const loadInitialPage = async () => {
                 setIsLoadingInitialChatHistory(true);
                 setMessageGroups([]);
@@ -138,7 +142,7 @@ export const useChatHistory = (
             setChatHistoryChangeTrigger(null);
             hasPreviousPage.current = false;
         }
-    }, [threadId, hasExistingStreamingMessage]);
+    }, [threadId, hasExistingStreamingMessage, threadIdUsedForCreatingNewThread]);
 
     useEffect(() => {
         loadOlderMessagesRef.current = loadOlderMessages;

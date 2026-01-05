@@ -28,7 +28,6 @@ import {
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { memo, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
@@ -40,6 +39,8 @@ import PermissionedActionLink from '../../Common/Components/PermissionedActionLi
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { StreamingContext } from '../Contracts/Context';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
+import { PrimaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
@@ -354,8 +355,7 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
 };
 
 const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
-    const location = useLocation();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const intl = useIntl();
     const { subscribeThreadUpdateEvent, startMessageStreamingOnNewThread } = useContext(StreamingContext);
     const {
@@ -375,8 +375,8 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                 newThreadId.current = null;
                 setSendingReport(false);
                 navigate({
-                    ...location,
-                    pathname: `/views/activities/threads/${currentThreadId}`,
+                    primaryNavItemValue: PrimaryNavItemValues.Threads,
+                    threadId: currentThreadId,
                 });
             }
         });

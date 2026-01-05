@@ -82,7 +82,7 @@ import {
 } from '../../Strings/SREAgentResources';
 import { ChatSuggestions } from '../Activities/ChatSuggestions';
 import { IChatBoxFooterProps, Shortcut } from '../Contracts/Activities';
-import { AgentContext, StreamingContext } from '../Contracts/Context';
+import { SreAgentSpaceContext, StreamingContext } from '../Contracts/Context';
 import { ExtendedAgent } from '../Contracts/ExtendedAgentGraph';
 import { ResourceSearchResult } from '../Contracts/Graph';
 import { usePermissionContext } from '../Contracts/PermissionContext';
@@ -278,7 +278,7 @@ const ChatBoxFooter = ({
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
     const { root, chatStatement } = useChatInputStyles();
 
-    const { selectThread } = useContext(AgentContext);
+    const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
     const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();

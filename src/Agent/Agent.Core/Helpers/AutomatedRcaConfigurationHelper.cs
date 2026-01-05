@@ -45,8 +45,8 @@ public static class AutomatedRcaConfigurationHelper
             || baseUrl.Contains("::1", StringComparison.OrdinalIgnoreCase);
 
         var threadPath = isLocal
-            ? $"/static/#/views/activities/threads/{threadId}"
-            : $"/sreDeepLink/views%2Factivities%2Fthreads%2F{threadId}";
+            ? $"/static/#/views/thread/{threadId}"
+            : $"/sreDeepLink/views%2Fthread%2F{threadId}";
 
         var link = isLocal || string.IsNullOrWhiteSpace(baseUrl)
             ? threadPath

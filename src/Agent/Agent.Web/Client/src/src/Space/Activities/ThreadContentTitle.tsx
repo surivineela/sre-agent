@@ -3,18 +3,25 @@ import { Branch16Regular, TaskListLtr20Regular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react-text';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { useParams } from 'react-router-dom';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { IncidentManagementResources, SreAgentResources, ToDoPlanResources } from '../../Strings/SREAgentResources';
-import { AgentContext, StreamingContext } from '../Contracts/Context';
+import { StreamingContext } from '../Contracts/Context';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import ThreadActionsMenu from './ThreadActionsMenu';
 import { isFinalStreamingMessage, parseThreadFromStreamingText } from './Utility';
 
 const ThreadContentTitle = ({
     thread,
+    isLoadingThread,
+    loadingThreadFailed,
+    updateThreadTitle,
+    updateThreadFavorite,
+    subscribeThreadTitleUpdate,
+    subscribeThreadFavoriteUpdate,
     deleteThread,
     hasToDoPlans,
     isToDoPlanOpen,
@@ -25,6 +32,12 @@ const ThreadContentTitle = ({
     traceFocusRestorationRef,
 }: {
     thread: Thread | null | undefined;
+    isLoadingThread: boolean;
+    loadingThreadFailed: boolean;
+    updateThreadTitle: (threadId: string, newTitle: string) => void;
+    updateThreadFavorite: (threadId: string, isFavorite: boolean) => void;
+    subscribeThreadTitleUpdate: (listener: (threadId: string, newTitle: string) => void) => () => void;
+    subscribeThreadFavoriteUpdate: (listener: (threadId: string, isFavorite: boolean) => void) => () => void;
     deleteThread: (thread: Thread) => void;
     hasToDoPlans: boolean;
     isToDoPlanOpen: boolean;
@@ -36,9 +49,9 @@ const ThreadContentTitle = ({
 }) => {
     const intl = useIntl();
     const [latestThread, setLatestThread] = useState<Thread | null | undefined>(thread);
-    const { activeThreadId, subscribeThreadTitleUpdate, subscribeThreadFavoriteUpdate } = useContext(AgentContext);
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { threadId: activeThreadId } = useParams();
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -60,6 +73,10 @@ const ThreadContentTitle = ({
             setLatestThread(response.content);
         }
     };
+
+    useEffect(() => {
+        setLatestThread(thread);
+    }, [thread]);
 
     useEffect(() => {
         const id = thread?.id || activeThreadId;
@@ -121,50 +138,63 @@ const ThreadContentTitle = ({
             unsubscribeThreadTitleUpdate();
             unsubscribeThreadFavoriteUpdate();
         };
-    }, [thread?.id, activeThreadId, subscribeThreadUpdateEvent, subscribeMessageUpdateEvent, subscribeThreadTitleUpdate]);
-
-    useEffect(() => {
-        if (!latestThread?.id && activeThreadId) {
-            updateLatestThread(activeThreadId);
-        }
-    }, [latestThread?.id, activeThreadId]);
+    }, [
+        thread?.id,
+        activeThreadId,
+        subscribeThreadUpdateEvent,
+        subscribeMessageUpdateEvent,
+        subscribeThreadTitleUpdate,
+        subscribeThreadFavoriteUpdate,
+    ]);
 
     const threadId = latestThread?.id ?? null;
+    const showTitle = !isLoadingThread && !loadingThreadFailed;
 
     return (
         <div className={ThreadContentStyles.titleContainer}>
-            <ThreadTitleText title={latestThread?.title} />
-            {latestThread && <ThreadActionsMenu thread={latestThread} handleThreadDelete={handleThreadDelete} />}
-            <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
-                {threadId && showTraceButton && (
-                    <Button
-                        ref={traceFocusRestorationRef}
-                        icon={<Branch16Regular />}
-                        style={{
-                            fontWeight: 'normal',
-                            fontSize: '12px',
-                            lineHeight: '16px',
-                            padding: '2px 8px 2px 4px',
-                            margin: 'auto',
-                            marginRight: '8px',
-                        }}
-                        onClick={toggleTraceVisibility}
-                    >
-                        {intl.formatMessage(IncidentManagementResources.viewTrace)}
-                    </Button>
-                )}
-                {threadId && hasToDoPlans && (
-                    <Tooltip content={tooltip} relationship="label">
-                        <Button
-                            aria-label={tooltip}
-                            icon={<TaskListLtr20Regular />}
-                            appearance={'subtle'}
-                            shape="circular"
-                            onClick={() => (isToDoPlanOpen ? closeToDoPlan() : openToDoPlan())}
+            {showTitle ? (
+                <>
+                    <ThreadTitleText title={latestThread?.title} />
+                    {latestThread && (
+                        <ThreadActionsMenu
+                            thread={latestThread}
+                            handleThreadDelete={handleThreadDelete}
+                            updateThreadTitle={updateThreadTitle}
+                            updateThreadFavorite={updateThreadFavorite}
                         />
-                    </Tooltip>
-                )}
-            </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                        {threadId && showTraceButton && (
+                            <Button
+                                ref={traceFocusRestorationRef}
+                                icon={<Branch16Regular />}
+                                style={{
+                                    fontWeight: 'normal',
+                                    fontSize: '12px',
+                                    lineHeight: '16px',
+                                    padding: '2px 8px 2px 4px',
+                                    margin: 'auto',
+                                    marginRight: '8px',
+                                }}
+                                onClick={toggleTraceVisibility}
+                            >
+                                {intl.formatMessage(IncidentManagementResources.viewTrace)}
+                            </Button>
+                        )}
+                        {threadId && hasToDoPlans && (
+                            <Tooltip content={tooltip} relationship="label">
+                                <Button
+                                    aria-label={tooltip}
+                                    icon={<TaskListLtr20Regular />}
+                                    appearance={'subtle'}
+                                    shape="circular"
+                                    onClick={() => (isToDoPlanOpen ? closeToDoPlan() : openToDoPlan())}
+                                />
+                            </Tooltip>
+                        )}
+                    </div>
+                </>
+            ) : null}
         </div>
     );
 };

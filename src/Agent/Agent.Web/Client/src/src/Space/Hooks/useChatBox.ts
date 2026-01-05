@@ -42,8 +42,8 @@ const DEEP_INVESTIGATION_CONFIRM_DISMISSED_KEY = 'sreagent.deepInvestigationConf
 export const useChatBox = (
     addThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
-    threadId?: string | null,
-    threadSource?: string | null
+    threadId: string | null | undefined,
+    threadSource: string | null | undefined
 ) => {
     const intl = useIntl();
 
@@ -81,6 +81,8 @@ export const useChatBox = (
         }
     );
 
+    const threadIdUsedForCreatingNewThread = useMemo(() => Guid.newGuid(), []);
+
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const currentScrollTop = useRef<number>(0);
@@ -89,7 +91,8 @@ export const useChatBox = (
     const currentThreadIdRef = useRef<string>(threadId || '');
     const isNewThreadAdded = useRef<boolean>(false);
     // pass userDefinedThreadId to thread create for matching the thread id from the stream message
-    const userDefinedThreadIdRef = useRef<string>(Guid.newGuid());
+    const threadIdUsedForCreatingNewThreadRef = useRef<string>(threadIdUsedForCreatingNewThread);
+    threadIdUsedForCreatingNewThreadRef.current = threadIdUsedForCreatingNewThread;
     const streamingMessageTimestampFilterRef = useRef<string | null>(null);
 
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
@@ -111,6 +114,7 @@ export const useChatBox = (
         useChatHistory(
             setMessageGroups,
             threadId,
+            threadIdUsedForCreatingNewThread,
             prepareForAddingChatHistory,
             scrollToBottom,
             setStreamingMessageGroup,
@@ -298,7 +302,7 @@ export const useChatBox = (
                     startMessageStreamingOnExistingThread(currentThreadId, messageRequest);
                 } else {
                     // Issue a request to create a new thread
-                    startMessageStreamingOnNewThread(userDefinedThreadIdRef.current, {
+                    startMessageStreamingOnNewThread(threadIdUsedForCreatingNewThreadRef.current, {
                         startMessage: messageRequest,
                         startingAgent: starterAgentName,
                     });
@@ -421,7 +425,7 @@ export const useChatBox = (
                         currentThreadIdRef.current ||
                         streamingMessage.additionalProperties?.threadId ||
                         threadId ||
-                        userDefinedThreadIdRef.current,
+                        threadIdUsedForCreatingNewThreadRef.current,
                     threadType: threadSource ?? 'unknown',
                     messageId: cliOrApproval.id,
                     status: cliOrApproval.status,
@@ -679,7 +683,7 @@ export const useChatBox = (
     useEffect(() => {
         let isSubscribed = true;
 
-        const id = currentThreadIdRef.current || userDefinedThreadIdRef.current;
+        const id = currentThreadIdRef.current || threadIdUsedForCreatingNewThreadRef.current;
 
         const latestStreamingMessageHandler = (messageChunk?: StreamingMessage | null) => {
             if (messageChunk && !isFinalStreamingMessage(messageChunk) && !isUpdatedCliOrApprovalStreamingMessage(messageChunk)) {
@@ -870,7 +874,7 @@ export const useChatBox = (
         downButtonState,
         onClickDownButton,
         updateApprovalOrCliMessageInStreamingMessage,
-        userDefinedThreadIdRef,
+        threadIdUsedForCreatingNewThread,
 
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,

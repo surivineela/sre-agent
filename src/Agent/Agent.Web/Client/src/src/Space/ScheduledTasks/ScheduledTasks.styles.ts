@@ -1,26 +1,13 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useScheduledTasksStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'calc(100vh - 60px)',
-        padding: '10px ',
-        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-        backgroundColor: tokens.colorNeutralBackground3,
-        gap: '0.25rem',
-    },
     tabRoot: {
         display: 'flex',
         flexDirection: 'column',
-        margin: '16px 20px 5px 20px',
-        borderRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4,
-        backgroundColor: tokens.colorNeutralBackground1,
-        height: 'calc(100vh - 67px)',
         overflow: 'hidden',
         position: 'relative',
         flex: 1,
+        padding: '16px',
     },
     content: {
         display: 'flex',
@@ -29,10 +16,7 @@ export const useScheduledTasksStyles = makeStyles({
         overflowX: 'auto',
         position: 'relative',
         flex: 1,
-    },
-    padding: {
         padding: '16px',
-        height: 'calc(100% - 32px)',
     },
     title: {
         display: 'flex',
@@ -48,6 +32,7 @@ export const useScheduledTasksStyles = makeStyles({
         alignItems: 'center',
         gap: '9px',
         alignSelf: 'stretch',
+        flexWrap: 'wrap',
     },
     card: {
         display: 'flex',
@@ -67,10 +52,11 @@ export const useScheduledTasksStyles = makeStyles({
     },
     taskOverviewBody: {
         display: 'flex',
-        padding: `0 ${tokens.spacingHorizontalXL} ${tokens.spacingHorizontalXL} ${tokens.spacingHorizontalXL}`,
+        margin: `0 ${tokens.spacingHorizontalXL} ${tokens.spacingHorizontalXL} ${tokens.spacingHorizontalXL}`,
         flexDirection: 'column',
         gap: '16px',
         alignSelf: 'stretch',
+        flex: 1,
     },
     toolbar: {
         display: 'flex',
@@ -78,10 +64,12 @@ export const useScheduledTasksStyles = makeStyles({
         gap: '5px',
         padding: '20px',
         paddingLeft: '0px',
+        flexWrap: 'wrap',
     },
     toolbarButtons: {
         display: 'flex',
         gap: '12px',
+        flexWrap: 'wrap',
     },
     toolbarButton: {
         fontWeight: 'normal',

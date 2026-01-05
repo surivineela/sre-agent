@@ -21,6 +21,7 @@ export const ScheduledTasks: FC = () => {
     const theme = useTheme();
 
     const styles = useScheduledTasksStyles();
+
     const {
         scheduledTasks,
         loading: isScheduledTasksLoading,
@@ -99,64 +100,52 @@ export const ScheduledTasks: FC = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    height: 'calc(100vh - 60px)',
-                    padding: '10px ',
-                    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-                    backgroundColor: tokens.colorNeutralBackground3,
-                    gap: '0.25rem',
+                    borderRadius: '24px',
+                    boxShadow: tokens.shadow4,
+                    backgroundColor: tokens.colorNeutralBackground1,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    flex: 1,
                 }}
             >
-                <div className={styles.tabRoot}>
-                    {currentSelectedTask ? (
-                        <ScheduledTaskExecutionsView task={currentSelectedTask} onBack={handleBackToList} />
-                    ) : (
-                        <div className={styles.content}>
-                            <div className={styles.padding}>
-                                <div className={styles.title}>
-                                    <Text as="h3" size={600} weight="semibold" style={{ margin: 0 }}>
-                                        {intl.formatMessage(ScheduledTasksResources.tasks)}
-                                    </Text>
-                                    <TextWithLink
-                                        text={intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}
-                                        linkUrl={SreAgentFwLinks.learnMoreAboutScheduledTasks}
-                                        linkText={intl.formatMessage(ScheduledTasksResources.learnMoreAboutScheduledTasks)}
-                                    />
-                                </div>
-                                <div className={styles.cards}>
-                                    <ScheduledTaskCard
-                                        title={intl.formatMessage(ScheduledTasksResources.activeTasks)}
-                                        count={activeTasksCount}
-                                    />
-                                    <ScheduledTaskCard
-                                        title={intl.formatMessage(ScheduledTasksResources.totalTasks)}
-                                        count={totalTasksCount}
-                                    />
-                                    <ScheduledTaskCard
-                                        title={intl.formatMessage(ScheduledTasksResources.totalRuns)}
-                                        count={totalRunsCount}
-                                    />
-                                </div>
-                                <div className={styles.taskOverviewBody}>
-                                    <ScheduledTasksToolbar
-                                        selectedTasks={selectedTasks}
-                                        isLoading={isScheduledTasksLoading}
-                                        searchQuery={searchQuery}
-                                        setSearchQuery={setSearchQuery}
-                                        statusFilter={statusFilter}
-                                        setStatusFilter={setStatusFilter}
-                                    />
-                                    <ScheduledTasksDataGrid
-                                        scheduledTasks={filteredTasks}
-                                        isScheduledTasksLoading={isScheduledTasksLoading}
-                                        selectedTaskIds={selectedTaskIds}
-                                        setSelectedTaskIds={setSelectedTaskIds}
-                                        onTaskClick={handleTaskClick}
-                                    />
-                                </div>
-                            </div>
+                {currentSelectedTask ? (
+                    <ScheduledTaskExecutionsView task={currentSelectedTask} onBack={handleBackToList} />
+                ) : (
+                    <div className={styles.content}>
+                        <div className={styles.title}>
+                            <Text as="h3" size={600} weight="semibold" style={{ margin: 0 }}>
+                                {intl.formatMessage(ScheduledTasksResources.tasks)}
+                            </Text>
+                            <TextWithLink
+                                text={intl.formatMessage(ScheduledTasksResources.scheduledTasksDescription)}
+                                linkUrl={SreAgentFwLinks.learnMoreAboutScheduledTasks}
+                                linkText={intl.formatMessage(ScheduledTasksResources.learnMoreAboutScheduledTasks)}
+                            />
                         </div>
-                    )}
-                </div>
+                        <div className={styles.cards}>
+                            <ScheduledTaskCard title={intl.formatMessage(ScheduledTasksResources.activeTasks)} count={activeTasksCount} />
+                            <ScheduledTaskCard title={intl.formatMessage(ScheduledTasksResources.totalTasks)} count={totalTasksCount} />
+                            <ScheduledTaskCard title={intl.formatMessage(ScheduledTasksResources.totalRuns)} count={totalRunsCount} />
+                        </div>
+                        <div className={styles.taskOverviewBody}>
+                            <ScheduledTasksToolbar
+                                selectedTasks={selectedTasks}
+                                isLoading={isScheduledTasksLoading}
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                statusFilter={statusFilter}
+                                setStatusFilter={setStatusFilter}
+                            />
+                            <ScheduledTasksDataGrid
+                                scheduledTasks={filteredTasks}
+                                isScheduledTasksLoading={isScheduledTasksLoading}
+                                selectedTaskIds={selectedTaskIds}
+                                setSelectedTaskIds={setSelectedTaskIds}
+                                onTaskClick={handleTaskClick}
+                            />
+                        </div>
+                    </div>
+                )}
             </CopilotProvider>
         </ScheduledTasksContext.Provider>
     );

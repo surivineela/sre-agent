@@ -1,105 +1,104 @@
+import { SplitCopilotNavItem } from '@fluentui-copilot/react-copilot';
+import { makeStyles, MenuButtonProps, MenuProps } from '@fluentui/react-components';
 import { Text } from '@fluentui/react-text';
-import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { forwardRef, memo, useCallback, useMemo, useState } from 'react';
+import { memo, useContext, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { useLocation } from 'react-router-dom';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import ThreadActionsMenu from '../Activities/ThreadActionsMenu';
-import { useThreadMenuStyle } from '../Styles/Activities.styles';
-import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
-import Fade from './Fade';
+import { ThreadNavContext } from '../Contracts/Context';
+import { PrimaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { constructNavItemId, getNavItemIdFromPathName } from '../Utilities';
 
 interface IThreadItemProps {
-    thread: Thread;
-    selectThread: (thread: Thread | null) => void;
-    deleteThread?: (thread: Thread) => void;
-    isActive: boolean;
+    item: Thread;
     isThreadUnread: boolean;
-    favorite: boolean;
 }
 
-const ThreadItem = forwardRef<HTMLDivElement, IThreadItemProps>(({ thread, selectThread, deleteThread, isActive, isThreadUnread }, ref) => {
-    const ThreadMenuStyles = useThreadMenuStyle();
-    const styles = useActionsStatusBarStyles();
+const useStyles = makeStyles({
+    threadItemButton: {
+        minWidth: '0px',
+    },
+    text: {
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+    },
+});
+
+const ThreadItem = memo(({ item, isThreadUnread }: IThreadItemProps) => {
+    const intl = useIntl();
+
+    const [open, setOpen] = useState(false);
+    const onOpenChange: MenuProps['onOpenChange'] = (_, data) => {
+        setOpen(data.open);
+    };
+    const location = useLocation();
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
-    const [isHovered, setIsHovered] = useState(false);
+    const styles = useStyles();
+    const { updateThreadTitle, updateThreadFavorite, assignThreadItemDivRef, selectThread, deleteThread } = useContext(ThreadNavContext);
 
-    const makeTextBold = useMemo(() => {
-        return isThreadUnread && !isActive;
-    }, [isThreadUnread, isActive]);
-
-    const onSelectThread = useCallback(() => {
-        if (isActive) return;
-
-        selectThread(thread);
-        logAmplitudeControlEvent({
-            targetType: 'button',
-            targetAction: 'clicked',
-            targetName: 'selectThread',
-            targetFriendlyName: 'Select thread',
-            valueObjectName: thread.id,
-            valueObjectFriendlyName: thread.id,
-            metadata: {
-                threadId: thread.id,
-                threadType: thread.source ?? 'unknown',
-            },
-        });
-    }, [logAmplitudeControlEvent, thread, isActive, selectThread]);
-
-    const onConfirmDeleteThread = useCallback(() => {
-        if (!deleteThread) return;
-
-        deleteThread(thread);
-        logAmplitudeControlEvent({
-            targetType: 'button',
-            targetAction: 'clicked',
-            targetName: 'confirmDeleteThread',
-            targetFriendlyName: 'Confirm delete thread',
-            valueObjectName: thread.id,
-            valueObjectFriendlyName: thread.id,
-        });
-    }, [logAmplitudeControlEvent, thread, deleteThread]);
+    const itemNavId = constructNavItemId(PrimaryNavItemValues.Threads, undefined, item.id);
 
     return (
-        <>
-            <div
-                ref={ref}
-                onClick={() => onSelectThread()}
-                onKeyDown={e => {
-                    if (e.key.toLowerCase() === 'enter') {
-                        // Ensure that the event is only triggered when pressing Enter on the container itself, not on its children
-                        if (e.target === e.currentTarget) {
-                            onSelectThread();
-                        }
-                        e.stopPropagation();
-                    }
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onFocus={() => setIsHovered(true)}
-                onBlur={() => setIsHovered(false)}
-                id={thread.id}
-                data-testid={thread.id}
-                tabIndex={0}
-                className={mergeStyles(
-                    ThreadMenuStyles.threadItem,
-                    isActive ? ThreadMenuStyles.activeThreadItem : undefined,
-                    isHovered && !isActive ? ThreadMenuStyles.hoveredThreadItem : undefined
-                )}
-            >
-                {isActive && <div className={ThreadMenuStyles.borderIndicator} />}
-                <div className={ThreadMenuStyles.content}>
-                    <Text className={styles.title} size={300} wrap={false} block weight={makeTextBold ? 'bold' : 'regular'}>
-                        {thread.title}
-                    </Text>
-                </div>
-                <Fade visible={isHovered} appear={true} unmountOnExit={true}>
-                    <div onClick={e => e.stopPropagation()}>
-                        <ThreadActionsMenu thread={thread} handleThreadDelete={() => onConfirmDeleteThread()} />
-                    </div>
-                </Fade>
-            </div>
-        </>
+        <ThreadActionsMenu
+            open={open}
+            onOpenChange={onOpenChange}
+            thread={item}
+            updateThreadTitle={updateThreadTitle}
+            updateThreadFavorite={updateThreadFavorite}
+            handleThreadDelete={() => {
+                deleteThread(item);
+            }}
+            trigger={(triggerProps: MenuButtonProps) => (
+                <SplitCopilotNavItem
+                    ref={(el: HTMLDivElement) => assignThreadItemDivRef(item.id, el)}
+                    navItem={{
+                        level: 1,
+                        className: styles.threadItemButton,
+                        value: itemNavId,
+                        children: (
+                            <Text weight={isThreadUnread ? 'bold' : 'regular'} size={300} className={styles.text}>
+                                {item.title}
+                            </Text>
+                        ),
+                        onClick: () => {
+                            if (getNavItemIdFromPathName(location.pathname) === itemNavId) {
+                                return;
+                            }
+                            logAmplitudeControlEvent({
+                                targetType: 'button',
+                                targetAction: 'clicked',
+                                targetName: 'selectThread',
+                                targetFriendlyName: 'Select thread',
+                                valueObjectName: item.id,
+                                valueObjectFriendlyName: item.id,
+                                metadata: {
+                                    threadId: item.id,
+                                    threadType: item.source ?? 'unknown',
+                                },
+                            });
+                            selectThread(item.id);
+                        },
+                        onContextMenu: (e: React.MouseEvent) => {
+                            setOpen(true);
+                            e.preventDefault();
+                        },
+                    }}
+                    menuButton={{
+                        ...triggerProps,
+                        'aria-label': intl.formatMessage(SreAgentResources.moreOptions),
+                    }}
+                    menuButtonTooltip={{
+                        content: intl.formatMessage(SreAgentResources.moreOptions),
+                        relationship: 'label',
+                    }}
+                />
+            )}
+        />
     );
 });
 

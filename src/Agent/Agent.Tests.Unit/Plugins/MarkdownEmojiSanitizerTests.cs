@@ -63,7 +63,7 @@ This strongly suggests a systemic breakdown of the BlobTrigger listener subsyste
 - **Resume Monitoring:** After corrective action, monitor logs for resumption of polling/listener activity and new FunctionCompleted events to confirm resolution. System is currently NOT healthy.
 ---
 
-**Thread Details:** [View detailed conversation](https://localhost:7023/static/#/views/activities/threads/b00dc4af-18bc-4238-a2b8-33a89eb9efa1)
+**Thread Details:** [View detailed conversation](https://localhost:7023/static/#/views/thread/b00dc4af-18bc-4238-a2b8-33a89eb9efa1)
     ";
     private const string ExpectedText = @"
 ## Blob Trigger RCA Preflight Summary
@@ -108,6 +108,6 @@ This strongly suggests a systemic breakdown of the BlobTrigger listener subsyste
 - **Resume Monitoring:** After corrective action, monitor logs for resumption of polling/listener activity and new FunctionCompleted events to confirm resolution. System is currently NOT healthy.
 ---
 
-**Thread Details:** [View detailed conversation](https://localhost:7023/static/#/views/activities/threads/b00dc4af-18bc-4238-a2b8-33a89eb9efa1)
+**Thread Details:** [View detailed conversation](https://localhost:7023/static/#/views/thread/b00dc4af-18bc-4238-a2b8-33a89eb9efa1)
     ";
 }

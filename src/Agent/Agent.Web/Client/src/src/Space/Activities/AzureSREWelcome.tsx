@@ -5,18 +5,18 @@ import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } fro
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { LearnMoreLink } from '../../Common/Components/LearnMoreLink';
 import { Pagination } from '../../Common/Components/Pagination';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
-import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
 import { getResourceTypeFriendlyName, resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SreAgentResources, WelcomeResources } from '../../Strings/SREAgentResources';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { getSubscriptionId, useResourceGroups } from '../Settings/Hooks/useResourceGroups';
 import { useSreAgent } from '../Settings/Hooks/useSreAgent';
 import { useSubscriptions } from '../Settings/Hooks/useSubscriptions';
@@ -233,16 +233,15 @@ const FakeAgentMessage = ({ content }: FakeAgentMessageProps) => {
 
 interface AzureSREWelcomeProps {
     threadId?: string | null;
-    addThread: (threadId: string, newThreadToSelect?: Thread) => void;
+    selectThread: (threadId: string) => void;
 }
 
-const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
+const AzureSREWelcome = ({ threadId, selectThread }: AzureSREWelcomeProps) => {
     const { sreAgentEndpoint, isCrossTenantPortalMode } = useContext(EnvironmentContext);
 
     const styles = useWelcomeStyles();
     const intl = useIntl();
-    const location = useLocation();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const [knowledgeGraphStatus, setKnowledgeGraphStatus] = useState<KnowledgeGraphStatus | null>(null);
     const [logicalApps, setLogicalApps] = useState<LogicalApplication[]>([]);
@@ -285,12 +284,20 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
         (item: LogicalAppGridItem) => {
             const encodedRscId = encodeURIComponent(item.rscId);
             return (
-                <Link onClick={() => navigate({ ...location, pathname: `/views/resourcegraph/groups/${encodedRscId}` })}>
+                <Link
+                    onClick={() =>
+                        navigate({
+                            primaryNavItemValue: PrimaryNavItemValues.Monitor,
+                            secondaryNavItemValue: SecondaryNavItemValues.Graphs,
+                            grandChildKey: `groups/${encodedRscId}`,
+                        })
+                    }
+                >
                     {intl.formatMessage(SreAgentResources.goToMap)}
                 </Link>
             );
         },
-        [intl, location, navigate]
+        [intl, navigate]
     );
 
     const logicalAppGridColumns = useMemo<IColumn[]>(() => {
@@ -342,10 +349,10 @@ const AzureSREWelcome = ({ threadId, addThread }: AzureSREWelcomeProps) => {
             const thread = response?.data;
 
             if (thread) {
-                addThread(thread.id, thread);
+                selectThread(thread.id);
             }
         },
-        [sreAgentEndpoint, addThread]
+        [sreAgentEndpoint, selectThread]
     );
 
     useEffect(() => {

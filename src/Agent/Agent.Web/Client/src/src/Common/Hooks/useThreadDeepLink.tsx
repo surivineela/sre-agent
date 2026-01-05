@@ -2,12 +2,12 @@ import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
 import { sreAgentPortalAkaLink, standaloneReactEndpoint } from '../Constants/Uri';
 
 /**
- * Deep link format (needs encoding): `#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/<rsc-id>/sreLink/views/activities/threads/<thread-id>`
+ * Deep link format (needs encoding): `#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/<rsc-id>/sreLink/views/thread/<thread-id>`
  */
 export const useThreadDeepLink = (threadId: string, resourceId: string, agentEndpoint: string) => {
     const isStandaloneMode = AzPortalProxy.inStandaloneMode;
     const isCrossTenantMode = AzPortalProxy.envInfo.isCrossTenantPortalMode;
-    const agentSiteDeepLink = `views/activities/threads/${threadId}`;
+    const agentSiteDeepLink = `views/thread/${threadId}`;
 
     if (isStandaloneMode) {
         return `${standaloneReactEndpoint}#/${agentSiteDeepLink}`;

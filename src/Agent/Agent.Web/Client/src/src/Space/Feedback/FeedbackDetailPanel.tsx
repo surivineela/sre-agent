@@ -2,8 +2,9 @@ import { Button, makeStyles, mergeClasses, shorthands, Text, tokens } from '@flu
 import { Open20Regular, ThumbDislikeRegular, ThumbLikeRegular } from '@fluentui/react-icons';
 import { FC, useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { PrimaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 
 const useStyles = makeStyles({
     container: {
@@ -113,10 +114,13 @@ interface FeedbackDetailPanelProps {
 
 const FeedbackDetailPanel: FC<FeedbackDetailPanelProps> = ({ feedback }) => {
     const styles = useStyles();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const handleGoToThread = useCallback(() => {
-        navigate(`/views/activities/threads/${feedback.threadId}`);
+        navigate({
+            primaryNavItemValue: PrimaryNavItemValues.Threads,
+            threadId: feedback.threadId,
+        });
     }, [navigate, feedback.threadId]);
 
     const formatTimestamp = useCallback((timestamp: string) => {

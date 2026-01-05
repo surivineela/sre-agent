@@ -13,8 +13,9 @@ import { Open20Regular } from '@fluentui/react-icons';
 import { FC, useCallback, useMemo } from 'react';
 import { FormattedMessage } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate } from 'react-router-dom';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { PrimaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 
 const useStyles = makeStyles({
     container: {
@@ -188,10 +189,13 @@ interface InsightsDetailPanelProps {
 
 const InsightsDetailPanel: FC<InsightsDetailPanelProps> = ({ insight }) => {
     const styles = useStyles();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const handleGoToThread = useCallback(() => {
-        navigate(`/views/activities/threads/${insight.threadId}`);
+        navigate({
+            primaryNavItemValue: PrimaryNavItemValues.Threads,
+            threadId: insight.threadId,
+        });
     }, [navigate, insight.threadId]);
 
     const sections = useMemo(() => {

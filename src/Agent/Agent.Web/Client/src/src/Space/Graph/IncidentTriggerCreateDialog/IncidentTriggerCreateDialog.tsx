@@ -12,15 +12,12 @@ import {
 import { Dismiss24Regular, WarningFilled } from '@fluentui/react-icons';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
-import {
-    HandlerCreateOrEditInfo,
-    IncidentManagementMenuKeys,
-    OperationStatus,
-} from '../../IncidentManagement/CreateIncidentHandler/Contracts';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
+import { HandlerCreateOrEditInfo, OperationStatus } from '../../IncidentManagement/CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from '../../IncidentManagement/CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import { useIncidentTriggerCreateDialogStyles } from './IncidentTriggerCreateDialog.Styles';
 
@@ -32,7 +29,7 @@ export interface IncidentTriggerCreateDialogProps {
 
 export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> = props => {
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const styles = useIncidentTriggerCreateDialogStyles();
 
     const {
@@ -88,8 +85,8 @@ export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> =
                                     appearance="secondary"
                                     onClick={() => {
                                         navigate({
-                                            ...location,
-                                            pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}`,
+                                            primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                            secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
                                         });
                                     }}
                                 >

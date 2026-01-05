@@ -236,7 +236,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
     return (
         <div className={styles.toolbar}>
             <div className={styles.toolbarButtons}>
-                <Toolbar style={{ padding: 0 }}>
+                <Toolbar style={{ padding: 0, flexWrap: 'wrap' }}>
                     <ScheduledTaskCreateOrEditDialog
                         dialogTrigger={
                             <ToolbarButton className={styles.toolbarButton} icon={<AddRegular />}>

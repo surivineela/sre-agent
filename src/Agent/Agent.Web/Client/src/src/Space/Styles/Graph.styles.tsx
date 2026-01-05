@@ -29,12 +29,8 @@ export const useGraphStyles = makeStyles({
     },
     container: {
         flex: '1 1 auto',
-        padding: '1rem',
         paddingRight: 0,
         paddingTop: 0,
-        backgroundColor: tokens.colorNeutralBackground1,
-        borderTopLeftRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4,
         display: 'flex',
         flexDirection: 'row',
         height: '100%',
@@ -59,10 +55,8 @@ export const useIntegratedSelectorStyles = makeStyles({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: '16px',
-        backgroundColor: tokens.colorNeutralBackground1,
         padding: '16px',
         width: '100%',
-        boxSizing: 'border-box',
         alignItems: 'center',
     },
     field: {

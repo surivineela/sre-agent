@@ -823,6 +823,8 @@ export const SreAgentTabResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     sessionInsights: { defaultMessage: 'Session Insights', id: '9WBhPZ' },
     scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
+    monitor: { defaultMessage: 'Monitor', id: 'YpVoLg' },
+    builder: { defaultMessage: 'Builder', id: '+cRDz7' },
 });
 
 export const ResourcePickerTabResources = defineMessages({
@@ -1319,6 +1321,7 @@ export const IdentityResources = defineMessages({
 
 export const ActivitiesResources = defineMessages({
     createThreadButtonText: { defaultMessage: 'New chat thread', id: 'TkWiD5' },
+    searchThread: { defaultMessage: 'Search threads', id: 'Z5bRi5' },
     createThreadNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to create new chat threads.',
         id: 'RU9VOd',
@@ -1334,6 +1337,14 @@ export const ActivitiesResources = defineMessages({
     favoriteThreadNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to favorite or unfavorite threads',
         id: 'Amv/KL',
+    },
+    expandChatTooltip: {
+        defaultMessage: 'Expand chat',
+        id: 'sq1VgP',
+    },
+    collapseChatTooltip: {
+        defaultMessage: 'Collapse chat',
+        id: '2eNyP5',
     },
     approveActionNoPermissionTooltip: {
         defaultMessage: 'You do not have permission to approve this action.',
@@ -1855,7 +1866,7 @@ export const IncidentManagementResources = defineMessages({
     },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
     metrics: { defaultMessage: 'Metrics', id: 'HNBpJ4' },
-    responsePlans: { defaultMessage: 'Response plans', id: 'DeP+ZM' },
+    responsePlans: { defaultMessage: 'Incident response plans', id: 'mV7WX3' },
     totalIncidents: { defaultMessage: 'Total incidents', id: '2FLZrG' },
     incidentsReviewed: { defaultMessage: 'Incidents reviewed', id: 'KJuQJ3' },
     incidentsNotHandledByResponsePlanCriteria: { defaultMessage: 'Incidents not handled by response plan criteria', id: 'MIxpkh' },
@@ -2236,6 +2247,7 @@ export const SettingsTabResources = defineMessages({
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
     connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
+    azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },

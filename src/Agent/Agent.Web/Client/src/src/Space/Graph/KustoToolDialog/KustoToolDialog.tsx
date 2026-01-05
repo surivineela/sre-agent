@@ -16,10 +16,10 @@ import { Dismiss24Regular, WarningFilled } from '@fluentui/react-icons';
 import { Formik } from 'formik';
 import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedConnector, ExtendedTool } from '../../Contracts/ExtendedAgentGraph';
-import { SettingsKeys } from '../../Settings/Settings.ReactView';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useKustoToolSettings } from './Hooks/useKustoToolSettings';
 import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
 import { KustoToolCreateForm } from './KustoToolForm';
@@ -53,7 +53,7 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
     mode,
 }) => {
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const styles = useKustoToolCreateDialogStyles();
     const {
         initialValues,
@@ -120,8 +120,8 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
                                                     appearance="secondary"
                                                     onClick={() => {
                                                         navigate({
-                                                            ...location,
-                                                            pathname: `/views/settings/${SettingsKeys.Connectors}`,
+                                                            primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                                            secondaryNavItemValue: SecondaryNavItemValues.Connectors,
                                                         });
                                                     }}
                                                 >

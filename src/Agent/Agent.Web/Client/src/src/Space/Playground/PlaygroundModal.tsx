@@ -3336,6 +3336,7 @@ export const PlaygroundModal = ({ open, target, agents, tools, connectors, syste
                     key={`playground-chat-${configHash}-${chatKey}`}
                     threadId={undefined}
                     addThread={() => {}}
+                    selectThread={() => {}}
                     updateThreadLastReadTime={() => {}}
                     threadSource={ThreadSource.playground}
                     stylesProps={playgroundChatStyles}

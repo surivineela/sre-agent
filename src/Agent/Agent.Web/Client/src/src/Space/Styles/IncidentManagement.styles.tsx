@@ -1,23 +1,6 @@
 import { mergeStyleSets } from '@fluentui/react';
 import { makeStyles, tokens } from '@fluentui/react-components';
 
-import { useSharedNavDrawerStyles } from './Navigation.styles';
-
-export const useNavStyles = () => {
-    const sharedStyles = useSharedNavDrawerStyles();
-    return {
-        drawer: sharedStyles.drawerIncidentManagement,
-        drawerCollapsed: sharedStyles.drawerCollapsed,
-        drawerHeader: sharedStyles.drawerHeader,
-        drawerBody: sharedStyles.drawerBody,
-        headerButton: sharedStyles.headerButton,
-        item: sharedStyles.item,
-        itemCollapsed: sharedStyles.itemCollapsed,
-        itemIcon: sharedStyles.itemIcon,
-        itemText: sharedStyles.itemText,
-    };
-};
-
 export const useIncidentManagementStyles = makeStyles({
     root: {
         display: 'flex',
@@ -25,23 +8,17 @@ export const useIncidentManagementStyles = makeStyles({
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         overflow: 'hidden',
-        borderTop: '1px solid rgba(204,204,204,.8)',
         backgroundColor: tokens.colorNeutralBackground3,
-        height: 'calc(100vh - 46px)',
-        width: '100vw',
+        height: '100%',
         position: 'relative',
     },
     navPanelWrapper: {
         display: 'flex',
         flexDirection: 'column',
-        margin: '16px 20px 5px 20px',
-        borderRadius: tokens.borderRadiusXLarge,
-        boxShadow: tokens.shadow4,
-        backgroundColor: tokens.colorNeutralBackground1,
-        height: 'calc(100% - 21px)',
         overflow: 'hidden',
         position: 'relative',
         flex: 1,
+        height: '100%',
     },
     navPanelContent: {
         display: 'flex',
@@ -51,8 +28,15 @@ export const useIncidentManagementStyles = makeStyles({
         flex: 1,
     },
     navPanelPadding: {
-        padding: '16px',
-        height: 'calc(100% - 32px)',
+        padding: '20px',
+    },
+    fullHeightFlexContainer: {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: '0',
+        overflow: 'hidden',
     },
     breadCrumbAndPanelWrapper: {
         display: 'flex',
@@ -67,8 +51,6 @@ export const useIncidentManagementStyles = makeStyles({
         marginLeft: '16px',
     },
     incidentChatWrapper: {
-        // paddingTop: '16px',
-        // height: 'calc(100% - 16px)',
         height: '100%',
     },
     tabRoot: {

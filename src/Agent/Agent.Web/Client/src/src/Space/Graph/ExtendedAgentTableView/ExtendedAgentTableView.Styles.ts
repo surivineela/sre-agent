@@ -40,6 +40,7 @@ export const useListViewStyles = makeStyles({
         paddingTop: '4px',
         paddingRight: '20px',
         paddingBottom: '20px',
+        overflowY: 'auto',
     },
     toolbar: {
         display: 'flex',
@@ -113,6 +114,8 @@ export const useListViewStyles = makeStyles({
     containerWrapper: {
         display: 'flex',
         height: '100%',
+        width: '100%',
+        overflowX: 'auto',
         position: 'relative',
     },
     containerFlex: {

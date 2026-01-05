@@ -57,24 +57,14 @@ const generalSettingsHeader: CSSProperties = { marginBottom: '20px', fontSize: '
 
 const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
 
-const navContainerStyles: CSSProperties = {
-    display: 'flex',
-    height: 'calc(100vh - 52px)',
-    paddingTop: '8px',
-    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-    backgroundColor: tokens.colorNeutralBackground3,
-};
-
 const navPivotContainer: CSSProperties = {
     flex: '1 1 auto',
-    padding: '32px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusXLarge,
-    boxShadow: tokens.shadow4,
+    padding: '20px 30px',
     overflowY: 'auto',
-    marginBottom: '5px',
-    marginRight: '10px',
-    width: '0%',
+    height: '100%',
+    borderRadius: '24px',
+    boxShadow: tokens.shadow4,
+    backgroundColor: tokens.colorNeutralBackground1,
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
@@ -165,7 +155,6 @@ export const useSettingsStyles = () => {
         gridStyle,
         generalSettingsHeader,
         accessControlSettingsContainer,
-        navContainerStyles,
         navPivotContainer,
         incidentManagementDescriptionStyle,
         pagerDutyWrapperStyle,

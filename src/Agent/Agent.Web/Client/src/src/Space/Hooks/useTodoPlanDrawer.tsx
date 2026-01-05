@@ -4,18 +4,16 @@ import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activit
 import { useTodoPlans } from './useTodoPlans';
 
 export const useTodoPlanDrawer = (
-    currentThreadId: string | undefined,
-    userDefinedThreadId: string | undefined,
+    threadId: string | undefined | null,
+    threadIdUsedForCreatingNewThread: string,
     setHasToDoPlans: ((val: boolean) => void) | undefined,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
     setExistingLatestToDoPlan: (plan: TodoPlan | null) => void
 ) => {
-    const threadId = currentThreadId || userDefinedThreadId || null;
-
     const [todoInfo, setToDoInfo] = useState<TodoInfo | null>(null);
 
-    const { todoPlans, isLoading, error } = useTodoPlans(threadId, setExistingLatestToDoPlan);
+    const { todoPlans, isLoading, error } = useTodoPlans(threadId || threadIdUsedForCreatingNewThread || null, setExistingLatestToDoPlan);
 
     const openTodoPlan = useCallback(
         (todoInfo: TodoInfo) => {

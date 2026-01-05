@@ -13,8 +13,8 @@ import { StreamingContext } from '../Contracts/Context';
 import { useAgentTaskStreamHandler } from './useAgentTaskStreamHandler';
 
 export const useAgentTask = (
-    threadId: string | undefined,
-    userDefinedThreadId: string,
+    threadId: string | undefined | null,
+    threadIdUsedForCreatingNewThread: string,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
     setExistingLatestAgentTask: (task: AgentTaskMetaData | null) => void
@@ -29,7 +29,7 @@ export const useAgentTask = (
     const [isLoadingTreeState, setIsLoadingTreeState] = useState(false);
     const [currentTreeStateValue, setCurrentTreeStateValue] = useState<TreeStateValue | null>(null);
 
-    const threadIdRef = useRef<string | null>(threadId || userDefinedThreadId || null);
+    const threadIdRef = useRef<string | null>(threadId || threadIdUsedForCreatingNewThread || null);
     const treeStatesRef = useRef<Map<string, TreeStateValue>>(treeStates);
 
     const { subscribeTaskUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
@@ -38,7 +38,7 @@ export const useAgentTask = (
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
     const agentTaskClient = AgentTaskClient.getInstance(sreAgentEndpoint);
 
-    threadIdRef.current = threadId || userDefinedThreadId || null;
+    threadIdRef.current = threadId || threadIdUsedForCreatingNewThread || null;
     treeStatesRef.current = treeStates;
 
     const openAgentTask = useCallback(

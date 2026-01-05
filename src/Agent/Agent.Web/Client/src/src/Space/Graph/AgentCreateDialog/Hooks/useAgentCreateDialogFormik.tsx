@@ -202,6 +202,7 @@ export const useAgentCreateDialogFormik = (
             threadAutoTerminated: testThreadAutoTerminated,
             testStarted: testStarted,
             addThread: addTestThread,
+            selectThread: () => {},
             chatKey: chatKey,
             onClose: () => setOpenedPanel(undefined),
         },

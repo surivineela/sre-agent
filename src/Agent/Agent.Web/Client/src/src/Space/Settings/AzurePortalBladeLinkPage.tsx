@@ -1,7 +1,7 @@
+import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
 import { Button } from '@fluentui/react-components';
 import { OpenRegular } from '@fluentui/react-icons';
 import { memo } from 'react';
-import { useSettingsStyles } from './Styles/Settings.styles';
 
 interface IAzurePortalBladeLinkPageProps {
     title: string;
@@ -11,18 +11,18 @@ interface IAzurePortalBladeLinkPageProps {
 }
 
 const AzurePortalBladeLinkPage = ({ title, description, buttonText, onClickButton }: IAzurePortalBladeLinkPageProps) => {
-    const styles = useSettingsStyles();
-
     return (
-        <>
-            <div style={styles.generalSettingsHeader}>{title}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
-                {description}
-                <Button icon={<OpenRegular />} onClick={onClickButton}>
-                    {buttonText}
-                </Button>
-            </div>
-        </>
+        <EntityCard
+            entityTitle={<EntityTitle primaryText={title} secondaryText={description} />}
+            style={{ height: '180px', justifyContent: 'space-between' }}
+            actions={
+                <>
+                    <Button icon={<OpenRegular />} onClick={onClickButton}>
+                        {buttonText}
+                    </Button>
+                </>
+            }
+        ></EntityCard>
     );
 };
 

@@ -21,7 +21,6 @@ import { GithubIssueResources } from '../../Strings/SREAgentResources';
 interface IGithubDialogProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    threadId: string | undefined;
 }
 
 const useStyles = makeStyles({
@@ -30,7 +29,7 @@ const useStyles = makeStyles({
     },
 });
 
-const GithubIssueDialog = ({ isOpen, setIsOpen, threadId }: IGithubDialogProps) => {
+const GithubIssueDialog = ({ isOpen, setIsOpen }: IGithubDialogProps) => {
     const intl = useIntl();
     const styles = useStyles();
 
@@ -66,12 +65,12 @@ const GithubIssueDialog = ({ isOpen, setIsOpen, threadId }: IGithubDialogProps) 
         if (isOpen) {
             setTitle('');
             setIssueDescription('');
-            setThreadIdValue(threadId ?? '');
+            setThreadIdValue('');
             setStepsToReproduce('');
             setExpectedBehavior('');
             setActualBehavior('');
         }
-    }, [isOpen, threadId]);
+    }, [isOpen]);
 
     return (
         <Dialog

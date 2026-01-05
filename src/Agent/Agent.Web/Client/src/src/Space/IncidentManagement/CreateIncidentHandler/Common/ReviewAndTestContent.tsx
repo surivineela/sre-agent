@@ -269,6 +269,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                         <ChatBox
                             threadId={testIncidentThreadId}
                             addThread={() => {}}
+                            selectThread={() => {}}
                             updateThreadLastReadTime={() => {}}
                             threadSource={ThreadSource.incident}
                             onOpenSidePanel={onOpenSidePanel}

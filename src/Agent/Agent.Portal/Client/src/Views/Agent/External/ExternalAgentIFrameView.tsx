@@ -12,14 +12,14 @@ export const ExternalAgentIFrameView = () => {
     /**
      * Deep link extraction for external Agent.Web iframe navigation
      *
-     * Agent.Web uses hash-based routing (e.g., #/views/activities/threads/123)
+     * Agent.Web uses hash-based routing (e.g., #/views/thread/123)
      * This extracts everything after /externalagents/{agentName}/{agentUri} and passes it to the iframe
      * as a URL hash parameter via buildAgentUxUrl()
      *
      * Example flow:
-     * - Portal URL: /externalagents/ContosoAgent/https%3A%2F%2Fagent.contoso.com/views/activities/threads/t-1
-     * - Extracted sreLink: "views/activities/threads/t-1"
-     * - Iframe URL: https://agent.contoso.com/static/?trustedAuthority=...#/views/activities/threads/t-1
+     * - Portal URL: /externalagents/ContosoAgent/https%3A%2F%2Fagent.contoso.com/views/thread/t-1
+     * - Extracted sreLink: "views/thread/t-1"
+     * - Iframe URL: https://agent.contoso.com/static/?trustedAuthority=...#/views/thread/t-1
      *
      * Note: This only handles initial page load. Dynamic navigation after iframe load
      * is intentionally not implemented - users navigate within the iframe directly.

@@ -1,4 +1,4 @@
-import { Dispatch, ForwardedRef, SetStateAction, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { ForwardedRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
 import { TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ChatBoxHandleRef, ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
@@ -8,12 +8,12 @@ import { useMemorySearchResultDrawer } from './useMemorySearchResultDrawer';
 import { useTodoPlanDrawer } from './useTodoPlanDrawer';
 
 export const useChatBoxSidePanel = (
-    threadId: string | undefined,
-    userDefinedThreadId: string,
+    threadId: string | undefined | null,
+    threadIdUsedForCreatingNewThread: string,
     initialSidePanelData: ChatBoxSidePanelData | undefined | null,
     isLoadingInitialChatHistory: boolean,
     canOpenSidePanel: boolean,
-    setMenuCollapsed: Dispatch<SetStateAction<boolean>> | undefined,
+    expandOrCollapseNavBar: ((state: boolean) => void) | undefined,
     onOpenSidePanel: ((panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void) | undefined,
     onCloseSidePanel: ((panelType: ChatBoxSidePanelType) => void) | undefined,
     setHasToDoPlans: ((value: boolean) => void) | undefined,
@@ -33,7 +33,7 @@ export const useChatBoxSidePanel = (
     const openSidePanel = useCallback(
         (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => {
             if (!isSidePanelOpenRef.current) {
-                setMenuCollapsed?.(true);
+                expandOrCollapseNavBar?.(false);
             }
 
             setSidePanelWidth(null);
@@ -41,7 +41,7 @@ export const useChatBoxSidePanel = (
             setIsSidePanelOpen(true);
             onOpenSidePanel?.(panelType, sidePanelData);
         },
-        [setMenuCollapsed, onOpenSidePanel]
+        [expandOrCollapseNavBar, onOpenSidePanel]
     );
 
     const closeSidePanel = useCallback(
@@ -78,14 +78,17 @@ export const useChatBoxSidePanel = (
 
             setSelectedSidePanelType(panelType);
             setIsSidePanelOpen(!!shouldOpenSidePanel);
-            setMenuCollapsed?.(!!shouldOpenSidePanel);
+            if (shouldOpenSidePanel) {
+                expandOrCollapseNavBar?.(false);
+            }
+
         },
-        [setMenuCollapsed, isLoadingInitialChatHistory]
+        [expandOrCollapseNavBar, isLoadingInitialChatHistory]
     );
 
     const { setTask, ...agentTaskProps } = useAgentTask(
         threadId,
-        userDefinedThreadId,
+        threadIdUsedForCreatingNewThread,
         openSidePanel,
         closeSidePanel,
         setExistingLatestAgentTask
@@ -93,7 +96,7 @@ export const useChatBoxSidePanel = (
 
     const { setToDoInfo, ...todoPlanProps } = useTodoPlanDrawer(
         threadId,
-        userDefinedThreadId,
+        threadIdUsedForCreatingNewThread,
         setHasToDoPlans,
         openSidePanel,
         closeSidePanel,

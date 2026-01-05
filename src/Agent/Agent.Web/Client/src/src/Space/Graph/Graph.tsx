@@ -1,27 +1,28 @@
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
-import { RadioGroup, Spinner, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { mergeClasses, RadioGroup, Spinner, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { memo, useCallback, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { GraphResources } from '../../Strings/SREAgentResources';
-import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphContext } from '../Contracts/Graph';
-import { useGraph } from '../Hooks/useGraph';
-import { useGraphStyles } from '../Styles/Graph.styles';
-import { CustomEdge } from './CustomEdge';
-import { GraphCard } from './GraphCard';
-import ResourceInfo from './ResourceInfo';
-import ResourceSelector from './ResourceSelector';
-
-import { CopilotProvider, CopilotTheme, tokens } from '@fluentui-copilot/react-copilot';
-import '@xyflow/react/dist/style.css';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import NoAccessError from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
+import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
+import { GraphResources } from '../../Strings/SREAgentResources';
 import { CopilotRadio } from '../Components/Common/CopilotRadio';
+import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphContext } from '../Contracts/Graph';
+import { useGraph } from '../Hooks/useGraph';
+import { useCommonStyles } from '../Styles/Common.styles';
+import { useGraphStyles } from '../Styles/Graph.styles';
+import { CustomEdge } from './CustomEdge';
+import { GraphCard } from './GraphCard';
 import GraphGridView from './GraphGridView';
+import ResourceInfo from './ResourceInfo';
+import ResourceSelector from './ResourceSelector';
+
+import '@xyflow/react/dist/style.css';
 
 const Graph = () => {
     return (
@@ -74,6 +75,8 @@ const GraphContent = () => {
     const { logAmplitudeControlEvent } = useAzPortalContext();
 
     const { visualRoot, reactFlow, spinner, container, radioGroupContainer } = useGraphStyles();
+    const commonStyles = useCommonStyles();
+
     const intl = useIntl();
 
     const theme = useTheme();
@@ -114,11 +117,8 @@ const GraphContent = () => {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    height: 'calc(100vh - 60px)',
-                    padding: '10px ',
-                    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-                    backgroundColor: tokens.colorNeutralBackground3,
                     gap: '0.25rem',
+                    height: '100%',
                 }}
                 {...CopilotTheme}
                 mode={'canvas'}
@@ -126,7 +126,7 @@ const GraphContent = () => {
             >
                 {hasChatPermissions && canReadGraph ? (
                     <>
-                        <div className={radioGroupContainer}>
+                        <div className={mergeClasses(radioGroupContainer, commonStyles.contentHeader)}>
                             <RadioGroup
                                 value={currentView}
                                 onChange={(_, data) => onChangeViewType(data.value as GraphView)}
@@ -136,7 +136,7 @@ const GraphContent = () => {
                                 <CopilotRadio value={GraphView.Grid} label={intl.formatMessage(GraphResources.gridView)} />
                             </RadioGroup>
                         </div>
-                        <div className={container}>
+                        <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                             <div className={visualRoot}>
                                 {currentView === GraphView.Grid ? (
                                     <GraphGridView

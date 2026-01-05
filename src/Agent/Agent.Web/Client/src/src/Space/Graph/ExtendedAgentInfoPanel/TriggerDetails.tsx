@@ -2,11 +2,12 @@ import { Badge, Button, mergeClasses, Text, tokens } from '@fluentui/react-compo
 import { ArrowRightRegular } from '@fluentui/react-icons';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { getHumanReadableCronExpression } from '../../../Common/Helpers/CronExpression';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedTrigger } from '../../Contracts/ExtendedAgentGraph';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
 
 const EMPTY_DISPLAY = '-' as const;
@@ -18,15 +19,20 @@ type TriggerDetailsProps = {
 export const TriggerDetails = memo(({ trigger }: TriggerDetailsProps) => {
     const styles = useExtendedAgentInfoStyles();
     const intl = useIntl();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const navigate = useAgentSiteNavigate();
 
     const handleGoToIncidents = () => {
-        navigate({ ...location, pathname: '/views/incidentmanagement' });
+        navigate({
+            primaryNavItemValue: PrimaryNavItemValues.Activities,
+            secondaryNavItemValue: SecondaryNavItemValues.IncidentOverview,
+        });
     };
 
     const handleGoToScheduled = () => {
-        navigate({ ...location, pathname: '/views/scheduledtasks' });
+        navigate({
+            primaryNavItemValue: PrimaryNavItemValues.Builder,
+            secondaryNavItemValue: SecondaryNavItemValues.ScheduledTasks,
+        });
     };
 
     return (

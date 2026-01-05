@@ -49,7 +49,6 @@ export const ThreadContentStyles = mergeStyleSets({
         overflowY: 'hidden',
         fontSize: '16px',
         lineHeight: '22px',
-        height: '100%',
     },
     titleContainer: {
         display: 'flex',
@@ -58,6 +57,7 @@ export const ThreadContentStyles = mergeStyleSets({
         alignItems: 'center',
         gap: '10px',
         height: `${ThreadTitleHeight}px`,
+        paddingLeft: '5px',
     },
     title: {
         lineHeight: '24px',

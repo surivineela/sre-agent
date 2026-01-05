@@ -1,5 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
-import { Dispatch, ReactNode, SetStateAction } from 'react';
+import { ReactNode } from 'react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskMetaData, InvestigationTreeNode, InvestigationTreeState } from '../../Common/Contracts/DataPlane/AgentTask';
 import {
@@ -83,9 +83,10 @@ export interface ChatBoxSidePanelData {
 }
 
 export interface IChatBoxProps {
-    addThread: (threadId: string, newThreadToSelect?: Thread) => void;
+    selectThread: (threadId: string | null) => void;
+    addThread: (threadId: string) => void;
     updateThreadLastReadTime: (threadId: string) => void;
-    threadId?: string;
+    threadId: string | null | undefined;
     threadSource?: string;
     stylesProps?: ChatBoxStyleProps;
     sidePanelStylesProps?: ChatBoxSidePanelStyleProps;
@@ -93,7 +94,7 @@ export interface IChatBoxProps {
     canOpenSidePanel: boolean;
     onOpenSidePanel?: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void; // Pass this callback to trigger the side effects when any side panel is opened
     onCloseSidePanel?: (panelType: ChatBoxSidePanelType) => void; // Pass this callback to trigger the side effects when any side panel is closed
-    setMenuCollapsed?: Dispatch<SetStateAction<boolean>>;
+    expandOrCollapseNavBar?: (state: boolean) => void;
     setHasToDoPlans?: (val: boolean) => void;
     forcedAgentName?: string;
     lockAgentSelection?: boolean;

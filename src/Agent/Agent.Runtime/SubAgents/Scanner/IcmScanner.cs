@@ -772,7 +772,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     Timestamp: DateTime.UtcNow
                 ));
 
-                var threadUrl = $"{WebBaseUrl}/static/#/views/activities/threads/{thread.Id}";
+                var threadUrl = $"{WebBaseUrl}/static/#/views/thread/{thread.Id}";
                 logger.LogInternalInformation($"[IcmScanner] Automated RCA thread created and started for incident {incidentDocument.Id}. Thread ID: {thread.Id}, URL: {threadUrl}",
                     incidentDocument.Id, thread.Id, threadUrl);
 

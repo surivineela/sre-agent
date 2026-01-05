@@ -10,7 +10,7 @@ import { DropdownOptionBase, OptionType } from '../../../../../Common/Components
 import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
 import { IdentityKeys, IdentityType } from '../../../../Contracts/Identity';
-import { IdentityStatus } from '../../../Identity.ReactView';
+import { IdentityStatus } from '../../../AzureSettings.ReactView';
 import { useConnectorWizardStyles } from '../ConnectorWizard.styles';
 import { ConnectorFormProps } from '../ConnectorWizardFormik';
 

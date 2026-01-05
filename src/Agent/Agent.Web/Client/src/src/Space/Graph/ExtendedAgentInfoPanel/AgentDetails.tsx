@@ -3,9 +3,11 @@ import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
 import { HandoffsTable } from './HandoffsTable';
 import { ToolsTable } from './ToolsTable';
+import { constructNavItemId } from '../../Utilities';
 
 type AgentDetailsProps = {
     agent: ExtendedAgent;
@@ -44,7 +46,14 @@ export const AgentDetails = memo(
                     </div>
                     {memoryEnabled && documentCount !== null && (
                         <div className={styles.marginTopLeft}>
-                            <Link href="#/views/settings/knowledgeBase" className={styles.knowledgeBaseLink}>
+                            <Link
+                                href={`#/${constructNavItemId(
+                                    PrimaryNavItemValues.Settings,
+                                    SecondaryNavItemValues.KnowledgeBase,
+                                    undefined
+                                )}`}
+                                className={styles.knowledgeBaseLink}
+                            >
                                 {documentCount > 0
                                     ? `View ${documentCount} documents in Knowledge Base`
                                     : 'No documents in Knowledge Base - Add documents'}

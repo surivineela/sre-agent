@@ -1,9 +1,10 @@
 import { Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text } from '@fluentui/react-components';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { ExtendedAgentsGraphResources, SettingsTabResources } from '../../../Strings/SREAgentResources';
 import { SystemTool } from '../../Contracts/ExtendedAgentGraph';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
 
 type SystemToolDetailsProps = {
@@ -13,7 +14,7 @@ type SystemToolDetailsProps = {
 export const SystemToolDetails = memo(({ systemTool }: SystemToolDetailsProps) => {
     const styles = useExtendedAgentInfoStyles();
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     return (
         <>
@@ -37,14 +38,24 @@ export const SystemToolDetails = memo(({ systemTool }: SystemToolDetailsProps) =
                     <div className={styles.flexColumnGap8}>
                         <Link
                             appearance="subtle"
-                            onClick={() => navigate('/views/settings/dataKnowledgeSpace')}
+                            onClick={() =>
+                                navigate({
+                                    primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                    secondaryNavItemValue: SecondaryNavItemValues.KnowledgeBase,
+                                })
+                            }
                             className={styles.flexRowCenter}
                         >
                             {intl.formatMessage(SettingsTabResources.knowledgeBase)}
                         </Link>
                         <Link
                             appearance="subtle"
-                            onClick={() => navigate('/views/settings/data-connectors')}
+                            onClick={() =>
+                                navigate({
+                                    primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                    secondaryNavItemValue: SecondaryNavItemValues.Connectors,
+                                })
+                            }
                             className={styles.flexRowCenter}
                         >
                             {intl.formatMessage(SettingsTabResources.connectors)}

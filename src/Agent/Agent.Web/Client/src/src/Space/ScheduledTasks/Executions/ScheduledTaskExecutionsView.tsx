@@ -86,41 +86,39 @@ export const ScheduledTaskExecutionsView: FC<ScheduledTaskExecutionsViewProps> =
 
     return (
         <div className={styles.content}>
-            <div className={styles.padding}>
-                <div className={styles.executionsHeader}>
-                    <Button
-                        appearance="subtle"
-                        icon={<ArrowLeftRegular />}
-                        onClick={onBack}
-                        className={styles.backButton}
-                        aria-label={intl.formatMessage(ScheduledTasksResources.backToScheduledTasks)}
-                    />
-                    <div className={styles.executionsHeaderTitle}>
-                        <Text as="h3" size={500} weight="semibold" style={{ margin: 0 }}>
-                            {task.name}
-                        </Text>
-                        <Text size={300}>{scheduleDescription}</Text>
-                    </div>
-                    <div style={{ marginLeft: 'auto' }}>
-                        <ScheduledTaskCreateOrEditDialog
-                            dialogTrigger={<Button>{intl.formatMessage(ScheduledTasksResources.editTask)}</Button>}
-                            isDialogOpen={isEditDialogOpen}
-                            setIsDialogOpen={setIsEditDialogOpen}
-                            mode={ScheduledTaskDialogMode.Edit}
-                            scheduledTask={task}
-                        />
-                    </div>
+            <div className={styles.executionsHeader}>
+                <Button
+                    appearance="subtle"
+                    icon={<ArrowLeftRegular />}
+                    onClick={onBack}
+                    className={styles.backButton}
+                    aria-label={intl.formatMessage(ScheduledTasksResources.backToScheduledTasks)}
+                />
+                <div className={styles.executionsHeaderTitle}>
+                    <Text as="h3" size={500} weight="semibold" style={{ margin: 0 }}>
+                        {task.name}
+                    </Text>
+                    <Text size={300}>{scheduleDescription}</Text>
                 </div>
-                <div className={styles.taskOverviewBody}>
-                    <ScheduledTaskExecutionsToolbar
-                        task={task}
-                        isLoading={isLoading}
-                        statusFilter={statusFilter}
-                        setStatusFilter={setStatusFilter}
-                        refreshExecutions={loadExecutions}
+                <div style={{ marginLeft: 'auto' }}>
+                    <ScheduledTaskCreateOrEditDialog
+                        dialogTrigger={<Button>{intl.formatMessage(ScheduledTasksResources.editTask)}</Button>}
+                        isDialogOpen={isEditDialogOpen}
+                        setIsDialogOpen={setIsEditDialogOpen}
+                        mode={ScheduledTaskDialogMode.Edit}
+                        scheduledTask={task}
                     />
-                    <ScheduledTaskExecutionsDataGrid executions={filteredExecutions} isLoading={isLoading} threadNames={threadNames} />
                 </div>
+            </div>
+            <div className={styles.taskOverviewBody}>
+                <ScheduledTaskExecutionsToolbar
+                    task={task}
+                    isLoading={isLoading}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    refreshExecutions={loadExecutions}
+                />
+                <ScheduledTaskExecutionsDataGrid executions={filteredExecutions} isLoading={isLoading} threadNames={threadNames} />
             </div>
         </div>
     );

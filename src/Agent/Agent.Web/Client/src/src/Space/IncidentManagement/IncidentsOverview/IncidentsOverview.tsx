@@ -11,6 +11,7 @@ import {
     InputOnChangeData,
     Link,
     makeStyles,
+    mergeClasses,
     SearchBox,
     SearchBoxChangeEvent,
     SkeletonItem,
@@ -26,7 +27,6 @@ import { ArrowClockwise16Regular, Branch16Regular, Flash16Regular } from '@fluen
 import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
@@ -55,12 +55,14 @@ import ThreadActionsMenu from '../../Activities/ThreadActionsMenu';
 import { ChatBoxSidePanelData } from '../../Contracts/Activities';
 import { IncidentsOverviewContext, SreAgentContext } from '../../Contracts/Context';
 import { ExtendedAgentAnchorEntity } from '../../Contracts/ExtendedAgentGraph';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
 import { TracePanel } from '../../Foundry/app/components/shell/playground/tracing/TracePanel';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import IncidentChatDrawer from '../Common/IncidentChatDrawer';
 import { IncidentManagementEmptyState } from '../Common/IncidentManagementEmptyState';
 import { PlatformConnectionMessageBar } from '../Common/PlatformConnectionMessageBar';
-import { HandlerCreateOrEditInfo, IncidentManagementMenuKeys, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
+import { HandlerCreateOrEditInfo, IncidentsListColumnKey } from '../CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from '../CreateIncidentHandler/CreateIncidentHandlerConsolidated';
 import IncidentChat from '../IncidentChat';
 import {
@@ -116,7 +118,7 @@ const IncidentsSkeletonLoader: FC<IncidentsSkeletonLoaderProps> = ({ showControl
 };
 
 const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, showControlPlaneDependentFeatures }) => {
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const showThreadTraceUI = useConfigSetting(SettingNames.ShowThreadTraceUI);
 
     const {
@@ -649,8 +651,12 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                 onClick={e => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    navigate('/views/extendedagentsgraph', {
-                                        state: { anchorEntity },
+                                    navigate({
+                                        primaryNavItemValue: PrimaryNavItemValues.Builder,
+                                        secondaryNavItemValue: SecondaryNavItemValues.ExtendedAgentsGraph,
+                                        options: {
+                                            state: { anchorEntity },
+                                        },
                                     });
                                 }}
                             />
@@ -787,7 +793,10 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 <IncidentManagementEmptyState
                     type="noPlatform"
                     onButtonClick={() =>
-                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` })
+                        navigate({
+                            primaryNavItemValue: PrimaryNavItemValues.Settings,
+                            secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
+                        })
                     }
                 />
             );
@@ -798,7 +807,10 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 <IncidentManagementEmptyState
                     type="noHandlers"
                     onButtonClick={() =>
-                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.ResponsePlans}` })
+                        navigate({
+                            primaryNavItemValue: PrimaryNavItemValues.Builder,
+                            secondaryNavItemValue: SecondaryNavItemValues.ResponsePlans,
+                        })
                     }
                 />
             );
@@ -907,135 +919,128 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                     thread={selectedThreadInfo.thread}
                                     handleThreadDelete={handleThreadDelete}
                                     hideCopyDeeplink={true}
-                                    hideFavorite={true}
-                                    hideRename={true}
                                 />
                             ) : undefined
                         }
                     />
                     <div className={styles.navPanelWrapper}>
-                        <div className={styles.navPanelContent}>
-                            <div className={styles.navPanelPadding}>
-                                <div className={localStyles.fullHeightFlexContainer}>
-                                    <PlatformConnectionMessageBar />
-                                    <div className={styles.incidentFiltersContainer}>
-                                        <SearchBox
-                                            className={styles.searchBox}
-                                            placeholder={intl.formatMessage(SreAgentResources.search)}
-                                            value={searchText}
-                                            onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
-                                                setSearchText(data.value ?? '')
-                                            )}
-                                            disabled={!!selectedThreadInfo}
-                                        />
-                                        <PillFilterSet
-                                            dynamicFilters={dynamicFilters}
-                                            disabled={disableAllControls || !!selectedThreadInfo}
-                                        />
-                                        {incidentPlatformType === IncidentManagementType.Icm && (
-                                            <Button
-                                                icon={<Flash16Regular />}
-                                                appearance="transparent"
-                                                className={styles.button}
-                                                disabled={disableAllControls || !!selectedThreadInfo}
-                                                onClick={() => setIsTriggerAgentDrawerOpen(true)}
-                                            >
-                                                {intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}
-                                            </Button>
+                        <div className={mergeClasses(styles.navPanelContent, styles.navPanelPadding)}>
+                            <div className={styles.fullHeightFlexContainer}>
+                                <PlatformConnectionMessageBar />
+                                <div className={styles.incidentFiltersContainer}>
+                                    <SearchBox
+                                        className={styles.searchBox}
+                                        placeholder={intl.formatMessage(SreAgentResources.search)}
+                                        value={searchText}
+                                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) =>
+                                            setSearchText(data.value ?? '')
                                         )}
+                                        disabled={!!selectedThreadInfo}
+                                    />
+                                    <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
+                                    {incidentPlatformType === IncidentManagementType.Icm && (
                                         <Button
-                                            icon={<ArrowClockwise16Regular />}
+                                            icon={<Flash16Regular />}
                                             appearance="transparent"
                                             className={styles.button}
-                                            onClick={() => setRefreshCounter(prev => prev + 1)}
-                                        >
-                                            {intl.formatMessage(IncidentManagementResources.refresh)}
-                                        </Button>
-                                        <BulkDeleteDialog
-                                            isOpen={isDeleteDialogOpen}
-                                            onOpenChange={setIsDeleteDialogOpen}
-                                            selectedThreads={selectedThreads}
-                                            incidentThreads={incidentThreads}
-                                            onConfirmDelete={handleBulkDelete}
                                             disabled={disableAllControls || !!selectedThreadInfo}
-                                            className={styles.button}
+                                            onClick={() => setIsTriggerAgentDrawerOpen(true)}
+                                        >
+                                            {intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}
+                                        </Button>
+                                    )}
+                                    <Button
+                                        icon={<ArrowClockwise16Regular />}
+                                        appearance="transparent"
+                                        className={styles.button}
+                                        onClick={() => setRefreshCounter(prev => prev + 1)}
+                                    >
+                                        {intl.formatMessage(IncidentManagementResources.refresh)}
+                                    </Button>
+                                    <BulkDeleteDialog
+                                        isOpen={isDeleteDialogOpen}
+                                        onOpenChange={setIsDeleteDialogOpen}
+                                        selectedThreads={selectedThreads}
+                                        incidentThreads={incidentThreads}
+                                        onConfirmDelete={handleBulkDelete}
+                                        disabled={disableAllControls || !!selectedThreadInfo}
+                                        className={styles.button}
+                                    />
+                                </div>
+                                <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
+                                <div className={localStyles.tableContainer}>
+                                    {incidentThreadsLoading && incidentThreads.length === 0 ? (
+                                        <IncidentsSkeletonLoader
+                                            showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
+                                            className={localStyles.skeletonRow}
                                         />
-                                    </div>
-                                    <IncidentsSummary threadCounts={threadCounts} loading={incidentThreadsLoading} />
-                                    <div className={localStyles.tableContainer}>
-                                        {incidentThreadsLoading && incidentThreads.length === 0 ? (
-                                            <IncidentsSkeletonLoader
-                                                showControlPlaneDependentFeatures={showControlPlaneDependentFeatures}
-                                                className={localStyles.skeletonRow}
-                                            />
-                                        ) : (
-                                            <div
-                                                data-is-scrollable="true"
-                                                user-select="text"
-                                                className={localStyles.scrollableList}
-                                                ref={threadListDivRef}
-                                                onScroll={onScroll}
+                                    ) : (
+                                        <div
+                                            data-is-scrollable="true"
+                                            user-select="text"
+                                            className={localStyles.scrollableList}
+                                            ref={threadListDivRef}
+                                            onScroll={onScroll}
+                                        >
+                                            <DataGrid
+                                                items={incidentThreads ?? []}
+                                                columns={columns}
+                                                sortable
+                                                sortState={{
+                                                    sortColumn: sortColumnKey as TableColumnId,
+                                                    sortDirection: isSortedDescending ? 'descending' : 'ascending',
+                                                }}
+                                                onSortChange={(_, nextSortState) => {
+                                                    if (nextSortState.sortColumn) {
+                                                        setSortColumnKey(nextSortState.sortColumn as IncidentsListColumnKey);
+                                                        setIsSortedDescending(nextSortState.sortDirection === 'descending');
+                                                    }
+                                                }}
+                                                selectionMode="multiselect"
+                                                selectedItems={selectedThreads}
+                                                onSelectionChange={(_, data) => setSelectedThreads(data.selectedItems as Set<string>)}
+                                                getRowId={item => item.id}
+                                                resizableColumns
+                                                className={localStyles.dataGrid}
+                                                columnSizingOptions={columnSizingOptions}
+                                                size="small"
                                             >
-                                                <DataGrid
-                                                    items={incidentThreads ?? []}
-                                                    columns={columns}
-                                                    sortable
-                                                    sortState={{
-                                                        sortColumn: sortColumnKey as TableColumnId,
-                                                        sortDirection: isSortedDescending ? 'descending' : 'ascending',
-                                                    }}
-                                                    onSortChange={(_, nextSortState) => {
-                                                        if (nextSortState.sortColumn) {
-                                                            setSortColumnKey(nextSortState.sortColumn as IncidentsListColumnKey);
-                                                            setIsSortedDescending(nextSortState.sortDirection === 'descending');
-                                                        }
-                                                    }}
-                                                    selectionMode="multiselect"
-                                                    selectedItems={selectedThreads}
-                                                    onSelectionChange={(_, data) => setSelectedThreads(data.selectedItems as Set<string>)}
-                                                    getRowId={item => item.id}
-                                                    resizableColumns
-                                                    className={localStyles.dataGrid}
-                                                    columnSizingOptions={columnSizingOptions}
-                                                    size="small"
-                                                >
-                                                    <DataGridHeader className={localStyles.stickyHeader}>
-                                                        <DataGridRow>
-                                                            {({ renderHeaderCell }) => (
-                                                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                                <DataGridHeader className={localStyles.stickyHeader}>
+                                                    <DataGridRow>
+                                                        {({ renderHeaderCell }) => (
+                                                            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                                        )}
+                                                    </DataGridRow>
+                                                </DataGridHeader>
+                                                <DataGridBody<Thread>>
+                                                    {({ item, rowId }) => (
+                                                        <DataGridRow<Thread> key={rowId} className={localStyles.dataGridRow}>
+                                                            {({ renderCell, columnId }) => (
+                                                                <DataGridCell
+                                                                    focusMode={
+                                                                        columnId === IncidentsListColumnKey.title ? 'none' : undefined
+                                                                    }
+                                                                >
+                                                                    {renderCell(item)}
+                                                                </DataGridCell>
                                                             )}
                                                         </DataGridRow>
-                                                    </DataGridHeader>
-                                                    <DataGridBody<Thread>>
-                                                        {({ item, rowId }) => (
-                                                            <DataGridRow<Thread> key={rowId} className={localStyles.dataGridRow}>
-                                                                {({ renderCell, columnId }) => (
-                                                                    <DataGridCell
-                                                                        focusMode={
-                                                                            columnId === IncidentsListColumnKey.title ? 'none' : undefined
-                                                                        }
-                                                                    >
-                                                                        {renderCell(item)}
-                                                                    </DataGridCell>
-                                                                )}
-                                                            </DataGridRow>
-                                                        )}
-                                                    </DataGridBody>
-                                                </DataGrid>
-                                                {moreThreadsToLoad && !incidentThreadsLoading ? (
-                                                    // TODO (andimarc): use shimmer row instead
-                                                    <div ref={intersectionObserverRef} className={localStyles.spinnerContainer}>
-                                                        <Spinner
-                                                            size="tiny"
-                                                            aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    emptyState
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                                                    )}
+                                                </DataGridBody>
+                                            </DataGrid>
+                                            {moreThreadsToLoad && !incidentThreadsLoading ? (
+                                                // TODO (andimarc): use shimmer row instead
+                                                <div ref={intersectionObserverRef} className={localStyles.spinnerContainer}>
+                                                    <Spinner
+                                                        size="tiny"
+                                                        aria-label={intl.formatMessage(SreAgentResources.loadingMoreRows)}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                emptyState
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1084,14 +1089,6 @@ const useIncidentsOverviewStyles = makeStyles({
         '> a': {
             textOverflow: 'ellipsis',
         },
-    },
-    fullHeightFlexContainer: {
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: '0',
-        overflow: 'hidden',
     },
     tableContainer: {
         flex: '1',

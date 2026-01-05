@@ -24,12 +24,15 @@ import {
     TriggerQuickAction,
 } from '../Contracts/ExtendedAgentGraph';
 import { ScheduledTask } from '../Contracts/ScheduledTasks';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
 import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTasksContext } from '../ScheduledTasks/Hooks/ScheduledTasksContext';
+import { useCommonStyles } from '../Styles/Common.styles';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import {
     AddExistingAgentHandoffDialog,
@@ -156,10 +159,13 @@ const ExtendedAgentGraphContent = memo(() => {
         statusMessageContainer,
     } = useExtendedAgentGraphStyles();
 
+    const commonStyles = useCommonStyles();
+
     const theme = useTheme();
     const intl = useIntl();
     const navigate = useNavigate();
     const location = useLocation();
+    const agentSiteNavigate = useAgentSiteNavigate();
 
     const [handlerCreateOrEditInfo, setHandlerCreateOrEditInfo] = useState<HandlerCreateOrEditInfo>();
     const [agentHandoffPickerInfo, setAgentHandoffPickerInfo] = useState<AddExistingAgentHandoffDialogProps['handoffInfo'] | undefined>();
@@ -1506,19 +1512,28 @@ const ExtendedAgentGraphContent = memo(() => {
     }, []);
 
     const handleIncidentManagementClick = useCallback(() => {
-        navigate('/views/incidentmanagement');
+        agentSiteNavigate({
+            primaryNavItemValue: PrimaryNavItemValues.Activities,
+            secondaryNavItemValue: SecondaryNavItemValues.IncidentOverview,
+        });
         setCreationSuccess(undefined);
-    }, [navigate]);
+    }, [agentSiteNavigate]);
 
     const handleScheduledTasksClick = useCallback(() => {
-        navigate('/views/scheduledtasks');
+        agentSiteNavigate({
+            primaryNavItemValue: PrimaryNavItemValues.Builder,
+            secondaryNavItemValue: SecondaryNavItemValues.ScheduledTasks,
+        });
         setCreationSuccess(undefined);
-    }, [navigate]);
+    }, [agentSiteNavigate]);
 
     const handleConnectorNavigate = useCallback(() => {
-        navigate('/views/settings/data-connectors');
+        agentSiteNavigate({
+            primaryNavItemValue: PrimaryNavItemValues.Settings,
+            secondaryNavItemValue: SecondaryNavItemValues.Connectors,
+        });
         setIsCreationDialogOpen(false);
-    }, [navigate]);
+    }, [agentSiteNavigate]);
 
     const handleTriggerNavigate = useCallback(
         (destination: 'incidentManagement' | 'scheduledTasks') => {
@@ -1533,8 +1548,8 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const handleTestAgentClick = useCallback(() => {
         if (creationSuccess?.entityType === 'agent' && creationSuccess?.entityName) {
-            // Navigate to activities with extended agent parameter for testing
-            navigate(`/views/activities?testAgent=${encodeURIComponent(creationSuccess.entityName)}`);
+            // Navigate to threads with extended agent parameter for testing
+            navigate(`/views/threads?testAgent=${encodeURIComponent(creationSuccess.entityName)}`);
         }
     }, [navigate, creationSuccess]);
 
@@ -1810,17 +1825,7 @@ const ExtendedAgentGraphContent = memo(() => {
             setCreationSuccess(undefined);
             setIsCreationDialogOpen(true);
         },
-        [
-            setHandlerCreateOrEditInfo,
-            setCreationDialogContext,
-            setCreationDialogInitialTypeOverride,
-            setCreationDialogTriggerAgentName,
-            setCreationSuccess,
-            setIsCreationDialogOpen,
-            agents,
-            anchorEntity,
-            handleCreatePythonTool,
-        ]
+        [agents, anchorEntity?.entityType, anchorEntity?.entityName, mcpConnections, systemTools, tools, handleCreatePythonTool]
     );
 
     const hasMetaAgentOverride = useMemo(() => {
@@ -1934,7 +1939,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         </div>
                     )}
 
-                    <div className={container}>
+                    <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                         <div className={visualRoot} ref={visualRootRef}>
                             <div className={reactFlow}>
                                 {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && !showEmptyState && (

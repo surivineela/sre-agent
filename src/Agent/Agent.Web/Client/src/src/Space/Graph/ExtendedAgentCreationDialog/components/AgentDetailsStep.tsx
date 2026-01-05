@@ -30,6 +30,8 @@ import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/S
 import { getAgentHeaders } from '../../../../Common/Helpers/headers';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../../Contracts/SreAgentSpace';
+import { constructNavItemId } from '../../../Utilities';
 import { improvePrompt, PromptImprovementResponse } from '../services/promptImprovementService';
 import { useCreationDialogStyles } from '../styles';
 import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid, sanitizeEntityName } from '../utils/nameValidation';
@@ -926,7 +928,7 @@ export const AgentDetailsStep: FC<AgentDetailsStepProps> = ({
                 {agent.enableMemory && (
                     <div style={{ marginTop: '8px', marginLeft: '48px' }}>
                         <Link
-                            href="#/views/settings/knowledgeBase"
+                            href={`#/${constructNavItemId(PrimaryNavItemValues.Settings, SecondaryNavItemValues.KnowledgeBase, undefined)}`}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

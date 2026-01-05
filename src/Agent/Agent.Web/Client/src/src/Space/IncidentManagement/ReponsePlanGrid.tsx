@@ -5,7 +5,6 @@ import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
 import debounce from 'lodash/debounce';
 import { Dispatch, FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { FilterProps } from '../../Common/Components/PillFilter/Contracts';
 import { LabelKeyPair } from '../../Common/Components/PillFilter/ListWithSearch';
 import { PillFilterSet } from '../../Common/Components/PillFilter/PillFilterSet';
@@ -13,9 +12,11 @@ import { IncidentFilter, IncidentHandler } from '../../Common/Contracts/Azure/In
 import { AgentMode, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { IncidentManagementEmptyState } from './Common/IncidentManagementEmptyState';
-import { HandlerCreateOrEditInfo, IncidentManagementMenuKeys, OperationStatus } from './CreateIncidentHandler/Contracts';
+import { HandlerCreateOrEditInfo, OperationStatus } from './CreateIncidentHandler/Contracts';
 import { getPlatformSpecificStrings } from './Utilities';
 
 export type ISortedDetailsListColumn = IColumn & {
@@ -64,7 +65,7 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
         canWriteIncidentManagement = true,
     } = props;
     const intl = useIntl();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
     const styles = useIncidentManagementStyles();
     const [searchText, setSearchText] = useState<string>('');
     const [selectedIncidentTypes, setSelectedIncidentTypes] = useState<string[]>([]);
@@ -326,11 +327,15 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
                     <Link
                         style={{ fontSize: '13px' }}
                         onClick={() => {
-                            navigate('/views/extendedagentsgraph', {
-                                state: {
-                                    anchorEntity: {
-                                        entityType: 'Agent',
-                                        entityName: item.handlingAgent,
+                            navigate({
+                                primaryNavItemValue: PrimaryNavItemValues.Builder,
+                                secondaryNavItemValue: SecondaryNavItemValues.ExtendedAgentsGraph,
+                                options: {
+                                    state: {
+                                        anchorEntity: {
+                                            entityType: 'Agent',
+                                            entityName: item.handlingAgent,
+                                        },
                                     },
                                 },
                             });
@@ -630,7 +635,10 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
                 <IncidentManagementEmptyState
                     type="noPlatform"
                     onButtonClick={() =>
-                        navigate({ ...location, pathname: `/views/incidentmanagement/${IncidentManagementMenuKeys.IncidentPlatform}` })
+                        navigate({
+                            primaryNavItemValue: PrimaryNavItemValues.Settings,
+                            secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
+                        })
                     }
                 />
             );

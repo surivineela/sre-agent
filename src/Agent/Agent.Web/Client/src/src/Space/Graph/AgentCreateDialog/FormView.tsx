@@ -9,6 +9,8 @@ import DropdownFormik from '../../../Common/Components/Dropdown/DropdownFormik';
 import InputFormik from '../../../Common/Components/Input/InputFormik';
 import TextareaFormik from '../../../Common/Components/Textarea/TextareaFormik';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { PillSet } from '../Common/PillSet';
 import { useAgentCreateDialogStyles } from './AgentCreateDialog.Styles';
 import { AgentCreateFormValues, FormViewProps } from './Contracts';
@@ -33,6 +35,8 @@ export const FormView: FC<FormViewProps> = ({
     const { values, setFieldValue } = useFormikContext<AgentCreateFormValues>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const [documentCount, setDocumentCount] = useState<number | null>(null);
+
+    const navigate = useAgentSiteNavigate();
 
     useEffect(() => {
         if (values.enableMemory) {
@@ -175,7 +179,14 @@ export const FormView: FC<FormViewProps> = ({
                                     {values.enableMemory && documentCount !== null && documentCount > 0 && (
                                         <>
                                             {' ('}
-                                            <Link href="#/views/settings/knowledgeBase">
+                                            <Link
+                                                onClick={() => {
+                                                    navigate({
+                                                        primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                                        secondaryNavItemValue: SecondaryNavItemValues.KnowledgeBase,
+                                                    });
+                                                }}
+                                            >
                                                 {documentCount} {documentCount === 1 ? 'document' : 'documents'}
                                             </Link>
                                             {')'}

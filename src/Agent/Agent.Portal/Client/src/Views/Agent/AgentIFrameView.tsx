@@ -40,14 +40,14 @@ export const AgentIFrameView = () => {
     /**
      * Deep link extraction for Agent.Web iframe navigation
      *
-     * Agent.Web uses hash-based routing (e.g., #/views/activities/threads/123)
+     * Agent.Web uses hash-based routing (e.g., #/views/thread/123)
      * This extracts everything after /agents/{agentId} and passes it to the iframe
      * as a URL hash parameter via buildAgentUxUrl()
      *
      * Example flow:
-     * - Portal URL: /agents/subscriptions%2F...%2Fagent/views/activities/threads/t-1
-     * - Extracted sreLink: "views/activities/threads/t-1"
-     * - Iframe URL: https://agent-site/static/?trustedAuthority=...#/views/activities/threads/t-1
+     * - Portal URL: /agents/subscriptions%2F...%2Fagent/views/thread/t-1
+     * - Extracted sreLink: "views/thread/t-1"
+     * - Iframe URL: https://agent-site/static/?trustedAuthority=...#/views/thread/t-1
      *
      * Note: This only handles initial page load. Dynamic navigation after iframe load
      * is intentionally not implemented - users navigate within the iframe directly.

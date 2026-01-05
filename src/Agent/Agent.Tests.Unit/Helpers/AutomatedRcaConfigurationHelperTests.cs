@@ -64,13 +64,13 @@ public class AutomatedRcaConfigurationHelperTests
         var result = AutomatedRcaConfigurationHelper.BuildThreadLink(settings, Guid.Parse("7E44A8B5-2C28-4B66-98A1-CE074533BA32"));
 
         Assert.True(result.IsLocal);
-        Assert.Equal("/static/#/views/activities/threads/7e44a8b5-2c28-4b66-98a1-ce074533ba32", result.Link);
+        Assert.Equal("/static/#/views/thread/7e44a8b5-2c28-4b66-98a1-ce074533ba32", result.Link);
         Assert.Equal(string.Empty, result.AccessNote);
     }
 
     [Theory]
-    [InlineData("https://portal.example.com/", "https://portal.example.com/sreDeepLink/views%2Factivities%2Fthreads%2Fcb252b9b-6f73-4b68-a7da-5b111d3cd808")]
-    [InlineData("https://portal.example.com", "https://portal.example.com/sreDeepLink/views%2Factivities%2Fthreads%2Fcb252b9b-6f73-4b68-a7da-5b111d3cd808")]
+    [InlineData("https://portal.example.com/", "https://portal.example.com/sreDeepLink/views%2Fthread%2Fcb252b9b-6f73-4b68-a7da-5b111d3cd808")]
+    [InlineData("https://portal.example.com", "https://portal.example.com/sreDeepLink/views%2Fthread%2Fcb252b9b-6f73-4b68-a7da-5b111d3cd808")]
     public void BuildThreadLink_ReturnsAbsoluteLink_ForRemoteBaseUrl(string baseUrl, string expected)
     {
         var settings = new AutomatedRCASettings

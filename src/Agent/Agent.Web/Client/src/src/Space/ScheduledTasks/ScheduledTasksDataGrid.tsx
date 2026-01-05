@@ -9,17 +9,20 @@ import {
     DataGridRow,
     Dialog,
     DialogTrigger,
+    makeStyles,
     Menu,
     MenuButton,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    mergeClasses,
     OnSelectionChangeData,
     TableCellLayout,
     TableColumnDefinition,
     TableColumnId,
     Text,
+    tokens,
 } from '@fluentui/react-components';
 import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
@@ -29,6 +32,7 @@ import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalPr
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { getLocaleDateTimeHHMM } from '../../Common/Helpers/Date';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
@@ -54,6 +58,20 @@ interface ScheduledTasksDataGridProps {
     onTaskClick?: (task: ScheduledTask) => void;
 }
 
+const useStyle = makeStyles({
+    dataGrid: {
+        maxWidth: '100%',
+        overflowX: 'auto',
+    },
+    dataGridHeader: {
+        fontWeight: '600',
+        position: 'sticky',
+        top: '0',
+        backgroundColor: tokens.colorNeutralBackground1,
+        zIndex: '1',
+    },
+});
+
 export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
     scheduledTasks,
     selectedTaskIds,
@@ -61,6 +79,9 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
     onTaskClick,
 }) => {
     const intl = useIntl();
+    const styles = useStyle();
+    const { scrollable } = useScrollableComponentStyles();
+
     const azPortalContext = useContext(AzPortalContext);
     const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, getTaskExecutions, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
@@ -400,8 +421,10 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
             selectedItems={selectedTaskIds}
             onSelectionChange={onSelectionChange}
             getRowId={item => item.id}
+            className={mergeClasses(styles.dataGrid, scrollable)}
+            style={{ minWidth: 'unset' }}
         >
-            <DataGridHeader>
+            <DataGridHeader className={styles.dataGridHeader}>
                 <DataGridRow
                     selectionCell={{
                         checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },

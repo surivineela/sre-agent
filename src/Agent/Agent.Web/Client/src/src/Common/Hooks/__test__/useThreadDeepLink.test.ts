@@ -28,7 +28,7 @@ describe('useThreadDeepLink', () => {
             '/subscriptions/abc/resourceGroups/rg/providers/Microsoft.Foo/bar',
             'https://myagent.contoso.com'
         );
-        expect(link).toBe(`${standaloneReactEndpoint}#/views/activities/threads/${threadId}`);
+        expect(link).toBe(`${standaloneReactEndpoint}#/views/thread/${threadId}`);
     });
 
     it('returns cross-tenant deep link when in portal cross-tenant mode', () => {
@@ -43,7 +43,7 @@ describe('useThreadDeepLink', () => {
         const link = useThreadDeepLink(threadId, '/rsc-id', agentEndpoint);
         const expected = `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
             displayName
-        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/activities/threads/${threadId}`)}`;
+        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
         expect(link).toBe(expected);
     });
 
@@ -58,7 +58,7 @@ describe('useThreadDeepLink', () => {
         const link = useThreadDeepLink(threadId, resourceId, 'https://myagent.contoso.com');
         const expected = `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(
             resourceId
-        )}/sreLink/${encodeURIComponent(`views/activities/threads/${threadId}`)}`;
+        )}/sreLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
         expect(link).toBe(expected);
     });
 });

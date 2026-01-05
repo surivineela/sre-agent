@@ -18,7 +18,7 @@ import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 
 interface IThreadSearchDialogProps {
     threads: Thread[];
-    selectThread: (thread: Thread | null) => void;
+    selectThread: (threadId: string | null) => void;
     activeThreadId?: string;
     excludedSources?: ThreadSource[];
 }
@@ -101,7 +101,7 @@ const ThreadSearchDialog = ({ threads: initialThreads, selectThread, activeThrea
     const onClickThreadButton = useCallback(
         (thread: Thread) => {
             if (thread.id !== activeThreadId) {
-                selectThread(thread);
+                selectThread(thread.id);
 
                 logAmplitudeControlEvent({
                     targetType: 'button',

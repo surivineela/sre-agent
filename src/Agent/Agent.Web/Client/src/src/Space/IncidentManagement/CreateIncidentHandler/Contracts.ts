@@ -55,13 +55,6 @@ export interface HandlerCreateOrEditInfo {
     };
 }
 
-export enum IncidentManagementMenuKeys {
-    IncidentOverview = 'incidents',
-    ResponsePlans = 'responsePlans',
-    Metrics = 'metrics',
-    IncidentPlatform = 'setup',
-}
-
 export enum IncidentsListColumnKey {
     incidentId = 'incidentId',
     title = 'title',

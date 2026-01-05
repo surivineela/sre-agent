@@ -16,9 +16,9 @@ import {
 import { Dismiss24Regular, DismissRegular, OpenRegular } from '@fluentui/react-icons';
 import { memo, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { AgentWarningContext } from '../../Space/Contracts/Context';
-import { SettingsKeys } from '../../Space/Settings/Settings.ReactView';
+import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Space/Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Space/Hooks/useAgentSiteNavigate';
 import { RbacWarningBannerResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentFwLinks } from '../Constants/FwLinks';
 
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
 });
 
 const WarningBanner = () => {
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const {
         // Rbac context
@@ -65,7 +65,7 @@ const WarningBanner = () => {
 
     return (showRbacWarning || showUsageWarning) && !isCheckingRbac && !isCheckingUsage ? (
         <>
-            <MessageBar intent={'warning'} shape={'rounded'} style={{ margin: '0px 10px' }} layout={'multiline'}>
+            <MessageBar intent={'warning'} shape={'rounded'} style={{ width: '100%', flex: '1 0 auto' }} layout={'multiline'}>
                 {showRbacWarning && showUsageWarning ? (
                     <GeneralWarningMessageBarContent
                         showRbacWarning={showRbacWarning}
@@ -84,7 +84,12 @@ const WarningBanner = () => {
                     <UsageWarningMessageBarContent
                         reachedLimit={reachedLimit}
                         approachingLimit={approachingLimit}
-                        onClickAgentConsumptionButton={() => navigate(`/views/settings/${SettingsKeys.Usage}`)}
+                        onClickAgentConsumptionButton={() =>
+                            navigate({
+                                primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                secondaryNavItemValue: SecondaryNavItemValues.Usage,
+                            })
+                        }
                         onClickDismiss={handleDismissUsageWarning}
                         isInDrawer={false}
                     />
@@ -265,7 +270,7 @@ const SidePanel = ({
 }) => {
     const intl = useIntl();
     const styles = useStyles();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const restoreFocusSourceAttributes = useRestoreFocusSource();
 
@@ -345,7 +350,10 @@ const SidePanel = ({
                                 reachedLimit={reachedLimit}
                                 approachingLimit={approachingLimit}
                                 onClickAgentConsumptionButton={() => {
-                                    navigate(`/views/settings/${SettingsKeys.Usage}`);
+                                    navigate({
+                                        primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                        secondaryNavItemValue: SecondaryNavItemValues.Usage,
+                                    });
                                     onOpenChange(false);
                                 }}
                                 onClickDismiss={() => {
