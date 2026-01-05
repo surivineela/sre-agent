@@ -22,6 +22,7 @@ public class SessionPoolService : ISessionPoolService
     private readonly SessionPoolSettings _sessionPoolSettings;
     private readonly FederationSettings _federationSettings;
     private readonly IManagedIdentityConfigService _managedIdentityConfigService;
+    private readonly string? _defaultIdentityResourceId;
     private readonly ILogger<SessionPoolService> _logger;
     private readonly string _defaultApiVersion = "2025-02-02-preview";
 
@@ -35,6 +36,7 @@ public class SessionPoolService : ISessionPoolService
         _sessionPoolSettings = azureSettings.SessionPool;
         _federationSettings = azureSettings.Federation;
         _managedIdentityConfigService = managedIdentityConfigService;
+        _defaultIdentityResourceId = string.IsNullOrEmpty(azureSettings.Action.Identity) ? azureSettings.Crawler.Identity : azureSettings.Action.Identity;
         _logger = logger;
     }
 
@@ -91,7 +93,8 @@ public class SessionPoolService : ISessionPoolService
     /// </summary>
     private async Task BootstrapSessionAsync(string identifier, Dictionary<string, string>? tokens, string? identityResourceId)
     {
-        _logger.LogInternalInformation($"Bootstrapping session {identifier}...");
+        var tokenScopes = tokens != null ? string.Join(", ", tokens.Keys) : "none";
+        _logger.LogInternalInformation($"Bootstrapping session {identifier} with tokens scopes=[{tokenScopes}], identityResourceId={identityResourceId ?? "null"}");
 
         var bootstrapRequest = await BuildBootstrapRequestAsync(tokens, identityResourceId);
         await SendBootstrapRequestAsync(identifier, bootstrapRequest);
@@ -184,13 +187,16 @@ public class SessionPoolService : ISessionPoolService
     public async Task<SessionResponse> ExecuteShellCommandInCodeInterpreterPoolAsync(string command, string identifier, int timeoutSeconds)
     {
         _logger.LogInternalInformation($"Executing bash command in Code Interpreter pool. Identifier={identifier} Timeout={timeoutSeconds}s");
+
+        await BootstrapSessionAsync(identifier, tokens: null, identityResourceId: _defaultIdentityResourceId);
+
         var sessionRequest = new SessionRequest
         {
             Commands = ["/bin/bash", "-c", command],
             TimeoutInSeconds = Math.Clamp(timeoutSeconds, 5, 900)
         };
 
-        var sessionResponse = await SendRequestAsync<SessionRequest, SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest, useCodeInterpreterPool: true);
+        var sessionResponse = await SendRequestAsync<SessionRequest, SessionResponse>(HttpMethod.Post, "/shellExecute", identifier, sessionRequest);
         _logger.LogInternalInformation($"Code Interpreter execution complete. Identifier={identifier} ExitCode={sessionResponse.ExitCode} ExecMs={sessionResponse.Result?.ExecutionTimeInMilliseconds}");
         return sessionResponse;
     }
@@ -199,10 +205,10 @@ public class SessionPoolService : ISessionPoolService
     {
         if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("code required", nameof(code));
 
-        // Build endpoint (force code interpreter pool)
-        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
-            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
-            : _sessionPoolSettings.PoolManagementEndpoint;
+        await BootstrapSessionAsync(identifier, tokens: null, identityResourceId: _defaultIdentityResourceId);
+
+        // Build endpoint
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
         var url = $"{baseEndpoint.TrimEnd('/')}/executions?identifier={identifier}&api-version={_defaultApiVersion}";
 
@@ -250,9 +256,7 @@ public class SessionPoolService : ISessionPoolService
         if (string.IsNullOrWhiteSpace(filename)) throw new ArgumentException("filename required", nameof(filename));
         if (filename.Contains("..")) throw new InvalidOperationException("path traversal not allowed");
 
-        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
-            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
-            : _sessionPoolSettings.PoolManagementEndpoint;
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
         if (!filename.StartsWith("mnt/data/"))
         {
@@ -282,9 +286,7 @@ public class SessionPoolService : ISessionPoolService
 
     public async Task<string> ListSessionFilesAsync(string identifier)
     {
-        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
-            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
-            : _sessionPoolSettings.PoolManagementEndpoint;
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
         var url = $"{baseEndpoint.TrimEnd('/')}/files?identifier={identifier}&api-version=2024-02-02-preview";
         _logger.LogInternalInformation($"Listing session files from session pool endpoint {url}");
@@ -313,9 +315,7 @@ public class SessionPoolService : ISessionPoolService
         if (fileContent == null || fileContent.Length == 0) throw new ArgumentException("fileContent required", nameof(fileContent));
         if (filename.Contains("..")) throw new InvalidOperationException("path traversal not allowed");
 
-        var baseEndpoint = !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
-            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
-            : _sessionPoolSettings.PoolManagementEndpoint;
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
         var urlBuilder = new StringBuilder($"{baseEndpoint.TrimEnd('/')}/files?identifier={identifier}&api-version={_defaultApiVersion}");
         if (!string.IsNullOrWhiteSpace(destinationPath))
@@ -350,12 +350,10 @@ public class SessionPoolService : ISessionPoolService
         }
     }
 
-    private async Task<TResp> SendRequestAsync<TReq, TResp>(HttpMethod method, string path, string identifier, TReq sessionRequest, bool useCodeInterpreterPool = false)
+    private async Task<TResp> SendRequestAsync<TReq, TResp>(HttpMethod method, string path, string identifier, TReq sessionRequest)
     {
-        // Choose endpoint: prefer dedicated code interpreter pool if requested & configured
-        var baseEndpoint = useCodeInterpreterPool && !string.IsNullOrWhiteSpace(_sessionPoolSettings.CodeInterpreterPoolManagementEndpoint)
-            ? _sessionPoolSettings.CodeInterpreterPoolManagementEndpoint
-            : _sessionPoolSettings.PoolManagementEndpoint;
+        // Choose endpoint
+        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
         var url = $"{baseEndpoint.TrimEnd('/')}{path}?identifier={identifier}&api-version={_defaultApiVersion}";
 

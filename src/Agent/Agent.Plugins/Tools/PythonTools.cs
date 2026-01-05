@@ -4,12 +4,14 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Tools;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Plugins.Python.Tools
 {
@@ -17,11 +19,13 @@ namespace Agent.Plugins.Python.Tools
     public class PythonFunctionToolType : IYamlToolAware, IToolArgumentTransformer
     {
         private readonly ISessionPoolService _sessionPool;
+        private readonly IHostEnvironment _hostEnvironment;
         private PythonFunctionToolDefinition? _definition;
 
-        public PythonFunctionToolType(ISessionPoolService sessionPool)
+        public PythonFunctionToolType(ISessionPoolService sessionPool, IHostEnvironment hostEnvironment)
         {
             _sessionPool = sessionPool;
+            _hostEnvironment = hostEnvironment;
         }
 
         public void SetToolDefinition(YamlToolDefinitionBase definition)
@@ -35,6 +39,13 @@ namespace Agent.Plugins.Python.Tools
         /// </summary>
         public object?[] TransformArguments(System.Reflection.MethodInfo method, Dictionary<string, object?> flatArgs, YamlToolDefinitionBase toolDef)
         {
+            // Extract threadId from flatArgs
+            Guid? threadId = null;
+            if (flatArgs.TryGetValue("threadId", out var threadIdValue) && threadIdValue != null)
+            {
+                threadId = (Guid?)threadIdValue;
+            }
+
             // Convert all arguments to string dictionary for Python execution
             var stringArgs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -53,11 +64,11 @@ namespace Agent.Plugins.Python.Tools
                 }
             }
 
-            // Return as single argument (the Run method takes Dictionary<string, string>)
-            return new object?[] { stringArgs };
+            // Return both arguments (the Run method takes Dictionary<string, string> and Guid?)
+            return new object?[] { stringArgs, threadId };
         }
 
-        public async Task<string> Run(Dictionary<string, string> args)
+        public async Task<string> Run(Dictionary<string, string> args, Guid? threadId = null)
         {
             if (_definition == null)
             {
@@ -69,11 +80,13 @@ namespace Agent.Plugins.Python.Tools
                 // 1. Build the complete Python script with parameter injection
                 var script = BuildPythonScript(_definition.FunctionCode, args);
 
-                // 2. Create session identifier
+                // 2. Create session identifier - use stable identifier with threadId like CodeInterpreterPlugin
+                // This ensures all executions for the same thread reuse the same session
+                var agentName = AgentNameHelper.GetAgentName(!_hostEnvironment.IsDevelopment());
                 var identifier = _sessionPool.BuildSessionIdentifier(
-                    agentName: $"python-tool-{_definition.Name}",
-                    threadId: null,
-                    randomSuffix: true
+                    agentName: agentName,
+                    threadId: threadId?.ToString(),
+                    randomSuffix: false
                 );
 
                 // 3. Execute via SessionPoolService

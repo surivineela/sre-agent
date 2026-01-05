@@ -11,6 +11,28 @@ public class PythonProxyService
     private readonly ILogger<PythonProxyService> _logger;
     private readonly string _targetBaseUrl;
 
+    /// <summary>
+    /// Hop-by-hop headers as defined in RFC 2616, RFC 7230, and common proxy implementations.
+    /// These headers are meaningful only for a single transport-level connection and must not be forwarded.
+    /// </summary>
+    private static readonly HashSet<string> HopByHopHeaders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // RFC 2616 Section 13.5.1 - End-to-end and Hop-by-hop Headers
+        "Connection",
+        "Keep-Alive",
+        "Proxy-Authenticate",
+        "Proxy-Authorization",
+        "TE",
+        "Trailers",
+        "Transfer-Encoding",
+        "Upgrade",
+
+        // Additional headers commonly treated as hop-by-hop
+        "Proxy-Connection",  // Non-standard but widely used
+        "Public",            // RFC 2068 (obsolete)
+        "Alt-Svc",           // Alternative services - connection specific
+    };
+
     public PythonProxyService(IHttpClientFactory httpClientFactory, ILogger<PythonProxyService> logger, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
@@ -69,10 +91,13 @@ public class PythonProxyService
             // Copy response to HttpContext
             context.Response.StatusCode = (int)response.StatusCode;
 
-            // Copy response headers
+            // Copy response headers (skip hop-by-hop headers that shouldn't be forwarded)
             foreach (var header in response.Headers)
             {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
+                if (!IsHopByHopHeader(header.Key))
+                {
+                    context.Response.Headers[header.Key] = header.Value.ToArray();
+                }
             }
 
             // Copy content headers and body
@@ -93,4 +118,11 @@ public class PythonProxyService
             throw;
         }
     }
+
+    /// <summary>
+    /// Determines whether a header is a hop-by-hop header that should not be forwarded by proxies.
+    /// </summary>
+    /// <param name="headerName">The name of the header to check.</param>
+    /// <returns>True if the header is a hop-by-hop header; otherwise, false.</returns>
+    private static bool IsHopByHopHeader(string headerName) => HopByHopHeaders.Contains(headerName);
 }

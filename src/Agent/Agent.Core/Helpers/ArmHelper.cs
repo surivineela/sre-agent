@@ -4407,7 +4407,7 @@ public class ArmHelper
                                                   accessToken: token.Token,
                                                   isDevelopment: _hostEnvironment.IsDevelopment(),
                                                   additionalTokens: additionalTokens,
-                                                  identityResourceId: _azureSettings.Action.Identity,
+                                                  identityResourceId: string.IsNullOrEmpty(_azureSettings.Action.Identity) ? _azureSettings.Crawler.Identity : _azureSettings.Action.Identity,
                                                   threadId: ToolStatic.AsyncLocalThreadId.Value);
             var result = await cliExecution.ExecuteAsync();
 

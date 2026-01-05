@@ -629,7 +629,8 @@ public class ExtendedAgentController : ControllerBase
 
             // Execute the tool
             var sessionPoolService = HttpContext.RequestServices.GetRequiredService<ISessionPoolService>();
-            var pythonTool = new PythonFunctionToolType(sessionPoolService);
+            var hostEnvironment = HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
+            var pythonTool = new PythonFunctionToolType(sessionPoolService, hostEnvironment);
             pythonTool.SetToolDefinition(toolDefinition);
 
             var startTime = DateTime.UtcNow;
