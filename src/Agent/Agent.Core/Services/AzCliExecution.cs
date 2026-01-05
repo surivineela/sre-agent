@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ public class AzCliExecution
     private readonly SessionPoolSettings _sessionPoolSettings;
     private readonly ISessionPoolService _sessionPoolService;
     private readonly string? _identityResourceId;
+    private readonly string _threadId;
     public AzCliExecution(ILogger logger,
         string command,
         SessionPoolSettings sessionPoolSettings,
@@ -28,7 +30,8 @@ public class AzCliExecution
         string? accessToken = null,
         bool isDevelopment = false,
         Dictionary<string, string>? additionalTokens = null,
-        string? identityResourceId = null)
+        string? identityResourceId = null,
+        Guid? threadId = null)
     {
         _logger = logger;
         _command = command.Trim();
@@ -39,6 +42,7 @@ public class AzCliExecution
         _configDir = isDevelopment ? string.Empty : Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
         _isDevelopment = isDevelopment;
         _identityResourceId = identityResourceId;
+        _threadId = (threadId ?? Guid.NewGuid()).ToString();
     }
 
     public async Task<string> ExecuteAsync(CancellationToken cancellationToken = default)
@@ -51,7 +55,8 @@ public class AzCliExecution
             if (_sessionPoolSettings.Enabled
                 && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint))
             {
-                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(randomSuffix: true), _additionalTokens, _identityResourceId);
+                var agentName = AgentNameHelper.GetAgentName(!_isDevelopment);
+                (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(agentName, _threadId, false), _additionalTokens, _identityResourceId);
             }
             else
             {

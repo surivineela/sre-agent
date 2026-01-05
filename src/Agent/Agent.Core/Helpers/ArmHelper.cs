@@ -4400,7 +4400,15 @@ public class ArmHelper
             // obo token is pre-fetched by YARP
             var additionalTokens = await _authService.GetAllOboTokens();
 
-            var cliExecution = new AzCliExecution(_logger, command, _azureSettings.SessionPool, _sessionPoolService, accessToken: token.Token, isDevelopment: _hostEnvironment.IsDevelopment(), additionalTokens: additionalTokens, identityResourceId: _azureSettings.Action.Identity);
+            var cliExecution = new AzCliExecution(_logger,
+                                                  command,
+                                                  _azureSettings.SessionPool,
+                                                  _sessionPoolService,
+                                                  accessToken: token.Token,
+                                                  isDevelopment: _hostEnvironment.IsDevelopment(),
+                                                  additionalTokens: additionalTokens,
+                                                  identityResourceId: _azureSettings.Action.Identity,
+                                                  threadId: ToolStatic.AsyncLocalThreadId.Value);
             var result = await cliExecution.ExecuteAsync();
 
             if (IsWriteCommand(command))

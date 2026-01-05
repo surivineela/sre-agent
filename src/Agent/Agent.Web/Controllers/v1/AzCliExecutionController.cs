@@ -72,6 +72,8 @@ public class AzCliExecutionController : ControllerBase
         var threadGuid = Guid.Parse(threadId);
         var executionGuid = Guid.Parse(executionId);
 
+        ToolStatic.AsyncLocalThreadId.Value = threadGuid;
+
         // Get current execution
         var execution = await _threadRepository.GetAzCliExecutionAsync(threadGuid, executionGuid);
         if (execution == null)
@@ -283,10 +285,19 @@ public class AzCliExecutionController : ControllerBase
                                 ApprovalId: approval.Id,
                                 UseOboToken: true
                             );
-                            ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
 
-                            _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
-                            result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
+                            try
+                            {
+                                ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+
+                                _logger.LogInternalInformation($"[{threadGuid}]Executing {executionGuid} with obo token");
+                                result = await _armHelper.RunAzCliCommandsAsync(execution.Command ?? string.Empty);
+                            }
+                            finally
+                            {
+                                // reset approval context so that further tool execution won't reuse it
+                                ToolStatic.AsyncLocalApprovalContext.Value = null;
+                            }
                         }
 
                         execution = execution with
