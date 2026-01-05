@@ -10,6 +10,7 @@ using Agent.Core.Models;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Plugins.DataConnectors.Documentation;
+using Agent.Plugins.Interface;
 using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
@@ -27,7 +28,8 @@ public class AgentMemoryController(
     ISearchIndexService searchIndexService,
     DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
     DataConnectorIndex dataConnectorIndex,
-    AgentMemorySettings agentMemorySettings)
+    AgentMemorySettings agentMemorySettings,
+    IKnowledgeGraphPlugin knowledgeGraphPlugin)
     : ControllerBase
 {
     private static readonly char[] InvalidChars = [
@@ -577,6 +579,24 @@ public class AgentMemoryController(
         {
             logger.LogInternalError(ex, "Failed to get files count.");
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to get files count." });
+        }
+    }
+
+    [HttpGet("knowledgegraph")]
+    [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetKnowledgeGraph()
+    {
+        try
+        {
+            var graph = await knowledgeGraphPlugin.ReadGraphAsync();
+            return Ok(graph);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to get knowledge graph.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to get knowledge graph." });
         }
     }
 }
