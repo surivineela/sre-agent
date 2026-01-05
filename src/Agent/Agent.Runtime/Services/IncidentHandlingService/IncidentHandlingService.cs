@@ -11,6 +11,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.Logging;
+using Agent.Runtime.Reasoning;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -394,6 +395,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
     protected readonly IIncidentAnalysisService<TIncidentDocument, TIncidentFilterDocument, TIncidentFilterDocumentPayload, TIncident> _incidentAnalysisService;
     protected readonly Tracer _tracer;
     protected readonly ExperimentalSettings _experimentalSettings;
+    protected readonly IReasoningLoopManager _reasoningLoopManager;
 
     public IncidentHandlingService(
         IThreadRepository repository,
@@ -407,7 +409,8 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
         ILogger logger,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
-        ExperimentalSettings experimentalSettings) : base(incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, agentFactory, logger)
+        ExperimentalSettings experimentalSettings,
+        IReasoningLoopManager reasoningLoopManager) : base(incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, agentFactory, logger)
     {
         _repository = repository;
         _inboundCommunicationService = inboundCommunicationService;
@@ -416,6 +419,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
         _incidentAnalysisService = incidentAnalysisService;
         _tracer = tracer;
         _experimentalSettings = experimentalSettings;
+        _reasoningLoopManager = reasoningLoopManager;
     }
 
     protected abstract IncidentManagementType IncidentType { get; }
@@ -641,9 +645,8 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
             if (!string.IsNullOrEmpty(currentAgent))
             {
-                // Update agent context to use specified current agent
-                agentContext = agentContext with { CurrentAgent = currentAgent };
-                await _repository.UpdateAgentContextAsync(agentContext);
+                // Set as home agent - during auto handoff, the agent will return to this agent
+                await _reasoningLoopManager.SetHomeAgentAsync(agentContext, currentAgent);
             }
 
             _logger.LogInternalInformation("[IncidentHandlingService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} with CurrentAgent: {CurrentAgent}", thread.Id, request.IncidentId, currentAgent);
@@ -787,9 +790,8 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
                 if (_experimentalSettings.UseYamlForIncidentHandling)
                 {
-                    // Update agent context to use our dynamic agent
-                    agentContext = agentContext with { CurrentAgent = dynamicAgentName };
-                    await _repository.UpdateAgentContextAsync(agentContext);
+                    // Set as home agent - during auto handoff, the agent will return to this agent
+                    await _reasoningLoopManager.SetHomeAgentAsync(agentContext, dynamicAgentName);
                 }
 
                 if (span != null)

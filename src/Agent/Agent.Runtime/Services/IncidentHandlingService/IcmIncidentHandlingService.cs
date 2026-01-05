@@ -35,8 +35,9 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
         IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
-        ExperimentalSettings experimentalSettings)
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+        ExperimentalSettings experimentalSettings,
+        IReasoningLoopManager reasoningLoopManager)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings, reasoningLoopManager)
     {
         _icmApiClient = icmApiClient;
     }

@@ -63,7 +63,7 @@ public class ReasoningLoop : IDisposable
 
     private readonly Channel<ReasoningLoopMessage> _msgCh;
     private AgentContext _context;
-    private readonly Agent<AgentContext> _defaultStartingAgent;
+    private Agent<AgentContext> _defaultStartingAgent;
     private Agent<AgentContext> _currentAgent;
     private List<ChatMessage>? _chatHistory;
 
@@ -162,7 +162,7 @@ public class ReasoningLoop : IDisposable
         _threadRepository = threadRepository;
         _context = context;
         _toolFactory = toolFactory;
-        _defaultStartingAgent = startingAgent;
+        _defaultStartingAgent = defaultStartingAgent;
         _currentAgent = startingAgent;
         _actionSettings = actionSettings;
         _tracer = tracer;
@@ -224,7 +224,7 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    public virtual async Task SetCurrentAgent(string agentName)
+    public virtual async Task SetHomeAgent(string agentName)
     {
         if (string.IsNullOrEmpty(agentName))
         {
@@ -240,6 +240,7 @@ public class ReasoningLoop : IDisposable
                 AgentHandoffChain = [agentName.ToLower()]
             };
             _currentAgent = currentAgent;
+            _defaultStartingAgent = currentAgent;  // Set as home agent. during auto handoff, the agent will return to this agent
             _context = await _threadRepository.UpdateAgentContextAsync(_context);
         }
         catch (Exception)

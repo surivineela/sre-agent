@@ -37,9 +37,10 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
         IIncidentFilterManagementService<ServiceNowIncidentFilterDocument, ServiceNowIncidentFilterDocumentPayload> incidentFilterManagementService,
         IIncidentHandlerManagementService incidentHandlerManagementService,
         IAgentFactory<AgentContext> agentFactory,
-        ExperimentalSettings experimentalSettings
+        ExperimentalSettings experimentalSettings,
+        IReasoningLoopManager reasoningLoopManager
         )
-        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings)
+        : base(repository, inboundCommunicationService, incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, incidentStatusMetricsService, agentOutboundCommunicationService, incidentAnalysisService, logger, tracer, agentFactory, experimentalSettings, reasoningLoopManager)
     {
         _serviceNowAPIClient = serviceNowAPIClient;
     }

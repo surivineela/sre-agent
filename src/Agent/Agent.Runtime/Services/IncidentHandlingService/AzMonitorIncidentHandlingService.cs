@@ -42,6 +42,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     private readonly IAgentInboundCommunicationService _inboundCommunicationService;
     private readonly ExperimentalSettings _experimentalSettings;
     private readonly IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> _incidentAnalysisService;
+    private readonly IReasoningLoopManager _reasoningLoopManager;
 
     private IncidentManagementType IncidentType => IncidentManagementType.AzMonitor;
 
@@ -63,7 +64,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem> incidentAnalysisService,
         Tracer tracer,
         IAgentFactory<AgentContext> agentFactory,
-        ExperimentalSettings experimentalSettings
+        ExperimentalSettings experimentalSettings,
+        IReasoningLoopManager reasoningLoopManager
     ) : base(incidentFilterManagementService, incidentManagementService, incidentHandlerManagementService, agentFactory, logger)
     {
         _azMonitorAlertService = azMonitorAlertService;
@@ -75,6 +77,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         _inboundCommunicationService = inboundCommunicationService;
         _experimentalSettings = experimentalSettings;
         _incidentAnalysisService = incidentAnalysisService;
+        _reasoningLoopManager = reasoningLoopManager;
     }
 
     protected async override Task<IncidentHandlingResponseModel> HandleIncidentInternalAsync(AzMonitorAlertDocument incidentDetails, AzMonitorIncidentFilterDocumentPayload filterPayload, IncidentHandlerDocumentPayload? handler, IncidentHandlingRequestModelBase request)
@@ -674,13 +677,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         var handlingAgent = filterPayload?.HandlingAgent ?? string.Empty;
         if (!string.IsNullOrEmpty(handlingAgent))
         {
-            agentContext = agentContext with
-            {
-                CurrentAgent = handlingAgent.ToLower(),
-                AgentHandoffChain = [handlingAgent.ToLower()]
-            };
-            await _repository.UpdateAgentContextAsync(agentContext);
-            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThread: Set CurrentAgent to '{handlingAgent}' and initialized AgentHandoffChain for thread {thread.Id}");
+            // Set as home agent - during auto handoff, the agent will return to this agent
+            await _reasoningLoopManager.SetHomeAgentAsync(agentContext, handlingAgent);
+            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThread: Set home agent to '{handlingAgent}' for thread {thread.Id}");
         }
 
         try
@@ -815,14 +814,9 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
                 InvestigationStatus.InProgress)
         );
 
-        // Custom handler / subagent handoff
-        agentContext = agentContext with
-        {
-            CurrentAgent = dynamicAgentName.ToLower(),
-            AgentHandoffChain = [dynamicAgentName.ToLower()]
-        };
-        await _repository.UpdateAgentContextAsync(agentContext);
-        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThreadWithHandler: Set CurrentAgent to '{dynamicAgentName}' and initialized AgentHandoffChain for thread {thread.Id}");
+        // Custom handler / subagent handoff - set as home agent so it persists across auto handoffs
+        await _reasoningLoopManager.SetHomeAgentAsync(agentContext, dynamicAgentName);
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThreadWithHandler: Set home agent to '{dynamicAgentName}' for thread {thread.Id}");
 
         // Emit agent action telemetry for thread creation
         try

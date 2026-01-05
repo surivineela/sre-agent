@@ -10,6 +10,7 @@ using Agent.Data.DataModels;
 using Agent.Data.DataModels.IncidentModel;
 using Agent.Data.Interface.IncidentAPI;
 using Agent.Framework;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,7 @@ namespace Agent.Tests.Unit.Services
         private readonly Mock<IIncidentHandlerManagementService> _mockHandlerManagementService;
         private readonly Mock<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>> _mockIncidentAnalysisService;
         private readonly Mock<IAgentFactory<AgentContext>> _mockAgentFactory;
+        private readonly Mock<IReasoningLoopManager> _mockReasoningLoopManager;
         private readonly CosmosDBSettings _cosmosDbSettings;
         private readonly ExperimentalSettings _experimentalSettings;
 
@@ -52,6 +54,7 @@ namespace Agent.Tests.Unit.Services
             _mockHandlerManagementService = new Mock<IIncidentHandlerManagementService>();
             _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<AzMonitorAlertDocument, AzMonitorIncidentFilterDocument, AzMonitorIncidentFilterDocumentPayload, AlertItem>>();
             _mockAgentFactory = new Mock<IAgentFactory<AgentContext>>();
+            _mockReasoningLoopManager = new Mock<IReasoningLoopManager>();
 
             _cosmosDbSettings = new CosmosDBSettings
             {
@@ -90,7 +93,8 @@ namespace Agent.Tests.Unit.Services
                 _mockIncidentAnalysisService.Object,
                 null!, // Tracer - not needed for these tests
                 _mockAgentFactory.Object,
-                _experimentalSettings
+                _experimentalSettings,
+                _mockReasoningLoopManager.Object
             );
         }
 

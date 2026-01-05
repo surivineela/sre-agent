@@ -129,7 +129,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         if (!string.IsNullOrEmpty(threadMessage.AgentName))
         {
-            await _reasoningLoopManager.SetCurrentAgentAsync(agentContext!, threadMessage.AgentName);
+            await _reasoningLoopManager.SetHomeAgentAsync(agentContext!, threadMessage.AgentName);
         }
 
         await _reasoningLoopManager.AppendNewMessageAsync(
