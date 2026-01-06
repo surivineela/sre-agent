@@ -1,4 +1,4 @@
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 export const useIncidentTriggerCreateDialogStyles = makeStyles({
     dialogSurface: {
@@ -23,5 +23,98 @@ export const useIncidentTriggerCreateDialogStyles = makeStyles({
     },
     dialogTitle: {
         margin: '0px',
+    },
+    suggestionsPanel: {
+        width: '320px',
+        ...shorthands.padding(tokens.spacingVerticalL, tokens.spacingHorizontalL),
+        ...shorthands.borderLeft('1px', 'solid', tokens.colorNeutralStroke1),
+        backgroundColor: tokens.colorNeutralBackground2,
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalL),
+        overflow: 'auto',
+    },
+    suggestionsPanelHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+    },
+    suggestionsPanelTitle: {
+        fontSize: tokens.fontSizeBase400,
+        lineHeight: tokens.lineHeightBase400,
+        color: tokens.colorNeutralForeground1,
+    },
+    retryButton: {
+        minWidth: 'auto',
+        paddingLeft: tokens.spacingHorizontalXS,
+        paddingRight: tokens.spacingHorizontalXS,
+    },
+    disclaimerText: {
+        color: tokens.colorNeutralForeground3,
+        fontStyle: 'italic',
+        lineHeight: tokens.lineHeightBase200,
+        marginTop: `-${tokens.spacingVerticalS}`,
+    },
+    suggestionsConfigInfo: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalM),
+        backgroundColor: tokens.colorNeutralBackground3,
+        ...shorthands.borderRadius(tokens.borderRadiusSmall),
+    },
+    suggestionsConfigRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '4px',
+        alignItems: 'center' /* vertically align label and value */,
+    },
+    suggestionsList: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalM),
+    },
+    loadingContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...shorthands.padding(tokens.spacingVerticalXXL, 0),
+    },
+    noSuggestions: {
+        color: tokens.colorNeutralForeground3,
+        textAlign: 'center',
+        ...shorthands.padding(tokens.spacingVerticalXXL, tokens.spacingHorizontalM),
+        fontStyle: 'italic',
+    },
+    errorContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        ...shorthands.padding(tokens.spacingVerticalXL, tokens.spacingHorizontalM),
+    },
+    errorMessage: {
+        color: tokens.colorPaletteRedForeground1,
+        textAlign: 'center',
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+    },
+    generateContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalS),
+        ...shorthands.padding(tokens.spacingVerticalM),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        backgroundColor: tokens.colorNeutralBackground1,
+    },
+    generateInfo: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+    },
+    generateButton: {
+        alignSelf: 'flex-start',
     },
 });

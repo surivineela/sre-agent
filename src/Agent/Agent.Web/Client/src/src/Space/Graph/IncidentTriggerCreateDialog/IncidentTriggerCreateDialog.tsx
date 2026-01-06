@@ -10,7 +10,7 @@ import {
     ToolbarButton,
 } from '@fluentui/react-components';
 import { Dismiss24Regular, WarningFilled } from '@fluentui/react-icons';
-import { FC, useContext, useMemo } from 'react';
+import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -19,6 +19,8 @@ import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/Sr
 import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { HandlerCreateOrEditInfo, OperationStatus } from '../../IncidentManagement/CreateIncidentHandler/Contracts';
 import CreateIncidentHandlerConsolidated from '../../IncidentManagement/CreateIncidentHandler/CreateIncidentHandlerConsolidated';
+import { FilterSuggestion } from './components/FilterSuggestionCard';
+import { SuggestionsPanel } from './components/SuggestionsPanel';
 import { useIncidentTriggerCreateDialogStyles } from './IncidentTriggerCreateDialog.Styles';
 
 export interface IncidentTriggerCreateDialogProps {
@@ -42,6 +44,15 @@ export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> =
     );
 
     const { onDismiss, handlerCreateOrEditInfo, setHandlerOperationStatus } = props;
+
+    // Cache suggestions for each combination of owningTeamId and incidentType
+    // Key format: "owningTeamId|incidentType"
+    const [suggestionsCache, setSuggestionsCache] = useState<Map<string, FilterSuggestion[]>>(new Map());
+    const [teamNamesCache, setTeamNamesCache] = useState<Map<string, string>>(new Map());
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    const [appliedSuggestionIndex, setAppliedSuggestionIndex] = useState<number | null>(null);
+    const [currentCacheKey, setCurrentCacheKey] = useState<string | undefined>(undefined);
+    const [suggestionsError, setSuggestionsError] = useState<string | undefined>(undefined);
 
     return (
         <Dialog
@@ -100,6 +111,25 @@ export const IncidentTriggerCreateDialog: FC<IncidentTriggerCreateDialogProps> =
                             exitToHome={onDismiss}
                             setHandlerOperationStatus={setHandlerOperationStatus}
                             handlerCreateOrEditInfo={handlerCreateOrEditInfo}
+                            suggestionsPanel={
+                                incidentPlatformType === IncidentManagementType.Icm ? (
+                                    <SuggestionsPanel
+                                        incidentPlatformType={incidentPlatformType}
+                                        suggestionsCache={suggestionsCache}
+                                        setSuggestionsCache={setSuggestionsCache}
+                                        teamNamesCache={teamNamesCache}
+                                        setTeamNamesCache={setTeamNamesCache}
+                                        loadingSuggestions={loadingSuggestions}
+                                        setLoadingSuggestions={setLoadingSuggestions}
+                                        appliedSuggestionIndex={appliedSuggestionIndex}
+                                        setAppliedSuggestionIndex={setAppliedSuggestionIndex}
+                                        currentCacheKey={currentCacheKey}
+                                        setCurrentCacheKey={setCurrentCacheKey}
+                                        suggestionsError={suggestionsError}
+                                        setSuggestionsError={setSuggestionsError}
+                                    />
+                                ) : undefined
+                            }
                         />
                     )}
                 </DialogBody>

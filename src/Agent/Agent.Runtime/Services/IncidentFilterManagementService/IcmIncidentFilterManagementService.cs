@@ -100,6 +100,13 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
             FieldInputType = IncidentFilterInputType.TextField
         });
 
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(IcmIncidentFilterDocumentPayload.TitleContains),
+            DisplayName = "Title Contains",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
+
         _logger.LogInternalInformation("ListIcmIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
         return Task.FromResult(result);
     }

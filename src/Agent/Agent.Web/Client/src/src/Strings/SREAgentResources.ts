@@ -440,6 +440,7 @@ export const SreAgentResources = defineMessages({
     agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
     apply: { defaultMessage: 'Apply', id: 'EWw/tK' },
+    applied: { defaultMessage: 'Applied', id: '7TUyZ1' },
     buildingKnowledgeGraph: { defaultMessage: 'Building knowledge graph', id: '8Wiwkg' },
     client: { defaultMessage: 'Client', id: 'JX0502' },
     createAgent: { defaultMessage: 'Create agent', id: 'UrGI9K' },
@@ -1609,6 +1610,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     previous: { defaultMessage: 'Previous', id: 'JJNc3c' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     generate: { defaultMessage: 'Generate', id: 'Pc+tM3' },
+    retry: { defaultMessage: 'Retry', id: '62nsdy' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     customHandlerAddNotificationTitle: { defaultMessage: 'Add custom incident response plan', id: 'wezZny' },
     customHandlerAddNotificationDescription: { defaultMessage: 'Adding custom incident response plan', id: 'T8DCV7' },
@@ -4528,6 +4530,20 @@ export const ExtendedAgentsGraphResources = defineMessages({
     pythonToolKeepCurrentCode: { defaultMessage: 'Keep Current Code', id: 'kopJ66' },
     // Python Tool Info Panel strings
     pythonToolCodeSectionTitle: { defaultMessage: 'Python Code', id: 'VfjG62' },
+    smartFilterOwningTeamCommand: { defaultMessage: 'Enter owning team to see suggestions', id: 'dn5ZC0' },
+    smartFilterNoSuggestionsAvailable: { defaultMessage: 'No suggestions available', id: '3R3pgd' },
+    smartFilterNoSuggestionsFound: { defaultMessage: 'No filter suggestions found for the selected criteria', id: 'ltGXND' },
+    smartFilterDisclaimer: { defaultMessage: '* Only incidents that have not been handled by SRE Agent are considered', id: 'anqDu+' },
+    smartFilterOwningTeam: { defaultMessage: 'Owning Team', id: 'o/FLCg' },
+    smartFilterIncidentType: { defaultMessage: 'Incident Type', id: '3OwM2P' },
+    smartFilterAISuggestions: { defaultMessage: 'AI Suggestions', id: 't3n6rd' },
+    smartFilterGenerateSuggestion: { defaultMessage: 'Generate suggestions for:', id: 'VCxIGW' },
+    smartFilterShowSuggestion: { defaultMessage: 'Showing suggestions for:', id: 'Xm4NcA' },
+    smartFilterNoFilterFound: { defaultMessage: 'No filter criteria', id: 'RGgGWl' },
+    smartFilterLoadingSuggestions: { defaultMessage: 'Loading suggestions...', id: 'Q6jwpY' },
+    smartFilterLoadingSuggestionsFailure: { defaultMessage: 'Failed to load suggestions', id: 'EDGRHE' },
+    smartFilterLoadingSuggestionsError: { defaultMessage: 'An error occurred while loading suggestions', id: 'HP6f9a' },
+    smartFilterIncidentCount: { defaultMessage: 'Incident count', id: 'fBoQwK' },
 });
 
 export const PlaygroundResources = defineMessages({

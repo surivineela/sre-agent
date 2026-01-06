@@ -951,6 +951,7 @@ public class Program
         builder.Services.AddSingleton<HeartbeatReporter>();
 
         builder.Services.AddHostedService<TimerService>();
+        builder.Services.AddSingleton<ISmartFilterService, SmartFilterService>();
 
         // Add new MCP agent services
         builder.Services.AddMcpAgentServices();

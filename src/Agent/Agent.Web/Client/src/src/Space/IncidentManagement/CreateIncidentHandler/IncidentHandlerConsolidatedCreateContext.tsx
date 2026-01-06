@@ -85,6 +85,7 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     priorityOptions: string[];
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
+    titleContainsOptions: string[];
 
     handlerTestMetadata: IncidentHandlerTestMetadata;
     incidentsPreviewMetadata: IncidentsPreviewMetadata;
@@ -129,6 +130,7 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     priorityOptions: [],
     impactedServiceOptions: [],
     incidentTypeOptions: [],
+    titleContainsOptions: [],
     handlerTestMetadata: {
         searchTerm: '',
         setSearchTerm: () => {},

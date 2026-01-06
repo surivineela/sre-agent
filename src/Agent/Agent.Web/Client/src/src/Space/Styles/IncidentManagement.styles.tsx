@@ -27,6 +27,19 @@ export const useIncidentManagementStyles = makeStyles({
         position: 'relative',
         flex: 1,
     },
+    navPanelContentWithSidebar: {
+        display: 'flex',
+        flexDirection: 'row',
+        overflow: 'hidden',
+        position: 'relative',
+        flex: 1,
+    },
+    mainFormContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        overflowY: 'auto',
+    },
     navPanelPadding: {
         padding: '20px',
     },

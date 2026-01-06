@@ -10,7 +10,7 @@ import TitleBarNavigation from '../Common/TitleBarNavigation';
 import { QuickEditIncidentHandlerConsolidated } from '../QuickEditIncidentHandler/QuickEditIncidentHandlerConsolidated';
 import { HANDLER_TOOL_LIMIT, HandlerCreateOrEditInfo, OperationStatus } from './Contracts';
 import { FullEditIncidentHandlerConsolidated } from './FullEditIncidentHandler/FullEditIncidentHandlerConsolidated';
-import { IncidentHandlerConsolidatedCreateContext } from './IncidentHandlerConsolidatedCreateContext';
+import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
 import { DirtyStateNavigationConfirmDialog } from './NavigationConfirmDialog';
 import { useConsolidatedCreateIncidentHandler } from './useConsolidatedCreateIncidentHandler';
@@ -20,6 +20,7 @@ interface CreateIncidentHandlerProps {
     exitToHome: (filterName?: string, handlerId?: string, isNew?: boolean) => void;
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>;
     handlerCreateOrEditInfo: HandlerCreateOrEditInfo;
+    suggestionsPanel?: React.ReactNode;
 }
 
 const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props => {
@@ -85,6 +86,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
     handlerCreateOrEditInfo,
     setHandlerOperationStatus,
     setInitialValues,
+    suggestionsPanel,
 }) => {
     const intl = useIntl();
     const styles = useIncidentManagementStyles();
@@ -109,12 +111,14 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
         [values.isIncidentTriggerWithLearnings, incidentHandlerForAgentBuilder, incidentHandlerCreateMetadata]
     );
 
-    const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
-    const { filterMode, handlerMode } = activeHandlerMetadata;
+    const { incidentTypeOptions, impactedServiceOptions, priorityOptions, titleContainsOptions } = useIncidentFilterFields();
+    const { filterMode, handlerMode, currentStep } = activeHandlerMetadata;
+
+    const shouldShowSuggestions = suggestionsPanel && currentStep === IncidentHandlerCreateSteps.IncidentTriggerStep;
 
     const innerComponent = useMemo(() => {
         return (
-            <div className={styles.navPanelContent}>
+            <div className={shouldShowSuggestions ? styles.navPanelContentWithSidebar : styles.navPanelContent}>
                 <DirtyStateNavigationConfirmDialog isDirty={dirty} />
                 <IncidentHandlerConsolidatedCreateContext.Provider
                     value={{
@@ -122,15 +126,32 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                         incidentTypeOptions,
                         impactedServiceOptions,
                         priorityOptions,
+                        titleContainsOptions,
                     }}
                 >
-                    {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
+                    <div className={shouldShowSuggestions ? styles.mainFormContent : undefined}>
+                        {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
+                    </div>
+                    {shouldShowSuggestions && suggestionsPanel}
                 </IncidentHandlerConsolidatedCreateContext.Provider>
             </div>
         );
-    }, [dirty, activeHandlerMetadata, incidentTypeOptions, impactedServiceOptions, priorityOptions, handlerMode, styles]);
+    }, [
+        dirty,
+        activeHandlerMetadata,
+        incidentTypeOptions,
+        impactedServiceOptions,
+        priorityOptions,
+        titleContainsOptions,
+        handlerMode,
+        styles,
+        suggestionsPanel,
+        shouldShowSuggestions,
+    ]);
 
-    if (activeHandlerMetadata.isSubagentTrigger || values.isIncidentTriggerWithLearnings) {
+    // When rendering in a dialog (renderSuggestionsPanel provided) or for subagent triggers,
+    // return inner component directly without breadcrumb navigation
+    if (activeHandlerMetadata.isSubagentTrigger || values.isIncidentTriggerWithLearnings || suggestionsPanel) {
         return innerComponent;
     }
 

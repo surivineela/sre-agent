@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { FilterSuggestion } from '../../Space/Graph/IncidentTriggerCreateDialog/components/FilterSuggestionCard.tsx';
 import { ITelemetryInfo } from '../AzPortalProxy/Models/ITelemetryInfo';
 import {
     IncidentDocument,
@@ -279,6 +280,38 @@ export class IncidentHandlerClient extends DataPlaneClient {
                 action: 'getFilterFieldOptions',
                 actionModifier: 'failed',
                 data: `Failed to get filter field options: ${errorMessage}`,
+            });
+            return {
+                isSuccessful: false,
+                error: error,
+            };
+        }
+    };
+
+    public getSuggestedFilters = async (owningTeamId: string, incidentType?: string): Promise<Response<FilterSuggestion[]>> => {
+        const params = new URLSearchParams();
+        if (incidentType) {
+            params.append('incidentType', incidentType);
+        }
+        const queryString = params.toString();
+        const url = this.getRequestUrl(
+            `${this._apiIncidentPlaygroundPathPrefix}/filters/aiSuggestions/${owningTeamId}${queryString ? `?${queryString}` : ''}`
+        );
+        try {
+            const { data } = await axios.get<FilterSuggestion[]>(url, {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            this._log?.({
+                logLevel: 'error',
+                action: 'getSuggestedFilters',
+                actionModifier: 'failed',
+                data: `Failed to get suggested filters: ${errorMessage}`,
             });
             return {
                 isSuccessful: false,

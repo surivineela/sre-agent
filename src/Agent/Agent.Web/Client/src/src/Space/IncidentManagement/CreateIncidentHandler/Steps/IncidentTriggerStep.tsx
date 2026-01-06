@@ -137,33 +137,15 @@ export const IncidentTriggerStep: FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <IcmOwningTeamSearch
                                 defaultTeamId={values.owningTeamId}
+                                defaultTeamName={values.owningTeamName}
                                 onFieldTouched={() => setFieldTouched('owningTeamId', true)}
-                                onUpdateOwningTeam={team => setFieldValue('owningTeamId', `${team.id}`)}
+                                onUpdateOwningTeam={team => {
+                                    setFieldValue('owningTeamId', `${team.id}`);
+                                    setFieldValue('owningTeamName', team.name);
+                                }}
                                 disabled={disableAllFields}
                                 comboboxClassName={styles.inputField}
                             />
-
-                            <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
-                                <Input
-                                    name={'monitorId'}
-                                    value={values.monitorId}
-                                    onChange={(_, data) => setFieldValue('monitorId', data.value)}
-                                    placeholder={intl.formatMessage(IncidentManagementResources.monitorIdPlaceholder)}
-                                    disabled={disableAllFields}
-                                    className={styles.inputField}
-                                />
-                            </Field>
-
-                            <Field label={intl.formatMessage(IncidentManagementResources.createdBy)}>
-                                <Input
-                                    name={'createdBy'}
-                                    value={values.createdBy}
-                                    onChange={(_, data) => setFieldValue('createdBy', data.value)}
-                                    placeholder={intl.formatMessage(IncidentManagementResources.createdByPlaceholder)}
-                                    disabled={disableAllFields}
-                                    className={styles.inputField}
-                                />
-                            </Field>
                         </div>
                     )}
 
@@ -233,13 +215,39 @@ export const IncidentTriggerStep: FC = () => {
                     <Field label={intl.formatMessage(IncidentManagementResources.titleContains)}>
                         <Input
                             name={'titleContains'}
-                            value={values.titleContains}
+                            value={values.titleContains || ''}
                             onChange={(_, data) => setFieldValue('titleContains', data.value)}
                             placeholder={intl.formatMessage(IncidentManagementResources.titlePlaceholder)}
                             disabled={disableAllFields}
                             className={styles.inputField}
                         />
                     </Field>
+
+                    {incidentPlatformType === IncidentManagementType.Icm && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
+                                <Input
+                                    name={'monitorId'}
+                                    value={values.monitorId}
+                                    onChange={(_, data) => setFieldValue('monitorId', data.value)}
+                                    placeholder={intl.formatMessage(IncidentManagementResources.monitorIdPlaceholder)}
+                                    disabled={disableAllFields}
+                                    className={styles.inputField}
+                                />
+                            </Field>
+
+                            <Field label={intl.formatMessage(IncidentManagementResources.createdBy)}>
+                                <Input
+                                    name={'createdBy'}
+                                    value={values.createdBy}
+                                    onChange={(_, data) => setFieldValue('createdBy', data.value)}
+                                    placeholder={intl.formatMessage(IncidentManagementResources.createdByPlaceholder)}
+                                    disabled={disableAllFields}
+                                    className={styles.inputField}
+                                />
+                            </Field>
+                        </div>
+                    )}
                 </div>
                 {!values.isIncidentTriggerWithLearnings && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

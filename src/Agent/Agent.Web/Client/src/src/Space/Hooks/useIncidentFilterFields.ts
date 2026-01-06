@@ -15,6 +15,7 @@ export enum IncidentFilterField {
     ImpactedService = 'ImpactedService',
     IncidentType = 'IncidentType',
     Priority = 'Priority',
+    TitleContains = 'TitleContains',
 }
 
 export const useIncidentFilterFields = () => {
@@ -46,6 +47,14 @@ export const useIncidentFilterFields = () => {
         );
         if (!priorityField) return [];
         return priorityField.options?.map((option: KeyValuePair) => option.value) ?? [];
+    }, [filterFieldOptions]);
+
+    const titleContainsOptions = useMemo((): string[] => {
+        const titleContainsField = filterFieldOptions?.find(
+            (option: IncidentFilterFieldOptions) => option.fieldName === IncidentFilterField.TitleContains
+        );
+        if (!titleContainsField) return [];
+        return titleContainsField.options?.map((option: KeyValuePair) => option.value) ?? [];
     }, [filterFieldOptions]);
 
     const getFilterFieldOptions = useCallback(async (): Promise<IncidentFilterFieldOptions[]> => {
@@ -84,6 +93,7 @@ export const useIncidentFilterFields = () => {
         impactedServiceOptions,
         incidentTypeOptions,
         priorityOptions,
+        titleContainsOptions,
         filterFieldOptions,
         filterFieldOptionsLoading: isLoading,
     };

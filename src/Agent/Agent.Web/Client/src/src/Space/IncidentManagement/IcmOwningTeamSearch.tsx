@@ -10,6 +10,7 @@ import { IncidentManagementResources } from '../../Strings/SREAgentResources';
 
 export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
     defaultTeamId,
+    defaultTeamName,
     onFieldTouched,
     onUpdateOwningTeam,
     orientation,
@@ -26,10 +27,10 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
 
     const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint, log), [sreAgentEndpoint, log]);
 
+    const [searchValue, setSearchValue] = useState<string>(defaultTeamName || (defaultTeamId ? `${defaultTeamId}` : ''));
+
+    const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(defaultTeamId);
     const [owningTeamOptions, setOwningTeamOptions] = useState<IncidentTeamSearchResponse[]>([]);
-
-    const [searchValue, setSearchValue] = useState<string>(defaultTeamId ? `${defaultTeamId}` : '');
-
     const [icmTeamSearchOptions, setIcmTeamSearchOptions] = useState<{
         owningTeamAssignableOnly: boolean;
         owningTeamWithOnCallRotationsOnly: boolean;
@@ -76,12 +77,23 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
         return () => debouncedSearch.cancel();
     }, [icmTeamSearchOptions.searchTerm, debouncedSearch]);
 
+    // Sync selectedTeamId when defaultTeamId changes (for programmatic updates)
+    useEffect(() => {
+        if (defaultTeamId !== selectedTeamId) {
+            setSelectedTeamId(defaultTeamId);
+            // Use team name if available, otherwise use team ID
+            setSearchValue(defaultTeamName || defaultTeamId || '');
+        }
+    }, [defaultTeamId, defaultTeamName, selectedTeamId]);
+
     const onOptionSelect = (data: OptionOnSelectData) => {
         const selectedTeam = owningTeamOptions.find(team => `${team.id}` === data.optionValue);
         if (selectedTeam) {
+            setSelectedTeamId(`${selectedTeam.id}`);
+            const displayText = getDisplayName(selectedTeam);
+            setSearchValue(displayText);
             onUpdateOwningTeam(selectedTeam);
         }
-        setSearchValue(selectedTeam ? getDisplayName(selectedTeam) : '');
     };
 
     const getDisplayName = (team: IncidentTeamSearchResponse) => {
@@ -151,6 +163,7 @@ export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
 
 interface IcmOwningTeamSearchProps {
     defaultTeamId?: string;
+    defaultTeamName?: string;
     onFieldTouched: () => void;
     onUpdateOwningTeam: (team: IncidentTeamSearchResponse) => void;
     orientation?: 'horizontal' | 'vertical' | undefined;

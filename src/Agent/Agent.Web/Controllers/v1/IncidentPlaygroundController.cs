@@ -29,6 +29,7 @@ public class IncidentPlaygroundController : ControllerBase
     private readonly IIncidentHandlerManagementService _incidentHandlerManagementService;
     private readonly IIncidentFilterManagementServiceFactory _incidentFilterManagementServiceFactory;
     private readonly IIncidentManagementServiceFactory _incidentManagementServiceFactory;
+    private readonly ISmartFilterService _smartFilterService;
     private readonly ILogger<IncidentPlaygroundController> _logger;
     private readonly IncidentManagementSettings _incidentManagementSettings;
     private readonly Container _container;
@@ -40,6 +41,7 @@ public class IncidentPlaygroundController : ControllerBase
         IIncidentFilterManagementServiceFactory incidentFilterManagementServiceFactory,
         IIncidentManagementServiceFactory incidentManagementServiceFactory,
         IIncidentHandlerManagementService incidentHandlerManagementService,
+        ISmartFilterService smartFilterService,
         IncidentManagementSettings incidentManagementSettings,
         ILogger<IncidentPlaygroundController> logger,
         CosmosClient cosmosClient,
@@ -51,6 +53,7 @@ public class IncidentPlaygroundController : ControllerBase
         _incidentHandlerManagementService = incidentHandlerManagementService;
         _incidentFilterManagementServiceFactory = incidentFilterManagementServiceFactory;
         _incidentManagementServiceFactory = incidentManagementServiceFactory;
+        _smartFilterService = smartFilterService;
         _incidentManagementSettings = incidentManagementSettings;
         _logger = logger;
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
@@ -477,6 +480,44 @@ public class IncidentPlaygroundController : ControllerBase
         }
         _logger.LogInternalInformation("DeleteIncidentFilter: Filter deleted for FilterId: {FilterId}", filterId);
         return Ok();
+    }
+
+    /// <summary>
+    /// Get smart filter recommendations for a specific owning team
+    /// </summary>
+    /// <param name="owningTeamId">The owning team ID to analyze incidents for</param>
+    /// <param name="incidentType">Optional incident type to filter by (defaults to null)</param>
+    /// <returns>List of recommended handlers based on incident patterns</returns>
+    [HttpGet("filters/aiSuggestions/{owningTeamId}")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
+    public async Task<IActionResult> GetFilterRecommendations(string owningTeamId, [FromQuery] string? incidentType = null)
+    {
+        _logger.LogInternalInformation("GetFilterRecommendations: Invoked for OwningTeamId: {OwningTeamId}, IncidentType: {IncidentType}", owningTeamId, incidentType ?? "LiveSite");
+
+        if (_incidentManagementSettings.Type != IncidentManagementType.Icm)
+        {
+            _logger.LogInternalWarning("GetFilterRecommendations: Only executes for ICM.");
+            return BadRequest($"This feature is only implemented for ICM, not {_incidentManagementSettings.Type.ToString()}");
+        }
+
+        if (string.IsNullOrWhiteSpace(owningTeamId))
+        {
+            _logger.LogInternalWarning("GetFilterRecommendations: OwningTeamId parameter is required");
+            return BadRequest("OwningTeamId parameter is required");
+        }
+
+        try
+        {
+            var recommendations = await _smartFilterService.GetFilterRecommendations(owningTeamId, incidentType);
+            _logger.LogInternalInformation("GetFilterRecommendations: Retrieved {Count} filter recommendations for OwningTeamId: {OwningTeamId}",
+                recommendations?.Count ?? 0, owningTeamId);
+            return Ok(recommendations);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "GetFilterRecommendations: Error occurred while fetching filter recommendations for OwningTeamId: {OwningTeamId}", owningTeamId);
+            return StatusCode(500, $"An error occurred while fetching filter recommendations: {ex.Message}");
+        }
     }
 
     [HttpPost("queryIncidents")]

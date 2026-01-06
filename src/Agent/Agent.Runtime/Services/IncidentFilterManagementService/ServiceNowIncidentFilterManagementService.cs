@@ -85,6 +85,13 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
             Options = new List<KeyValuePair<string, string>>()
         });
 
+        result.Add(new IncidentFilterFieldOption
+        {
+            FieldName = nameof(ServiceNowIncidentFilterDocumentPayload.TitleContains),
+            DisplayName = "Title Contains",
+            FieldInputType = IncidentFilterInputType.TextField
+        });
+
         _logger.LogInternalInformation("ListServiceNowIncidentFilterFieldOptions: Returning {OptionCount} field options.", result.Count);
         return Task.FromResult(result);
     }
