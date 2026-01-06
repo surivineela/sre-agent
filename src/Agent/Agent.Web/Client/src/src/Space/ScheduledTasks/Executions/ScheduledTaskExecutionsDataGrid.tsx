@@ -16,10 +16,11 @@ import {
 import { CheckmarkCircleFilled, DismissCircleFilled } from '@fluentui/react-icons';
 import { FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
 import { getLocaleDateTimeHHMM } from '../../../Common/Helpers/Date';
 import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { ScheduledTaskExecution } from '../../Contracts/ScheduledTasks';
+import { PrimaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useScheduledTasksStyles } from '../ScheduledTasks.styles';
 
 enum ScheduledTaskExecutionsDataGridColumns {
@@ -41,7 +42,7 @@ export const ScheduledTaskExecutionsDataGrid: FC<ScheduledTaskExecutionsDataGrid
 }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
-    const navigate = useNavigate();
+    const navigate = useAgentSiteNavigate();
 
     const onRenderStartTime = useCallback((item: ScheduledTaskExecution) => {
         if (!item.executionTime) {
@@ -70,7 +71,11 @@ export const ScheduledTaskExecutionsDataGrid: FC<ScheduledTaskExecutionsDataGrid
 
     const handleThreadClick = useCallback(
         (threadId: string) => {
-            navigate(`/views/activities/threads/${threadId}`);
+            navigate({
+                primaryNavItemValue: PrimaryNavItemValues.Threads,
+                secondaryNavItemValue: undefined,
+                threadId: threadId,
+            });
         },
         [navigate]
     );
