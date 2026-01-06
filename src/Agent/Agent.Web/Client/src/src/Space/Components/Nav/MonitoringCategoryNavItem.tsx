@@ -69,7 +69,7 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
 
     const location = useLocation();
 
-    const isSelectedValueMetrics = useMemo(() => {
+    const isMetricsSelected = useMemo(() => {
         return (
             getNavItemIdFromPathName(location.pathname) ===
             constructNavItemId(PrimaryNavItemValues.Monitor, SecondaryNavItemValues.Metrics, undefined)
@@ -132,18 +132,19 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
     ]);
 
     useEffect(() => {
-        if (incidentPlatformType && isSelectedValueMetrics) {
-            if (incidentPlatformType === IncidentManagementType.None) {
-                setDisableAnalysis(true);
-                navigateRef.current({
-                    primaryNavItemValue: PrimaryNavItemValues.Settings,
-                    secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
-                });
-            } else {
-                setDisableAnalysis(false);
-            }
+        if (incidentPlatformType && incidentPlatformType === IncidentManagementType.None && isMetricsSelected) {
+            navigateRef.current({
+                primaryNavItemValue: PrimaryNavItemValues.Settings,
+                secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
+            });
         }
-    }, [incidentPlatformType, isSelectedValueMetrics]);
+    }, [incidentPlatformType, isMetricsSelected]);
+
+    useEffect(() => {
+        if (incidentPlatformType) {
+            setDisableAnalysis(incidentPlatformType === IncidentManagementType.None);
+        }
+    }, [incidentPlatformType]);
 
     return (
         <CategoryNavItem

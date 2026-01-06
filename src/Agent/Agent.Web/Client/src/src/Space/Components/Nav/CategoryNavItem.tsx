@@ -1,5 +1,11 @@
-import { CopilotNavCategory, CopilotNavCategoryItem, CopilotNavSubItemGroup, SplitCopilotNavItem } from '@fluentui-copilot/react-copilot';
-import { useId } from '@fluentui/react-components';
+import {
+    CopilotNavCategory,
+    CopilotNavCategoryItem,
+    CopilotNavSubItemGroup,
+    SplitCopilotNavItem,
+    tokens,
+} from '@fluentui-copilot/react-copilot';
+import { makeStyles, useId } from '@fluentui/react-components';
 import { FC, memo } from 'react';
 import { CategoryNavItemInput, PrimaryNavItemValues, SecondaryNavItemValues, SubNavItemInput } from '../../Contracts/SreAgentSpace';
 import { constructNavItemId } from '../../Utilities';
@@ -12,6 +18,16 @@ interface ICategoryNavItemProps {
     onClickSubNavItem: (tabValue: PrimaryNavItemValues, secondaryNavItem: SecondaryNavItemValues) => void;
 }
 
+const useStyles = makeStyles({
+    disabledSubItem: {
+        backgroundColor: `${tokens.colorTransparentBackground} !important`,
+    },
+    disabledSubItemButton: {
+        cursor: 'not-allowed',
+        color: `${tokens.colorNeutralForegroundDisabled} !important`,
+    },
+});
+
 const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
     const {
         categoryItem: { isVisible, disabled, icon: Icon, value, label, ref },
@@ -21,6 +37,8 @@ const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
     } = props;
 
     const categoryNavId = useId(value);
+
+    const styles = useStyles();
 
     return (
         <Fade visible={isVisible} unmountOnExit>
@@ -42,6 +60,7 @@ const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
                                 <SplitCopilotNavItem
                                     key={item.value}
                                     ref={item.ref}
+                                    className={item.disabled ? styles.disabledSubItem : undefined}
                                     navItem={{
                                         value: constructNavItemId(value, item.value, undefined),
                                         children: item.label,
@@ -53,6 +72,7 @@ const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
                                             onClickSubNavItem(value, item.value);
                                         },
                                         disabled: item.disabled,
+                                        className: item.disabled ? styles.disabledSubItemButton : undefined,
                                     }}
                                 />
                             ))}
