@@ -210,14 +210,15 @@ public class SessionPoolService : ISessionPoolService
         // Build endpoint
         var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
 
-        var url = $"{baseEndpoint.TrimEnd('/')}/executions?identifier={identifier}&api-version={_defaultApiVersion}";
+        var url = $"{baseEndpoint.TrimEnd('/')}/execute?identifier={identifier}";
 
-        var payload = new CodeExecuteRequestProperties
+        var payload = new CodeExecuteRequest
         {
             Code = code,
-            CodeInputType = "inline",
+            TimeoutInSeconds = Math.Clamp(timeoutSeconds, 5, 900),
             ExecutionType = "synchronous",
-            StandardMsgLength = 24576
+            StandardMsgLength = 24576,
+            EnableEgress = true,
         };
 
         var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions

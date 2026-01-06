@@ -8,14 +8,10 @@ namespace Agent.Core.Models;
 
 public class CodeExecuteRequest
 {
-    public CodeExecuteRequestProperties Properties { get; set; } = new();
-}
-
-public class CodeExecuteRequestProperties
-{
-    public string CodeInputType { get; set; } = "inline"; // inline | file (future)
-    public string ExecutionType { get; set; } = "synchronous"; // synchronous for now
     public string Code { get; set; } = string.Empty;
+    public int TimeoutInSeconds { get; set; }
+    public bool EnableEgress { get; set; } = true;
+    public string ExecutionType { get; set; } = "synchronous"; // synchronous for now
     public int? StandardMsgLength { get; set; }
 }
 

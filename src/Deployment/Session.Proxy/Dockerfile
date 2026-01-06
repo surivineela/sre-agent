@@ -42,14 +42,21 @@ RUN pip install azure-identity GitPython
 WORKDIR /app/session-proxy
 COPY . .
 
+# move mcp-tools to wellknown mcp path
+RUN if [ -d /app/session-proxy/mcp-tools ]; then \
+        mkdir -p /app/mcp-tools && \
+        mv /app/session-proxy/mcp-tools/* /app/mcp-tools/ && \
+        rm -rf /app/session-proxy/mcp-tools; \
+    fi
+
 # Temporarily install azure devops mcp server from source code instead of npm registry due to federation auth
 RUN apt-get install -y git && \
     git clone https://github.com/howang-ms/azure-devops-mcp.git /azdevop && \
     cd /azdevop && \
     npm install && \
     npm run build && \
-    mkdir -p /app/session-proxy/mcp-tools && \
-    cp -r /azdevop /app/session-proxy/mcp-tools/ && \
+    mkdir -p /app/mcp-tools && \
+    cp -r /azdevop /app/mcp-tools/ && \
     cd / && \
     rm -rf /azdevop
 

@@ -7,6 +7,10 @@ namespace Session.Proxy.Services;
 /// </summary>
 public class PythonProxyService
 {
+    private const string HttpClientName = "PythonProxy";
+    // Set header timeout to a large value because the synchronous execution returns header after execution is done.
+    private static readonly TimeSpan HeaderTimeout = TimeSpan.FromMinutes(30);
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<PythonProxyService> _logger;
     private readonly string _targetBaseUrl;
@@ -49,7 +53,7 @@ public class PythonProxyService
 
         _logger.LogInformation("Forwarding {Method} request to: {TargetUrl}", context.Request.Method, targetUrl);
 
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = _httpClientFactory.CreateClient(HttpClientName);
         using var request = new HttpRequestMessage(new HttpMethod(context.Request.Method), targetUrl);
 
         // Copy headers from the original request
@@ -85,7 +89,11 @@ public class PythonProxyService
 
         try
         {
-            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            // Use a separate timeout for receiving headers; body streaming uses the original cancellation token
+            using var headerTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            headerTimeoutCts.CancelAfter(HeaderTimeout);
+
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, headerTimeoutCts.Token);
             _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
 
             // Copy response to HttpContext

@@ -40,6 +40,16 @@ else
 }
 
 builder.Services.AddHttpClient("IdentityProvider");
+builder.Services.AddHttpClient("PythonProxy")
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        ConnectTimeout = TimeSpan.FromSeconds(10),
+    })
+    .ConfigureHttpClient(client =>
+    {
+        // Disable client-level timeout; use per-request timeout instead
+        client.Timeout = Timeout.InfiniteTimeSpan;
+    });
 builder.Services.AddSingleton(identityProviderSettings);
 builder.Services.AddSingleton<IdentityProviderClient>();
 builder.Services.AddScoped<IShellService, ShellService>();
