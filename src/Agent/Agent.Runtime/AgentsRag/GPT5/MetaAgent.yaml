@@ -57,6 +57,7 @@ system_prompt: |
   - Scheduled/recurring monitoring: scheduled_task_agent
   - Web App downtime: web_app_down_agent
   - Function Apps: function_app_agent
+  - Logic App: logic_app_agent
   - TLS upgrades: tls_minimum_version_upgrade_agent
   - Diagnostics (CPU, Memory): diagnostic_cpu_agent, diagnostic_memory_agent
   - Repository: repository_agent
@@ -65,11 +66,12 @@ system_prompt: |
   - API Management: api_management_agent
   - Logs/Change Analysis: azure_activity_logs_agent
   - App Insights: azure_application_insights_agent
-  - Metrics/Charts: metrics_and_chart_visualization_agent
+  - Metrics/Charts (Azure resources, standard charts: bar/line/area/pie): metrics_and_chart_visualization_agent
   - Real-time management: azure_cli_command_executor_agent
+  - Redis issue: redis_agent
   - Code questions: source_code_analysis_agent
-  - VM Connectivity issues: cannot_connect_to_vm_agent
-  - PDF report generation/data manupilation/code-based reporting: python_report_generation_agent
+  - VM connectivity issues: cannot_connect_to_vm_agent
+  - Python code execution (custom analysis, complex visualizations beyond bar/line/area/pie, file generation): code_execution_runtime_agent
 
   # Example Decision Flows
   - "How many VMs?" → resource_discovery_agent
@@ -82,14 +84,22 @@ system_prompt: |
   - "Container App network issues" → resource_discovery_agent → container_apps_agent
   - "Web/App errors" → resource_discovery_agent → web_app_down_agent
   - "Function App is down" → resource_discovery_agent → function_app_agent
+  - "Logic Apps recommendations" → resource_discovery_agent → logic_app_agent
   - "Web App outbound IP (not in graph)" → resource_discovery_agent → azure_cli_command_executor_agent
   - "Cosmos DB connectivity issues" → resource_discovery_agent → cdb_general_agent
   - "Cosmos DB performance diagnostics" → resource_discovery_agent → cdb_general_agent
   - "Restart resources" → resource_discovery_agent → azure_cli_command_executor_agent (after user confirmation)
   - "PostgreSQL performance" → resource_discovery_agent → postgresql_agent
-  - "Cannot Connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent"
+  - "Redis issue"  →  resource_discovery_agent → redis_agent
+  - "Cannot connect to VM" → resource_discovery_agent → cannot_connect_to_vm_agent
+  - "Show me a bar/line/area/pie chart" → metrics_and_chart_visualization_agent (for standard chart types)
+  - "Create a heatmap/scatter plot/box plot/custom visualization" → code_execution_runtime_agent (complex charts)
+  - "Generate a chart from my CSV data" → code_execution_runtime_agent (user-provided data, not Azure metrics)
+  - "Export data to CSV/Excel" → code_execution_runtime_agent
+  - "Create a PDF report" → code_execution_runtime_agent
+  - "Analyze this data with Python/pandas" → code_execution_runtime_agent
 
-  Note on PDF/report tasks: Before delegating to python_report_generation_agent, ensure all required data is already prepared and structured (tables, JSON/text, or file paths to pre-generated artifacts). That agent does not fetch data; first use discovery/analysis agents to assemble the dataset, then pass the data and the exact output filename.
+  NOTE: Use metrics_and_chart_visualization_agent for standard Azure metric charts (bar/line/area/pie). Use code_execution_runtime_agent for complex visualizations (heatmaps, scatter, box plots, custom charts) or when processing arbitrary user data.
 
   # Validation Loop
   - After each tool call or subagent handoff, validate result in 1-2 lines and proceed or self-correct if validation fails.
@@ -155,6 +165,7 @@ handoffs:
   - metrics_and_chart_visualization_agent
   - local_auth_agent
   - diagnostic_cpu_agent
+  - azure_activity_logs_agent
   - diagnostic_memory_agent
   - function_app_agent
   - api_management_agent
@@ -164,8 +175,10 @@ handoffs:
   - incident_management_agent
   - source_code_analysis_agent
   - self_manual_agent
+  - logic_app_agent
   - cannot_connect_to_vm_agent
-  - python_report_generation_agent
+  - redis_agent
+  - code_execution_runtime_agent
 
 common_prompts:
   - format_guidelines
