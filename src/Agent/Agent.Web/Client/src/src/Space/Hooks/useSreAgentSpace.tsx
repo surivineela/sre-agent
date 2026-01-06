@@ -10,7 +10,7 @@ import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
 import { isFinalStreamingMessage, parseThreadFromStreamingText } from '../Activities/Utility';
-import { StreamingContext } from '../Contracts/Context';
+import { SreAgentContext, StreamingContext } from '../Contracts/Context';
 import { PrimaryNavItemValues, SecondaryNavItemValues, ThreadCategoryKey } from '../Contracts/SreAgentSpace';
 import { useAgentSiteNavigate } from './useAgentSiteNavigate';
 import { InputForThreadListWithFavoriteList, useThreadListWithFavoriteList } from './useThreadListWithFavoriteList';
@@ -21,6 +21,7 @@ export const useSreAgentSpace = () => {
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const proxy = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { agentLoaded } = useContext(SreAgentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -151,8 +152,8 @@ export const useSreAgentSpace = () => {
         threadItemDivsRef,
         isUpdatingThreadFavoriteProperty,
     } = useThreadListWithFavoriteList(
-        isFavoriteThreadListHidden || !navBarState.isNavBarOpen,
-        isRegularThreadListHidden || !navBarState.isNavBarOpen,
+        isFavoriteThreadListHidden || !navBarState.isNavBarOpen || !agentLoaded,
+        isRegularThreadListHidden || !navBarState.isNavBarOpen || !agentLoaded,
         filter,
         'modifiedTimestamp'
     );

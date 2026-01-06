@@ -127,7 +127,7 @@ const TabsListWrapper: FC = () => {
 
     const {
         agent: { setMode },
-        agentLoading,
+        agentLoaded,
         agentObj,
         startAgent,
     } = sreAgentContext;
@@ -207,7 +207,7 @@ const TabsListWrapper: FC = () => {
             <div className={styles.root}>
                 <WarningBanner />
                 <div className={styles.content}>
-                    {!agentLoading && !isAgentStopped && (
+                    {agentLoaded && !isAgentStopped && (
                         <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme?.isInverted ? webDarkTheme : webLightTheme}>
                             <CopilotNavDrawer
                                 open={true}
@@ -267,7 +267,7 @@ const TabsListWrapper: FC = () => {
                             </CopilotNavDrawer>
                         </CopilotProvider>
                     )}
-                    {!agentLoading && (
+                    {agentLoaded && (
                         <OutletComponent isAgentStopped={isAgentStopped} startAgent={startAgent} isNavBarHidden={isNavBarHidden} />
                     )}
                 </div>
