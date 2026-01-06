@@ -101,6 +101,46 @@ export const useKustoToolCreateDialogStyles = makeStyles({
         maxHeight: '364px',
         flexGrow: 1,
     },
+    testResultsContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+        width: '100%',
+        maxWidth: '800px',
+        flex: '1 1 auto',
+        height: '0px',
+    },
+    testResultsHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        flexWrap: 'wrap',
+        gap: tokens.spacingHorizontalS,
+    },
+    testResultsTableWrapper: {
+        width: '100%',
+        overflowX: 'auto',
+    },
+    testResultsTable: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: tokens.fontSizeBase200,
+    },
+    testResultsTableHead: {
+        backgroundColor: tokens.colorNeutralBackground3,
+    },
+    testResultsTableHeader: {
+        textAlign: 'left',
+        padding: tokens.spacingHorizontalXS,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    testResultsTableCell: {
+        padding: tokens.spacingHorizontalXS,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        fontFamily: tokens.fontFamilyMonospace,
+        whiteSpace: 'nowrap',
+    },
     testValueAccordionItem: {
         display: 'flex',
         flexDirection: 'column',
@@ -109,14 +149,17 @@ export const useKustoToolCreateDialogStyles = makeStyles({
     testValueColumnHeaders: {
         display: 'grid',
         gridTemplateColumns: '2.5fr 2.5fr 1fr',
-        gap: tokens.spacingVerticalXS,
+        gap: tokens.spacingHorizontalS,
         marginBottom: tokens.spacingVerticalXS,
+        alignItems: 'center',
+        width: '100%',
     },
     testParameterInputs: {
         display: 'grid',
         gridTemplateColumns: '2.5fr 2.5fr 1fr',
-        gap: tokens.spacingVerticalXS,
-        alignItems: 'start',
-        marginTop: tokens.spacingVerticalXS,
+        gap: tokens.spacingHorizontalS,
+        alignItems: 'flex-start',
+        width: '100%',
+        marginBottom: tokens.spacingVerticalXS,
     },
 });
