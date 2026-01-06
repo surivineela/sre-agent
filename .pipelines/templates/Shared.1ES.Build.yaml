@@ -536,8 +536,8 @@ extends:
         - job: image_build
           displayName: "🔨 Build Docker Image for Agent.Web"
           pool:
-            name: Azure-Pipelines-1ESPT-ExDShared
-            image: ubuntu-latest
+            name: 1ES-SREAgent-Build
+            image: 1ESPT-Vanilla-Ubuntu-2204
             os: linux
           steps:
             # This task downloads the build artifacts from the previous stage.
@@ -546,6 +546,15 @@ extends:
               targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
               patterns: 'Agent.Web/**'
+
+          - task: Bash@3
+            displayName: '📊 Check disk space before Agent.Web image build'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "=== Check Disk Space ==="
+                df -h
+                echo "=========================================="
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Agent.Web'
@@ -571,8 +580,8 @@ extends:
         - job: image_build
           displayName: "🔨 Build Docker Image for Session.Proxy"
           pool:
-            name: Azure-Pipelines-1ESPT-ExDShared
-            image: ubuntu-latest
+            name: 1ES-SREAgent-Build
+            image: 1ESPT-Vanilla-Ubuntu-2204
             os: linux
           steps:
             # This task downloads the build artifacts from the previous stage.
@@ -581,6 +590,15 @@ extends:
               targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
               artifact: drop_build_main
               patterns: 'Session.Proxy/**'
+
+          - task: Bash@3
+            displayName: '📊 Check disk space before Session.Proxy image build'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "=== Check Disk Space ==="
+                df -h
+                echo "=========================================="
 
           - task: 1ES.BuildContainerImage@1
             displayName: 'Build Docker image for Session.Proxy'
@@ -605,8 +623,8 @@ extends:
         - job: image_build
           displayName: "🔨 Build Docker Image for Session.Identity"
           pool:
-            name: Azure-Pipelines-1ESPT-ExDShared
-            image: ubuntu-latest
+            name: 1ES-SREAgent-Build
+            image: 1ESPT-Vanilla-Ubuntu-2204
             os: linux
           steps:
             # This task downloads the build artifacts from the previous stage.

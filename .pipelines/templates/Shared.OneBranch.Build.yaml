@@ -144,10 +144,10 @@ extends:
               echo "Build.Repository.Name is $(Build.Repository.Name)"
               echo "Build.SourcesDirectory is $(Build.SourcesDirectory)"
               echo "Build.BuildNumber is $(Build.BuildNumber)"
-              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"              
+              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"
 
               echo "ob_outputDirectory is $(ob_outputDirectory)"
-            
+
               echo "Contents of projectSrcPath $(projectSrcPath)"
               Get-ChildItem -Recurse  $(projectSrcPath) | Foreach-Object { $_.FullName }
         # Some of our tools create output directories as they go while some others require them to exist
@@ -160,7 +160,7 @@ extends:
             script: |
               New-Item $(ob_outputDirectory) -ItemType Directory -Force
               New-Item $(BuildSolutionOutputPath) -ItemType Directory -Force
-        
+
         #
         # Just start the build process
         #
@@ -184,7 +184,7 @@ extends:
             feedsToUse: config
             nugetConfigPath: $(BuildNugetConfigPath)
             ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
-        
+
         #
         # UX - Localization
         #
@@ -222,7 +222,7 @@ extends:
           inputs:
             command: 'install'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
-        
+
         #
         # UX - Compile extracted/translated strings
         #
@@ -232,7 +232,7 @@ extends:
             command: "custom"
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
             customCommand: "run compile:loc"
-        
+
         #
         # UX - Unit tests
         #
@@ -242,7 +242,7 @@ extends:
               command: 'custom'
               workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
               customCommand: 'run test'
-        
+
         #
         # UX - Publish unit test results
         #
@@ -254,8 +254,8 @@ extends:
             failTaskOnFailedTests: true
             testRunTitle: 'UX_UnitTests'
 
-        
-        
+
+
         #  Need to run npmAuthenticate again for the FirstPartyAgent.Web project first
         #  Due to Client React app also build during whole solution build phase
         - task: npmAuthenticate@0
@@ -321,7 +321,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit' 
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit'
             publishTestResults: false
 
         #
@@ -332,7 +332,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests'
             publishTestResults: false
 
         #
@@ -344,7 +344,7 @@ extends:
             testResultsFormat: VSTest
             testResultsFiles: '$(Build.SourcesDirectory)\TestResults\*.trx'
             failTaskOnFailedTests: true
-        
+
         # - task: PowerShell@2
         #   displayName: 'Copy dockerfile to output directory'
         #   inputs:
@@ -365,7 +365,7 @@ extends:
               search_root: '$(ob_outputDirectory)'
 
     - ${{ if parameters.isOfficialBuild }}:
-      - stage: docker      
+      - stage: docker
         dependsOn: build
         jobs:
         - job: buildImageForAgentWeb
