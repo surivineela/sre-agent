@@ -10,103 +10,62 @@ namespace Agent.Cli.Commands;
 
 public static class ThreadCommandHandlers
 {
-    public static async Task HandleThreadNewCommand(ParseResult parseResult)
+    public static async Task<int> HandleThreadNewCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        try
+        DebugLogger.Debug("Command", "Starting thread new command");
+
+        var message = parseResult.GetValue(ThreadCommandOptions.New.MessageOption);
+        var agent = parseResult.GetValue(ThreadCommandOptions.New.AgentNameOption);
+        var noWait = parseResult.GetValue(ThreadCommandOptions.New.NoWaitOption);
+
+        DebugLogger.Debug("Parameters", $"Agent: {agent}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}");
+
+        var threadManager = new ThreadManagerService();
+
+        // If --no-wait is specified, just send the message without starting interactive session
+        if (noWait)
         {
-            var message = parseResult.GetValue(ThreadCommandOptions.New.MessageOption);
-            var userId = parseResult.GetValue(ThreadCommandOptions.New.UserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(ThreadCommandOptions.New.DisplayNameOption) ?? Environment.UserName;
-            var wait = parseResult.GetValue(ThreadCommandOptions.New.WaitOption);
-            var noWait = parseResult.GetValue(ThreadCommandOptions.New.NoWaitOption);
-            var agent = parseResult.GetValue(ThreadCommandOptions.New.AgentNameOption);
-
-            // Default behavior is to wait unless --no-wait is specified
-            // If --wait was explicitly provided, respect its value, otherwise default to true
-            var shouldWait = !noWait;
-
-            if (string.IsNullOrWhiteSpace(message))
+            var error = await threadManager.SendMessageWithoutWaitAsync(threadId: null, agentName: agent, message: message!);
+            if (error != null)
             {
-                Console.WriteLine("Message is required.");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, error);
+                return 1;
             }
-
-            Console.WriteLine($"Sending message to SRE Agent...");
-            Console.WriteLine($"Message: {message}");
-            Console.WriteLine($"User: {displayName} ({userId})");
-            Console.WriteLine();
-
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
-
-            // Step 1: Create a new thread
-            Console.WriteLine("Creating new thread...");
-            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName, agent);
-
-            if (!createSuccess)
-            {
-                Console.WriteLine(createResponse);
-                Environment.Exit(1);
-                return;
-            }
-
-            Console.WriteLine($"Thread created: {threadId}");
-
-            // Store the thread locally
-            await threadManager.AddThreadAsync(threadId, message);
-
-            // Step 2: Wait for agent response if requested (default is true unless --no-wait)
-            if (shouldWait)
-            {
-                Console.WriteLine("Waiting for SRE Agent response...");
-                Console.WriteLine();
-
-                var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-
-                if (!getSuccess)
-                {
-                    Console.WriteLine(getResponse);
-                    Environment.Exit(1);
-                    return;
-                }
-
-                // Start interactive chat session
-                await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
-            }
-            else
-            {
-                Console.WriteLine($"Message sent successfully! Thread ID: {threadId}");
-                Console.WriteLine($"Use 'srectl thread continue' to see the agent's response or continue the conversation.");
-                Environment.Exit(0);
-            }
+            return 0;
         }
-        catch (Exception ex)
+
+        var sessionError = await threadManager.StartChatSessionAsync(threadId: null, agentName: agent, message: message);
+        if (sessionError != null)
         {
-            Console.WriteLine($"Failed to send message: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(false, sessionError);
+            return 1;
         }
+        return 0;
     }
 
-    public static async Task HandleThreadApplyCommand(ParseResult parseResult)
+    public static async Task<int> HandleThreadApplyCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
+        DebugLogger.Debug("Command", "Starting thread apply command");
+
         try
         {
+            ConsoleUI.WriteInfo($"⚠️  Warning: The 'srectl thread apply' will be deprecated soon.", ConsoleColor.Yellow);
+            ConsoleUI.WriteInfo($"    Please contact HoWang/SanMeht if you depend on this command.", ConsoleColor.Yellow);
+            Console.WriteLine();
+
             var filePath = parseResult.GetValue(ThreadCommandOptions.Apply.FileOption);
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                Console.WriteLine("--file is required");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, "--file is required");
+                return 1;
             }
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"File not found: {filePath}");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, $"File not found: {filePath}");
+                return 1;
             }
 
-            var yaml = await File.ReadAllTextAsync(filePath);
+            var yaml = await File.ReadAllTextAsync(filePath, cancellationToken);
             var des = new YamlDotNet.Serialization.DeserializerBuilder()
                 .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
@@ -114,507 +73,205 @@ public static class ThreadCommandHandlers
             var manifest = des.Deserialize<Agent.Common.Core.Manifests.ThreadManifest>(yaml);
             if (manifest == null || manifest.Spec == null || !string.Equals(manifest.Kind, "Thread", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("YAML kind must be Thread");
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, "YAML kind must be Thread");
+                return 1;
             }
 
             using var apiService = new ApiService();
             var userId = manifest.Spec.UserId ?? Environment.UserName;
             var displayName = manifest.Spec.DisplayName ?? Environment.UserName;
-            var (ok, threadId, resp) = await apiService.CreateThreadAsync(manifest.Spec.Message, userId, displayName, manifest.Spec.Agent);
-            Console.WriteLine(resp);
-            if (ok)
+            var (thread, error) = await apiService.CreateThreadAsync(manifest.Spec.Message, userId, displayName, manifest.Spec.Agent);
+
+            if (thread != null && string.IsNullOrEmpty(error))
             {
+                ConsoleUI.WriteStatus(true, $"Thread created successfully with ID: {thread.Id}");
                 var tm = new ThreadManagerService();
-                await tm.AddThreadAsync(threadId, manifest.Spec.Message);
-            }
-            Environment.Exit(ok ? 0 : 1);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to apply thread YAML: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    public static async Task HandleThreadContinueCommand(ParseResult parseResult)
-    {
-        try
-        {
-            var threadId = parseResult.GetValue(ThreadCommandOptions.Continue.ThreadIdOption);
-            var message = parseResult.GetValue(ThreadCommandOptions.Continue.MessageOption);
-            var userId = parseResult.GetValue(ThreadCommandOptions.Continue.UserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(ThreadCommandOptions.Continue.DisplayNameOption) ?? Environment.UserName;
-            var wait = parseResult.GetValue(ThreadCommandOptions.Continue.WaitOption);
-            var noWait = parseResult.GetValue(ThreadCommandOptions.Continue.NoWaitOption);
-
-            // Default behavior is to wait unless --no-wait is specified
-            // If --wait was explicitly provided, respect its value, otherwise default to true
-            var shouldWait = !noWait;
-
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
-
-            // Get thread ID from local storage if not provided
-            if (string.IsNullOrWhiteSpace(threadId))
-            {
-                threadId = await threadManager.GetCurrentThreadIdAsync();
-                if (string.IsNullOrWhiteSpace(threadId))
-                {
-                    Console.WriteLine("No thread ID provided and no current thread found. Use 'srectl thread new' to create a new thread or provide --thread-id.");
-                    Environment.Exit(1);
-                    return;
-                }
-            }
-
-            Console.WriteLine($"Continuing thread: {threadId}");
-
-            // If message is provided, send it first
-            if (!string.IsNullOrWhiteSpace(message))
-            {
-                Console.WriteLine($"Sending message: {message}");
-                Console.WriteLine($"User: {displayName} ({userId})");
-                Console.WriteLine();
-
-                var (sendSuccess, messageId, sendResponse) = await apiService.SendMessageAsync(threadId, message, userId, displayName);
-                if (!sendSuccess)
-                {
-                    Console.WriteLine(sendResponse);
-                    Environment.Exit(1);
-                    return;
-                }
-
-                Console.WriteLine($"Message sent: {messageId}");
-            }
-
-            // Update thread last used
-            await threadManager.UpdateThreadLastUsedAsync(threadId);
-
-            // Get and display messages
-            if (shouldWait)
-            {
-                if (!string.IsNullOrWhiteSpace(message))
-                {
-                    Console.WriteLine("Waiting for SRE Agent response...");
-                    Console.WriteLine();
-
-                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-
-                    if (!getSuccess)
-                    {
-                        Console.WriteLine(getResponse);
-                        Environment.Exit(1);
-                        return;
-                    }
-
-                    // Start interactive chat session after getting response
-                    await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
-                }
-                else
-                {
-                    // No message provided, show conversation history and start interactive mode
-                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesAsync(threadId, maxRetries: 1);
-
-                    if (!getSuccess)
-                    {
-                        Console.WriteLine(getResponse);
-                        Environment.Exit(1);
-                        return;
-                    }
-
-                    // Display the conversation history
-                    Console.WriteLine("Conversation History:");
-                    Console.WriteLine("═══════════════════");
-                    Console.WriteLine();
-
-                    foreach (var msg in messages.OrderBy(m => m.Timestamp))
-                    {
-                        var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
-                        var timestamp = msg.Timestamp.ToString("HH:mm:ss");
-                        Console.WriteLine($"{roleLabel} ({timestamp}):");
-                        Console.WriteLine($"   {msg.Text}");
-                        Console.WriteLine();
-                    }
-
-                    // Start interactive chat session
-                    await StartInteractiveChatSession(apiService, threadManager, threadId, userId, displayName);
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(message))
-            {
-                Console.WriteLine($"Message sent successfully! Thread ID: {threadId}");
-                Console.WriteLine($"Use 'srectl thread continue' to see the agent's response.");
-                Environment.Exit(0);
+                return 0;
             }
             else
             {
-                // Just show the conversation without waiting for new messages
-                var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesAsync(threadId, maxRetries: 1);
-
-                if (!getSuccess)
-                {
-                    Console.WriteLine(getResponse);
-                    Environment.Exit(1);
-                    return;
-                }
-
-                // Display the conversation
-                Console.WriteLine("Conversation:");
-                Console.WriteLine("═══════════════");
-                Console.WriteLine();
-
-                foreach (var msg in messages.OrderBy(m => m.Timestamp))
-                {
-                    var roleLabel = msg.AuthorRole.Equals("SREAgent", StringComparison.OrdinalIgnoreCase) ? "SRE Agent" : "You";
-                    var timestamp = msg.Timestamp.ToString("HH:mm:ss");
-                    Console.WriteLine($"{roleLabel} ({timestamp}):");
-                    Console.WriteLine($"   {msg.Text}");
-                    Console.WriteLine();
-                }
-
-                Console.WriteLine($"Thread ID: {threadId}");
-                Console.WriteLine($"Use 'srectl thread continue --message \"your message\"' to continue the conversation.");
-                Environment.Exit(0);
+                ConsoleUI.WriteStatus(false, error ?? "Failed to create thread");
+                return 1;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to continue thread: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteStatus(false, $"Failed to apply thread YAML: {ex.Message}");
+            return 1;
         }
     }
 
-    public static async Task HandleThreadListCommand(ParseResult parseResult)
+    public static async Task<int> HandleThreadContinueCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        try
+        DebugLogger.Debug("Command", "Starting thread continue command");
+
+        var threadId = parseResult.GetValue(ThreadCommandOptions.Continue.ThreadIdOption);
+        var message = parseResult.GetValue(ThreadCommandOptions.Continue.MessageOption);
+        var noWait = parseResult.GetValue(ThreadCommandOptions.Continue.NoWaitOption);
+
+        var threadManager = new ThreadManagerService();
+
+        // If no thread ID is provided, get the current thread ID
+        if (string.IsNullOrEmpty(threadId))
         {
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
-
-            Console.WriteLine("Fetching threads...");
-
-            var (success, threads, response) = await apiService.ListThreadsAsync();
-
-            if (!success)
+            threadId = await threadManager.GetCurrentThreadIdAsync();
+            if (string.IsNullOrEmpty(threadId))
             {
-                Console.WriteLine(response);
-                Environment.Exit(1);
-                return;
+                ConsoleUI.WriteStatus(false, "No thread ID specified and no current thread found. Use --thread-id or create a new thread with 'srectl thread new'.");
+                return 1;
             }
-
-            if (threads.Count == 0)
-            {
-                Console.WriteLine("No threads found.");
-                Environment.Exit(0);
-                return;
-            }
-
-            Console.WriteLine("Threads:");
-            Console.WriteLine("═══════════════");
-            Console.WriteLine();
-
-            var currentThreadId = await threadManager.GetCurrentThreadIdAsync();
-
-            foreach (var thread in threads.OrderByDescending(t => t.LastMessageAt))
-            {
-                var marker = thread.Id == currentThreadId ? "→ " : "  ";
-                var title = string.IsNullOrWhiteSpace(thread.Title) ? "No title" : thread.Title;
-                if (title.Length > 50)
-                {
-                    title = title.Substring(0, 47) + "...";
-                }
-
-                Console.WriteLine($"{marker}{thread.Id}");
-                Console.WriteLine($"   Title: {title}");
-                Console.WriteLine($"   Created: {thread.CreatedAt:yyyy-MM-dd HH:mm:ss}");
-                Console.WriteLine($"   Last Message: {thread.LastMessageAt:yyyy-MM-dd HH:mm:ss}");
-                Console.WriteLine();
-            }
-
-            Console.WriteLine($"Total: {threads.Count} thread(s)");
-            if (!string.IsNullOrWhiteSpace(currentThreadId))
-            {
-                Console.WriteLine($"Current thread: {currentThreadId} (marked with →)");
-            }
-
-            Environment.Exit(0);
         }
-        catch (Exception ex)
+
+        DebugLogger.Debug("Parameters", $"ThreadId: {threadId}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}");
+
+        // If --no-wait is specified, just send the message without starting interactive session
+        if (noWait)
         {
-            Console.WriteLine($"Failed to list threads: {ex.Message}");
-            Environment.Exit(1);
+            var error = await threadManager.SendMessageWithoutWaitAsync(threadId, agentName: null, message: message!);
+            if (error != null)
+            {
+                ConsoleUI.WriteStatus(false, error);
+                return 1;
+            }
+            return 0;
         }
+
+        var sessionError = await threadManager.StartChatSessionAsync(threadId, agentName: null, message: message);
+        if (sessionError != null)
+        {
+            ConsoleUI.WriteStatus(false, sessionError);
+            return 1;
+        }
+        return 0;
     }
 
-    public static async Task HandleThreadDeleteCommand(ParseResult parseResult)
+    public static async Task<int> HandleThreadListCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        try
+        DebugLogger.Debug("Command", "Starting thread list command");
+
+        using var apiService = new ApiService();
+        var threadManager = new ThreadManagerService();
+
+        var (threadCollection, error) = await apiService.ListThreadsAsync();
+
+        if (error != null)
         {
-            var threadId = parseResult.GetValue(ThreadCommandOptions.Delete.ThreadIdOption);
-
-            if (string.IsNullOrWhiteSpace(threadId))
-            {
-                Console.WriteLine("Thread ID is required. Use --thread-id to specify the thread to delete.");
-                Environment.Exit(1);
-                return;
-            }
-
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
-
-            Console.WriteLine($"Deleting thread: {threadId}");
-
-            var (success, response) = await apiService.DeleteThreadAsync(threadId);
-
-            if (!success)
-            {
-                Console.WriteLine(response);
-                Environment.Exit(1);
-                return;
-            }
-
-            // Remove from local storage as well
-            await threadManager.DeleteThreadAsync(threadId);
-
-            Console.WriteLine(response);
-            Environment.Exit(0);
+            ConsoleUI.WriteStatus(false, error);
+            return 1;
         }
-        catch (Exception ex)
+
+        if (threadCollection == null || threadCollection.Value.Count == 0)
         {
-            Console.WriteLine($"Failed to delete thread: {ex.Message}");
-            Environment.Exit(1);
+            ConsoleUI.WriteInfo("No threads found.");
+            return 0;
         }
-    }
 
-    public static async Task HandleThreadTrackCommand(ParseResult parseResult)
-    {
-        try
-        {
-            var threadId = parseResult.GetValue(ThreadCommandOptions.Track.ThreadIdOption);
+        var threads = threadCollection.Value;
+        var currentThreadId = await threadManager.GetCurrentThreadIdAsync();
 
-            if (string.IsNullOrWhiteSpace(threadId))
-            {
-                Console.WriteLine("Thread ID is required. Use --thread-id to specify the thread to track.");
-                Environment.Exit(1);
-                return;
-            }
+        // Sort by most recently modified first
+        var sortedThreads = threads.OrderByDescending(t => t.ModifiedTimestamp).ToList();
 
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
+        // Calculate column widths
+        const int markerWidth = 2;
+        const int idWidth = 36;
+        const int createdWidth = 19;
+        const int modifiedWidth = 19;
+        const int titleWidth = 50;
 
-            Console.WriteLine($"Tracking thread: {threadId}");
-            Console.WriteLine("Press Ctrl+C to stop tracking...");
-            Console.WriteLine();
-
-            var (success, messages, response) = await apiService.TrackThreadAsync(threadId);
-
-            if (!success)
-            {
-                Console.WriteLine(response);
-                Environment.Exit(1);
-                return;
-            }
-
-            // Update thread last used
-            await threadManager.UpdateThreadLastUsedAsync(threadId);
-
-            Console.WriteLine($"Thread tracking complete! Thread ID: {threadId}");
-            Environment.Exit(0);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to track thread: {ex.Message}");
-            Environment.Exit(1);
-        }
-    }
-
-    /// <summary>
-    /// Starts an interactive chat session where the user can continuously send messages
-    /// and receive responses from the agent without needing to exit and restart commands.
-    /// </summary>
-    /// <param name="apiService">The API service for communication</param>
-    /// <param name="threadManager">The thread manager service</param>
-    /// <param name="threadId">The current thread ID</param>
-    /// <param name="userId">The user ID</param>
-    /// <param name="displayName">The display name</param>
-    public static async Task StartInteractiveChatSession(ApiService apiService, ThreadManagerService threadManager, string threadId, string userId, string displayName)
-    {
-        Console.WriteLine();
-        ConsoleUI.WriteStatus(true, "Interactive chat session started!");
-        ConsoleUI.WriteInfo("Type your messages and press Enter to send. Press Ctrl+C to exit.");
-        ConsoleUI.WriteInfo("Commands: /agent <name> (start new thread with agent), /clear (start new thread)");
-        ConsoleUI.WriteInfo("Quick test: /agent echo-agent (responds with your message)");
-        ConsoleUI.DrawLine();
+        // Header
+        ConsoleUI.WriteInline("  " + "ID".PadRight(idWidth) + "  ", ConsoleColor.Cyan);
+        ConsoleUI.WriteInline("CreateAt".PadRight(createdWidth) + "  ", ConsoleColor.Cyan);
+        ConsoleUI.WriteInline("ModifiedAt".PadRight(modifiedWidth) + "  ", ConsoleColor.Cyan);
+        ConsoleUI.WriteInline("Title", ConsoleColor.Cyan);
         Console.WriteLine();
 
-        // Set up console cancellation handling
-        var cancellationTokenSource = new CancellationTokenSource();
-        Console.CancelKeyPress += (_, e) =>
-        {
-            e.Cancel = true;
-            cancellationTokenSource.Cancel();
-        };
+        // Separator line
+        var totalWidth = markerWidth + idWidth + createdWidth + modifiedWidth + titleWidth + 6;
+        ConsoleUI.DrawLine(totalWidth, ConsoleColor.DarkGray);
 
-        try
+        // Data rows
+        foreach (var thread in sortedThreads)
         {
-            while (!cancellationTokenSource.Token.IsCancellationRequested)
+            var isCurrent = thread.Id == currentThreadId;
+            var rowColor = isCurrent ? ConsoleColor.Green : ConsoleColor.White;
+            var marker = isCurrent ? "→ " : "  ";
+
+            // Get title - take only first line and handle empty/whitespace
+            var displayTitle = string.IsNullOrWhiteSpace(thread.Title) ? "(No title)" : thread.Title;
+
+            // Split by newlines and take first line only
+            var lines = displayTitle.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            displayTitle = lines.Length > 0 ? lines[0].Trim() : "(No title)";
+
+            // Truncate if too long
+            if (displayTitle.Length > titleWidth)
             {
-                // Show input prompt
-                Console.Write("You: ");
-
-                // Read user input with cancellation support
-                string? userMessage = null;
-                var inputTask = Task.Run(() => Console.ReadLine(), cancellationTokenSource.Token);
-
-                try
-                {
-                    userMessage = await inputTask;
-                }
-                catch (OperationCanceledException)
-                {
-                    // User pressed Ctrl+C
-                    break;
-                }
-
-                // Check if user wants to exit or if input is empty
-                if (string.IsNullOrWhiteSpace(userMessage))
-                {
-                    continue;
-                }
-
-                // Check for explicit exit commands
-                if (userMessage.Trim().Equals("exit", StringComparison.OrdinalIgnoreCase) ||
-                    userMessage.Trim().Equals("quit", StringComparison.OrdinalIgnoreCase) ||
-                    userMessage.Trim().Equals("/exit", StringComparison.OrdinalIgnoreCase) ||
-                    userMessage.Trim().Equals("/quit", StringComparison.OrdinalIgnoreCase))
-                {
-                    break;
-                }
-
-                // Check for /clear command - prepare to start a new thread on next user message
-                if (userMessage.Trim().Equals("/clear", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine();
-                    ConsoleUI.WriteInfo("Starting new thread...");
-                    // Defer thread creation until the next user message
-                    threadId = string.Empty;
-                    await threadManager.SetCurrentThreadIdAsync(string.Empty);
-                    ConsoleUI.WriteStatus(true, "New thread will be created on your next message.");
-                    ConsoleUI.DrawLine();
-                    Console.WriteLine();
-                    continue;
-                }
-
-                // Check for /agent command - prepare to start a new thread with specific agent on next user message
-                if (userMessage.Trim().StartsWith("/agent", StringComparison.OrdinalIgnoreCase))
-                {
-                    var parts = userMessage.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-                    if (parts.Length == 1) // Just "/agent" without agent name
-                    {
-                        Console.WriteLine();
-                        ConsoleUI.WriteSection("Available agents:");
-
-                        // Get list of agents
-                        var (agents, error) = await apiService.ListExtendedAgentsAsync();
-                        if (error == null)
-                        {
-                            var agentListResponse = ExtendedAgentHelper.FormatAgentList(agents);
-                            Console.WriteLine(agentListResponse);
-                        }
-                        else
-                        {
-                            ConsoleUI.WriteStatus(false, $"Failed to fetch agent list: {error}");
-                        }
-
-                        Console.WriteLine();
-                        ConsoleUI.WriteInfo("Usage: /agent <agent-name>");
-                        ConsoleUI.WriteInfo("Example: /agent echo-agent");
-                        Console.WriteLine();
-                        continue;
-                    }
-                    else if (parts.Length >= 2)
-                    {
-                        var agentName = parts[1];
-                        Console.WriteLine();
-                        ConsoleUI.WriteInfo($"Selected agent: {agentName}");
-                        // Defer thread creation until the next user message
-                        threadId = string.Empty;
-                        await threadManager.SetCurrentThreadIdAsync(string.Empty);
-                        ConsoleUI.WriteStatus(true, "New thread with this agent will be created on your next message.");
-                        ConsoleUI.DrawLine();
-                        Console.WriteLine();
-                        continue;
-                    }
-                }
-
-                Console.WriteLine();
-
-                try
-                {
-                    // Send the message (create thread first if needed)
-                    Console.WriteLine("Sending message...");
-                    if (string.IsNullOrWhiteSpace(threadId))
-                    {
-                        // Create a new thread using this first message
-                        var (createSuccess, newThreadId, createResponse) = await apiService.CreateThreadAsync(userMessage, userId, displayName);
-                        if (!createSuccess)
-                        {
-                            ConsoleUI.WriteStatus(false, $"Failed to create thread: {createResponse}");
-                            Console.WriteLine();
-                            continue;
-                        }
-                        threadId = newThreadId;
-                        await threadManager.AddThreadAsync(threadId, userMessage);
-                    }
-
-                    var (sendSuccess, messageId, sendResponse) = await apiService.SendMessageAsync(threadId, userMessage, userId, displayName);
-
-                    if (!sendSuccess)
-                    {
-                        ConsoleUI.WriteStatus(false, $"Failed to send message: {sendResponse}");
-                        Console.WriteLine();
-                        continue;
-                    }
-
-                    // Wait for and display the agent's response
-                    Console.WriteLine("Waiting for SRE Agent response...");
-                    Console.WriteLine();
-
-                    var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-
-                    if (!getSuccess)
-                    {
-                        ConsoleUI.WriteStatus(false, $"Failed to get response: {getResponse}");
-                        Console.WriteLine();
-                        continue;
-                    }
-
-                    // Update thread last used
-                    await threadManager.UpdateThreadLastUsedAsync(threadId);
-
-                    Console.WriteLine("─────────────────────────────────────────────────────────");
-                    Console.WriteLine();
-                }
-                catch (Exception ex)
-                {
-                    ConsoleUI.WriteStatus(false, $"Error during conversation: {ex.Message}");
-                    Console.WriteLine();
-                }
+                displayTitle = displayTitle.Substring(0, titleWidth - 3) + "...";
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when user presses Ctrl+C
-        }
-        finally
-        {
+
+            ConsoleUI.WriteInline(marker + thread.Id.PadRight(idWidth) + "  ", rowColor);
+            ConsoleUI.WriteInline(thread.CreatedTimestamp.ToString("yyyy-MM-dd HH:mm:ss").PadRight(createdWidth) + "  ", rowColor);
+            ConsoleUI.WriteInline(thread.ModifiedTimestamp.ToString("yyyy-MM-dd HH:mm:ss").PadRight(modifiedWidth) + "  ", rowColor);
+            ConsoleUI.WriteInline(displayTitle, rowColor);
             Console.WriteLine();
-            ConsoleUI.WriteStatus(true, "Chat session ended.");
-            Console.WriteLine($"Thread ID: {threadId}");
-            Console.WriteLine("You can resume this conversation later using 'srectl thread continue --thread-id " + threadId + "'");
-            Environment.Exit(0);
         }
+
+        Console.WriteLine();
+        ConsoleUI.WriteInfo($"Total: {threads.Count} thread(s)");
+
+        return 0;
+    }
+
+    public static async Task<int> HandleThreadDeleteCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting thread delete command");
+
+        var threadId = parseResult.GetValue(ThreadCommandOptions.Delete.ThreadIdOption);
+
+        if (string.IsNullOrWhiteSpace(threadId))
+        {
+            ConsoleUI.WriteStatus(false, "Thread ID is required. Use --thread-id to specify the thread to delete.");
+            return 1;
+        }
+
+        using var apiService = new ApiService();
+        var threadManager = new ThreadManagerService();
+
+        ConsoleUI.WriteInfo($"Deleting thread: {threadId}");
+
+        var (success, message) = await apiService.DeleteThreadAsync(threadId);
+
+        if (!success)
+        {
+            ConsoleUI.WriteStatus(false, message);
+            return 1;
+        }
+
+        ConsoleUI.WriteStatus(true, message);
+        return 0;
+    }
+
+    public static async Task<int> HandleThreadTrackCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    {
+        DebugLogger.Debug("Command", "Starting thread track command");
+
+        var threadId = parseResult.GetValue(ThreadCommandOptions.Track.ThreadIdOption);
+
+        if (string.IsNullOrWhiteSpace(threadId))
+        {
+            ConsoleUI.WriteStatus(false, "Thread ID is required. Use --thread-id to specify the thread to track.");
+            return 1;
+        }
+
+        var threadManager = new ThreadManagerService();
+
+        var error = await threadManager.TrackChatSessionAsync(threadId);
+        if (error != null)
+        {
+            ConsoleUI.WriteStatus(false, error);
+            return 1;
+        }
+        return 0;
     }
 }

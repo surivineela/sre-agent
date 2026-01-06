@@ -198,6 +198,7 @@ public static class AgentCommandOptions
 
     public static class Test
     {
+        // Agent test uses thread new options with --agent mapped to --name
         public static readonly Option<string> NameOption = new("--name")
         {
             Description = "Name of the agent to test",
@@ -212,23 +213,23 @@ public static class AgentCommandOptions
 
         public static readonly Option<string> UserIdOption = new("--user-id")
         {
-            Description = "User ID (defaults to current user)"
+            Description = "[DEPRECATED] User ID (obtained from token)"
         };
 
         public static readonly Option<string> DisplayNameOption = new("--display-name")
         {
-            Description = "Display name (defaults to current user)"
+            Description = "[DEPRECATED] Display name (obtained from token)"
         };
 
         public static readonly Option<bool> WaitOption = new("--wait")
         {
-            Description = "Wait for response (default: true)",
+            Description = "[DEPRECATED] Always starts interactive session",
             Arity = ArgumentArity.ZeroOrOne
         };
 
         public static readonly Option<bool> NoWaitOption = new("--no-wait")
         {
-            Description = "Send message without waiting for response"
+            Description = "Send message without waiting for response (requires --message)"
         };
     }
 

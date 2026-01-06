@@ -140,13 +140,6 @@ public static partial class CommandBuilder
                 AgentCommandOptions.Test.NoWaitOption
             };
 
-            cmd.Validators.Add(result =>
-            {
-                var w = result.GetValue(AgentCommandOptions.Test.WaitOption);
-                var nw = result.GetValue(AgentCommandOptions.Test.NoWaitOption);
-                if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
-            });
-
             cmd.SetAction(AgentCommandHandlers.HandleTestCommand);
             return cmd;
         }

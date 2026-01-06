@@ -691,99 +691,49 @@ public static class AgentCommandHandlers
 
     /// <summary>
     /// Handles the agent test command to test an agent with a specific message.
+    /// Delegates to ThreadCommandHandlers.HandleThreadNewCommand for consistency.
     /// </summary>
-    public static async Task HandleTestCommand(ParseResult parseResult)
+    public static async Task<int> HandleTestCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        DebugLogger.Debug("Command", "Starting agent test command");
+        DebugLogger.Debug("Command", "Starting agent test command (delegating to thread new)");
 
-        try
+        // Create a modified ParseResult that maps --name to --agent
+        // This allows agent test to delegate to thread new while using --name parameter
+        var agentName = parseResult.GetValue(AgentCommandOptions.Test.NameOption);
+
+        // Build a new command line with mapped parameters
+        var args = new List<string> { "thread", "new" };
+
+        if (!string.IsNullOrEmpty(agentName))
         {
-            var agentName = parseResult.GetValue(AgentCommandOptions.Test.NameOption);
-            var message = parseResult.GetValue(AgentCommandOptions.Test.MessageOption);
-            var userId = parseResult.GetValue(AgentCommandOptions.Test.UserIdOption) ?? Environment.UserName;
-            var displayName = parseResult.GetValue(AgentCommandOptions.Test.DisplayNameOption) ?? Environment.UserName;
-            var noWait = parseResult.GetValue(AgentCommandOptions.Test.NoWaitOption);
-
-            // Default behavior is to wait unless --no-wait is specified
-            var shouldWait = !noWait;
-
-            DebugLogger.Debug("Parameters", $"AgentName: {agentName}, Message: {message}, UserId: {userId}, Wait: {shouldWait}");
-
-            if (string.IsNullOrWhiteSpace(agentName))
-            {
-                ConsoleUI.WriteStatus(false, "Agent name is required.");
-                Environment.Exit(1);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                ConsoleUI.WriteStatus(false, "Test message is required.");
-                Environment.Exit(1);
-                return;
-            }
-
-            // Construct the prefixed message
-            var prefixedMessage = $"Use the {agentName} agent for the below user query\n{message}";
-
-            ConsoleUI.WriteInfo($"Testing agent: {agentName}", ConsoleColor.Cyan);
-            ConsoleUI.WriteKeyValue("Original message", message);
-            ConsoleUI.WriteKeyValue("Full message", prefixedMessage);
-            ConsoleUI.WriteKeyValue("User", $"{displayName} ({userId})");
-            Console.WriteLine();
-
-            using var apiService = new ApiService();
-            var threadManager = new ThreadManagerService();
-
-            // Step 1: Create a new thread with the prefixed message
-            ConsoleUI.WriteInfo("Creating new test thread...", ConsoleColor.Yellow);
-            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName);
-
-            if (!createSuccess)
-            {
-                ConsoleUI.WriteStatus(false, createResponse);
-                Environment.Exit(1);
-                return;
-            }
-
-            ConsoleUI.WriteStatus(true, $"Test thread created: {threadId}");
-
-            // Store the thread locally
-            await threadManager.AddThreadAsync(threadId, $"Agent Test: {agentName}");
-
-            // Step 2: Wait for agent response if requested (default is true unless --no-wait)
-            if (shouldWait)
-            {
-                ConsoleUI.WriteInfo($"Waiting for {agentName} agent response...", ConsoleColor.Yellow);
-                Console.WriteLine();
-
-                var (getSuccess, messages, getResponse) = await apiService.GetThreadMessagesStreamingAsync(threadId);
-
-                if (!getSuccess)
-                {
-                    ConsoleUI.WriteStatus(false, getResponse);
-                    Environment.Exit(1);
-                    return;
-                }
-
-                Console.WriteLine();
-                ConsoleUI.WriteStatus(true, "Test completed successfully!");
-                ConsoleUI.WriteKeyValue("Thread ID", threadId);
-                ConsoleUI.WriteInfo($"Continue with: srectl thread continue --thread-id {threadId}", ConsoleColor.Cyan);
-            }
-            else
-            {
-                ConsoleUI.WriteStatus(true, $"Test message sent successfully! Thread ID: {threadId}");
-                ConsoleUI.WriteInfo($"Use 'srectl thread continue --thread-id {threadId}' to see the agent's response.", ConsoleColor.Cyan);
-            }
-
-            Environment.Exit(0);
+            args.Add("--agent");
+            args.Add(agentName);
         }
-        catch (Exception ex)
+
+        var message = parseResult.GetValue(AgentCommandOptions.Test.MessageOption);
+        if (!string.IsNullOrEmpty(message))
         {
-            ConsoleUI.WriteStatus(false, $"Failed to test agent: {ex.Message}");
-            Environment.Exit(1);
+            args.Add("--message");
+            args.Add(message);
         }
+
+        var noWait = parseResult.GetValue(AgentCommandOptions.Test.NoWaitOption);
+        if (noWait)
+        {
+            args.Add("--no-wait");
+        }
+
+        // Create a new parse result by parsing the mapped arguments
+        var rootCommand = parseResult.CommandResult.Command;
+        while (rootCommand.Parents.Any())
+        {
+            rootCommand = rootCommand.Parents.First() as System.CommandLine.Command ?? rootCommand;
+        }
+
+        var newParseResult = rootCommand.Parse(args.ToArray());
+
+        // Delegate to ThreadCommandHandlers.HandleThreadNewCommand
+        return await ThreadCommandHandlers.HandleThreadNewCommand(newParseResult, cancellationToken);
     }
 
     /// <summary>

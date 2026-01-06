@@ -1927,16 +1927,15 @@ description: A {type} tool created interactively";
 
             // Create a test thread
             ConsoleUI.WriteInfo($"Testing agent '{name}' with message: {message}");
-            var (createSuccess, threadId, createResponse) = await apiService.CreateThreadAsync(message, userId, displayName);
+            var (thread, error) = await apiService.CreateThreadAsync(message, userId, displayName);
 
-            if (!createSuccess)
+            if (thread == null || !string.IsNullOrEmpty(error))
             {
-                ConsoleUI.WriteStatus(false, $"Failed to create test thread: {createResponse}");
-                throw new InvalidOperationException($"Failed to test agent '{name}': {createResponse}");
+                ConsoleUI.WriteStatus(false, $"Failed to create test thread: {error}");
+                throw new InvalidOperationException($"Failed to test agent '{name}': {error}");
             }
 
-            // Store the thread locally
-            await threadManager.AddThreadAsync(threadId, $"Agent Test: {name}");
+            var threadId = thread.Id;
 
             // Wait for agent response using the same method as the regular test command
             ConsoleUI.WriteInfo($"Waiting for {name} agent response...");

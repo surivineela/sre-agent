@@ -19,18 +19,7 @@ public static class ThreadCommandOptions
     {
         public static readonly Option<string> MessageOption = new("--message")
         {
-            Description = "Message to send to the agent",
-            Required = true
-        };
-
-        public static readonly Option<string> UserIdOption = new("--user-id")
-        {
-            Description = "User ID (defaults to current user)"
-        };
-
-        public static readonly Option<string> DisplayNameOption = new("--display-name")
-        {
-            Description = "Display name (defaults to current user)"
+            Description = "Message to send automatically after starting the session"
         };
 
         public static readonly Option<string> AgentNameOption = new("--agent")
@@ -38,15 +27,25 @@ public static class ThreadCommandOptions
             Description = "Agent to start chatting with"
         };
 
+        public static readonly Option<string> UserIdOption = new("--user-id")
+        {
+            Description = "[DEPRECATED] User ID (obtained from token)"
+        };
+
+        public static readonly Option<string> DisplayNameOption = new("--display-name")
+        {
+            Description = "[DEPRECATED] Display name (obtained from token)"
+        };
+
         public static readonly Option<bool> WaitOption = new("--wait")
         {
-            Description = "Wait for response (default: true)",
+            Description = "[DEPRECATED] Always starts interactive session",
             Arity = ArgumentArity.ZeroOrOne
         };
 
         public static readonly Option<bool> NoWaitOption = new("--no-wait")
         {
-            Description = "Don't wait for response"
+            Description = "Send message without waiting for response (requires --message)"
         };
     }
 
@@ -63,29 +62,28 @@ public static class ThreadCommandOptions
 
         public static readonly Option<string> MessageOption = new("--message")
         {
-            Description = "Message to send to the agent",
-            Required = false
+            Description = "Message to send automatically after starting the session"
         };
 
         public static readonly Option<string> UserIdOption = new("--user-id")
         {
-            Description = "User ID (defaults to current user)"
+            Description = "[DEPRECATED] User ID (obtained from token)"
         };
 
         public static readonly Option<string> DisplayNameOption = new("--display-name")
         {
-            Description = "Display name (defaults to current user)"
+            Description = "[DEPRECATED] Display name (obtained from token)"
         };
 
         public static readonly Option<bool> WaitOption = new("--wait")
         {
-            Description = "Wait for response (default: true)",
+            Description = "[DEPRECATED] Always starts interactive session",
             Arity = ArgumentArity.ZeroOrOne
         };
 
         public static readonly Option<bool> NoWaitOption = new("--no-wait")
         {
-            Description = "Don't wait for response"
+            Description = "Send message without waiting for response (requires --message)"
         };
     }
 

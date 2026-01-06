@@ -20,7 +20,7 @@ public class CliConfigurationService : ICliConfigurationService
     }
 
     // Use properties instead of static readonly fields to support dynamic environment variable changes
-    private static string UserConfigDir => GetConfigDir();
+    public static string UserConfigDir => GetConfigDir();
     private static string ConfigFileName => Path.Combine(UserConfigDir, "config.json");
     private static string ProfilesDir => Path.Combine(UserConfigDir, "profiles");
     private static string CurrentProfileFile => Path.Combine(UserConfigDir, "current-profile");

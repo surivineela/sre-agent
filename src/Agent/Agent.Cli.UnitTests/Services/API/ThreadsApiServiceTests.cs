@@ -43,13 +43,13 @@ public class ThreadsApiServiceTests
 
         var apiService = new ApiService(_httpClient, configService, new Mock<ITokenService>().Object);
 
-        (var success, var threadId, var errorMessage) = await apiService.CreateThreadAsync("Test Thread", "This is a test thread.", "User");
+        (var thread, var error) = await apiService.CreateThreadAsync("Test Thread", "This is a test thread.", "User");
 
-        _output.WriteLine(errorMessage);
+        _output.WriteLine(error);
 
-        success.ShouldBeFalse();
-        threadId.ShouldBeEmpty();
-        errorMessage.ShouldContain("Configuration not found. Please run 'srectl init' first.");
+        thread.ShouldBeNull();
+        error.ShouldNotBeNull();
+        error.ShouldContain("Configuration not found. Please run 'srectl init' first.");
     }
 
     [Fact]
@@ -83,13 +83,13 @@ public class ThreadsApiServiceTests
         var handler = TestHelpers.CreateMockHttpMessageHandler(statusCode, JsonSerializer.Serialize(thread, _jsonOptions));
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(handler);
 
-        (var success, var threadId, var response) = await apiService.CreateThreadAsync(message, userId, displayName);
+        (var resultThread, var error) = await apiService.CreateThreadAsync(message, userId, displayName);
 
-        _output.WriteLine(response);
+        _output.WriteLine(error ?? "Success");
 
-        success.ShouldBeTrue();
-        threadId.ShouldBe(thread.Id.ToString());
-        response.ShouldBe($"✅ Thread created successfully with ID: {id}");
+        resultThread.ShouldNotBeNull();
+        resultThread.Id.ShouldBe(thread.Id.ToString());
+        error.ShouldBeNull();
     }
 
     [Fact]
@@ -100,11 +100,11 @@ public class ThreadsApiServiceTests
         var handler = TestHelpers.CreateMockHttpMessageHandler(statusCode, string.Empty);
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(handler);
 
-        (var success, var threadId, var errorMessage) = await apiService.CreateThreadAsync("Test Thread", "This is a test thread.", "User");
+        (var thread, var error) = await apiService.CreateThreadAsync("Test Thread", "This is a test thread.", "User");
 
-        success.ShouldBeFalse();
-        threadId.ShouldBeEmpty();
-        errorMessage.ShouldContain($"❌ Failed to create thread: {statusCode}");
+        thread.ShouldBeNull();
+        error.ShouldNotBeNull();
+        error.ShouldContain($"{statusCode}");
     }
 
     // SendMessageAsync Tests
@@ -116,15 +116,15 @@ public class ThreadsApiServiceTests
 
         var apiService = new ApiService(_httpClient, configService, new Mock<ITokenService>().Object);
 
-        (var success, var messageId, var response) = await apiService.SendMessageAsync(
+        (var threadMessage, var error) = await apiService.SendThreadMessageAsync(
                     threadId: "1234",
                     message: "This is a test thread.",
                     userId: "UserId",
                     displayName: "User");
 
-        success.ShouldBeFalse();
-        messageId.ShouldBeEmpty();
-        response.ShouldContain("Configuration not found. Please run 'srectl init' first.");
+        threadMessage.ShouldBeNull();
+        error.ShouldNotBeNull();
+        error.ShouldContain("Configuration not found. Please run 'srectl init' first.");
     }
 
     [Fact]
@@ -146,15 +146,15 @@ public class ThreadsApiServiceTests
         var handler = TestHelpers.CreateMockHttpMessageHandler(statusCode, JsonSerializer.Serialize(message, _jsonOptions));
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(handler);
 
-        var (Success, MessageId, Response) = await apiService.SendMessageAsync(
+        var (threadMessage, error) = await apiService.SendThreadMessageAsync(
                     threadId: "1234",
                     message: "This is a test thread.",
                     userId: "UserId",
                     displayName: "User");
 
-        Success.ShouldBeTrue();
-        MessageId.ShouldBe(messageId.ToString());
-        Response.ShouldBe($"✅ Message sent successfully with ID: {messageId}");
+        threadMessage.ShouldNotBeNull();
+        threadMessage.Id.ShouldBe(messageId.ToString());
+        error.ShouldBeNull();
     }
 
     [Theory]
@@ -165,17 +165,17 @@ public class ThreadsApiServiceTests
         var handler = TestHelpers.CreateMockHttpMessageHandler(statusCode, responseContent);
         var apiService = TestHelpers.CreateApiServiceWithMockedHttp(handler);
 
-        var (Success, MessageId, Response) = await apiService.SendMessageAsync(
+        var (threadMessage, error) = await apiService.SendThreadMessageAsync(
                     threadId: "1234",
                     message: "This is a test thread.",
                     userId: "UserId",
                     displayName: "User"
             );
 
-        Success.ShouldBeFalse();
-        MessageId.ShouldBeEmpty();
-        Response.ShouldContain("❌ Failed to send message:");
-        Response.ShouldContain(responseContent);
+        threadMessage.ShouldBeNull();
+        error.ShouldNotBeNull();
+        // The generic MakeHttpRequestAsync returns "Request failed" or "Unexpected response format" for error cases
+        (error.Contains("Request failed") || error.Contains("Unexpected response format")).ShouldBeTrue();
     }
 
     // TrackThreadAsync Tests

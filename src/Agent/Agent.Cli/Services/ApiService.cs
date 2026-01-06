@@ -919,122 +919,62 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, string ThreadId, string Response)> CreateThreadAsync(string message, string userId, string displayName, string? agentName = null)
+    public async Task<(ThreadV1? Thread, string? Error)> CreateThreadAsync(string message, string userId, string displayName, string? agentName = null)
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "", "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            // Create request payload
-            object requestPayload;
-            if (string.IsNullOrWhiteSpace(agentName))
-            {
-                requestPayload = new
-                {
-                    startMessage = new
-                    {
-                        text = message,
-                        userId = userId,
-                        displayName = displayName,
-                        agent = agentName
-                    },
-                    source = "Conversation"
-                };
-            }
-            else
-            {
-                requestPayload = new
-                {
-                    startMessage = new
-                    {
-                        text = message,
-                        userId = userId,
-                        displayName = displayName,
-                        agent = agentName
-                    },
-                    source = "Conversation"
-                };
-            }
-
-            var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
-            {
-                Content = new StringContent(jsonContent, Encoding.UTF8)
-            };
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonDoc = JsonDocument.Parse(content);
-                var threadId = jsonDoc.RootElement.TryGetProperty("id", out var idElement)
-                    ? idElement.GetString() ?? ""
-                    : "";
-
-                return (true, threadId, $"✅ Thread created successfully with ID: {threadId}");
-            }
-            else
-            {
-                return (false, "", $"❌ Failed to create thread: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
-        }
-        catch (Exception ex)
-        {
-            return (false, "", $"❌ Failed to create thread: {ex.Message}");
-        }
-    }
-
-    public async Task<(bool Success, string MessageId, string Response)> SendMessageAsync(string threadId, string message, string userId, string displayName)
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "", "Configuration not found. Please run 'srectl init' first.");
-            }
-
             // Create request payload
             var requestPayload = new
             {
-                text = message,
-                userId = userId,
-                displayName = displayName
+                startMessage = new
+                {
+                    text = message,
+                    userId = userId,
+                    displayName = displayName,
+                    agent = agentName
+                },
+                source = "Conversation"
             };
 
-            var jsonContent = JsonSerializer.Serialize(requestPayload);
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}/messages";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            var jsonContent = JsonSerializer.Serialize(requestPayload, _camelCaseJsonOptions);
+            var (thread, statusCode, errorMessage) = await MakeHttpRequestAsync<ThreadV1>(HttpMethod.Post, "api/v1/threads", jsonContent);
+
+            if (thread != null)
             {
-                Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
-            };
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonDoc = JsonDocument.Parse(content);
-                var messageId = jsonDoc.RootElement.TryGetProperty("id", out var idElement)
-                    ? idElement.GetString() ?? ""
-                    : "";
-
-                return (true, messageId, $"✅ Message sent successfully with ID: {messageId}");
+                return (thread, null);
             }
-            else
-            {
-                return (false, "", $"❌ Failed to send message: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
+
+            return (null, errorMessage ?? $"Failed to create thread: {statusCode}");
         }
         catch (Exception ex)
         {
-            return (false, "", $"❌ Failed to send message: {ex.Message}");
+            return (null, $"Failed to create thread: {ex.Message}");
         }
+    }
+
+    public async Task<(ThreadMessageV1? threadMessage, string? Error)> SendThreadMessageAsync(string threadId, string message, string userId, string displayName, string? agentName = null)
+    {
+        // Create request payload
+        var requestPayload = new
+        {
+            text = message,
+            userId = userId,
+            displayName = displayName,
+            agent = agentName
+        };
+
+        var jsonContent = JsonSerializer.Serialize(requestPayload, _camelCaseJsonOptions);
+        var (threadMessage, statusCode, errorMessage) = await MakeHttpRequestAsync<ThreadMessageV1>(
+            HttpMethod.Post,
+            $"api/v1/threads/{threadId}/messages",
+            jsonContent);
+
+        if (threadMessage != null)
+        {
+            return (threadMessage, null);
+        }
+
+        return (null, errorMessage ?? $"Failed to send message: {statusCode}");
     }
 
     public async Task<(bool Success, List<ThreadMessage> Messages, string Response)> GetThreadMessagesAsync(string threadId, int maxRetries = 30, int delaySeconds = 2)
@@ -1676,73 +1616,77 @@ public partial class ApiService : IDisposable
         }
     }
 
-    public async Task<(bool Success, List<ThreadInfo> Threads, string Response)> ListThreadsAsync()
+    public async Task<(ThreadCollectionV1? Threads, string? Error)> ListThreadsAsync()
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            var (responseObject, statusCode, errorMessage) = await MakeHttpRequestAsync<ThreadCollectionV1>(
+                HttpMethod.Get,
+                "api/v1/threads");
+
+            if (responseObject != null)
             {
-                return (false, new List<ThreadInfo>(), "Configuration not found. Please run 'srectl init' first.");
+                return (responseObject, null);
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonDoc = JsonDocument.Parse(content);
-                var value = jsonDoc.RootElement.GetProperty("value");
-
-                var threads = new List<ThreadInfo>();
-                foreach (var threadElement in value.EnumerateArray())
-                {
-                    var id = threadElement.TryGetProperty("id", out var idElement) ? idElement.GetString() ?? "" : "";
-                    var title = threadElement.TryGetProperty("title", out var titleElement) ? titleElement.GetString() ?? "" : "";
-                    var createdAt = threadElement.TryGetProperty("createdDateTime", out var createdElement) ? createdElement.GetDateTime() : DateTime.MinValue;
-                    var lastMessageAt = threadElement.TryGetProperty("lastMessageAt", out var lastElement) ? lastElement.GetDateTime() : DateTime.MinValue;
-
-                    threads.Add(new ThreadInfo(id, title, createdAt, lastMessageAt));
-                }
-
-                return (true, threads, "Threads retrieved successfully");
-            }
-            else
-            {
-                return (false, new List<ThreadInfo>(), $"Failed to list threads: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
+            return (null, errorMessage ?? $"Failed to list threads: {statusCode}");
         }
         catch (Exception ex)
         {
-            return (false, new List<ThreadInfo>(), $"Failed to list threads: {ex.Message}");
+            return (null, $"Failed to list threads: {ex.Message}");
         }
     }
 
-    public async Task<(bool Success, string Response)> DeleteThreadAsync(string threadId)
+    /// <summary>
+    /// Lists all messages in a thread by calling the API once.
+    /// </summary>
+    /// <param name="threadId">The thread ID to retrieve messages from</param>
+    /// <returns>A tuple containing the message collection and an error message if failed</returns>
+    public async Task<(ThreadMessageCollectionV1? Result, string? Error)> ListThreadMessagesAsync(string threadId)
     {
         try
         {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
+            var (responseObject, statusCode, errorMessage) = await MakeHttpRequestAsync<ThreadMessageCollectionV1>(
+                HttpMethod.Get,
+                $"api/v1/threads/{threadId}/messages");
+
+            if (responseObject != null)
             {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
+                return (responseObject, null);
             }
 
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/threads/{threadId}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+            if (statusCode == HttpStatusCode.NotFound)
+            {
+                return (null, $"Thread with ID {threadId} not found.");
+            }
 
-            var (response, content, responseTime) = await MakeHttpRequestAsync(request);
+            return (null, errorMessage ?? $"Failed to retrieve thread messages: {statusCode}");
+        }
+        catch (Exception ex)
+        {
+            return (null, $"Failed to retrieve thread messages: {ex.Message}");
+        }
+    }
 
-            if (response.IsSuccessStatusCode)
+    public async Task<(bool Success, string Message)> DeleteThreadAsync(string threadId)
+    {
+        try
+        {
+            var (responseObject, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(
+                HttpMethod.Delete,
+                $"api/v1/threads/{threadId}");
+
+            if (statusCode == HttpStatusCode.NotFound)
+            {
+                return (true, $"Thread {threadId} does not exist (may have already been deleted)");
+            }
+
+            if (statusCode == HttpStatusCode.NoContent || errorMessage == null)
             {
                 return (true, $"Thread {threadId} deleted successfully");
             }
-            else
-            {
-                return (false, $"Failed to delete thread: {response.StatusCode} - {content}\nRequest URL: {requestUrl}");
-            }
+
+            return (false, errorMessage);
         }
         catch (Exception ex)
         {
@@ -2228,27 +2172,27 @@ public partial class ApiService : IDisposable
     /// <summary>
     /// Gets metadata about the current agent instance including name, subscription, and resource group.
     /// </summary>
-    /// <returns>Tuple containing success status, metadata response, and error message if any</returns>
-    public async Task<(bool Success, AgentMetadataResponse? Metadata, string? ErrorMessage)> GetAgentMetadataAsync()
+    /// <returns>Tuple containing metadata result and error message if any</returns>
+    public async Task<(AgentMetadata? Result, string? Error)> GetAgentMetadataAsync()
     {
         try
         {
-            var (metadata, statusCode, errorMessage) = await MakeHttpRequestAsync<AgentMetadataResponse>(
+            var (metadata, statusCode, errorMessage) = await MakeHttpRequestAsync<AgentMetadata>(
                 HttpMethod.Get,
                 "api/v1/metadata"
             );
 
             if (metadata != null)
             {
-                return (true, metadata, null);
+                return (metadata, null);
             }
 
-            return (false, null, errorMessage ?? $"Failed to retrieve agent metadata: {statusCode}");
+            return (null, errorMessage ?? $"Failed to retrieve agent metadata: {statusCode}");
         }
         catch (Exception ex)
         {
             DebugLogger.Debug("Exception", $"GetAgentMetadata failed: {ex.Message}");
-            return (false, null, $"Failed to retrieve agent metadata: {ex.Message}");
+            return (null, $"Failed to retrieve agent metadata: {ex.Message}");
         }
     }
 
@@ -3169,6 +3113,5 @@ public class StructuredToolListYaml : StructuredAgentYamlWrapper<ToolListSpec>
 }
 
 public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
-public record ThreadInfo(string Id, string Title, DateTime CreatedAt, DateTime LastMessageAt);
-public record AgentMetadataResponse(string Name, string SubscriptionId, string ResourceGroup);
+
 

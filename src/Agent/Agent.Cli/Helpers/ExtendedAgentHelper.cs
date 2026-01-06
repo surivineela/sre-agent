@@ -12,6 +12,11 @@ namespace Agent.Cli.Helpers;
 public static class ExtendedAgentHelper
 {
     /// <summary>
+    /// Default folder for agent files.
+    /// </summary>
+    public const string DefaultAgentsFolder = "agents";
+
+    /// <summary>
     /// Formats a list of ExtendedAgentV2 objects into a console-friendly string representation.
     /// </summary>
     /// <param name="agents">The list of agents to format.</param>
@@ -67,6 +72,44 @@ public static class ExtendedAgentHelper
     }
 
     /// <summary>
+    /// Gets all local agent files by searching recursively under the agents directory.
+    /// Only includes YAML files that are valid agents (DetectVersion returns non-null).
+    /// </summary>
+    /// <returns>List of agent file names (without path or extension)</returns>
+    public static List<string> GetLocalAgents()
+    {
+        var localAgents = new List<string>();
+
+        if (!Directory.Exists(DefaultAgentsFolder))
+        {
+            return localAgents;
+        }
+
+        var yamlFiles = Directory.GetFiles(DefaultAgentsFolder, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            try
+            {
+                var yamlContent = File.ReadAllText(file);
+                var version = DetectVersion(yamlContent);
+                if (version != null)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+                    localAgents.Add(fileName);
+                }
+            }
+            catch
+            {
+                // Skip files that can't be read or parsed
+                continue;
+            }
+        }
+
+        return localAgents;
+    }
+
+    /// <summary>
     /// Finds an agent YAML file by searching recursively under the agents directory.
     /// Supports flexible folder organization.
     /// </summary>
@@ -74,28 +117,27 @@ public static class ExtendedAgentHelper
     /// <returns>The full path to the agent YAML file, or null if not found</returns>
     public static string? FindAgentFile(string agentName)
     {
-        const string agentsDir = "agents";
-        if (!Directory.Exists(agentsDir))
+        if (!Directory.Exists(DefaultAgentsFolder))
         {
             return null;
         }
 
         // First, try the legacy structure: agents/{agentName}/{agentName}.yaml
-        var legacyPath = Path.Combine(agentsDir, agentName, $"{agentName}.yaml");
+        var legacyPath = Path.Combine(DefaultAgentsFolder, agentName, $"{agentName}.yaml");
         if (File.Exists(legacyPath))
         {
             return legacyPath;
         }
 
         // Then try the flat structure: agents/{agentName}.yaml
-        var flatPath = Path.Combine(agentsDir, $"{agentName}.yaml");
+        var flatPath = Path.Combine(DefaultAgentsFolder, $"{agentName}.yaml");
         if (File.Exists(flatPath))
         {
             return flatPath;
         }
 
         // Finally, search recursively for any YAML file with the matching agent name
-        var yamlFiles = Directory.GetFiles(agentsDir, "*.yaml", SearchOption.AllDirectories);
+        var yamlFiles = Directory.GetFiles(DefaultAgentsFolder, "*.yaml", SearchOption.AllDirectories);
 
         foreach (var file in yamlFiles)
         {

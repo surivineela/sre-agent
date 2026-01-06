@@ -73,17 +73,20 @@ Examples:
   # Delete with debug logging
   srectl agent delete --name TestAgent --debug";
 
-        public const string TestDescription = @"Test an agent with a specific message
+        public const string TestDescription = @"Test an agent with a specific message (starts interactive session)
 
 Examples:
-  # Test an agent with a simple message
+  # Test an agent interactively
   srectl agent test --name DevOpsAgent --message ""Check pod status in namespace production""
 
-  # Test without waiting for response
+  # Send test message without waiting for response
   srectl agent test --name KustoAgent --message ""Query memory usage"" --no-wait
 
-  # Test with custom user details
-  srectl agent test --name MyAgent --message ""Help me"" --user-id john.doe --display-name ""John Doe""";
+  # Start interactive session with specific agent
+  srectl agent test --name MyAgent --message ""Help me debug this issue""
+
+Note: This command is equivalent to 'srectl thread new --agent <name> --message <message>'
+      and will start an interactive chat session unless --no-wait is specified.";
 
         public const string DiffDescription = @"Compare local and remote agent configurations
 
@@ -489,17 +492,14 @@ Note: Requires prior 'srectl init --resource-url <url>'";
 
     public static class Thread
     {
-        public const string NewDescription = @"Create a new conversation thread with the SRE Agent
+        public const string NewDescription = @"Start an interactive chat session with a new conversation thread
 
 Examples:
-  # Send a message and wait for response
+  # Start session with default agent
   srectl thread new --message ""Check the status of pods in production namespace""
 
-  # Send a message without waiting for response
-  srectl thread new --message ""Investigate high memory usage"" --no-wait
-
-  # Send with custom user information
-  srectl thread new --message ""Help with deployment"" --user-id admin --display-name ""Administrator""";
+  # Start session with specific agent
+  srectl thread new --agent general --message ""Check the status of pods in production namespace""";
 
         public const string ContinueDescription = @"Continue an existing conversation thread
 
@@ -508,19 +508,19 @@ Examples:
   srectl thread continue --message ""Can you also check the logs?""
 
   # Continue a specific thread
-  srectl thread continue --thread-id abc123 --message ""What about the network?""
+  srectl thread continue --thread-id 7f3a9c2b-1e4d-4c8a-9b5f-2d6e8a1c4b7e --message ""What about the network?""";
 
-  # Continue without sending a new message (just get latest responses)
-  srectl thread continue --thread-id abc123";
+        public const string ListDescription = @"List all conversation threads
+
+Examples:
+  # View threads sorted by most recently modified
+  srectl thread list";
 
         public const string DeleteDescription = @"Delete a conversation thread
 
 Examples:
   # Delete a specific thread
-  srectl thread delete --thread-id abc123
-
-  # Delete with confirmation
-  srectl thread delete --thread-id abc123 --debug";
+  srectl thread delete --thread-id 7f3a9c2b-1e4d-4c8a-9b5f-2d6e8a1c4b7e";
     }
 
     #endregion

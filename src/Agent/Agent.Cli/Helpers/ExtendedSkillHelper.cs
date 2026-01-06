@@ -14,7 +14,7 @@ public static class ExtendedSkillHelper
     /// <summary>
     /// Default folder for skill directories.
     /// </summary>
-    public const string DefaultSkillFolder = "skills";
+    public const string DefaultSkillsFolder = "skills";
 
     /// <summary>
     /// The filename for skill metadata.
@@ -57,26 +57,57 @@ public static class ExtendedSkillHelper
     }
 
     /// <summary>
+    /// Gets all local skill directories by searching recursively under the skills directory.
+    /// Only includes directories that are valid skills (IsValidSkillDirectory returns true).
+    /// </summary>
+    /// <returns>List of skill directory names (without path)</returns>
+    public static List<string> GetLocalSkills()
+    {
+        var localSkills = new List<string>();
+
+        if (!Directory.Exists(DefaultSkillsFolder))
+        {
+            return localSkills;
+        }
+
+        var directories = Directory.GetDirectories(DefaultSkillsFolder, "*", SearchOption.AllDirectories);
+
+        foreach (var dir in directories)
+        {
+            if (IsValidSkillDirectory(dir))
+            {
+                var dirName = Path.GetFileName(dir);
+                if (!string.IsNullOrEmpty(dirName))
+                {
+                    localSkills.Add(dirName);
+                }
+            }
+        }
+
+        return localSkills;
+    }
+
+    /// <summary>
     /// Finds a skill directory by searching recursively under the skills directory.
     /// </summary>
     /// <param name="skillName">The name of the skill to find</param>
     /// <returns>The full path to the skill directory, or null if not found</returns>
     public static string? FindSkillDirectory(string skillName)
     {
-        if (!Directory.Exists(DefaultSkillFolder))
+        if (!Directory.Exists(DefaultSkillsFolder))
         {
             return null;
         }
 
         // First, try the flat structure: skills/{skillName}
-        var skillPath = Path.Combine(DefaultSkillFolder, skillName);
+        var skillPath = Path.Combine(DefaultSkillsFolder, skillName);
         if (Directory.Exists(skillPath) && IsValidSkillDirectory(skillPath))
         {
             return skillPath;
         }
 
         // Search recursively for any directory with matching name that contains valid skill files
-        var directories = Directory.GetDirectories(DefaultSkillFolder, "*", SearchOption.AllDirectories);
+        var directories = Directory.GetDirectories(DefaultSkillsFolder, "*", SearchOption.AllDirectories);
 
         foreach (var dir in directories)
         {

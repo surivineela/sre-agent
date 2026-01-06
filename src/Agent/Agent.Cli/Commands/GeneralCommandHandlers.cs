@@ -509,11 +509,11 @@ public static class GeneralCommandHandlers
                         isAgentWorking = true;
                         lastStreamMessageAt = null;
 
-                        var (threadSuccess, threadId, response) = await apiService.CreateThreadAsync(userInput, "cli-user", "CLI User", currentAgentName);
+                        var (thread, error) = await apiService.CreateThreadAsync(userInput, "cli-user", "CLI User", currentAgentName);
 
-                        if (threadSuccess && !string.IsNullOrEmpty(threadId))
+                        if (thread != null && string.IsNullOrEmpty(error))
                         {
-                            currentThreadId = threadId;
+                            currentThreadId = thread.Id;
                             printedMessageIds.Clear();
                             LoggingService.Debug($"Thread created: {currentThreadId}");
 
@@ -523,7 +523,7 @@ public static class GeneralCommandHandlers
                         else
                         {
                             isAgentWorking = false; // Stop spinner on error
-                            LoggingService.Error($"Failed to create thread: {response}");
+                            LoggingService.Error($"Failed to create thread: {error}");
                             continue;
                         }
                     }
@@ -536,19 +536,19 @@ public static class GeneralCommandHandlers
                         isAgentWorking = true;
                         lastStreamMessageAt = null;
 
-                        var (success, messageId, response) = await apiService.SendMessageAsync(currentThreadId, userInput, "cli-user", "CLI User");
+                        var (threadMessage, error) = await apiService.SendThreadMessageAsync(currentThreadId, userInput, "cli-user", "CLI User");
 
-                        if (success)
+                        if (threadMessage != null && error == null)
                         {
                             // Wait for agent response to complete
                             await WaitForCompletionAsync(streamingConnected, () => lastStreamMessageAt, () => isAgentWorking, apiService, currentThreadId, printedMessageIds);
                         }
                         else
                         {
-                            LoggingService.Error($"Failed to send message: {response}");
+                            LoggingService.Error($"Failed to send message: {error}");
 
                             // If agent is busy (422 / UnprocessableEntity), wait on the same thread instead of starting a new one
-                            var lower = response?.ToLowerInvariant() ?? string.Empty;
+                            var lower = error?.ToLowerInvariant() ?? string.Empty;
                             if (lower.Contains("unprocessableentity") || lower.Contains("agent is currently busy") || lower.Contains("busy"))
                             {
                                 LoggingService.Info("Agent is busy processing. Waiting for the current response to complete...");
@@ -821,8 +821,8 @@ public static class GeneralCommandHandlers
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
+        // ===== Workspace Status Check Section =====
         ConsoleUI.WriteSection("Workspace Status Check");
-        ConsoleUI.DrawLine();
 
         var configService = new CliConfigurationService();
         var hasConfig = await configService.HasValidConfigurationAsync();
@@ -830,16 +830,14 @@ public static class GeneralCommandHandlers
         var configStatus = hasConfig ? "Configured" : "Not configured";
         ConsoleUI.WriteStatus(hasConfig, $"Configuration: {configStatus}");
 
+        CliConfiguration? config = null;
         if (hasConfig)
         {
             try
             {
-                var config = await configService.LoadConfigurationAsync();
+                config = await configService.LoadConfigurationAsync();
                 ConsoleUI.WriteBullet($"Server URL: {config?.ResourceUrl ?? "Unknown"}");
                 ConsoleUI.WriteBullet($"Auth Required: {config?.AuthRequired ?? false}");
-
-                DebugLogger.LogConfig("ResourceUrl", config?.ResourceUrl ?? "Unknown");
-                DebugLogger.LogConfig("AuthRequired", (config?.AuthRequired ?? false).ToString());
             }
             catch (Exception ex)
             {
@@ -848,75 +846,40 @@ public static class GeneralCommandHandlers
             }
         }
 
-        var agentCount = Directory.Exists("agents") ? Directory.GetDirectories("agents").Length : 0;
-        var toolCount = Directory.Exists("tools") ? Directory.GetDirectories("tools").Length : 0;
-
-        ConsoleUI.WriteInfo($"Agents: {agentCount} configured");
-        ConsoleUI.WriteInfo($"Tools: {toolCount} configured");
-
-        DebugLogger.Debug("Local Files", $"Found {agentCount} agent directories and {toolCount} tool directories");
-
+        // Test server connection and get metadata
         bool serverConnected = false;
-        bool remoteAgentsAvailable = false;
+        AgentMetadata? metadata = null;
 
-        if (hasConfig)
+        if (hasConfig && config != null)
         {
             ProgressService.AnimatedSpinner.Start("Testing server connection");
 
             try
             {
-                var config = await configService.LoadConfigurationAsync();
-                if (config == null)
-                {
-                    ProgressService.AnimatedSpinner.Stop();
-                    ProgressService.ShowError("No configuration found. Please run 'srectl init' first.");
-                    return 1;
-                }
-
                 using var apiService = new ApiService();
-                var (success, response) = await apiService.TestConnectionAsync(config.ResourceUrl);
+
+                // Use GetAgentMetadataAsync to test connection and get metadata in one call
+                var (metadataResult, metadataError) = await apiService.GetAgentMetadataAsync();
 
                 ProgressService.AnimatedSpinner.Stop();
-                if (success)
+
+                if (metadataResult != null)
                 {
                     serverConnected = true;
+                    metadata = metadataResult;
+
                     ConsoleUI.WriteStatus(true, "Server Connection: Connected");
+                    ConsoleUI.WriteBullet($"Name: {metadata.Name}");
+                    ConsoleUI.WriteBullet($"Subscription: {metadata.SubscriptionId}");
+                    ConsoleUI.WriteBullet($"Resource Group: {metadata.ResourceGroup}");
 
-                    var (agents, agentError) = await apiService.ListExtendedAgentsAsync();
-                    var (toolsSuccess, toolsResponse) = await apiService.ListToolsAsync();
-
-                    var agentsSuccess = agentError == null;
-                    remoteAgentsAvailable = agentsSuccess;
-                    var remoteToolsAvailable = toolsSuccess;
-                    if (agentsSuccess) ConsoleUI.WriteBullet("Remote Agents: Available");
-                    if (toolsSuccess) ConsoleUI.WriteBullet("Remote Tools: Available");
-
-                    DebugLogger.Debug("API Response", $"Connection test successful: {response}");
-                    DebugLogger.Debug("API Response", $"Agents check success: {agentsSuccess}");
-                    DebugLogger.Debug("API Response", $"Tools check success: {toolsSuccess}");
-
-                    // Fetch and display agent metadata
-                    var (metadataSuccess, metadata, metadataError) = await apiService.GetAgentMetadataAsync();
-                    if (metadataSuccess && metadata != null)
-                    {
-                        Console.WriteLine();
-                        ConsoleUI.WriteSection("Remote Agent");
-                        ConsoleUI.WriteBullet($"Name: {metadata.Name}");
-                        ConsoleUI.WriteBullet($"Subscription: {metadata.SubscriptionId}");
-                        ConsoleUI.WriteBullet($"Resource Group: {metadata.ResourceGroup}");
-                        DebugLogger.Debug("API Response", $"Agent metadata retrieved: {metadata.Name}");
-                    }
-                    else
-                    {
-                        DebugLogger.Debug("API Response", $"Agent metadata not available: {metadataError}");
-                    }
+                    DebugLogger.Debug("API Response", $"Connection test successful, metadata retrieved: {metadata.Name}");
                 }
                 else
                 {
                     ConsoleUI.WriteStatus(false, "Server Connection: Failed");
-                    ConsoleUI.WriteBullet($"Error: {response}");
-
-                    DebugLogger.Debug("API Response", $"Connection test failed: {response}");
+                    ConsoleUI.WriteBullet($"Error: {metadataError ?? "Unknown error"}");
+                    DebugLogger.Debug("API Response", $"Connection test failed: {metadataError}");
                 }
             }
             catch (Exception ex)
@@ -924,32 +887,118 @@ public static class GeneralCommandHandlers
                 ProgressService.AnimatedSpinner.Stop();
                 ConsoleUI.WriteStatus(false, "Server Connection: Failed");
                 ConsoleUI.WriteBullet($"Error: {ex.Message}");
-
                 DebugLogger.Debug("Exception", $"Connection test exception: {ex.Message}");
             }
         }
 
-        stopwatch.Stop();
-        ProgressService.ShowTiming("Status check", stopwatch.Elapsed);
+        // ===== Local Resources Section =====
+        Console.WriteLine();
+        ConsoleUI.WriteSection("Local Resources");
 
+        var localAgents = ExtendedAgentHelper.GetLocalAgents();
+        var localTools = ExtendedToolHelper.GetLocalTools();
+        var localSkills = ExtendedSkillHelper.GetLocalSkills();
+
+        ConsoleUI.WriteBullet($"Agents: {localAgents.Count} configured");
+        ConsoleUI.WriteBullet($"Tools: {localTools.Count} configured");
+        ConsoleUI.WriteBullet($"Skills: {localSkills.Count} configured");
+
+        DebugLogger.Debug("Local Resources", $"Agents: {localAgents.Count}, Tools: {localTools.Count}, Skills: {localSkills.Count}");
+
+        // ===== Remote Resources Section =====
+        int remoteAgentsCount = 0;
+        int remoteToolsCount = 0;
+        int remoteSkillsCount = 0;
+        bool remoteAgentsAvailable = false;
+
+        if (serverConnected && config != null)
+        {
+            Console.WriteLine();
+            ConsoleUI.WriteSection("Remote Resources");
+
+            try
+            {
+                using var apiService = new ApiService();
+
+                // Fetch remote agents
+                ProgressService.AnimatedSpinner.Start("Fetching remote agents");
+                var (agents, agentError) = await apiService.ListExtendedAgentsAsync();
+                ProgressService.AnimatedSpinner.Stop();
+
+                if (agentError == null && agents != null)
+                {
+                    remoteAgentsCount = agents.Count;
+                    remoteAgentsAvailable = true;
+                    ConsoleUI.WriteBullet($"Agents: {remoteAgentsCount} configured");
+                    DebugLogger.Debug("API Response", $"Remote agents: {remoteAgentsCount}");
+                }
+                else
+                {
+                    ConsoleUI.WriteBullet($"Agents: Failed to fetch ({agentError})");
+                    DebugLogger.Debug("API Response", $"Failed to fetch agents: {agentError}");
+                }
+
+                // Fetch remote tools
+                ProgressService.AnimatedSpinner.Start("Fetching remote tools");
+                var (tools, toolError) = await apiService.ListExtendedToolsAsync();
+                ProgressService.AnimatedSpinner.Stop();
+
+                if (toolError == null && tools != null)
+                {
+                    remoteToolsCount = tools.Count;
+                    ConsoleUI.WriteBullet($"Tools: {remoteToolsCount} configured");
+                    DebugLogger.Debug("API Response", $"Remote tools: {remoteToolsCount}");
+                }
+                else
+                {
+                    ConsoleUI.WriteBullet($"Tools: Failed to fetch ({toolError})");
+                    DebugLogger.Debug("API Response", $"Failed to fetch tools: {toolError}");
+                }
+
+                // Fetch remote skills
+                ProgressService.AnimatedSpinner.Start("Fetching remote skills");
+                var (skills, skillError) = await apiService.ListExtendedSkillsAsync();
+                ProgressService.AnimatedSpinner.Stop();
+
+                if (skillError == null && skills != null)
+                {
+                    remoteSkillsCount = skills.Count;
+                    ConsoleUI.WriteBullet($"Skills: {remoteSkillsCount} configured");
+                    DebugLogger.Debug("API Response", $"Remote skills: {remoteSkillsCount}");
+                }
+                else
+                {
+                    ConsoleUI.WriteBullet($"Skills: Failed to fetch ({skillError})");
+                    DebugLogger.Debug("API Response", $"Failed to fetch skills: {skillError}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ProgressService.AnimatedSpinner.Stop();
+                ConsoleUI.WriteBullet($"Error fetching remote resources: {ex.Message}");
+                DebugLogger.Debug("Exception", $"Remote resources exception: {ex.Message}");
+            }
+        }
+
+        stopwatch.Stop();
         DebugLogger.LogTiming("StatusCommand", stopwatch.Elapsed);
 
+        // ===== Suggested Next Steps Section =====
         Console.WriteLine();
-        ConsoleUI.WriteSection("Suggested next steps");
+        ConsoleUI.WriteSection("Suggested Next Steps");
 
         if (!hasConfig)
         {
-            ConsoleUI.WriteBullet("srectl init --resource-url <your-server>");
-        }
-        else if (agentCount == 0)
-        {
-            ConsoleUI.WriteBullet("srectl agent create --name <agent-name>");
-            ConsoleUI.WriteBullet("srectl help quickstart");
+            ConsoleUI.WriteBullet("Configure Remote Server", "srectl init --resource-url <your-server>");
         }
         else if (!serverConnected)
         {
             ConsoleUI.WriteBullet("Check server URL and network connectivity");
             ConsoleUI.WriteBullet("Verify authentication with 'az login'");
+        }
+        else if (localAgents.Count == 0)
+        {
+            ConsoleUI.WriteBullet("srectl agent create --name <agent-name>");
         }
         else
         {
@@ -957,11 +1006,7 @@ public static class GeneralCommandHandlers
             ConsoleUI.WriteBullet("srectl agent test --name <agent>");
             if (remoteAgentsAvailable)
             {
-                ConsoleUI.WriteBullet("srectl list agents  # List remote agents from server");
-            }
-            else
-            {
-                ConsoleUI.WriteBullet("srectl agent list  # List local agents");
+                ConsoleUI.WriteBullet("srectl agent list  # List remote agents from server");
             }
         }
 

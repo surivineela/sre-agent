@@ -42,6 +42,12 @@ public static partial class CommandBuilder
                 var w = result.GetValue(ThreadCommandOptions.New.WaitOption);
                 var nw = result.GetValue(ThreadCommandOptions.New.NoWaitOption);
                 if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
+
+                var message = result.GetValue(ThreadCommandOptions.New.MessageOption);
+                if (nw && string.IsNullOrWhiteSpace(message))
+                {
+                    result.AddError("--no-wait requires --message to be specified");
+                }
             });
 
             cmd.SetAction(ThreadCommandHandlers.HandleThreadNewCommand);
@@ -65,6 +71,12 @@ public static partial class CommandBuilder
                 var w = result.GetValue(ThreadCommandOptions.Continue.WaitOption);
                 var nw = result.GetValue(ThreadCommandOptions.Continue.NoWaitOption);
                 if (w && nw) result.AddError("Specify either --wait or --no-wait, not both.");
+
+                var message = result.GetValue(ThreadCommandOptions.Continue.MessageOption);
+                if (nw && string.IsNullOrWhiteSpace(message))
+                {
+                    result.AddError("--no-wait requires --message to be specified");
+                }
             });
 
             cmd.SetAction(ThreadCommandHandlers.HandleThreadContinueCommand);
@@ -73,7 +85,7 @@ public static partial class CommandBuilder
 
         private static Command CreateListCommand()
         {
-            var cmd = new Command("list", "List all threads");
+            var cmd = new Command("list", CommandExamples.Thread.ListDescription);
             cmd.SetAction(ThreadCommandHandlers.HandleThreadListCommand);
             return cmd;
         }

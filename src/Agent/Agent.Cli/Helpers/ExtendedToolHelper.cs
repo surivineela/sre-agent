@@ -14,6 +14,11 @@ namespace Agent.Cli.Helpers;
 public static class ExtendedToolHelper
 {
     /// <summary>
+    /// Default folder for tool files.
+    /// </summary>
+    public const string DefaultToolsFolder = "tools";
+
+    /// <summary>
     /// Gets all available tool types supported by the CLI.
     /// </summary>
     public static List<ToolTypeInfo> GetAvailableToolTypes()
@@ -270,6 +275,35 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
     }
 
     /// <summary>
+    /// Gets all local tool files by searching recursively under the tools directory.
+    /// Only includes YAML files that are valid tools (DetectVersion returns non-null).
+    /// </summary>
+    /// <returns>List of tool file names (without path or extension)</returns>
+    public static List<string> GetLocalTools()
+    {
+        var localTools = new List<string>();
+
+        if (!Directory.Exists(DefaultToolsFolder))
+        {
+            return localTools;
+        }
+
+        var yamlFiles = Directory.GetFiles(DefaultToolsFolder, "*.yaml", SearchOption.AllDirectories);
+
+        foreach (var file in yamlFiles)
+        {
+            var version = DetectVersion(file);
+            if (version != null)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                localTools.Add(fileName);
+            }
+        }
+
+        return localTools;
+    }
+
+    /// <summary>
     /// Finds a tool YAML file by searching recursively under the tools directory.
     /// Supports flexible folder organization.
     /// </summary>
@@ -277,28 +311,27 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
     /// <returns>The full path to the tool YAML file, or null if not found</returns>
     public static string? FindToolFile(string toolName)
     {
-        const string toolsDir = "tools";
-        if (!Directory.Exists(toolsDir))
+        if (!Directory.Exists(DefaultToolsFolder))
         {
             return null;
         }
 
         // First, try the legacy structure: tools/{toolName}/{toolName}.yaml
-        var legacyPath = Path.Combine(toolsDir, toolName, $"{toolName}.yaml");
+        var legacyPath = Path.Combine(DefaultToolsFolder, toolName, $"{toolName}.yaml");
         if (File.Exists(legacyPath))
         {
             return legacyPath;
         }
 
         // Then try the flat structure: tools/{toolName}.yaml
-        var flatPath = Path.Combine(toolsDir, $"{toolName}.yaml");
+        var flatPath = Path.Combine(DefaultToolsFolder, $"{toolName}.yaml");
         if (File.Exists(flatPath))
         {
             return flatPath;
         }
 
         // Finally, search recursively for any YAML file with the matching tool name
-        var yamlFiles = Directory.GetFiles(toolsDir, "*.yaml", SearchOption.AllDirectories);
+        var yamlFiles = Directory.GetFiles(DefaultToolsFolder, "*.yaml", SearchOption.AllDirectories);
 
         foreach (var file in yamlFiles)
         {

@@ -275,7 +275,7 @@ public static class SkillCommandHandlers
         if (all)
         {
             // Set default base path for --all
-            var basePath = string.IsNullOrEmpty(path) ? ExtendedSkillHelper.DefaultSkillFolder : path;
+            var basePath = string.IsNullOrEmpty(path) ? ExtendedSkillHelper.DefaultSkillsFolder : path;
 
             ProgressService.AnimatedSpinner.Start("Fetching skills from server");
             var (skillsList, error) = await apiService.ListExtendedSkillsAsync(null);
@@ -323,7 +323,7 @@ public static class SkillCommandHandlers
             string skillPath;
             if (string.IsNullOrEmpty(path))
             {
-                skillPath = Path.Combine(ExtendedSkillHelper.DefaultSkillFolder, skill.Metadata?.Name ?? skillName!);
+                skillPath = Path.Combine(ExtendedSkillHelper.DefaultSkillsFolder, skill.Metadata?.Name ?? skillName!);
             }
             else
             {
@@ -457,7 +457,7 @@ public static class SkillCommandHandlers
             return 1;
         }
 
-        var outputPath = Path.Combine(ExtendedSkillHelper.DefaultSkillFolder, skillName);
+        var outputPath = Path.Combine(ExtendedSkillHelper.DefaultSkillsFolder, skillName);
 
         DebugLogger.Debug("Parameters", $"SkillName: {skillName}, OutputPath: {outputPath}");
 
@@ -565,7 +565,7 @@ public static class SkillCommandHandlers
 
         DebugLogger.Debug("Parameters", $"Name: {skillName ?? "none"}, All: {migrateAll}, DryRun: {dryRun}");
 
-        var skillsDirectory = ExtendedSkillHelper.DefaultSkillFolder;
+        var skillsDirectory = ExtendedSkillHelper.DefaultSkillsFolder;
 
         if (!Directory.Exists(skillsDirectory))
         {
