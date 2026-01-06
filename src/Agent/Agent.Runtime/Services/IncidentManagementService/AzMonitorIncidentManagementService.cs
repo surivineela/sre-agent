@@ -36,16 +36,20 @@ public class AzMonitorIncidentManagementService : IncidentManagementServiceBase<
     public override async Task<AzMonitorAlertDocument?> GetIncidentAsync(string incidentId, bool fetchFromAPI = true)
     {
         _logger.LogInternalInformation("[AzMonitorIncidentManagementService] GetIncidentAsync: Invoked for IncidentId: {IncidentId}, FetchFromAPI: {FetchFromAPI}", incidentId, fetchFromAPI);
+
+        var isArmResourceId = ResourceIdentifier.TryParse(incidentId, out var resourceIdentifier);
+        var incidentGuid = isArmResourceId ? resourceIdentifier!.Name ?? incidentId : incidentId;
+
         try
         {
-            var incidentGUID = new ResourceIdentifier(incidentId).Name ?? incidentId;
-            var incidentDoc = await GetIncidentFromDBAsync(incidentId);
-            if (incidentDoc is null && fetchFromAPI == true)
+            if (fetchFromAPI && isArmResourceId)
             {
-                _logger.LogInternalWarning("[AzMonitorIncidentManagementService] GetIncidentAsync: No incident data found for IncidentId: {IncidentId}, fetching latest", incidentId);
-                var lastestIncident = await _azMonitorAlertService.GetIncidentAsync(incidentId);
-                return AzMonitorAlertDocument.FromIncident(lastestIncident);
+                _logger.LogInternalInformation("[AzMonitorIncidentManagementService] GetIncidentAsync: Fetching incident from API for IncidentId: {IncidentId}", incidentId);
+                var latestIncident = await _azMonitorAlertService.GetIncidentAsync(incidentId);
+                return AzMonitorAlertDocument.FromIncident(latestIncident);
             }
+
+            var incidentDoc = await GetIncidentFromDBAsync(incidentGuid);
             _logger.LogInternalInformation("[AzMonitorIncidentManagementService] GetIncidentAsync: Returning incident data for IncidentId: {IncidentId}", incidentId);
             return incidentDoc;
         }
