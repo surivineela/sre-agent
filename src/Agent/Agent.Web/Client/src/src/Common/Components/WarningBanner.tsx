@@ -65,7 +65,7 @@ const WarningBanner = () => {
 
     return (showRbacWarning || showUsageWarning) && !isCheckingRbac && !isCheckingUsage ? (
         <>
-            <MessageBar intent={'warning'} shape={'rounded'} style={{ width: '100%', flex: '1 0 auto' }} layout={'multiline'}>
+            <MessageBar intent={'warning'} shape={'rounded'} style={{ width: '100%', flex: '0 0 auto' }} layout={'multiline'}>
                 {showRbacWarning && showUsageWarning ? (
                     <GeneralWarningMessageBarContent
                         showRbacWarning={showRbacWarning}
