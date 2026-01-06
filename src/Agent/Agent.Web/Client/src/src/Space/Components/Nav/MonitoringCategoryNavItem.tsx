@@ -9,8 +9,9 @@ import {
     Organization20Filled,
     Organization20Regular,
 } from '@fluentui/react-icons';
-import { FC, memo, useContext, useEffect, useMemo, useState } from 'react';
+import { FC, memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useLocation } from 'react-router-dom';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
@@ -19,6 +20,7 @@ import { IncidentManagementResources, SettingsTabResources, SreAgentTabResources
 import { SreAgentContext } from '../../Contracts/Context';
 import { CategoryNavItemInput, PrimaryNavItemValues, SecondaryNavItemValues, SubNavItemInput } from '../../Contracts/SreAgentSpace';
 import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
+import { constructNavItemId, getNavItemIdFromPathName } from '../../Utilities';
 import CategoryNavItem from './CategoryNavItem';
 
 interface IMonitoringCategoryNavItemProps {
@@ -62,6 +64,17 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
     );
 
     const navigate = useAgentSiteNavigate();
+    const navigateRef = useRef(navigate);
+    navigateRef.current = navigate;
+
+    const location = useLocation();
+
+    const isSelectedValueMetrics = useMemo(() => {
+        return (
+            getNavItemIdFromPathName(location.pathname) ===
+            constructNavItemId(PrimaryNavItemValues.Monitor, SecondaryNavItemValues.Metrics, undefined)
+        );
+    }, [location.pathname]);
 
     const categoryItem = useMemo(
         (): CategoryNavItemInput => ({
@@ -119,10 +132,10 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
     ]);
 
     useEffect(() => {
-        if (incidentPlatformType) {
+        if (incidentPlatformType && isSelectedValueMetrics) {
             if (incidentPlatformType === IncidentManagementType.None) {
                 setDisableAnalysis(true);
-                navigate({
+                navigateRef.current({
                     primaryNavItemValue: PrimaryNavItemValues.Settings,
                     secondaryNavItemValue: SecondaryNavItemValues.IncidentPlatform,
                 });
@@ -130,7 +143,7 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
                 setDisableAnalysis(false);
             }
         }
-    }, [incidentPlatformType, navigate]);
+    }, [incidentPlatformType, isSelectedValueMetrics]);
 
     return (
         <CategoryNavItem
