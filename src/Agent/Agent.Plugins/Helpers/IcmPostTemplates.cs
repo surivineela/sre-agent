@@ -24,8 +24,8 @@ public class IcmPostTemplates
                 .Append(agentInfo.AgentUniqueName);
 
             var encodedThreadPath = BuildEncodedThreadPath(threadId);
-            AppendLinkIfAvailable(builder, BuildAgentDirectLink(agentInfo, encodedThreadPath), "[Direct]");
-            AppendLinkIfAvailable(builder, BuildAgentCrossTenantLink(agentInfo, encodedThreadPath), "[Cross-Tenant]");
+            AppendLinkIfAvailable(builder, BuildAgentDirectLink(agentInfo, encodedThreadPath), "[Open thread on Saw]");
+            AppendLinkIfAvailable(builder, BuildAgentCrossTenantLink(agentInfo, encodedThreadPath), "[Open thread on MSFT]");
         }
 
         return DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", builder.ToString());
@@ -62,7 +62,7 @@ public class IcmPostTemplates
     {
         return string.IsNullOrWhiteSpace(threadId)
             ? null
-            : Uri.EscapeDataString($"views/activities/threads/{threadId}");
+            : Uri.EscapeDataString($"views/thread/{threadId}");
     }
 
     private static void AppendLinkIfAvailable(StringBuilder builder, string? link, string label)
