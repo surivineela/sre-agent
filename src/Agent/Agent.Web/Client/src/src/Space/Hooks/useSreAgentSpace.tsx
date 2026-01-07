@@ -369,11 +369,15 @@ export const useSreAgentSpace = () => {
     }, []);
 
     useEffect(() => {
+        const isExcludedThread = (thread: Thread) => {
+            return thread.source && excludedSources && excludedSources.includes(thread.source);
+        };
+
         const messageUpdateHandler = async (message: StreamingMessage) => {
             const threadId = message.additionalProperties?.threadId;
             if (threadId && isFinalStreamingMessage(message)) {
                 const updatedThread = await getThread(threadId);
-                if (updatedThread) {
+                if (updatedThread && !isExcludedThread(updatedThread)) {
                     onThreadModifiedTimestampUpdated(updatedThread);
                 }
             }
@@ -385,10 +389,12 @@ export const useSreAgentSpace = () => {
             if (threadId) {
                 try {
                     const thread = parseThreadFromStreamingText(text);
-                    onThreadModifiedTimestampUpdated(thread);
+                    if (!isExcludedThread(thread)) {
+                        onThreadModifiedTimestampUpdated(thread);
+                    }
                 } catch {
                     const updatedThread = await getThread(threadId);
-                    if (updatedThread) {
+                    if (updatedThread && !isExcludedThread(updatedThread)) {
                         onThreadModifiedTimestampUpdated(updatedThread);
                     }
                 }
@@ -405,7 +411,7 @@ export const useSreAgentSpace = () => {
             unsubscribeMessageUpdateEvent();
             unsubscribeThreadUpdateEvent();
         };
-    }, [subscribeThreadUpdateEvent, subscribeMessageUpdateEvent, onThreadModifiedTimestampUpdated]);
+    }, [subscribeThreadUpdateEvent, subscribeMessageUpdateEvent, onThreadModifiedTimestampUpdated, excludedSources]);
 
     return {
         threadsRenderKey,
