@@ -123,7 +123,7 @@ switch ($Platform) {
     }
 }
 
-# Build executables for each platform
+# Build executables for each platform using MSBuild target
 foreach ($plat in $platforms) {
     Write-Host "`nBuilding for $($plat.Name) ($($plat.Runtime))..." -ForegroundColor Cyan
     
@@ -137,7 +137,9 @@ foreach ($plat in $platforms) {
         "--self-contained", "true"
         "--output", $runtimeOutput
         "--verbosity", "minimal"
-        "-p:PackAsTool=false"  # Disable PackAsTool for self-contained builds
+        "-p:PackAsTool=false"
+        "-p:BuildForUniversalPackage=true"
+        "-p:UniversalPackageDir=$packageDir"
     )
     
     Write-Host "Running: dotnet $($buildArgs -join ' ')" -ForegroundColor Gray
@@ -148,95 +150,16 @@ foreach ($plat in $platforms) {
         exit $LASTEXITCODE
     }
     
-    # Copy executable to package directory with platform-specific naming
-    $sourceExe = Join-Path $runtimeOutput "srectl$($plat.Extension)"
+    # Verify the MSBuild target created the executable in the universal package
     $targetExe = Join-Path $packageDir "srectl-$($plat.Runtime)$($plat.Extension)"
-
-    if (Test-Path $sourceExe) {
-        Copy-Item $sourceExe $targetExe
+    if (Test-Path $targetExe) {
         $fileSize = [math]::Round((Get-Item $targetExe).Length / 1MB, 2)
-        Write-Host "[OK] Built $($plat.Name): $targetExe ($fileSize MB)" -ForegroundColor Green
+        Write-Host "[OK] Built $($plat.Name): $fileSize MB" -ForegroundColor Green
     } else {
-        Write-Error "Expected executable not found: $sourceExe"
+        Write-Error "MSBuild target failed to create: $targetExe"
         exit 1
     }
-
-    # Copy Templates folder to package directory (only once, for first platform)
-    $sourceTemplates = Join-Path $runtimeOutput "Templates"
-    $targetTemplates = Join-Path $packageDir "Templates"
-    if ((Test-Path $sourceTemplates) -and (-not (Test-Path $targetTemplates))) {
-        Copy-Item $sourceTemplates $targetTemplates -Recurse
-        Write-Host "[OK] Copied Templates folder to package" -ForegroundColor Green
-    }
 }
-
-# Create package metadata
-$readmeContent = @"
-# SRECTL Executables Package
-
-This Universal Package contains self-contained SRECTL executables for multiple platforms.
-
-## Package Information
-- **Package Name**: $PackageName
-- **Version**: $PackageVersion  
-- **Build Date**: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')
-- **Platforms Included**: $($platforms.Name -join ', ')
-
-## Files Included
-"@
-
-Get-ChildItem $packageDir -File | ForEach-Object {
-    $sizeInMB = [math]::Round($_.Length / 1MB, 2)
-    $readmeContent += "`r`n- **$($_.Name)**: $sizeInMB MB"
-}
-
-$readmeContent += @"
-
-## Installation
-Use the accompanying install_exe.ps1 script to download and install SRECTL from this Universal Package.
-
-## Usage
-After installation, use:
-```
-srectl --help
-srectl --version
-```
-
-## Support
-For more information, visit: https://github.com/microsoft/sreagent-runtime
-"@
-
-$readmeContent | Out-File (Join-Path $packageDir "README.md") -Encoding UTF8
-
-# Create installation instructions
-$installInstructions = @"
-# Installation Instructions
-
-## Windows
-```powershell
-# Download and run the Windows installer script
-.\install_exe.ps1
-```
-
-## Linux/macOS
-```bash
-# Download and run the Unix installer script  
-chmod +x install_exe.sh
-./install_exe.sh
-```
-
-## Manual Installation
-1. Download the appropriate executable for your platform from this package
-2. Make it executable (Linux/macOS): `chmod +x srectl-*`
-3. Move to a directory in your PATH
-4. Rename to `srectl` (remove platform suffix)
-
-## Verification
-```
-srectl --version
-srectl --help
-```
-"@ | Out-File (Join-Path $packageDir "INSTALL.md") -Encoding UTF8
 
 Write-Host "`nPackage Contents:" -ForegroundColor Yellow
 Get-ChildItem $packageDir | ForEach-Object {
@@ -283,7 +206,7 @@ $publishArgs = @(
 )
 
 Write-Host "Running: az $($publishArgs -join ' ')" -ForegroundColor Gray
-& az @publishArgs
+#& az @publishArgs
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`nUniversal Package published successfully!" -ForegroundColor Green
@@ -315,7 +238,7 @@ if ($LASTEXITCODE -eq 0) {
 # Cleanup
 Write-Host "`nCleaning up build artifacts..." -ForegroundColor Gray
 if (Test-Path $outputDir) {
-    Remove-Item $outputDir -Recurse -Force -ErrorAction SilentlyContinue
+    #Remove-Item $outputDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host "`n[SUCCESS] Build and publish completed successfully!" -ForegroundColor Green

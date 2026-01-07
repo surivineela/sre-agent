@@ -1,0 +1,273 @@
+#################################################################################
+#                        SRE Agent CLI Official Build Pipeline                  #
+#                                                                               #
+#                               OneBranch Pipelines                             #
+# Documentation:  https://aka.ms/obpipelines                                    #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Support:        https://aka.ms/onebranchsup                                   #
+#################################################################################
+
+name: $(MAJOR).$(MINOR).$(BUILD)
+
+trigger: none  # https://aka.ms/obpipelines/triggers
+
+# Global parameters for build configuration
+parameters:
+- name: 'publishPackages'
+  displayName: 'Publish SRECTL packages (NuGet + Universal Package) to Azure Artifacts'
+  type: boolean
+  default: false
+
+variables:
+- name: MAJOR
+  value: 1
+- name: MINOR
+  value: 0
+- name: BUILD
+  value: $[counter('1.0', 1)]
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: Azure-Pipelines-1ESPT-ExDShared
+      image: windows-latest
+      os: windows
+
+    stages:
+    - stage: build_cli
+      displayName: "🔨 Build SRECTL CLI"
+      variables:
+      - name: PackageVersion
+        value: $(Build.BuildNumber)
+      - name: CliProjectPath
+        value: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli\Agent.Cli.csproj'
+      - name: CliProjectFolder
+        value: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli'
+      - name: NuGetPackageFolder
+        value: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli\nupkg'
+      - name: PublishFolder
+        value: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli\publish'
+      - name: UniversalPackageFolder
+        value: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli\publish\universal-package'
+      - name: BuildConfiguration
+        value: Release
+      - name: UniversalPackageFeedName
+        value: 'One/SREAgentCli'
+      - name: UniversalPackageName
+        value: 'srectl-executables'
+      
+      jobs:
+      - job: build_and_package
+        displayName: "Build SRECTL Packages"
+        
+        ${{ if eq(parameters.publishPackages, true) }}:
+          templateContext:
+            outputs:
+            # Always publish as pipeline artifacts (for download/inspection)
+            - output: pipelineArtifact
+              displayName: '📤 Publish NuGet Package as Build Artifact'
+              targetPath: '$(NuGetPackageFolder)'
+              artifactName: 'nuget-package'
+            
+            - output: pipelineArtifact
+              displayName: '📤 Publish Universal Package as Build Artifact'
+              targetPath: '$(UniversalPackageFolder)'
+              artifactName: 'universal-package'
+            
+            # Publish to NuGet feed
+            - output: nuget
+              displayName: '📤 Publish SRECTL NuGet Package to Feed'
+              useDotNetTask: false
+              packageParentPath: '$(NuGetPackageFolder)'
+              packagesToPush: '$(NuGetPackageFolder)\*.nupkg'
+              nuGetFeedType: 'internal'
+              publishVstsFeed: 'One/SREAgentCli'
+              allowPackageConflicts: false
+        
+        ${{ else }}:
+          templateContext:
+            outputs:
+            # Always publish as pipeline artifacts (for download/inspection)
+            - output: pipelineArtifact
+              displayName: '📤 Publish NuGet Package as Build Artifact'
+              targetPath: '$(NuGetPackageFolder)'
+              artifactName: 'nuget-package'
+            
+            - output: pipelineArtifact
+              displayName: '📤 Publish Universal Package as Build Artifact'
+              targetPath: '$(UniversalPackageFolder)'
+              artifactName: 'universal-package'
+        
+        steps:
+        - checkout: self
+          fetchDepth: 1
+          persistCredentials: true
+
+        # Setup .NET SDK
+        - task: UseDotNet@2
+          continueOnError: false
+          displayName: '🧰 Setup .NET 9'
+          inputs:
+            version: 9.x
+            packageType: 'sdk'
+
+        # Authenticate NuGet
+        - task: NuGetAuthenticate@1
+          displayName: '🔐 Authenticate NuGet'
+
+        # Authenticate NPM (needed for project dependencies)
+        - task: npmAuthenticate@0
+          displayName: '🔐 Authenticate NPM'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\.npmrc'
+
+        # Collect Build Information
+        - task: PowerShell@2
+          displayName: "ℹ️ Collect Build Information"
+          continueOnError: true
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(CliProjectFolder)
+            script: |
+              Write-Host "Build Information:"
+              Write-Host "  Build Number: $(Build.BuildNumber)"
+              Write-Host "  Source Branch: $(Build.SourceBranch)"
+              Write-Host "  Commit: $(Build.SourceVersion)"
+              Write-Host "  Publish Packages: ${{ parameters.publishPackages }}"
+              Write-Host "  Build Platforms: All (win-x64, linux-x64, osx-x64, osx-arm64)"
+
+        # Restore NuGet packages
+        - task: DotNetCoreCLI@2
+          displayName: '📦 Restore NuGet packages'
+          inputs:
+            command: 'restore'
+            projects: |
+              $(CliProjectPath)
+              $(Build.SourcesDirectory)\src\Agent\Agent.Cli.UnitTests\Agent.Cli.UnitTests.csproj
+            includeNuGetOrg: false
+            feedsToUse: config
+            nugetConfigPath: '$(Build.SourcesDirectory)\src\nuget.config'
+
+        # Build the CLI project
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Build SRECTL CLI'
+          inputs:
+            command: 'build'
+            projects: '$(CliProjectPath)'
+            arguments: '--no-restore --configuration $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            includeNuGetOrg: false
+
+        # Run unit tests
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run SRECTL Unit Tests'
+          inputs:
+            command: 'test'
+            projects: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli.UnitTests\Agent.Cli.UnitTests.csproj'
+            arguments: '--no-restore --configuration $(BuildConfiguration) --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\'
+            publishTestResults: false
+
+        # Publish test results
+        - task: PublishTestResults@2
+          displayName: '📢 Publish Unit Test Results'
+          inputs:
+            testResultsFormat: VSTest
+            testResultsFiles: '$(Build.SourcesDirectory)\TestResults\*.trx'
+            failTaskOnFailedTests: true
+            testRunTitle: 'SRECTL_UnitTests'
+
+        # Package as NuGet (.NET Tool) - Always build
+        - task: DotNetCoreCLI@2
+          displayName: '📦 Build NuGet Package (.NET Tool)'
+          inputs:
+            command: 'pack'
+            packagesToPack: '$(CliProjectPath)'
+            configuration: '$(BuildConfiguration)'
+            outputDir: '$(NuGetPackageFolder)'
+            nobuild: true
+            versioningScheme: 'byBuildNumber'
+            includeNuGetOrg: false
+
+        # Build Universal Package (Self-contained executables) - Always build
+        # Publish for Windows x64
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish Windows x64'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '$(CliProjectPath)'
+            arguments: '--configuration $(BuildConfiguration) --runtime win-x64 --self-contained true --output $(PublishFolder)\win-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            zipAfterPublish: false
+            includeNuGetOrg: false
+        
+        # Publish for Linux x64
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish Linux x64'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '$(CliProjectPath)'
+            arguments: '--configuration $(BuildConfiguration) --runtime linux-x64 --self-contained true --output $(PublishFolder)\linux-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            zipAfterPublish: false
+            includeNuGetOrg: false
+        
+        # Publish for macOS x64
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish macOS x64 (Intel)'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '$(CliProjectPath)'
+            arguments: '--configuration $(BuildConfiguration) --runtime osx-x64 --self-contained true --output $(PublishFolder)\osx-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            zipAfterPublish: false
+            includeNuGetOrg: false
+        
+        # Publish for macOS ARM64
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Publish macOS ARM64 (Apple Silicon)'
+          inputs:
+            command: 'publish'
+            publishWebProjects: false
+            projects: '$(CliProjectPath)'
+            arguments: '--configuration $(BuildConfiguration) --runtime osx-arm64 --self-contained true --output $(PublishFolder)\osx-arm64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            zipAfterPublish: false
+            includeNuGetOrg: false
+        
+        # Display package contents
+        - task: PowerShell@2
+          displayName: '📋 Display package contents'
+          inputs:
+            targetType: 'inline'
+            workingDirectory: '$(UniversalPackageFolder)'
+            script: |
+                Write-Host "Universal Package contents:" -ForegroundColor Yellow
+                Get-ChildItem -Recurse | ForEach-Object {
+                    $relativePath = $_.FullName.Replace((Get-Location).Path, '')
+                    if ($_.PSIsContainer) {
+                        Write-Host "  [DIR] $relativePath" -ForegroundColor Cyan
+                    } else {
+                        Write-Host "  [FILE] $relativePath" -ForegroundColor Gray
+                    }
+                }
+                Write-Host "`n✅ Universal Package prepared successfully!" -ForegroundColor Green
+        
+        # Publish Universal Package to Azure Artifacts
+        - ${{ if eq(parameters.publishPackages, true) }}:
+          - task: UniversalPackages@0
+            displayName: '📦 Publish Universal Package to Azure Artifacts'
+            inputs:
+              command: 'publish'
+              publishDirectory: '$(UniversalPackageFolder)'
+              feedsToUsePublish: 'internal'
+              vstsFeedPublish: '$(UniversalPackageFeedName)'
+              vstsFeedPackagePublish: '$(UniversalPackageName)'
+              versionOption: 'custom'
+              versionPublish: '$(Build.BuildNumber)'
+              packagePublishDescription: 'SRECTL executable binaries for multiple platforms (v$(Build.BuildNumber))'

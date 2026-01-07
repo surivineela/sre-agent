@@ -13,7 +13,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>srectl</ToolCommandName>
     <PackageId>SREAgent.CLI</PackageId>
-    <Version>1.0.26</Version>
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
     <Authors>SRE Agent Team</Authors>
     <Description>SRE Agent CLI Tool for creating and managing agents</Description>
     <AssemblyTitle>srectl</AssemblyTitle>
@@ -53,5 +53,88 @@
     <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
     <ProjectReference Include="..\Common.Core\Agent.Common.Core.csproj" />
   </ItemGroup>
+
+  <!-- Universal Package Build Configuration -->
+  <PropertyGroup>
+    <BuildForUniversalPackage Condition="'$(BuildForUniversalPackage)' == ''">false</BuildForUniversalPackage>
+    <UniversalPackageDir Condition="'$(UniversalPackageDir)' == ''">$(MSBuildProjectDirectory)\publish\universal-package</UniversalPackageDir>
+  </PropertyGroup>
+
+  <!-- MSBuild Target: Organize Universal Package after publish -->
+  <Target Name="OrganizeUniversalPackage" AfterTargets="Publish" Condition="'$(BuildForUniversalPackage)' == 'true'">
+    
+    <!-- Determine executable extension based on runtime -->
+    <PropertyGroup>
+      <ExeExtension Condition="'$(RuntimeIdentifier)' == 'win-x64'">.exe</ExeExtension>
+      <ExeExtension Condition="'$(RuntimeIdentifier)' != 'win-x64'"></ExeExtension>
+      <SourceExe>$(PublishDir)srectl$(ExeExtension)</SourceExe>
+      <TargetExe>$(UniversalPackageDir)\srectl-$(RuntimeIdentifier)$(ExeExtension)</TargetExe>
+      <BuildDate>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) UTC</BuildDate>
+    </PropertyGroup>
+
+    <!-- Create universal package directory if it doesn't exist -->
+    <MakeDir Directories="$(UniversalPackageDir)" Condition="!Exists('$(UniversalPackageDir)')" />
+    
+    <!-- Copy and rename executable -->
+    <Copy SourceFiles="$(SourceExe)" DestinationFiles="$(TargetExe)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="✅ Copied $(RuntimeIdentifier) executable to Universal Package: $(TargetExe)" />
+    
+    <!-- Copy Templates folder -->
+    <ItemGroup Condition="Exists('$(PublishDir)Templates')">
+      <TemplatesToCopy Include="$(PublishDir)Templates\**\*" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(TemplatesToCopy)" 
+          DestinationFolder="$(UniversalPackageDir)\Templates\%(RecursiveDir)" 
+          SkipUnchangedFiles="true"
+          Condition="'@(TemplatesToCopy)' != ''" />
+    
+    <Message Importance="high" 
+             Text="✅ Copied Templates folder to Universal Package" 
+             Condition="'@(TemplatesToCopy)' != ''" />
+    
+    <!-- Copy Install.ps1 and Uninstall.ps1 scripts -->
+    <ItemGroup>
+      <InstallScripts Include="$(MSBuildProjectDirectory)\PackageFiles\Install.ps1" />
+      <InstallScripts Include="$(MSBuildProjectDirectory)\PackageFiles\Uninstall.ps1" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(InstallScripts)" 
+          DestinationFolder="$(UniversalPackageDir)" 
+          SkipUnchangedFiles="true"
+          Condition="'@(InstallScripts)' != ''" />
+    
+    <Message Importance="high" 
+             Text="✅ Copied installation scripts to Universal Package" 
+             Condition="'@(InstallScripts)' != ''" />
+    
+    <!-- Copy and process README.md -->
+    <PropertyGroup>
+      <ReadmeTemplate>$(MSBuildProjectDirectory)\PackageFiles\README.md</ReadmeTemplate>
+      <ReadmeOutput>$(UniversalPackageDir)\README.md</ReadmeOutput>
+    </PropertyGroup>
+    
+    <ReadLinesFromFile File="$(ReadmeTemplate)" Condition="Exists('$(ReadmeTemplate)')">
+      <Output TaskParameter="Lines" ItemName="ReadmeLines" />
+    </ReadLinesFromFile>
+    
+    <PropertyGroup Condition="Exists('$(ReadmeTemplate)')">
+      <ReadmeContent>@(ReadmeLines, '%0D%0A')</ReadmeContent>
+      <ReadmeContent>$(ReadmeContent.Replace('{{VERSION}}', '$(Version)'))</ReadmeContent>
+      <ReadmeContent>$(ReadmeContent.Replace('{{BUILD_DATE}}', '$(BuildDate)'))</ReadmeContent>
+      <ReadmeContent>$(ReadmeContent.Replace('%0D%0A', '$([System.Environment]::NewLine)'))</ReadmeContent>
+    </PropertyGroup>
+    
+    <WriteLinesToFile File="$(ReadmeOutput)" 
+                      Lines="$(ReadmeContent)" 
+                      Overwrite="true" 
+                      Encoding="UTF-8"
+                      Condition="Exists('$(ReadmeTemplate)')" />
+    
+    <Message Importance="high" 
+             Text="✅ Processed README.md from template" 
+             Condition="Exists('$(ReadmeTemplate)')" />
+    
+  </Target>
 
 </Project>
