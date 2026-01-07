@@ -118,6 +118,7 @@ export interface KubectlExecution {
         userId: string;
         role: string;
     };
+    requiredScopes?: string;
 }
 
 export interface PsqlExecution {

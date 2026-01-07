@@ -85,8 +85,6 @@ tools:
   - ListResourcesByType
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
-  - PatchKubernetesYaml
-  - RolloutRestartDeployment
   - GetKubeResourceMetricsRange
   - DiscoverPrometheusMetrics
   - QueryPrometheusMetrics

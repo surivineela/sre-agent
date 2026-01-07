@@ -30,6 +30,9 @@ public class Constants
 
     public const string CosmosDbOboTokenScope = "https://cosmos.azure.com/.default";
 
+    public const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
+    public const string ExchangedTokensHeader = "x-sreagent-exchanged-tokens";
+
     public const string HttpClientForRazor = "Razor";
 
     public const string HttpClientForCrawler = "Crawler";

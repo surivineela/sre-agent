@@ -296,7 +296,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
 
     const showOutputAccordion = currentExecution.status === ExecutionStatus.Completed || currentExecution.status === ExecutionStatus.Failed;
 
-    const isKubectlExecution = (e: ExecutionLike): e is KubectlExecution => 'stdin' in e;
+    const isKubectlExecution = (_e: ExecutionLike): _e is KubectlExecution => type === ExecutionMessageType.Kubectl;
 
     const isAzCliExecution = (_e: ExecutionLike): _e is AzCliExecution => type === ExecutionMessageType.AzCli;
 
@@ -323,7 +323,8 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
 
         // Get required scopes for OBO flow if this is an AzCli execution in PendingAuthorization status
         const oboScope =
-            currentExecution.status === ExecutionStatus.PendingAuthorization && isAzCliExecution(currentExecution)
+            currentExecution.status === ExecutionStatus.PendingAuthorization &&
+            (isAzCliExecution(currentExecution) || isKubectlExecution(currentExecution))
                 ? currentExecution.requiredScopes
                 : undefined;
 

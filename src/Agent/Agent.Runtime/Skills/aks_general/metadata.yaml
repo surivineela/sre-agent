@@ -2,13 +2,6 @@ name: aks_general
 description: |
   The AKS General Skill provides expertise in managing Azure Kubernetes Service (AKS) resources, enabling tasks such as monitoring, troubleshooting, creating, and updating Kubernetes resources, except deletions. It supports effective operations and diagnosis of workloads while facilitating configuration management and resource optimization.
 tools:
-  - KubectlGet
-  - KubectlDescribe
-  - KubectlExplain
-  - KubeApiResources
-  - GetPodLogs
-  - GetKubeEvents
-  - RolloutRestartDeployment
   - DiscoverPrometheusMetrics
   - GetMetricsLabels
   - QueryPrometheusMetrics
@@ -23,7 +16,6 @@ tools:
   - RunKubectlCommandHelp
   - SearchResourceByName
   - ListResourcesByType
-  - PatchKubernetesYaml
   - GetKubeResourceMetricsRange
   - RunAzCliReadCommands
   - RemoveNSGRule

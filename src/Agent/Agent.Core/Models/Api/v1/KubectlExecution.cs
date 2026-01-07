@@ -16,7 +16,8 @@ public record KubectlExecution(
     DateTime? StartedTimestamp,
     DateTime? CompletedTimestamp,
     Author? ExecutedBy,
-    Guid? AgentContextId
+    Guid? AgentContextId,
+    string? RequiredScopes = null
 );
 
 public enum KubectlExecutionStatus

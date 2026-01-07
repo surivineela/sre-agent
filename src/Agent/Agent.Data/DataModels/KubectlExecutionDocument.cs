@@ -19,7 +19,8 @@ namespace Agent.Data.DataModels
         DateTime? StartedTimestamp,
         DateTime? CompletedTimestamp,
         Author? ExecutedBy,
-        string? AgentContextId
+        string? AgentContextId,
+        string? RequiredScopes
     ) : ICosmosDocument
     {
         public string DocumentType => "KubectlExecution";
@@ -45,7 +46,8 @@ namespace Agent.Data.DataModels
                 execution.ExecutedBy != null
                     ? new Author(execution.ExecutedBy.Role, execution.ExecutedBy.UserId, execution.ExecutedBy.DisplayName)
                     : null,
-                execution.AgentContextId?.ToString() ?? string.Empty
+                execution.AgentContextId?.ToString() ?? string.Empty,
+                execution.RequiredScopes
             );
         }
 
@@ -65,7 +67,8 @@ namespace Agent.Data.DataModels
                 StartedTimestamp,
                 CompletedTimestamp,
                 ExecutedBy,
-                string.IsNullOrEmpty(AgentContextId) ? Guid.Empty : Guid.Parse(AgentContextId)
+                string.IsNullOrEmpty(AgentContextId) ? Guid.Empty : Guid.Parse(AgentContextId),
+                RequiredScopes
             );
         }
     }

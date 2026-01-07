@@ -96,6 +96,7 @@ public static class CliExecutionHelper
             Also, infer the required AAD scopes based on the command and the output. Always consider that if commands may require multiple scopes; in such cases, return a comma-separated list of scopes.
             Special cases for scope inference:
             - If you infer that the command requires ARM scope, include both "https://management.azure.com/.default" and "https://management.core.windows.net/.default".
+            - If the command is kubectl command, include both ARM scopes ("https://management.azure.com/.default", "https://management.core.windows.net/.default") and AKS api server scope ("6dae42f8-4368-4678-94ff-3960e28e3630/.default") in the required scopes.
             
             Analyze determine if the COMMAND EXECUTION failed:
             Command:

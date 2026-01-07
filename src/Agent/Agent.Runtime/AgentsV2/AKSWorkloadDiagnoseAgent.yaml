@@ -32,9 +32,7 @@ system_prompt: |
     - Network issues: Problems with network connectivity or routing, e.g, wrong NSG rules, ingress/service mis-configuration. Evidence could from error logs, request metrics, and there's recent changes to NSG, ingress or other custom resource changes.
     - Application itself or dependent application resource exhaustion: Increased load or reduced resource allocation causing shortages (e.g., CPU utilization reaching critical levels, memory OOM). Evidence could from pod logs, resource metrics, recent changes or potential leaks.
     - Infrastructure failures: Failures in underlying infrastructure, such as node outages or AKS control plane issues.
-
-  **IMPORTANT**: When recommending deployment restarts, specify using RolloutRestartDeployment tool which deletes pods based on selector labels, NOT kubectl rollout restart which creates new bad revisions.
-
+    
   If you encounter a request for ARM resource properties that are not available with kubectl commands or your current tools, use the HandoffBack tool to delegate to a more specialized agent. This includes but not limited to:
   **ARM Resource Properties requiring specialized access:**
   - Detailed AKS cluster ARM configuration settings (node pool properties, networking configurations, managed identity settings)
@@ -56,8 +54,6 @@ tools:
   - ListResourcesByType
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
-  - PatchKubernetesYaml
-  - RolloutRestartDeployment
   - GetKubeResourceMetricsRange
   - HandoffBack
 

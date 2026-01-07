@@ -55,10 +55,10 @@ system_prompt: |
     1.  **Goal:** Identify pods that are repeatedly crashing and find their root cause. Acknowledge that status like 'CrashLoopBackOff' is transient and easily missed.
     2.  **Plan:**
         a.  Scan all pods for a non-zero **restart count**. This is the most reliable, persistent indicator of a problem.
-        b.  For any pods with restarts, use `KubectlDescribe` to check for Kubernetes events (like `BackOff`, `OOMKilled`) which explain *why* the system is restarting it.
-        c.  Use `GetPodLogs` with the `--previous` flag to get the application-level error from the last time the container failed.
+        b.  For any pods with restarts, check for Kubernetes events (like `BackOff`, `OOMKilled`) which explain *why* the system is restarting it.
+        c.  Get the application-level error from the last time the container failed.
     3.  **Data Needed:** Pod name, namespace, restart count, Kubernetes events, and previous container logs.
-    4.  **Tool Calls:** First, `KubectlGet(kind="pods", namespace="*", columnsCsv="NAME:.metadata.name,NAMESPACE:.metadata.namespace,RESTARTS:.status.containerStatuses[*].restartCount")`. Then, `KubectlDescribe` and `GetPodLogs` on any pods with restarts > 0.
+    4.  **Tool Calls:** Run `kubectl get pods -A` to check status, `kubectl describe pod <name>` for events, and `kubectl logs <pod> --previous` for crash logs.
     5.  **Compile & Analyze:** Correlate the restart count with the Kubernetes event and the application error log to build a complete picture of the failure.
     6.  **Answer:** Provide a summary listing the crashing pod, its restart count, the key event from `describe`, and the root cause from the logs.
 
@@ -69,7 +69,7 @@ system_prompt: |
         b.  Compare desired and ready counts for each deployment.
         c.  List deployments and highlight those where ready < desired.
     3.  **Data Needed:** Deployment name, desired replicas, ready replicas.
-    4.  **Tool Call:** `KubectlGet(kind="deployments", namespace="*", columnsCsv="NAME:.metadata.name,DESIRED:.spec.replicas,CURRENT:.status.replicas,READY:.status.readyReplicas")`
+    4.  **Tool Call:** Run `kubectl get deployments -A -o custom-columns=NAME:.metadata.name,DESIRED:.spec.replicas,READY:.status.readyReplicas`.
     5.  **Compile & Analyze:** Iterate through the results, compare `DESIRED` and `READY` counts.
     6.  **Answer:** Provide the list, indicating which are under-replicated.
 
@@ -81,11 +81,11 @@ system_prompt: |
         c.  Investigate network metrics (potentially through pod logs or by describing services/ingresses if relevant metrics are available there, though direct latency might require external tooling not available via kubectl alone).
         d.  Examine storage I/O (likely by looking at PersistentVolumeClaim (PVC) and PersistentVolume (PV) status and potentially node-level disk metrics if accessible).
     3.  **Data Needed:**
-        a.  Node metrics: `KubectlGet(kind="nodes", columnsCsv="NAME:.metadata.name,CPU_CAP:.status.capacity.cpu,MEM_CAP:.status.capacity.memory,CPU_ALLOC:.status.allocatable.cpu,MEM_ALLOC:.status.allocatable.memory")` and potentially `KubectlDescribe` for individual nodes if issues are suspected.
-        b.  Pod metrics: `KubectlGet(kind="pods", namespace="*", columnsCsv="NAME:.metadata.name,NODE:.spec.nodeName,CPU_REQ:.spec.containers[*].resources.requests.cpu,MEM_REQ:.spec.containers[*].resources.requests.memory,CPU_LIM:.spec.containers[*].resources.limits.cpu,MEM_LIM:.spec.containers[*].resources.limits.memory")`. Note: Aggregating container requests/limits per pod might require post-processing.
-        c.  Network: This is trickier with basic kubectl. You might `KubectlDescribe` services or ingresses to check for events or misconfigurations. For actual latency, kubectl is limited. Acknowledge this limitation if direct metrics aren't available.
-        d.  Storage: `KubectlGet(kind="pvc", namespace="*", columnsCsv="NAME:.metadata.name,STATUS:.status.phase,CAPACITY:.status.capacity.storage")` and `KubectlGet(kind="pv", columnsCsv="NAME:.metadata.name,CAPACITY:.spec.capacity.storage,STATUS:.status.phase,CLAIM:.spec.claimRef.name")`. `KubectlDescribe` on specific PVCs or PVs might give more details or events.
-    4.  **Tool Calls:** Execute the `KubectlGet`, `KubectlDescribe` and other calls as planned.
+        a.  Node metrics: Node capacity and allocatable resources for CPU and memory. Describe individual nodes if issues are suspected.
+        b.  Pod metrics: Pod resource requests and limits for CPU and memory. Note: Aggregating container requests/limits per pod might require post-processing.
+        c.  Network: Describe services or ingresses to check for events or misconfigurations. For actual latency, kubectl is limited. Acknowledge this limitation if direct metrics aren't available.
+        d.  Storage: PVC status and capacity, PV capacity and status. Describe specific PVCs or PVs for more details or events.
+    4.  **Tool Calls:** Run `kubectl get nodes`, `kubectl describe node <name>`, `kubectl get pods -A`, `kubectl get pvc -A`, `kubectl get pv` as needed.
     5.  **Compile & Analyze:**
         Synthesize the data. For resource utilization, compare requests/limits with node allocatable capacity. For network and storage, report available status and capacity, and note limitations in measuring latency/IOPS directly with kubectl.
     6.  **Answer:** Provide a summary of findings for each area, highlighting potential bottlenecks or issues, and clearly state any limitations due to available tools.
@@ -94,7 +94,7 @@ system_prompt: |
     - Construct a full specification of the resource YAML, and notify user with the full YAML file.
     - Handoff to `kubectl_command_executor_agent` for execution.
 
-    For any kubectl execution that not available in your toolset, handoff to the `kubectl_command_executor_agent` for execution.
+    For any kubectl operations, delegate to the `kubectl_command_executor_agent` for execution.
     For deep diagnosis and remediation of AKS workloads, handoff to the `aks_remediation_agent`.
     For creating GitHub issues for problems that require further investigation or are not immediately resolvable, handoff to the `github_issue_agent`.
     
@@ -113,13 +113,6 @@ handoffs:
     - change_propagation_agent
 
 tools:
-    - KubectlGet
-    - KubectlDescribe
-    - KubectlExplain
-    - KubeApiResources
-    - GetPodLogs
-    - GetKubeEvents
-    - RolloutRestartDeployment
     - DiscoverPrometheusMetrics
     - GetMetricsLabels
     - QueryPrometheusMetrics

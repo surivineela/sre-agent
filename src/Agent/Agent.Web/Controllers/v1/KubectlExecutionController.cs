@@ -108,6 +108,16 @@ public class KubectlExecutionController : ControllerBase
             return Unauthorized();
         }
 
+        var tokenScope = Constants.AksOboTokenScope;
+        var exchangedTokens = Request.Headers[Constants.ExchangedTokensHeader].ToString();
+        var exchangedTokenScopes = Request.Headers[Constants.ExchangedTokenScopesHeader].ToString();
+
+        if (!string.IsNullOrEmpty(exchangedTokens) && !string.IsNullOrEmpty(exchangedTokenScopes))
+        {
+            token = exchangedTokens;
+            tokenScope = exchangedTokenScopes;
+        }
+
         // Get user info from token or use provided user
         var userName = "Unknown User";
         var userId = request.User ?? "agent-default"; // Use provided user or default
@@ -201,6 +211,7 @@ public class KubectlExecutionController : ControllerBase
                                     Error = null,
                                     StartedTimestamp = null,
                                     CompletedTimestamp = null,
+                                    RequiredScopes = result.RequiredScopes,
                                 };
                                 await _threadRepository.UpdateKubectlExecutionAsync(threadGuid, execution);
                                 await _agentOutboundCommunicationService.NotifyKubectlUpdate(threadGuid, execution, messageId);
@@ -244,7 +255,7 @@ public class KubectlExecutionController : ControllerBase
                                                 AgentContextId: agentContext?.Id,
                                                 DecisionUser: execution.ExecutedBy,
                                                 OboToken: token,
-                                                OboTokenScope: Constants.AksOboTokenScope);
+                                                OboTokenScope: tokenScope);
 
                             await _threadRepository.CreateApprovalAsync(approval);
 

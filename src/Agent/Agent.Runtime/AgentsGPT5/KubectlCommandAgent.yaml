@@ -55,7 +55,7 @@ system_prompt: |
     - Scale: `kubectl scale deployment/[name] --replicas=[n] --namespace [namespace]`
     - Patch: `kubectl patch [resource] [name] -p '[patch-json]' --namespace [namespace]`
     - Label: `kubectl label [resource] [name] [key]=[value] --namespace [namespace]`
-    - Restart: Use `RolloutRestartDeployment` tool; never directly use `kubectl rollout restart`.
+    - Restart: `kubectl rollout restart deployment/[name] --namespace [namespace]`
   - **Forbidden:**
     - No delete-related commands; redirect to the Azure Portal for such needs.
 
@@ -104,7 +104,6 @@ tools:
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
   - RunKubectlCommandHelp
-  - RolloutRestartDeployment
   - HandoffBack
 
 common_prompts:

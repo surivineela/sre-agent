@@ -24,8 +24,6 @@ namespace Agent.Web.Controllers.v1;
 [Route("api/v1/[controller]")]
 public class AzCliExecutionController : ControllerBase
 {
-    private const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
-    private const string ExchangedTokensHeader = "x-sreagent-exchanged-tokens";
     private readonly IThreadRepository _threadRepository;
     private readonly ArmHelper _armHelper;
     private readonly ILogger<AzCliExecutionController> _logger;
@@ -134,8 +132,8 @@ public class AzCliExecutionController : ControllerBase
         }
 
         var tokenScope = Constants.DefaultOboTokenScope;
-        var exchangedTokens = Request.Headers[ExchangedTokensHeader].ToString();
-        var exchangedTokenScopes = Request.Headers[ExchangedTokenScopesHeader].ToString();
+        var exchangedTokens = Request.Headers[Constants.ExchangedTokensHeader].ToString();
+        var exchangedTokenScopes = Request.Headers[Constants.ExchangedTokenScopesHeader].ToString();
 
         if (!string.IsNullOrEmpty(exchangedTokens) && !string.IsNullOrEmpty(exchangedTokenScopes))
         {

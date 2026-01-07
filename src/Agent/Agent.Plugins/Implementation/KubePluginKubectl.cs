@@ -220,7 +220,7 @@ public partial class KubePlugin : IKubePlugin
             {
                 if (result.ErrorType == CliErrorType.AuthorizationError)
                 {
-                    await UpdateExecutionWithOboFlow(execution);
+                    await UpdateExecutionWithOboFlow(execution, result.RequiredScopes);
                     return new(new CliExecutionResult { Output = $"Kubectl {cmdType} command has been prepared for approval. Please click 'Authorize' to execute or 'Cancel' to dismiss.", ErrorType = CliErrorType.None }, executionId);
                 }
                 else
@@ -271,7 +271,7 @@ public partial class KubePlugin : IKubePlugin
         await NotifyExecutionUpdated(updatedExecution);
     }
 
-    private async Task UpdateExecutionWithOboFlow(KubectlExecution execution)
+    private async Task UpdateExecutionWithOboFlow(KubectlExecution execution, string? requiredScopes)
     {
         var updatedExecution = execution with
         {
@@ -282,6 +282,7 @@ public partial class KubePlugin : IKubePlugin
             Error = null,
             StartedTimestamp = null,
             CompletedTimestamp = null,
+            RequiredScopes = requiredScopes,
         };
 
         await _threadRepository!.UpdateKubectlExecutionAsync(ThreadId!.Value, updatedExecution);
@@ -555,9 +556,9 @@ public partial class KubePlugin : IKubePlugin
         {
             return new CliExecutionResult
             {
-                // do not trigger obo flow because the obo token audience is AKS, cannot work with ARM to get kubeconfig
-                ErrorType = CliErrorType.Other,
-                Output = await GetPermissionErrorMessageAsync(resourceId),
+                ErrorType = CliErrorType.AuthorizationError,
+                Output = "Failed to retrieve kubeconfig for cluster: Forbidden.",
+                RequiredScopes = string.Join(",", [Core.Constants.ArmOboTokenScope, Core.Constants.AksOboTokenScope])
             };
         }
 
@@ -600,6 +601,7 @@ public partial class KubePlugin : IKubePlugin
         catch (Exception ex)
         {
             var executionResult = await CliExecutionHelper.ParseCliExecutionResult(_chatClientProvider.GeneralPurposeModel, ex.Message);
+            _logger?.LogInternalInformation($"[ExecuteKubectlCommandSafely] LLM-parsed execution result: ErrorType={executionResult.ErrorType}, RequiredScopes={executionResult.RequiredScopes}");
             return executionResult;
         }
     }
