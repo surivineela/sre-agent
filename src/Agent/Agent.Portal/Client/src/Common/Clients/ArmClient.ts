@@ -22,9 +22,9 @@ import { appendQueryString } from '../Utilities/Url';
 import { Client } from './Client';
 
 // Custom response interface to replace AxiosResponse
-interface FetchResponse<T> {
-    data: T;
-    status: number;
+interface CommonResponse<T> {
+    content: T;
+    httpStatusCode: number;
     headers: Record<string, string>;
 }
 
@@ -77,11 +77,12 @@ export class ArmClient extends Client {
                         body: { requests: batchBody },
                         apiVersion: ApiVersions.armApiVersion20250301,
                         id: newGuid(),
+                        useManagementEndpoint: true,
                     })
                 ).pipe(
                     concatMap(result => {
-                        if (result.status < 300) {
-                            const { responses } = result.data;
+                        if (result.httpStatusCode < 300) {
+                            const { responses } = result.content;
                             const responsesWithId: ArmBatchObject[] = [];
                             for (let i = 0; i < responses.length; i = i + 1) {
                                 responsesWithId.push({ ...responses[i], id: x[i].id });
@@ -110,6 +111,7 @@ export class ArmClient extends Client {
             headers,
             url,
             skipPolling = false,
+            useManagementEndpoint = true,
         } = requestObject;
 
         const useDirectUrl = !!url;
@@ -131,6 +133,7 @@ export class ArmClient extends Client {
             headers: headers || {},
             method: method || 'GET',
             apiVersion: effectiveApiVersion,
+            useManagementEndpoint,
         };
 
         if (!effectiveSkipBatching) {
@@ -158,7 +161,10 @@ export class ArmClient extends Client {
                 const resSuccess = res.httpStatusCode < 300;
 
                 if ((res.httpStatusCode === 201 || res.httpStatusCode === 202) && !skipPolling) {
-                    return this.pollForCompletion(res, requestObject);
+                    return this.pollForCompletion(
+                        { content: res.content, httpStatusCode: res.httpStatusCode, headers: res.headers },
+                        requestObject
+                    );
                 } else {
                     return {
                         isSuccessful: resSuccess,
@@ -179,24 +185,30 @@ export class ArmClient extends Client {
         }
 
         const response = await this.makeArmRequest<T>(armBatchObject);
-        const responseSuccess = response.status < 300;
-
+        const responseSuccess = response.httpStatusCode < 300;
+        if ((response.httpStatusCode === 201 || response.httpStatusCode === 202) && !skipPolling) {
+            return this.pollForCompletion(response, requestObject);
+        }
         return {
             isSuccessful: responseSuccess,
-            content: responseSuccess ? response.data : undefined,
-            error: responseSuccess ? undefined : response.data,
+            content: responseSuccess ? response.content : undefined,
+            error: responseSuccess ? undefined : response.content,
             metadata: {
-                status: response.status,
+                status: response.httpStatusCode,
                 headers: response.headers,
             },
         };
     }
 
-    private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<FetchResponse<T>> {
+    private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<CommonResponse<T>> {
         const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
-
-        const { method, resourceId, body, apiVersion, queryString } = armObj;
-        let url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
+        const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint, commandName } = armObj;
+        let url: string;
+        if (useManagementEndpoint) {
+            url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
+        } else {
+            url = `${resourceId}${queryString || ''}`;
+        }
         if (apiVersion !== null) {
             url = appendQueryString(url, `api-version=${apiVersion}`);
         }
@@ -206,6 +218,10 @@ export class ArmClient extends Client {
             'x-ms-client-session-id': getSessionId(),
             ...armObj.headers,
         };
+
+        if (commandName) {
+            headers['x-ms-command-name'] = commandName;
+        }
 
         if (body) {
             headers['Content-Type'] = 'application/json';
@@ -233,8 +249,8 @@ export class ArmClient extends Client {
             });
 
             return {
-                data,
-                status: response.status,
+                content: data,
+                httpStatusCode: response.status,
                 headers: responseHeaders,
             };
         } catch (error) {
@@ -243,7 +259,7 @@ export class ArmClient extends Client {
         }
     }
 
-    private pollForCompletion<T, U = T>(response: ArmBatchObject, request: ArmRequestObject<U>): Promise<Response<T>> {
+    private pollForCompletion<T, U = T>(response: CommonResponse<T>, request: ArmRequestObject<U>): Promise<Response<T>> {
         const location = getHeader('location', response.headers);
         const azureAsyncOperation = getHeader('Azure-AsyncOperation', response.headers);
 
@@ -267,32 +283,36 @@ export class ArmClient extends Client {
         }
     }
 
+    private getPollingTelemetryHeader(commandName: string | undefined): string {
+        return !commandName ? 'PollingAsyncResponse' : commandName.endsWith('-polling') ? commandName : commandName + '-polling';
+    }
+
     private pollLocationForCompletion<T, U = T>(
-        response: ArmBatchObject,
+        response: CommonResponse<T>,
         previousLocation: string,
         request: ArmRequestObject<U>
     ): Promise<Response<T>> {
         const location = getHeader('location', response.headers) || previousLocation;
         const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
-        const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+        const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<T>({
                 method: 'GET',
-                resourceId: location,
+                url: location,
                 commandName: setTelemetryHeader,
-                apiVersion: request.apiVersion,
+                useManagementEndpoint: false,
             });
         }, retryAfter);
     }
 
     private pollAzureAsyncOperationForCompletion<T, U = T>(
-        response: ArmBatchObject,
+        response: CommonResponse<T>,
         azureAsyncOperation: string,
         request: ArmRequestObject<U>
     ): Promise<Response<T>> {
         const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
-        const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+        const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<T>({
@@ -339,7 +359,7 @@ export class ArmClient extends Client {
 
     private pollProvisioningStateForCompletion<T, U = T>(request: ArmRequestObject<U>): Promise<Response<T>> {
         const retryAfter = 2000;
-        const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+        const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<T>({

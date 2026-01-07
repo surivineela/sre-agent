@@ -94,6 +94,7 @@ export interface ArmRequestObject<T> {
     apiVersion?: string | null;
     queryString?: string;
     headers?: KeyValue<string | undefined>;
+    useManagementEndpoint?: boolean;
 }
 
 export interface ArmBatchObject {
@@ -115,6 +116,7 @@ export interface InternalArmRequest {
     commandName?: string;
     body: any;
     apiVersion: string | null;
+    useManagementEndpoint: boolean;
     queryString?: string;
     headers?: KeyValue<string | undefined>;
 }

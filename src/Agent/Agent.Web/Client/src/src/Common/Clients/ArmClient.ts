@@ -67,6 +67,12 @@ interface ArmBatchResponse {
     responses: ArmBatchObject[];
 }
 
+interface CommonResponse {
+    content: any;
+    httpStatusCode: number;
+    headers: KeyValue<string> | AxiosResponse['headers'];
+}
+
 const bufferTimeInterval = 100; // ms
 const maxBufferSize = 20;
 const armSubject$ = new Subject<InternalArmRequest>();
@@ -136,7 +142,7 @@ export const getTelemetryInfo = (
 
 const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promise<AxiosResponse<T>> => {
     const env = AzPortalProxy.envInfo;
-    const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint } = armObj;
+    const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint, commandName } = armObj;
     const sessionId = env?.sessionId;
     let url: string;
     if (useManagementEndpoint) {
@@ -153,6 +159,10 @@ const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promis
         'x-ms-client-request-id': armObj.id,
         ...armObj.headers,
     };
+
+    if (commandName) {
+        headers['x-ms-command-name'] = commandName;
+    }
 
     if (sessionId) {
         headers['x-ms-client-session-id'] = sessionId;
@@ -239,7 +249,7 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
             const resSuccess = res.httpStatusCode < 300;
 
             if ((res.httpStatusCode === 201 || res.httpStatusCode === 202) && !skipPolling) {
-                return pollForCompletion(res, requestObject);
+                return pollForCompletion({ content: res.content, httpStatusCode: res.httpStatusCode, headers: res.headers }, requestObject);
             } else {
                 const ret: HttpResponseObject<T> = {
                     metadata: {
@@ -269,23 +279,27 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
 
     const response = await makeArmRequest<T>(armBatchObject);
     const responseSuccess = response.status < 300;
-    const retObj: HttpResponseObject<T> = {
-        metadata: {
-            success: responseSuccess,
-            status: response.status,
-            headers: response.headers,
-            error: responseSuccess ? null : response.data,
-        },
-        data: response.data,
-    };
 
-    return retObj;
+    if ((response.status === 201 || response.status === 202) && !skipPolling) {
+        return pollForCompletion({ content: response.data, httpStatusCode: response.status, headers: response.headers }, requestObject);
+    } else {
+        const retObj: HttpResponseObject<T> = {
+            metadata: {
+                success: responseSuccess,
+                status: response.status,
+                headers: response.headers,
+                error: responseSuccess ? null : response.data,
+            },
+            data: response.data,
+        };
+
+        return retObj;
+    }
 };
 
-const pollForCompletion = <T, U = T>(response: ArmBatchObject, request: ArmRequestObject<U>) => {
-    const location = getHeader('location', response.headers);
-    const azureAsyncOperation = getHeader('Azure-AsyncOperation', response.headers);
-
+const pollForCompletion = <T, U = T>(response: CommonResponse, request: ArmRequestObject<U>) => {
+    const location = getStringHeader('location', response.headers);
+    const azureAsyncOperation = getStringHeader('Azure-AsyncOperation', response.headers);
     if (location) {
         return pollLocationForCompletion(response, location, request);
     } else if (azureAsyncOperation) {
@@ -306,28 +320,36 @@ const pollForCompletion = <T, U = T>(response: ArmBatchObject, request: ArmReque
     }
 };
 
-const pollLocationForCompletion = <T, U = T>(response: ArmBatchObject, previousLocation: string, request: ArmRequestObject<U>) => {
-    const location = getHeader('location', response.headers) || previousLocation;
-    const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
-    const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+const getPollingTelemetryHeader = (commandName: string | undefined): string => {
+    return !commandName
+        ? 'PollingAsyncResponse'
+        : commandName.endsWith('-polling')
+            ? commandName
+            : commandName + '-polling';
+}
+
+const pollLocationForCompletion = <T, U = T>(response: CommonResponse, previousLocation: string, request: ArmRequestObject<U>) => {
+    const location = getStringHeader('location', response.headers) || previousLocation;
+    const retryAfter = Math.max(getNumericHeader('Retry-After', response.headers) ?? 0, 2000);
+    const setTelemetryHeader = getPollingTelemetryHeader(request.commandName);
 
     return delay(() => {
         return MakeArmCall<T>({
             method: 'GET',
-            resourceId: location,
+            url: location,
             commandName: setTelemetryHeader,
-            apiVersion: request.apiVersion,
+            useManagementEndpoint: false,
         });
     }, retryAfter);
 };
 
 const pollAzureAsyncOperationForCompletion = <T, U = T>(
-    response: ArmBatchObject,
+    response: CommonResponse,
     azureAsyncOperation: string,
     request: ArmRequestObject<U>
 ): Promise<HttpResponseObject<T> | undefined> => {
-    const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
-    const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+    const retryAfter = Math.max(getNumericHeader('Retry-After', response.headers) ?? 0, 2000);
+    const setTelemetryHeader = getPollingTelemetryHeader(request.commandName);
 
     return delay(() => {
         return MakeArmCall<T>({
@@ -384,7 +406,7 @@ const pollAzureAsyncOperationForCompletion = <T, U = T>(
 
 const pollProvisioningStateForCompletion = <T, U = T>(request: ArmRequestObject<U>): Promise<HttpResponseObject<T> | undefined> => {
     const retryAfter = 2000;
-    const setTelemetryHeader = request.commandName ? request.commandName + '-polling' : 'PollingAsyncResponse';
+    const setTelemetryHeader = getPollingTelemetryHeader(request.commandName);
 
     return delay(() => {
         return MakeArmCall<T>({
@@ -451,12 +473,35 @@ const pollProvisioningStateForCompletion = <T, U = T>(request: ArmRequestObject<
     });
 };
 
-const getHeader = (headerToFind: string, headers: KeyValue<string>) => {
+const getStringHeader = (headerToFind: string, headers: KeyValue<string> | AxiosResponse['headers']) => {
     for (const key of Object.keys(headers)) {
         if (key.toLowerCase() === headerToFind.toLowerCase()) {
-            return headers[key];
+            const value = headers[key];
+            if (value === undefined || value === null) {
+                return undefined;
+            }
+            return typeof value === 'string' ? value : undefined;
         }
     }
+};
+
+const getNumericHeader = (headerToFind: string, headers: KeyValue<string> | AxiosResponse['headers']) => {
+    for (const key of Object.keys(headers)) {
+        if (key.toLowerCase() === headerToFind.toLowerCase()) {
+            const value = headers[key];
+            if (value === undefined || value === null) {
+                return null;
+            }
+            if (typeof value === 'string') {
+                return Number(value);
+            }
+            if (typeof value === 'number') {
+                return value;
+            }
+            return null;
+        }
+    }
+    return null;
 };
 
 const delay = async (func: () => Promise<any>, ms = 3000) => {
