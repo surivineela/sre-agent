@@ -1,5 +1,4 @@
-import { Button, Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
-import { Add20Regular } from '@fluentui/react-icons';
+import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -13,11 +12,10 @@ import { AuthType, ConnectorFormProps } from './ConnectorWizardFormik';
 
 interface ConnectorPickerProps {
     existingConnectors?: Connector[];
-    goToNextStep: () => void;
 }
 
 export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
-    const { existingConnectors, goToNextStep } = props;
+    const { existingConnectors } = props;
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
     const { values, setFieldValue, setTouched, setErrors } = useFormikContext<ConnectorFormProps>();
@@ -59,17 +57,6 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
         [setErrors, setFieldValue, setTouched]
     );
 
-    const onCustomMcpAdd = useCallback(() => {
-        onConnectorSelected({
-            id: ConnectorType.McpServer,
-            name: '',
-            service: '',
-            description: '',
-            img: '',
-        });
-        goToNextStep();
-    }, [onConnectorSelected, goToNextStep]);
-
     return (
         <>
             <h2 className={mergeClasses(styles.title, styles.connectorPickerTitle)}>
@@ -77,9 +64,6 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
             </h2>
             <div className={styles.searchBarContainer}>
                 <SearchBoxWithDebounce setSearchTerm={setSearchTerm} className={styles.searchBox} size={'small'} />
-                <Button appearance="secondary" icon={<Add20Regular />} onClick={onCustomMcpAdd}>
-                    {intl.formatMessage(ConnectorsResources.addMcpServer)}
-                </Button>
             </div>
             <div className={styles.cardContainer}>
                 <div className={styles.cardGrid}>

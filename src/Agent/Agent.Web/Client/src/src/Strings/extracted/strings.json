@@ -602,6 +602,7 @@
   "DFfvL6": "Temporarily stop the agent from all activities.",
   "DIZgr3": "Boolean",
   "DJN+DZ": "Choose whether to run deep investigations alongside regular investigations",
+  "DJydCh": "Add a custom MCP server for the agent to reference.",
   "DK708b": "Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than {maxLength} characters.",
   "DMEE1o": "Select a tool to connect",
   "DMd1Ql": "Is part of",

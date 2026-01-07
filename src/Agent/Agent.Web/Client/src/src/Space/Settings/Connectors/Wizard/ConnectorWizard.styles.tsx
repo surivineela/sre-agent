@@ -3,9 +3,6 @@ import { makeStyles, tokens } from '@fluentui/react-components';
 export const useConnectorWizardStyles = makeStyles({
     searchBarContainer: {
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: tokens.spacingHorizontalMNudge,
     },
     searchBox: {
         maxWidth: '100%',

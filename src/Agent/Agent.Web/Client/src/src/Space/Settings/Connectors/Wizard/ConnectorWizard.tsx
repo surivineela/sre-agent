@@ -114,10 +114,6 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
         });
     }, [values.connectorType, userAssignedIdentityOptions, agentIdentity, refreshAgent, agentName, agentLocation]);
 
-    const goToNextStep = useCallback(() => {
-        setCurrentStep(currentStep + 1);
-    }, [currentStep, setCurrentStep]);
-
     return (
         <WizardDialog
             title={title}
@@ -131,9 +127,7 @@ export const ConnectorWizard: React.FC<ConnectorsWizardProps> = props => {
             onCancel={onCancel}
         >
             <div className={styles.wizardContentContainer}>
-                {currentStep === StepKey.ConnectorPicker && (
-                    <ConnectorPicker existingConnectors={existingConnectors} goToNextStep={goToNextStep} />
-                )}
+                {currentStep === StepKey.ConnectorPicker && <ConnectorPicker existingConnectors={existingConnectors} />}
                 {currentStep === StepKey.Setup && <SetupConnectorFormWrapper>{setupForm}</SetupConnectorFormWrapper>}
                 {currentStep === StepKey.ReviewAndAdd && <ReviewAndAdd userAssignedIdentities={userAssignedIdentityOptions} />}
             </div>

@@ -5679,6 +5679,7 @@ export const ConnectorsResources = defineMessages({
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
     requestTimeout: { defaultMessage: 'Request timeout', id: 'inXqB2' },
     failedToFetchStatus: { defaultMessage: 'Failed to fetch status', id: 'VeyLxc' },
+    mcpServerDescription: { defaultMessage: 'Add a custom MCP server for the agent to reference.', id: 'DJydCh' },
 });
 
 export const AgentPermissionsResources = defineMessages({

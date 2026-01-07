@@ -62,6 +62,13 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         description: intl.formatMessage(ConnectorsResources.sendNotificationDescription),
         img: resolveResourceIcon('Teams'),
     },
+    {
+        id: ConnectorType.McpServer,
+        name: intl.formatMessage(ConnectorsResources.mcpServer),
+        service: intl.formatMessage(ConnectorsResources.userProvidedConnector),
+        description: intl.formatMessage(ConnectorsResources.mcpServerDescription),
+        img: resolveResourceIcon('CustomConnector'),
+    },
 ];
 
 export const getConnectorName = (connectorType: ConnectorType, intl: any): string => {
