@@ -52,7 +52,6 @@ import {
     Text,
     tokens,
     Tooltip,
-    useAnnounce,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
 import { ChartMultiple24Regular, ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
@@ -1449,7 +1448,6 @@ const PromptLibraryButton = memo(
         const intl = useIntl();
         const { dialogSurface, dialogBody, dialogContent } = useDialogStyles();
         const { iconWrapper } = useFooterButtonIconStyles();
-        const { announce } = useAnnounce();
 
         const categories = useMemo<string[]>(
             () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
@@ -1639,12 +1637,6 @@ const PromptLibraryButton = memo(
             [sendMessage, logAmplitudeControlEvent, threadId, threadSource]
         );
 
-        useEffect(() => {
-            if (filteredCategories.length === 0) {
-                announce(intl.formatMessage(SreAgentResources.noMatches));
-            }
-        }, [filteredCategories, announce, intl]);
-
         return (
             <Dialog open={open} onOpenChange={(_, data) => setOpen(!!data.open)}>
                 <DialogTrigger disableButtonEnhancement>
@@ -1673,6 +1665,10 @@ const PromptLibraryButton = memo(
                                     setSearchTerm={setQuery}
                                     disabled={disableInputInteraction || isTyping}
                                     style={{ maxWidth: 470 }}
+                                    textToAnnounce={
+                                        filteredCategories.length === 0 ? intl.formatMessage(SreAgentResources.noMatches) : undefined
+                                    }
+                                    isDirectlyUnderDocumentBody={true}
                                 />
                                 {filteredCategories.length > 0 ? (
                                     <ChatSuggestions
