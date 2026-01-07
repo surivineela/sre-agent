@@ -2260,6 +2260,7 @@ export const SettingsTabResources = defineMessages({
     subAgents: { defaultMessage: 'Subagents', id: 'lQmkhq' },
     mcpServers: { defaultMessage: 'MCP servers', id: 'K9q4Xw' },
     permissions: { defaultMessage: 'Permissions', id: 'SFuk1v' },
+    crossTenantPermissions: { defaultMessage: 'Cross-tenant permissions', id: 'u3mqsz' },
     upgradeChannel: { defaultMessage: 'Early access to features', id: 'uBPOyN' },
     upgradeChannelDescription: { defaultMessage: 'Choose the channel for receiving agent updates', id: 'hfqoIO' },
     upgradeChannelStable: { defaultMessage: 'Current status: Stable - Receives updates once a month', id: 'rPdyc5' },

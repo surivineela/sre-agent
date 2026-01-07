@@ -127,7 +127,7 @@ const Permissions: FC = () => {
 
     return (
         <div className={styles.container}>
-            <Title2 className={styles.header}>{intl.formatMessage(SettingsTabResources.permissions)}</Title2>
+            <Title2 className={styles.header}>{intl.formatMessage(SettingsTabResources.crossTenantPermissions)}</Title2>
             <Text className={styles.headerDescription}>{intl.formatMessage(AgentPermissionsResources.permissionsDescription)}</Text>
 
             <div className={styles.toolbar}>

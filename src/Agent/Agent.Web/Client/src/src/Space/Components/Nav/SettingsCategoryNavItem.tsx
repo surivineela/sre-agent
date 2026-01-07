@@ -98,7 +98,7 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
                 value: SecondaryNavItemValues.Permissions,
                 isVisible: showPermissionsInSettings,
                 disabled: false,
-                label: intl.formatMessage(SettingsTabResources.permissions),
+                label: intl.formatMessage(SettingsTabResources.crossTenantPermissions),
             },
             {
                 value: SecondaryNavItemValues.SubAgents,
