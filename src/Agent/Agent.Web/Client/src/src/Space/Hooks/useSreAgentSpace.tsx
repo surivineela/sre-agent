@@ -21,7 +21,7 @@ export const useSreAgentSpace = () => {
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const proxy = useContext(AzPortalContext);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
-    const { agentLoaded } = useContext(SreAgentContext);
+    const { agentLoading } = useContext(SreAgentContext);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -152,8 +152,8 @@ export const useSreAgentSpace = () => {
         threadItemDivsRef,
         isUpdatingThreadFavoriteProperty,
     } = useThreadListWithFavoriteList(
-        isFavoriteThreadListHidden || !navBarState.isNavBarOpen || !agentLoaded,
-        isRegularThreadListHidden || !navBarState.isNavBarOpen || !agentLoaded,
+        isFavoriteThreadListHidden || !navBarState.isNavBarOpen || agentLoading,
+        isRegularThreadListHidden || !navBarState.isNavBarOpen || agentLoading,
         filter,
         'modifiedTimestamp'
     );
