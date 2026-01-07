@@ -367,6 +367,7 @@ const KustoToolTableToolbar = memo<KustoToolTableToolbarProps>(
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByTool)}
                             value={searchText}
                             onChange={(_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? '')}
+                            size={'small'}
                         />
                         <PillFilter
                             label={`${intl.formatMessage(ExtendedAgentsGraphResources.connector)}`}

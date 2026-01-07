@@ -192,6 +192,7 @@ export const ExtendedAgentSelector = memo(
                                 align: 'start',
                             }}
                             listbox={{ style: { borderRadius: '16px' } }}
+                            size={'small'}
                         >
                             {isLoading ? (
                                 <Spinner size="small" />

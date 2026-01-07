@@ -57,7 +57,6 @@ export const PythonToolForm: FC<PythonToolFormProps2> = ({ isGenerating }) => {
                 />
                 <Field
                     label={intl.formatMessage(SreAgentResources.pythonToolBuilderTimeoutLabel)}
-                    className={styles.timeoutField}
                     validationState={touched.timeoutSeconds && errors.timeoutSeconds ? 'error' : undefined}
                     validationMessage={touched.timeoutSeconds ? errors.timeoutSeconds : undefined}
                 >

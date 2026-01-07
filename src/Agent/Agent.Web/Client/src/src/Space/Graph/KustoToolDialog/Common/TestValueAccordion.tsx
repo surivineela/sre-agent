@@ -43,7 +43,7 @@ export const TestValueAccordion: FC = () => {
                     {values.parameters.map((parameter, index) => (
                         <div key={index} className={styles.testParameterInputs}>
                             {/* TODO: Double check with designs */}
-                            <InputNoFormik value={parameter.name || 'Parameter name will show here'} disabled />
+                            <InputNoFormik value={parameter.name || 'Parameter name will show here'} disabled size={'small'} />
                             <ParameterValueInput parameter={parameter} index={index} />
                             {parameter.required ? (
                                 <Checkmark16Regular style={{ marginTop: '6px', marginLeft: tokens.spacingHorizontalS }} />
@@ -79,5 +79,5 @@ const ParameterValueInput = ({ parameter, index }: ParameterValueInputProps) => 
         }
     }, [intl, parameter.type]);
 
-    return <InputFormik name={`parameters.${index}.value`} placeholder={placeholder} orientation="vertical" />;
+    return <InputFormik name={`parameters.${index}.value`} placeholder={placeholder} orientation="vertical" size={'small'} />;
 };

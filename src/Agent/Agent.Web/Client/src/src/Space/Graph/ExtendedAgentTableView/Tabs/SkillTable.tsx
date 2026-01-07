@@ -226,6 +226,7 @@ const SkillTableToolbar: FC<SkillTableToolbarProps> = memo(({ searchText, setSea
                         value={searchText || ''}
                         onChange={(_, data) => setSearchText(data.value)}
                         placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchSkillsPlaceholder)}
+                        size={'small'}
                     />
                 </Toolbar>
                 <EntityDeleteConfirmDialog

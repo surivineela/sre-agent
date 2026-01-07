@@ -23,18 +23,11 @@ export const useListViewStyles = makeStyles({
         justifyContent: 'space-between',
         gap: '20px',
     },
-    cardTitleSection: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
     cardTitle: {
-        fontSize: tokens.fontSizeBase300,
-        fontWeight: tokens.fontWeightSemibold,
+        width: '170px',
     },
     cardCount: {
-        fontSize: tokens.fontSizeBase500,
-        fontWeight: tokens.fontWeightSemibold,
+        display: 'flex',
     },
     entityTable: {
         paddingTop: '4px',
@@ -88,9 +81,10 @@ export const useListViewStyles = makeStyles({
             backgroundColor: tokens.colorPaletteRedBackground1,
         },
     },
-    card: {
-        minWidth: '220px',
-        padding: '14px',
+    cardContent: {
+        width: '50px',
+        display: 'flex',
+        justifyContent: 'flex-end',
     },
     tableCellContent: {
         display: 'flex',

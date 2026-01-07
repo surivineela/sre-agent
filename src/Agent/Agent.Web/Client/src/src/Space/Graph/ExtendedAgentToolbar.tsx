@@ -1,10 +1,11 @@
-import { Button, mergeClasses, Radio, RadioGroup, tokens, Tooltip } from '@fluentui/react-components';
+import { Button, mergeClasses, RadioGroup, tokens, Tooltip } from '@fluentui/react-components';
 import { ArrowClockwise20Regular, ArrowDown20Regular, DividerTall20Regular } from '@fluentui/react-icons';
 import { FC, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { CopilotRadio as Radio } from '../Components/Common/CopilotRadio';
 import { ExtendedAgentGraphView } from '../Contracts/ExtendedAgentGraph';
 import { useCommonStyles } from '../Styles/Common.styles';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';

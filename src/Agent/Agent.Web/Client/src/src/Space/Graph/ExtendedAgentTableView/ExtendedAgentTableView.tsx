@@ -1,3 +1,4 @@
+import { EntityCardList } from '@fluentui-copilot/react-copilot';
 import { Tab, TabList, mergeClasses } from '@fluentui/react-components';
 import React, { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -387,13 +388,13 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         linkUrl={SreAgentFwLinks.learnMoreAboutSubagents}
                     />
                 </div>
-                <div className={styles.cardsContainer}>
+                <EntityCardList className={styles.cardsContainer}>
                     <EntityCard type="agents" entityCount={agents.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="incidentTriggers" entityCount={allIncidentTriggers.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="scheduledTasks" entityCount={allScheduledTasks.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="kustoTools" entityCount={allKustoTools.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="skills" entityCount={skills.length} handleCardClick={handleTabSelect} />
-                </div>
+                </EntityCardList>
 
                 <TabList
                     selectedValue={activeTab}

@@ -1,4 +1,4 @@
-import { Card, Text, mergeClasses } from '@fluentui/react-components';
+import { EntityCard as CopilotEntityCard, EntityTitle, Subtitle1 } from '@fluentui-copilot/react-copilot';
 import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SettingsTabResources } from '../../../../Strings/SREAgentResources';
@@ -51,14 +51,20 @@ export const EntityCard: FC<EntityCardProps> = ({ type, entityCount, handleCardC
     }, [type]);
 
     return (
-        <Card className={mergeClasses(styles.card, styles.clickableCard)} onClick={() => handleCardClick(type)}>
-            <div className={styles.cardHeader}>
-                <div className={styles.cardTitleSection}>
-                    <EntityIcon type={iconType} shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />
-                    <Text className={styles.cardTitle}>{title}</Text>
-                </div>
-                <Text className={styles.cardCount}>{entityCount}</Text>
-            </div>
-        </Card>
+        <CopilotEntityCard
+            orientation={'horizontal'}
+            className={styles.clickableCard}
+            onClick={() => handleCardClick(type)}
+            entityTitle={
+                <EntityTitle
+                    media={<EntityIcon type={iconType} shorthandStyle={{ wrapperSize: 36, iconSize: 22, borderRadius: 6 }} />}
+                    primaryText={title}
+                    className={styles.cardTitle}
+                />
+            }
+            content={{ className: styles.cardContent }}
+        >
+            <Subtitle1>{entityCount.toString()}</Subtitle1>
+        </CopilotEntityCard>
     );
 };

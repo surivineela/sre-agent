@@ -349,6 +349,7 @@ const IncidentTriggerTableToolbar = memo<IncidentTriggerTableToolbarProps>(
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByIncidentTrigger)}
                             value={searchText}
                             onChange={(_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? '')}
+                            size={'small'}
                         />
                         <PillFilter
                             label={`${intl.formatMessage(ExtendedAgentsGraphResources.statusLabel)}`}

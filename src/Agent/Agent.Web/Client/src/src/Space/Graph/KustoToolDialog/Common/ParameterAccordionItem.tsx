@@ -126,6 +126,7 @@ export const ParameterAccordionItem: FC<ParameterAccordionItemProps> = ({ parame
                         placeholder={intl.formatMessage(ExtendedAgentsGraphResources.parameterNamePlaceholder)}
                         orientation="vertical"
                         required
+                        size={'small'}
                     />
                     <DropdownNoFormik
                         label={intl.formatMessage(ExtendedAgentsGraphResources.inputType)}
@@ -136,6 +137,7 @@ export const ParameterAccordionItem: FC<ParameterAccordionItemProps> = ({ parame
                         selectedOptions={parameterType ? [parameterType] : []}
                         orientation="vertical"
                         required
+                        size={'small'}
                     />
                 </div>
                 <AgentPromptTextarea

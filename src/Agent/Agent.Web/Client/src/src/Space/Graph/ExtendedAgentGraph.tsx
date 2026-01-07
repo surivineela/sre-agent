@@ -1,5 +1,15 @@
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
-import { Button, mergeClasses, MessageBar, MessageBarActions, MessageBarBody, Spinner } from '@fluentui/react-components';
+import {
+    Button,
+    mergeClasses,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Spinner,
+    webDarkTheme,
+    webLightTheme,
+} from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -147,17 +157,8 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
-    const {
-        visualRoot,
-        reactFlow,
-        spinner,
-        rootContainer,
-        container,
-        selectorOverlay,
-        infoPanelContainer,
-        infoPanelFloating,
-        statusMessageContainer,
-    } = useExtendedAgentGraphStyles();
+    const { visualRoot, reactFlow, spinner, container, selectorOverlay, infoPanelContainer, infoPanelFloating, statusMessageContainer } =
+        useExtendedAgentGraphStyles();
 
     const commonStyles = useCommonStyles();
 
@@ -1874,7 +1875,17 @@ const ExtendedAgentGraphContent = memo(() => {
                     setIsOperationInProgress,
                 }}
             >
-                <div className={rootContainer}>
+                <CopilotProvider
+                    {...CopilotTheme}
+                    mode={'canvas'}
+                    theme={theme.isInverted ? webDarkTheme : webLightTheme}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                        height: '100%',
+                    }}
+                >
                     <ExtendedAgentToolbar
                         currentView={currentView}
                         onViewChange={onChangeViewType}
@@ -2156,7 +2167,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         existingTools={tools}
                         systemTools={systemTools}
                     />
-                </div>
+                </CopilotProvider>
             </ScheduledTasksContext.Provider>
         </ExtendedAgentGraphContext.Provider>
     );

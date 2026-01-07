@@ -78,9 +78,6 @@ export const usePythonToolDialogStyles = makeStyles({
     nameField: {
         flex: 1,
     },
-    timeoutField: {
-        width: '120px',
-    },
     descriptionField: {
         display: 'flex',
         flexDirection: 'column',

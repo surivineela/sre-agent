@@ -471,6 +471,7 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
                         placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchBySubagent)}
                         value={searchText}
                         onChange={(_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? '')}
+                        size={'small'}
                     />
                 </Toolbar>
                 <EntityDeleteConfirmDialog

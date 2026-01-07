@@ -3,7 +3,6 @@ import {
     Checkbox,
     makeStyles,
     mergeClasses,
-    Radio,
     RadioGroup,
     SearchBox,
     useTableCell_unstable,
@@ -19,6 +18,7 @@ import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
 import { createRef, FC, useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { CopilotRadio } from '../../../Components/Common/CopilotRadio';
 
 export interface ToolPickerOption {
     name: string;
@@ -81,8 +81,8 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
         <>
             <div className={styles.toolBar}>
                 <RadioGroup value={toolType} layout="horizontal" onChange={(_, data) => onToolTypeChange(data.value as 'mcp' | 'all')}>
-                    <Radio value="all" label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} />
-                    <Radio value="mcp" label={intl.formatMessage(ExtendedAgentsGraphResources.mcpTools)} />
+                    <CopilotRadio value="all" label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} />
+                    <CopilotRadio value="mcp" label={intl.formatMessage(ExtendedAgentsGraphResources.mcpTools)} />
                 </RadioGroup>
                 <SearchBox
                     className={styles.searchBox}
@@ -90,6 +90,7 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
                     value={searchQuery}
                     onChange={(_, data) => setSearchQuery(data.value)}
                     disabled={disabled}
+                    size={'small'}
                 />
             </div>
             <TreeGrid aria-label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} className={styles.treeGrid}>
