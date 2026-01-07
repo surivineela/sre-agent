@@ -5,10 +5,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using Agent.Common.ApiModels.Session;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Session;
 using Agent.Core.Services;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Hosting;

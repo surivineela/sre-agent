@@ -1,6 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
-using Agent.Core.Models.Session;
+using Agent.Common.ApiModels.Session;
 
 namespace Session.Proxy.Services.McpProtocol;
 

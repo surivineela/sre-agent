@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Agent.Common.ApiModels;
 using Microsoft.AspNetCore.Mvc;
-using Session.Identity.Attributes;
 using Session.Proxy.Services;
 
 namespace Session.Proxy.Controllers;
@@ -12,7 +11,6 @@ namespace Session.Proxy.Controllers;
 [Produces("application/json")]
 [ApiController]
 [Route("/bootstrap")]
-[SessionMode(SessionMode.Proxy)]
 public class BootstrapController : Controller
 {
     private readonly ILogger<BootstrapController> _logger;

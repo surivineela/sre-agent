@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Common.ApiModels.Session;
 using Agent.Core.Models;
-using Agent.Core.Models.Session;
 
 namespace Agent.Core.Interfaces;
 

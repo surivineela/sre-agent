@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using Agent.Common.Services;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
 

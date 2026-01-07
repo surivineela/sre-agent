@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Core.Services;
+namespace Agent.Common.Services;
 
 public class ExternalProcessCommand
 {
@@ -98,7 +98,8 @@ public class ExternalProcessCommand
             }
             catch { }
 
-            _logger.LogInternalError($"Process '{_exe} {string.Join(" ", _arguments)}' timed out after {_timeout.TotalSeconds} seconds. Stdout: {outputBuilder}, Stderr: {errorBuilder}");
+            _logger.LogError("Process '{Exe} {Arguments}' timed out after {TimeoutSeconds} seconds. Stdout: {Stdout}, Stderr: {Stderr}",
+                _exe, string.Join(" ", _arguments), _timeout.TotalSeconds, outputBuilder, errorBuilder);
 
             throw new TimeoutException($"{ProcessFailureMessage} timeout after {_timeout.TotalSeconds} seconds.");
         }
@@ -107,7 +108,8 @@ public class ExternalProcessCommand
         if (process.ExitCode != 0)
         {
             var errorMessage = errorBuilder.ToString();
-            _logger.LogInternalError($"Process '{_exe} {string.Join(" ", _arguments)}' failed with exit code {process.ExitCode}: {errorMessage}");
+            _logger.LogError("Process '{Exe} {Arguments}' failed with exit code {ExitCode}: {ErrorMessage}",
+                _exe, string.Join(" ", _arguments), process.ExitCode, errorMessage);
 
             // Thread evaluator uses ProcessFailureMessage to detect failure
             var stderr = $"{ProcessFailureMessage} exit code {process.ExitCode}: {errorMessage}";

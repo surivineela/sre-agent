@@ -1,9 +1,8 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Agent.Core.Models.Session;
+using Agent.Common.ApiModels.Session;
 using Microsoft.AspNetCore.Mvc;
-using Session.Identity.Attributes;
 using Session.Proxy.Services;
 
 namespace Session.Proxy.Controllers;
@@ -13,7 +12,6 @@ namespace Session.Proxy.Controllers;
 /// </summary>
 [ApiController]
 [Route("/mcp")]
-[SessionMode(SessionMode.Proxy)]
 public class McpProxyController : ControllerBase
 {
     private readonly McpProxyService _proxyService;

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Agent.Common.ApiModels;
+using Microsoft.Extensions.Options;
 using Session.Proxy.Configuration;
 
 namespace Session.Proxy.Services;
@@ -17,11 +18,11 @@ public class IdentityProviderClient
     public IdentityProviderClient(
         ILogger<IdentityProviderClient> logger,
         IHttpClientFactory httpClientFactory,
-        IdentityProviderSettings settings)
+        IOptions<IdentityProviderSettings> settings)
     {
         _logger = logger;
         _httpClient = httpClientFactory.CreateClient("IdentityProvider");
-        _settings = settings;
+        _settings = settings.Value;
     }
 
     /// <summary>

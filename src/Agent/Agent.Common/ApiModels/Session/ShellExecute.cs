@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Agent.Core.Models.Session;
+namespace Agent.Common.ApiModels.Session;
 
 public class ShellExecuteRequest : SessionRequest
 {
@@ -12,6 +12,7 @@ public class ShellExecuteRequest : SessionRequest
 
 public class AzCliExecutionRequest : ShellExecuteRequest
 {
+    // To be removed after 25.12.64.0 is deployed
     public required Dictionary<string, string> AccessTokens { get; set; }
 }
 

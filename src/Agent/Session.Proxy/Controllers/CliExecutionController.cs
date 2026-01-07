@@ -1,13 +1,11 @@
 using System.Threading.Tasks;
-using Agent.Core.Models.Session;
+using Agent.Common.ApiModels.Session;
 using Microsoft.AspNetCore.Mvc;
-using Session.Identity.Attributes;
 using Session.Proxy.Services;
 
 [Produces("application/json")]
 [ApiController]
 [Route("/shellexecute")]
-[SessionMode(SessionMode.Proxy)]
 public class CliExecutionController : Controller
 {
     private readonly IShellService _shellService;

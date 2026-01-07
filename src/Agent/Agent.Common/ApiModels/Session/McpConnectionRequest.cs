@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Agent.Core.Models.Session;
+namespace Agent.Common.ApiModels.Session;
 
 /// <summary>
 /// Request model for MCP proxy WebSocket connection initialization.

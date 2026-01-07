@@ -14,7 +14,6 @@ namespace Session.Identity.Controllers;
 [ApiController]
 [Route("/bootstrap")]
 [LocalhostOnly]
-[SessionMode(SessionMode.IdentityProvider)]
 public class BootstrapController : Controller
 {
     private readonly ILogger<BootstrapController> _logger;

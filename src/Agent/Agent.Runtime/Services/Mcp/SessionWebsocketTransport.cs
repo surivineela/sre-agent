@@ -6,7 +6,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using Agent.Core.Models.Session;
+using Agent.Common.ApiModels.Session;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 

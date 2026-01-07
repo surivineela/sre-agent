@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Agent.Core.Models.Session;
-using Agent.Core.Services;
+using Agent.Common.ApiModels.Session;
+using Agent.Common.Services;
 
 namespace Session.Proxy.Services;
 
@@ -30,15 +30,8 @@ public class ShellService : IShellService
         }
 
         // add static tokens
+        // To be removed after 25.12.64.0 is deployed
         await _identityProviderClient.AddTokensAsync(request.AccessTokens);
-
-        var configDir = Path.Join(Path.GetTempPath(), $"azcli-{Path.GetRandomFileName()}");
-        var commonEnvs = new Dictionary<string, string>()
-        {
-            { "IDENTITY_ENDPOINT", _msiEndpoint }, // redirect token requests
-            { "IDENTITY_HEADER", identifier }, // can be any value
-            { "AZURE_CONFIG_DIR", configDir },
-        };
 
         try
         {
@@ -51,7 +44,7 @@ public class ShellService : IShellService
                 command += $" && az account set --subscription {subscriptionId}";
             }
 
-            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", ["-c", command], timeout: TimeSpan.FromSeconds(10), envs: commonEnvs);
+            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", ["-c", command], timeout: TimeSpan.FromSeconds(10));
             var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
             if (exitCode != 0)
             {
@@ -107,7 +100,7 @@ public class ShellService : IShellService
         try
         {
             _logger.LogInformation("Starting to execute shell script.");
-            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", [scriptPath], request.Stdin, TimeSpan.FromSeconds(request.TimeoutInSeconds), commonEnvs);
+            var pCmd = new ExternalProcessCommand(_logger, "/bin/bash", [scriptPath], request.Stdin, TimeSpan.FromSeconds(request.TimeoutInSeconds));
             var (exitCode, stdout, stderr) = await pCmd.ExecuteAsync(cancellationToken);
 
             _logger.LogInformation("Executed shell script.");

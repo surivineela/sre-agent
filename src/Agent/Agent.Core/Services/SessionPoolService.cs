@@ -8,10 +8,10 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Common.ApiModels;
+using Agent.Common.ApiModels.Session;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Session;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;

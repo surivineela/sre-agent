@@ -9,7 +9,6 @@ namespace Session.Identity.Controllers;
 [ApiController]
 [Route("/msi/token")]
 [LocalhostOnly]
-[SessionMode(SessionMode.IdentityProvider)]
 public class MsiController : Controller
 {
     private readonly ILogger<MsiController> _logger;

@@ -1,4 +1,4 @@
-namespace Agent.Core.Models.Session;
+namespace Agent.Common.ApiModels.Session;
 
 /// <summary>
 /// Constants for the MCP Proxy Protocol.
