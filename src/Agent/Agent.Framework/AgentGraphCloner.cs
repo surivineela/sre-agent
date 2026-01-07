@@ -21,7 +21,7 @@ internal static class AgentGraphCloner
         bool enableHandoffReasoning = false)
         where TContext : class
     {
-        var clones = new Dictionary<string, Agent<TContext>>(System.StringComparer.Ordinal);
+        var clones = new Dictionary<string, Agent<TContext>>(System.StringComparer.OrdinalIgnoreCase);
 
         // Step 1: Create shallow clones (without handoffs)
         foreach (var agent in baseAgents)
