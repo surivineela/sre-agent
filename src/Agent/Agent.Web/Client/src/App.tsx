@@ -14,6 +14,7 @@ import { ReactQueryClientProvider } from './src/Common/Providers/ReactQueryClien
 import { StreamingProvider } from './src/Common/Providers/StreamingProvider';
 import { UserActivityReporter } from './src/Common/Utils/UserActivityReporter';
 import { useAmplitudeSessionReplay } from './src/Space/Hooks/useAmplitudeSessionReplay';
+import { useMonacoLoaderConfig } from './src/Space/Hooks/useMonacoLoaderConfig';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
 
@@ -23,6 +24,7 @@ const App: React.FC = () => {
     const [environmentInfo, setEnvironmentInfo] = useState({ sreAgentEndpoint: defaultSreAgentEndpoint } as IEnvironmentInfo);
 
     useAmplitudeSessionReplay();
+    useMonacoLoaderConfig();
 
     useEffect(() => {
         portalProxy.initialize(setEnvironmentInfo);
