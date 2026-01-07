@@ -103,7 +103,7 @@ const ThreadActionsMenu = ({
     const { infoContent, threadIdHighlight, section, sectionTitle } = useStyles();
     const { dialogSurface } = useDialogStyles();
     const intl = useIntl();
-    const { resourceId, isCrossTenantPortalMode, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
     const threadDeepLink = useThreadDeepLink(thread.id, resourceId, sreAgentEndpoint);
 
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -254,7 +254,7 @@ const ThreadActionsMenu = ({
                         <MenuItem icon={<InfoRegular />} onClick={() => setIsInfoDialogOpen(true)}>
                             {intl.formatMessage(SreAgentResources.info)}
                         </MenuItem>
-                        {!isCrossTenantPortalMode && !hideCopyDeeplink && (
+                        {!hideCopyDeeplink && (
                             <MenuItem icon={<CopyRegular />} onClick={() => copyToClipboard(threadDeepLink)}>
                                 {intl.formatMessage(SreAgentResources.copyLinkToThread)}
                             </MenuItem>
