@@ -337,7 +337,8 @@ export const ExtendedAgentInfoPanel = memo(
                                 </Text>
                                 <div className={styles.flexRowCenter}>
                                     {(() => {
-                                        const connectorEnabled = connector?.enabled !== false;
+                                        const connectorEnabled =
+                                            tool.type === 'mcp' ? connector && connector.enabled !== false : connector?.enabled !== false;
                                         return connectorEnabled ? (
                                             <>
                                                 <CheckmarkCircle20Regular className={styles.successIcon} />

@@ -29,6 +29,8 @@ export const EXTENDED_AGENT_EDGE_TYPE = 'ExtendedAgentEdge';
 
 export const SKILL_GROUP_NODE_ID = 'skill_group';
 
+const EMPTY_DISPLAY = '-' as const;
+
 export const createAgentNode = (agent: ExtendedAgent): Node<ExtendedAgentGraphNode> => {
     return {
         id: `agent_${agent.name}`,
@@ -292,14 +294,18 @@ export const buildExtendedAgentGraph = (
         // Process MCP tools
         agent.mcpTools?.forEach(mcpToolName => {
             const mcpTool = mcpToolMap.get(mcpToolName);
-            if (mcpTool) {
-                const connector = mcpTool.connector ? connectorMap.get(mcpTool.connector) : undefined;
-                toolboxItems.push({
-                    tool: mcpTool,
-                    connector,
-                    isSystemTool: false,
-                });
-            }
+
+            // Always create a tool node even if connector is missing
+            const connector = mcpTool?.connector ? connectorMap.get(mcpTool.connector) : undefined;
+            toolboxItems.push({
+                tool: mcpTool ?? {
+                    name: mcpToolName,
+                    type: 'mcp',
+                    connector: mcpToolName.includes('_') ? mcpToolName.split('_')[0] : EMPTY_DISPLAY, // Assuming connector name is the prefix before first underscore
+                },
+                connector,
+                isSystemTool: false,
+            });
         });
 
         // If explicit systemTools is not populated, fall back to detecting any tools that match a system tool
