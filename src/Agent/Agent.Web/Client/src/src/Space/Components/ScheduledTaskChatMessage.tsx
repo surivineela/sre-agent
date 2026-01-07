@@ -42,7 +42,7 @@ const ScheduledTaskChatMessage: React.FC<ScheduledTaskExecutionCardProps> = ({
         appearance: 'outline',
         color: 'important',
         size: 'large',
-        style: { height: 'fit-content', padding: `0px ${tokens.spacingHorizontalM}` },
+        style: { height: 'fit-content', padding: `${tokens.spacingHorizontalXS} ${tokens.spacingHorizontalM}` },
     };
 
     return (
