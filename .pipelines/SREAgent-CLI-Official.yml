@@ -7,24 +7,41 @@
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
 
-name: $(MAJOR).$(MINOR).$(BUILD)
+name: $(MAJOR).$(MINOR).$(BUILD)$(VersionSuffix)
 
 trigger: none  # https://aka.ms/obpipelines/triggers
 
 # Global parameters for build configuration
 parameters:
+- name: 'isPreview'
+  displayName: 'Build as Preview Version'
+  type: boolean
+  default: false
 - name: 'publishPackages'
-  displayName: 'Publish SRECTL packages (NuGet + Universal Package) to Azure Artifacts'
+  displayName: 'Publish SRECTL NuGet + Universal Package to Azure Artifacts'
   type: boolean
   default: false
 
 variables:
-- name: MAJOR
-  value: 1
-- name: MINOR
-  value: 0
-- name: BUILD
-  value: $[counter('1.0', 1)]
+# Set version numbers based on isPreview parameter
+- ${{ if eq(parameters.isPreview, true) }}:
+  - name: MAJOR
+    value: 0
+  - name: MINOR
+    value: 0
+  - name: BUILD
+    value: $[counter('0.0-preview', 1)]
+  - name: VersionSuffix
+    value: '-preview'
+- ${{ else }}:
+  - name: MAJOR
+    value: 1
+  - name: MINOR
+    value: 0
+  - name: BUILD
+    value: $[counter('1.0', 1)]
+  - name: VersionSuffix
+    value: ''
 
 resources:
   repositories:
@@ -139,6 +156,8 @@ extends:
             script: |
               Write-Host "Build Information:"
               Write-Host "  Build Number: $(Build.BuildNumber)"
+              Write-Host "  Package Version: $(PackageVersion)"
+              Write-Host "  Is Preview: ${{ parameters.isPreview }}"
               Write-Host "  Source Branch: $(Build.SourceBranch)"
               Write-Host "  Commit: $(Build.SourceVersion)"
               Write-Host "  Publish Packages: ${{ parameters.publishPackages }}"
@@ -162,7 +181,7 @@ extends:
           inputs:
             command: 'build'
             projects: '$(CliProjectPath)'
-            arguments: '--no-restore --configuration $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            arguments: '--no-restore --configuration $(BuildConfiguration) -p:Version=$(PackageVersion)'
             includeNuGetOrg: false
 
         # Run unit tests
@@ -192,7 +211,8 @@ extends:
             configuration: '$(BuildConfiguration)'
             outputDir: '$(NuGetPackageFolder)'
             nobuild: true
-            versioningScheme: 'byBuildNumber'
+            versioningScheme: 'byEnvVar'
+            versionEnvVar: 'PackageVersion'
             includeNuGetOrg: false
 
         # Build Universal Package (Self-contained executables) - Always build
@@ -203,7 +223,7 @@ extends:
             command: 'publish'
             publishWebProjects: false
             projects: '$(CliProjectPath)'
-            arguments: '--configuration $(BuildConfiguration) --runtime win-x64 --self-contained true --output $(PublishFolder)\win-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            arguments: '--configuration $(BuildConfiguration) --runtime win-x64 --self-contained true --output $(PublishFolder)\win-x64 -p:PackAsTool=false -p:Version=$(PackageVersion) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
             zipAfterPublish: false
             includeNuGetOrg: false
         
@@ -214,7 +234,7 @@ extends:
             command: 'publish'
             publishWebProjects: false
             projects: '$(CliProjectPath)'
-            arguments: '--configuration $(BuildConfiguration) --runtime linux-x64 --self-contained true --output $(PublishFolder)\linux-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            arguments: '--configuration $(BuildConfiguration) --runtime linux-x64 --self-contained true --output $(PublishFolder)\linux-x64 -p:PackAsTool=false -p:Version=$(PackageVersion) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
             zipAfterPublish: false
             includeNuGetOrg: false
         
@@ -225,7 +245,7 @@ extends:
             command: 'publish'
             publishWebProjects: false
             projects: '$(CliProjectPath)'
-            arguments: '--configuration $(BuildConfiguration) --runtime osx-x64 --self-contained true --output $(PublishFolder)\osx-x64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            arguments: '--configuration $(BuildConfiguration) --runtime osx-x64 --self-contained true --output $(PublishFolder)\osx-x64 -p:PackAsTool=false -p:Version=$(PackageVersion) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
             zipAfterPublish: false
             includeNuGetOrg: false
         
@@ -236,7 +256,7 @@ extends:
             command: 'publish'
             publishWebProjects: false
             projects: '$(CliProjectPath)'
-            arguments: '--configuration $(BuildConfiguration) --runtime osx-arm64 --self-contained true --output $(PublishFolder)\osx-arm64 -p:PackAsTool=false -p:Version=$(Build.BuildNumber) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
+            arguments: '--configuration $(BuildConfiguration) --runtime osx-arm64 --self-contained true --output $(PublishFolder)\osx-arm64 -p:PackAsTool=false -p:Version=$(PackageVersion) -p:BuildForUniversalPackage=true -p:UniversalPackageDir=$(UniversalPackageFolder)'
             zipAfterPublish: false
             includeNuGetOrg: false
         
@@ -269,5 +289,5 @@ extends:
               vstsFeedPublish: '$(UniversalPackageFeedName)'
               vstsFeedPackagePublish: '$(UniversalPackageName)'
               versionOption: 'custom'
-              versionPublish: '$(Build.BuildNumber)'
-              packagePublishDescription: 'SRECTL executable binaries for multiple platforms (v$(Build.BuildNumber))'
+              versionPublish: '$(PackageVersion)'
+              packagePublishDescription: 'SRECTL executable binaries for multiple platforms (v$(PackageVersion))'
