@@ -10,6 +10,14 @@ name: $(MAJOR).$(MINOR).$(BUILD).$(REVISION)
 
 trigger: none  # https://aka.ms/obpipelines/triggers
 
+schedules:
+- cron: "0 */4 * * *"
+  displayName: 'Build every 4 hours'
+  branches:
+    include:
+    - main
+  always: false  # Only run if there are code changes since last successful scheduled run
+
 # global parameters are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
 # learn more at https://aka.ms/obpipelines/parameters
 parameters:
