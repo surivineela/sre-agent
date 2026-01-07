@@ -657,6 +657,7 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
                         value={searchText}
                         onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                         disabled={disableAllControls}
+                        size={'small'}
                     />
                     <PillFilterSet staticFilters={staticFilters} disabled={disableAllControls} />
                 </div>

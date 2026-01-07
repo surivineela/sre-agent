@@ -1,6 +1,5 @@
 import {
     Button,
-    Checkbox,
     Dropdown,
     Field,
     InfoLabel,
@@ -10,7 +9,6 @@ import {
     MessageBarBody,
     MessageBarTitle,
     Option,
-    Radio,
     RadioGroup,
     Text,
     tokens,
@@ -21,6 +19,8 @@ import { useIntl } from 'react-intl';
 import { LearnMoreLinks } from '../../../../Common/Constants/Links';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskResources, IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
+import { CopilotCheckbox as Checkbox } from '../../../Components/Common/CopilotCheckbox';
+import { CopilotRadio as Radio } from '../../../Components/Common/CopilotRadio';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';

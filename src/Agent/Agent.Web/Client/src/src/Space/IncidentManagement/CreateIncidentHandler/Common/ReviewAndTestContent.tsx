@@ -216,6 +216,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                                     position: 'below',
                                     align: 'start',
                                 }}
+                                size={'small'}
                             >
                                 {loadingIncidents ? (
                                     <Spinner size="small" />

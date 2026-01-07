@@ -283,6 +283,7 @@ export const ResponsePlanIncidentsGrid = ({ incidents, disabled, isLoading, onOp
                     value={searchText}
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
                     disabled={disabled}
+                    size={'small'}
                 />
                 <PillFilter
                     filterType="combobox"

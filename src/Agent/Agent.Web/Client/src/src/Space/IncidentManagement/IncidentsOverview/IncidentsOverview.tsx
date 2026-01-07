@@ -331,8 +331,8 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             selectedThreadsList.length === 1
                 ? intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncident, { title: selectedThreadsList[0].title })
                 : intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncidents, {
-                      titles: selectedThreadsList.map((t: Thread) => t.title).join(', '),
-                  });
+                    titles: selectedThreadsList.map((t: Thread) => t.title).join(', '),
+                });
 
         const id = proxy.startNotification(
             intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentTitle, {
@@ -420,9 +420,9 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         const priorities = getPriorities(incidentPlatformType);
         return priorities
             ? priorities.map(priority => ({
-                  key: priority.key,
-                  label: intl.formatMessage(priority.intlString),
-              }))
+                key: priority.key,
+                label: intl.formatMessage(priority.intlString),
+            }))
             : [];
     }, [incidentPlatformType, intl]);
     // End: Priority
@@ -862,7 +862,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             {handlerCreateOrEditInfo ? (
                 <CreateIncidentHandlerConsolidated
                     exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
-                    setHandlerOperationStatus={() => {}}
+                    setHandlerOperationStatus={() => { }}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
             ) : selectedThreadInfo?.fullScreen ? (
@@ -936,6 +936,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                             setSearchText(data.value ?? '')
                                         )}
                                         disabled={!!selectedThreadInfo}
+                                        size={'small'}
                                     />
                                     <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
                                     {incidentPlatformType === IncidentManagementType.Icm && (
