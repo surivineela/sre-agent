@@ -1,9 +1,9 @@
-import { CopilotMessageV2 } from '@fluentui-copilot/react-copilot';
+import { CopilotMessage } from '@fluentui-copilot/react-copilot';
 import { ShimmeredDetailsList } from '@fluentui/react';
-import { Button, Card, Image, Link, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Button, Card, CardHeader, Image, Link, mergeClasses, Subtitle1, Text, tokens } from '@fluentui/react-components';
 import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } from '@fluentui/react/lib/DetailsList';
 import axios from 'axios';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -186,11 +186,7 @@ const ResourceGroupsCard = () => {
 
     return (
         <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
-            <div className={styles.sectionHeader}>
-                <Text weight="semibold" size={500}>
-                    {intl.formatMessage(SreAgentResources.resourceGroups)}
-                </Text>
-            </div>
+            <SectionHeader title={intl.formatMessage(SreAgentResources.resourceGroups)} />
 
             <div className={styles.sectionContent}>
                 <div>
@@ -218,7 +214,7 @@ const FakeAgentMessage = ({ content }: FakeAgentMessageProps) => {
     const intl = useIntl();
 
     return (
-        <CopilotMessageV2
+        <CopilotMessage
             avatar={<Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />}
             name={intl.formatMessage(SreAgentResources.sreAgent)}
             mode="canvas"
@@ -227,7 +223,7 @@ const FakeAgentMessage = ({ content }: FakeAgentMessageProps) => {
             className={mergeClasses(ChatBoxStyles.agentMessage)}
         >
             {content}
-        </CopilotMessageV2>
+        </CopilotMessage>
     );
 };
 
@@ -469,11 +465,7 @@ const AzureSREWelcome = ({ threadId, selectThread }: AzureSREWelcomeProps) => {
                     {!AzPortalProxy.inStandaloneMode && !isCrossTenantPortalMode && <ResourceGroupsCard />}
 
                     <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
-                        <div className={styles.sectionHeader}>
-                            <Text weight="semibold" size={500}>
-                                {intl.formatMessage(WelcomeResources.resourceAnalysis)}
-                            </Text>
-                        </div>
+                        <SectionHeader title={intl.formatMessage(WelcomeResources.resourceAnalysis)} />
 
                         <div className={styles.sectionContent}>
                             <div className={styles.statsGrid}>
@@ -522,11 +514,7 @@ const AzureSREWelcome = ({ threadId, selectThread }: AzureSREWelcomeProps) => {
                     </Card>
 
                     <Card className={styles.sectionCard} style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
-                        <div className={styles.sectionHeader}>
-                            <Text weight="semibold" size={500}>
-                                {intl.formatMessage(WelcomeResources.suggestedPromptsForYourResources)}
-                            </Text>
-                        </div>
+                        <SectionHeader title={intl.formatMessage(WelcomeResources.suggestedPromptsForYourResources)} />
 
                         <div className={styles.sectionContent}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -564,5 +552,15 @@ const AzureSREWelcome = ({ threadId, selectThread }: AzureSREWelcomeProps) => {
         </div>
     );
 };
+
+const SectionHeader = memo(({ title }: { title: string }) => {
+    const { sectionHeader } = useWelcomeStyles();
+
+    return (
+        <div className={sectionHeader}>
+            <CardHeader header={<Subtitle1 as={'h2'}>{title}</Subtitle1>} />
+        </div>
+    );
+});
 
 export default AzureSREWelcome;
