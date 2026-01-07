@@ -848,6 +848,8 @@ public class Program
         builder.Services.AddTransient<IExtendedAgentService, ExtendedAgentService>();
         builder.Services.AddTransient<IExtendedAgentApiService, ExtendedAgentApiService>();
         builder.Services.AddTransient<IExtendedAgentValidator, ExtendedAgentValidator>();
+        builder.Services.AddSingleton<IIncidentFilterValidator, IncidentFilterValidator>();
+        builder.Services.AddSingleton<IIncidentFilterApiService, IncidentFilterApiService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();

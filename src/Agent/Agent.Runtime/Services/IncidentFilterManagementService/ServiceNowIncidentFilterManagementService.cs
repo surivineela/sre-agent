@@ -61,14 +61,17 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
             Options = incidentTypeOptions
         });
 
-        var priorityOptions = new List<KeyValuePair<string, string>>
-            {
-                new("1", "Critical"),
-                new("2", "High"),
-                new("3", "Moderate"),
-                new("4", "Low"),
-                new("5", "Planning")
-            };
+        var priorityDisplayNames = new Dictionary<string, string>
+        {
+            { "1", "Critical" },
+            { "2", "High" },
+            { "3", "Moderate" },
+            { "4", "Low" },
+            { "5", "Planning" }
+        };
+        var priorityOptions = IncidentPriorities.ServiceNow
+            .Select(p => new KeyValuePair<string, string>(p, priorityDisplayNames.GetValueOrDefault(p, p)))
+            .ToList();
 
         result.Add(new IncidentFilterFieldOption
         {

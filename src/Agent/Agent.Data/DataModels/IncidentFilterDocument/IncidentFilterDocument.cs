@@ -8,6 +8,10 @@ namespace Agent.Data.DataModels;
 
 public interface IIncidentFilterDocument : ICosmosDocument
 {
+    // Provide default implementation for static abstract member from ICosmosDocument
+    // This allows IIncidentFilterDocument to be used as a generic type argument
+    static string ICosmosDocument.ContainerName => AgentDataConfiguration.ThreadContainerName;
+
     bool IsDeleted { get; set; } // Flag to indicate if the filter is deleted. This is used for soft delete.
     DateTime CreatedAt { get; set; }
     DateTime UpdatedAt { get; set; }
@@ -51,5 +55,18 @@ public class IncidentFilterDocumentUtilities
     public static string GetDocumentTypeName(IncidentManagementType? type)
     {
         return $"IncidentFilter{type?.ToString()}";
+    }
+
+    public static IncidentManagementType? GetIncidentManagementTypeFromDocumentType(string documentType)
+    {
+        if (documentType.StartsWith("IncidentFilter"))
+        {
+            var typeString = documentType.Substring("IncidentFilter".Length);
+            if (Enum.TryParse<IncidentManagementType>(typeString, out var type))
+            {
+                return type;
+            }
+        }
+        return null;
     }
 }

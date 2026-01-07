@@ -63,14 +63,9 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
             Options = incidentTypeOptions
         });
 
-        var priorityOptions = new List<KeyValuePair<string, string>>
-                {
-                    new("1", "1"),
-                    new("2", "2"),
-                    new("25", "25"),
-                    new("3", "3"),
-                    new("4", "4")
-                };
+        var priorityOptions = IncidentPriorities.Icm
+            .Select(p => new KeyValuePair<string, string>(p, p))
+            .ToList();
         result.Add(new IncidentFilterFieldOption
         {
             FieldName = nameof(IcmIncidentFilterDocument.Priority),
