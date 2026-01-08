@@ -840,49 +840,65 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         }
     }
 
-    // Helper: MCP connector status
-    private ConnectorStatusResponse BuildMcpConnectorStatus(string connectorName)
+    // Helper: MCP connector status with real-time verification
+    private async Task<ConnectorStatusResponse> BuildMcpConnectorStatusAsync(string connectorName)
     {
-        var mcpActive = _mcpConnectionManager.GetActiveConnections()
-            .FirstOrDefault(c => string.Equals(c.Id, connectorName, StringComparison.OrdinalIgnoreCase));
-        if (mcpActive == null)
+        var stopwatch = Stopwatch.StartNew();
+
+        try
         {
+            // Get the specific connection
+            var connection = await _mcpConnectionManager.GetConnectionAsync(connectorName);
+
+            if (connection == null)
+            {
+                return new ConnectorStatusResponse(
+                    Name: connectorName,
+                    Type: "Mcp",
+                    Healthy: false,
+                    Message: "No active MCP connection found.",
+                    Status: DataConnectorStatus.Disconnected.ToString(),
+                    ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+                    Details: null);
+            }
+
+            // Perform real-time ping on this specific connection (10 second timeout)
+            await connection.PingAsync(timeoutSeconds: 10);
+
+            var message = connection.IsHealthy ? "MCP connection established." : $"MCP connection status: {connection.DisplayStatus}. {connection.ErrorMessage}";
+
+            return new ConnectorStatusResponse(
+                Name: connectorName,
+                Type: "Mcp",
+                Healthy: connection.IsHealthy,
+                Message: message,
+                Status: connection.DisplayStatus,
+                ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+                Details: new
+                {
+                    error = connection.ErrorMessage,
+                    tools = connection.Tools?.Count ?? 0,
+                    lastHeartbeat = connection.LastHeartbeat,
+                    consecutivePingFailures = connection.ConsecutivePingFailures
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "BuildMcpConnectorStatusAsync: Exception occurred while checking MCP connectivity for connector: {ConnectorName}", connectorName);
+
             return new ConnectorStatusResponse(
                 Name: connectorName,
                 Type: "Mcp",
                 Healthy: false,
-                Message: "No active MCP connection found.",
-                Status: DataConnectorStatus.Disconnected.ToString(),
-                ExecutionTimeMs: 0,
-                Details: null);
+                Message: $"MCP connectivity check failed: {ex.Message}",
+                Status: DataConnectorStatus.Failed.ToString(),
+                ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+                Details: new { error = ex.Message });
         }
-
-        // Healthy means Connected or Standby (ready to use)
-        var healthy = mcpActive.Status == DataConnectorStatus.Connected || mcpActive.Status == DataConnectorStatus.Standby;
-        var message = mcpActive.Status switch
+        finally
         {
-            DataConnectorStatus.Connected => "MCP connection established.",
-            DataConnectorStatus.Standby => "MCP connection established.", // User sees "Connected", internally we track Standby for refresh
-            _ => $"MCP connection status: {mcpActive.Status}. {mcpActive.ErrorMessage}"
-        };
-
-        var userFacingStatus = mcpActive.Status == DataConnectorStatus.Standby
-            ? DataConnectorStatus.Connected.ToString()
-            : mcpActive.Status.ToString();
-
-        return new ConnectorStatusResponse(
-            Name: connectorName,
-            Type: "Mcp",
-            Healthy: healthy,
-            Message: message,
-            Status: userFacingStatus,
-            ExecutionTimeMs: 0,
-            Details: new
-            {
-                error = mcpActive.ErrorMessage,
-                tools = mcpActive.Tools?.Count ?? 0,
-                lastHeartbeat = mcpActive.LastHeartbeat
-            });
+            stopwatch.Stop();
+        }
     }
 
     // Helper: Kusto connector status using TestKustoQueryAsync
@@ -1104,7 +1120,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
 
             ConnectorStatusResponse response = connector.ConnectorType.ToLowerInvariant() switch
             {
-                "mcp" => BuildMcpConnectorStatus(connectorName),
+                "mcp" => await BuildMcpConnectorStatusAsync(connectorName),
                 "kusto" => await BuildKustoConnectorStatusAsync(connectorName),
                 "icm" => await BuildIcmConnectorStatusAsync(connectorName),
                 "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),

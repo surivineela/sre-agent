@@ -45,8 +45,8 @@ public class McpConnectionHealthService : IMcpConnectionHealthService
                 $"Cannot execute MCP tool '{toolName}': Connection '{connection.Id}' failed to initialize - {errorMessage}");
         }
 
-        // Check if connection is disconnected or in standby - attempt to reconnect
-        if (connection.Status == DataConnectorStatus.Disconnected || connection.Status == DataConnectorStatus.Standby)
+        // Check if connection is disconnected - attempt to reconnect
+        if (connection.Status == DataConnectorStatus.Disconnected)
         {
             _logger.LogInternalInformation(
                 "Connection '{ConnectionId}' is in '{Status}' state, attempting to reconnect before executing tool '{ToolName}'",

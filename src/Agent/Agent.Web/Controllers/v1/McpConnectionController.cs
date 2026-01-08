@@ -126,9 +126,9 @@ public class McpConnectionController : ControllerBase
 
     private McpConnectionResponse MapToResponse(McpConnection connection)
     {
-        // Use metadata type if available (preserves "sse" vs "http" distinction)
+        // Use metadata type if available
         // Otherwise fall back to transport-based detection
-        var transportType = connection.Metadata?.Type ?? connection.ClientTransport switch
+        var transportType = connection.Metadata?.Type.ToString().ToLowerInvariant() ?? connection.ClientTransport switch
         {
             HttpClientTransport => "http",
             StdioClientTransport => "stdio",

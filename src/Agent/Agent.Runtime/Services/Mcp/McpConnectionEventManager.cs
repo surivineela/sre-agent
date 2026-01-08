@@ -110,7 +110,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
             Authentication = authConfig,
             Metadata = new McpConnectionMetadata
             {
-                Type = type.ToString().ToLowerInvariant(),
+                Type = type,
                 Endpoint = endpoint,
                 Command = command,
                 Arguments = arguments,
@@ -264,16 +264,10 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 await ConnectionRemoved.Invoke(connectionId);
             }
 
-            // Parse the type string back to enum for reconnection
-            if (!Enum.TryParse<McpTransportType>(metadata.Type, ignoreCase: true, out var transportType))
-            {
-                throw new InvalidOperationException($"Invalid transport type '{metadata.Type}' in connection metadata");
-            }
-
             // Create new connection with same parameters
             var newConnection = await CreateAndAddConnectionAsync(
                 name,
-                transportType,
+                metadata.Type,
                 metadata.Endpoint,
                 metadata.Command,
                 metadata.Arguments,
@@ -327,40 +321,7 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
 
         _logger.LogInternalDebug("Verifying {Count} dynamically added MCP connections", connections.Count);
 
-        var verificationTasks = connections
-            .Where(c => c.Status == DataConnectorStatus.Connected || c.Status == DataConnectorStatus.Disconnected)
-            .Select(async connection =>
-        {
-            if (connection.Client == null)
-            {
-                _logger.LogInternalWarning("MCP client is null for connection '{ConnectionId}', marking as failed", connection.Id);
-                connection.MarkAsFailed("MCP client is null");
-                return;
-            }
-
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_mcpSettings.PingTimeoutInSeconds));
-                await connection.Client.PingAsync(cts.Token);
-
-                _logger.LogInternalInformation("Successfully pinged '{ConnectionId}'", connection.Id);
-                connection.UpdateHeartbeat();
-                connection.ResetPingFailures();
-
-                // Recover from transient failures
-                if (connection.Status == DataConnectorStatus.Disconnected)
-                {
-                    _logger.LogInternalInformation("Connection '{ConnectionId}' recovered from transient failure", connection.Id);
-                    connection.MarkAsConnected();
-                }
-            }
-            catch (Exception ex)
-            {
-                connection.IncrementPingFailures();
-                _logger.LogInternalError(ex, "Exception during ping for '{ConnectionId}'", connection.Id);
-                connection.MarkAsDisconnected($"Ping failed: {ex.Message}");
-            }
-        });
+        var verificationTasks = connections.Select(connection => connection.PingAsync(_mcpSettings.PingTimeoutInSeconds));
 
         await Task.WhenAll(verificationTasks);
     }

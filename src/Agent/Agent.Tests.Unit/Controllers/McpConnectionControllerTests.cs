@@ -110,7 +110,7 @@ public class McpConnectionControllerTests
 
             metadata = new McpConnectionMetadata
             {
-                Type = "sse",  // Preserve "sse" type for backward compatibility
+                Type = McpTransportType.Http,
                 Endpoint = "http://localhost:5000/sse"
             };
         }
@@ -125,7 +125,7 @@ public class McpConnectionControllerTests
 
             metadata = new McpConnectionMetadata
             {
-                Type = "stdio",
+                Type = McpTransportType.Stdio,
                 Command = "node",
                 Arguments = new[] { "server.js" }
             };

@@ -20,18 +20,12 @@ public enum DataConnectorStatus
     Connected,
 
     /// <summary>
-    /// Connector/connection is configured and ready to use, but no active session exists.
-    /// Tools are available and will establish a session on demand. (Only for stdio MCP)
-    /// </summary>
-    Standby,
-
-    /// <summary>
-    /// Connector/connection failed to initialize or encountered an error.
+    /// Connector/connection failed to initialize or encountered an error and can't be recovered.
     /// </summary>
     Failed,
 
     /// <summary>
-    /// Connector/connection was disconnected.
+    /// Connector/connection is disconnected temprarily and is recoverable.
     /// </summary>
     Disconnected
 }

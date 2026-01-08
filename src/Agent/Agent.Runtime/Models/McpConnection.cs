@@ -58,6 +58,39 @@ public class McpConnection
     /// </summary>
     public McpConnectionMetadata? Metadata { get; set; }
 
+    public bool IsHealthy
+    {
+        get
+        {
+            switch (Metadata)
+            {
+                case null:
+                    return false;
+                case { Type: McpTransportType.Http }:
+                    return Status == DataConnectorStatus.Connected;
+                case { Type: McpTransportType.Stdio }:
+                    return Status == DataConnectorStatus.Connected || Status == DataConnectorStatus.Disconnected;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    public string DisplayStatus
+    {
+        get
+        {
+            switch (Metadata)
+            {
+                case { Type: McpTransportType.Stdio }:
+                    // For stdio connections, show "Connected" even if Disconnected (since it can be reconnected)
+                    return Status == DataConnectorStatus.Disconnected ? DataConnectorStatus.Connected.ToString() : Status.ToString();
+                default:
+                    return Status.ToString();
+            }
+        }
+    }
+
     private bool _initialized = false;
     private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
     private readonly object _errorMessageLock = new object();
@@ -121,23 +154,11 @@ public class McpConnection
                     // Handle WebSocket disconnection after initial connection
                     if (Status == DataConnectorStatus.Connected)
                     {
-                        if (reason.Contains("closed by server", StringComparison.OrdinalIgnoreCase) ||
-                            reason.Contains("closed prematurely", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _logger.LogInternalInformation(
-                                "MCP connection '{ConnectionId}' WebSocket closed gracefully, transitioning to Standby: {Reason}",
-                                Id,
-                                reason);
-                            MarkAsStandby();
-                        }
-                        else
-                        {
-                            _logger.LogInternalWarning(
-                                "MCP connection '{ConnectionId}' WebSocket disconnected with error: {Reason}",
-                                Id,
-                                reason);
-                            MarkAsDisconnected(reason);
-                        }
+                        _logger.LogInternalInformation(
+                            "MCP connection '{ConnectionId}' WebSocket disconnected with error: {Reason}",
+                            Id,
+                            reason);
+                        MarkAsDisconnected(reason);
                     }
                 };
 
@@ -196,10 +217,10 @@ public class McpConnection
                 Status = DataConnectorStatus.Connected;
                 _initialized = true;
             }
-            catch (Exception ex) when (ex is SocketException || ex is IOException || ex is HttpRequestException)
+            catch (Exception ex) when (ex is SocketException || ex is IOException || ex is HttpRequestException || ex is OperationCanceledException)
             {
                 // ErrorMessage should already contain stderr output from OnStderrReceived callback
-                _logger.LogInternalError(ex, "IO error connecting to MCP server at {endpoint}", Id);
+                _logger.LogInternalWarning(ex, "IO error connecting to MCP server at {endpoint}", Id);
 
                 Status = DataConnectorStatus.Failed;
 
@@ -216,9 +237,9 @@ public class McpConnection
                 _initialized = true;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogInternalError(ex, "Failed to initialize connection to {endpoint}", Id);
+            MarkAsFailed("Internal error during MCP connection initialization.");
             throw;
         }
     }
@@ -263,19 +284,12 @@ public class McpConnection
     /// <param name="errorMessage">The error message describing why the connection failed</param>
     public void MarkAsFailed(string errorMessage)
     {
-        Status = DataConnectorStatus.Failed;
-        ErrorMessage = errorMessage;
-        ConsecutivePingFailures++;
-    }
-
-    /// <summary>
-    /// Marks the connection as standby (configured and ready, but no active session).
-    /// This is used when the WebSocket closes gracefully or times out.
-    /// </summary>
-    public void MarkAsStandby()
-    {
-        Status = DataConnectorStatus.Standby;
-        ErrorMessage = null;
+        lock (_errorMessageLock)
+        {
+            Status = DataConnectorStatus.Failed;
+            ErrorMessage = errorMessage;
+            ConsecutivePingFailures++;
+        }
     }
 
     /// <summary>
@@ -285,9 +299,12 @@ public class McpConnection
     /// <param name="errorMessage">The error message describing why the connection was disconnected</param>
     public void MarkAsDisconnected(string errorMessage)
     {
-        Status = DataConnectorStatus.Disconnected;
-        ErrorMessage = errorMessage;
-        ConsecutivePingFailures++;
+        lock (_errorMessageLock)
+        {
+            Status = DataConnectorStatus.Disconnected;
+            ErrorMessage = errorMessage;
+            ConsecutivePingFailures++;
+        }
     }
 
     /// <summary>
@@ -296,8 +313,87 @@ public class McpConnection
     /// </summary>
     public void MarkAsConnected()
     {
-        Status = DataConnectorStatus.Connected;
-        ErrorMessage = null;
+        lock (_errorMessageLock)
+        {
+            Status = DataConnectorStatus.Connected;
+            ErrorMessage = null;
+        }
+    }
+
+    /// <summary>
+    /// Pings the MCP server to verify connection health in real-time.
+    /// Updates connection status, heartbeat, and failure counters based on the result.
+    /// Automatically recovers from transient failures (Disconnected -> Connected).
+    ///
+    /// Behavior differs by transport type:
+    /// - HTTP connections: Ping when Connected OR Disconnected (allows recovery attempts)
+    /// - Stdio connections: Ping ONLY when Connected (skip if not Connected)
+    /// </summary>
+    /// <param name="timeoutSeconds">Timeout in seconds for the ping operation</param>
+    /// <returns>True if ping succeeded, false otherwise</returns>
+    public async Task<bool> PingAsync(int timeoutSeconds)
+    {
+        var isHttp = Metadata?.Type == McpTransportType.Http;
+
+        // Check if ping should be skipped based on transport type and status
+        if (isHttp)
+        {
+            // HTTP: only ping if Connected or Disconnected
+            if (Status != DataConnectorStatus.Connected && Status != DataConnectorStatus.Disconnected)
+            {
+                _logger.LogInternalDebug(
+                    "Skipping ping for HTTP connection '{ConnectionId}' with status '{Status}'",
+                    Id,
+                    Status);
+                return false;
+            }
+        }
+        else
+        {
+            // Stdio: only ping if Connected
+            if (Status != DataConnectorStatus.Connected)
+            {
+                _logger.LogInternalDebug(
+                    "Skipping ping for stdio connection '{ConnectionId}' with status '{Status}'",
+                    Id,
+                    Status);
+                return false;
+            }
+        }
+
+        if (Client == null)
+        {
+            _logger.LogInternalWarning("MCP client is null for connection '{ConnectionId}', marking as failed", Id);
+            MarkAsFailed("MCP client is null");
+            return false;
+        }
+
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            await Client.PingAsync(cts.Token);
+
+            // Update connection status after successful ping
+            _logger.LogInternalInformation("Successfully pinged '{ConnectionId}'", Id);
+            UpdateHeartbeat();
+            ResetPingFailures();
+
+            // Recover from transient failures
+            if (Status == DataConnectorStatus.Disconnected)
+            {
+                _logger.LogInternalInformation("Connection '{ConnectionId}' recovered from transient failure", Id);
+                MarkAsConnected();
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Exception during ping for '{ConnectionId}'", Id);
+            IncrementPingFailures();
+            MarkAsDisconnected($"Ping failed: {ex.Message}");
+            return false;
+        }
     }
 }
 
@@ -306,7 +402,7 @@ public class McpConnection
 /// </summary>
 public class McpConnectionMetadata
 {
-    public required string Type { get; init; }
+    public required McpTransportType Type { get; init; }
     public string? Endpoint { get; init; }
     public string? Command { get; init; }
     public string[]? Arguments { get; init; }
