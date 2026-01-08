@@ -8,109 +8,135 @@ using Agent.Framework;
 using Agent.Plugins.Connector;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Tools;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Agent.Plugins.Tools;
-
-[ToolType("KustoTool")]
-public class KustoToolType : IYamlToolAware
+namespace Agent.Plugins.Kusto.Tools
 {
-    private readonly KustoPluginFactory _kustoFactory;
-    private KustoToolDefinition? _definition;
-    private readonly IConnectorResolver _connectorResolver;
-
-    public KustoToolType(
-        KustoPluginFactory kustoFactory,
-        IConnectorResolver connectorResolver
-        )
+    /// <summary>
+    /// Factory for creating KustoTool instances.
+    /// </summary>
+    [ToolType("KustoTool")]
+    public class KustoToolExecutorFactory : IYamlToolExecutorFactory
     {
-        _kustoFactory = kustoFactory;
-        _connectorResolver = connectorResolver;
-    }
-
-    public void SetToolDefinition(YamlToolDefinitionBase definition)
-    {
-        _definition = (KustoToolDefinition)definition;
-    }
-
-    public async Task<string> Run(string kustoCluster, Dictionary<string, string> args)
-    {
-        if (_definition == null)
+        public IYamlToolExecutor Create(YamlToolDefinitionBase definition, IServiceProvider serviceProvider)
         {
-            throw new InvalidOperationException("Tool definition was not set.");
-        }
+            var kustoFactory = serviceProvider.GetRequiredService<KustoPluginFactory>();
+            var connectorResolver = serviceProvider.GetRequiredService<IConnectorResolver>();
+            var kustoDefinition = (KustoToolDefinition)definition;
 
-        if (string.IsNullOrEmpty(_definition.Connector))
-        {
-            throw new InvalidOperationException("Connector is not set in the tool definition.");
-        }
-
-        // Substitute parameters in connector name similar to FormatQuery, e.g. capps-##region## => capps-westeurope
-        var parameterizedConnectorName = KustoPlugin.FormatTemplate(_definition.Connector, args);
-
-        var connector = _connectorResolver.GetConnectorFromSettings<KustoConnector>(parameterizedConnectorName, parameterizedConnectorName, kustoCluster);
-
-        var kustoChat = _kustoFactory.Create(connector);
-
-        // Determine if we should print the query based on tool definition and LLM-supplied args
-        var argPrintQuery = args.TryGetValue("printQuery", out var value) && bool.TryParse(value, out var parsed)
-            ? parsed // if args contain the value, honor that
-            : true; // default to true
-        var printQuery = _definition.PrintQuery && argPrintQuery;
-
-        switch (_definition.Mode)
-        {
-            case KustoExecutionMode.Function:
-                var displayOptions = ConvertDisplayOptions(_definition.DisplayOptions);
-                return await kustoChat.ExecuteLocalFunctionOnClusterAsync(
-                    functionName: _definition.Function!,
-                    clusterName: connector.ClusterUrl,
-                    databaseName: _definition.Database,
-                    args: args,
-                    displayOptions: displayOptions,
-                    toolDefinition: _definition);
-
-            case KustoExecutionMode.Query:
-                // Region parameter is not used in Query mode, as the cluster is defined in the connector
-                var formatedQuery = KustoPlugin.FormatTemplate(_definition.Query!, args);
-                return await kustoChat.ExecuteClusterKustoQuery(connector.ClusterUrl, string.IsNullOrEmpty(_definition.Database) ? connector.Database : _definition.Database, formatedQuery, printQuery, _definition.Name);
-
-            default:
-                return string.Empty;
+            return new KustoTool(
+                kustoFactory,
+                connectorResolver,
+                kustoDefinition);
         }
     }
 
-    private static KustoDisplayOptions? ConvertDisplayOptions(KustoDisplayOptionsDefinition? definition)
+    /// <summary>
+    /// Kusto tool implementation that extends YamlToolExecutor.
+    /// Uses factory pattern for instantiation and provides clean ExecuteAsync interface.
+    /// </summary>
+    public class KustoTool : YamlToolExecutor<KustoToolDefinition>
     {
-        if (definition is null)
+        private readonly KustoPluginFactory _kustoFactory;
+        private readonly IConnectorResolver _connectorResolver;
+
+        public KustoTool(
+            KustoPluginFactory kustoFactory,
+            IConnectorResolver connectorResolver,
+            KustoToolDefinition definition) : base(definition)
         {
-            return null;
+            _kustoFactory = kustoFactory;
+            _connectorResolver = connectorResolver;
         }
 
-        return new KustoDisplayOptions
+        public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
         {
-            ShowTable = definition.ShowTable,
-            ShowChart = definition.ShowChart,
-            MaxTableRows = definition.MaxTableRows ?? 50,
-            MaxChartPoints = definition.MaxChartPoints ?? 200,
-            ChartTitle = definition.ChartTitle,
-            XField = definition.XField,
-            SeriesFields = definition.SeriesFields
-        };
-    }
+            // Convert AIFunctionArguments to Dictionary<string, string> using base class helper
+            var paramsDict = ConvertToStringDictionary(parameters);
 
-    [ToolType("KustoQuery")]
-    public class KustoQuery
-    {
-        private readonly IKustoPlugin _kustoChat;
+            // Get connector - substitute parameters in connector name if needed
+            var connector = GetConnector(paramsDict, "");
+            var kustoPlugin = _kustoFactory.Create(connector);
 
-        public KustoQuery(IKustoPlugin kustoChat)
-        {
-            _kustoChat = kustoChat;
+            // Determine if we should print the query
+            var printQuery = ToolDefinition.PrintQuery && paramsDict.GetValueOrDefault("printQuery", "true").ToLower() == "true";
+
+            // Execute based on mode
+            return ToolDefinition.Mode switch
+            {
+                KustoExecutionMode.Function => await ExecuteFunction(kustoPlugin, connector, paramsDict),
+                KustoExecutionMode.Query => await ExecuteQuery(kustoPlugin, connector, paramsDict, printQuery),
+                KustoExecutionMode.Script => await ExecuteScript(kustoPlugin, connector, paramsDict, printQuery),
+                _ => throw new InvalidOperationException($"Unsupported execution mode: {ToolDefinition.Mode}")
+            };
         }
 
-        public async Task<KustoQueryResult> Run(string query, AzureRegion region, Dictionary<string, string> args, string groupName = "ContainerApps")
+        private async Task<string> ExecuteFunction(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters)
         {
-            return await _kustoChat.ExecuteKustoQueryInternal(region, query, groupName);
+            var functionName = ToolDefinition.Function
+                ?? throw new InvalidOperationException("Function name is required for Function mode");
+
+            return await kustoPlugin.ExecuteLocalFunctionOnClusterAsync(
+                functionName,
+                connector.ClusterUrl,
+                ToolDefinition.Database,
+                parameters);
+        }
+
+        private async Task<string> ExecuteQuery(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters, bool printQuery)
+        {
+            var query = ToolDefinition.Query
+                ?? throw new InvalidOperationException("Query is required for Query mode");
+
+            var formattedQuery = KustoPlugin.FormatTemplate(query, parameters);
+
+            var database = string.IsNullOrEmpty(ToolDefinition.Database)
+                ? connector.Database
+                : ToolDefinition.Database;
+
+            return await kustoPlugin.ExecuteClusterKustoQuery(
+                connector.ClusterUrl,
+                database,
+                formattedQuery,
+                printQuery,
+                ToolDefinition.Name);
+        }
+
+        private async Task<string> ExecuteScript(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters, bool printQuery)
+        {
+            var scriptFile = ToolDefinition.File
+                ?? throw new InvalidOperationException("File is required for Script mode");
+
+            if (!File.Exists(scriptFile))
+            {
+                throw new FileNotFoundException($"Script file not found: {scriptFile}");
+            }
+
+            var scriptContent = await File.ReadAllTextAsync(scriptFile);
+            var formattedScript = KustoPlugin.FormatTemplate(scriptContent, parameters);
+
+            var database = string.IsNullOrEmpty(ToolDefinition.Database)
+                ? connector.Database
+                : ToolDefinition.Database;
+
+            return await kustoPlugin.ExecuteClusterKustoQuery(
+                connector.ClusterUrl,
+                database,
+                formattedScript,
+                printQuery,
+                ToolDefinition.Name);
+        }
+
+        private KustoConnector GetConnector(Dictionary<string, string> parameters, string kustoCluster)
+        {
+            var parameterizedConnectorName = KustoPlugin.FormatTemplate(ToolDefinition.Connector, parameters);
+
+            return _connectorResolver.GetConnectorFromSettings<KustoConnector>(
+                parameterizedConnectorName,
+                parameterizedConnectorName,
+                kustoCluster);
         }
     }
 }

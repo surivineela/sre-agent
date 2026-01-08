@@ -224,6 +224,7 @@ class Program
         builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
+        builder.Services.AddSingleton<IYamlToolFunctionFactory<CustomContext>, YamlToolFunctionFactory<CustomContext>>();
         builder.Services.AddSingleton<IToolFactory<CustomContext>, ToolFactory<CustomContext>>(sp =>
         {
             return new ToolFactory<CustomContext>(
@@ -234,7 +235,8 @@ class Program
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
-                skillRegistry: new EmptySkillRegistry());
+                skillRegistry: new EmptySkillRegistry(),
+                yamlToolFunctionFactory: sp.GetRequiredService<IYamlToolFunctionFactory<CustomContext>>());
         });
 
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();

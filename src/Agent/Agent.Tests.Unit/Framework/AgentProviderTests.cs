@@ -129,14 +129,22 @@ public class AgentProviderTests
         });
     }
 
-    private ToolFactory<AgentContext> CreateToolFactory() => new(
-        logger: _mockToolFactoryLogger.Object,
-        serviceProvider: _serviceProvider,
-        assembliesToScan: [Assembly.GetExecutingAssembly()],
-        extensibilityLoader: _mockExtensibilityLoader.Object,
-        mcpToolsRepository: _mockMcpToolsRepository.Object,
-        skillRegistry: CreateSkillRegistry()
-    );
+    private ToolFactory<AgentContext> CreateToolFactory()
+    {
+        var yamlToolFunctionFactory = new YamlToolFunctionFactory<AgentContext>(
+            _serviceProvider,
+            _serviceProvider.GetServices<Agent.Plugins.Tools.IYamlToolExecutorFactory>());
+
+        return new ToolFactory<AgentContext>(
+            logger: _mockToolFactoryLogger.Object,
+            serviceProvider: _serviceProvider,
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            extensibilityLoader: _mockExtensibilityLoader.Object,
+            mcpToolsRepository: _mockMcpToolsRepository.Object,
+            skillRegistry: CreateSkillRegistry(),
+            yamlToolFunctionFactory: yamlToolFunctionFactory
+        );
+    }
 
     private SkillRegistry CreateSkillRegistry()
     {

@@ -74,6 +74,7 @@ public class MigrateCommandTests : AgentCommandTestBase
         Assert.Equal(0, validateResult.ExitCode);
     }
 
+
     [Fact]
     [Trait("Category", "Tool")]
     [Trait("Command", "Migrate")]

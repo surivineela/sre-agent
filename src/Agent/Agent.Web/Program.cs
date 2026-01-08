@@ -39,6 +39,7 @@ using Agent.Plugins.Implementation.CdbSDKDiagnosePlugin;
 using Agent.Plugins.Implementation.DiagnosticsPlugin;
 using Agent.Plugins.Interface;
 using Agent.Plugins.Kusto;
+using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.Python.Tools;
 using Agent.Plugins.Services;
 using Agent.Plugins.Services.Interfaces;
@@ -523,9 +524,6 @@ public class Program
             .AddTransient<KustoPlugin>()
             .AddSingleton<IKustoPlugin, KustoPlugin>()
             .AddSingleton<DynamicKqlToolsPlugin>()
-            .AddTransient<KustoToolType>()
-            .AddTransient<LinkToolType>()
-            .AddTransient<PythonFunctionToolType>()
             .AddTransient<IAzureSearchClient, AzureSearchClient>()
             .AddTransient<AzureDocSearchPlugin>()
             .AddTransient<SearchPluginDefinition>()
@@ -659,6 +657,7 @@ public class Program
             .AddSingleton<ISessionPoolService, SessionPoolService>()
             .AddSingleton<IRagEvaluator, RagEvaluator>()
             .AddSingleton<IExtensibilityLoader, ExtensibilityLoader>()
+            .AddSingleton<IYamlToolFunctionFactory<AgentContext>, YamlToolFunctionFactory<AgentContext>>()
             .AddSingleton(sp =>
             {
                 return new ToolFactory<AgentContext>(
@@ -669,7 +668,8 @@ public class Program
                         .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                     extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
                     mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
-                    skillRegistry: sp.GetRequiredService<ISkillRegistry>()
+                    skillRegistry: sp.GetRequiredService<ISkillRegistry>(),
+                    yamlToolFunctionFactory: sp.GetRequiredService<IYamlToolFunctionFactory<AgentContext>>()
                     );
             })
             .AddSingleton<IToolFactory<AgentContext>, ToolFactory<AgentContext>>(sp =>
@@ -679,6 +679,11 @@ public class Program
             .AddSingleton<IAuthenticationService, AuthenticationService>()
             .AddSingleton<AgentToSkillService>()
             .AddCosmosClient();
+
+        // Register YAML tool executor factories
+        builder.Services.AddSingleton<IYamlToolExecutorFactory, KustoToolExecutorFactory>();
+        builder.Services.AddSingleton<IYamlToolExecutorFactory, LinkToolExecutorFactory>();
+        builder.Services.AddSingleton<IYamlToolExecutorFactory, PythonToolExecutorFactory>();
 
         builder.Services.AddSingleton<ISkillRegistry>(sp =>
         {

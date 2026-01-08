@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Kusto;
-using Agent.Plugins.Tools;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Services;
 using Xunit;
@@ -130,36 +128,5 @@ public class KustoToolDisplayOptionsTests
         Assert.NotNull(apiModel);
         Assert.True(apiModel!.DisplayOptions?.ShowChart);
         Assert.Equal(42, apiModel.DisplayOptions?.MaxChartPoints);
-    }
-
-    [Fact]
-    public void ConvertDisplayOptions_ShouldCreateRuntimeOptions()
-    {
-        var convertMethod = typeof(KustoToolType)
-            .GetMethod("ConvertDisplayOptions", BindingFlags.Static | BindingFlags.NonPublic);
-
-        Assert.NotNull(convertMethod);
-
-        var definition = new KustoDisplayOptionsDefinition
-        {
-            ShowTable = true,
-            ShowChart = true,
-            MaxTableRows = 5,
-            MaxChartPoints = 12,
-            ChartTitle = "Chart",
-            XField = "Time",
-            SeriesFields = new List<string> { "Value" }
-        };
-
-        var result = convertMethod!.Invoke(null, new object?[] { definition }) as KustoDisplayOptions;
-
-        Assert.NotNull(result);
-        Assert.True(result!.ShowTable);
-        Assert.True(result.ShowChart);
-        Assert.Equal(5, result.MaxTableRows);
-        Assert.Equal(12, result.MaxChartPoints);
-        Assert.Equal("Chart", result.ChartTitle);
-        Assert.Equal("Time", result.XField);
-        Assert.Equal(new[] { "Value" }, result.SeriesFields);
     }
 }

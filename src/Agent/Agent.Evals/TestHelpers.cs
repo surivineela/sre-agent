@@ -403,6 +403,8 @@ public static class TestHelpers
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
         });
 
+        builder.Services.AddSingleton<IYamlToolFunctionFactory<AgentContext>, YamlToolFunctionFactory<AgentContext>>();
+
         builder.Services.AddSingleton<IToolFactory<AgentContext>>(sp =>
         {
             var inner = new ToolFactory<AgentContext>(
@@ -413,7 +415,8 @@ public static class TestHelpers
                     .Where(assembly => assembly.GetName()?.Name?.StartsWith("Agent.") == true),
                 mcpToolsRepository: sp.GetRequiredService<IMcpConnectable>(),
                 extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
-                skillRegistry: sp.GetRequiredService<ISkillRegistry>());
+                skillRegistry: sp.GetRequiredService<ISkillRegistry>(),
+                yamlToolFunctionFactory: sp.GetRequiredService<IYamlToolFunctionFactory<AgentContext>>());
 
             var replay = new ReplayToolFactory<AgentContext>(inner, toolReplaySerializerOptions ?? new JsonSerializerOptions(JsonSerializerDefaults.Web));
             return replay;

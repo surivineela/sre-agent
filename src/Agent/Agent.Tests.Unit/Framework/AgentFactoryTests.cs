@@ -918,13 +918,18 @@ handoffs: []
 
     private ToolFactory<AgentContext> CreateToolFactory()
     {
+        var yamlToolFunctionFactory = new YamlToolFunctionFactory<AgentContext>(
+            _serviceProvider,
+            _serviceProvider.GetServices<Agent.Plugins.Tools.IYamlToolExecutorFactory>());
+
         var toolFactory = new ToolFactory<AgentContext>(
             logger: _mockToolFactoryLogger.Object,
             serviceProvider: _serviceProvider,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             extensibilityLoader: _mockExtendedAgentRepository.Object,
             mcpToolsRepository: _mockMcpToolsRepository.Object,
-            skillRegistry: new EmptySkillRegistry()
+            skillRegistry: new EmptySkillRegistry(),
+            yamlToolFunctionFactory: yamlToolFunctionFactory
         );
 
         return toolFactory;

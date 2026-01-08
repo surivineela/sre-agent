@@ -40,6 +40,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly ISkillRegistry _skillRegistry;
+    private readonly IYamlToolFunctionFactory<TContext> _yamlToolFunctionFactory;
     private readonly bool _handoffReasoningEnabled;
     private readonly bool _enableAggregateToolFunction;
 
@@ -55,7 +56,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         IEnumerable<Assembly> assembliesToScan,
         IExtensibilityLoader? extensibilityLoader,
         IMcpConnectable mcpToolsRepository,
-        ISkillRegistry skillRegistry
+        ISkillRegistry skillRegistry,
+        IYamlToolFunctionFactory<TContext> yamlToolFunctionFactory
     )
     {
         _logger = logger;
@@ -64,6 +66,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         _extensibilityLoader = extensibilityLoader;
         _mcpToolsRepository = mcpToolsRepository;
         _skillRegistry = skillRegistry;
+        _yamlToolFunctionFactory = yamlToolFunctionFactory;
 
         // enable handoff reasoning for dev envs
         var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
@@ -143,21 +146,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
             var toolDef = (YamlToolDefinitionBase)toolDefObject;
 
-            // Step 4: Handle name conflicts
-            if (_tools.ContainsKey(toolDef.Name))
-            {
-                if (onNameConflict == BehaviorOnNameConflict.ThrowException)
-                    throw new InvalidOperationException($"Tool with name '{toolDef.Name}' is already registered.");
-
-                if (onNameConflict == BehaviorOnNameConflict.Ignore)
-                    return;
-
-                // Replace on BehaviorOnNameConflict.Overwrite
-            }
-
-            // Step 5: Register tool function
-            var toolFunction = new YamlToolFunction<TContext>(_serviceProvider, _assemblies, toolDef);
-            _tools[toolDef.Name] = toolFunction;
+            // Step 4: Register tool using the common RegisterTool method
+            RegisterTool(toolDef, onNameConflict);
         }
         catch (Exception ex)
         {
@@ -409,7 +399,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             return false;
         }
 
-        var toolFunction = new YamlToolFunction<TContext>(_serviceProvider, _assemblies, tool);
+        var toolFunction = _yamlToolFunctionFactory.Create(tool);
+
         return RegisterTool(tool.Name, toolFunction, onNameConflict);
     }
 

@@ -378,13 +378,18 @@ namespace Agent.Tests.Unit
 
         private async Task<ToolFactory<object>> CreateInitializedToolFactoryAsync()
         {
+            var yamlToolFunctionFactory = new YamlToolFunctionFactory<object>(
+                _serviceProvider,
+                _serviceProvider.GetServices<Agent.Plugins.Tools.IYamlToolExecutorFactory>());
+
             var toolFactory = new ToolFactory<object>(
                logger: _mockLogger.Object,
                serviceProvider: _serviceProvider,
                assembliesToScan: [Assembly.GetExecutingAssembly()],
                extensibilityLoader: null,
                mcpToolsRepository: _mockMcpToolsRepository.Object,
-               skillRegistry: new Agent.Framework.Skills.EmptySkillRegistry());
+               skillRegistry: new Agent.Framework.Skills.EmptySkillRegistry(),
+               yamlToolFunctionFactory: yamlToolFunctionFactory);
             await toolFactory.InitializeAsync();
 
             return toolFactory;

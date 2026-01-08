@@ -7,78 +7,61 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Data.DataModels;
 using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Plugins.Tools;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Agent.Plugins.Python.Tools
 {
-    [ToolTypeAttribute("PythonFunctionTool")]
-    public class PythonFunctionToolType : IYamlToolAware, IToolArgumentTransformer
+    /// <summary>
+    /// Factory for creating PythonTool instances.
+    /// </summary>
+    [ToolType("PythonFunctionTool")]
+    public class PythonToolExecutorFactory : IYamlToolExecutorFactory
+    {
+        public IYamlToolExecutor Create(YamlToolDefinitionBase definition, IServiceProvider serviceProvider)
+        {
+            var sessionPool = serviceProvider.GetRequiredService<ISessionPoolService>();
+            var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+            var pythonDefinition = (PythonFunctionToolDefinition)definition;
+
+            return new PythonFunctionTool(
+                sessionPool,
+                hostEnvironment,
+                pythonDefinition);
+        }
+    }
+
+    /// <summary>
+    /// Python tool implementation that extends YamlToolExecutor.
+    /// Uses factory pattern for instantiation and provides clean ExecuteAsync interface.
+    /// </summary>
+    public class PythonFunctionTool : YamlToolExecutor<PythonFunctionToolDefinition>
     {
         private readonly ISessionPoolService _sessionPool;
         private readonly IHostEnvironment _hostEnvironment;
-        private PythonFunctionToolDefinition? _definition;
 
-        public PythonFunctionToolType(ISessionPoolService sessionPool, IHostEnvironment hostEnvironment)
+        public PythonFunctionTool(
+            ISessionPoolService sessionPool,
+            IHostEnvironment hostEnvironment,
+            PythonFunctionToolDefinition definition) : base(definition)
         {
             _sessionPool = sessionPool;
             _hostEnvironment = hostEnvironment;
         }
 
-        public void SetToolDefinition(YamlToolDefinitionBase definition)
+        public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
         {
-            _definition = (PythonFunctionToolDefinition)definition;
-        }
-
-        /// <summary>
-        /// Transforms flat arguments from LLM into a single Dictionary for the Run method.
-        /// Python tools expect all parameters as a Dictionary&lt;string, string&gt;.
-        /// </summary>
-        public object?[] TransformArguments(System.Reflection.MethodInfo method, Dictionary<string, object?> flatArgs, YamlToolDefinitionBase toolDef)
-        {
-            // Extract threadId from flatArgs
-            Guid? threadId = null;
-            if (flatArgs.TryGetValue("threadId", out var threadIdValue) && threadIdValue != null)
-            {
-                threadId = (Guid?)threadIdValue;
-            }
-
-            // Convert all arguments to string dictionary for Python execution
-            var stringArgs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var kvp in flatArgs)
-            {
-                // Skip internal/system arguments
-                if (kvp.Key.Equals("threadId", StringComparison.OrdinalIgnoreCase) ||
-                    kvp.Key.Equals("toolName", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (kvp.Value != null)
-                {
-                    stringArgs[kvp.Key] = kvp.Value.ToString() ?? string.Empty;
-                }
-            }
-
-            // Return both arguments (the Run method takes Dictionary<string, string> and Guid?)
-            return new object?[] { stringArgs, threadId };
-        }
-
-        public async Task<string> Run(Dictionary<string, string> args, Guid? threadId = null)
-        {
-            if (_definition == null)
-            {
-                throw new InvalidOperationException("Tool definition was not set.");
-            }
+            // Convert AIFunctionArguments to Dictionary<string, string> using base class helper
+            var paramsDict = ConvertToStringDictionary(parameters);
 
             try
             {
                 // 1. Build the complete Python script with parameter injection
-                var script = BuildPythonScript(_definition.FunctionCode, args);
+                var script = BuildPythonScript(ToolDefinition.FunctionCode, paramsDict);
 
                 // 2. Create session identifier - use stable identifier with threadId like CodeInterpreterPlugin
                 // This ensures all executions for the same thread reuse the same session
@@ -93,9 +76,8 @@ namespace Agent.Plugins.Python.Tools
                 var result = await _sessionPool.ExecutePythonInlineAsync(
                     script,
                     identifier,
-                    _definition.TimeoutSeconds
+                    ToolDefinition.TimeoutSeconds
                 );
-
                 // 4. Parse and return result
                 return ParseExecutionResult(result);
             }

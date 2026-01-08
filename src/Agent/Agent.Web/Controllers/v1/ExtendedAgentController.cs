@@ -630,11 +630,16 @@ public class ExtendedAgentController : ControllerBase
             // Execute the tool
             var sessionPoolService = HttpContext.RequestServices.GetRequiredService<ISessionPoolService>();
             var hostEnvironment = HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
-            var pythonTool = new PythonFunctionToolType(sessionPoolService, hostEnvironment);
-            pythonTool.SetToolDefinition(toolDefinition);
+            var pythonTool = new Agent.Plugins.Python.Tools.PythonFunctionTool(sessionPoolService, hostEnvironment, toolDefinition);
 
             var startTime = DateTime.UtcNow;
-            var resultJson = await pythonTool.Run(request.Parameters ?? new Dictionary<string, string>());
+            // Convert Dictionary<string, string> parameters to AIFunctionArguments
+            var aiArgs = new Microsoft.Extensions.AI.AIFunctionArguments();
+            foreach (var kvp in request.Parameters ?? new Dictionary<string, string>())
+            {
+                aiArgs[kvp.Key] = kvp.Value;
+            }
+            var resultJson = await pythonTool.ExecuteAsync("test-thread", aiArgs);
             var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
 
             if (string.IsNullOrEmpty(resultJson))

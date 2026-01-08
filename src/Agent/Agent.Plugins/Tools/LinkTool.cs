@@ -5,50 +5,59 @@
 using System.Text.RegularExpressions;
 using Agent.Data.Tools;
 using Agent.Framework;
+using Agent.Plugins.Tools;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins.Tools;
 
+/// <summary>
+/// Factory for creating LinkTool instances.
+/// </summary>
 [ToolType("LinkTool")]
-public partial class LinkToolType : IYamlToolAware
+public class LinkToolExecutorFactory : IYamlToolExecutorFactory
 {
-    private LinkToolDefinition? _definition;
+    public IYamlToolExecutor Create(YamlToolDefinitionBase definition, IServiceProvider serviceProvider)
+    {
+        var linkDefinition = (LinkToolDefinition)definition;
+        return new LinkTool(linkDefinition);
+    }
+}
 
-    public LinkToolType()
+/// <summary>
+/// Link tool implementation that extends YamlToolExecutor.
+/// Uses factory pattern for instantiation and provides clean ExecuteAsync interface.
+/// </summary>
+public partial class LinkTool : YamlToolExecutor<LinkToolDefinition>
+{
+    public LinkTool(LinkToolDefinition definition) : base(definition)
     {
     }
 
-    public void SetToolDefinition(YamlToolDefinitionBase definition)
+    public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
     {
-        _definition = (LinkToolDefinition)definition;
-    }
-
-    public async Task<string> Run(Dictionary<string, string> args, Guid? threadId = null)
-    {
-        if (_definition == null)
-        {
-            throw new InvalidOperationException("Tool definition was not set.");
-        }
-
-        if (string.IsNullOrWhiteSpace(_definition.Template))
+        if (string.IsNullOrWhiteSpace(ToolDefinition.Template))
         {
             throw new ArgumentException("Template is not defined in the LinkToolDefinition.");
         }
 
-        var result = _definition.Template;
+        // Convert to dictionary for easier lookup (base class helper filters out internal params)
+        var paramsDict = ConvertToStringDictionary(parameters);
+
+        var result = ToolDefinition.Template;
 
         // Find all placeholders in the format {{key}}
         var matches = PlaceholderRegex().Matches(result);
 
         foreach (Match match in matches)
         {
-            var placeholder = match.Groups[0].Value;   // e.g. {{fromDate}} or {{threadId}} or {{agent_endpoint}} or {{agent_name}}
-            var key = match.Groups[1].Value;           // e.g. fromDate or threadId or agent_endpoint or agent_name
+            var placeholder = match.Groups[0].Value;
+            var key = match.Groups[1].Value;
             string? valueToReplace = null;
 
             // Special handling for threadId placeholder
             if (key.Equals("threadId", StringComparison.OrdinalIgnoreCase))
             {
-                valueToReplace = threadId?.ToString();
+                valueToReplace = threadId;
             }
             // Special handling for agent_endpoint placeholder
             else if (key.Equals("agent_endpoint", StringComparison.OrdinalIgnoreCase))
@@ -61,7 +70,7 @@ public partial class LinkToolType : IYamlToolAware
                 valueToReplace = Environment.GetEnvironmentVariable("AGENT_NAME");
             }
             // Regular argument handling
-            else if (args.TryGetValue(key, out var rawValue))
+            else if (paramsDict.TryGetValue(key, out var rawValue))
             {
                 valueToReplace = rawValue.Trim();
             }

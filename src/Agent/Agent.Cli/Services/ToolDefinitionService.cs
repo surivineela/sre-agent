@@ -5,6 +5,7 @@
 using System.Reflection;
 using Agent.Cli.Models;
 using Agent.Framework;
+using Agent.Plugins.Kusto.Tools;
 using Agent.Plugins.Tools;
 
 namespace Agent.Cli.Services;
@@ -77,7 +78,7 @@ public static class ToolDefinitionService
             // Fallback to known assemblies if dynamic discovery fails
             return
             [
-                typeof(KustoToolType).Assembly, // Agent.Plugins
+                typeof(KustoToolExecutorFactory).Assembly, // Agent.Plugins
                 typeof(YamlToolDefinitionBase).Assembly,  // Agent.Framework
             ];
         }
