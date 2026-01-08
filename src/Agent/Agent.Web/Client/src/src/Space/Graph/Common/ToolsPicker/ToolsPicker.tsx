@@ -297,7 +297,7 @@ const useToolsTreeGridStyles = makeStyles({
     body: {
         flexGrow: 1,
         overflowY: 'auto',
-        overflowX: 'hidden',
+        overflowX: 'auto',
     },
     tableRow: {
         margin: '2px',

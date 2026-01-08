@@ -20,7 +20,6 @@ import {
     Skill,
     SystemTool,
 } from '../../Contracts/ExtendedAgentGraph';
-import PlaygroundModal, { PlaygroundTarget } from '../../Playground/PlaygroundModal';
 import { useExtendedAgentGraphStyles } from '../../Styles/ExtendedAgentGraph.styles';
 import { ExtendedAgentInfoPanel } from '../ExtendedAgentInfoPanel/ExtendedAgentInfoPanel';
 import { EntityCard } from './Common/EntityCard';
@@ -71,8 +70,6 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     const [selectedDrawerItem, setSelectedDrawerItem] = useState<ExtendedAgentGraphNode>();
     const [selectedDrawerItemId, setSelectedDrawerItemId] = useState<{ id: string; type: ExtendedAgentNodeType }>();
     const [lastUpdated, setLastUpdated] = useState<string>('');
-    const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
-    const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
     const [isInfoPanelFloating, setIsInfoPanelFloating] = useState(false);
     const [infoPanelPosition, setInfoPanelPosition] = useState({ x: 0, y: 0 });
     const [infoPanelWidth, setInfoPanelWidth] = useState(INFO_PANEL_DEFAULT_WIDTH);
@@ -92,16 +89,6 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
     const allKustoTools = useMemo(() => {
         return tools.filter(tool => tool.type === 'KustoTool');
     }, [tools]);
-
-    const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
-        setPlaygroundTarget(target);
-        setIsPlaygroundOpen(true);
-    }, []);
-
-    const handleDismissPlayground = useCallback(() => {
-        setIsPlaygroundOpen(false);
-        setPlaygroundTarget(undefined);
-    }, []);
 
     const handleOpenInfoPanel = useCallback((itemName: string, itemType: ExtendedAgentNodeType) => {
         setSelectedDrawerItemId({ id: itemName, type: itemType });
@@ -420,17 +407,6 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                 </TabList>
 
                 {renderTable()}
-
-                {/* Playground Modal */}
-                <PlaygroundModal
-                    open={isPlaygroundOpen}
-                    target={playgroundTarget}
-                    agents={agents}
-                    tools={tools}
-                    connectors={connectors}
-                    systemTools={systemTools || []}
-                    onDismiss={handleDismissPlayground}
-                />
             </div>
             {/* Info Panel */}
             {selectedDrawerItem && (
@@ -453,7 +429,6 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         width={infoPanelWidth}
                         minWidth={INFO_PANEL_MIN_WIDTH}
                         maxWidth={INFO_PANEL_MAX_WIDTH}
-                        onOpenPlayground={handleOpenPlayground}
                         onEditKustoTool={onEditKustoTool}
                         onEditPythonTool={onEditPythonTool}
                         onEditSkill={onEditSkill}

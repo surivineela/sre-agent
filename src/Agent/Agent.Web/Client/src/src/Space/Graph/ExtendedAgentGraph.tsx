@@ -7,9 +7,11 @@ import {
     MessageBarActions,
     MessageBarBody,
     Spinner,
+    Text,
     webDarkTheme,
-    webLightTheme,
+    webLightTheme
 } from '@fluentui/react-components';
+import { BeakerRegular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -18,7 +20,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
-import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, PlaygroundResources } from '../../Strings/SREAgentResources';
 import {
     AgentQuickAction,
     ExtendedAgent,
@@ -30,6 +32,7 @@ import {
     INFO_PANEL_DEFAULT_WIDTH,
     INFO_PANEL_MAX_WIDTH,
     INFO_PANEL_MIN_WIDTH,
+    PlaygroundEntity,
     Skill,
     TriggerQuickAction,
 } from '../Contracts/ExtendedAgentGraph';
@@ -39,7 +42,6 @@ import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import { useExtendedAgentGraph } from '../Hooks/useExtendedAgentGraph';
 import { useExtendedAgentGraphLayout } from '../Hooks/useExtendedAgentGraphLayout';
 import { HandlerCreateOrEditInfo } from '../IncidentManagement/CreateIncidentHandler/Contracts';
-import PlaygroundModal, { PlaygroundTarget } from '../Playground/PlaygroundModal';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from '../ScheduledTasks/Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTasksContext } from '../ScheduledTasks/Hooks/ScheduledTasksContext';
 import { useCommonStyles } from '../Styles/Common.styles';
@@ -84,6 +86,10 @@ import { ExtendedAgentToolbar } from './ExtendedAgentToolbar';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from './ExtendedAgentYamlUtils';
 import { IncidentTriggerCreateDialog } from './IncidentTriggerCreateDialog/IncidentTriggerCreateDialog';
 import { KustoToolDialog, KustoToolDialogMode } from './KustoToolDialog/KustoToolDialog';
+import { KustoToolPlayground } from './KustoToolDialog/KustoToolPlayground';
+import { AgentPlayground } from './Playground/AgentPlayground/AgentPlayground';
+import { PlaygroundEntitySelector } from './Playground/PlaygroundEntitySelector';
+import { SystemToolPlayground } from './Playground/SystemToolPlayground/SystemToolPlayground';
 import { PythonToolDialog, PythonToolDialogMode } from './PythonToolDialog/PythonToolDialog';
 import { ToolCard } from './ToolCard';
 import { TriggerCard } from './TriggerCard';
@@ -113,10 +119,10 @@ type LinkRetryContext = {
 type CreationDialogContext =
     | undefined
     | {
-          kind: 'linkFromAgent';
-          sourceAgentName: string;
-          targetType: 'agent' | 'tool';
-      };
+        kind: 'linkFromAgent';
+        sourceAgentName: string;
+        targetType: 'agent' | 'tool';
+    };
 
 const ExtendedAgentGraphContent = memo(() => {
     const {
@@ -215,8 +221,6 @@ const ExtendedAgentGraphContent = memo(() => {
     const [infoPanelPosition, setInfoPanelPosition] = useState({ x: 0, y: 0 });
     const [isInfoPanelDragging, setIsInfoPanelDragging] = useState(false);
     const [infoPanelWidth, setInfoPanelWidth] = useState(INFO_PANEL_DEFAULT_WIDTH);
-    const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
-    const [playgroundTarget, setPlaygroundTarget] = useState<PlaygroundTarget | undefined>(undefined);
     const [isInfoPanelCollapsed, setIsInfoPanelCollapsed] = useState(true);
     const [isSkillDialogOpen, setIsSkillDialogOpen] = useState(false);
     const [editingSkill, setEditingSkill] = useState<Skill | undefined>(undefined);
@@ -231,6 +235,8 @@ const ExtendedAgentGraphContent = memo(() => {
     const infoPanelResizeHandleRef = useRef<HTMLDivElement | null>(null);
     const lastFitSignatureRef = useRef<string>('');
     const reactFlowInstance = useReactFlow();
+
+    const [playgroundEntity, setPlaygroundEntity] = useState<PlaygroundEntity | undefined>(undefined);
 
     const handleInfoPanelResizePointerMove = useCallback((event: PointerEvent) => {
         const resizeState = infoPanelResizeStateRef.current;
@@ -637,16 +643,6 @@ const ExtendedAgentGraphContent = memo(() => {
         } as const;
     }, [creationDialogContext]);
 
-    const handleOpenPlayground = useCallback((target: PlaygroundTarget) => {
-        setPlaygroundTarget(target);
-        setIsPlaygroundOpen(true);
-    }, []);
-
-    const handleDismissPlayground = useCallback(() => {
-        setIsPlaygroundOpen(false);
-        setPlaygroundTarget(undefined);
-    }, []);
-
     const handleEditKustoTool = useCallback((tool: ExtendedTool) => {
         setCreateToolAgent(undefined);
         setToolDialogMode(KustoToolDialogMode.Edit);
@@ -754,8 +750,8 @@ const ExtendedAgentGraphContent = memo(() => {
             const entityNodeId = !entity
                 ? undefined
                 : entity.entityType === 'Agent'
-                  ? `agent_${entity.entityName}`
-                  : `trigger_${entity.entityName}`;
+                    ? `agent_${entity.entityName}`
+                    : `trigger_${entity.entityName}`;
             const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
             if (targetNode) {
                 requestAnimationFrame(() => {
@@ -776,6 +772,9 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [refetch]);
 
     const onChangeViewType = useCallback((view: ExtendedAgentGraphView) => {
+        if (view !== ExtendedAgentGraphView.Playground) {
+            setPlaygroundEntity(undefined);
+        }
         setCurrentView(view);
     }, []);
 
@@ -1349,8 +1348,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         action === 'createHandoffSourceAgent'
                             ? 'createSource'
                             : action === 'createHandoffTargetAgent'
-                              ? 'createTarget'
-                              : 'edit',
+                                ? 'createTarget'
+                                : 'edit',
                 });
                 return;
             }
@@ -1704,6 +1703,63 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
+        if (currentView === ExtendedAgentGraphView.Playground) {
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto', height: '100%' }}>
+                    <PlaygroundEntitySelector
+                        agents={agents}
+                        systemTools={systemTools}
+                        extendedTools={tools}
+                        mcpConnections={mcpConnections}
+                        selectedEntity={playgroundEntity}
+                        onEntitySelect={entity => setPlaygroundEntity(entity)}
+                        isLoading={loading}
+                    />
+                    {playgroundEntity && playgroundEntity.entityType === 'Agent' && (
+                        <AgentPlayground
+                            key={`Agent_${playgroundEntity.entity.name}`}
+                            refresh={handleRefresh}
+                            agents={agents}
+                            existingTools={tools}
+                            systemTools={systemTools}
+                            mcpConnections={mcpConnections}
+                            agent={playgroundEntity.entity}
+                        />
+                    )}
+                    {playgroundEntity && playgroundEntity.entityType === 'ExtendedTool' && (
+                        <KustoToolPlayground
+                            key={`ExtendedTool_${playgroundEntity.entity.name}`}
+                            connectors={connectors}
+                            agentName={undefined}
+                            addToolsToAgent={() => { }}
+                            refresh={handleRefresh}
+                            kustoTool={playgroundEntity.entity}
+                            mode={KustoToolDialogMode.Edit}
+                        />
+                    )}
+                    {playgroundEntity && playgroundEntity.entityType === 'SystemTool' && (
+                        <SystemToolPlayground key={`SystemTool_${playgroundEntity.entity.name}`} tool={playgroundEntity.entity} />
+                    )}
+                    {!playgroundEntity && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                gap: '16px',
+                                overflow: 'auto',
+                            }}
+                        >
+                            <BeakerRegular style={{ width: 128, height: 128 }} />
+                            <Text>{intl.formatMessage(PlaygroundResources.noSelectionMessage)}</Text>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         return (
             <ExtendedAgentTableView
                 activeTab={currentTableViewTab}
@@ -1749,7 +1805,28 @@ const ExtendedAgentGraphContent = memo(() => {
         onNodesChange,
         onEdgesChange,
         theme.isInverted,
+        playgroundEntity,
     ]);
+
+    useEffect(() => {
+        setPlaygroundEntity(prev => {
+            if (!prev || prev.entityType !== 'Agent') {
+                return prev;
+            }
+            const updatedAgent = agents.find(a => a.name === prev.entity.name);
+            return updatedAgent ? { entityType: 'Agent', entity: updatedAgent } : undefined;
+        });
+    }, [agents]);
+
+    useEffect(() => {
+        setPlaygroundEntity(prev => {
+            if (!prev || prev.entityType !== 'ExtendedTool') {
+                return prev;
+            }
+            const updatedTool = tools.find(t => t.name === prev.entity.name);
+            return updatedTool ? { entityType: 'ExtendedTool', entity: updatedTool } : undefined;
+        });
+    }, [tools]);
 
     const showEmptyState = useMemo(() => !isLoading && !hasAgents && !hasSkills, [isLoading, hasAgents, hasSkills]);
 
@@ -1854,6 +1931,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 toggleSkillGroupExpanded,
                 expandedToolboxes,
                 toggleToolboxExpanded,
+                setPlaygroundEntity,
             }}
         >
             <ScheduledTasksContext.Provider
@@ -2008,7 +2086,6 @@ const ExtendedAgentGraphContent = memo(() => {
                                         width={infoPanelWidth}
                                         minWidth={INFO_PANEL_MIN_WIDTH}
                                         maxWidth={INFO_PANEL_MAX_WIDTH}
-                                        onOpenPlayground={handleOpenPlayground}
                                         onEditKustoTool={handleEditKustoTool}
                                         onEditPythonTool={handleEditPythonTool}
                                         onEditSkill={skill => {
@@ -2076,7 +2153,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                 });
                             }
                         }}
-                        setHandlerOperationStatus={() => {}}
+                        setHandlerOperationStatus={() => { }}
                         handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                     />
                     <ScheduledTaskCreateOrEditDialog
@@ -2144,16 +2221,6 @@ const ExtendedAgentGraphContent = memo(() => {
                         mcpConnections={mcpConnections}
                         skills={skills}
                         agentCreateOrEditInfo={agentCreateOrEditInfo}
-                    />
-
-                    <PlaygroundModal
-                        open={isPlaygroundOpen}
-                        target={playgroundTarget}
-                        agents={agents}
-                        tools={tools}
-                        connectors={connectors}
-                        systemTools={systemTools}
-                        onDismiss={handleDismissPlayground}
                     />
 
                     <CreateSkillDialog

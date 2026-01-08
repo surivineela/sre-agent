@@ -10,8 +10,10 @@ import {
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
 import { Dismiss16Filled } from '@fluentui/react-icons';
-import { FC, PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { DirtyStateContext } from '../../../Space/Contracts/Context';
+import { DirtyStateOnClickConfirmationWrapper } from '../../../Space/IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { PillProps } from './Contracts';
 
@@ -124,7 +126,9 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
     labelDelimiter = ':',
     valueMaxWidth = 200,
     useInDialog = false,
+    blockOnDirtyContext = false,
 }) => {
+    const { isDirty } = useContext(DirtyStateContext);
     const intl = useIntl();
     const styles = usePillStyles();
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -227,16 +231,18 @@ export const Pill: FC<PropsWithChildren<PillProps>> = ({
                 >
                     <div className={styles.body}>{children}</div>
                     <DialogActions className={styles.dialogActions}>
-                        <Button
-                            appearance="primary"
-                            onClick={() => {
-                                onApply();
-                                setDialogOpen(false);
-                            }}
-                            disabled={applyDisabled}
-                        >
-                            {applyLabel || intl.formatMessage(SreAgentResources.apply)}
-                        </Button>
+                        <DirtyStateOnClickConfirmationWrapper isDirty={isDirty && blockOnDirtyContext}>
+                            <Button
+                                appearance="primary"
+                                disabled={applyDisabled}
+                                onClick={() => {
+                                    onApply();
+                                    setDialogOpen(false);
+                                }}
+                            >
+                                {applyLabel || intl.formatMessage(SreAgentResources.apply)}
+                            </Button>
+                        </DirtyStateOnClickConfirmationWrapper>
                         <Button
                             appearance="secondary"
                             onClick={() => {

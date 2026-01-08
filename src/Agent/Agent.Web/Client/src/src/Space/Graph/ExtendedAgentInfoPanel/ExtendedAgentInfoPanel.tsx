@@ -34,10 +34,12 @@ import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
     ExtendedAgentGraphNode,
+    ExtendedAgentGraphView,
     ExtendedAgentNodeType,
     ExtendedConnector,
     ExtendedTool,
     ExtendedTrigger,
+    PlaygroundEntity,
     Skill,
     SystemTool,
 } from '../../Contracts/ExtendedAgentGraph';
@@ -131,7 +133,6 @@ export const ExtendedAgentInfoPanel = memo(
         width,
         minWidth,
         maxWidth,
-        onOpenPlayground,
         onEditKustoTool,
         onEditPythonTool,
         onEditSkill,
@@ -141,7 +142,8 @@ export const ExtendedAgentInfoPanel = memo(
         const showAgentBuilderPlayground = useConfigSetting(SettingNames.ShowAgentBuilderPlayground);
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
-        const { triggerAgentQuickAction, triggerTriggerQuickAction } = useContext(ExtendedAgentGraphContext);
+        const { triggerAgentQuickAction, triggerTriggerQuickAction, setPlaygroundEntity, onViewChange } =
+            useContext(ExtendedAgentGraphContext);
         const [yamlEditorContext, setYamlEditorContext] = useState<YamlEditorContext>();
         const [isResizeHandleHovered, setIsResizeHandleHovered] = useState(false);
         const [isDeleting, setIsDeleting] = useState(false);
@@ -604,31 +606,31 @@ export const ExtendedAgentInfoPanel = memo(
             return undefined;
         }, [selectedAgent, selectedConnector, selectedTool, selectedTrigger, selectedSystemTool, selectedSkill]);
 
-        const playgroundTarget = useMemo<PlaygroundTarget | undefined>(() => {
+        const playgroundEntity = useMemo<PlaygroundEntity | undefined>(() => {
             if (selectedTool) {
                 if (selectedTool.type === 'mcp') {
-                    return undefined;
+                    return {
+                        entityType: 'McpTool',
+                        entity: selectedTool,
+                    };
                 }
-                const owningAgent = selectedAgent?.tools?.includes(selectedTool.name ?? '') ? selectedAgent : undefined;
                 return {
-                    type: 'tool',
-                    tool: selectedTool,
-                    agent: owningAgent,
+                    entityType: 'ExtendedTool',
+                    entity: selectedTool,
                 };
             }
 
             if (selectedSystemTool) {
                 return {
-                    type: 'systemTool',
-                    tool: selectedSystemTool,
-                    agent: selectedAgent,
+                    entityType: 'SystemTool',
+                    entity: selectedSystemTool,
                 };
             }
 
             if (selectedAgent && isAgentContext) {
                 return {
-                    type: 'agent',
-                    agent: selectedAgent,
+                    entityType: 'Agent',
+                    entity: selectedAgent,
                 };
             }
 
@@ -636,12 +638,13 @@ export const ExtendedAgentInfoPanel = memo(
         }, [isAgentContext, selectedAgent, selectedSystemTool, selectedTool]);
 
         const handleOpenPlaygroundClick = useCallback(() => {
-            if (!playgroundTarget) {
+            if (!playgroundEntity) {
                 return;
             }
 
-            onOpenPlayground?.(playgroundTarget);
-        }, [onOpenPlayground, playgroundTarget]);
+            setPlaygroundEntity(playgroundEntity);
+            onViewChange(ExtendedAgentGraphView.Playground);
+        }, [setPlaygroundEntity, onViewChange, playgroundEntity]);
 
         const headerIconType = useMemo(() => {
             if (selectedTool) {
@@ -749,7 +752,7 @@ export const ExtendedAgentInfoPanel = memo(
                                 headerTitle={headerTitle}
                                 headerSubtitle={headerSubtitle}
                                 headerEditContext={headerEditContext}
-                                playgroundTarget={playgroundTarget}
+                                playgroundEntity={playgroundEntity}
                                 showAgentBuilderPlayground={showAgentBuilderPlayground}
                                 isAgentContext={isAgentContext}
                                 selectedAgent={selectedAgent}

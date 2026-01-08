@@ -4446,6 +4446,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     subagentNamePlaceholder: { defaultMessage: 'Enter a descriptive name', id: 'UNQfKX' },
     refineWithAi: { defaultMessage: 'Refine with AI', id: 'uwY8Nf' },
     viewAiSuggestions: { defaultMessage: 'View AI suggestions', id: '03qRza' },
+    hideAiSuggestions: { defaultMessage: 'Hide AI suggestions', id: '5yOCuh' },
     agentInstructionsPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
     agentHandoffInstructions: { defaultMessage: 'Handoff instructions', id: '8u2W0L' },
     agentHandoffInstructionsPlaceholder: { defaultMessage: 'Enter handoff instructions', id: '/+WtRc' },
@@ -5206,6 +5207,18 @@ export const PlaygroundResources = defineMessages({
         defaultMessage: 'Quick fixes',
         id: '0Krg21',
     },
+    qualityDrawerAcceptSelectedFixes: {
+        defaultMessage: 'Accept selected fixes',
+        id: '4I2I3m',
+    },
+    qualityDrawerAcceptSelectedFixesAndSave: {
+        defaultMessage: 'Accept selected fixes and save',
+        id: 'jWgenr',
+    },
+    qualityDrawerAcceptSelectedFixesAndContinueEditing: {
+        defaultMessage: 'Accept selected fixes and continue editing',
+        id: 'RdMODA',
+    },
     qualityDrawerAutoLabel: {
         defaultMessage: 'Auto apply',
         id: 'vIBOch',
@@ -5318,9 +5331,17 @@ export const PlaygroundResources = defineMessages({
         defaultMessage: 'Fresh • {time}',
         id: 'vz94UY',
     },
+    qualityStatusAnalyzedWithTime: {
+        defaultMessage: 'Analyzed • {time}',
+        id: '9+U/Wr',
+    },
     qualityStatusStale: {
         defaultMessage: 'Out of date',
         id: 'osuyeD',
+    },
+    qualityStatusAnalyzed: {
+        defaultMessage: 'Analyzed',
+        id: 'gJWy5X',
     },
     qualityStatusNotAnalyzed: {
         defaultMessage: 'Not analyzed',
@@ -5421,6 +5442,88 @@ export const PlaygroundResources = defineMessages({
     systemToolTesterParameterPlaceholder: {
         defaultMessage: 'Enter {name}',
         id: 'M+QCSD',
+    },
+
+    testPlayground: {
+        defaultMessage: 'Test playground',
+        id: 'smIXdP',
+    },
+
+    test: { defaultMessage: 'Test', id: 'xu6eM8' },
+    evaluation: { defaultMessage: 'Evaluation', id: 'Bw4xrI' },
+    evaluationOutdated: {
+        defaultMessage: 'Evaluation results are outdated due to recent changes. Please re-evaluate to get the latest insights.',
+        id: 'PeFBjl',
+    },
+    evaluationNewChatActivity: {
+        defaultMessage:
+            'There has been new chat activity since the last evaluation. Consider re-evaluating to ensure insights are up to date.',
+        id: 'ukq8eI',
+    },
+    evaluationQuickFixesAvailable: {
+        defaultMessage: "You have {count} quick {count, plural, one {fix} other {fixes}} available to improve your agent's quality.",
+        id: '2CFshX',
+    },
+    reviewAndApply: { defaultMessage: 'Review and apply', id: 'oOF+UT' },
+    intentQualityQuestion: { defaultMessage: "How well does the agent's behavior align with its stated goal?", id: '2fjiLg' },
+    intentQualityFive: { defaultMessage: 'Perfect alignment, all on-task', id: 'ohfF15' },
+    intentQualityFour: { defaultMessage: 'Strong with minor deviations', id: 'aVwj2j' },
+    intentQualityThree: { defaultMessage: 'Moderate, some mixed focus', id: 'glC+/k' },
+    intentQualityTwo: { defaultMessage: 'Weak, significant misalignment', id: '18boz/' },
+    intentQualityOne: { defaultMessage: 'No alignment with goal', id: 'QfoWH0' },
+    completenessScoreDescription: {
+        defaultMessage:
+            'Is the prompt complete with clear role, goal, and operational guidance? Higher scores indicate well-structured, comprehensive prompts.',
+        id: 'b+4JtY',
+    },
+    toolFitScoreDescription: {
+        defaultMessage:
+            'Are the right tools linked? Does the agent have all necessary capabilities? Higher scores mean fewer missing tools.',
+        id: '8lXGrr',
+    },
+    promptClarityScoreDescription: {
+        defaultMessage: 'Is the prompt clear, specific, and actionable for the LLM? Higher scores indicate better instruction quality.',
+        id: 'hX/ezX',
+    },
+    safetyScoreDescription: {
+        defaultMessage: 'Does it include error handling, confirmation prompts, and safety checks? Higher scores mean better safeguards.',
+        id: 'r8jak4',
+    },
+    defaultScoreDescription: { defaultMessage: 'Quality score for this dimension (0-100)', id: 'GGvPEB' },
+    evaluate: { defaultMessage: 'Evaluate', id: 'Q7T0iv' },
+    momentsAgo: { defaultMessage: 'moments ago', id: 'Cv2vtV' },
+    minutesAgo: { defaultMessage: '{minutes}m ago', id: '3Ek5z7' },
+    hoursAgo: { defaultMessage: '{hours}h ago', id: '0+9dD8' },
+    daysAgo: { defaultMessage: '{days}d ago', id: 'ppt4BE' },
+    promptOpportunities: { defaultMessage: '{count} prompt {count, plural, one {opportunity} other {opportunities}}', id: 'Zc8xuE' },
+    toolGaps: { defaultMessage: '{count} tool {count, plural, one {gap} other {gaps}}', id: 'mkQVlA' },
+    followUps: { defaultMessage: '{count} {count, plural, one {follow-up} other {follow-ups}}', id: 'Sn1s36' },
+    noMajorGaps: { defaultMessage: 'No major gaps detected', id: 'cZAG1/' },
+    criticalFixRequired: { defaultMessage: 'Critical fix required', id: 'k5x8I2' },
+    reviewBeforeApplying: { defaultMessage: 'Review before applying', id: 'bSEzRv' },
+    nextBestStep: { defaultMessage: 'Next best step: {title} ({impactLabel}).', id: 'XynBVY' },
+    nextBestStepCaptureTranscript: { defaultMessage: 'Next best step: Capture a transcript to analyze intent match.', id: 'LRbqvb' },
+    completeness: { defaultMessage: 'Completeness', id: 'aJbRki' },
+    completenessEvidence: { defaultMessage: '{count} open {count, plural, one {note} other {notes}}', id: 'EuUxTD' },
+    intentMatch: { defaultMessage: 'Intent match', id: 'SE+u5f' },
+    intentMatchEvidence: { defaultMessage: '{count} chat {count, plural, one {flag} other {flags}}', id: 'nFJeOP' },
+    toolFit: { defaultMessage: 'Tool fit', id: 'KIFqqs' },
+    toolFitEvidence: { defaultMessage: '{count} tool {count, plural, one {gap} other {gaps}}', id: 'mkQVlA' },
+    promptClarity: { defaultMessage: 'Prompt clarity', id: 'CxitpT' },
+    promptClarityEvidence: { defaultMessage: '{count} prompt notes', id: '1Mwy7c' },
+    safety: { defaultMessage: 'Safety', id: 'wXVN4/' },
+    safetyEvidence: { defaultMessage: '{count} blocking issues', id: '55Fsy6' },
+    actionability: { defaultMessage: 'Actionability', id: 'JHYtif' },
+    actionabilityEvidence: { defaultMessage: '{count} {count, plural, one {action} other {actions}} queued', id: 'EOCHhv' },
+    evidenceList: { defaultMessage: 'Evidence: {evidence}.', id: '1Boh2Z' },
+    previewChanges: { defaultMessage: 'Preview changes', id: 'BIKH4N' },
+    unsavedChangesTestingContinue: {
+        defaultMessage: 'Testing with unsaved changes is not supported. Please apply or discard your changes to continue testing.',
+        id: 'a+wvAg',
+    },
+    unsavedChangesTestingBegin: {
+        defaultMessage: 'Testing with unsaved changes is not supported. Please apply or discard your changes to begin testing.',
+        id: 'D+oGFF',
     },
 });
 

@@ -4,9 +4,11 @@ import { FC, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
-import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, PlaygroundResources } from '../../Strings/SREAgentResources';
 import { CopilotRadio as Radio } from '../Components/Common/CopilotRadio';
+import { DirtyStateContext } from '../Contracts/Context';
 import { ExtendedAgentGraphView } from '../Contracts/ExtendedAgentGraph';
+import { DirtyStateOnChangeConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useCommonStyles } from '../Styles/Common.styles';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import CreateButton from './CreateButton';
@@ -39,6 +41,7 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
     disableCreateSkill,
 }) => {
     const { toolbarWrapper, toolbarRefreshButton, toolbarInstallMcpButton } = useExtendedAgentGraphStyles();
+    const { isDirty } = useContext(DirtyStateContext);
     const { contentHeader } = useCommonStyles();
 
     const intl = useIntl();
@@ -55,24 +58,32 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                 disableCreateMetaAgent={disableCreateMetaAgent}
                 disableCreateSubagent={disableCreateSubagent}
                 disableCreateSkill={disableCreateSkill}
-                disabled={isLoading || !hasData}
+                disabled={isLoading || !hasData || currentView === ExtendedAgentGraphView.Playground}
             />
-            <RadioGroup
-                name="viewToggle"
-                value={currentView}
-                layout="horizontal"
-                onChange={(_, data) => onViewChange(data.value as ExtendedAgentGraphView)}
-            >
-                <Radio value={ExtendedAgentGraphView.Visual} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
-                <Radio
-                    value={ExtendedAgentGraphView.Grid}
-                    label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)}
-                    disabled={showEmptyState}
-                />
-            </RadioGroup>
+            <DirtyStateOnChangeConfirmationWrapper isDirty={isDirty}>
+                <RadioGroup
+                    name="viewToggle"
+                    value={currentView}
+                    layout="horizontal"
+                    onChange={(_, data) => onViewChange(data.value as ExtendedAgentGraphView)}
+                >
+                    <Radio value={ExtendedAgentGraphView.Visual} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
+                    <Radio
+                        value={ExtendedAgentGraphView.Grid}
+                        label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)}
+                        disabled={showEmptyState}
+                    />
+                    <Radio value={ExtendedAgentGraphView.Playground} label={intl.formatMessage(PlaygroundResources.testPlayground)} />
+                </RadioGroup>
+            </DirtyStateOnChangeConfirmationWrapper>
             <div className={toolbarRefreshButton}>
                 <DividerTall20Regular color={tokens.colorNeutralStroke2} />
-                <Button appearance="transparent" icon={<ArrowClockwise20Regular />} onClick={onRefresh} disabled={isLoading}>
+                <Button
+                    appearance="transparent"
+                    icon={<ArrowClockwise20Regular />}
+                    onClick={onRefresh}
+                    disabled={isLoading || currentView === ExtendedAgentGraphView.Playground}
+                >
                     {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
                 </Button>
             </div>

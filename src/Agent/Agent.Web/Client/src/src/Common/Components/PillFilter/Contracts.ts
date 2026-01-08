@@ -23,6 +23,7 @@ export interface PillProps {
         labelClass: string;
         valueClass: string;
     }) => React.ReactNode;
+    blockOnDirtyContext?: boolean;
 }
 
 export interface CommonFilterProps {
@@ -33,6 +34,7 @@ export interface CommonFilterProps {
     valueMaxWidth?: number | string;
     useInDialog?: boolean;
     maxDialogPopoverHeight?: number | string;
+    blockOnDirtyContext?: boolean;
 }
 
 export interface TimeRangeValue {

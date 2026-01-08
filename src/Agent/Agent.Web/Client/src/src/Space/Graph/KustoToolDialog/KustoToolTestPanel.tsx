@@ -10,12 +10,7 @@ import { TestValueAccordion } from './Common/TestValueAccordion';
 import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
 import { KustoToolFormProps, parseKustoAuthorizationError, truncateErrorMessage } from './KustoToolUtilities';
 
-interface KustoToolTestPanelProps {
-    hasSuccessRunTest: boolean;
-    setHasSuccessRunTest: (hasSuccess: boolean) => void;
-}
-
-interface KustoQueryTestResponse {
+export interface KustoQueryTestResponse {
     success: boolean;
     rowCount: number;
     columns?: string[];
@@ -23,8 +18,21 @@ interface KustoQueryTestResponse {
     executionTimeMs?: number;
     errorMessage?: string | null;
 }
+export interface KustoToolTestPanelProps {
+    hasSuccessRunTest: boolean;
+    setHasSuccessRunTest: (hasSuccess: boolean) => void;
+    successfulTestRunResult: KustoQueryTestResponse | null;
+    setSuccessfulTestRunResult: (result: KustoQueryTestResponse | null) => void;
+    isPlaygroundMode?: boolean;
+}
 
-export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunTest, setHasSuccessRunTest }) => {
+export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({
+    hasSuccessRunTest,
+    setHasSuccessRunTest,
+    successfulTestRunResult,
+    setSuccessfulTestRunResult,
+    isPlaygroundMode,
+}) => {
     const intl = useIntl();
     const styles = useKustoToolCreateDialogStyles();
     const { values, isValid, dirty } = useFormikContext<KustoToolFormProps>();
@@ -32,21 +40,20 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
     const [isRunning, setIsRunning] = useState(false);
     const [testError, setTestError] = useState<string | null>(null);
-    const [testResult, setTestResult] = useState<KustoQueryTestResponse | null>(null);
 
     const onRunTest = useCallback(async () => {
         setIsRunning(true);
         setHasSuccessRunTest(false);
+        setSuccessfulTestRunResult(null);
         setTestError(null);
-        setTestResult(null);
 
         const response = await extendedAgentClient.testKustoTool(values);
 
         if (response.isSuccessful && response.content) {
             const result = response.content as KustoQueryTestResponse;
             if (result.success) {
-                setTestResult(result);
                 setHasSuccessRunTest(true);
+                setSuccessfulTestRunResult(result);
             } else {
                 const errorMessage = result.errorMessage ?? '';
                 const processedErrorMessage = errorMessage.includes('403')
@@ -71,7 +78,12 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
                 <Text size={300} weight="semibold">
                     {intl.formatMessage(ExtendedAgentsGraphResources.testQuery)}
                 </Text>
-                <Button appearance="primary" icon={<Play16Regular />} onClick={onRunTest} disabled={!dirty || !isValid || isRunning}>
+                <Button
+                    appearance="primary"
+                    icon={<Play16Regular />}
+                    onClick={onRunTest}
+                    disabled={(!isPlaygroundMode && !dirty) || !isValid || isRunning}
+                >
                     {intl.formatMessage(ExtendedAgentsGraphResources.runTest)}
                 </Button>
                 {testError && (
@@ -81,7 +93,7 @@ export const KustoToolTestPanel: FC<KustoToolTestPanelProps> = ({ hasSuccessRunT
                 )}
             </div>
             <TestValueAccordion />
-            {testResult?.success && <KustoToolTestResults result={testResult} />}
+            {successfulTestRunResult?.success && <KustoToolTestResults result={successfulTestRunResult} />}
             {!hasSuccessRunTest && <EmptyContent />}
         </>
     );

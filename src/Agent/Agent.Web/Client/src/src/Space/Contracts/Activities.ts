@@ -100,6 +100,7 @@ export interface IChatBoxProps {
     lockAgentSelection?: boolean;
     onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;
     renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
+    inputDisabledMessage?: string;
 }
 
 export enum ChatBoxSidePanelType {
@@ -213,6 +214,7 @@ export interface IChatBoxFooterProps {
     postSystemMessage?: (text: string) => void;
     forcedAgentName?: string;
     lockAgentSelection?: boolean;
+    inputDisabledMessage?: string;
 }
 
 export interface SendMessageOptions {

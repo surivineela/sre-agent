@@ -8,8 +8,15 @@ export const useKustoToolCreateDialogStyles = makeStyles({
     dialogBody: {
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
         gap: '0px',
+        height: '100%',
+    },
+    fullScreenBody: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0px',
+        height: '0px',
+        flex: '1 1 auto',
     },
     dialogTitleWrapper: {
         display: 'flex',
@@ -21,20 +28,39 @@ export const useKustoToolCreateDialogStyles = makeStyles({
     dialogTitle: {
         margin: '0px',
     },
+    dialogContent: {
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    fullScreenContent: {
+        flex: '1 1 auto',
+        height: '0px',
+        display: 'flex',
+        flexDirection: 'column'
+    },
     toolForm: {
         display: 'flex',
-        gap: '24px',
         padding: tokens.spacingVerticalXL,
         overflowX: 'auto',
+        flex: '1 1 auto',
+        height: '0%',
+        flexDirection: 'row',
+        paddingTop: '0px',
+        paddingBottom: '0px',
     },
     toolFormLeft: {
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingHorizontalXL,
         minWidth: '600px',
+        flex: '1 1 50%',
+        paddingTop: '16px',
+        paddingRight: '16px',
+        paddingBottom: '16px',
+        overflowY: 'auto',
     },
     toolFormDivider: {
-        backgroundColor: '#D1D1D1',
+        backgroundColor: tokens.colorNeutralStroke1,
         width: '1px',
         alignSelf: 'stretch',
         padding: '0px',
@@ -44,9 +70,12 @@ export const useKustoToolCreateDialogStyles = makeStyles({
         flexDirection: 'column',
         alignItems: 'flex-start',
         gap: tokens.spacingVerticalL,
-        flex: '1 0 0',
         alignSelf: 'stretch',
         minWidth: '600px',
+        flex: '1 1 50%',
+        paddingTop: '16px',
+        paddingBottom: '16px',
+        paddingLeft: '16px',
     },
     dialogActions: {
         display: 'flex',
@@ -106,7 +135,6 @@ export const useKustoToolCreateDialogStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalS,
         width: '100%',
-        maxWidth: '800px',
         flex: '1 1 auto',
         height: '0px',
     },

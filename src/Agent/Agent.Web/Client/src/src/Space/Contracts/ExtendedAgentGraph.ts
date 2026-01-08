@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+import { McpTool } from '../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { EntityType } from '../Graph/ExtendedAgentCreationDialog/types';
 
 // Skill Types
@@ -227,6 +228,7 @@ export type AgentQuickAction =
 export enum ExtendedAgentGraphView {
     Grid = 'grid',
     Visual = 'visual',
+    Playground = 'playground',
 }
 
 // Graph Context
@@ -249,6 +251,7 @@ interface ExtendedAgentGraphContextProps {
     toggleSkillGroupExpanded?: () => void;
     expandedToolboxes: Set<string>;
     toggleToolboxExpanded: (agentName: string) => void;
+    setPlaygroundEntity: React.Dispatch<React.SetStateAction<PlaygroundEntity | undefined>>;
 }
 
 export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContextProps>({
@@ -268,6 +271,7 @@ export const ExtendedAgentGraphContext = createContext<ExtendedAgentGraphContext
     toggleSkillGroupExpanded: () => {},
     expandedToolboxes: new Set<string>(),
     toggleToolboxExpanded: () => {},
+    setPlaygroundEntity: () => {},
 });
 
 // Node Size Configuration
@@ -329,6 +333,28 @@ export type ExtendedAgentAnchorEntity = {
     entityType: 'Agent' | 'Trigger';
     entityName: string;
 };
+
+interface PlaygroundAgentEntity {
+    entityType: 'Agent';
+    entity: ExtendedAgent;
+}
+
+interface PlaygroundSystemToolEntity {
+    entityType: 'SystemTool';
+    entity: SystemTool;
+}
+
+interface PlaygroundExtendedToolEntity {
+    entityType: 'ExtendedTool';
+    entity: ExtendedTool;
+}
+
+interface PlaygroundMcpToolEntity {
+    entityType: 'McpTool';
+    entity: McpTool;
+}
+
+export type PlaygroundEntity = PlaygroundAgentEntity | PlaygroundSystemToolEntity | PlaygroundExtendedToolEntity | PlaygroundMcpToolEntity;
 
 export interface PromptImprovementRequest {
     prompt: string;

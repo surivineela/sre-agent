@@ -43,6 +43,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         lockAgentSelection,
         onTelemetryUpdate,
         renderEmptyState,
+        inputDisabledMessage,
     } = props;
 
     const theme = useTheme();
@@ -254,6 +255,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                     onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                                     forcedAgentName={forcedAgentName}
                                     lockAgentSelection={lockAgentSelection}
+                                    inputDisabledMessage={inputDisabledMessage}
                                 />
                             </div>
                         </div>

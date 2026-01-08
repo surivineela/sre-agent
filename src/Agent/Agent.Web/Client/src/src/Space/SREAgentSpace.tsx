@@ -28,7 +28,7 @@ import Thread from './Activities/Thread';
 import NavBarOpenCloseButton from './Components/Nav/NavBarOpenCloseButton';
 import NonThreadCategoryNavItems from './Components/Nav/NonThreadCategoryNavItems';
 import ThreadsNav from './Components/Nav/ThreadsNav';
-import { SreAgentContext, SreAgentSpaceContext } from './Contracts/Context';
+import { DirtyStateContext, SreAgentContext, SreAgentSpaceContext } from './Contracts/Context';
 import { PermissionProvider } from './Contracts/PermissionContext';
 import { PrimaryNavItemValues, SecondaryNavItemValues } from './Contracts/SreAgentSpace';
 import DailyReports from './DailyReports/DailyReports';
@@ -37,6 +37,7 @@ import Graph from './Graph/Graph';
 import { useIncidentManagementConnectivity } from './Hooks/useIncidentManagementConnectivity';
 import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import { useSreAgentSpace } from './Hooks/useSreAgentSpace';
+import { DirtyStateNavigationConfirmDialog } from './IncidentManagement/CreateIncidentHandler/NavigationConfirmDialog';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
@@ -122,6 +123,7 @@ const useControlPlaneDependentTabs = ({ inStandaloneMode, isCrossTenantPortalMod
 const TabsListWrapper: FC = () => {
     const theme = useContext(ThemeContext);
     const sreAgentContext = useContext(SreAgentContext);
+    const { isDirty } = useContext(DirtyStateContext);
     const { isCrossTenantPortalMode, resourceId } = useContext(EnvironmentContext);
     const azPortalProxy = useContext(AzPortalContext);
 
@@ -204,6 +206,7 @@ const TabsListWrapper: FC = () => {
             }}
         >
             <div className={styles.root}>
+                <DirtyStateNavigationConfirmDialog isDirty={isDirty} />
                 <WarningBanner />
                 <div className={styles.content}>
                     {!isAgentStopped && (
@@ -384,6 +387,7 @@ const router = createHashRouter([
 const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);
     const { isCrossTenantPortalMode, resourceId } = useContext(EnvironmentContext);
+    const [isDirty, setIsDirty] = useState(false);
 
     const {
         agent,
@@ -533,7 +537,9 @@ const SREAgentSpace: FC = () => {
             }}
         >
             <PermissionProvider>
-                <RouterProvider router={router} />
+                <DirtyStateContext.Provider value={{ isDirty, setIsDirty }}>
+                    <RouterProvider router={router} />
+                </DirtyStateContext.Provider>
             </PermissionProvider>
         </SreAgentContext.Provider>
     );

@@ -23,7 +23,7 @@ import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useKustoToolSettings } from './Hooks/useKustoToolSettings';
 import { useKustoToolCreateDialogStyles } from './KustoToolDialog.Styles';
 import { KustoToolCreateForm } from './KustoToolForm';
-import { KustoToolTestPanel } from './KustoToolTestPanel';
+import { KustoQueryTestResponse, KustoToolTestPanel } from './KustoToolTestPanel';
 import { KustoToolFormProps } from './KustoToolUtilities';
 
 interface KustoToolDialogProps {
@@ -61,10 +61,12 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
         save: saveKustoToolSettings,
     } = useKustoToolSettings(mode, mode === KustoToolDialogMode.Edit ? kustoTool : undefined);
     const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
+    const [successfulTestRunResult, setSuccessfulTestRunResult] = useState<KustoQueryTestResponse | null>(null);
 
     useEffect(() => {
         if (isDialogOpen) {
             setHasSuccessRunTest(false);
+            setSuccessfulTestRunResult(null);
         }
     }, [isDialogOpen]);
 
@@ -108,7 +110,7 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
                                             : intl.formatMessage(ExtendedAgentsGraphResources.editKustoTool)}
                                     </DialogTitle>
                                 </div>
-                                <DialogContent>
+                                <DialogContent className={styles.dialogContent}>
                                     {/* No connectors message bar */}
                                     {connectors?.length === 0 && (
                                         <MessageBar intent="warning" icon={<WarningFilled />}>
@@ -141,6 +143,8 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
                                             <KustoToolTestPanel
                                                 hasSuccessRunTest={hasSuccessRunTest}
                                                 setHasSuccessRunTest={setHasSuccessRunTest}
+                                                successfulTestRunResult={successfulTestRunResult}
+                                                setSuccessfulTestRunResult={setSuccessfulTestRunResult}
                                             />
                                         </div>
                                     </div>

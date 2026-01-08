@@ -1,35 +1,43 @@
 import { useFormikContext } from 'formik';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Guid } from '../../../../Common/Helpers/Guid';
-import { ExtendedAgent, ExtendedTool, PromptImprovementResponse, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
-import { tryParseAgentYaml } from '../../../Playground/PlaygroundYamlUtils';
-import { useToolsPicker } from '../../Common/ToolsPicker/useToolsPicker';
-import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
-import { buildAgentConfigurationYaml } from '../../ExtendedAgentYamlUtils';
-import { AgentCreateFormValues, PanelType } from '../Contracts';
-import { useHandoffAgents } from '../Hooks/useHandoffAgents';
-import { useImprovementsAndSuggestions } from '../Hooks/useImprovementsAndSuggestions';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Guid } from '../../../../../Common/Helpers/Guid';
+import { DirtyStateContext } from '../../../../Contracts/Context';
+import { ExtendedAgent, ExtendedTool, PromptImprovementResponse, SystemTool } from '../../../../Contracts/ExtendedAgentGraph';
+import { tryParseAgentYaml } from '../../../../Playground/PlaygroundYamlUtils';
+import { useToolsPicker } from '../../../Common/ToolsPicker/useToolsPicker';
+import { McpConnection } from '../../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
+import { buildAgentConfigurationYaml } from '../../../ExtendedAgentYamlUtils';
+import { AgentPlaygroundFormValues, AgentPlaygroundMode } from '../Contracts';
+import useEvaluation from './useEvaluation';
+import { useHandoffAgents } from './useHandoffAgents';
+import { useImprovementsAndSuggestions } from './useImprovementsAndSuggestions';
 
-export enum TabNames {
+export enum EditorTabNames {
     Form = 'form',
     Yaml = 'yaml',
 }
 
-export const useAgentCreateDialogFormik = (
+export enum TestTabNames {
+    Chat = 'chat',
+    Evaluation = 'evaluation',
+}
+
+export const useAgentPlaygroundFormik = (
     agents: ExtendedAgent[] | undefined,
     existingTools: ExtendedTool[] | undefined,
     systemTools: SystemTool[] | undefined,
     mcpConnections: McpConnection[] | undefined,
     excludedHandoffAgent: string | undefined,
     additionalHandoffAgents: string[] | undefined,
-    isEditScenario: boolean = false,
+    isExistingAgent: boolean = false,
     existingAgentGuid: string | undefined,
     isOverrideScenario: boolean = false
 ) => {
-    const { values, setFieldValue, setValues, isValid, dirty, submitForm, resetForm } = useFormikContext<AgentCreateFormValues>();
+    const { values, setFieldValue, setValues, isValid, dirty, submitForm, resetForm } = useFormikContext<AgentPlaygroundFormValues>();
+    const { setIsDirty } = useContext(DirtyStateContext);
 
-    const [view, setView] = useState<TabNames>(TabNames.Form);
-    const [openedPanel, setOpenedPanel] = useState<PanelType>();
+    const [editorPanelView, setEditorPanelView] = useState<EditorTabNames>(EditorTabNames.Form);
+    const [testPanelView, setTestPanelView] = useState<TestTabNames>(TestTabNames.Chat);
     const [yamlContent, setYamlContent] = useState<string>('');
     const [needsYamlSync, setNeedsYamlSync] = useState<boolean>(true);
     const [testThreadId, setTestThreadId] = useState<string | undefined>(undefined);
@@ -37,6 +45,17 @@ export const useAgentCreateDialogFormik = (
     const [testThreadAutoTerminated, setTestThreadAutoTerminated] = useState<boolean>(false);
     const [testStarted, setTestStarted] = useState<boolean>(false);
     const [chatKey, setChatKey] = useState<string>();
+    const [showSuggestionsArea, setShowSuggestionsArea] = useState<boolean>(false);
+    const [showTestToggleDialog, setShowTestToggleDialog] = useState<boolean>(false);
+    const mode = useMemo<AgentPlaygroundMode>(() => {
+        return dirty ? 'edit' : 'test';
+    }, [dirty]);
+
+    const evaluationHook = useEvaluation({
+        mode: mode,
+        tools: existingTools || [],
+        systemTools: systemTools || [],
+    });
 
     const handoffAgentsHook = useHandoffAgents(
         values.handoffSubagents,
@@ -71,7 +90,17 @@ export const useAgentCreateDialogFormik = (
     }, [improvementsAndSuggestionsHook.loadingImprovements]);
 
     useEffect(() => {
-        if (view === 'form' || needsYamlSync) {
+        setIsDirty(dirty);
+    }, [dirty, setIsDirty]);
+
+    useEffect(() => {
+        return () => {
+            setIsDirty(false);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (editorPanelView === 'form' || needsYamlSync) {
             const agentObj: Partial<ExtendedAgent> = {
                 name: values.agentName,
                 instructions: values.instructions,
@@ -86,13 +115,13 @@ export const useAgentCreateDialogFormik = (
             setYamlContent(agentYaml);
             setNeedsYamlSync(false);
         }
-    }, [view, values, setYamlContent, needsYamlSync]);
+    }, [editorPanelView, values, setYamlContent, needsYamlSync]);
 
     const handleYamlChange = useCallback(
         (newYaml: string | undefined) => {
             if (!newYaml) {
                 setValues({
-                    agentName: isOverrideScenario || isEditScenario ? values.agentName : '',
+                    agentName: isOverrideScenario || isExistingAgent ? values.agentName : '',
                     instructions: '',
                     handoffInstructions: '',
                     handoffSubagents: [],
@@ -123,7 +152,7 @@ export const useAgentCreateDialogFormik = (
             if (!parsedYaml.error && parsedYaml.agent) {
                 const agent = parsedYaml.agent;
                 setValues({
-                    agentName: isOverrideScenario || isEditScenario ? values.agentName : agent.name || '',
+                    agentName: isOverrideScenario || isExistingAgent ? values.agentName : agent.name || '',
                     instructions: agent.instructions || '',
                     handoffInstructions: agent.handoffDescription || '',
                     handoffSubagents: agent.handoffs || [],
@@ -134,15 +163,15 @@ export const useAgentCreateDialogFormik = (
                 });
             }
         },
-        [values, setValues, setYamlContent, isOverrideScenario, isEditScenario]
+        [values, setValues, setYamlContent, isOverrideScenario, isExistingAgent]
     );
 
     const onDiscard = useCallback(() => {
         resetForm();
-        if (view === 'yaml') {
+        if (editorPanelView === 'yaml') {
             setTimeout(() => setNeedsYamlSync(true), 0);
         }
-    }, [view, resetForm, setNeedsYamlSync]);
+    }, [editorPanelView, resetForm, setNeedsYamlSync]);
 
     const resetTestThread = useCallback(
         (autoTerminated?: boolean) => {
@@ -160,20 +189,12 @@ export const useAgentCreateDialogFormik = (
         testThreadIdRef.current = threadId;
     }, []);
 
-    const handleOpenedPanelChange = useCallback(
-        (panel: PanelType | undefined) => {
+    const handleTestPanelViewChange = useCallback(
+        (newView: TestTabNames) => {
             setTestThreadId(testThreadIdRef.current);
-            setOpenedPanel(panel);
+            setTestPanelView(newView);
         },
-        [setOpenedPanel, setTestThreadId]
-    );
-
-    const handleViewChange = useCallback(
-        (newView: TabNames) => {
-            setTestThreadId(testThreadIdRef.current);
-            setView(newView);
-        },
-        [setView]
+        [setTestPanelView]
     );
 
     const saveDisabled = useMemo(() => {
@@ -182,22 +203,28 @@ export const useAgentCreateDialogFormik = (
         }
 
         if (!dirty) {
-            return !isOverrideScenario || isEditScenario;
+            return !isOverrideScenario || isExistingAgent;
         }
 
         return false;
-    }, [isValid, isOverrideScenario, isEditScenario, dirty, disableControls]);
+    }, [isValid, isOverrideScenario, isExistingAgent, dirty, disableControls]);
+
+    const onTestToggleDialogClose = useCallback(() => {
+        setShowTestToggleDialog(false);
+    }, [setShowTestToggleDialog]);
 
     useEffect(() => {
         resetTestThread(true);
     }, [resetTestThread]);
 
     return {
-        view,
-        setView: handleViewChange,
-        openedPanel,
-        setOpenedPanel: handleOpenedPanelChange,
+        mode,
+        editorPanelView,
+        setEditorPanelView,
+        testPanelView,
+        setTestPanelView: handleTestPanelViewChange,
         yamlContent,
+        evaluationHook,
         handoffAgentsHook,
         toolsPickerHook,
         improvementsAndSuggestionsHook,
@@ -206,7 +233,9 @@ export const useAgentCreateDialogFormik = (
         saveDisabled,
         discardDisabled: !dirty || disableControls,
         onSubmit: submitForm,
-        onDiscard: onDiscard,
+        onDiscard,
+        showTestToggleDialog,
+        onTestToggleDialogClose,
         testPanelProps: {
             agentName: existingAgentGuid ? values.agentName : undefined,
             threadId: testThreadId,
@@ -216,7 +245,9 @@ export const useAgentCreateDialogFormik = (
             addThread: addTestThread,
             selectThread: () => {},
             chatKey: chatKey,
-            onClose: () => setOpenedPanel(undefined),
+            onTelemetryUpdate: evaluationHook.setChatTelemetry,
         },
+        showSuggestionsArea,
+        setShowSuggestionsArea,
     };
 };

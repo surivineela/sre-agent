@@ -10,8 +10,14 @@ import {
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, PlaygroundResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { ExtendedAgent, ExtendedConnector, ExtendedTool, ExtendedTrigger, Skill } from '../../Contracts/ExtendedAgentGraph';
-import { PlaygroundTarget } from '../../Playground/PlaygroundModal';
+import {
+    ExtendedAgent,
+    ExtendedConnector,
+    ExtendedTool,
+    ExtendedTrigger,
+    PlaygroundEntity,
+    Skill,
+} from '../../Contracts/ExtendedAgentGraph';
 import { ConnectorType, getConnectorIcon, getConnectorName } from '../../Settings/Connectors/Wizard/Common/ConnectorType';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
 import { EntityIcon, EntityIconType } from '../EntityIcon';
@@ -27,7 +33,7 @@ type PanelHeaderProps = {
     headerTitle: string;
     headerSubtitle?: string;
     headerEditContext?: HeaderEditContext;
-    playgroundTarget?: PlaygroundTarget;
+    playgroundEntity?: PlaygroundEntity;
     showAgentBuilderPlayground: boolean;
     isAgentContext: boolean;
     selectedAgent?: ExtendedAgent;
@@ -59,7 +65,7 @@ export const PanelHeader = memo(
         headerTitle,
         headerSubtitle,
         headerEditContext,
-        playgroundTarget,
+        playgroundEntity,
         showAgentBuilderPlayground,
         isAgentContext,
         selectedAgent,
@@ -119,7 +125,7 @@ export const PanelHeader = memo(
                             title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
                         />
                     )}
-                    {((playgroundTarget && showAgentBuilderPlayground) ||
+                    {((playgroundEntity && showAgentBuilderPlayground) ||
                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                         (headerEditContext?.type === 'tool' && selectedTool) ||
                         (headerEditContext?.type === 'trigger' && selectedTrigger) ||
@@ -130,7 +136,7 @@ export const PanelHeader = memo(
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    {showAgentBuilderPlayground && playgroundTarget && (
+                                    {showAgentBuilderPlayground && playgroundEntity && (
                                         <MenuItem icon={<Beaker20Regular />} onClick={onOpenPlaygroundClick}>
                                             {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
                                         </MenuItem>

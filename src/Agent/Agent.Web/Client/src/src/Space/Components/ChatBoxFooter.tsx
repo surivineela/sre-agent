@@ -29,6 +29,7 @@ import { ScrollDownButton } from '@fluentui-copilot/react-copilot-chat';
 import {
     Button,
     Dialog,
+    DialogActions,
     DialogBody,
     DialogContent,
     DialogSurface,
@@ -254,6 +255,7 @@ const ChatBoxFooter = ({
     postSystemMessage = () => undefined,
     forcedAgentName,
     lockAgentSelection,
+    inputDisabledMessage,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -300,13 +302,20 @@ const ChatBoxFooter = ({
     focusedIncidentRef.current = focusedIncident;
     focusedResourceRef.current = focusedResource;
 
+    const [showInputDisabledDialog, setShowInputDisabledDialog] = useState<boolean>(false);
+
     const restoreFocusTargetAttribute = useRestoreFocusTarget();
     const { scrollable } = useScrollableComponentStyles();
     const shortcutStyles = useShortcutStyles();
 
-    const disableInputInteraction = useMemo(
+    const disableInputInteractionUnforced = useMemo(
         () => isLoading || !isConnected || isCancellingStreaming || !canWriteThreads,
         [isLoading, isConnected, isCancellingStreaming, canWriteThreads]
+    );
+
+    const disableInputInteraction = useMemo(
+        () => disableInputInteractionUnforced || !!inputDisabledMessage,
+        [disableInputInteractionUnforced, inputDisabledMessage]
     );
 
     const matchedShortcuts = useMemo(() => {
@@ -510,6 +519,11 @@ const ChatBoxFooter = ({
 
     const chatInputHandleSendClick = useCallback(
         (input?: string) => {
+            if (inputDisabledMessage) {
+                setShowInputDisabledDialog(true);
+                return;
+            }
+
             const messageToSend = input?.trim() ?? '';
 
             if (messageToSend && !disableInputInteraction && !isTyping) {
@@ -534,7 +548,16 @@ const ChatBoxFooter = ({
                 });
             }
         },
-        [disableInputInteraction, isTyping, logAmplitudeControlEvent, selectedAgentName, sendMessage, threadId, threadSource]
+        [
+            disableInputInteraction,
+            isTyping,
+            logAmplitudeControlEvent,
+            selectedAgentName,
+            sendMessage,
+            threadId,
+            threadSource,
+            inputDisabledMessage,
+        ]
     );
 
     const onSelectShortcut = useCallback(
@@ -1099,6 +1122,24 @@ const ChatBoxFooter = ({
                         )}
                     </PopoverSurface>
                 </Popover>
+                <Dialog
+                    modalType="alert"
+                    open={showInputDisabledDialog}
+                    onOpenChange={(_, data) => {
+                        if (!data.open) {
+                            setShowInputDisabledDialog(false);
+                        }
+                    }}
+                >
+                    <DialogSurface>
+                        {inputDisabledMessage}
+                        <DialogActions>
+                            <Button appearance="primary" style={{ marginLeft: 'auto' }} onClick={() => setShowInputDisabledDialog(false)}>
+                                {intl.formatMessage(SreAgentResources.close)}
+                            </Button>
+                        </DialogActions>
+                    </DialogSurface>
+                </Dialog>
                 <ChatInput
                     {...restoreFocusTargetAttribute}
                     root={{ ref: chatInputRef }}
@@ -1107,7 +1148,7 @@ const ChatBoxFooter = ({
                     customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
                     contentBefore={
                         <ContentBefore
-                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
                             isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                             onClickDeepInvestigationButton={onClickDeepInvestigationButton}
                             showAgentModeSelector={showAgentModeSelector}
@@ -1133,7 +1174,7 @@ const ChatBoxFooter = ({
                     maxLength={1000000000}
                     charactersRemainingMessage={undefined}
                     autoFocus={true}
-                    disableSend={!canWriteThreads || disableInputInteraction}
+                    disableSend={!canWriteThreads || disableInputInteractionUnforced}
                     isSending={isTyping}
                     onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
                     onStop={cancelStreaming}
@@ -1364,7 +1405,11 @@ const ContentBefore = (props: {
                 onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
             />
             {props.showAgentModeSelector && props.threadId && (
-                <AgentModeSelector id={ChatBoxButtonIds.AgentMode} threadId={props.threadId} disabled={props.isTyping} />
+                <AgentModeSelector
+                    id={ChatBoxButtonIds.AgentMode}
+                    threadId={props.threadId}
+                    disabled={props.isTyping || props.disableInputInteraction}
+                />
             )}
             <div className={trailingGroup}>
                 <PromptLibraryButton
