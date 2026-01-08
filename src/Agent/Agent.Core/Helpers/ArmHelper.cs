@@ -2989,6 +2989,48 @@ public class ArmHelper
         }
     }
 
+    public async Task<string> GetAppInsightsAppId(string subscriptionId, string resourceGroupName, string resourceName)
+    {
+        try
+        {
+            var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/components/{resourceName}?api-version=2018-05-01-preview";
+            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var content = await responseMessage.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(content);
+                var root = jsonDoc.RootElement;
+
+                if (root.TryGetProperty("properties", out var properties))
+                {
+                    var appIdFound = properties.TryGetProperty("AppId", out var appId);
+                    return appIdFound ? appId.GetString()! : string.Empty;
+                }
+
+                return string.Empty;
+            }
+            else
+            {
+                if (CheckForUnauthorizedAccess(responseMessage))
+                {
+                    throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource in subscription {subscriptionId}");
+                }
+
+                // Handle unsuccessful response
+                var errorContent = await responseMessage.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to get App Insights AppId. Response: {errorContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while getting the App Insights AppId.", ex);
+        }
+    }
+
+
     public async Task<GenericArmResourceModel?> GetAppInsightsResourceByInstrumentationKeyAsync(string subscriptionId, string instrumentationKey)
     {
         try

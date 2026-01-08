@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Plugins.Interface;
+using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -27,64 +28,63 @@ namespace Agent.Plugins.Implementation
             _logger = logger;
         }
 
-        [Description("Get code optimization insights")]
-        public async Task<IEnumerable<InsightsRecommendationContract>> GetCodeOptimizationInsightsAsync(
-            [Description("resourceId of app service")] string resourceId
-        )
-        {
-            // get instrumentation Key from web app settings
-            var appSettings = await _armHelper.GetAppSettings(resourceId);
-            var jsonObject = JObject.Parse(appSettings);
-            var instrumentationKey = _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString()) ?? _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
-
-            var subId = resourceId.Split('/')[2];
-            var roleName = GetRoleName(resourceId, jsonObject);
-
-            // use instrumentation key to single in on the correct app insights resource
-            var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey ?? string.Empty);
-
-            // Retrieve full App Insights resource metadata for constructing deep links
-            var appInsightsResource = await _armHelper.GetAppInsightsResourceByInstrumentationKeyAsync(subId, instrumentationKey ?? string.Empty);
-
-            // Retrieve insights for the app insights resource.
-            var insights = await _armHelper.GetCodeOptimizationsInsightsAsync(appInsightsAppId, roleName);
-            var processedInsights = ProcessInsights(insights, subId, appInsightsResource);
-            return processedInsights;
-        }
-
         public async Task<Dictionary<string, IEnumerable<InsightsRecommendationContract>>> GetCodeOptimizationInsightsBulkAsync(
-            [Description("List of resourceIds of app services")] IEnumerable<string> resourceIds
+            [Description("List of Application Insights resource IDs")] IEnumerable<string> resourceIds
         )
         {
             var apps = new List<AppInfo>();
 
-            // Gather all info for each resource
+            // Gather all info for each App Insights resource ID
             foreach (var resourceId in resourceIds)
             {
                 try
                 {
-                    var appSettings = await _armHelper.GetAppSettings(resourceId);
-                    var jsonObject = JObject.Parse(appSettings);
-                    var instrumentationKey = _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString())
-                        ?? _appInsightsPlugin.GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
-                    var subId = resourceId.Split('/')[2];
-                    var roleName = GetRoleName(resourceId, jsonObject);
-                    var appId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey ?? string.Empty);
-                    var appInsightsResource = await _armHelper.GetAppInsightsResourceByInstrumentationKeyAsync(subId, instrumentationKey ?? string.Empty);
+                    // Parse the resource ID to extract subscription ID, resource group, and resource name
+                    var resourceIdentifier = new ResourceIdentifier(resourceId);
+                    var subscriptionId = resourceIdentifier.SubscriptionId;
+                    var resourceGroupName = resourceIdentifier.ResourceGroupName;
+                    var appInsightsName = resourceIdentifier.Name;
+
+                    if (string.IsNullOrEmpty(subscriptionId) || string.IsNullOrEmpty(resourceGroupName) || string.IsNullOrEmpty(appInsightsName))
+                    {
+                        _logger.LogInternalWarning($"Invalid resource ID format: {resourceId}. Skipping this resource.");
+                        continue;
+                    }
+
+                    // Get the App Insights AppId using the resource name
+                    var appId = await _armHelper.GetAppInsightsAppId(subscriptionId, resourceGroupName, appInsightsName);
+                    if (string.IsNullOrEmpty(appId))
+                    {
+                        _logger.LogInternalWarning($"Could not find AppId for Application Insights resource: {appInsightsName}. Skipping this resource.");
+                        continue;
+                    }
+
+                    // Construct a resource model with the proper resource ID for portal links
+                    var appInsightsResource = new GenericArmResourceModel(
+                        id: resourceId,
+                        name: appInsightsName,
+                        type: "microsoft.insights/components",
+                        kind: string.Empty, // App Insights kind is not required for current usage; use empty string
+                        location: string.Empty, // Location is not required for current usage; use empty string
+                        properties: new object(), // No specific properties are needed; use a non-null default object
+                        tags: new Dictionary<string, string>(), //  No tags are required for current usage; use an empty dictionary
+                        IdentityModels: new List<GenericArmResourceIdentityModel>() // Identity information is not required; use an empty list
+                    );
+
                     apps.Add(new AppInfo
                     {
-                        ResourceId = resourceId,
-                        SubId = subId,
-                        RoleName = roleName,
-                        InstrumentationKey = instrumentationKey,
+                        ResourceId = resourceId, // Use the full resource ID as key
+                        SubId = subscriptionId,
+                        RoleName = string.Empty, // No role name in this scenario
+                        InstrumentationKey = null,
                         AppId = appId,
                         AppInsightsResource = appInsightsResource
                     });
                 }
                 catch (Exception ex)
                 {
-                    // Skip this resource and continue with others if fetching app settings fails
-                    _logger.LogInternalWarning(ex, $"Failed to get app settings for resource {resourceId}. Skipping this resource.");
+                    // Skip this resource and continue with others if fetching app insights fails
+                    _logger.LogInternalWarning(ex, $"Failed to get Application Insights info for resource {resourceId}. Skipping this resource.");
                     continue;
                 }
             }
@@ -115,10 +115,7 @@ namespace Agent.Plugins.Implementation
 
             if (bulkInsights != null)
             {
-                // Build lookup dictionaries for faster matching
-                var insightsByRoleNameAndAppId = bulkInsights
-                    .GroupBy(b => (b.AppId, b.RoleName))
-                    .ToDictionary(g => g.Key, g => g.ToList());
+                // Build lookup dictionary by AppId only for matching
                 var insightsByAppId = bulkInsights
                     .GroupBy(b => b.AppId)
                     .ToDictionary(g => g.Key, g => g.ToList());
@@ -132,15 +129,10 @@ namespace Agent.Plugins.Implementation
                     }
 
                     List<AggregatedInsightsContract> insights;
-                    // Try to match by (AppId, RoleName) first
-                    if (insightsByRoleNameAndAppId.TryGetValue((appGuid, app.RoleName), out var byRoleName))
+                    // Match by AppId only
+                    if (insightsByAppId.TryGetValue(appGuid, out var appInsights))
                     {
-                        insights = byRoleName;
-                    }
-                    // If not found, fall back to matching by AppId only
-                    else if (insightsByAppId.TryGetValue(appGuid, out var byAppId))
-                    {
-                        insights = byAppId;
+                        insights = appInsights;
                     }
                     else
                     {
@@ -208,16 +200,8 @@ namespace Agent.Plugins.Implementation
             }
 
             string resourceId = appInsightsResource.id;
-            string resourceGroup = string.Empty;
-            var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            for (int i = 0; i < segments.Length - 1; i++)
-            {
-                if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase) && i + 1 < segments.Length)
-                {
-                    resourceGroup = segments[i + 1];
-                    break;
-                }
-            }
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
+            string resourceGroup = resourceIdentifier.ResourceGroupName ?? string.Empty;
 
             var componentObj = new
             {
@@ -233,7 +217,7 @@ namespace Agent.Plugins.Implementation
             string componentJson = System.Text.Json.JsonSerializer.Serialize(componentObj);
             string encodedComponent = Uri.EscapeDataString(componentJson);
             string openedFrom = "azure-sre-agent";
-            return $"https://ms.portal.azure.com/#view/Microsoft_Azure_CodeOptimizations/CodeOptimizationsBlade/ComponentId~/{encodedComponent}/AppId/{appInsightsAppId}/OpenedFrom/{openedFrom}";
+            return $"https://ms.portal.azure.com/#view/Microsoft_Azure_CodeOptimizations/CodeOptimizationsBlade/ComponentId~/{encodedComponent}/AppId/{appInsightsAppId}/OpenedFrom/{openedFrom}/key/{insight.Key}";
         }
 
         private string GetPerformanceIssue(AggregatedInsightsContract insight)

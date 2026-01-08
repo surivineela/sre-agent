@@ -2691,6 +2691,7 @@ export const DailyReportResources = defineMessages({
     codeOptimizationsRecommendations: { defaultMessage: 'recommendations', id: '6Lox/s' },
     codeOptimizationsType: { defaultMessage: 'Type', id: '+U6ozc' },
     codeOptimizationsImpactValue: { defaultMessage: 'Peak Usage', id: 'V4yeoh' },
+    codeOptimizationsRoleName: { defaultMessage: 'Role Name', id: 'bx8ZvK' },
     codeOptimizationsIssue: { defaultMessage: 'Performance Issue', id: 'oQJEFn' },
     codeOptimizationsNoRecommendationsMessage: { defaultMessage: 'No code optimization recommendations detected.', id: 'HFuyFh' },
     codeOptimizationsLearnMore: { defaultMessage: 'Learn more about code optimizations', id: 'txLniB' },

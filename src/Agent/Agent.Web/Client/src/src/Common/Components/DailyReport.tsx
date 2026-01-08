@@ -95,6 +95,8 @@ interface InsightsRecommendationContract {
     Type: string;
     ImpactPercent: string;
     PortalLink?: string;
+    RoleName?: string;
+    AppId?: string;
 }
 
 interface AppCodeInsights {
@@ -1801,7 +1803,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     <Text weight="semibold" style={{ display: 'block', textAlign: 'center' }}>
                                         {intl.formatMessage(DailyReportResources.codeOptimizationsNoRecommendationsMessage)}{' '}
                                         <Link
-                                            href="https://learn.microsoft.com/en-us/azure/azure-monitor/optimization-insights/code-optimizations-profiler-overview"
+                                            href="https://aka.ms/codeoptimizations"
                                             target="_blank"
                                             inline
                                             style={{
@@ -1902,7 +1904,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                             <div
                                                                 style={{
                                                                     display: 'grid',
-                                                                    gridTemplateColumns: '140px 100px 1fr',
+                                                                    gridTemplateColumns: '70px 70px 160px 1fr',
                                                                     gap: '8px',
                                                                     color: tokens.colorNeutralForeground3,
                                                                     fontSize: '12px',
@@ -1913,6 +1915,9 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                                 <div>
                                                                     {intl.formatMessage(DailyReportResources.codeOptimizationsImpactValue)}
                                                                 </div>
+                                                                <div>
+                                                                    {intl.formatMessage(DailyReportResources.codeOptimizationsRoleName)}
+                                                                </div>
                                                                 <div>{intl.formatMessage(DailyReportResources.codeOptimizationsIssue)}</div>
                                                             </div>
                                                             {app.Insights.map((ins, insIdx) => (
@@ -1920,7 +1925,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                                     key={insIdx}
                                                                     style={{
                                                                         display: 'grid',
-                                                                        gridTemplateColumns: '140px 100px 1fr',
+                                                                        gridTemplateColumns: '70px 70px 160px 1fr',
                                                                         gap: '8px',
                                                                         padding: '8px 0',
                                                                         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -1944,7 +1949,27 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                                         <Text>{ins.ImpactPercent}</Text>
                                                                     </div>
                                                                     <div>
-                                                                        <Text weight="semibold">{ins.PerformanceIssue}</Text>
+                                                                        <Text size={200}>
+                                                                            {ins.RoleName ||
+                                                                                intl.formatMessage(DailyReportResources.notAvailable)}
+                                                                        </Text>
+                                                                    </div>
+                                                                    <div>
+                                                                        {ins.PortalLink ? (
+                                                                            <Link
+                                                                                href={ins.PortalLink}
+                                                                                target="_blank"
+                                                                                inline
+                                                                                style={{
+                                                                                    fontWeight: 600,
+                                                                                    textDecoration: 'none',
+                                                                                }}
+                                                                            >
+                                                                                {ins.PerformanceIssue}
+                                                                            </Link>
+                                                                        ) : (
+                                                                            <Text weight="semibold">{ins.PerformanceIssue}</Text>
+                                                                        )}
                                                                         <Text
                                                                             block
                                                                             size={200}

@@ -276,6 +276,15 @@ public class DailyReportScanner
                 skip: 0,
                 take: -1);
 
+            // Get all app insight resources
+            var appInsightList = await _graphDBPlugin.ListResourcesByTypeAsync(
+                resourceType: "microsoft.insights/components",
+                propertyName: string.Empty,
+                propertyValue: string.Empty,
+                skip: 0,
+                take: -1);
+
+
             // Build a list of resource info for batch call
             var resourceInfoList = appServiceList
                 .Select(res => new
@@ -293,8 +302,23 @@ public class DailyReportScanner
                 .Select(x => $"/subscriptions/{x.SubscriptionId}/resourceGroups/{x.ResourceGroupName}/providers/{x.Type}/{x.Name}")
                 .ToList();
 
+            var appInsightsInfoList = appInsightList
+            .Select(res => new
+            {
+                SubscriptionId = res.GetValueOrDefault("subscriptionId")?.ToString() ?? string.Empty,
+                ResourceGroupName = res.GetValueOrDefault("resourceGroupName")?.ToString() ?? string.Empty,
+                Name = res.GetValueOrDefault("resourceName")?.ToString() ?? string.Empty,
+                Type = res.GetValueOrDefault("resourceType")?.ToString() ?? string.Empty
+            })
+            .Where(x => !string.IsNullOrEmpty(x.SubscriptionId) && !string.IsNullOrEmpty(x.ResourceGroupName) && !string.IsNullOrEmpty(x.Name))
+            .ToList();
+
+            var appInsightsResourceIds = appInsightsInfoList
+                .Select(x => $"/subscriptions/{x.SubscriptionId}/resourceGroups/{x.ResourceGroupName}/providers/{x.Type}/{x.Name}")
+                .ToList();
+
             // Call insights for all resources
-            var insightsBulkResult = await _codeOptimizationsPlugin.GetCodeOptimizationInsightsBulkAsync(resourceIds);
+            var insightsBulkResult = await _codeOptimizationsPlugin.GetCodeOptimizationInsightsBulkAsync(appInsightsResourceIds);
 
             // Log that we fetched code optimizations insights
             var totalInsights = insightsBulkResult?.Values.Sum(insights => insights?.Count() ?? 0) ?? 0;
@@ -304,7 +328,7 @@ public class DailyReportScanner
                 totalInsights);
 
             // Group by subscription + resource group
-            var groups = resourceInfoList
+            var groups = appInsightsInfoList
                 .GroupBy(r => new
                 {
                     r.SubscriptionId,

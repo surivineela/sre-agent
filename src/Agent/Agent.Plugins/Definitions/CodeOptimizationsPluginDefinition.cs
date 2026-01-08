@@ -20,11 +20,11 @@ namespace Agent.Plugins
             _plugin = plugin;
         }
 
-        [Description("Returns code optimization insights for a given resource.")]
+        [Description("Returns code optimization insights for a list of app insights resources.")]
         [AgentTool(ToolMode.Auto)]
-        public Task<IEnumerable<InsightsRecommendationContract>> GetCodeOptimizationInsights(string resourceId)
+        public Task<Dictionary<string, IEnumerable<InsightsRecommendationContract>>> GetCodeOptimizationInsights(IEnumerable<string> resourceIds)
         {
-            return _plugin.GetCodeOptimizationInsightsAsync(resourceId);
+            return _plugin.GetCodeOptimizationInsightsBulkAsync(resourceIds);
         }
     }
 }
