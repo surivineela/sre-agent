@@ -66,26 +66,21 @@ export const useSreAgentSpace = () => {
         }
     }, [navBarState.navBarType, onExpandOrCollapseNavBar]);
 
-    const onClickCategoryNavItem = useCallback(
-        (categoryKey: PrimaryNavItemValues | ThreadCategoryKey) => {
-            const removeNonThreadCategoryKeys = (keys: (PrimaryNavItemValues | ThreadCategoryKey)[]) => {
-                return keys.filter(key => {
-                    return !Object.values(PrimaryNavItemValues).some(navItemValue => navItemValue === key);
-                });
-            };
-
-            setOpenedCategoryNavItems(prevOpenedCategoryNavItems => {
-                if (prevOpenedCategoryNavItems.includes(categoryKey)) {
-                    return prevOpenedCategoryNavItems.filter(key => key !== categoryKey);
-                } else {
-                    return [...removeNonThreadCategoryKeys(prevOpenedCategoryNavItems), categoryKey];
-                }
+    const onClickCategoryNavItem = useCallback((categoryKey: PrimaryNavItemValues | ThreadCategoryKey) => {
+        const removeNonThreadCategoryKeys = (keys: (PrimaryNavItemValues | ThreadCategoryKey)[]) => {
+            return keys.filter(key => {
+                return !Object.values(PrimaryNavItemValues).some(navItemValue => navItemValue === key);
             });
+        };
 
-            onNavItemSelected();
-        },
-        [onNavItemSelected]
-    );
+        setOpenedCategoryNavItems(prevOpenedCategoryNavItems => {
+            if (prevOpenedCategoryNavItems.includes(categoryKey)) {
+                return prevOpenedCategoryNavItems.filter(key => key !== categoryKey);
+            } else {
+                return [...removeNonThreadCategoryKeys(prevOpenedCategoryNavItems), categoryKey];
+            }
+        });
+    }, []);
 
     const onClickNavItem = useCallback(
         (primary: PrimaryNavItemValues, secondary: SecondaryNavItemValues | undefined, threadId: string | undefined) => {
@@ -363,6 +358,8 @@ export const useSreAgentSpace = () => {
                 };
             });
         };
+
+        handleResize();
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
