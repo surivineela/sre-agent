@@ -1,11 +1,6 @@
-import {
-    Spinner,
-    tokens,
-    webDarkTheme,
-    webLightTheme,
-} from '@fluentui/react-components';
 import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { initializeIcons, MessageBar, MessageBarType, useTheme } from '@fluentui/react';
+import { Spinner, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
@@ -37,7 +32,7 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
     const { agentObj, agentLoading, agentLoadFailure } = useContext(SreAgentContext);
     const { canReadIncidentManagement } = useUserPermissions();
     const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
-    const { onExpandOrCollapseNavBar } = useContext(SreAgentSpaceContext);
+    const { onExpandOrCollapseNavBar, navBarTypeWhenOpen } = useContext(SreAgentSpaceContext);
 
     const showControlPlaneDependentFeatures = useMemo(() => !inStandaloneMode && !isCrossTenantPortalMode, [isCrossTenantPortalMode]);
 
@@ -55,9 +50,12 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
 
     const setNavigationHidden = useCallback(
         (hidden: boolean) => {
-            onExpandOrCollapseNavBar(!hidden);
+            // Do not auto open the nav bar if it would be opened as an overlay
+            if (hidden || navBarTypeWhenOpen !== 'overlay') {
+                onExpandOrCollapseNavBar(!hidden);
+            }
         },
-        [onExpandOrCollapseNavBar]
+        [onExpandOrCollapseNavBar, navBarTypeWhenOpen]
     );
 
     useEffect(() => {

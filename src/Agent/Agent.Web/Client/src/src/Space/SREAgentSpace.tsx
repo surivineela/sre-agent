@@ -171,6 +171,7 @@ const TabsListWrapper: FC = () => {
         isNavOpen,
         onExpandOrCollapseNavBar,
         navBarType,
+        navBarTypeWhenOpen,
         isNavBarHidden,
         openedCategoryNavItems,
         onClickCategoryNavItem,
@@ -193,6 +194,7 @@ const TabsListWrapper: FC = () => {
         <SreAgentSpaceContext.Provider
             value={{
                 isNavOpen,
+                navBarTypeWhenOpen,
                 onExpandOrCollapseNavBar,
                 addThread,
                 selectThread,

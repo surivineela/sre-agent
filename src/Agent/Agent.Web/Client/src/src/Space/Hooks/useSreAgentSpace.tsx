@@ -437,6 +437,7 @@ export const useSreAgentSpace = () => {
 
         isNavOpen: navBarState.isNavBarOpen,
         navBarType,
+        navBarTypeWhenOpen: navBarState.navBarType,
         isNavBarHidden,
     };
 };

@@ -1,3 +1,4 @@
+import { DrawerProps } from '@fluentui/react-drawer';
 import { createContext, Dispatch, SetStateAction } from 'react';
 import { HttpResponseObject } from '../../Common/ArmHelper.types';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
@@ -121,6 +122,7 @@ type AgentWarningContextProps = {
 
 type SreAgentSpaceContextProps = {
     isNavOpen: boolean;
+    navBarTypeWhenOpen: DrawerProps['type'];
     onExpandOrCollapseNavBar: (newState: boolean) => void;
     threadsRenderKey: string;
     addThread: (threadId: string) => void;
@@ -152,29 +154,29 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
         isGrafanaUpdating: false,
         deploymentId: '',
         notificationId: '',
-        setNotificationId: () => { },
-        setIsGrafanaUpdating: () => { },
-        setDeploymentId: () => { },
+        setNotificationId: () => {},
+        setIsGrafanaUpdating: () => {},
+        setDeploymentId: () => {},
     },
     incidentManagement: {
         incidentPlatformType: undefined,
         incidentPlatformTypeLoading: undefined,
         incidentPlatformTypeLoaded: false,
         incidentPlatformTypeLoadFailure: '',
-        refreshIncidentPlatformType: () => { },
+        refreshIncidentPlatformType: () => {},
         incidentManagementConnectionState: undefined,
         isIncidentManagementConnected: false,
-        setIsIncidentManagementConnected: () => { },
+        setIsIncidentManagementConnected: () => {},
         hasFilters: false,
-        setHasFilters: () => { },
+        setHasFilters: () => {},
         checkingConnectivity: false,
-        refreshConnectivity: () => { },
+        refreshConnectivity: () => {},
     },
     agent: {
         mode: '',
-        setMode: () => { },
+        setMode: () => {},
         accessLevel: AgentAccessLevel.low,
-        setAccessLevel: () => { },
+        setAccessLevel: () => {},
     },
     agentObj: undefined,
     agentLoading: false,
@@ -185,25 +187,25 @@ export const SreAgentContext = createContext<SreAgentContextProps>({
     agentPatchFailure: '',
     agentLastUpdatedTime: undefined,
     patchAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
-    refresh: () => { },
+    refresh: () => {},
     startAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
     stopAgent: () => Promise.resolve({} as HttpResponseObject<ArmObj<Agent>>),
 });
 
 export const StreamingContext = createContext<StreamingContextProps>({
-    startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => { },
-    startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => { },
-    cancelMessageStreaming: (_threadId: string) => { },
+    startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
+    startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
+    cancelMessageStreaming: (_threadId: string) => {},
     subscribeMessageUpdateEvent:
         (_: {
             handler: (message: StreamingMessage) => void;
             threadId?: string;
             latestStreamingMessageHandler?: (latestStreamingMessage: StreamingMessage | null | undefined) => void;
         }) =>
-            () => { },
-    subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => { },
-    subscribeTaskUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => { },
-    subscribeTodoPlanUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => { },
+        () => {},
+    subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
+    subscribeTaskUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
+    subscribeTodoPlanUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,
@@ -211,10 +213,10 @@ export const StreamingContext = createContext<StreamingContextProps>({
 });
 
 export const ChatBoxSidePanelContext = createContext<ChatBoxSidePanelProps>({
-    openAgentTask: (_agentTask: AgentTaskMetaData) => { },
-    openTodoPlan: (_todoPlan: TodoInfo) => { },
-    openMemorySearchResult: (_result: MemorySearchResult) => { },
-    openKnowledgeGraphSearchResult: (_result: KnowledgeGraphSearchResult) => { },
+    openAgentTask: (_agentTask: AgentTaskMetaData) => {},
+    openTodoPlan: (_todoPlan: TodoInfo) => {},
+    openMemorySearchResult: (_result: MemorySearchResult) => {},
+    openKnowledgeGraphSearchResult: (_result: KnowledgeGraphSearchResult) => {},
 });
 
 export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>({
@@ -223,64 +225,65 @@ export const ThreadAgentModeContext = createContext<ThreadAgentModeContextProps>
     isLoadingThreadAgentMode: false,
     isFetchingThreadAgentMode: false,
     fetchThreadAgentModeError: null,
-    invalidateThreadAgentModeDataCache: () => { },
+    invalidateThreadAgentModeDataCache: () => {},
 });
 
 export const AgentTaskContext = createContext<AgentTaskContextProps>({
-    toggleNode: (_: string) => { },
+    toggleNode: (_: string) => {},
     getNodeStatus: (_: string) => null,
 });
 
 export const AgentTaskGraphContext = createContext<AgentTaskGraphContextProps>({
-    selectNode: (_: string | null) => { },
+    selectNode: (_: string | null) => {},
     selectedNodeId: null,
 });
 
 export const IncidentsOverviewContext = createContext<IncidentsOverviewContextProps>({
-    onInitialSidePanelDataChanged: (_threadId: string, _data: ChatBoxSidePanelData | undefined | null) => { },
+    onInitialSidePanelDataChanged: (_threadId: string, _data: ChatBoxSidePanelData | undefined | null) => {},
     initialSidePanelDataMap: new Map<string, ChatBoxSidePanelData>(),
 });
 
 export const AgentWarningContext = createContext<AgentWarningContextProps>({
     // Rbac context
     showRbacWarning: false,
-    handleAddAdminClick: () => { },
-    handleDismissRbacWarning: () => { },
+    handleAddAdminClick: () => {},
+    handleDismissRbacWarning: () => {},
     isCheckingRbac: true,
 
     // Usage context
     showUsageWarning: false,
     approachingLimit: false,
     reachedLimit: false,
-    handleDismissUsageWarning: () => { },
-    onUsageUpdate: (_newUsages: MonthlyUsage | null | undefined) => { },
+    handleDismissUsageWarning: () => {},
+    onUsageUpdate: (_newUsages: MonthlyUsage | null | undefined) => {},
     isCheckingUsage: true,
 });
 
 export const SreAgentSpaceContext = createContext<SreAgentSpaceContextProps>({
     isNavOpen: true,
-    onExpandOrCollapseNavBar: (_newState: boolean) => { },
-    addThread: (_threadId: string) => { },
-    selectThread: (_threadId: string | null) => { },
+    navBarTypeWhenOpen: 'inline',
+    onExpandOrCollapseNavBar: (_newState: boolean) => {},
+    addThread: (_threadId: string) => {},
+    selectThread: (_threadId: string | null) => {},
     threadsRenderKey: '',
-    updateThreadLastReadTime: async (_threadId: string) => { },
-    deleteThread: async (_thread: Thread) => { },
-    updateThreadTitle: (_threadId: string, _newTitle: string) => { },
-    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => { },
-    subscribeThreadFavoriteUpdate: (_listener: (threadId: string, isFavorite: boolean) => void) => () => { },
-    subscribeThreadTitleUpdate: (_listener: (threadId: string, newTitle: string) => void) => () => { },
+    updateThreadLastReadTime: async (_threadId: string) => {},
+    deleteThread: async (_thread: Thread) => {},
+    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
+    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
+    subscribeThreadFavoriteUpdate: (_listener: (threadId: string, isFavorite: boolean) => void) => () => {},
+    subscribeThreadTitleUpdate: (_listener: (threadId: string, newTitle: string) => void) => () => {},
 });
 
 export const ThreadNavContext = createContext<ThreadNavContextProps>({
     unreadThreadIds: new Set<string>(),
-    updateThreadTitle: (_threadId: string, _newTitle: string) => { },
-    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => { },
-    selectThread: (_threadId: string | null) => { },
-    deleteThread: (_thread: Thread) => { },
-    assignThreadItemDivRef: (_threadId: string, _el: HTMLDivElement) => { },
+    updateThreadTitle: (_threadId: string, _newTitle: string) => {},
+    updateThreadFavorite: (_threadId: string, _isFavorite: boolean) => {},
+    selectThread: (_threadId: string | null) => {},
+    deleteThread: (_thread: Thread) => {},
+    assignThreadItemDivRef: (_threadId: string, _el: HTMLDivElement) => {},
 });
 
 export const DirtyStateContext = createContext<DirtyStateContextProps>({
     isDirty: false,
-    setIsDirty: () => { },
+    setIsDirty: () => {},
 });
