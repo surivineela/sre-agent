@@ -331,13 +331,17 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         string mcpName;
         if (type == McpTransportType.Http)
         {
-            mcpName = endpoint!;
+            var uri = new Uri(endpoint!);
+            // remove the query and fragment parts to avoid leaking sensitive info
+            mcpName = uri.GetLeftPart(UriPartial.Path);
         }
         else
         {
             // try to extract the exact tool name from the command
             mcpName = command!;
-            if (mcpName == "npx" || mcpName == "uvx")
+            if (mcpName == "npx" || mcpName == "node" ||
+                mcpName == "uvx" || mcpName == "python" || mcpName == "python3" ||
+                mcpName == "dotnet" || mcpName == "dnx")
             {
                 if (arguments != null && arguments.Length > 0)
                 {
