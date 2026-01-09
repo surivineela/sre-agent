@@ -129,7 +129,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                         titleContainsOptions,
                     }}
                 >
-                    <div className={shouldShowSuggestions ? styles.mainFormContent : undefined}>
+                    <div className={styles.mainFormContent}>
                         {handlerMode === 'quickEdit' ? <QuickEditIncidentHandlerConsolidated /> : <FullEditIncidentHandlerConsolidated />}
                     </div>
                     {shouldShowSuggestions && suggestionsPanel}
