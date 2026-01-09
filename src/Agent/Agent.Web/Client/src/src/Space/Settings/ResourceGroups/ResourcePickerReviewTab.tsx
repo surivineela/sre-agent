@@ -17,16 +17,17 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, Delete16Regular, DismissCircle16Filled } from '@fluentui/react-icons';
+import { useFormikContext } from 'formik';
 import { Dispatch, FC, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { PermissionClient } from '../../Common/Clients/PermissionsClient';
-import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
-import { ManagedResourcesStringResources, ResourcePickerTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { ResourceGroup } from './Hooks/useResourceGroups';
-import { ResourceGroupWithSelection } from './ResourceGroupPicker';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { PermissionClient } from '../../../Common/Clients/PermissionsClient';
+import { getUserFriendlyLocation } from '../../../Common/Helpers/LocationHelper';
+import { ManagedResourcesStringResources, ResourcePickerTabResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { ResourceGroup } from '../Hooks/useResourceGroups';
+import { useManagedResourcesStyles } from '../Styles/ManagedResources.styles';
+import { ResourceGroupPickerFormValues, ResourceGroupWithSelection } from './ResourceGroupPicker';
 import { ResourceGroupPickerSkeleton } from './ResourceGroupPickerSkeleton';
-import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
 
 const useLocalStyles = makeStyles({
     dataGrid: {
@@ -117,7 +118,6 @@ interface ManagedResourceGroupGridItem extends ResourceGroup {
 }
 
 export type ReviewTabProps = {
-    selectedResourceGroups: ResourceGroupWithSelection[];
     resourceGroupPermissionsError: boolean;
     setResourceGroupPermissionsError: Dispatch<SetStateAction<boolean>>;
     resourceGroupMaxError: boolean;
@@ -132,7 +132,6 @@ const permissionClient = PermissionClient.getInstance();
 
 const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
     const {
-        selectedResourceGroups,
         resourceGroupPermissionsError,
         setResourceGroupPermissionsError,
         resourceGroupMaxError,
@@ -141,6 +140,8 @@ const ReviewTab: FC<ReviewTabProps> = (props: ReviewTabProps) => {
         onRenderSubscription,
         existingResourceGroupIds = [],
     } = props;
+
+    const { values: selectedResourceGroups } = useFormikContext<ResourceGroupPickerFormValues>();
 
     const portalContext = useContext(AzPortalContext);
     const intl = useIntl();

@@ -71,7 +71,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
     const [selectedResourceGroups, setSelectedResourceGroups] = useState<ResourceGroup[]>([]);
     const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    const [hideResourceGroupPicker, setHideResourceGroupPicker] = useState(true);
+    const [showResourceGroupPicker, setShowResourceGroupPicker] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notification, setNotification] = useState<string>('');
     const [numberOfRgs, setNumberOfRgs] = useState<number>(0);
@@ -300,7 +300,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             const numberOfRgs = selectedResourceGroups.length;
             setNumberOfRgs(numberOfRgs);
             setIsUpdating(true);
-            setHideResourceGroupPicker(false);
+            setShowResourceGroupPicker(false);
             const notification = portalContext.startNotification(
                 numberOfRgs > 1
                     ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, { number: numberOfRgs })
@@ -388,7 +388,18 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 refresh();
             }
         },
-        [portalContext, intl, managedResourceGroupIds, agent, resourceId, getTemplate, getParameters, getDeploymentResourceId, refresh]
+        [
+            portalContext,
+            intl,
+            logAmplitudeControlEvent,
+            managedResourceGroupIds,
+            agent,
+            resourceId,
+            getTemplate,
+            getParameters,
+            getDeploymentResourceId,
+            refresh,
+        ]
     );
 
     const onDeleteClick = useCallback(async () => {
@@ -514,10 +525,10 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         selectedKeys,
         onUpdateSelection,
         showDeleteConfirmationDialog,
-        hideResourceGroupPicker,
         subscriptionId,
         managedResourceGroupIds,
-        setHideResourceGroupPicker,
+        showResourceGroupPicker,
+        setShowResourceGroupPicker,
         setShowDeleteConfirmationDialog,
         setSearchText,
         setSelectedLocations,

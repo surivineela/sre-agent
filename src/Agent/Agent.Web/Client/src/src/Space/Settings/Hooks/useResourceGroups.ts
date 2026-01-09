@@ -5,7 +5,7 @@ import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { ResourceGroupClient } from '../../../Common/Clients/ResourceGroupClient';
 import { StringMap } from '../../../Common/Helpers/LocationHelper';
 import { ManagedResourcesStringResources } from '../../../Strings/SREAgentResources';
-import { ResourceGroupWithSelection } from '../ResourceGroupPicker';
+import { ResourceGroupWithSelection } from '../ResourceGroups/ResourceGroupPicker';
 
 export interface ResourceGroup {
     id: string;

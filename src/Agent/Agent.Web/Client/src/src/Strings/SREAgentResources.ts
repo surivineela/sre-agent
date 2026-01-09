@@ -852,11 +852,11 @@ export const ResourcePickerTabResources = defineMessages({
         id: 'HtVpjg',
     },
     failedToLoadResourceGroups: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
-    showRecommended: { defaultMessage: 'Show only recommended resource groups', id: 'ATYp8z' },
+    showRecommended: { defaultMessage: 'Show recommended', id: 'PfwAB2' },
     resourceGroupMinMax: {
         defaultMessage:
-            'You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.',
-        id: '3rvQhx',
+            'Choose a maximum of {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.',
+        id: 'voe6nT',
     },
     resourceGroupSelected: {
         defaultMessage: '{count} resource group selected.',
@@ -878,6 +878,8 @@ export const ResourcePickerTabResources = defineMessages({
     },
     readOnlyLock: { defaultMessage: 'Read-only lock', id: '6yuD0y' },
     denyAssignment: { defaultMessage: 'Deny assignment', id: 'ob6s4+' },
+    subscriptionLabel: { defaultMessage: 'Subscription:', id: 'DDM6Sq' },
+    regionLabel: { defaultMessage: 'Region:', id: 'Ue9DHy' },
 });
 
 // Graph viewer (mermaid visualization & psql execution message) tooltips / labels

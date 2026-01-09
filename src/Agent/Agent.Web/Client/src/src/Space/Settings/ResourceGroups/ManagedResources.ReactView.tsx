@@ -26,21 +26,22 @@ import {
     ToolbarDivider,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
+import { Formik } from 'formik';
 import debounce from 'lodash/debounce';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
-import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import PermissionedToolbarButton from '../../Common/Components/PermissionedToolbarButton';
-import { TextWithLink } from '../../Common/Components/TextWithLink';
-import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
-import { getUserFriendlyLocation } from '../../Common/Helpers/LocationHelper';
-import useUserPermissions from '../../Common/Hooks/useUserPermissions';
-import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { useManagedResources } from './Hooks/useManagedResources';
-import { getSubscriptionId, ResourceGroup } from './Hooks/useResourceGroups';
-import ResourceGroupPicker from './ResourceGroupPicker';
-import { useManagedResourcesStyles } from './Styles/ManagedResources.styles';
+import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import PermissionedToolbarButton from '../../../Common/Components/PermissionedToolbarButton';
+import { TextWithLink } from '../../../Common/Components/TextWithLink';
+import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
+import { getUserFriendlyLocation } from '../../../Common/Helpers/LocationHelper';
+import useUserPermissions from '../../../Common/Hooks/useUserPermissions';
+import { ManagedResourcesStringResources, SettingsTabResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { useManagedResources } from '../Hooks/useManagedResources';
+import { getSubscriptionId, ResourceGroup } from '../Hooks/useResourceGroups';
+import { useManagedResourcesStyles } from '../Styles/ManagedResources.styles';
+import ResourceGroupPicker, { ResourceGroupPickerFormValues } from './ResourceGroupPicker';
 
 const useLocalStyles = makeStyles({
     scrollableContainer: {
@@ -84,20 +85,20 @@ const ManagedResources: FC = () => {
         onUpdateSelection,
         isDeleteDisabled,
         showDeleteConfirmationDialog,
-        hideResourceGroupPicker,
         subscriptionId,
         managedResourceGroupIds,
-        setHideResourceGroupPicker,
         onDeleteClick,
         onAddClick,
         setShowDeleteConfirmationDialog,
         setSearchText,
         refresh,
         isUpdating,
+        showResourceGroupPicker,
+        setShowResourceGroupPicker,
     } = useManagedResources(resourceId, az);
 
     const addButtonRef = useRef<HTMLButtonElement | null>(null);
-    const previousHideResourceGroupPicker = useRef(hideResourceGroupPicker);
+    const previousShowResourceGroupPicker = useRef(showResourceGroupPicker);
 
     const openResourceOverviewBlade = useCallback(
         (id: string) => {
@@ -183,12 +184,12 @@ const ManagedResources: FC = () => {
     );
 
     useEffect(() => {
-        if (!previousHideResourceGroupPicker.current && hideResourceGroupPicker) {
+        if (previousShowResourceGroupPicker.current && !showResourceGroupPicker) {
             addButtonRef.current?.focus();
         }
 
-        previousHideResourceGroupPicker.current = hideResourceGroupPicker;
-    }, [hideResourceGroupPicker]);
+        previousShowResourceGroupPicker.current = !showResourceGroupPicker;
+    }, [showResourceGroupPicker]);
 
     return (
         <div className={styles.container}>
@@ -205,7 +206,7 @@ const ManagedResources: FC = () => {
                         style={{ paddingLeft: '0px', minWidth: '20px' }}
                         appearance="subtle"
                         disabledReason={isLoading || isUpdating}
-                        onClick={() => setHideResourceGroupPicker(false)}
+                        onClick={() => setShowResourceGroupPicker(true)}
                         canPerform={canWriteAgent}
                         noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionManagedResources)}
                     >
@@ -309,14 +310,22 @@ const ManagedResources: FC = () => {
                     </DialogActions>
                 </DialogSurface>
             </Dialog>
-            <ResourceGroupPicker
-                subscriptionId={subscriptionId}
-                hideResourceGroupPicker={hideResourceGroupPicker}
-                existingResourceGroupIds={managedResourceGroupIds}
-                setHideResourceGroupPicker={setHideResourceGroupPicker}
-                onClick={onAddClick}
-                subscriptionOptions={subscriptionOptions}
-            />
+            <Formik<ResourceGroupPickerFormValues>
+                initialValues={[]}
+                onSubmit={(values, { resetForm }) => {
+                    onAddClick(values);
+                    resetForm();
+                }}
+            >
+                <ResourceGroupPicker
+                    subscriptionId={subscriptionId}
+                    showResourceGroupPicker={showResourceGroupPicker}
+                    existingResourceGroupIds={managedResourceGroupIds}
+                    setShowResourceGroupPicker={setShowResourceGroupPicker}
+                    onClick={onAddClick}
+                    subscriptionOptions={subscriptionOptions}
+                />
+            </Formik>
         </div>
     );
 };
