@@ -1,17 +1,30 @@
+import { Body2Strong } from '@fluentui-copilot/react-copilot';
 import { IChartProps, LineChart } from '@fluentui/react-charting';
-import { Badge, Button, Card, CardHeader, Link, Text, tokens } from '@fluentui/react-components';
+import {
+    Accordion,
+    AccordionHeader,
+    AccordionHeaderProps,
+    AccordionItem,
+    AccordionPanel,
+    Badge,
+    Body1Strong,
+    Button,
+    Card,
+    CardHeader,
+    Link,
+    Text,
+    tokens,
+} from '@fluentui/react-components';
 import {
     AlertUrgentFilled,
     ChatRegular,
     CheckmarkCircleRegular,
-    ChevronDownRegular,
-    ChevronUpRegular,
     ErrorCircleRegular,
     OpenRegular,
     ShieldRegular,
     TaskListLtrRegular,
 } from '@fluentui/react-icons';
-import React, { useContext, useState } from 'react';
+import React, { FC, ReactNode, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import codeOptimizationsLogo from '../../../assets/codeOptimizationsLogo.svg';
 import { DailyReportResources } from '../../Strings/SREAgentResources';
@@ -177,17 +190,6 @@ interface SREDailyFormatProps {
     timestamp?: string;
 }
 
-type SectionKey =
-    | 'overview'
-    | 'resources'
-    | 'incidents'
-    | 'actions'
-    | 'security'
-    | 'codeOptimizations'
-    | 'unhealthyResources'
-    | 'degradedResources'
-    | 'healthyResources';
-
 // Status colors from design system
 const STATUS_COLORS = {
     CRITICAL: tokens.colorStatusDangerForeground2, // Deep red/burgundy for critical
@@ -252,6 +254,49 @@ const getHealthStatusColor = (status: string): string => {
     }
 };
 
+const formatDateTime = (dateTimeString: string): string => {
+    const date = new Date(dateTimeString);
+
+    // Format time: 3:27 PM
+    const timeOptions: Intl.DateTimeFormatOptions = {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    };
+    const timeStr = date.toLocaleTimeString('en-US', timeOptions);
+
+    // Format date: 9/10/25
+    const dateOptions: Intl.DateTimeFormatOptions = {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit',
+    };
+    const dateStr = date.toLocaleDateString('en-US', dateOptions);
+
+    return `${timeStr}, ${dateStr}`;
+};
+
+const formatDuration = (durationString: string | null): string => {
+    if (!durationString) return 'N/A';
+
+    // If it already has the right format (HH:MM:SS), just return it
+    if (/^\d{2}:\d{2}:\d{2}/.test(durationString)) {
+        return durationString.split('.')[0]; // Remove any milliseconds if present
+    }
+
+    // For other formats, try to parse and convert
+    try {
+        // If it's a timespan format like "11:53:03.0645798"
+        if (durationString.includes('.')) {
+            return durationString.split('.')[0]; // Just keep HH:MM:SS part
+        }
+
+        return durationString; // Return as is if nothing else matches
+    } catch (e) {
+        return durationString; // Return original if parsing fails
+    }
+};
+
 const SecurityIcon = ({ color }: { color: string }) => <ShieldRegular style={{ color: color, fontSize: 20 }} />;
 
 const IncidentsIcon = ({ color }: { color: string }) => (
@@ -277,15 +322,6 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
     // Get resource information at component level
     const { resourceId, isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const intl = useIntl();
-    // Create formatted path for incident links
-    const formattedResourcePath = resourceId
-        ? 'subscriptions%2F' +
-          new ArmResourceDescriptor(resourceId).subscription +
-          '%2FresourceGroups%2F' +
-          new ArmResourceDescriptor(resourceId).resourceGroup +
-          '%2Fproviders%2FMicrosoft.App%2Fagents%2F' +
-          new ArmResourceDescriptor(resourceId).resourceName
-        : '';
 
     // Helper function to format bytes
     const formatBytes = (bytes: number) => {
@@ -324,53 +360,6 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                 healthStatusCounts[status]++;
             }
         });
-    });
-
-    // Accordion state
-    const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
-        overview: true,
-        resources: false,
-        incidents: false,
-        actions: true,
-        security: false,
-        codeOptimizations: false,
-        unhealthyResources: false,
-        degradedResources: false,
-        healthyResources: false,
-    });
-
-    // Track expanded incidents
-    const [expandedIncidents, setExpandedIncidents] = useState<Record<string, boolean>>({});
-
-    // Toggle incident expansion
-    const toggleIncident = (incidentId: string) => {
-        setExpandedIncidents(prev => ({
-            ...prev,
-            [incidentId]: !prev[incidentId],
-        }));
-    };
-
-    // Toggle accordion sections
-    const toggleSection = (section: SectionKey) => {
-        setOpenSections({
-            ...openSections,
-            [section]: !openSections[section],
-        });
-    };
-
-    // Helper function to create keyboard-accessible props for expand/collapse elements
-    const getAccessibleToggleProps = (onClick: () => void, isExpanded: boolean, ariaLabel: string) => ({
-        onClick,
-        onKeyDown: (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick();
-            }
-        },
-        role: 'button' as const,
-        tabIndex: 0,
-        'aria-expanded': isExpanded,
-        'aria-label': ariaLabel,
     });
 
     // Function to render resource cards
@@ -627,49 +616,6 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
         );
     };
 
-    const formatDateTime = (dateTimeString: string): string => {
-        const date = new Date(dateTimeString);
-
-        // Format time: 3:27 PM
-        const timeOptions: Intl.DateTimeFormatOptions = {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-        };
-        const timeStr = date.toLocaleTimeString('en-US', timeOptions);
-
-        // Format date: 9/10/25
-        const dateOptions: Intl.DateTimeFormatOptions = {
-            month: 'numeric',
-            day: 'numeric',
-            year: '2-digit',
-        };
-        const dateStr = date.toLocaleDateString('en-US', dateOptions);
-
-        return `${timeStr}, ${dateStr}`;
-    };
-
-    const formatDuration = (durationString: string | null): string => {
-        if (!durationString) return 'N/A';
-
-        // If it already has the right format (HH:MM:SS), just return it
-        if (/^\d{2}:\d{2}:\d{2}/.test(durationString)) {
-            return durationString.split('.')[0]; // Remove any milliseconds if present
-        }
-
-        // For other formats, try to parse and convert
-        try {
-            // If it's a timespan format like "11:53:03.0645798"
-            if (durationString.includes('.')) {
-                return durationString.split('.')[0]; // Just keep HH:MM:SS part
-            }
-
-            return durationString; // Return as is if nothing else matches
-        } catch (e) {
-            return durationString; // Return original if parsing fails
-        }
-    };
-
     return (
         <div className="dashboard-container" style={{ backgroundColor: tokens.colorNeutralBackground1 }}>
             {/* Header */}
@@ -882,46 +828,12 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                     </Card>
                 </div>
 
-                {/* Repository Insights Section */}
-                <div style={{ marginBottom: '16px' }} data-section="security">
-                    <Card
-                        {...getAccessibleToggleProps(
-                            () => toggleSection('security'),
-                            openSections.security,
-                            intl.formatMessage(DailyReportResources.repositoryInsights)
-                        )}
-                        style={{
-                            backgroundColor: tokens.colorNeutralBackground2,
-                            padding: '12px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: 'none',
-                            border: 'none',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}
-                        >
-                            {openSections.security ? (
-                                <ChevronDownRegular
-                                    style={{
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            ) : (
-                                <ChevronUpRegular
-                                    style={{
-                                        transform: 'rotate(90deg)',
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            )}
+                <Accordion multiple collapsible>
+                    {/* Repository Insights Section */}
+                    <ReportAccordionItem
+                        value={'security'}
+                        isSecondary={false}
+                        icon={
                             <SecurityIcon
                                 color={
                                     data.Overview.SecurityFindings.Critical > 0
@@ -933,13 +845,9 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                             : getSecuritySeverityColor('Low')
                                 }
                             />
-                            <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.repositoryInsights)} ({data.Overview.SecurityFindings.TotalCount})
-                            </Text>
-                        </div>
-                    </Card>
-
-                    {openSections.security && (
+                        }
+                        header={`${intl.formatMessage(DailyReportResources.repositoryInsights)} (${data.Overview.SecurityFindings.TotalCount})`}
+                    >
                         <div style={{ padding: '16px 0' }}>
                             {!data.CVESummary || data.CVESummary.TotalVulnerabilities === 0 ? (
                                 <Card style={{ textAlign: 'center', padding: '32px 16px' }}>
@@ -1035,49 +943,13 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
+                    </ReportAccordionItem>
 
-                {/* Incidents Section */}
-                <div style={{ marginBottom: '16px' }} data-section="incidents">
-                    <Card
-                        {...getAccessibleToggleProps(
-                            () => toggleSection('incidents'),
-                            openSections.incidents,
-                            intl.formatMessage(DailyReportResources.incidentsSummary)
-                        )}
-                        style={{
-                            backgroundColor: tokens.colorNeutralBackground2,
-                            padding: '12px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: 'none',
-                            border: 'none',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}
-                        >
-                            {openSections.incidents ? (
-                                <ChevronDownRegular
-                                    style={{
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            ) : (
-                                <ChevronUpRegular
-                                    style={{
-                                        transform: 'rotate(90deg)',
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            )}
+                    {/* Incidents Section */}
+                    <ReportAccordionItem
+                        value={'incidents'}
+                        isSecondary={false}
+                        icon={
                             <IncidentsIcon
                                 color={
                                     data.Overview.Incidents.Active > 0 || data.Overview.Incidents.Mitigated > 0
@@ -1085,13 +957,9 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                         : getIncidentStatusColor('Resolved')
                                 }
                             />
-                            <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.incidentsSummary)} ({data.Overview.Incidents.Active})
-                            </Text>
-                        </div>
-                    </Card>
-
-                    {openSections.incidents && (
+                        }
+                        header={`${intl.formatMessage(DailyReportResources.incidentsSummary)} (${data.Overview.Incidents.Active})`}
+                    >
                         <div style={{ padding: '16px 0' }}>
                             {(data.IncidentsSummary.PagerDuty?.length || 0) === 0 &&
                             (data.IncidentsSummary.AzureMonitor?.length || 0) === 0 ? (
@@ -1104,370 +972,34 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     </Text>
                                 </Card>
                             ) : (
-                                <>
+                                <Accordion multiple collapsible>
                                     {data.IncidentsSummary.PagerDuty?.map((incident, index) => (
-                                        <Card
+                                        <IncidentAccordionItem
                                             key={index}
-                                            style={{
-                                                marginBottom: '16px',
-                                                boxShadow: 'none',
-                                                border: `1px solid ${tokens.colorNeutralStroke1}`,
-                                                borderRadius: '8px',
-                                                overflow: 'hidden',
-                                            }}
-                                        >
-                                            <div
-                                                {...getAccessibleToggleProps(
-                                                    () => toggleIncident(incident.IncidentId),
-                                                    expandedIncidents[incident.IncidentId],
-                                                    incident.Name
-                                                )}
-                                                style={{
-                                                    padding: '16px',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: tokens.colorNeutralBackground2,
-                                                    borderBottom: expandedIncidents[incident.IncidentId]
-                                                        ? `1px solid ${tokens.colorNeutralStroke1}`
-                                                        : 'none',
-                                                }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <Text weight="semibold">{incident.Name}</Text>
-                                                        <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
-                                                            {incident.IncidentId}
-                                                        </Text>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <Badge
-                                                            appearance="filled"
-                                                            style={{
-                                                                backgroundColor: 'transparent',
-                                                                color: getIncidentStatusColor(incident.Status),
-                                                                borderRadius: '16px',
-                                                                padding: '2px 12px',
-                                                                marginRight: '8px',
-                                                            }}
-                                                        >
-                                                            {incident.Status}
-                                                        </Badge>
-                                                        {expandedIncidents[incident.IncidentId] ? (
-                                                            <ChevronDownRegular style={{ color: tokens.colorNeutralForeground2 }} />
-                                                        ) : (
-                                                            <ChevronUpRegular
-                                                                style={{
-                                                                    transform: 'rotate(90deg)',
-                                                                    color: tokens.colorNeutralForeground2,
-                                                                }}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {expandedIncidents[incident.IncidentId] && (
-                                                <div style={{ padding: '16px' }}>
-                                                    {incident.Impact && (
-                                                        <div
-                                                            style={{
-                                                                backgroundColor: '#FFF4CE',
-                                                                border: '1px solid #F9E5A7',
-                                                                borderRadius: '4px',
-                                                                padding: '12px 16px',
-                                                                marginBottom: '16px',
-                                                                display: 'flex',
-                                                                alignItems: 'flex-start',
-                                                                gap: '8px',
-                                                            }}
-                                                        >
-                                                            <AlertUrgentFilled style={{ color: '#D83B01', marginTop: '2px' }} />
-                                                            <div>
-                                                                <Text weight="semibold">
-                                                                    {intl.formatMessage(DailyReportResources.impact)}
-                                                                </Text>{' '}
-                                                                {incident.Impact}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div style={{ marginBottom: '16px' }}>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                marginBottom: '8px',
-                                                                color: tokens.colorNeutralForeground3,
-                                                            }}
-                                                        >
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>
-                                                                    {intl.formatMessage(DailyReportResources.incidentId)}
-                                                                </Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.created)}</Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.duration)}</Text>
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                color: tokens.colorNeutralForeground1,
-                                                                marginBottom: '20px',
-                                                            }}
-                                                        >
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text>{intl.formatMessage(DailyReportResources.incidentId)}</Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.created)}</Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.duration)}</Text>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {(incident.InvestigationDetails || incident.Resolution) && (
-                                                        <div style={{ marginBottom: '16px' }}>
-                                                            <Text>{incident.InvestigationDetails || incident.Resolution}</Text>
-                                                        </div>
-                                                    )}
-
-                                                    {!isCrossTenantPortalMode && incident.ThreadLink && (
-                                                        <div style={{ marginTop: '16px' }}>
-                                                            <Button
-                                                                appearance="outline"
-                                                                icon={<ChatRegular />}
-                                                                onClick={() =>
-                                                                    window.open(`${incident.ThreadLink}${formattedResourcePath}`, '_blank')
-                                                                }
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '8px',
-                                                                    border: `1px solid ${tokens.colorNeutralStroke1}`,
-                                                                    borderRadius: '4px',
-                                                                    padding: '6px 12px',
-                                                                    color: tokens.colorNeutralForeground1,
-                                                                }}
-                                                            >
-                                                                {intl.formatMessage(DailyReportResources.goToIncidentThread)}
-                                                            </Button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </Card>
+                                            resourceId={resourceId}
+                                            incident={incident}
+                                            isCrossTenantPortalMode={isCrossTenantPortalMode}
+                                        />
                                     ))}
 
                                     {data.IncidentsSummary.AzureMonitor?.map((incident, index) => (
-                                        <Card
+                                        <IncidentAccordionItem
                                             key={`azure-${index}`}
-                                            style={{
-                                                marginBottom: '16px',
-                                                boxShadow: 'none',
-                                                border: `1px solid ${tokens.colorNeutralStroke1}`,
-                                                borderRadius: '8px',
-                                                overflow: 'hidden',
-                                            }}
-                                        >
-                                            <div
-                                                {...getAccessibleToggleProps(
-                                                    () => toggleIncident(incident.IncidentId),
-                                                    expandedIncidents[incident.IncidentId],
-                                                    incident.Name
-                                                )}
-                                                style={{
-                                                    padding: '16px',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: tokens.colorNeutralBackground2,
-                                                    borderBottom: expandedIncidents[incident.IncidentId]
-                                                        ? `1px solid ${tokens.colorNeutralStroke1}`
-                                                        : 'none',
-                                                }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <Text weight="semibold">{incident.Name}</Text>
-                                                        <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
-                                                            {incident.IncidentId}
-                                                        </Text>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                        <Badge
-                                                            appearance="filled"
-                                                            style={{
-                                                                backgroundColor: 'transparent',
-                                                                color: getIncidentStatusColor(incident.Status),
-                                                                borderRadius: '16px',
-                                                                padding: '2px 12px',
-                                                                marginRight: '8px',
-                                                            }}
-                                                        >
-                                                            {incident.Status}
-                                                        </Badge>
-                                                        {expandedIncidents[incident.IncidentId] ? (
-                                                            <ChevronDownRegular style={{ color: tokens.colorNeutralForeground2 }} />
-                                                        ) : (
-                                                            <ChevronUpRegular
-                                                                style={{
-                                                                    transform: 'rotate(90deg)',
-                                                                    color: tokens.colorNeutralForeground2,
-                                                                }}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {expandedIncidents[incident.IncidentId] && (
-                                                <div style={{ padding: '16px' }}>
-                                                    {incident.Impact && (
-                                                        <div
-                                                            style={{
-                                                                backgroundColor: '#FFF4CE',
-                                                                border: '1px solid #F9E5A7',
-                                                                borderRadius: '4px',
-                                                                padding: '12px 16px',
-                                                                marginBottom: '16px',
-                                                                display: 'flex',
-                                                                alignItems: 'flex-start',
-                                                                gap: '8px',
-                                                            }}
-                                                        >
-                                                            <AlertUrgentFilled style={{ color: '#D83B01', marginTop: '2px' }} />
-                                                            <div>
-                                                                <Text weight="semibold">
-                                                                    {intl.formatMessage(DailyReportResources.impact)}
-                                                                </Text>{' '}
-                                                                {incident.Impact}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div style={{ marginBottom: '16px' }}>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                marginBottom: '8px',
-                                                                color: tokens.colorNeutralForeground3,
-                                                            }}
-                                                        >
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>
-                                                                    {intl.formatMessage(DailyReportResources.incidentId)}
-                                                                </Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.created)}</Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text size={300}>{intl.formatMessage(DailyReportResources.duration)}</Text>
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                color: tokens.colorNeutralForeground1,
-                                                                marginBottom: '20px',
-                                                            }}
-                                                        >
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text>{incident.IncidentId}</Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text>
-                                                                    {incident.CreateTime
-                                                                        ? formatDateTime(incident.CreateTime)
-                                                                        : intl.formatMessage(DailyReportResources.notAvailable)}
-                                                                </Text>
-                                                            </div>
-                                                            <div style={{ flex: '1', marginRight: '8px' }}>
-                                                                <Text>{formatDuration(incident.Duration)}</Text>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {(incident.InvestigationDetails || incident.Resolution) && (
-                                                        <div style={{ marginBottom: '16px' }}>
-                                                            <Text>{incident.InvestigationDetails || incident.Resolution}</Text>
-                                                        </div>
-                                                    )}
-
-                                                    {!isCrossTenantPortalMode && incident.ThreadLink && (
-                                                        <div style={{ marginTop: '16px' }}>
-                                                            <Button
-                                                                appearance="outline"
-                                                                icon={<ChatRegular />}
-                                                                onClick={() =>
-                                                                    window.open(`${incident.ThreadLink}${formattedResourcePath}`, '_blank')
-                                                                }
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '8px',
-                                                                    border: `1px solid ${tokens.colorNeutralStroke1}`,
-                                                                    borderRadius: '4px',
-                                                                    padding: '6px 12px',
-                                                                    color: tokens.colorNeutralForeground1,
-                                                                }}
-                                                            >
-                                                                {intl.formatMessage(DailyReportResources.goToIncidentThread)}
-                                                            </Button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </Card>
+                                            resourceId={resourceId}
+                                            incident={incident}
+                                            isCrossTenantPortalMode={isCrossTenantPortalMode}
+                                        />
                                     ))}
-                                </>
+                                </Accordion>
                             )}
                         </div>
-                    )}
-                </div>
+                    </ReportAccordionItem>
 
-                {/* Resources Section */}
-                <div style={{ marginBottom: '16px' }} data-section="resources">
-                    <Card
-                        {...getAccessibleToggleProps(
-                            () => toggleSection('resources'),
-                            openSections.resources,
-                            intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)
-                        )}
-                        style={{
-                            backgroundColor: tokens.colorNeutralBackground2,
-                            padding: '12px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: 'none',
-                            border: 'none',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}
-                        >
-                            {openSections.resources ? (
-                                <ChevronDownRegular
-                                    style={{
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            ) : (
-                                <ChevronUpRegular
-                                    style={{
-                                        transform: 'rotate(90deg)',
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            )}
+                    {/* Resources Section */}
+                    <ReportAccordionItem
+                        value={'resources'}
+                        isSecondary={false}
+                        icon={
                             <HealthPerformanceIcon
                                 color={
                                     data.Overview.HealthAndPerformance.Unhealthy > 0
@@ -1477,14 +1009,9 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                           : getHealthStatusColor('Healthy')
                                 }
                             />
-                            <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)} (
-                                {data.Overview.HealthAndPerformance.Unhealthy})
-                            </Text>
-                        </div>
-                    </Card>
-
-                    {openSections.resources && (
+                        }
+                        header={`${intl.formatMessage(DailyReportResources.coreAppGroupHealthPerformance)} (${data.Overview.HealthAndPerformance.Unhealthy})`}
+                    >
                         <div style={{ padding: '16px 0' }}>
                             {data.AppGroupResourceSummary.length === 0 ? (
                                 <Card style={{ textAlign: 'center', padding: '32px 16px' }}>
@@ -1498,302 +1025,146 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                             ) : (
                                 <>
                                     {/* Health + Performance Subfolders */}
-                                    {/* Unhealthy App Groups Subfolder */}
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <Card
-                                            {...getAccessibleToggleProps(
-                                                () => setOpenSections(prev => ({ ...prev, unhealthyResources: !prev.unhealthyResources })),
-                                                openSections.unhealthyResources,
-                                                intl.formatMessage(DailyReportResources.unhealthyCoreAppGroups)
-                                            )}
-                                            style={{
-                                                backgroundColor: tokens.colorNeutralBackground2,
-                                                padding: '12px 16px 12px 36px',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                boxShadow: 'none',
-                                                border: 'none',
-                                            }}
+                                    <Accordion multiple collapsible>
+                                        {/* Unhealthy App Groups Subfolder */}
+                                        <ReportAccordionItem
+                                            value={'unhealthyCoreAppGroups'}
+                                            isSecondary={true}
+                                            icon={<ErrorCircleRegular style={{ color: tokens.colorPaletteRedForeground1, fontSize: 20 }} />}
+                                            header={`${intl.formatMessage(DailyReportResources.unhealthyCoreAppGroups)} (${data.Overview.HealthAndPerformance.Unhealthy})`}
                                         >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '12px',
-                                                }}
-                                            >
-                                                {openSections.unhealthyResources ? (
-                                                    <ChevronDownRegular
-                                                        style={{
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <ChevronUpRegular
-                                                        style={{
-                                                            transform: 'rotate(90deg)',
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                )}
-                                                <ErrorCircleRegular style={{ color: tokens.colorPaletteRedForeground1, fontSize: 20 }} />
-                                                <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.unhealthyCoreAppGroups)} (
-                                                    {data.Overview.HealthAndPerformance.Unhealthy})
-                                                </Text>
-                                            </div>
-                                        </Card>
+                                            {data.Overview.HealthAndPerformance.Unhealthy > 0 && (
+                                                <div
+                                                    style={{
+                                                        padding: '8px 0 8px 16px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'stretch',
+                                                        width: '100%',
+                                                    }}
+                                                >
+                                                    {data.AppGroupResourceSummary.map((subscription, subIndex) => {
+                                                        const unhealthyApps = subscription.AppGroups?.filter(
+                                                            app => app.AppHealthInfo.Health.toLowerCase() === 'unhealthy'
+                                                        );
 
-                                        {openSections.unhealthyResources && data.Overview.HealthAndPerformance.Unhealthy > 0 && (
-                                            <div
-                                                style={{
-                                                    padding: '8px 0 8px 16px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'stretch',
-                                                    width: '100%',
-                                                }}
-                                            >
-                                                {data.AppGroupResourceSummary.map((subscription, subIndex) => {
-                                                    const unhealthyApps = subscription.AppGroups?.filter(
-                                                        app => app.AppHealthInfo.Health.toLowerCase() === 'unhealthy'
-                                                    );
+                                                        if (!unhealthyApps || unhealthyApps.length === 0) return null;
 
-                                                    if (!unhealthyApps || unhealthyApps.length === 0) return null;
-
-                                                    return (
-                                                        <div key={`unhealthy-${subIndex}`} style={{ marginBottom: '16px' }}>
-                                                            <Text weight="semibold" style={{ marginBottom: '8px' }}>
-                                                                {subscription.SubscriptionName}
-                                                            </Text>
-                                                            {renderResourceCards(unhealthyApps)}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Degraded App Groups Subfolder */}
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <Card
-                                            {...getAccessibleToggleProps(
-                                                () => setOpenSections(prev => ({ ...prev, degradedResources: !prev.degradedResources })),
-                                                openSections.degradedResources,
-                                                intl.formatMessage(DailyReportResources.degradedCoreAppGroups)
+                                                        return (
+                                                            <div key={`unhealthy-${subIndex}`} style={{ marginBottom: '16px' }}>
+                                                                <Text weight="semibold" style={{ marginBottom: '8px' }}>
+                                                                    {subscription.SubscriptionName}
+                                                                </Text>
+                                                                {renderResourceCards(unhealthyApps)}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             )}
-                                            style={{
-                                                backgroundColor: tokens.colorNeutralBackground2,
-                                                padding: '12px 16px 12px 36px',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                boxShadow: 'none',
-                                                border: 'none',
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '12px',
-                                                }}
-                                            >
-                                                {openSections.degradedResources ? (
-                                                    <ChevronDownRegular
-                                                        style={{
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <ChevronUpRegular
-                                                        style={{
-                                                            transform: 'rotate(90deg)',
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                )}
+                                        </ReportAccordionItem>
+
+                                        {/* Degraded App Groups Subfolder */}
+                                        <ReportAccordionItem
+                                            value={'degradedCoreAppGroups'}
+                                            isSecondary={true}
+                                            icon={
                                                 <ErrorCircleRegular
                                                     style={{ color: tokens.colorPaletteDarkOrangeForeground1, fontSize: 20 }}
                                                 />
-                                                <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.degradedCoreAppGroups)} (
-                                                    {data.Overview.HealthAndPerformance.Degraded})
-                                                </Text>
-                                            </div>
-                                        </Card>
-
-                                        {openSections.degradedResources && data.Overview.HealthAndPerformance.Degraded > 0 && (
-                                            <div
-                                                style={{
-                                                    padding: '8px 0 8px 16px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'stretch',
-                                                    width: '100%',
-                                                }}
-                                            >
-                                                {data.AppGroupResourceSummary.map((subscription, subIndex) => {
-                                                    const degradedApps = subscription.AppGroups?.filter(
-                                                        app => app.AppHealthInfo.Health.toLowerCase() === 'degraded'
-                                                    );
-
-                                                    if (!degradedApps || degradedApps.length === 0) return null;
-
-                                                    return (
-                                                        <div key={`degraded-${subIndex}`} style={{ marginBottom: '16px' }}>
-                                                            <Text weight="semibold" style={{ marginBottom: '8px' }}>
-                                                                {subscription.SubscriptionName}
-                                                            </Text>
-                                                            {renderResourceCards(degradedApps)}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Healthy App Groups Subfolder */}
-                                    <div style={{ marginBottom: '16px' }}>
-                                        <Card
-                                            {...getAccessibleToggleProps(
-                                                () => setOpenSections(prev => ({ ...prev, healthyResources: !prev.healthyResources })),
-                                                openSections.healthyResources,
-                                                intl.formatMessage(DailyReportResources.healthyCoreAppGroups)
-                                            )}
-                                            style={{
-                                                backgroundColor: tokens.colorNeutralBackground2,
-                                                padding: '12px 16px 12px 36px',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                boxShadow: 'none',
-                                                border: 'none',
-                                            }}
+                                            }
+                                            header={`${intl.formatMessage(DailyReportResources.degradedCoreAppGroups)} (${data.Overview.HealthAndPerformance.Degraded})`}
                                         >
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '12px',
-                                                }}
-                                            >
-                                                {openSections.healthyResources ? (
-                                                    <ChevronDownRegular
-                                                        style={{
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <ChevronUpRegular
-                                                        style={{
-                                                            transform: 'rotate(90deg)',
-                                                            color: tokens.colorNeutralForeground2,
-                                                            fontSize: '16px',
-                                                        }}
-                                                    />
-                                                )}
+                                            {data.Overview.HealthAndPerformance.Degraded > 0 && (
+                                                <div
+                                                    style={{
+                                                        padding: '8px 0 8px 16px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'stretch',
+                                                        width: '100%',
+                                                    }}
+                                                >
+                                                    {data.AppGroupResourceSummary.map((subscription, subIndex) => {
+                                                        const degradedApps = subscription.AppGroups?.filter(
+                                                            app => app.AppHealthInfo.Health.toLowerCase() === 'degraded'
+                                                        );
+
+                                                        if (!degradedApps || degradedApps.length === 0) return null;
+
+                                                        return (
+                                                            <div key={`degraded-${subIndex}`} style={{ marginBottom: '16px' }}>
+                                                                <Text weight="semibold" style={{ marginBottom: '8px' }}>
+                                                                    {subscription.SubscriptionName}
+                                                                </Text>
+                                                                {renderResourceCards(degradedApps)}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </ReportAccordionItem>
+
+                                        {/* Healthy App Groups Subfolder */}
+                                        <ReportAccordionItem
+                                            value={'healthyCoreAppGroups'}
+                                            isSecondary={true}
+                                            icon={
                                                 <CheckmarkCircleRegular
                                                     style={{ color: tokens.colorPaletteGreenForeground1, fontSize: 20 }}
                                                 />
-                                                <Text size={300} weight="semibold">
-                                                    {intl.formatMessage(DailyReportResources.healthyCoreAppGroups)} (
-                                                    {data.Overview.HealthAndPerformance.Healthy})
-                                                </Text>
-                                            </div>
-                                        </Card>
+                                            }
+                                            header={`${intl.formatMessage(DailyReportResources.healthyCoreAppGroups)} (${data.Overview.HealthAndPerformance.Healthy})`}
+                                        >
+                                            {data.Overview.HealthAndPerformance.Healthy > 0 && (
+                                                <div
+                                                    style={{
+                                                        padding: '8px 0 8px 16px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'stretch',
+                                                        width: '100%',
+                                                    }}
+                                                >
+                                                    {data.AppGroupResourceSummary.map((subscription, subIndex) => {
+                                                        const healthyApps = subscription.AppGroups?.filter(
+                                                            app => app.AppHealthInfo.Health.toLowerCase() === 'healthy'
+                                                        );
 
-                                        {openSections.healthyResources && data.Overview.HealthAndPerformance.Healthy > 0 && (
-                                            <div
-                                                style={{
-                                                    padding: '8px 0 8px 16px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'stretch',
-                                                    width: '100%',
-                                                }}
-                                            >
-                                                {data.AppGroupResourceSummary.map((subscription, subIndex) => {
-                                                    const healthyApps = subscription.AppGroups?.filter(
-                                                        app => app.AppHealthInfo.Health.toLowerCase() === 'healthy'
-                                                    );
+                                                        if (!healthyApps || healthyApps.length === 0) return null;
 
-                                                    if (!healthyApps || healthyApps.length === 0) return null;
-
-                                                    return (
-                                                        <div key={`healthy-${subIndex}`} style={{ marginBottom: '16px' }}>
-                                                            <Text weight="semibold" style={{ marginBottom: '8px' }}>
-                                                                {subscription.SubscriptionName}
-                                                            </Text>
-                                                            {renderResourceCards(healthyApps)}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
+                                                        return (
+                                                            <div key={`healthy-${subIndex}`} style={{ marginBottom: '16px' }}>
+                                                                <Text weight="semibold" style={{ marginBottom: '8px' }}>
+                                                                    {subscription.SubscriptionName}
+                                                                </Text>
+                                                                {renderResourceCards(healthyApps)}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </ReportAccordionItem>
+                                    </Accordion>
                                 </>
                             )}
                         </div>
-                    )}
-                </div>
+                    </ReportAccordionItem>
 
-                {/* Code Optimizations Section */}
-                <div style={{ marginBottom: '16px' }} data-section="code-optimizations">
-                    <Card
-                        {...getAccessibleToggleProps(
-                            () => toggleSection('codeOptimizations'),
-                            openSections.codeOptimizations,
-                            intl.formatMessage(DailyReportResources.codeOptimizationInsights)
-                        )}
-                        style={{
-                            backgroundColor: tokens.colorNeutralBackground2,
-                            padding: '12px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: 'none',
-                            border: 'none',
-                        }}
+                    {/* Code Optimizations Section */}
+                    <ReportAccordionItem
+                        value={'codeOptimizations'}
+                        isSecondary={false}
+                        icon={
+                            <div>
+                                <img
+                                    src={codeOptimizationsLogo}
+                                    alt={intl.formatMessage(DailyReportResources.codeOptimizationInsights)}
+                                    style={{ width: 20, height: 20 }}
+                                />
+                            </div>
+                        }
+                        header={`${intl.formatMessage(DailyReportResources.codeOptimizationInsights)} (${data.CodeOptimizationsSummary?.TotalRecommendations ?? 0})`}
                     >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}
-                        >
-                            {openSections.codeOptimizations ? (
-                                <ChevronDownRegular
-                                    style={{
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            ) : (
-                                <ChevronUpRegular
-                                    style={{
-                                        transform: 'rotate(90deg)',
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            )}
-                            <img
-                                src={codeOptimizationsLogo}
-                                alt={intl.formatMessage(DailyReportResources.codeOptimizationInsights)}
-                                style={{ width: 20, height: 20 }}
-                            />
-                            <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.codeOptimizationInsights)} (
-                                {data.CodeOptimizationsSummary?.TotalRecommendations ?? 0})
-                            </Text>
-                        </div>
-                    </Card>
-
-                    {openSections.codeOptimizations && (
                         <div style={{ padding: '16px 0' }}>
                             {!data.CodeOptimizationsSummary || (data.CodeOptimizationsSummary.TotalRecommendations || 0) === 0 ? (
                                 <Card style={{ textAlign: 'center', padding: '32px 16px' }}>
@@ -2014,53 +1385,15 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 </>
                             )}
                         </div>
-                    )}
-                </div>
+                    </ReportAccordionItem>
 
-                {/* Actions Section */}
-                <div style={{ marginBottom: '16px' }} data-section="actions">
-                    <Card
-                        {...getAccessibleToggleProps(() => toggleSection('actions'), openSections.actions, 'Actions')}
-                        style={{
-                            backgroundColor: tokens.colorNeutralBackground2,
-                            padding: '12px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxShadow: 'none',
-                            border: 'none',
-                        }}
+                    {/* Actions Section */}
+                    <ReportAccordionItem
+                        value={'actions'}
+                        isSecondary={false}
+                        icon={<TaskListLtrRegular style={{ color: tokens.colorPalettePurpleForeground2, fontSize: 20 }} />}
+                        header={intl.formatMessage(DailyReportResources.actionSummary)}
                     >
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}
-                        >
-                            {openSections.actions ? (
-                                <ChevronDownRegular
-                                    style={{
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            ) : (
-                                <ChevronUpRegular
-                                    style={{
-                                        transform: 'rotate(90deg)',
-                                        color: tokens.colorNeutralForeground2,
-                                        fontSize: '16px',
-                                    }}
-                                />
-                            )}
-                            <TaskListLtrRegular style={{ color: tokens.colorPalettePurpleForeground2 }} />
-                            <Text size={400} weight="semibold">
-                                {intl.formatMessage(DailyReportResources.actionSummary)}
-                            </Text>
-                        </div>
-                    </Card>
-
-                    {openSections.actions && (
                         <div style={{ padding: '16px 0' }}>
                             {!data.RecommendedActionsAndObservations ||
                             (!data.RecommendedActionsAndObservations.Actions?.length &&
@@ -2147,10 +1480,197 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
+                    </ReportAccordionItem>
+                </Accordion>
             </div>
         </div>
+    );
+};
+
+interface ReportAccordionItemProps {
+    value: string;
+    icon: AccordionHeaderProps['icon'];
+    isSecondary: boolean;
+    header: ReactNode;
+    children: ReactNode;
+}
+
+const ReportAccordionItem: FC<ReportAccordionItemProps> = ({ value, icon, isSecondary, header, children }) => {
+    const headerComponent = isSecondary ? <Body1Strong>{header}</Body1Strong> : <Body2Strong>{header}</Body2Strong>;
+
+    return (
+        <AccordionItem value={value} style={{ marginBottom: '16px', borderRadius: '4px' }}>
+            <AccordionHeader
+                size={isSecondary ? 'small' : 'large'}
+                icon={icon}
+                style={{
+                    backgroundColor: tokens.colorNeutralBackground2,
+                    paddingLeft: isSecondary ? '25px' : '5px',
+                    paddingRight: isSecondary ? '25px' : '5px',
+                    paddingTop: isSecondary ? '8px' : undefined,
+                    paddingBottom: isSecondary ? '8px' : undefined,
+                }}
+            >
+                {headerComponent}
+            </AccordionHeader>
+            <AccordionPanel>{children}</AccordionPanel>
+        </AccordionItem>
+    );
+};
+
+interface IncidentAccordionItemProps {
+    resourceId?: string;
+    incident: IncidentInfo;
+    isCrossTenantPortalMode?: boolean;
+}
+
+const IncidentAccordionItem: FC<IncidentAccordionItemProps> = ({ resourceId, incident, isCrossTenantPortalMode }) => {
+    const intl = useIntl();
+
+    // Create formatted path for incident links
+    const formattedResourcePath = resourceId
+        ? 'subscriptions%2F' +
+          new ArmResourceDescriptor(resourceId).subscription +
+          '%2FresourceGroups%2F' +
+          new ArmResourceDescriptor(resourceId).resourceGroup +
+          '%2Fproviders%2FMicrosoft.App%2Fagents%2F' +
+          new ArmResourceDescriptor(resourceId).resourceName
+        : '';
+
+    return (
+        <AccordionItem
+            value={incident.IncidentId}
+            style={{
+                marginBottom: '16px',
+                boxShadow: 'none',
+                border: `1px solid ${tokens.colorNeutralStroke1}`,
+                borderRadius: '8px',
+                overflow: 'hidden',
+            }}
+        >
+            <AccordionHeader
+                style={{
+                    margin: '16px',
+                    padding: '12px',
+                    backgroundColor: tokens.colorNeutralBackground2,
+                }}
+                expandIconPosition={'end'}
+            >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: '99 0 auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <Text weight="semibold">{incident.Name}</Text>
+                        <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
+                            {incident.Status}
+                        </Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Badge
+                            appearance="filled"
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: getIncidentStatusColor(incident.Status),
+                                borderRadius: '16px',
+                                padding: '2px 12px',
+                                marginRight: '8px',
+                            }}
+                        >
+                            {incident.Status}
+                        </Badge>
+                    </div>
+                </div>
+            </AccordionHeader>
+            <AccordionPanel>
+                <div style={{ padding: '16px' }}>
+                    {incident.Impact && (
+                        <div
+                            style={{
+                                backgroundColor: '#FFF4CE',
+                                border: '1px solid #F9E5A7',
+                                borderRadius: '4px',
+                                padding: '12px 16px',
+                                marginBottom: '16px',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '8px',
+                            }}
+                        >
+                            <AlertUrgentFilled style={{ color: '#D83B01', marginTop: '2px' }} />
+                            <div>
+                                <Text weight="semibold">{intl.formatMessage(DailyReportResources.impact)}</Text> {incident.Impact}
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                marginBottom: '8px',
+                                color: tokens.colorNeutralForeground3,
+                            }}
+                        >
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text size={300}>{intl.formatMessage(DailyReportResources.incidentId)}</Text>
+                            </div>
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text size={300}>{intl.formatMessage(DailyReportResources.created)}</Text>
+                            </div>
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text size={300}>{intl.formatMessage(DailyReportResources.duration)}</Text>
+                            </div>
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                color: tokens.colorNeutralForeground1,
+                                marginBottom: '20px',
+                            }}
+                        >
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text>{incident.IncidentId}</Text>
+                            </div>
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text>
+                                    {incident.CreateTime
+                                        ? formatDateTime(incident.CreateTime)
+                                        : intl.formatMessage(DailyReportResources.notAvailable)}
+                                </Text>
+                            </div>
+                            <div style={{ flex: '1', marginRight: '8px' }}>
+                                <Text>{formatDuration(incident.Duration)}</Text>
+                            </div>
+                        </div>
+                    </div>
+
+                    {(incident.InvestigationDetails || incident.Resolution) && (
+                        <div style={{ marginBottom: '16px' }}>
+                            <Text>{incident.InvestigationDetails || incident.Resolution}</Text>
+                        </div>
+                    )}
+
+                    {!isCrossTenantPortalMode && incident.ThreadLink && (
+                        <div style={{ marginTop: '16px' }}>
+                            <Button
+                                appearance="outline"
+                                icon={<ChatRegular />}
+                                onClick={() => window.open(`${incident.ThreadLink}${formattedResourcePath}`, '_blank')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    border: `1px solid ${tokens.colorNeutralStroke1}`,
+                                    borderRadius: '4px',
+                                    padding: '6px 12px',
+                                    color: tokens.colorNeutralForeground1,
+                                }}
+                            >
+                                {intl.formatMessage(DailyReportResources.goToIncidentThread)}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </AccordionPanel>
+        </AccordionItem>
     );
 };
 
