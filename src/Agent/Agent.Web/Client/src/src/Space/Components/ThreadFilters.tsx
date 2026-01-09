@@ -45,6 +45,7 @@ const ThreadFilterButton = memo(
                 appearance={isSelected ? 'primary' : 'outline'}
                 onClick={() => update(!isSelected)}
                 disabled={disabled}
+                aria-pressed={isSelected}
             >
                 <FormattedMessage {...SreAgentResources.unread} />
             </Button>
