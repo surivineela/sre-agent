@@ -1,4 +1,5 @@
 import {
+    Body1Strong,
     Button,
     Dialog,
     DialogActions,
@@ -68,10 +69,7 @@ const useStyles = makeStyles({
         marginBottom: '16px',
     },
     sectionTitle: {
-        fontWeight: '600',
-        color: tokens.colorNeutralForeground1,
         marginBottom: '8px',
-        fontSize: '14px',
     },
 });
 
@@ -161,7 +159,9 @@ const ThreadActionsMenu = ({
             </div>
 
             <div className={section}>
-                <div className={sectionTitle}>{thread.title}</div>
+                <div className={sectionTitle}>
+                    <Body1Strong as={'h3'}>{thread.title}</Body1Strong>
+                </div>
                 <div>
                     {intl.formatMessage(SreAgentResources.created)} {new Date(thread.createdTimestamp).toLocaleDateString()}
                 </div>
