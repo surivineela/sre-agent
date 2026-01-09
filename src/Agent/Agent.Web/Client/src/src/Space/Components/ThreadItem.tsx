@@ -1,5 +1,5 @@
 import { SplitCopilotNavItem } from '@fluentui-copilot/react-copilot';
-import { makeStyles, MenuButtonProps, MenuProps } from '@fluentui/react-components';
+import { makeStyles, MenuButtonProps, MenuProps, useRestoreFocusTarget } from '@fluentui/react-components';
 import { Text } from '@fluentui/react-text';
 import { memo, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -20,6 +20,12 @@ interface IThreadItemProps {
 const useStyles = makeStyles({
     threadItemButton: {
         minWidth: '0px',
+    },
+    threadItemMoreOptionButton: {
+        paddingInlineStart: '0px',
+        paddingInlineEnd: '0px',
+        maxWidth: '32px',
+        minWidth: '32px',
     },
     text: {
         overflow: 'hidden',
@@ -42,6 +48,8 @@ const ThreadItem = memo(({ item, isThreadUnread }: IThreadItemProps) => {
     const { updateThreadTitle, updateThreadFavorite, assignThreadItemDivRef, selectThread, deleteThread } = useContext(ThreadNavContext);
 
     const itemNavId = constructNavItemId(PrimaryNavItemValues.Threads, undefined, item.id);
+
+    const restoreFocusTargetAttribute = useRestoreFocusTarget();
 
     return (
         <ThreadActionsMenu
@@ -90,6 +98,8 @@ const ThreadItem = memo(({ item, isThreadUnread }: IThreadItemProps) => {
                     }}
                     menuButton={{
                         ...triggerProps,
+                        ...restoreFocusTargetAttribute,
+                        className: styles.threadItemMoreOptionButton,
                         'aria-label': intl.formatMessage(SreAgentResources.moreOptions),
                     }}
                     menuButtonTooltip={{

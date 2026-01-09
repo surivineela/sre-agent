@@ -31,6 +31,11 @@ const useStyles = makeStyles({
         paddingTop: tokens.spacingVerticalS,
         paddingBottom: tokens.spacingVerticalS,
     },
+    categoryGroup: {
+        '& > div:first-of-type': {
+            marginTop: 'unset',
+        },
+    },
     divider: {
         height: '1px',
         borderTop: '1px solid rgba(204,204,204,.8)',
@@ -191,7 +196,7 @@ const ThreadNavCategory = memo(
                 >
                     {props.title}
                 </SplitCopilotNavCategoryItem>
-                <CopilotNavSubItemGroup aria-labelledby={props.id}>
+                <CopilotNavSubItemGroup aria-labelledby={props.id} className={styles.categoryGroup}>
                     {[...props.threads, ...props.threadsThatHaveFavoritePropertyChanged].map(item => (
                         <ThreadItem key={item.id} item={item} isThreadUnread={isThreadUnread(item.id)} />
                     ))}
