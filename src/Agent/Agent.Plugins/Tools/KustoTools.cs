@@ -75,14 +75,12 @@ namespace Agent.Plugins.Kusto.Tools
 
         private async Task<string> ExecuteFunction(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters)
         {
-            var functionName = ToolDefinition.Function
-                ?? throw new InvalidOperationException("Function name is required for Function mode");
-
             return await kustoPlugin.ExecuteLocalFunctionOnClusterAsync(
-                functionName,
+                ToolDefinition.Function!,
                 connector.ClusterUrl,
                 ToolDefinition.Database,
-                parameters);
+                parameters,
+                toolDefinition: ToolDefinition);
         }
 
         private async Task<string> ExecuteQuery(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters, bool printQuery)
