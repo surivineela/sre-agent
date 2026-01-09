@@ -541,6 +541,7 @@ export const SreAgentResources = defineMessages({
     },
     learnMore: { defaultMessage: 'Learn more', id: 'TdTXXf' },
     startChat: { defaultMessage: 'Start chat', id: 'v8lolG' },
+    startChatAriaLabel: { defaultMessage: 'Click the button to start a new chat and ask: {question}', id: 'pvpOm2' },
     resourceMap: { defaultMessage: 'Resource map', id: 'aB1tjk' },
     goToMap: { defaultMessage: 'Go to map', id: 'UPybTw' },
     totalResources: { defaultMessage: 'Total resources', id: 'wkLkeE' },

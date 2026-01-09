@@ -531,7 +531,10 @@ const AzureSREWelcome = ({ threadId, selectThread }: AzureSREWelcomeProps) => {
                                         }}
                                     >
                                         <Text style={{ color: tokens.colorNeutralForeground2 }}>{prompt}</Text>
-                                        <Button onClick={() => createNewThreadWithPrompt(prompt)}>
+                                        <Button
+                                            onClick={() => createNewThreadWithPrompt(prompt)}
+                                            aria-label={intl.formatMessage(SreAgentResources.startChatAriaLabel, { question: prompt })}
+                                        >
                                             {intl.formatMessage(SreAgentResources.startChat)}
                                         </Button>
                                     </div>
