@@ -1,4 +1,4 @@
-import { Button, Image, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Body1Strong, Button, Image, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import { Sparkle16Filled } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -340,27 +340,31 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
                             {isGrouped
                                 ? Object.entries(grouped as Record<string, string[]>)
                                       .filter(([subcat]) => subcat.trim().length > 0)
-                                      .map(([subcat, questions]) => (
-                                          <div key={subcat} style={{ width: '100%', paddingBottom: '15px' }}>
-                                              <Text
-                                                  size={200}
-                                                  weight="semibold"
-                                                  style={{ color: tokens.colorNeutralForeground3, paddingLeft: '16px' }}
-                                              >
-                                                  {subcat}
-                                              </Text>
-                                              {questions.map(question => (
-                                                  <PromptSuggestionButton
-                                                      key={question}
-                                                      question={question}
-                                                      canWriteThreads={canWriteThreads}
-                                                      noPermissionTooltip={noPermissionTooltip}
-                                                      className={chatSuggestionsStyles.questionButton}
-                                                      onClick={handleQuestionClick}
-                                                  />
-                                              ))}
-                                          </div>
-                                      ))
+                                      .map(([subcat, questions]) => {
+                                          const id = subcat.replace(/\s+/g, '-').toLowerCase();
+                                          return (
+                                              <div key={subcat} style={{ width: '100%', paddingBottom: '15px' }}>
+                                                  <div
+                                                      style={{ padding: `${tokens.spacingVerticalXS} ${tokens.spacingHorizontalL}` }}
+                                                      id={id}
+                                                  >
+                                                      <Body1Strong>{subcat}</Body1Strong>
+                                                  </div>
+                                                  <div aria-labelledby={id}>
+                                                      {questions.map(question => (
+                                                          <PromptSuggestionButton
+                                                              key={question}
+                                                              question={question}
+                                                              canWriteThreads={canWriteThreads}
+                                                              noPermissionTooltip={noPermissionTooltip}
+                                                              className={chatSuggestionsStyles.questionButton}
+                                                              onClick={handleQuestionClick}
+                                                          />
+                                                      ))}
+                                                  </div>
+                                              </div>
+                                          );
+                                      })
                                 : getQuestionsForCategory(clickedKey).map(question => (
                                       <PromptSuggestionButton
                                           key={question}
