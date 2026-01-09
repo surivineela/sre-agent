@@ -122,7 +122,25 @@ public static class CrawlerExtensions
 
     public static string GetSanitizedCosmosDBId(string id)
     {
-        return id.ToLowerInvariant().Replace("/", "_").Replace(":", "_").Replace(" ", "_");
+        var normalizedId = StripQueryAndFragment(id);
+        return normalizedId.ToLowerInvariant()
+            .Replace("/", "_")
+            .Replace("\\", "_")
+            .Replace(":", "_")
+            .Replace(" ", "_")
+            .Replace("?", "_")
+            .Replace("#", "_");
+    }
+
+    private static string StripQueryAndFragment(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return id;
+        }
+
+        var index = id.IndexOfAny(['?', '#']);
+        return index >= 0 ? id[..index] : id;
     }
 }
 

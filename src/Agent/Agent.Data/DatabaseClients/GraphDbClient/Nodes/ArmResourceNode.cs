@@ -61,10 +61,10 @@ public class ArmResourceNode : GraphNode
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceKind = ResourceKindHelper.getResourceKind(resourceType, resourceKind);
         ResourceType = resourceType.ToLowerInvariant();
-        ResourceId = resourceId.ToLowerInvariant();
+        ResourceId = StripQueryAndFragment(resourceId).ToLowerInvariant();
         SubscriptionId = subscriptionId.ToLowerInvariant();
         ResourceGroupName = resourceGroupName.ToLowerInvariant();
-        ResourceName = resourceName.ToLowerInvariant();
+        ResourceName = StripQueryAndFragment(resourceName).ToLowerInvariant();
         Location = location?.NormalizeLocation() ?? string.Empty;
         AppHealthInfo = appHealthInfo ?? new AppHealthInfo();
         Remarks = remarks;
@@ -106,6 +106,17 @@ public class ArmResourceNode : GraphNode
     public override string GetSubscriptionId()
     {
         return SubscriptionId;
+    }
+
+    private static string StripQueryAndFragment(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        var index = value.IndexOfAny(['?', '#']);
+        return index >= 0 ? value[..index] : value;
     }
 }
 

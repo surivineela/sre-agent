@@ -205,5 +205,31 @@ public class ArmResourceNodeTests
         node.Location.ShouldBe("eastus");
     }
 
+    [Fact]
+    public void Constructor_WithResourceIdContainingQueryAndFragment_StripsQueryAndFragment()
+    {
+        var node = new ArmResourceNode(
+            resourceType: "Microsoft.Web/sites",
+            resourceId: "/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Web/sites/app1?id=123#frag",
+            subscriptionId: "sub1",
+            resourceGroupName: "rg1",
+            resourceName: "app1");
+
+        node.ResourceId.ShouldBe("/subscriptions/sub1/resourcegroups/rg1/providers/microsoft.web/sites/app1");
+    }
+
+    [Fact]
+    public void Constructor_WithResourceNameContainingQueryAndFragment_StripsQueryAndFragment()
+    {
+        var node = new ArmResourceNode(
+            resourceType: "Microsoft.Web/sites",
+            resourceId: "/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Web/sites/app1",
+            subscriptionId: "sub1",
+            resourceGroupName: "rg1",
+            resourceName: "app1?id=123#frag");
+
+        node.ResourceName.ShouldBe("app1");
+    }
+
     #endregion
 }
