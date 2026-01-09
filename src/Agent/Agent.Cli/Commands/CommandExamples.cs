@@ -484,6 +484,15 @@ Examples:
   srectl sync
 
 Note: Requires prior 'srectl init --resource-url <url>'";
+
+        public const string HelpDescription = @"Show help information or export command reference to markdown
+
+Examples:
+  # Show help (same as srectl --help)
+  srectl help
+
+  # Export all command documentation to a markdown file
+  srectl help --output docs/command-reference.md";
     }
 
     #endregion

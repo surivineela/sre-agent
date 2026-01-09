@@ -48,6 +48,8 @@ public static partial class CommandBuilder
             IncidentHandlerCommand.Build(),
             ScheduledTaskCommand.Build(),
 
+            // Hidden commands
+            HelpCommand.Build(),
         };
 
         // Single root action (runs when no verb provided)
@@ -151,11 +153,16 @@ public static partial class CommandBuilder
             }
 
             // Custom help for root command
-            ShowCustomRootHelp(root);
+            ShowRootHelp(root);
             return 0;
         }
+    }
 
-        private void ShowCustomRootHelp(RootCommand? root)
+    /// <summary>
+    /// Shows custom help for the root command.
+    /// This method is public so it can be called from the help command handler.
+    /// </summary>
+    public static void ShowRootHelp(RootCommand? root)
         {
             if (root == null) return;
 
@@ -209,6 +216,10 @@ public static partial class CommandBuilder
 
             foreach (var cmd in root.Children.OfType<Command>())
             {
+                // Skip hidden commands
+                if (cmd.Hidden)
+                    continue;
+
                 // Check if command has subcommands
                 if (cmd.Children.OfType<Command>().Any())
                 {
@@ -257,7 +268,6 @@ public static partial class CommandBuilder
                 }
             }
         }
-    }
 
     /// <summary>
     /// Custom version action that behaves the same as 'srectl version' command
