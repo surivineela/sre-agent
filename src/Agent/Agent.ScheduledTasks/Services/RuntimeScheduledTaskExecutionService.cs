@@ -98,6 +98,21 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
 
         // Update task execution history and counters
         await UpdateTaskAfterExecution(task, execution);
+
+        // Trigger compaction by sending /compact message to ReasoningLoop after successful execution
+        // Only for tasks that reuse the same thread (task.ThreadId != null)
+        if (execution.Success && execution.ThreadId != null && task.ThreadId != null)
+        {
+            try
+            {
+                await SendCompactMessageAsync(execution.ThreadId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error sending compact message for scheduled task: {TaskId}", task.Id);
+                // Don't fail the task if compaction message fails
+            }
+        }
     }
 
     private async Task<(Thread thread, AgentContext agentContext)> GetOrCreateThread(string threadId, ScheduledTaskDocument task)
@@ -150,5 +165,36 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         );
 
         return (thread, agentContext);
+    }
+
+    private async Task SendCompactMessageAsync(string threadId)
+    {
+        _logger.LogInternalInformation("Sending /compact message to trigger compaction for thread: {ThreadId}", threadId);
+
+        var threadGuid = Guid.Parse(threadId);
+
+        // Get the agent context for this thread
+        var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(threadGuid);
+        var agentContext = agentContexts.FirstOrDefault();
+        if (agentContext == null)
+        {
+            _logger.LogInternalWarning("No agent context found for thread {ThreadId}, cannot send compact message", threadId);
+            return;
+        }
+
+        // Send /compact message to the thread, which will be handled by ReasoningLoop.HandleCompactCommandAsync
+        var compactMessage = new ThreadMessage(
+            ThreadId: threadGuid,
+            AgentContextId: agentContext.Id,
+            MessageId: Guid.NewGuid(),
+            Message: "/compact",
+            UserId: "scheduled-task",
+            DisplayName: "Scheduled Task - Auto Compaction",
+            Timestamp: DateTime.UtcNow
+        );
+
+        await _agentService.ProcessAlertMessageAsync(compactMessage);
+
+        _logger.LogInternalInformation("Successfully sent /compact message to thread: {ThreadId}", threadId);
     }
 }
