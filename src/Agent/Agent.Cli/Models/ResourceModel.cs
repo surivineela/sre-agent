@@ -26,6 +26,7 @@ namespace Agent.Cli.Models
             public const string ExtendedAgentV2 = "ExtendedAgent";
             public const string CommonPromptV2 = "CommonPrompt";
             public const string SkillV2 = "Skill";
+            public const string IncidentFilterV2 = "IncidentFilter";
         }
 
         [YamlMember(Alias = "api_version", Order = -2)]

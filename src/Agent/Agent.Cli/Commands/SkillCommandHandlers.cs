@@ -95,7 +95,7 @@ public static class SkillCommandHandlers
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyExtendedSkillAsync(skill, dryRun);
 
-        Console.WriteLine(response);
+        ConsoleUI.WriteStatus(success, response);
         return success ? 0 : 1;
     }
 

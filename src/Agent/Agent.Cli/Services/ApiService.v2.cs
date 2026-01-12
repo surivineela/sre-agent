@@ -166,18 +166,18 @@ public partial class ApiService : IDisposable
             if (errorMessage == null)
             {
                 var message = dryRun
-                    ? $"✅ Tool '{toolName}' validated successfully (dry run)"
-                    : $"✅ Tool '{toolName}' applied successfully!";
+                    ? $"Tool '{toolName}' validated successfully (dry run)"
+                    : $"Tool '{toolName}' applied successfully";
                 return (true, message);
             }
             else
             {
-                return (false, $"❌ Failed to apply tool: {statusCode} - {responseContent}");
+                return (false, $"Failed to apply tool: {statusCode} - {responseContent}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply tool: {ex.Message}");
+            return (false, $"Failed to apply tool: {ex.Message}");
         }
     }
 
@@ -275,18 +275,18 @@ public partial class ApiService : IDisposable
             if (errorMessage == null)
             {
                 var message = dryRun
-                    ? $"✅ Agent '{agentName}' validated successfully (dry run)"
-                    : $"✅ Agent '{agentName}' applied successfully!";
+                    ? $"Agent '{agentName}' validated successfully (dry run)"
+                    : $"Agent '{agentName}' applied successfully";
                 return (true, message);
             }
             else
             {
-                return (false, $"❌ Failed to apply agent: {statusCode} - {responseContent}");
+                return (false, $"Failed to apply agent: {statusCode} - {responseContent}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply agent: {ex.Message}");
+            return (false, $"Failed to apply agent: {ex.Message}");
         }
     }
 
@@ -314,7 +314,7 @@ public partial class ApiService : IDisposable
             var detectedVersion = ExtendedAgentHelper.DetectVersion(agentYamlContent);
             if (detectedVersion == null)
             {
-                return (false, $"❌ Unsupported or invalid YAML version. Expected api_version: '{YamlApiVersion.V1}' or '{YamlApiVersion.V2}'");
+                return (false, $"Unsupported or invalid YAML version. Expected api_version: '{YamlApiVersion.V1}' or '{YamlApiVersion.V2}'");
             }
 
             // Load YAML and convert to V2 if necessary
@@ -355,7 +355,7 @@ public partial class ApiService : IDisposable
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply agent: {ex.Message}");
+            return (false, $"Failed to apply agent: {ex.Message}");
         }
     }
 
@@ -383,7 +383,7 @@ public partial class ApiService : IDisposable
                 return (false, errorMessage);
             }
 
-            return (true, $"✅ Agent '{agentName}' deleted successfully!");
+            return (true, $"Agent '{agentName}' deleted successfully");
         }
         catch (Exception ex)
         {
@@ -548,18 +548,18 @@ public partial class ApiService : IDisposable
             if (errorMessage == null)
             {
                 var message = dryRun
-                    ? $"✅ Common prompt '{promptName}' validated successfully (dry run)"
-                    : $"✅ Common prompt '{promptName}' applied successfully!";
+                    ? $"Common prompt '{promptName}' validated successfully (dry run)"
+                    : $"Common prompt '{promptName}' applied successfully";
                 return (true, message);
             }
             else
             {
-                return (false, $"❌ Failed to apply common prompt: {statusCode} - {responseContent}");
+                return (false, $"Failed to apply common prompt: {statusCode} - {responseContent}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply common prompt: {ex.Message}");
+            return (false, $"Failed to apply common prompt: {ex.Message}");
         }
     }
 
@@ -765,18 +765,153 @@ public partial class ApiService : IDisposable
             if (errorMessage == null)
             {
                 var message = dryRun
-                    ? $"✅ Skill '{skillName}' validated successfully (dry run)"
-                    : $"✅ Skill '{skillName}' applied successfully!";
+                    ? $"Skill '{skillName}' validated successfully (dry run)"
+                    : $"Skill '{skillName}' applied successfully";
                 return (true, message);
             }
             else
             {
-                return (false, $"❌ Failed to apply skill: {statusCode} - {responseContent}");
+                return (false, $"Failed to apply skill: {statusCode} - {responseContent}");
             }
         }
         catch (Exception ex)
         {
-            return (false, $"❌ Failed to apply skill: {ex.Message}");
+            return (false, $"Failed to apply skill: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Incident Filter API
+
+    public async Task<(List<IncidentFilterV2> Result, string? Error)> ListIncidentFiltersAsync()
+    {
+        var resultList = new List<IncidentFilterV2>();
+
+        try
+        {
+            var relativeUrl = "api/v2/IncidentFilter/filters";
+
+            var (filtersEnvelope, statusCode, errorMessage) = await MakeHttpRequestAsync<ApiCollectionEnvelope<IncidentFilterSpecV2>>(HttpMethod.Get, relativeUrl);
+
+            if (errorMessage != null)
+            {
+                return (resultList, errorMessage);
+            }
+
+            if (filtersEnvelope?.Value == null || filtersEnvelope.Value.Count == 0)
+            {
+                return (resultList, null);
+            }
+
+            // Convert envelopes to IncidentFilterV2
+            foreach (var envelope in filtersEnvelope.Value)
+            {
+                if (envelope.Properties == null)
+                {
+                    continue;
+                }
+
+                // Construct IncidentFilterV2 from envelope
+                var incidentFilter = new IncidentFilterV2
+                {
+                    Metadata = new ResourceMetadataModel
+                    {
+                        Name = envelope.Name,
+                        Owner = envelope.Owner,
+                        Tags = envelope.Tags ?? new List<string>()
+                    },
+                    Spec = envelope.Properties
+                };
+
+                resultList.Add(incidentFilter);
+            }
+
+            return (resultList, null);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListIncidentFilters failed: {ex.Message}");
+            return (resultList, $"Failed to list incident filters: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> DeleteIncidentFilterAsync(string filterName, bool dryRun = false)
+    {
+        try
+        {
+            var relativeUrl = $"api/v2/IncidentFilter/filters/{Uri.EscapeDataString(filterName)}";
+            if (dryRun)
+            {
+                relativeUrl += "?dryRun=true";
+            }
+
+            var (content, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Delete, relativeUrl);
+
+            // NoContent (204) means the item was not found - this is a success case
+            if (statusCode == HttpStatusCode.NoContent)
+            {
+                return (true, $"Incident filter '{filterName}' does not exist (already deleted or never created)");
+            }
+
+            if (errorMessage != null)
+            {
+                return (false, errorMessage);
+            }
+
+            return (true, $"Incident filter '{filterName}' deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to delete incident filter: {ex.Message}");
+        }
+    }
+
+    public async Task<(bool Success, string Message)> ApplyIncidentFilterAsync(IncidentFilterV2 filter, bool dryRun = false)
+    {
+        try
+        {
+            var filterName = filter.Metadata?.Name;
+            if (string.IsNullOrWhiteSpace(filterName))
+            {
+                return (false, "Incident filter name is required in metadata.");
+            }
+
+            // Serialize spec to JSON node with camelCase properties
+            var propertiesNode = JsonSerializer.SerializeToNode(filter.Spec, _camelCaseJsonOptions);
+
+            // Build the API request envelope in camelCase
+            var requestBody = new
+            {
+                name = filterName,
+                type = ResourceModel.ResourceKind.IncidentFilterV2,
+                tags = filter.Metadata?.Tags ?? new List<string>(),
+                owner = filter.Metadata?.Owner,
+                properties = propertiesNode
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody, _camelCaseJsonOptions);
+
+            var dryRunQuery = dryRun ? "?dryRun=true" : "";
+            var relativeUrl = $"api/v2/IncidentFilter/filters/{Uri.EscapeDataString(filterName)}{dryRunQuery}";
+
+            var (responseContent, statusCode, errorMessage) = await MakeHttpRequestAsync<string>(HttpMethod.Put, relativeUrl, jsonContent);
+
+            if (errorMessage == null)
+            {
+                var message = dryRun
+                    ? $"Incident filter '{filterName}' validated successfully (dry run)"
+                    : $"Incident filter '{filterName}' applied successfully";
+                return (true, message);
+            }
+            else
+            {
+                return (false, $"Failed to apply incident filter: {statusCode} - {responseContent}");
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to apply incident filter: {ex.Message}");
         }
     }
 

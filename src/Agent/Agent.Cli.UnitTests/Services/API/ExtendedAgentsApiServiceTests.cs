@@ -240,7 +240,7 @@ spec:
             // Assert
             // The method should find the file and proceed to make HTTP call
             Success.ShouldBeTrue();
-            Response.ShouldBe("✅ Agent 'test-agent' applied successfully!");
+            Response.ShouldBe("Agent 'test-agent' applied successfully");
         }
         finally
         {

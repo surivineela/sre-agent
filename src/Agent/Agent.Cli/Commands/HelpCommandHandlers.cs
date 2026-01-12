@@ -195,7 +195,7 @@ public static class HelpCommandHandlers
 
         // Get description text before "Examples:" section
         var examplesIndex = description.IndexOf("Examples:", StringComparison.OrdinalIgnoreCase);
-        var descriptionText = examplesIndex > 0 
+        var descriptionText = examplesIndex > 0
             ? description.Substring(0, examplesIndex).Trim()
             : description.Split('\n')[0].Trim();
 
@@ -232,7 +232,7 @@ public static class HelpCommandHandlers
         foreach (var line in lines)
         {
             var trimmedLine = line.Trim();
-            
+
             // Skip empty lines
             if (string.IsNullOrWhiteSpace(trimmedLine))
             {
@@ -263,7 +263,7 @@ public static class HelpCommandHandlers
     private static void WriteParameters(StringBuilder sb, Command cmd)
     {
         var options = cmd.Options.Where(o => o is not System.CommandLine.Help.HelpOption).ToList();
-        
+
         if (!options.Any())
             return;
 
@@ -305,7 +305,7 @@ public static class HelpCommandHandlers
         // Combine Name and Aliases, then sort: long form (--) first, then short form (-)
         var allNames = new List<string> { option.Name };
         allNames.AddRange(option.Aliases);
-        
+
         var sortedAliases = allNames
             .Distinct()
             .OrderByDescending(a => a.StartsWith("--"))
@@ -315,7 +315,7 @@ public static class HelpCommandHandlers
         var aliasesStr = string.Join(", ", sortedAliases);
 
         var description = option.Description ?? "";
-        
+
         // Clean up description - remove newlines and extra spaces
         description = string.Join(" ", description.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()));
 
@@ -331,7 +331,7 @@ public static class HelpCommandHandlers
             return "";
 
         var firstLine = description.Split('\n')[0].Trim();
-        
+
         // Truncate if too long
         if (firstLine.Length > 80)
             firstLine = firstLine.Substring(0, 77) + "...";

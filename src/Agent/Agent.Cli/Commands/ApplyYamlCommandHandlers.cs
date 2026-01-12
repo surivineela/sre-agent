@@ -249,6 +249,21 @@ public static class ApplyYamlCommandHandlers
                 }
             }
 
+            // Check for V2 IncidentFilter
+            if (string.Equals(kind, ResourceModel.ResourceKind.IncidentFilterV2, StringComparison.OrdinalIgnoreCase))
+            {
+                if (apiVersion == YamlApiVersion.V2)
+                {
+                    var filter = IncidentFilterV2.ParseYaml(yamlContent);
+                    if (filter == null)
+                    {
+                        return (false, $"Failed to parse incident filter YAML (kind: {kind})");
+                    }
+
+                    return await apiService.ApplyIncidentFilterAsync(filter, dryRun: false);
+                }
+            }
+
             // Unknown resource type - fallback to server-side processing
             DebugLogger.Debug("Fallback", $"Attempting server-side processing for kind '{kind}' with api_version '{resourceModel.ApiVersion}'");
             return await apiService.ApplyYamlContentAsync(yamlContent);

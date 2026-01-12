@@ -6,7 +6,6 @@ using System.Reflection;
 using Agent.Cli.Models;
 using Agent.Framework;
 using Agent.Plugins.Kusto.Tools;
-using Agent.Plugins.Tools;
 
 namespace Agent.Cli.Services;
 

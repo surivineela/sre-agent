@@ -37,6 +37,7 @@ public static partial class CommandBuilder
             ExtensionCommand.Build(),
             McpCommand.Build(),
             DocumentCommand.Build(),
+            IncidentFilterCommand.Build(),
 
             // Other commands            
             interactiveCommand,
@@ -163,111 +164,111 @@ public static partial class CommandBuilder
     /// This method is public so it can be called from the help command handler.
     /// </summary>
     public static void ShowRootHelp(RootCommand? root)
+    {
+        if (root == null) return;
+
+        // Show description
+        ConsoleUI.Write("Description:", ConsoleColor.White);
+        var description = root.Description ?? "";
+        foreach (var line in description.Split('\n'))
         {
-            if (root == null) return;
+            ConsoleUI.Write($"  {line}");
+        }
+        ConsoleUI.Write("");
 
-            // Show description
-            ConsoleUI.Write("Description:", ConsoleColor.White);
-            var description = root.Description ?? "";
-            foreach (var line in description.Split('\n'))
+        // Show usage
+        ConsoleUI.Write("Usage:", ConsoleColor.White);
+        ConsoleUI.Write($"  {root.Name} <command> [options]");
+        ConsoleUI.Write($"  {root.Name} <subgroup> <command> [options]");
+        ConsoleUI.Write("");
+
+        // Show options
+        ConsoleUI.Write("Options:", ConsoleColor.White);
+
+        foreach (var option in root.Options)
+        {
+            // Get aliases or fall back to option name
+            var aliases = option.Aliases.Count > 0
+                ? string.Join(", ", option.Aliases)
+                : option.Name;
+
+            var optionDescription = option.Description ?? "";
+
+            // Handle multi-line option descriptions
+            var lines = optionDescription.Split('\n');
+            if (lines.Length > 0)
             {
-                ConsoleUI.Write($"  {line}");
-            }
-            ConsoleUI.Write("");
-
-            // Show usage
-            ConsoleUI.Write("Usage:", ConsoleColor.White);
-            ConsoleUI.Write($"  {root.Name} <command> [options]");
-            ConsoleUI.Write($"  {root.Name} <subgroup> <command> [options]");
-            ConsoleUI.Write("");
-
-            // Show options
-            ConsoleUI.Write("Options:", ConsoleColor.White);
-
-            foreach (var option in root.Options)
-            {
-                // Get aliases or fall back to option name
-                var aliases = option.Aliases.Count > 0
-                    ? string.Join(", ", option.Aliases)
-                    : option.Name;
-
-                var optionDescription = option.Description ?? "";
-
-                // Handle multi-line option descriptions
-                var lines = optionDescription.Split('\n');
-                if (lines.Length > 0)
+                ConsoleUI.Write($"  {aliases,-15} {lines[0]}");
+                for (int i = 1; i < lines.Length; i++)
                 {
-                    ConsoleUI.Write($"  {aliases,-15} {lines[0]}");
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        ConsoleUI.Write($"                   {lines[i]}");
-                    }
-                }
-                else
-                {
-                    ConsoleUI.Write($"  {aliases,-15} {optionDescription}");
+                    ConsoleUI.Write($"                   {lines[i]}");
                 }
             }
-            ConsoleUI.Write("");
-
-            // Categorize commands
-            var subgroups = new List<Command>();
-            var commands = new List<Command>();
-
-            foreach (var cmd in root.Children.OfType<Command>())
+            else
             {
-                // Skip hidden commands
-                if (cmd.Hidden)
-                    continue;
-
-                // Check if command has subcommands
-                if (cmd.Children.OfType<Command>().Any())
-                {
-                    subgroups.Add(cmd);
-                }
-                else
-                {
-                    commands.Add(cmd);
-                }
-            }
-
-            // Calculate dynamic width based on longest command alias string
-            int maxWidth = 15; // Default minimum width
-            foreach (var cmd in subgroups.Concat(commands))
-            {
-                var cmdAliases = cmd.Name;
-                if (cmd.Aliases.Count > 0)
-                {
-                    var otherAliases = cmd.Aliases.Where(a => a != cmd.Name);
-                    if (otherAliases.Any())
-                    {
-                        cmdAliases = $"{cmd.Name}, {string.Join(", ", otherAliases)}";
-                    }
-                }
-                maxWidth = Math.Max(maxWidth, cmdAliases.Length + 1);
-            }
-
-            // Show Subgroups (commands with subcommands)
-            if (subgroups.Any())
-            {
-                ConsoleUI.Write("Subgroups:", ConsoleColor.White);
-                foreach (var cmd in subgroups)
-                {
-                    ConsoleUI.WriteCommand(cmd, maxWidth);
-                }
-                ConsoleUI.Write("");
-            }
-
-            // Show Commands (single-layer commands)
-            if (commands.Any())
-            {
-                ConsoleUI.Write("Commands:", ConsoleColor.White);
-                foreach (var cmd in commands)
-                {
-                    ConsoleUI.WriteCommand(cmd, maxWidth);
-                }
+                ConsoleUI.Write($"  {aliases,-15} {optionDescription}");
             }
         }
+        ConsoleUI.Write("");
+
+        // Categorize commands
+        var subgroups = new List<Command>();
+        var commands = new List<Command>();
+
+        foreach (var cmd in root.Children.OfType<Command>())
+        {
+            // Skip hidden commands
+            if (cmd.Hidden)
+                continue;
+
+            // Check if command has subcommands
+            if (cmd.Children.OfType<Command>().Any())
+            {
+                subgroups.Add(cmd);
+            }
+            else
+            {
+                commands.Add(cmd);
+            }
+        }
+
+        // Calculate dynamic width based on longest command alias string
+        int maxWidth = 15; // Default minimum width
+        foreach (var cmd in subgroups.Concat(commands))
+        {
+            var cmdAliases = cmd.Name;
+            if (cmd.Aliases.Count > 0)
+            {
+                var otherAliases = cmd.Aliases.Where(a => a != cmd.Name);
+                if (otherAliases.Any())
+                {
+                    cmdAliases = $"{cmd.Name}, {string.Join(", ", otherAliases)}";
+                }
+            }
+            maxWidth = Math.Max(maxWidth, cmdAliases.Length + 1);
+        }
+
+        // Show Subgroups (commands with subcommands)
+        if (subgroups.Any())
+        {
+            ConsoleUI.Write("Subgroups:", ConsoleColor.White);
+            foreach (var cmd in subgroups)
+            {
+                ConsoleUI.WriteCommand(cmd, maxWidth);
+            }
+            ConsoleUI.Write("");
+        }
+
+        // Show Commands (single-layer commands)
+        if (commands.Any())
+        {
+            ConsoleUI.Write("Commands:", ConsoleColor.White);
+            foreach (var cmd in commands)
+            {
+                ConsoleUI.WriteCommand(cmd, maxWidth);
+            }
+        }
+    }
 
     /// <summary>
     /// Custom version action that behaves the same as 'srectl version' command

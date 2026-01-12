@@ -1067,4 +1067,87 @@ Available Topics:
     }
 
     #endregion
+
+    #region Incident Filter Command Examples
+
+    public static class IncidentFilter
+    {
+        public const string CreateDescription = @"Create a new incident filter YAML configuration file
+
+Examples:
+  # Create a basic IcM incident filter
+  srectl incident-filter create --name MyIcmFilter --platform IcM --handling-agent DefaultAgent
+
+  # Create an IcM filter with IcM-specific options (monitor ID and created by)
+  srectl incident-filter create --name IcmMonitorFilter --platform IcM \
+    --monitor-id ""monitor-123"" --created-by ""system@contoso.com"" \
+    --handling-agent IncidentAgent
+
+  # Create an Azure Monitor filter with AzMonitor-specific options
+  srectl incident-filter create --name AzMonitorFilter --platform AzMonitor \
+    --target-resource-type ""Microsoft.Compute/virtualMachines"" \
+    --target-resource ""/subscriptions/xxx/resourceGroups/myRG/providers/..."" \
+    --priority P1
+
+  # Create a filter with all common options
+  srectl incident-filter create --name FullFilter --platform IcM \
+    --handling-agent DefaultAgent \
+    --impacted-service MyService \
+    --priority P1 \
+    --incident-type LiveSite \
+    --title-contains ""critical error"" \
+    --owning-team-id ""team-123"" \
+    --max-investigation-attempts 5 \
+    --deep-investigation
+
+  # Create a disabled filter (for testing before enabling)
+  srectl incident-filter create --name TestFilter --platform IcM --disabled
+
+Platform-specific options:
+  IcM (--platform IcM):
+    --monitor-id           Monitor ID to filter on
+    --created-by           Incident creator to filter on
+
+  AzMonitor (--platform AzMonitor):
+    --target-resource-type Target resource type (e.g., Microsoft.Compute/virtualMachines)
+    --target-resource      Target resource path";
+
+        public const string GetDescription = @"List or get incident filters from the remote server
+
+Examples:
+  # List all incident filters
+  srectl incident-filter get
+
+  # List all incident filters with full YAML details
+  srectl incident-filter get --detail
+
+  # Get a specific incident filter by name (full YAML output)
+  srectl incident-filter get --name MyIcmFilter";
+
+        public const string ApplyDescription = @"Apply an incident filter configuration to the remote server
+
+Examples:
+  # Apply an incident filter to the server
+  srectl incident-filter apply --name MyIcmFilter
+
+  # Preview what would be applied (dry run)
+  srectl incident-filter apply --name MyIcmFilter --dry-run
+
+  # Apply with debug logging
+  srectl incident-filter apply --name MyIcmFilter --debug";
+
+        public const string DeleteDescription = @"Delete an incident filter from the remote server
+
+Examples:
+  # Delete an incident filter from the server
+  srectl incident-filter delete --name OldFilter
+
+  # Preview what would be deleted (dry run)
+  srectl incident-filter delete --name TestFilter --dry-run
+
+  # Delete with debug logging
+  srectl incident-filter delete --name UnusedFilter --debug";
+    }
+
+    #endregion
 }

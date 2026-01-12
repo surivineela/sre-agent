@@ -15,13 +15,14 @@ using Microsoft.Extensions.Hosting;
 namespace Agent.Cli.Tests.E2E.MockBackend;
 
 /// <summary>
-/// WebApplicationFactory for creating an in-memory test server with ONLY ExtendedAgentApiController.
+/// WebApplicationFactory for creating an in-memory test server with API controllers.
 /// This avoids all the complex dependencies from Agent.Web.Program by creating a minimal web server.
 /// Shared across all E2E tests with data isolation via Reset() called per test.
 /// </summary>
 public class MockWebApplicationFactory : WebApplicationFactory<MockWebApplicationFactory.MinimalProgram>
 {
     public MockExtendedAgentApiService MockService { get; } = new MockExtendedAgentApiService();
+    public MockIncidentFilterApiService MockIncidentFilterService { get; } = new MockIncidentFilterApiService();
 
     protected override IHostBuilder? CreateHostBuilder()
     {
@@ -30,8 +31,9 @@ public class MockWebApplicationFactory : WebApplicationFactory<MockWebApplicatio
             {
                 webBuilder.ConfigureServices(services =>
                 {
-                    // Add our mock service
+                    // Add mock services
                     services.AddSingleton<IExtendedAgentApiService>(MockService);
+                    services.AddSingleton<IIncidentFilterApiService>(MockIncidentFilterService);
 
                     // Add MVC with only the ExtendedAgentApiController
                     services.AddControllers()
@@ -89,6 +91,7 @@ public class MockWebApplicationFactory : WebApplicationFactory<MockWebApplicatio
     public void Reset()
     {
         MockService.Clear();
+        MockIncidentFilterService.Clear();
     }
 }
 

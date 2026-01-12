@@ -316,7 +316,7 @@ public static class AgentCommandHandlers
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyExtendedAgentAsync(name, dryRun: dryRun);
 
-        Console.WriteLine(response);
+        ConsoleUI.WriteStatus(success, response);
         return success ? 0 : 1;
     }
 

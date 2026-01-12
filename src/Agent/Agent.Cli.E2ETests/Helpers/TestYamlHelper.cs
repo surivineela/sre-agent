@@ -415,5 +415,121 @@ spec:
     {
         return GetSkillMetadataV2(name, "Test skill for E2E testing");
     }
+
+    // ============================================================
+    // V2 Incident Filter YAML Generators
+    // ============================================================
+
+    /// <summary>
+    /// Generates a V2 IncidentFilter YAML string for IcM platform.
+    /// </summary>
+    public static string GetIcmIncidentFilterV2(
+        string name,
+        string? handlingAgent = null,
+        string? impactedService = null,
+        string? priority = null,
+        string? monitorId = null,
+        string? createdBy = null,
+        bool isEnabled = true)
+    {
+        var yaml = $@"api_version: azuresre.ai/v2
+kind: IncidentFilter
+metadata:
+  name: {name}
+spec:
+  incidentPlatform: IcM
+  isEnabled: {isEnabled.ToString().ToLower()}";
+
+        if (!string.IsNullOrEmpty(handlingAgent))
+        {
+            yaml += $"\n  handlingAgent: {handlingAgent}";
+        }
+
+        if (!string.IsNullOrEmpty(impactedService))
+        {
+            yaml += $"\n  impactedService: {impactedService}";
+        }
+
+        if (!string.IsNullOrEmpty(priority))
+        {
+            yaml += $"\n  priority: {priority}";
+        }
+
+        if (!string.IsNullOrEmpty(monitorId) || !string.IsNullOrEmpty(createdBy))
+        {
+            yaml += "\n  icmFilterSettings:";
+            if (!string.IsNullOrEmpty(monitorId))
+            {
+                yaml += $"\n    monitorId: {monitorId}";
+            }
+            if (!string.IsNullOrEmpty(createdBy))
+            {
+                yaml += $"\n    createdBy: {createdBy}";
+            }
+        }
+
+        return yaml + "\n";
+    }
+
+    /// <summary>
+    /// Generates a minimal V2 IncidentFilter YAML string for IcM platform.
+    /// </summary>
+    public static string GetMinimalIcmIncidentFilterV2(string name)
+    {
+        return GetIcmIncidentFilterV2(name);
+    }
+
+    /// <summary>
+    /// Generates a V2 IncidentFilter YAML string for AzMonitor platform.
+    /// </summary>
+    public static string GetAzMonitorIncidentFilterV2(
+        string name,
+        string? handlingAgent = null,
+        string? priority = null,
+        string? targetResourceType = null,
+        string? targetResource = null,
+        bool isEnabled = true)
+    {
+        var yaml = $@"api_version: azuresre.ai/v2
+kind: IncidentFilter
+metadata:
+  name: {name}
+spec:
+  incidentPlatform: AzMonitor
+  isEnabled: {isEnabled.ToString().ToLower()}";
+
+        if (!string.IsNullOrEmpty(handlingAgent))
+        {
+            yaml += $"\n  handlingAgent: {handlingAgent}";
+        }
+
+        if (!string.IsNullOrEmpty(priority))
+        {
+            yaml += $"\n  priority: {priority}";
+        }
+
+        if (!string.IsNullOrEmpty(targetResourceType) || !string.IsNullOrEmpty(targetResource))
+        {
+            yaml += "\n  azMonitorFilterSettings:";
+            if (!string.IsNullOrEmpty(targetResourceType))
+            {
+                yaml += $"\n    targetResourceType: {targetResourceType}";
+            }
+            if (!string.IsNullOrEmpty(targetResource))
+            {
+                yaml += $"\n    targetResource: {targetResource}";
+            }
+        }
+
+        return yaml + "\n";
+    }
+
+    /// <summary>
+    /// Generates a minimal V2 IncidentFilter YAML string for AzMonitor platform.
+    /// </summary>
+    public static string GetMinimalAzMonitorIncidentFilterV2(string name)
+    {
+        return GetAzMonitorIncidentFilterV2(name);
+    }
 }
 

@@ -229,7 +229,7 @@ public static class ToolCommandHandlers
         using var apiService = new ApiService();
         var (success, response) = await apiService.ApplyExtendedToolAsync(tool, dryRun);
 
-        Console.WriteLine(response);
+        ConsoleUI.WriteStatus(success, response);
         return success ? 0 : 1;
     }
 

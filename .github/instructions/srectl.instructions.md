@@ -26,6 +26,8 @@ src/Agent/Agent.Cli
 ├── Helpers/                                # Helper classes and utilities
 ├── Models/                                 # Data models used by the CLI
 └── Services/                               # Services for business logic and external interactions
+    ├── ApiService.cs                       # HTTP client for calling remote APIs
+    └── ApiService.v2.cs                    # HTTP client for calling remote APIs (v2 endpoints)
 ```
 
 ### Agent.Cli.E2ETests
@@ -284,6 +286,38 @@ The CLI uses two specialized helper classes for consistent, portable console out
 - `Debug(string message)` - General debug messages
 - `Debug(string category, string message)` - Debug messages with category
 - `LogHttpRequest/LogHttpResponse` - HTTP traffic logging
+
+### Services/ApiService.cs and ApiService.v2.cs Guidelines
+
+The `ApiService.cs` and `ApiService.v2.cs` files are HTTP client classes for calling remote APIs.
+
+#### Rules
+
+- Keep ApiService as a simple client implementation - no business logic
+- Use model classes for input/output parameters
+- **Avoid adding validation logic** - validation belongs in command handlers
+- **Avoid file loading or processing** - file operations belong in command handlers
+- Return clean, raw messages without emoji prefixes (no `❌`, `✅`, etc.)
+- Use `bool` return values or result objects to indicate success/failure when needed
+- Let command handlers handle user-facing formatting and presentation
+
+#### Key Patterns
+
+```csharp
+public async Task<(bool Success, string Message)> CreateResourceAsync(ResourceModel resource, CancellationToken cancellationToken = default)
+{
+    // Simple HTTP call with model input/output
+    var response = await _httpClient.PostAsJsonAsync("/api/resources", resource, cancellationToken);
+    
+    if (!response.IsSuccessStatusCode)
+    {
+        var error = await response.Content.ReadAsStringAsync(cancellationToken);
+        return (false, error);  // Raw message, no emoji prefix
+    }
+    
+    return (true, "Resource created successfully");  // Clean message
+}
+```
 
 ## Building & Testing
 
