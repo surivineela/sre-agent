@@ -180,7 +180,9 @@ extends:
           displayName: '🔨 Build SRECTL CLI'
           inputs:
             command: 'build'
-            projects: '$(CliProjectPath)'
+            projects: |
+              $(CliProjectPath)
+              $(Build.SourcesDirectory)\src\Agent\Agent.Cli.UnitTests\Agent.Cli.UnitTests.csproj
             arguments: '--no-restore --configuration $(BuildConfiguration) -p:Version=$(PackageVersion)'
             includeNuGetOrg: false
 
@@ -190,7 +192,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(Build.SourcesDirectory)\src\Agent\Agent.Cli.UnitTests\Agent.Cli.UnitTests.csproj'
-            arguments: '--no-restore --configuration $(BuildConfiguration) --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\'
+            arguments: '--no-build --configuration $(BuildConfiguration) --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\'
             publishTestResults: false
 
         # Publish test results
