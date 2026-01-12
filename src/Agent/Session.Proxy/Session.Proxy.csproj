@@ -10,8 +10,9 @@
   <ItemGroup>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Yarp.ReverseProxy" />
     <PackageReference Include="Ev2.McpServer" GeneratePathProperty="true" ExcludeAssets="all" />
-</ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Common\Agent.Common.csproj" />

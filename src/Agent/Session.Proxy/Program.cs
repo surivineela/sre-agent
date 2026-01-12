@@ -20,23 +20,16 @@ var port = builder.Configuration.GetValue<int>("SessionProxy:Port", 5000);
 builder.WebHost.UseUrls($"http://*:{port}");
 
 builder.Services.AddControllers();
-
 builder.Services.AddHttpClient("IdentityProvider");
-builder.Services.AddHttpClient("PythonProxy")
-    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-    {
-        ConnectTimeout = TimeSpan.FromSeconds(10),
-    })
-    .ConfigureHttpClient(client =>
-    {
-        // Disable client-level timeout; use per-request timeout instead
-        client.Timeout = Timeout.InfiniteTimeSpan;
-    });
+
 builder.Services.Configure<IdentityProviderSettings>(builder.Configuration.GetSection("IdentityProvider"));
 builder.Services.AddSingleton<IdentityProviderClient>();
 builder.Services.AddScoped<IShellService, ShellService>();
 builder.Services.AddSingleton<McpProxyService>();
-builder.Services.AddSingleton<PythonProxyService>();
+
+// Add YARP reverse proxy
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
 var app = builder.Build();
 
@@ -59,18 +52,7 @@ app.MapGet("/", () => "Session Proxy Server is running.");
 
 app.MapControllers();
 
-// Fallback endpoint to proxy unmatched requests to another service
-app.MapFallback(async (HttpContext context, PythonProxyService proxyService, CancellationToken cancellationToken) =>
-{
-    try
-    {
-        await proxyService.ForwardRequestAsync(context, cancellationToken);
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status502BadGateway;
-        await context.Response.WriteAsJsonAsync(new { error = "Failed to proxy request", message = ex.Message }, cancellationToken);
-    }
-});
+// YARP reverse proxy for unmatched requests
+app.MapReverseProxy();
 
 app.Run();
