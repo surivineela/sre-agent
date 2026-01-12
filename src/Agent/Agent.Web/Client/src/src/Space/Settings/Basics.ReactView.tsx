@@ -350,8 +350,8 @@ const Basics: FC = () => {
                         <Tooltip
                             content={
                                 isPreviewChannel
-                                    ? intl.formatMessage(SettingsTabResources.upgradeChannelStable)
-                                    : intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
+                                    ? intl.formatMessage(SettingsTabResources.upgradeChannelPreview)
+                                    : intl.formatMessage(SettingsTabResources.upgradeChannelStable)
                             }
                             relationship="description"
                         >
