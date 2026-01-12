@@ -65,8 +65,8 @@ resource skillExtensions 'Microsoft.App/agents/skills@2025-05-01-preview' = [for
   name: skill.metadata.name
   properties: {
     value: base64(string({
-      name: skill.metadata.name
-      description: skill.metadata.description
+      name: skill.metadata.metadata.name
+      description: skill.metadata.spec.description
       skillContent: skill.skillContent
       additionalFiles: skill.additionalFiles
     }))
