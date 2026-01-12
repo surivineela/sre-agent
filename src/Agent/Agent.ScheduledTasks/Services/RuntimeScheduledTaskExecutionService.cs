@@ -72,6 +72,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
                 AgentContextId: agentContext.Id,
                 MessageId: Guid.NewGuid(),
                 Message: scheduledTaskMessage,
+                AgentName: task.Agent,
                 UserId: "scheduled-task",
                 DisplayName: $"Azure SRE Agent - Scheduled Task",
                 Timestamp: executionTime
