@@ -153,7 +153,7 @@ public class GraphService : IGraphService
             throw new ArgumentException("Subscription ID cannot be null or empty", nameof(subscriptionId));
         }
         var resourceTypeFilter = $@"within(
-                            '{ArmConstants.ContainerAppType.ToLower()}',
+                            '{ArmConstants.ContainerAppEnvironmentType.ToLower()}',
                             '{ArmConstants.AppServiceType.ToLower()}',
                             '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
                             '{ArmConstants.ApiManagementType.ToLower()}',

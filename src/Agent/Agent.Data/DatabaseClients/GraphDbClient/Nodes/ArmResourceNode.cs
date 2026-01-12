@@ -45,7 +45,7 @@ public class ArmResourceNode : GraphNode
         : this(resourceType, string.Empty, subscriptionId, string.Empty, string.Empty) { }
 
     public ArmResourceNode(string resourceType, string subscriptionId, string resourceGroupName, string location)
-        : this(resourceType, string.Empty, subscriptionId, resourceGroupName, string.Empty, location) { }
+        : this(resourceType, string.Empty, subscriptionId, resourceGroupName, string.Empty, location: location) { }
 
     public ArmResourceNode(
         string resourceType,
@@ -66,7 +66,7 @@ public class ArmResourceNode : GraphNode
         ResourceGroupName = resourceGroupName.ToLowerInvariant();
         ResourceName = StripQueryAndFragment(resourceName).ToLowerInvariant();
         Location = location?.NormalizeLocation() ?? string.Empty;
-        AppHealthInfo = appHealthInfo ?? new AppHealthInfo();
+        AppHealthInfo = appHealthInfo;
         Remarks = remarks;
     }
 

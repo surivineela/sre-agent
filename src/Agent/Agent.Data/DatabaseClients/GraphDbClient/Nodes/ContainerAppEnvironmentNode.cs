@@ -51,7 +51,7 @@ public sealed class ContainerAppEnvironmentNode : ArmResourceNode
         string resourceGroupName,
         string resourceName,
         string? location = null)
-        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
+        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location: location)
     {
         WorkloadProfiles = new List<WorkloadProfileName>();
     }

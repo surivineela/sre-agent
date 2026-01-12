@@ -33,7 +33,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
         ".identity", // skip identity section because it is explicitly crawled
     };
 
-    public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseClient dbManager, ArmClient armClient, bool crawlLinkedResource = true)
+    public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseClient dbManager, ArmClient armClient, bool crawlLinkedResource = false)
     {
         _logger = logger;
         _graphDbClient = dbManager;
