@@ -525,6 +525,18 @@ export const SreAgentResources = defineMessages({
     yes: { defaultMessage: 'Yes', id: 'a5msuh' },
     no: { defaultMessage: 'No', id: 'oUWADl' },
     managedIdentity: { defaultMessage: 'Managed identity', id: 'Ys9AIu' },
+    applicationInsights: { defaultMessage: 'Application Insights', id: 'WFo96A' },
+    addApplicationInsights: { defaultMessage: 'Add Application Insights', id: 'X5tr57' },
+    editApplicationInsights: { defaultMessage: 'Edit Application Insights', id: 'cIko8f' },
+    updatingApplicationInsights: { defaultMessage: 'Updating Application Insights', id: 'q4zdO1' },
+    applicationInsightsUpdatedSuccessfully: { defaultMessage: 'Application Insights updated successfully', id: 'ventZq' },
+    failedToUpdateApplicationInsights: { defaultMessage: 'Failed to update Application Insights', id: '+xM5Vc' },
+    applicationInsightsResource: { defaultMessage: 'Application Insights resource', id: 'yehTZg' },
+    selectApplicationInsightsResource: { defaultMessage: 'Select Application Insights resource', id: 'Tq3Otg' },
+    noApplicationInsightsResourcesFoundInSubscription: {
+        defaultMessage: 'No Application Insights resources found in this subscription',
+        id: 'L0U5x5',
+    },
     chatAiContentAndPrivacyMessageStatement: {
         defaultMessage:
             'AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.',

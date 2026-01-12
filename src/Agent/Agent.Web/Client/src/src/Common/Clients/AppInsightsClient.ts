@@ -59,4 +59,44 @@ export class AppInsightsClient {
             return null;
         });
     }
+
+    public static async getApplicationInsightsBySubscription(
+        subscriptionId: string,
+        apiVersion = ApiVersions.argQueryApiVersion20200401Preview
+    ): Promise<{
+        isSuccessful: boolean;
+        data?: Array<{ id: string; name: string; resourceGroup: string; location: string }>;
+        error?: any;
+    }> {
+        const content = {
+            query: `resources
+                | where type == "microsoft.insights/components"
+                | where subscriptionId == "${subscriptionId}"
+                | project id, name, resourceGroup, location
+                | order by name asc`,
+            subscriptions: [subscriptionId],
+        };
+
+        try {
+            const response = await MakeArmCall<ARGResponse, ARGRequestContent>({
+                method: 'POST',
+                url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+                body: content,
+                commandName: 'GetApplicationInsightsBySubscription',
+            });
+
+            if (response && response.data?.data?.rows) {
+                const data = response.data.data.rows.map((row: any[]) => ({
+                    id: row[0],
+                    name: row[1],
+                    resourceGroup: row[2],
+                    location: row[3],
+                }));
+                return { isSuccessful: true, data };
+            }
+            return { isSuccessful: false, error: 'No data returned' };
+        } catch (error) {
+            return { isSuccessful: false, error };
+        }
+    }
 }

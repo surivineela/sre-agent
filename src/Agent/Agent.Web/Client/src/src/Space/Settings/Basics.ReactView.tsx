@@ -16,11 +16,12 @@ import {
 } from '@fluentui/react-components';
 import { Delete16Regular, Info16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
@@ -30,6 +31,7 @@ import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
+import { ApplicationInsightsDialog } from './Components/ApplicationInsightsDialog';
 import { useSubscription } from './Hooks/useSubscription';
 import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -60,6 +62,45 @@ const Basics: FC = () => {
         const identityName = identityDescriptor?.resourceName || '';
         return { identityId, identityName };
     }, [agent?.identity?.userAssignedIdentities]);
+
+    const [isAppInsightsDialogOpen, setIsAppInsightsDialogOpen] = useState(false);
+    const [appInsightsResourceId, setAppInsightsResourceId] = useState<string>();
+    const [appInsightsLoading, setAppInsightsLoading] = useState(false);
+
+    const appInsightsName = useMemo(() => {
+        if (!appInsightsResourceId) return '';
+        const appInsightsDescriptor = new ArmResourceDescriptor(appInsightsResourceId);
+        return appInsightsDescriptor?.resourceName || '';
+    }, [appInsightsResourceId]);
+
+    const fetchAppInsightsId = useCallback(async () => {
+        // First check for the hidden tag
+        const tagResourceId = agent?.tags?.['hidden-link: /app-insights-resource-id'];
+        if (tagResourceId) {
+            setAppInsightsResourceId(tagResourceId);
+            return;
+        }
+
+        // If not found in tags, get appId from logConfiguration and query for resource ID
+        const appId = agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId;
+        if (!appId) {
+            setAppInsightsResourceId(undefined);
+            return;
+        }
+
+        setAppInsightsLoading(true);
+        const response = await AppInsightsClient.getAppInsightsComponentFromAppId([subscriptionGuid], resourceGroup, appId);
+        if (response) {
+            setAppInsightsResourceId(response);
+        }
+        setAppInsightsLoading(false);
+    }, [agent?.tags, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId, subscriptionGuid, resourceGroup]);
+
+    useEffect(() => {
+        if (agent) {
+            fetchAppInsightsId();
+        }
+    }, [agent, fetchAppInsightsId]);
 
     const agentAccessLevelValue = useMemo(
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
@@ -106,6 +147,18 @@ const Basics: FC = () => {
             extension: 'HubsExtension',
         });
     }, [az, identityId]);
+
+    const openAppInsightsDialog = useCallback(() => {
+        setIsAppInsightsDialogOpen(true);
+    }, []);
+
+    const closeAppInsightsDialog = useCallback(() => {
+        setIsAppInsightsDialogOpen(false);
+    }, []);
+
+    const handleAppInsightsSaved = useCallback(() => {
+        refresh();
+    }, [refresh]);
 
     const onDeleteAgent = useCallback(async () => {
         setDeleteDialogOpen(false);
@@ -272,6 +325,17 @@ const Basics: FC = () => {
                     <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
                         {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
                     </Shimmer>
+                    <Label>{intl.formatMessage(SreAgentResources.applicationInsights)}</Label>
+                    <Shimmer isDataLoaded={!agentLoading && !appInsightsLoading}>
+                        {appInsightsResourceId && appInsightsName ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Text>{appInsightsName}</Text>
+                                <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.edit)}</Link>
+                            </div>
+                        ) : (
+                            <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.add)}</Link>
+                        )}
+                    </Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.agentSpace)}</Label>
@@ -390,6 +454,13 @@ const Basics: FC = () => {
                             </DialogBody>
                         </DialogSurface>
                     </Dialog>
+                    <ApplicationInsightsDialog
+                        isOpen={isAppInsightsDialogOpen}
+                        onClose={closeAppInsightsDialog}
+                        currentAppInsightsId={appInsightsResourceId}
+                        agentResourceId={resourceId}
+                        onSave={handleAppInsightsSaved}
+                    />
                 </div>
             </Card>
         </>

@@ -10,4 +10,12 @@ export default class SubscriptionClient {
             apiVersion,
         });
     };
+
+    public static getSubscriptions = (apiVersion = ApiVersions.providerApiVersion20160901) => {
+        return MakeArmCall<{ value: Subscription[] }>({
+            resourceId: '/subscriptions',
+            commandName: 'getSubscriptions',
+            apiVersion,
+        });
+    };
 }
