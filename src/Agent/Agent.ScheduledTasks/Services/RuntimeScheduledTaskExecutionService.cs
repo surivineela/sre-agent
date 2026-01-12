@@ -48,10 +48,19 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
 
         try
         {
-            // Create or reuse thread based on task.ThreadId
-            var (thread, agentContext) = task.ThreadId != null
-                ? await GetOrCreateThread(task.ThreadId, task)
-                : await CreateNewThread(task);
+            Thread thread;
+            AgentContext agentContext;
+            bool isNewThread;
+
+            if (task.ThreadId != null)
+            {
+                (thread, agentContext, isNewThread) = await GetOrCreateThread(task.ThreadId, task);
+            }
+            else
+            {
+                (thread, agentContext) = await CreateNewThread(task);
+                isNewThread = true;
+            }
 
             execution = execution with { ThreadId = thread.Id.ToString() };
 
@@ -63,14 +72,22 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
                 description = task.Description,
                 cronExpression = task.CronExpression,
                 agentPrompt = task.AgentPrompt,
+                agent = task.Agent,
                 executionTime = executionTime.ToString("O"),
                 status = "Active"
             })}[/SCHEDULED_TASK_EXECUTION]";
 
+            // For new threads, use StartMessage.Id to follow CreateUserInitiatedThread pattern
+            // This ensures AgentName is set on the first message of the thread
+            // For reused threads (subsequent executions), generate a new message ID
+            var messageId = isNewThread && thread.StartMessage != null
+                ? thread.StartMessage.Id
+                : Guid.NewGuid();
+
             var threadMessage = new ThreadMessage(
                 ThreadId: thread.Id,
                 AgentContextId: agentContext.Id,
-                MessageId: Guid.NewGuid(),
+                MessageId: messageId,
                 Message: scheduledTaskMessage,
                 AgentName: task.Agent,
                 UserId: "scheduled-task",
@@ -78,7 +95,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
                 Timestamp: executionTime
             );
 
-            await _agentService.ProcessAlertMessageAsync(threadMessage);
+            await _agentService.ProcessUserMessageAsync(threadMessage);
 
             // Mark execution as successful
             execution = execution with { Success = true };
@@ -116,7 +133,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         }
     }
 
-    private async Task<(Thread thread, AgentContext agentContext)> GetOrCreateThread(string threadId, ScheduledTaskDocument task)
+    private async Task<(Thread thread, AgentContext agentContext, bool isNewThread)> GetOrCreateThread(string threadId, ScheduledTaskDocument task)
     {
         _logger.LogInternalInformation("Getting or creating thread for scheduled task: {ThreadId}", threadId);
 
@@ -133,13 +150,14 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
             {
                 throw new InvalidOperationException($"No agent context found for thread: {threadId}");
             }
-            return (thread, agentContext);
+            return (thread, agentContext, false);
         }
 
         // Thread doesn't exist yet, create it (first execution of this task)
         _logger.LogInternalInformation("Creating dedicated thread for scheduled task: {TaskId}", task.Id);
 
-        return await CreateNewThread(task);
+        var result = await CreateNewThread(task);
+        return (result.thread, result.agentContext, true);
     }
 
     private async Task<(Thread thread, AgentContext agentContext)> CreateNewThread(ScheduledTaskDocument task)
@@ -154,6 +172,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
             description = task.Description,
             cronExpression = task.CronExpression,
             agentPrompt = task.AgentPrompt,
+            agent = task.Agent,
             executionTime = DateTime.UtcNow.ToString("O"),
             status = "Active"
         })}[/SCHEDULED_TASK_EXECUTION]";

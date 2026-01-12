@@ -71,7 +71,13 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                     />
                 </Field>
                 {agents && (
-                    <Field label={intl.formatMessage(ScheduledTasksResources.responseSubAgent)}>
+                    <Field
+                        label={
+                            <InfoLabel info={intl.formatMessage(ScheduledTasksResources.responseSubAgentTooltip)}>
+                                {intl.formatMessage(ScheduledTasksResources.responseSubAgent)}
+                            </InfoLabel>
+                        }
+                    >
                         <Dropdown
                             value={values.subAgent || ''}
                             selectedOptions={values.subAgent ? [values.subAgent] : []}

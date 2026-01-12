@@ -41,7 +41,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
 
         return {
             name: scheduledTask?.name ?? '',
-            subAgent: startingAgent,
+            subAgent: scheduledTask?.agent ?? startingAgent,
             details: scheduledTask?.agentPrompt ?? '',
             frequency: scheduledTaskFrequency ?? TaskFrequencyKey.Daily,
             timeOfDay: scheduledTaskTimeOfDay ?? roundTimeToNearestMinuteInterval(date.current, 15),

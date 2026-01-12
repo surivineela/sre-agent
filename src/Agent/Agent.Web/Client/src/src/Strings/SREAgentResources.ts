@@ -3090,6 +3090,10 @@ export const ScheduledTasksResources = defineMessages({
     taskNamePlaceholder: { defaultMessage: 'Enter a scheduled task name', id: '+pmvA0' },
     responseSubAgent: { defaultMessage: 'Response subagent', id: 'GMhzu1' },
     responseSubAgentPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
+    responseSubAgentTooltip: {
+        defaultMessage: 'If no subagent is selected, the default SRE Agent will handle this task.',
+        id: 'uqSi8O',
+    },
     taskDetails: { defaultMessage: 'Task details', id: 'HADwwN' },
     taskDetailsPlaceholder: { defaultMessage: 'Enter task details', id: 'cBcrgh' },
     taskDetailsTip: {
