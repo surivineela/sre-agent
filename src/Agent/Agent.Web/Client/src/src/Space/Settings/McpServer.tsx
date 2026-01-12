@@ -23,7 +23,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { PillFilterSet } from '../../Common/Components/PillFilter/PillFilterSet';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
-import { McpServerResources } from '../../Strings/SREAgentResources';
+import { McpServerResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useMcpServerStyles } from './McpServer.styles';
 
@@ -203,7 +203,7 @@ const McpServer: FC = () => {
                 <DataGridHeader>
                     <DataGridRow
                         selectionCell={{
-                            checkboxIndicator: { 'aria-label': 'Select all rows' },
+                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
                         }}
                     >
                         {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
@@ -214,7 +214,7 @@ const McpServer: FC = () => {
                         <DataGridRow<McpServer>
                             key={rowId}
                             selectionCell={{
-                                checkboxIndicator: { 'aria-label': 'Select row' },
+                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
                             }}
                         >
                             {({ renderCell }) => <DataGridCell>{renderCell(mcpServer)}</DataGridCell>}

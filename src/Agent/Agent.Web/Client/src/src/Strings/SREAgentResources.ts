@@ -3051,6 +3051,10 @@ export const KnowledgeBaseResources = defineMessages({
         defaultMessage: 'Knowledge Base',
         id: 'EbNaDn',
     },
+    searchResultsFound: {
+        defaultMessage: '{count, plural, one {{count} file found} other {{count} files found}} out of {total}',
+        id: 'G7EU2S',
+    },
 });
 
 export const DailyReportsTabResources = defineMessages({
@@ -5846,6 +5850,4 @@ export const AgentPermissionsResources = defineMessages({
     deletingPermissionDescription: { defaultMessage: 'Deleting {count} permissions', id: 'a4owu3' },
     permissionDeletedSuccess: { defaultMessage: 'Permission deleted successfully', id: 'dM9M1D' },
     permissionDeleteFailed: { defaultMessage: 'Failed to delete permission', id: 'pLFm2y' },
-    selectAllRows: { defaultMessage: 'Select all rows', id: '8BaLs0' },
-    selectRow: { defaultMessage: 'Select row', id: '4pJVaS' },
 });

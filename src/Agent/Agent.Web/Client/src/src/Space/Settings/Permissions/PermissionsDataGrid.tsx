@@ -17,7 +17,7 @@ import { PeopleCommunityAddFilled } from '@fluentui/react-icons';
 import { FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { Permission } from '../../../Common/Contracts/Azure/SreAgent';
-import { AgentPermissionsResources } from '../../../Strings/SREAgentResources';
+import { AgentPermissionsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { getRoleDisplayName } from './Permissions';
 import { usePermissionsStyles } from './Permissions.styles';
 
@@ -181,7 +181,7 @@ export const PermissionsDataGrid: FC<PermissionsDataGridProps> = ({
                     <DataGridHeader>
                         <DataGridRow
                             selectionCell={{
-                                checkboxIndicator: { 'aria-label': intl.formatMessage(AgentPermissionsResources.selectAllRows) },
+                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
                             }}
                         >
                             {({ renderHeaderCell }) => (
@@ -195,7 +195,7 @@ export const PermissionsDataGrid: FC<PermissionsDataGridProps> = ({
                                 <DataGridRow<PermissionWithId>
                                     key={rowId}
                                     selectionCell={{
-                                        checkboxIndicator: { 'aria-label': intl.formatMessage(AgentPermissionsResources.selectRow) },
+                                        checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
                                     }}
                                 >
                                     {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}

@@ -750,6 +750,7 @@
   "G5JMSn": "{0} subscriptions selected",
   "G6XRkU": "Steps to Reproduce",
   "G6vaGg": "Connect to PagerDuty with an access key. To get more information, go to pagerduty.com and then to the API Access Keys section.",
+  "G7EU2S": "{count, plural, one {{count} file found} other {{count} files found}} out of {total}",
   "G8H3+s": "All incident types",
   "GBLVEV": "{count} {count, plural, one {document} other {documents}}",
   "GBnvl1": "Agents",

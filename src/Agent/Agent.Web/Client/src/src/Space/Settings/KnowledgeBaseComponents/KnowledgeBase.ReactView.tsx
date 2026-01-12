@@ -1,17 +1,19 @@
 import {
     Button,
-    Checkbox,
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridRow,
     Dialog,
     DialogActions,
     DialogBody,
     DialogContent,
     DialogSurface,
     DialogTitle,
-    InputOnChangeData,
     Link,
     mergeClasses,
-    SearchBox,
-    SearchBoxChangeEvent,
     Table,
     TableBody,
     TableCell,
@@ -23,14 +25,14 @@ import {
     ToolbarButton,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular, Delete20Regular, DocumentText16Regular } from '@fluentui/react-icons';
-import debounce from 'lodash/debounce';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { SearchBoxWithDebounce } from '../../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
 import { KnowledgeBaseResources, SreAgentResources } from '../../../Strings/SREAgentResources';
-import { useKnowledgeBase } from '../Hooks/useKnowledgeBase';
+import { UploadedFile, useKnowledgeBase } from '../Hooks/useKnowledgeBase';
 import { useKnowledgeBaseStyles } from '../Styles/KnowledgeBase.styles';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 import { EmptyState } from './EmptyState';
@@ -49,6 +51,10 @@ const KnowledgeBase: FC = () => {
     const {
         selectedFiles,
         uploadedFiles,
+        onSortChange,
+        onSelectionChange,
+        columns,
+        sortState,
         originalUploadedFiles,
         selectedUploadedFileKeys,
         isLoadingFiles,
@@ -56,9 +62,6 @@ const KnowledgeBase: FC = () => {
         isDeletingFiles,
         isDragOver,
         searchText,
-        tableFeatures,
-        headerSortProps,
-        getColumnWidth,
         handleFileInputChange,
         handleButtonClick,
         handleDragOver,
@@ -67,7 +70,6 @@ const KnowledgeBase: FC = () => {
         handleRemoveFile,
         handleUploadFiles,
         handleBulkDeleteFiles,
-        onUpdateUploadedFileSelection,
         handleRefresh,
         setSearchText,
         fileInputRef,
@@ -76,32 +78,6 @@ const KnowledgeBase: FC = () => {
     const handleUploadAndClose = async () => {
         await handleUploadFiles();
         setIsUploadModalOpen(false);
-    };
-
-    const isDeleteDisabled = selectedUploadedFileKeys.length === 0 || isDeletingFiles;
-
-    const [selectedRowsSet, setSelectedRowsSet] = useState(new Set<string>(selectedUploadedFileKeys));
-
-    const handleRowSelect = (fileName: string, isSelected: boolean) => {
-        const newSelection = new Set(selectedRowsSet);
-        if (isSelected) {
-            newSelection.add(fileName);
-        } else {
-            newSelection.delete(fileName);
-        }
-        setSelectedRowsSet(newSelection);
-        onUpdateUploadedFileSelection(Array.from(newSelection));
-    };
-
-    const handleSelectAll = (isSelected: boolean) => {
-        if (isSelected) {
-            const allFileNames = new Set((uploadedFiles || []).map(file => file.name));
-            setSelectedRowsSet(allFileNames);
-            onUpdateUploadedFileSelection(Array.from(allFileNames));
-        } else {
-            setSelectedRowsSet(new Set());
-            onUpdateUploadedFileSelection([]);
-        }
     };
 
     const handleDeleteConfirmation = async () => {
@@ -120,9 +96,26 @@ const KnowledgeBase: FC = () => {
         setIsDeleteConfirmOpen(true);
     };
 
-    useEffect(() => {
-        setSelectedRowsSet(new Set(selectedUploadedFileKeys));
-    }, [selectedUploadedFileKeys]);
+    const searchResultToAnnounce = useMemo(() => {
+        if (searchText) {
+            return intl.formatMessage(KnowledgeBaseResources.searchResultsFound, {
+                count: uploadedFiles.length,
+                total: originalUploadedFiles.length,
+            });
+        }
+        return undefined;
+    }, [searchText, uploadedFiles.length, originalUploadedFiles.length, intl]);
+
+    const columnSizingOptions = useMemo(
+        () => ({
+            name: {
+                minWidth: 250,
+                idealWidth: 250,
+                defaultWidth: 250,
+            },
+        }),
+        []
+    );
 
     return (
         <div className={styles.container}>
@@ -143,17 +136,17 @@ const KnowledgeBase: FC = () => {
                         icon={<Delete16Regular />}
                         appearance="subtle"
                         onClick={handleBulkDeleteStart}
-                        disabled={isDeleteDisabled}
+                        disabled={selectedUploadedFileKeys.length === 0 || isDeletingFiles}
                     >
                         {isDeletingFiles
                             ? intl.formatMessage(KnowledgeBaseResources.deleting)
                             : intl.formatMessage(SreAgentResources.delete)}
                     </ToolbarButton>
-                    <SearchBox
+                    <SearchBoxWithDebounce
                         className={styles.searchBox}
                         placeholder={intl.formatMessage(KnowledgeBaseResources.searchForFiles)}
-                        value={searchText}
-                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                        setSearchTerm={setSearchText}
+                        textToAnnounce={searchResultToAnnounce}
                         size={'small'}
                     />
                     <ToolbarButton
@@ -177,40 +170,40 @@ const KnowledgeBase: FC = () => {
             )}
 
             <div className={styles.detailsListContainer}>
-                <Table sortable className={styles.detailsList}>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHeaderCell className={styles.checkboxCell}>
-                                <Checkbox
-                                    checked={selectedRowsSet.size === (uploadedFiles || []).length && (uploadedFiles || []).length > 0}
-                                    onChange={(_e, data) => handleSelectAll(data.checked === true)}
-                                />
-                            </TableHeaderCell>
-                            {tableFeatures.columns.map(column => (
-                                <TableHeaderCell
-                                    key={column.columnId}
-                                    {...headerSortProps(column.columnId)}
-                                    style={getColumnWidth(String(column.columnId))}
-                                >
-                                    {column.renderHeaderCell()}
-                                </TableHeaderCell>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {tableFeatures.sort.sort(tableFeatures.getRows()).map(({ item }) => (
-                            <TableRow key={item.name}>
-                                <TableCell className={styles.checkboxCell}>
-                                    <Checkbox
-                                        checked={selectedRowsSet.has(item.name)}
-                                        onChange={(_e, data) => handleRowSelect(item.name, data.checked === true)}
-                                    />
-                                </TableCell>
-                                <TableCell>{item.name}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <DataGrid
+                    columns={columns}
+                    items={uploadedFiles}
+                    sortable={!isLoadingFiles}
+                    sortState={sortState}
+                    onSortChange={onSortChange}
+                    selectionMode="multiselect"
+                    onSelectionChange={onSelectionChange}
+                    getRowId={(item: UploadedFile) => item.name}
+                    columnSizingOptions={columnSizingOptions}
+                    resizableColumns
+                >
+                    <DataGridHeader>
+                        <DataGridRow
+                            selectionCell={{
+                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
+                            }}
+                        >
+                            {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                        </DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<UploadedFile>>
+                        {({ item, rowId }) => (
+                            <DataGridRow<UploadedFile>
+                                key={rowId}
+                                selectionCell={{
+                                    checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
+                                }}
+                            >
+                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                            </DataGridRow>
+                        )}
+                    </DataGridBody>
+                </DataGrid>
                 {!isLoadingFiles && uploadedFiles.length === 0 && (
                     <EmptyState
                         variant={originalUploadedFiles.length === 0 ? 'noItems' : 'noSearchResults'}

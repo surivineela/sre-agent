@@ -48,10 +48,6 @@ export const useKnowledgeBaseStyles = makeStyles({
         width: '100%',
         overflow: 'visible',
     },
-    detailsList: {
-        paddingTop: '0px',
-        marginTop: '0px',
-    },
     noFilesContainer: {
         display: 'flex',
         flexDirection: 'column',
@@ -179,11 +175,6 @@ export const useKnowledgeBaseStyles = makeStyles({
     folderIcon: {
         height: '50px',
         width: '50px',
-    },
-    checkboxCell: {
-        width: '5px',
-        minWidth: '5px',
-        maxWidth: '5px',
     },
     dialogSurfaceOrg: {
         maxWidth: '800px',

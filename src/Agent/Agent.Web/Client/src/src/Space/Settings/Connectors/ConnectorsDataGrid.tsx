@@ -333,7 +333,7 @@ export const ConnectorsDataGrid = ({
                 <DataGridHeader>
                     <DataGridRow
                         selectionCell={{
-                            checkboxIndicator: { 'aria-label': 'Select all rows' },
+                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
                         }}
                     >
                         {({ renderHeaderCell }) => (
@@ -346,7 +346,7 @@ export const ConnectorsDataGrid = ({
                         <DataGridRow<Connector>
                             key={rowId}
                             selectionCell={{
-                                checkboxIndicator: { 'aria-label': 'Select row' },
+                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
                             }}
                         >
                             {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}

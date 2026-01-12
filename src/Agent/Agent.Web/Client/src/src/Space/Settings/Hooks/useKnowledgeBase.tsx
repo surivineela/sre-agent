@@ -1,5 +1,5 @@
-import { TableColumnDefinition, TableColumnId, createTableColumn, useTableFeatures, useTableSort } from '@fluentui/react-components';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { DataGridProps, OnSelectionChangeData, TableColumnDefinition, createTableColumn } from '@fluentui/react-components';
+import React, { Dispatch, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -21,6 +21,8 @@ export interface UseKnowledgeBaseReturn {
     isDeletingFiles: boolean;
     isDragOver: boolean;
     searchText: string;
+    columns: TableColumnDefinition<UploadedFile>[];
+    sortState: DataGridProps['sortState'];
 
     // Handlers
     handleFileSelect: (files: FileList) => void;
@@ -33,22 +35,21 @@ export interface UseKnowledgeBaseReturn {
     handleRemoveAllFiles: () => void;
     handleUploadFiles: () => Promise<void>;
     handleBulkDeleteFiles: () => Promise<void>;
-    onUpdateUploadedFileSelection: (selectedKeys: string[]) => void;
     handleRefresh: () => void;
-    setSearchText: (searchText: string) => void;
+    setSearchText: Dispatch<React.SetStateAction<string>>;
+    onSelectionChange: DataGridProps['onSelectionChange'];
+    onSortChange: DataGridProps['onSortChange'];
 
     // Utils
     formatFileSize: (bytes: number) => string;
     isValidFileType: (file: File) => boolean;
 
-    // Table features
-    tableFeatures: ReturnType<typeof useTableFeatures<UploadedFile>>;
-    headerSortProps: (columnId: TableColumnId) => any;
-    getColumnWidth: (columnId: string) => { width: string; minWidth: string } | { width: string };
-
     // Refs
     fileInputRef: React.RefObject<HTMLInputElement>;
 }
+
+const DEFAULT_SORT_COLUMN = 'name';
+const DEFAULT_SORT_DIRECTION: 'ascending' | 'descending' = 'ascending';
 
 export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: string): UseKnowledgeBaseReturn => {
     const intl = useIntl();
@@ -65,6 +66,10 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
     const [selectedUploadedFileKeys, setSelectedUploadedFileKeys] = useState<string[]>([]);
     const [isDeletingFiles, setIsDeletingFiles] = useState(false);
     const [searchText, setSearchText] = useState<string>('');
+    const [sortState, setSortState] = useState<DataGridProps['sortState']>({
+        sortColumn: DEFAULT_SORT_COLUMN,
+        sortDirection: DEFAULT_SORT_DIRECTION,
+    });
 
     // Client
     const agentMemoryClient = useMemo(() => {
@@ -369,11 +374,6 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         }, 35000);
     }, [selectedUploadedFileKeys, agentMemoryClient, scheduleRefresh, intl, portalContext, resourceId]);
 
-    // Selection handler
-    const onUpdateUploadedFileSelection = useCallback((selectedKeys: string[]) => {
-        setSelectedUploadedFileKeys(selectedKeys);
-    }, []);
-
     // Refresh handler
     const handleRefresh = useCallback(() => {
         loadUploadedFiles();
@@ -389,38 +389,21 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
                 renderCell: fileObj => fileObj.name,
             }),
         ];
-    }, [intl, formatFileSize]);
+    }, [intl]);
 
-    // Table features with sorting
-    const tableFeatures = useTableFeatures(
-        {
-            columns,
-            items: filteredUploadedFiles,
-        },
-        [
-            useTableSort({
-                defaultSortState: { sortColumn: 'name', sortDirection: 'ascending' },
-            }),
-        ]
-    );
+    const onSortChange: DataGridProps['onSortChange'] = (_, nextSortState) => {
+        setSortState({
+            sortColumn: nextSortState.sortColumn?.toString() || DEFAULT_SORT_COLUMN,
+            sortDirection: nextSortState.sortDirection || DEFAULT_SORT_DIRECTION,
+        });
+    };
 
-    // Column width configuration
-    const getColumnWidth = useCallback((columnId: string) => {
-        switch (columnId) {
-            case 'name':
-                return { width: '250px', minWidth: '250px' };
-            default:
-                return { width: 'auto' };
+    const onSelectionChange: DataGridProps['onSelectionChange'] = (_, data: OnSelectionChangeData) => {
+        if (isLoadingFiles) {
+            return;
         }
-    }, []);
-
-    // Header sort props helper
-    const headerSortProps = (columnId: TableColumnId) => ({
-        onClick: (e: React.MouseEvent) => {
-            tableFeatures.sort.toggleColumnSort(e, columnId);
-        },
-        sortDirection: tableFeatures.sort.getSortDirection(columnId),
-    });
+        setSelectedUploadedFileKeys(Array.from(data.selectedItems) as string[]);
+    };
 
     // Effects
     useEffect(() => {
@@ -447,6 +430,8 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         isDeletingFiles,
         isDragOver,
         searchText,
+        columns,
+        sortState,
 
         // Handlers
         handleFileSelect,
@@ -459,18 +444,14 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         handleRemoveAllFiles,
         handleUploadFiles,
         handleBulkDeleteFiles,
-        onUpdateUploadedFileSelection,
         handleRefresh,
         setSearchText,
+        onSelectionChange,
+        onSortChange,
 
         // Utils
         formatFileSize,
         isValidFileType,
-
-        // Table features
-        tableFeatures,
-        headerSortProps,
-        getColumnWidth,
 
         // Refs
         fileInputRef,
