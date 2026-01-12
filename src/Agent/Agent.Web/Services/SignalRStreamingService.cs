@@ -33,8 +33,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
-
             // Create a ChatResponseUpdate with the message and type metadata
             var streamMessage = new ChatResponseUpdate
             {
@@ -51,9 +49,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.ThreadUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
-                threadId, type);
         }
         catch (OperationCanceledException)
         {
@@ -75,8 +70,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type}", threadId, type);
-
             // Create a ChatResponseUpdate with the message and type metadata
             var streamMessage = new ChatResponseUpdate
             {
@@ -93,9 +86,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.ActionUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type}",
-                threadId, type);
         }
         catch (OperationCanceledException)
         {
@@ -117,8 +107,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming message for thread {ThreadId} with type {Type} and messageId {MessageId}", threadId, type, messageId);
-
             // Create a ChatResponseUpdate with the message and type metadata
             var streamMessage = new ChatResponseUpdate
             {
@@ -135,8 +123,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.MessageUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId} with type {Type} and messageId {MessageId}", threadId, type, messageId);
         }
         catch (OperationCanceledException)
         {
@@ -276,8 +262,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming message for thread {ThreadId}", threadId);
-
             // Update a ChatResponseUpdate with threadId and messageId if not provided
             update.AdditionalProperties ??= new AdditionalPropertiesDictionary();
             if (!update.AdditionalProperties.TryGetValue("threadId", out var existingThreadId))
@@ -291,9 +275,6 @@ public class SignalRStreamingService : IStreamingService
             }
 
             await _hubContext.Clients.All.MessageUpdate(update);
-
-            _logger.LogInternalInformation("Successfully streamed message for thread {ThreadId}",
-                threadId);
         }
         catch (OperationCanceledException)
         {
