@@ -15,6 +15,7 @@ import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { PillFilter } from '../../Common/Components/PillFilter/PillFilter';
 import { getLocaleTimeHHMM } from '../../Common/Helpers/Date';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgent } from '../Contracts/ExtendedAgentGraph';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
@@ -29,6 +30,7 @@ interface ScheduledTasksToolbarProps {
     setSearchQuery: (query: string) => void;
     statusFilter: TaskStatusFilterKey;
     setStatusFilter: (status: TaskStatusFilterKey) => void;
+    agents?: ExtendedAgent[];
 }
 
 export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
@@ -38,6 +40,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
     setSearchQuery,
     statusFilter,
     setStatusFilter,
+    agents,
 }) => {
     const intl = useIntl();
     const styles = useScheduledTasksStyles();
@@ -246,6 +249,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                         isDialogOpen={isCreateDialogOpen}
                         setIsDialogOpen={setIsCreateDialogOpen}
                         mode={ScheduledTaskDialogMode.Create}
+                        agents={agents}
                     />
                     <ToolbarButton className={styles.toolbarButton} icon={<ArrowClockwiseRegular />} onClick={onRefresh}>
                         {intl.formatMessage(ScheduledTasksResources.updateList)}

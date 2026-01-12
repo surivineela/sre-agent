@@ -1,11 +1,14 @@
 import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
 import { Text, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
+import { ExtendedAgent, PaginatedResponse } from '../Contracts/ExtendedAgentGraph';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { ScheduledTaskCard } from './Common/ScheduledTaskCard';
 import { ScheduledTaskExecutionsView } from './Executions/ScheduledTaskExecutionsView';
@@ -19,6 +22,7 @@ import { getFilterKeyFromScheduledTaskStatus, TaskStatusFilterKey } from './Sche
 export const ScheduledTasks: FC = () => {
     const intl = useIntl();
     const theme = useTheme();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const styles = useScheduledTasksStyles();
 
@@ -39,6 +43,25 @@ export const ScheduledTasks: FC = () => {
     const [statusFilter, setStatusFilter] = useState<TaskStatusFilterKey>(TaskStatusFilterKey.All);
     const [isOperationInProgress, setIsOperationInProgress] = useState<boolean>(false);
     const [selectedTask, setSelectedTask] = useState<ScheduledTask | null>(null);
+    const [agents, setAgents] = useState<ExtendedAgent[]>([]);
+
+    // Fetch agents for the subagent dropdown
+    useEffect(() => {
+        const fetchAgents = async () => {
+            try {
+                const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/agents?page=1&limit=200`, {
+                    headers: getAgentHeaders(),
+                });
+                if (response.ok) {
+                    const data: PaginatedResponse<ExtendedAgent> = await response.json();
+                    setAgents(data.data ?? []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch agents:', error);
+            }
+        };
+        fetchAgents();
+    }, [sreAgentEndpoint]);
 
     const filteredTasks = useMemo(() => {
         let tasks = [...scheduledTasks];
@@ -135,6 +158,7 @@ export const ScheduledTasks: FC = () => {
                                 setSearchQuery={setSearchQuery}
                                 statusFilter={statusFilter}
                                 setStatusFilter={setStatusFilter}
+                                agents={agents}
                             />
                             <ScheduledTasksDataGrid
                                 scheduledTasks={filteredTasks}
