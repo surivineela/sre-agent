@@ -1,5 +1,5 @@
 import { FluentIcon } from '@fluentui/react-icons';
-import { RefObject } from 'react';
+import { ReactNode, RefObject } from 'react';
 
 export enum PrimaryNavItemValues {
     Activities = 'activities',
@@ -47,7 +47,7 @@ export enum ThreadCategoryKey {
 export interface NavItemInput {
     isVisible: boolean;
     disabled: boolean;
-    label: string;
+    label: ReactNode;
     icon?: FluentIcon;
     onClick?: () => void;
 }

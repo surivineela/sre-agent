@@ -4,11 +4,14 @@ import {
     ChartMultiple20Regular,
     Eye20Filled,
     Eye20Regular,
+    Open16Filled,
+    Open16Regular,
     Open20Filled,
     Open20Regular,
     Organization20Filled,
     Organization20Regular,
 } from '@fluentui/react-icons';
+import { tokens } from '@fluentui/react-theme';
 import { FC, memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation } from 'react-router-dom';
@@ -88,6 +91,8 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
     );
 
     const subItems = useMemo((): SubNavItemInput[] => {
+        const LogsIcon = bundleIcon(Open16Filled, Open16Regular);
+
         return [
             {
                 value: SecondaryNavItemValues.SessionInsights,
@@ -114,7 +119,12 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
                 disabled: logsTabDisabled,
                 icon: bundleIcon(Open20Filled, Open20Regular),
                 value: SecondaryNavItemValues.Logs,
-                label: intl.formatMessage(SreAgentTabResources.logs),
+                label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}>
+                        {intl.formatMessage(SreAgentTabResources.logs)}
+                        <LogsIcon />
+                    </div>
+                ),
                 onClick: onLogsClick,
             },
         ];
