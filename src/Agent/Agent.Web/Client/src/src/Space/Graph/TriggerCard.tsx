@@ -1,4 +1,4 @@
-import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Badge, Card, mergeClasses, Text } from '@fluentui/react-components';
 import { Handle, Node, NodeProps } from '@xyflow/react';
 import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -72,45 +72,18 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
     }, [triggerType]);
 
     const statusBadgeElement = useMemo(() => {
-        const triggerStatus = trigger?.status ?? 'Active';
-        let backgroundColor: string | undefined;
-        let color: string | undefined;
-        let borderColor: string | undefined;
-        switch (triggerStatus) {
-            case 'Active':
-                backgroundColor = tokens.colorStatusSuccessBackground1;
-                color = tokens.colorStatusSuccessForeground1;
-                borderColor = tokens.colorStatusSuccessBorder1;
-                break;
-            case 'Paused':
-                backgroundColor = tokens.colorStatusWarningBackground1;
-                color = tokens.colorStatusWarningForeground1;
-                borderColor = tokens.colorStatusWarningBorder1;
-                break;
-            case 'Disabled':
-                backgroundColor = tokens.colorNeutralBackgroundDisabled;
-                color = tokens.colorNeutralForegroundDisabled;
-                borderColor = tokens.colorNeutralForegroundDisabled;
-                break;
-            default:
-                break;
-        }
-
         return (
             <Badge
-                appearance="outline"
+                appearance={trigger.status === 'Active' ? 'tint' : 'outline'}
                 size="small"
-                className={badge}
-                style={{
-                    backgroundColor: backgroundColor,
-                    color: color,
-                    borderColor: borderColor,
-                }}
+                color={trigger.status === 'Active' ? 'success' : 'danger'}
             >
-                {triggerStatus}
+                {trigger.status === 'Active'
+                    ? intl.formatMessage(ExtendedAgentsGraphResources.onLabel)
+                    : intl.formatMessage(ExtendedAgentsGraphResources.offLabel)}
             </Badge>
         );
-    }, [badge, trigger?.status]);
+    }, [badge, trigger?.status, intl]);
 
     const chronBadgeElement = useMemo(() => {
         if (triggerType !== 'scheduled' || !trigger?.cronExpression) {
@@ -129,8 +102,8 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             triggerType === 'incident'
                 ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident)
                 : triggerType === 'scheduled'
-                  ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled)
-                  : '',
+                    ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled)
+                    : '',
         [triggerType, intl]
     );
 

@@ -1,4 +1,4 @@
-import { Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Badge, Card, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import { Handle, Node, NodeProps } from '@xyflow/react';
 import { memo, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,7 +7,6 @@ import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgentGraphContext, ExtendedAgentGraphNode, ExtendedConnector } from '../Contracts/ExtendedAgentGraph';
 import { HANDLE_POSITION_MAP, HANDLE_POSITIONS } from '../Contracts/Graph';
-import { Badge } from '../Foundry/common/components/src/Badge/Badge';
 import { McpConnectorStatus } from '../Settings/Connectors/Connectors';
 import { ConnectorType, getConnectorIcon, getConnectorName } from '../Settings/Connectors/Wizard/Common/ConnectorType';
 import { useConnectorNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
@@ -83,41 +82,18 @@ export const ConnectorCard = (props: NodeProps<Node<ExtendedAgentGraphNode>>) =>
     }, [isMcpConnector, sreAgentEndpoint, connector?.name]);
 
     const statusBadgeElement = useMemo(() => {
-        let backgroundColor: string | undefined;
-        let color: string | undefined;
-        let borderColor: string | undefined;
-        switch (!!isEnabled) {
-            case true:
-                backgroundColor = tokens.colorStatusSuccessBackground1;
-                color = tokens.colorStatusSuccessForeground1;
-                borderColor = tokens.colorStatusSuccessBorder1;
-                break;
-            case false:
-                backgroundColor = tokens.colorNeutralBackgroundDisabled;
-                color = tokens.colorNeutralForegroundDisabled;
-                borderColor = tokens.colorNeutralForegroundDisabled;
-                break;
-            default:
-                break;
-        }
-
         return (
             <Badge
-                appearance="outline"
+                appearance={isEnabled === 'Active' ? 'tint' : 'outline'}
                 size="small"
-                className={badge}
-                style={{
-                    backgroundColor: backgroundColor,
-                    color: color,
-                    borderColor: borderColor,
-                }}
+                color={isEnabled === 'Active' ? 'success' : 'danger'}
             >
-                {isEnabled
+                {isEnabled === 'Active'
                     ? intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusEnabled)
                     : intl.formatMessage(ExtendedAgentsGraphResources.connectorStatusDisabled)}
             </Badge>
         );
-    }, [badge, intl, isEnabled]);
+    }, [intl, isEnabled]);
 
     const mcpStatusBadge = useMemo(() => {
         if (!isMcpConnector || !mcpStatus) {
