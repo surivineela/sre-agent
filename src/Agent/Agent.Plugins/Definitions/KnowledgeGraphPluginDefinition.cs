@@ -156,14 +156,18 @@ public class KnowledgeGraphPluginDefinition
     [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> SearchNodes(
         [Description("The search query to match against entity names, types, and observation content. Case-insensitive. Example: 'Microsoft' or 'coffee'")]
-        string query)
+        string query,
+        [Description("Filter results to a specific entity type. Entity types can be found via GetGraphSchema tool. If empty, no filtering is applied.")]
+        string entityType = "",
+        [Description("whether to include neighboring nodes in the results. If true, related entities and their relations will be included.")]
+        bool includeNeighbors = true)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
             return "Query cannot be empty";
         }
 
-        var result = await _plugin.SearchNodesAsync(query);
+        var result = await _plugin.SearchNodesAsync(query, entityType, includeNeighbors);
 
         // Stream the result to frontend
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;

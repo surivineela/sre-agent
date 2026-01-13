@@ -59,8 +59,10 @@ public interface IKnowledgeGraphStorageProvider
     /// Search for nodes in the knowledge graph based on a query
     /// </summary>
     /// <param name="query">Search query to match against entity names, types, and observations</param>
+    /// <param name="entityType">Filter results to a specific entity type. If empty, all types are included.</param>
+    /// <param name="includeNeighbors">Whether to include neighboring nodes in the results</param>
     /// <returns>Filtered knowledge graph containing matching entities and their relations</returns>
-    Task<KnowledgeGraph> SearchNodesAsync(string query);
+    Task<KnowledgeGraph> SearchNodesAsync(string query, string entityType, bool includeNeighbors);
 
     /// <summary>
     /// Open specific nodes in the knowledge graph by their names

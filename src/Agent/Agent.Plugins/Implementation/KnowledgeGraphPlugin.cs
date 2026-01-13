@@ -140,12 +140,12 @@ public class KnowledgeGraphPlugin : IKnowledgeGraphPlugin
         }
     }
 
-    public async Task<KnowledgeGraph> SearchNodesAsync(string query)
+    public async Task<KnowledgeGraph> SearchNodesAsync(string query, string entityType, bool includeNeighbors)
     {
         try
         {
-            _logger.LogInternalInformation("Searching knowledge graph with query: {Query}", query);
-            var result = await _storageProvider.SearchNodesAsync(query);
+            _logger.LogInternalInformation("Searching knowledge graph with query: {Query}, entityType: {EntityType}, includeNeighbors: {IncludeNeighbors}", query, entityType, includeNeighbors);
+            var result = await _storageProvider.SearchNodesAsync(query, entityType, includeNeighbors);
             _logger.LogInternalInformation("Search found {EntityCount} entities, {RelationCount} relations",
                 result.Entities.Count, result.Relations.Count);
             return result;

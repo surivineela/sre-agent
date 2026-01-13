@@ -22,7 +22,7 @@ public class CosmosDbKnowledgeGraphStorageProvider : IKnowledgeGraphStorageProvi
     private readonly Microsoft.Azure.Cosmos.Container _container;
     private readonly ILogger<CosmosDbKnowledgeGraphStorageProvider> _logger;
     private readonly IChatClientProvider _chatClientProvider;
-    private const int MaxEntitiesInSearchResult = 50;
+    private const int MaxEntitiesInSearchResult = 100;
 
     public CosmosDbKnowledgeGraphStorageProvider(
         Microsoft.Azure.Cosmos.Container container,
@@ -441,7 +441,7 @@ public class CosmosDbKnowledgeGraphStorageProvider : IKnowledgeGraphStorageProvi
         return graph;
     }
 
-    public async Task<KnowledgeGraph> SearchNodesAsync(string query)
+    public async Task<KnowledgeGraph> SearchNodesAsync(string query, string entityType, bool includeNeighbors)
     {
         var graph = new KnowledgeGraph();
 
@@ -453,21 +453,29 @@ public class CosmosDbKnowledgeGraphStorageProvider : IKnowledgeGraphStorageProvi
         var entityDocumentsById = new Dictionary<string, KnowledgeGraphEntityDocument>();
 
         // Search entities using Cosmos DB fulltext search with SQL and ORDER BY RANK for relevance sorting
-        _logger.LogInternalInformation("Searching entities by fulltext search on name and entityType");
+        _logger.LogInternalInformation("Searching entities by fulltext search on name and entityType, filtering by entityType: {EntityType}", entityType);
 
         // Build parameter placeholders for tokens
         var tokenParams = string.Join(", ", tokens.Select((_, i) => $"@token{i}"));
+
+        // Build entity type filter if specified
+        var entityTypeFilter = !string.IsNullOrEmpty(entityType) ? "AND c.entityType = @entityType" : "";
         var entitySql = $@"
-            SELECT c.id, c.documentType, c.partitionKey, c.name, c.entityType
+            SELECT TOP {MaxEntitiesInSearchResult} c.id, c.documentType, c.partitionKey, c.name, c.entityType
             FROM c
             WHERE c.documentType = 'entity'
               AND (FULLTEXTCONTAINSANY(c.name, {tokenParams}) OR FULLTEXTCONTAINSANY(c.entityType, {tokenParams}))
+              {entityTypeFilter}
             ORDER BY RANK FULLTEXTSCORE(c.name, {tokenParams})";
 
         var entityQueryDefinition = new QueryDefinition(entitySql);
         for (int i = 0; i < tokens.Length; i++)
         {
             entityQueryDefinition.WithParameter($"@token{i}", tokens[i]);
+        }
+        if (!string.IsNullOrEmpty(entityType))
+        {
+            entityQueryDefinition.WithParameter("@entityType", entityType);
         }
 
         using var entityIterator = _container.GetItemQueryIterator<KnowledgeGraphEntityDocument>(entityQueryDefinition);
@@ -487,7 +495,7 @@ public class CosmosDbKnowledgeGraphStorageProvider : IKnowledgeGraphStorageProvi
         // Search observations using Cosmos DB fulltext search with ORDER BY RANK
         _logger.LogInternalInformation("Searching observations by fulltext search on content");
         var observationSql = $@"
-            SELECT c.id, c.documentType, c.partitionKey, c.entityId, c.content
+            SELECT TOP {MaxEntitiesInSearchResult} c.id, c.documentType, c.partitionKey, c.entityId, c.content
             FROM c
             WHERE c.documentType = 'observation'
               AND FULLTEXTCONTAINSANY(c.content, {tokenParams})
@@ -541,8 +549,8 @@ public class CosmosDbKnowledgeGraphStorageProvider : IKnowledgeGraphStorageProvi
             }
         }
 
-        // Fetch direct neighbors of the found entities
-        if (entityDocumentsById.Any())
+        // Fetch direct neighbors of the found entities (only if includeNeighbors is true)
+        if (includeNeighbors && entityDocumentsById.Any())
         {
             var foundEntityNames = entityDocumentsById.Values.Select(e => e.Name).ToHashSet();
             _logger.LogInternalInformation("Finding direct neighbors of {Count} entities", foundEntityNames.Count);
