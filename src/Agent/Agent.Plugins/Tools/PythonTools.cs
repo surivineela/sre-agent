@@ -162,12 +162,8 @@ namespace Agent.Plugins.Python.Tools
 
             // 4. Call main() with converted params
             script.AppendLine("# Execute main function with type conversion");
-            script.AppendLine("try:");
-            script.AppendLine("    params = convert_params(main, params_raw)");
-            script.AppendLine("    result = main(**params)");
-            script.AppendLine("    print(json.dumps({'success': True, 'result': result}))");
-            script.AppendLine("except Exception as e:");
-            script.AppendLine("    print(json.dumps({'success': False, 'error': str(e), 'type': type(e).__name__}))");
+            script.AppendLine("params = convert_params(main, params_raw)");
+            script.AppendLine("main(**params)");
 
             return script.ToString();
         }
@@ -177,106 +173,23 @@ namespace Agent.Plugins.Python.Tools
         /// </summary>
         private string ParseExecutionResult(CodeExecutionResponse response)
         {
-            // Parse stdout as JSON (our script outputs JSON) - check stdout first before exit code
-            try
+            var exitCode = response.Hresult ?? 0;
+            var status = response.Status;
+
+            return JsonSerializer.Serialize(new
             {
-                var stdout = response.Stdout?.Trim() ?? string.Empty;
-
-                // Try to parse as JSON
-                if (!string.IsNullOrEmpty(stdout))
+                success = status == "Succeeded" && exitCode == 0,
+                error = !string.IsNullOrEmpty(response.ErrorName) ? new
                 {
-                    var lines = stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-                    var lastLine = lines.LastOrDefault()?.Trim() ?? string.Empty;
-
-                    if (lastLine.StartsWith("{") && lastLine.EndsWith("}"))
-                    {
-                        // Last line looks like JSON, parse it
-                        var jsonResult = JsonDocument.Parse(lastLine);
-                        var root = jsonResult.RootElement;
-
-                        if (root.TryGetProperty("success", out var successProp))
-                        {
-                            var isSuccess = successProp.GetBoolean();
-
-                            if (isSuccess && root.TryGetProperty("result", out var resultProp))
-                            {
-                                // Success case - return the result with stdout/stderr for diagnostics
-                                return JsonSerializer.Serialize(new
-                                {
-                                    success = true,
-                                    result = resultProp,
-                                    exit_code = response.ExitCode,
-                                    stdout = response.Stdout,
-                                    stderr = response.Stderr
-                                });
-                            }
-                            else
-                            {
-                                // Error case from our try/except block
-                                return JsonSerializer.Serialize(new
-                                {
-                                    success = false,
-                                    error = root.TryGetProperty("error", out var errProp) ? errProp.GetString() : "Unknown error",
-                                    error_type = root.TryGetProperty("type", out var typeProp) ? typeProp.GetString() : "Exception",
-                                    exit_code = response.ExitCode,
-                                    stdout = response.Stdout,
-                                    stderr = response.Stderr
-                                });
-                            }
-                        }
-                    }
-                }
-
-                // No valid JSON output - check exit code
-                if (response.ExitCode != 0)
-                {
-                    return JsonSerializer.Serialize(new
-                    {
-                        success = false,
-                        error = "Python execution failed",
-                        exit_code = response.ExitCode,
-                        stdout = response.Stdout,
-                        stderr = response.Stderr
-                    });
-                }
-
-                // Fallback: return raw stdout if we can't parse JSON
-                return JsonSerializer.Serialize(new
-                {
-                    success = true,
-                    result = stdout,
-                    raw_output = true,
-                    exit_code = response.ExitCode,
-                    stdout = response.Stdout,
-                    stderr = response.Stderr
-                });
-            }
-            catch (JsonException)
-            {
-                // JSON parsing failed - check exit code
-                if (response.ExitCode != 0)
-                {
-                    return JsonSerializer.Serialize(new
-                    {
-                        success = false,
-                        error = "Python execution failed",
-                        exit_code = response.ExitCode,
-                        stdout = response.Stdout,
-                        stderr = response.Stderr
-                    });
-                }
-
-                // Return raw output
-                return JsonSerializer.Serialize(new
-                {
-                    success = true,
-                    result = response.Stdout,
-                    raw_output = true,
-                    exit_code = response.ExitCode,
-                    stdout = response.Stdout,
-                    stderr = response.Stderr
-                });
-            }
+                    errorName = response.ErrorName,
+                    errorMessage = response.ErrorMessage ?? "Python execution failed",
+                    errorStackTrace = response.ErrorStackTrace,
+                } : null,
+                result = response.Result,
+                exit_code = exitCode,
+                stdout = response.Stdout,
+                stderr = response.Stderr,
+            });
         }
     }
 }

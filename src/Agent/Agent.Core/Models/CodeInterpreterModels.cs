@@ -17,37 +17,22 @@ public class CodeExecuteRequest
 
 public class CodeExecutionResponse
 {
-    public string RawJson { get; set; } = string.Empty;
+    public int? Hresult { get; set; }
+    public string? Status { get; set; }
+    public string? Result { get; set; }
+    public string? ErrorName { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? ErrorStackTrace { get; set; }
     public string? Stdout { get; set; }
     public string? Stderr { get; set; }
-    public int? ExitCode { get; set; }
+    public CodeExecutionDiagnosticInfo? DiagnosticInfo { get; set; }
+    public string? OperationId { get; set; }
+}
 
-    public static CodeExecutionResponse Parse(string json)
-    {
-        var resp = new CodeExecutionResponse { RawJson = json };
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            // Attempt flexible extraction
-            Extract(root, ref resp);
-        }
-        catch { /* keep raw */ }
-        return resp;
-    }
-
-    private static void Extract(JsonElement element, ref CodeExecutionResponse resp)
-    {
-        foreach (var prop in element.EnumerateObject())
-        {
-            if (prop.Value.ValueKind == JsonValueKind.Object)
-            {
-                Extract(prop.Value, ref resp);
-                continue;
-            }
-            if (prop.NameEquals("stdout") && prop.Value.ValueKind == JsonValueKind.String) resp.Stdout = prop.Value.GetString();
-            if (prop.NameEquals("stderr") && prop.Value.ValueKind == JsonValueKind.String) resp.Stderr = prop.Value.GetString();
-            if (prop.NameEquals("exitCode") && prop.Value.ValueKind == JsonValueKind.Number && prop.Value.TryGetInt32(out var ec)) resp.ExitCode = ec;
-        }
-    }
+public class CodeExecutionDiagnosticInfo
+{
+    public int? ExecutionRequestTimeInMilliSeconds { get; set; }
+    public int? ExecutionProcessResponseTimeInMilliSeconds { get; set; }
+    public int? ExecutionDuration { get; set; }
+    public string? Identifier { get; set; }
 }

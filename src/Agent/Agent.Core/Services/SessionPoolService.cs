@@ -207,11 +207,6 @@ public class SessionPoolService : ISessionPoolService
 
         await BootstrapSessionAsync(identifier, tokens: null, identityResourceId: _defaultIdentityResourceId);
 
-        // Build endpoint
-        var baseEndpoint = _sessionPoolSettings.PoolManagementEndpoint;
-
-        var url = $"{baseEndpoint.TrimEnd('/')}/execute?identifier={identifier}";
-
         var payload = new CodeExecuteRequest
         {
             Code = code,
@@ -221,35 +216,9 @@ public class SessionPoolService : ISessionPoolService
             EnableEgress = true,
         };
 
-        var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-        });
+        _logger.LogInternalInformation($"POST code/execute with identifier={identifier}, bodySize={code.Length}");
 
-        _logger.LogInternalInformation($"POST code/execute to endpoint {url} with bodySize={code.Length}");
-        try
-        {
-            var client = _httpClientFactory.CreateClient(Constants.HttpClientForSessionPool);
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 5, 900)));
-            using var response = await client.SendAsync(request, cts.Token);
-            var content = await response.Content.ReadAsStringAsync(cts.Token);
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogInternalError($"code/execute error {(int)response.StatusCode} {response.ReasonPhrase}: {content}");
-                response.EnsureSuccessStatusCode();
-            }
-            return CodeExecutionResponse.Parse(content);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Failed executing code/execute");
-            throw;
-        }
+        return await SendRequestAsync<CodeExecuteRequest, CodeExecutionResponse>(HttpMethod.Post, "/execute", identifier, payload);
     }
 
     public async Task<byte[]> DownloadSessionFileAsync(string identifier, string filename)
@@ -351,6 +320,17 @@ public class SessionPoolService : ISessionPoolService
         }
     }
 
+    private static readonly JsonSerializerOptions s_requestSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    private static readonly JsonSerializerOptions s_responseSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private async Task<TResp> SendRequestAsync<TReq, TResp>(HttpMethod method, string path, string identifier, TReq sessionRequest)
     {
         // Choose endpoint
@@ -367,7 +347,7 @@ public class SessionPoolService : ISessionPoolService
 
             if (sessionRequest != null)
             {
-                request.Content = new StringContent(JsonSerializer.Serialize(sessionRequest, sessionRequest.GetType()), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(JsonSerializer.Serialize(sessionRequest, sessionRequest.GetType(), s_requestSerializerOptions), Encoding.UTF8, "application/json");
             }
 
             using var response = await client.SendAsync(request);
@@ -381,10 +361,7 @@ public class SessionPoolService : ISessionPoolService
 
             var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<TResp>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            })!;
+            return JsonSerializer.Deserialize<TResp>(content, s_responseSerializerOptions)!;
         }
         catch (Exception ex)
         {

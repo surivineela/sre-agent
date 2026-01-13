@@ -53,7 +53,14 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         var execResp = await _sessionPoolService.ExecutePythonInlineAsync(pythonCode, identifier, timeoutSeconds);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"ExitCode: {execResp.ExitCode?.ToString() ?? "(n/a)"}");
+        sb.AppendLine($"Status: {execResp.Status?.ToString() ?? "(n/a)"}");
+        if (!string.IsNullOrEmpty(execResp.Result))
+        {
+            sb.AppendLine("=== EXECUTION RESULT ===");
+            // Execution result is important. Do not truncate.
+            sb.AppendLine(execResp.Result);
+            sb.AppendLine("=== END EXECUTION RESULT ===");
+        }
         if (!string.IsNullOrWhiteSpace(execResp.Stdout))
         {
             sb.AppendLine("STDOUT:");

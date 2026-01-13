@@ -551,7 +551,7 @@ Format your response as:
                 var execResp = await _sessionPoolService.ExecutePythonInlineAsync(pythonCode, identifier, timeoutSeconds);
 
                 var sb = new System.Text.StringBuilder();
-                sb.AppendLine($"ExitCode: {execResp.ExitCode?.ToString() ?? "(n/a)"}");
+                sb.AppendLine($"Status: {execResp.Status?.ToString() ?? "(n/a)"}");
                 if (!string.IsNullOrWhiteSpace(execResp.Stdout))
                 {
                     sb.AppendLine("STDOUT:");
