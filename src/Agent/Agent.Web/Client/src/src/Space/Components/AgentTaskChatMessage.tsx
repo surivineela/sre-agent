@@ -1,5 +1,4 @@
-import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
-import { Link, makeStyles, Spinner, Subtitle2, tokens } from '@fluentui/react-components';
+import { Spinner, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle32Filled, DismissCircle32Filled, ErrorCircleFilled, SearchSparkleColor } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,18 +6,7 @@ import { AgentTaskMetaData, AgentTaskStatus } from '../../Common/Contracts/DataP
 import { AgentTaskResources } from '../../Strings/SREAgentResources';
 import { ChatBoxSidePanelContext } from '../Contracts/Context';
 import ApprovalMessage, { IApprovalMessageProps } from './ApprovalMessage';
-
-const useStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        padding: '5px 0px',
-    },
-    text: {
-        paddingLeft: '3px',
-    },
-});
+import { SpecialMessageCard } from './Chat/SpecialMessageCard';
 
 interface IAgentTaskChatMessageProps extends IApprovalMessageProps {
     agentTask: AgentTaskMetaData;
@@ -27,7 +15,6 @@ interface IAgentTaskChatMessageProps extends IApprovalMessageProps {
 const AgentTaskChatMessage = ({ agentTask, ...rest }: IAgentTaskChatMessageProps) => {
     const { openAgentTask } = useContext(ChatBoxSidePanelContext);
 
-    const styles = useStyles();
     const intl = useIntl();
 
     const StatusIcon = () => {
@@ -46,33 +33,16 @@ const AgentTaskChatMessage = ({ agentTask, ...rest }: IAgentTaskChatMessageProps
     };
 
     return (
-        <div className={styles.root}>
-            <EntityCard
-                orientation="horizontal"
-                role="group"
-                style={{ maxWidth: 'unset' }}
-                entityTitle={
-                    <EntityTitle
-                        media={<StatusIcon />}
-                        primaryText={
-                            <Link
-                                appearance="subtle"
-                                onClick={e => {
-                                    e.stopPropagation();
-                                    openAgentTask(agentTask);
-                                }}
-                            >
-                                <Subtitle2 wrap={true} block={true}>
-                                    {agentTask.title}
-                                </Subtitle2>
-                            </Link>
-                        }
-                        secondaryText={intl.formatMessage(AgentTaskResources.deepInvestigation)}
-                    />
-                }
-            />
+        <SpecialMessageCard
+            icon={<StatusIcon />}
+            primaryText={agentTask.title ?? ''}
+            secondaryText={intl.formatMessage(AgentTaskResources.deepInvestigation)}
+            onClick={() => {
+                openAgentTask(agentTask);
+            }}
+        >
             {rest.approval && <ApprovalMessage {...rest} />}
-        </div>
+        </SpecialMessageCard>
     );
 };
 

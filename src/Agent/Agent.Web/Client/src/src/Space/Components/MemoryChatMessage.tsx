@@ -1,29 +1,14 @@
-import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
-import { Link, makeStyles, Subtitle2, Text } from '@fluentui/react-components';
 import { Book24Regular } from '@fluentui/react-icons';
 import { memo, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
 import { ChatBoxSidePanelContext } from '../Contracts/Context';
-
-const useStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        padding: '5px 0px',
-    },
-    text: {
-        paddingLeft: '3px',
-    },
-});
+import { SpecialMessageCard } from './Chat/SpecialMessageCard';
 
 const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemorySearchResult }) => {
     const { openMemorySearchResult } = useContext(ChatBoxSidePanelContext);
     const intl = useIntl();
-
-    const styles = useStyles();
 
     // Build subtitle text
     const buildSubtitle = () => {
@@ -47,33 +32,14 @@ const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemoryS
     };
 
     return (
-        <div className={styles.root}>
-            <Text className={styles.text}>{intl.formatMessage(MemorySearchCardResources.memorySearchResultsIntro)}</Text>
-            <EntityCard
-                orientation="horizontal"
-                role="group"
-                style={{ maxWidth: 'unset' }}
-                entityTitle={
-                    <EntityTitle
-                        media={<Book24Regular />}
-                        primaryText={
-                            <Link
-                                appearance="subtle"
-                                onClick={e => {
-                                    e.stopPropagation();
-                                    openMemorySearchResult(memorySearchResult);
-                                }}
-                            >
-                                <Subtitle2 wrap={true} block={true}>
-                                    {intl.formatMessage(MemorySearchCardResources.viewMemorySearchResults)}
-                                </Subtitle2>
-                            </Link>
-                        }
-                        secondaryText={buildSubtitle()}
-                    />
-                }
-            />
-        </div>
+        <SpecialMessageCard
+            icon={<Book24Regular />}
+            primaryText={intl.formatMessage(MemorySearchCardResources.viewMemorySearchResults)}
+            secondaryText={buildSubtitle()}
+            onClick={() => {
+                openMemorySearchResult(memorySearchResult);
+            }}
+        />
     );
 };
 
