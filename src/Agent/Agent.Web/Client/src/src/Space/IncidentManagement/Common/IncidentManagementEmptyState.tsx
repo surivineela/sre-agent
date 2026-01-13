@@ -1,8 +1,9 @@
 import { Button, Link, makeStyles } from '@fluentui/react-components';
-import { FC, useMemo } from 'react';
+import { FC, useContext, useMemo } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { IncidentManagementResources } from '../../../Strings/SREAgentResources';
+import { SreAgentContext } from '../../Contracts/Context';
 
 const useStyles = makeStyles({
     emptyStateContainer: {
@@ -54,7 +55,11 @@ interface IncidentManagementEmptyStateProps {
 export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps> = ({ type, onButtonClick }) => {
     const intl = useIntl();
     const styles = useStyles();
-    const { imgSrc, imgAlt, title, description, learnMore, learnMoreLink, buttonText } = useMemo(() => {
+    const {
+        incidentManagement: { incidentManagementConnectionState },
+    } = useContext(SreAgentContext);
+
+    const { imgSrc, imgAlt, title, description, learnMore, learnMoreLink, buttonText, disabled } = useMemo(() => {
         return type === 'noPlatform'
             ? {
                   imgSrc: './PlatformConnection.svg',
@@ -64,6 +69,7 @@ export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps>
                   learnMore: intl.formatMessage(IncidentManagementResources.platformEmptyStateLearnMore),
                   learnMoreLink: SreAgentFwLinks.learnMoreAboutIncidentManagement,
                   buttonText: intl.formatMessage(IncidentManagementResources.platformEmptyStateButtonText),
+                  disabled: false,
               }
             : {
                   imgSrc: './ResponsePlan.svg',
@@ -73,8 +79,9 @@ export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps>
                   learnMore: intl.formatMessage(IncidentManagementResources.handlersEmptyStateLearnMore),
                   learnMoreLink: SreAgentFwLinks.learnMoreAboutResponsePlans,
                   buttonText: intl.formatMessage(IncidentManagementResources.handlersEmptyStateButtonText),
+                  disabled: incidentManagementConnectionState !== 'connected',
               };
-    }, [intl, type]);
+    }, [intl, type, incidentManagementConnectionState]);
 
     return (
         <div className={styles.emptyStateContainer}>
@@ -90,7 +97,7 @@ export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps>
                             </Link>
                         </div>
                     </div>
-                    <Button appearance="primary" onClick={onButtonClick}>
+                    <Button appearance="primary" onClick={onButtonClick} disabled={disabled}>
                         {buttonText}
                     </Button>
                 </div>

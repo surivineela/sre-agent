@@ -24,7 +24,7 @@ const styles = {
         gap: '4px',
     },
     checkmarkCircle: { height: '16px', width: '16px', color: tokens.colorPaletteGreenForeground1 },
-    warning: { height: '16px', width: '16px', color: tokens.colorPaletteGreenForeground1 },
+    warning: { height: '16px', width: '16px', color: tokens.colorStatusWarningForeground2 },
     spinner: { height: '16px', width: '16px' },
 };
 

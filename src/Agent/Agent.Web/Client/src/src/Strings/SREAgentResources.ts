@@ -2149,7 +2149,7 @@ export const PagerDutyResources = defineMessages({
             'To change the incident platform, you need to disconnect from PagerDuty. The agent will no longer manage tickets. Are you sure you want to disconnect?',
         id: 'CnouOe',
     },
-    notConnectedMessage: { defaultMessage: 'PagerDuty is not connected.', id: 'hHz/bk' },
+    notConnectedMessage: { defaultMessage: 'Failed to connect to PagerDuty.', id: 'jxPCUB' },
     connectedMessage: { defaultMessage: 'PagerDuty is connected.', id: '23nct0' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'PagerDuty connected. Your next step is to set up incident response plans.',
@@ -2189,7 +2189,7 @@ export const AzMonitorResources = defineMessages({
             'To change the incident platform, you need to disconnect from Azure Monitor. The agent will no longer receive Azure Monitor notifications. Are you sure you want to disconnect?',
         id: 'obRqDQ',
     },
-    notConnectedMessage: { defaultMessage: 'Azure Monitor is not connected.', id: '52hqVX' },
+    notConnectedMessage: { defaultMessage: 'Failed to connect to Azure Monitor.', id: 'XD3L2k' },
     connectedMessage: { defaultMessage: 'Azure Monitor is connected', id: 'Pm5Z9t' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'Azure Monitor connected. Your next step is to set up incident response plans.',
@@ -2224,7 +2224,7 @@ export const IcMResources = defineMessages({
             'To change the incident platform, you need to disconnect from IcM. The agent will no longer manage incidents. Are you sure you want to disconnect?',
         id: 'X8SzJ6',
     },
-    notConnectedMessage: { defaultMessage: 'IcM is not connected.', id: '+7dYeU' },
+    notConnectedMessage: { defaultMessage: 'Failed to connect to IcM.', id: 'PgOFjL' },
     connectedMessage: { defaultMessage: 'IcM is connected.', id: 'tyJNW5' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'IcM connected. Your next step is to set up incident response plans.',
@@ -2836,7 +2836,7 @@ export const ServiceNowResources = defineMessages({
             'To change the incident platform, you need to disconnect from ServiceNow. The agent will no longer manage tickets. Are you sure you want to disconnect?',
         id: 'h+YOYh',
     },
-    notConnectedMessage: { defaultMessage: 'ServiceNow is not connected.', id: 'f0Luxo' },
+    notConnectedMessage: { defaultMessage: 'Failed to connect to ServiceNow.', id: 'ACvf3K' },
     connectedMessage: { defaultMessage: 'ServiceNow is connected.', id: 'Ep74wA' },
     connectedMessageWithoutHandlers: {
         defaultMessage: 'ServiceNow connected. Your next step is to set up incident response plans.',
