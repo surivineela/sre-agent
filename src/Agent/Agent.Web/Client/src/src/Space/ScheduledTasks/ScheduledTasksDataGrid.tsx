@@ -24,9 +24,9 @@ import {
     Text,
     tokens,
 } from '@fluentui/react-components';
-import { DeleteRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
+import { DeleteRegular, EditRegular, MoreHorizontalRegular, PauseRegular, PlayRegular, ReplayRegular } from '@fluentui/react-icons';
 import { Link } from '@fluentui/react/lib/Link';
-import { FC, useCallback, useContext, useMemo } from 'react';
+import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
@@ -35,6 +35,7 @@ import { getLocaleDateTimeHHMM } from '../../Common/Helpers/Date';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ScheduledTasksResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
+import { ScheduledTaskCreateOrEditDialog, ScheduledTaskDialogMode } from './Common/ScheduledTaskCreateOrEditDialog';
 import { ScheduledTaskDeleteDialog } from './Common/ScheduledTaskDeleteDialog';
 import ScheduledTaskStatusBadge from './Common/ScheduledTaskStatusBadge';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
@@ -85,6 +86,9 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
     const azPortalContext = useContext(AzPortalContext);
     const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, getTaskExecutions, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
+
+    const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const onSelectionChange: DataGridProps['onSelectionChange'] = useCallback(
         (_: any, data: OnSelectionChangeData) => {
@@ -248,6 +252,11 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
         [azPortalContext, intl, setIsOperationInProgress, deleteTask, refreshTasks]
     );
 
+    const onEditTask = useCallback((task: ScheduledTask) => {
+        setEditingTask(task);
+        setIsEditDialogOpen(true);
+    }, []);
+
     const onRenderName = useCallback(
         (item: ScheduledTask) => {
             return <Link onClick={() => onTaskClick?.(item)}>{item.name}</Link>;
@@ -266,6 +275,9 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
 
                         <MenuPopover>
                             <MenuList>
+                                <MenuItem icon={<EditRegular />} onClick={() => onEditTask(item)}>
+                                    {intl.formatMessage(ScheduledTasksResources.editTask)}
+                                </MenuItem>
                                 {item.status !== ScheduledTaskStatus.Completed &&
                                     (item.status === ScheduledTaskStatus.Active ? (
                                         <MenuItem icon={<PauseRegular />} onClick={() => onPauseTask(item)}>
@@ -294,7 +306,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 </Dialog>
             );
         },
-        [intl, isOperationInProgress, onDeleteTask, onPauseTask, onResumeTask, onRunTask]
+        [intl, isOperationInProgress, onDeleteTask, onEditTask, onPauseTask, onResumeTask, onRunTask]
     );
 
     const onRenderStatus = useCallback((item: ScheduledTask) => {
@@ -411,45 +423,61 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
     );
 
     return (
-        <DataGrid
-            items={scheduledTasks || []}
-            columns={columns}
-            sortable
-            resizableColumns
-            columnSizingOptions={columnSizingOptions}
-            selectionMode="multiselect"
-            selectedItems={selectedTaskIds}
-            onSelectionChange={onSelectionChange}
-            getRowId={item => item.id}
-            className={mergeClasses(styles.dataGrid, scrollable)}
-            style={{ minWidth: 'unset' }}
-        >
-            <DataGridHeader className={styles.dataGridHeader}>
-                <DataGridRow
-                    selectionCell={{
-                        checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
-                    }}
-                >
-                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                </DataGridRow>
-            </DataGridHeader>
-            <DataGridBody<ScheduledTask>>
-                {({ item, rowId }) => (
-                    <DataGridRow<ScheduledTask>
-                        key={rowId}
+        <>
+            <DataGrid
+                items={scheduledTasks || []}
+                columns={columns}
+                sortable
+                resizableColumns
+                columnSizingOptions={columnSizingOptions}
+                selectionMode="multiselect"
+                selectedItems={selectedTaskIds}
+                onSelectionChange={onSelectionChange}
+                getRowId={item => item.id}
+                className={mergeClasses(styles.dataGrid, scrollable)}
+                style={{ minWidth: 'unset' }}
+            >
+                <DataGridHeader className={styles.dataGridHeader}>
+                    <DataGridRow
                         selectionCell={{
-                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
+                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
                         }}
                     >
-                        {({ renderCell, columnId }) => (
-                            <DataGridCell focusMode={getCellFocusMode(columnId)} onClick={e => e.stopPropagation()}>
-                                <TableCellLayout truncate>{renderCell(item)}</TableCellLayout>
-                            </DataGridCell>
-                        )}
+                        {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
                     </DataGridRow>
-                )}
-            </DataGridBody>
-        </DataGrid>
+                </DataGridHeader>
+                <DataGridBody<ScheduledTask>>
+                    {({ item, rowId }) => (
+                        <DataGridRow<ScheduledTask>
+                            key={rowId}
+                            selectionCell={{
+                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
+                            }}
+                        >
+                            {({ renderCell, columnId }) => (
+                                <DataGridCell focusMode={getCellFocusMode(columnId)} onClick={e => e.stopPropagation()}>
+                                    <TableCellLayout truncate>{renderCell(item)}</TableCellLayout>
+                                </DataGridCell>
+                            )}
+                        </DataGridRow>
+                    )}
+                </DataGridBody>
+            </DataGrid>
+
+            {editingTask && (
+                <ScheduledTaskCreateOrEditDialog
+                    isDialogOpen={isEditDialogOpen}
+                    setIsDialogOpen={open => {
+                        setIsEditDialogOpen(open);
+                        if (!open) {
+                            setEditingTask(null);
+                        }
+                    }}
+                    mode={ScheduledTaskDialogMode.Edit}
+                    scheduledTask={editingTask}
+                />
+            )}
+        </>
     );
 };
 

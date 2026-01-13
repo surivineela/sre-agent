@@ -4,6 +4,7 @@ import {
     ArrowClockwise20Regular,
     ArrowClockwiseRegular,
     DeleteRegular,
+    EditRegular,
     PlayRegular,
     RecordStopRegular,
     ReplayRegular,
@@ -49,6 +50,7 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
         useContext(ScheduledTasksContext);
     const [lastUpdated, setLastUpdated] = useState<string>();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
 
     const isPauseButtonDisabled = useMemo(() => {
         const hasActiveTaskSelected = selectedTasks?.some(task => task.status === ScheduledTaskStatus.Active);
@@ -67,6 +69,11 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
 
     const isDeleteButtonDisabled = useMemo(
         () => selectedTasks?.length === 0 || isLoading || isOperationInProgress,
+        [isLoading, isOperationInProgress, selectedTasks?.length]
+    );
+
+    const isEditButtonDisabled = useMemo(
+        () => selectedTasks?.length !== 1 || isLoading || isOperationInProgress,
         [isLoading, isOperationInProgress, selectedTasks?.length]
     );
 
@@ -255,6 +262,18 @@ export const ScheduledTasksToolbar: FC<ScheduledTasksToolbarProps> = ({
                         {intl.formatMessage(ScheduledTasksResources.updateList)}
                     </ToolbarButton>
                     <ToolbarDivider />
+                    <ScheduledTaskCreateOrEditDialog
+                        dialogTrigger={
+                            <ToolbarButton className={styles.toolbarButton} icon={<EditRegular />} disabled={isEditButtonDisabled}>
+                                {intl.formatMessage(ScheduledTasksResources.editTask)}
+                            </ToolbarButton>
+                        }
+                        isDialogOpen={isEditDialogOpen}
+                        setIsDialogOpen={setIsEditDialogOpen}
+                        mode={ScheduledTaskDialogMode.Edit}
+                        scheduledTask={selectedTasks?.[0]}
+                        agents={agents}
+                    />
                     <ToolbarButton
                         className={styles.toolbarButton}
                         icon={<RecordStopRegular />}
