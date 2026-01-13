@@ -18,6 +18,8 @@ configuration:
     role: Maintain
   - member: ellhamai
     role: Maintain
+  - member: shimedh
+    role: Maintain
   - member: jijohn
     role: Maintain
   - member: ebcarek
