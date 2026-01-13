@@ -43,7 +43,8 @@ export const useChatBox = (
     addThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
     threadId: string | null | undefined,
-    threadSource: string | null | undefined
+    threadSource: string | null | undefined,
+    initialTestModeEnabled?: boolean
 ) => {
     const intl = useIntl();
 
@@ -71,6 +72,13 @@ export const useChatBox = (
     const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
     const [isDeepInvestigationTurnedOn, setIsDeepInvestigationTurnedOn] = useState<boolean>(false);
     const [isDeepInvestigationDialogVisible, setIsDeepInvestigationDialogVisible] = useState<boolean>(false);
+    const [isIncidentTestModeTurnedOn, setIsIncidentTestModeTurnedOn] = useState<boolean>(initialTestModeEnabled ?? false);
+
+    // Sync local test mode state with persisted value when thread loads/changes
+    useEffect(() => {
+        setIsIncidentTestModeTurnedOn(initialTestModeEnabled ?? false);
+    }, [initialTestModeEnabled]);
+
     const [isDeepInvestigationDialogDismissedForCurrentAgent, setIsDeepInvestigationDialogDismissedForCurrentAgent] = useState<boolean>(
         () => {
             try {
@@ -183,6 +191,10 @@ export const useChatBox = (
             changeDeepInvestigationStatus(!isDeepInvestigationTurnedOn);
         }
     }, [changeDeepInvestigationStatus, isDeepInvestigationTurnedOn, isDeepInvestigationDialogDismissedForCurrentAgent]);
+
+    const toggleIncidentTestMode = useCallback(() => {
+        setIsIncidentTestModeTurnedOn(prev => !prev);
+    }, []);
 
     const onClickDeepInvestigationDialogActionButton = useCallback(
         (dismissDialog: boolean, yes: boolean) => {
@@ -882,5 +894,8 @@ export const useChatBox = (
         setIsDeepInvestigationDialogVisible,
         onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
+
+        isIncidentTestModeTurnedOn,
+        toggleIncidentTestMode,
     };
 };

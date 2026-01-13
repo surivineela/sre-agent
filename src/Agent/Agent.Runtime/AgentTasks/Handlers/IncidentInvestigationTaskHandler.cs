@@ -85,6 +85,10 @@ public sealed class IncidentInvestigationTaskHandler(
             var context = (await threadRepository.GetAgentContextsForThreadAsync(agentTask.ThreadId)).FirstOrDefault()
                 ?? throw new InvalidOperationException("No agent context found for the given thread");
 
+            var thread = await threadRepository.GetThreadAsync(agentTask.ThreadId);
+            context = context with { IsIncidentTestModeEnabled = thread?.IsIncidentTestModeEnabled ?? false };
+            ThreadContextAccessor.SetThreadContext(context);
+
             logger.LogInternalInformation(
                 "Executing incident investigation task {TaskId} for thread {ThreadId}",
                 agentTask.Id, context.ThreadId);

@@ -34,7 +34,6 @@ public class ICMPlugin : IICMPlugin
     private readonly IICMAPIClient _icmApiClient;
     private readonly ILogger<ICMPlugin> _logger;
     private readonly IChatCompletionService _chatCompletionService;
-    private readonly IThreadContextAccessor? _threadContextAccessor;
     //private const string HumanInterventionTag = "SREAgent_HumanIntervention";
     private const string AgentProcessedTag = "SREAgent_Processed";
     private const string AgentProcessingTag = "SREAgent_Processing";
@@ -42,15 +41,23 @@ public class ICMPlugin : IICMPlugin
     private const bool ProcessImages = true;
     private AgentResourceInfo? _agentInfo;
 
+    /// <summary>
+    /// Authors whose discussion entries should be included when test mode is enabled.
+    /// </summary>
+    private static readonly HashSet<string> TestModeAuthors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "gautosvc",
+        "BRAIN"
+    };
+
     // Thread context identifier used for generating deep links in discussion entries
     public Guid? ThreadId { get; set; }
 
 
-    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment, IThreadContextAccessor? threadContextAccessor = null)
+    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
-        _threadContextAccessor = threadContextAccessor;
 
         ResolveAgentResourceInfo(hostEnvironment);
 
@@ -507,7 +514,25 @@ Example structure:
                 }
             }
         }
-        return discussionEntries ?? new List<DescriptionEntry>();
+
+        var entries = discussionEntries ?? [];
+
+        // Check if incident test mode is enabled for this thread and filter entries
+        if (ThreadContextAccessor.IsIncidentTestModeEnabled)
+        {
+            var filteredEntries = entries.Where(e =>
+                TestModeAuthors.Any(author =>
+                    (!string.IsNullOrEmpty(e.ChangedBy) && e.ChangedBy.Equals(author, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(e.SubmittedBy) && e.SubmittedBy.Equals(author, StringComparison.OrdinalIgnoreCase)))
+            ).ToList();
+
+            _logger.LogInternalInformation(
+                $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}] IncidentTestMode: Filtered {entries.Count} entries to {filteredEntries.Count} by test mode authors");
+
+            return filteredEntries;
+        }
+
+        return entries;
     }
 
     public async Task<List<DescriptionEntry>> GetTopDiscussionEntries(string incidentId, uint? limit, bool isAscending = true)
@@ -525,7 +550,7 @@ Example structure:
                 }
             }
         }
-        return discussionEntries ?? new List<DescriptionEntry>();
+        return discussionEntries ?? [];
     }
 
     public async Task<string> TransferIncident(string incidentId, string discussionEntry, string tenantName, string owningTeam)
@@ -699,7 +724,7 @@ Example structure:
         await AddTagToIncident(incidentId, newStatusTag);
     }
 
-    private Guid? ResolveThreadContextId() => ThreadId ?? _threadContextAccessor?.CurrentThreadId;
+    private Guid? ResolveThreadContextId() => ThreadId ?? ThreadContextAccessor.CurrentThreadId;
 
     private string GenerateAgentDiscussionEntry(string postContent)
     {

@@ -44,6 +44,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         onTelemetryUpdate,
         renderEmptyState,
         inputDisabledMessage,
+        initialTestModeEnabled,
     } = props;
 
     const theme = useTheme();
@@ -75,7 +76,9 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         setIsDeepInvestigationDialogVisible,
         onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
-    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource);
+        isIncidentTestModeTurnedOn,
+        toggleIncidentTestMode,
+    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource, initialTestModeEnabled);
 
     const {
         sidePanelProps: { isSidePanelOpen, selectedSidePanelType, sidePanelWidth, setSidePanelWidth },
@@ -157,15 +160,15 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                 selectedSidePanelType === ChatBoxSidePanelType.AgentTask
                     ? '50%'
                     : selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan
-                      ? '480px'
-                      : '450px',
+                        ? '480px'
+                        : '450px',
         },
         defaultSidePanelWidth:
             selectedSidePanelType === ChatBoxSidePanelType.AgentTask
                 ? undefined
                 : selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan
-                  ? '520px'
-                  : '40%',
+                    ? '520px'
+                    : '40%',
         onResize: selectedSidePanelType === ChatBoxSidePanelType.AgentTask ? () => agentTaskGraphRef.current?.centerGraph() : undefined,
         sidePanelWidth,
         setSidePanelWidth,
@@ -256,6 +259,8 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                     forcedAgentName={forcedAgentName}
                                     lockAgentSelection={lockAgentSelection}
                                     inputDisabledMessage={inputDisabledMessage}
+                                    isIncidentTestModeTurnedOn={isIncidentTestModeTurnedOn}
+                                    toggleIncidentTestMode={toggleIncidentTestMode}
                                 />
                             </div>
                         </div>

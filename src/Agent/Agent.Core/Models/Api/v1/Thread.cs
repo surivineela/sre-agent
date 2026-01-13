@@ -80,6 +80,7 @@ namespace Agent.Core.Models.Api.v1
         public DateTime TrajectoryGeneratedTimestamp { get; set; } = default;
         public string? AgentMode { get; set; } = null;
         public bool? Favorite { get; set; } = null;
+        public bool? IsIncidentTestModeEnabled { get; set; } = null;
     };
 
     public class Status

@@ -30,6 +30,7 @@ using Agent.Runtime.ConversationModifiers;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using TodoItem = Agent.Core.Models.Api.v1.TodoItem;
@@ -53,6 +54,7 @@ public class ReasoningLoop : IDisposable
     private readonly ISearchEndpointService _searchEndpointService;
     private readonly SearchHelper _searchHelper;
     private readonly FeatureConfigModel _featureConfig;
+    private readonly IHostEnvironment _hostEnvironment;
     private readonly bool _modeSwitchEnabled;
     private readonly ModeSwitchHandler? _modeSwitchHandler; // encapsulates /mode conversation|workflow switching (feature-flag gated)
     private readonly ISkillRegistry _skillRegistry;
@@ -117,6 +119,7 @@ public class ReasoningLoop : IDisposable
     private const string RememberMarker = "#remember";
     private const string ForgetMarker = "#forget";
     private const string CompactMarker = "/compact";
+    private const string IncidentTestModeMarker = "/incidentTestMode";
 
     // user-required action tracking
     private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
@@ -148,6 +151,7 @@ public class ReasoningLoop : IDisposable
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
         IToolOutputTruncationService toolOutputTruncationService,
+        IHostEnvironment hostEnvironment,
         bool modeSwitchEnabled = false)
     {
         _loggerFactory = loggerFactory;
@@ -176,6 +180,7 @@ public class ReasoningLoop : IDisposable
         _searchIndexService = searchIndexService;
         _agentMemorySettings = agentMemorySettings;
         _featureConfig = featureConfig;
+        _hostEnvironment = hostEnvironment;
         _autoHandOffEnabled = featureConfig.AutoHandoffEnabled;
         _enableDocumentRetrieval = featureConfig.RegionalSearchEnabled;
         _agentMemoryEnabled = featureConfig.AgentMemoryEnabled;
@@ -359,6 +364,17 @@ public class ReasoningLoop : IDisposable
 
     private async Task RunWithUserCancellationAsync()
     {
+        if (!_context.IsIncidentTestModeEnabled.HasValue)
+        {
+            var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+            _context = _context with
+            {
+                IsIncidentTestModeEnabled = thread?.IsIncidentTestModeEnabled ?? false
+            };
+        }
+
+        ThreadContextAccessor.SetThreadContext(_context);
+
         // Ensure that only one thread runs at a time
         if (!await _semaphore.WaitAsync(0))
         {
@@ -489,6 +505,13 @@ public class ReasoningLoop : IDisposable
                             if (chatMessage.Message.Text.StartsWith(CompactMarker, StringComparison.OrdinalIgnoreCase))
                             {
                                 await HandleCompactCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                return;
+                            }
+
+                            // process /incidentTestMode command
+                            if (chatMessage.Message.Text.Trim().Equals(IncidentTestModeMarker, StringComparison.OrdinalIgnoreCase))
+                            {
+                                await HandleIncidentTestModeCommandAsync();
                                 return;
                             }
 
@@ -1496,7 +1519,7 @@ public class ReasoningLoop : IDisposable
                 tools.Add(tool);
             }
 
-            if (missingTools.Any())
+            if (missingTools.Count != 0)
             {
                 _logger.LogInternalWarning(
                     "ReasoningLoop: Agent '{AgentName}' has missing tools for ThreadId: {ThreadId}. MissingTools: {MissingTools}. Continuing with {AvailableToolCount} available tools.",
@@ -1509,7 +1532,7 @@ public class ReasoningLoop : IDisposable
                 }
 
                 var newMissingTools = missingTools.Where(tool => !warnedTools.Contains(tool)).ToList();
-                if (newMissingTools.Any())
+                if (newMissingTools.Count != 0)
                 {
                     // we warn only once per missing tool per subagent
                     foreach (var tool in newMissingTools)
@@ -2625,6 +2648,54 @@ public class ReasoningLoop : IDisposable
             var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
 
             await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+        }
+    }
+
+    private async Task HandleIncidentTestModeCommandAsync()
+    {
+        try
+        {
+            // Only enabled for Development environment or 1P tenants
+            if (!_hostEnvironment.IsDevelopment() && !FirstPartyHelper.IsFirstPartyTenant())
+            {
+                _logger.LogInternalInformation($"[{_context.ThreadId}] {IncidentTestModeMarker} command rejected - not a first-party tenant.");
+                var rejectMessage = new ChatMessage(ChatRole.Assistant, "This command is not available.");
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, rejectMessage);
+                return;
+            }
+
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {IncidentTestModeMarker} command.");
+
+            bool currentState;
+            if (_context.IsIncidentTestModeEnabled.HasValue)
+            {
+                currentState = _context.IsIncidentTestModeEnabled.Value;
+            }
+            else
+            {
+                var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+                currentState = thread?.IsIncidentTestModeEnabled ?? false;
+            }
+            var newState = !currentState;
+
+            await _threadRepository.UpdateThreadIncidentTestModeAsync(_context.ThreadId, newState);
+            _context = _context with { IsIncidentTestModeEnabled = newState };
+            ThreadContextAccessor.SetThreadContext(_context);
+
+            var userMessage = new ChatMessage(ChatRole.Assistant,
+                newState
+                    ? "🔍 Incident test mode enabled. ICM discussion entries will be filtered for the agent to show only the alerting entries."
+                    : "Incident test mode disabled. Agent will receive all ICM discussion entries including its own past posts.");
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, userMessage);
+
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Incident test mode toggled to: {newState}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {IncidentTestModeMarker} command");
+
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error toggling incident test mode. Please try again.");
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
         }
     }

@@ -29,6 +29,7 @@ public interface IThreadRepository
     Task<Thread?> UpdateThreadAgentModeAsync(Guid threadId, string? agentMode);
     Task<Thread?> UpdateThreadFeatureSetAsync(Guid threadId, FeatureConfig featureConfig);
     Task<Thread?> UpdateThreadFavoriteAsync(Guid threadId, bool favorite);
+    Task<Thread?> UpdateThreadIncidentTestModeAsync(Guid threadId, bool isEnabled);
 
     Task<Message?> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);

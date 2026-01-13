@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Reasoning;
@@ -23,7 +24,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private readonly IReasoningLoopManager _reasoningLoopManager;
     private readonly ActionSettings _actionSettings;
-    private readonly IServiceProvider _serviceProvider;
 
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
@@ -35,7 +35,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         CustomerLogger customerLogger,
         IReasoningLoopManager reasoningLoopManager,
         ActionSettings actionSettings,
-        IServiceProvider serviceProvider,
         IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _repository = repository;
@@ -45,7 +44,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _customerLogger = customerLogger;
         _reasoningLoopManager = reasoningLoopManager;
         _actionSettings = actionSettings;
-        _serviceProvider = serviceProvider;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
@@ -98,23 +96,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
     private async Task<InboundServiceResponse> ProcessMessageWithAgentFrameworkAsync(ThreadMessage threadMessage)
     {
-        // Automatically set ThreadId on ICMPlugin implementation so deep links are generated.
-        try
-        {
-            var icmPlugin = _serviceProvider.GetService(typeof(IICMPlugin)) as IICMPlugin;
-            if (icmPlugin is Agent.Plugins.Implementation.ICMPlugin icmPluginImplementation)
-            {
-                icmPluginImplementation.ThreadId = threadMessage.ThreadId;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, "Failed to set ThreadId on ICMPlugin for thread {ThreadId}", threadMessage.ThreadId);
-        }
         var agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
         // we don't need to sink user message if the message is the start message
         var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+
+        agentContext = agentContext with { IsIncidentTestModeEnabled = thread?.IsIncidentTestModeEnabled ?? false };
+        ThreadContextAccessor.SetThreadContext(agentContext);
         if (threadMessage.MessageId != thread?.StartMessage?.Id)
         {
             await _sinkService.SinkUserMessageAsync(threadMessage);

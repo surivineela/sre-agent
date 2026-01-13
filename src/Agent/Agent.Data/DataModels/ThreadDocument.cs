@@ -33,6 +33,7 @@ public record ThreadDocument(
     public DateTime? LastReadTime { get; set; } = null; // The last time the thread was read
     public string? AgentMode { get; set; } = null; // Agent mode configuration for the thread
     public IncidentDetails? IncidentDetails { get; set; } = null;
+    public bool? IsIncidentTestModeEnabled { get; set; } = null;
 
     // Conversion to/from domain model
     public static ThreadDocument FromDomainModel(Thread thread) =>
@@ -57,7 +58,8 @@ public record ThreadDocument(
             LastReadTime = thread.LastReadTime,
             AgentMode = thread.AgentMode,
             Favorite = thread.Favorite ?? null,
-            IncidentDetails = thread.IncidentDetails ?? null
+            IncidentDetails = thread.IncidentDetails ?? null,
+            IsIncidentTestModeEnabled = thread.IsIncidentTestModeEnabled
         };
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
@@ -88,7 +90,8 @@ public record ThreadDocument(
                 }
             },
             Favorite = Favorite,
-            IncidentDetails = IncidentDetails
+            IncidentDetails = IncidentDetails,
+            IsIncidentTestModeEnabled = IsIncidentTestModeEnabled
         };
 
     // Lightweight conversion when message documents are not required by the caller.
@@ -122,6 +125,7 @@ public record ThreadDocument(
                 }
             },
             Favorite = Favorite,
-            IncidentDetails = IncidentDetails
+            IncidentDetails = IncidentDetails,
+            IsIncidentTestModeEnabled = IsIncidentTestModeEnabled
         };
 }

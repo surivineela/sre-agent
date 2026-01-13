@@ -101,6 +101,7 @@ export interface IChatBoxProps {
     onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;
     renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
     inputDisabledMessage?: string;
+    initialTestModeEnabled?: boolean;
 }
 
 export enum ChatBoxSidePanelType {
@@ -215,6 +216,8 @@ export interface IChatBoxFooterProps {
     forcedAgentName?: string;
     lockAgentSelection?: boolean;
     inputDisabledMessage?: string;
+    isIncidentTestModeTurnedOn?: boolean;
+    toggleIncidentTestMode?: () => void;
 }
 
 export interface SendMessageOptions {
@@ -346,4 +349,5 @@ export enum Shortcut {
     Resource = 'resource',
     Remember = 'remember',
     Retrieve = 'retrieve',
+    IncidentTestMode = 'incidentTestMode',
 }

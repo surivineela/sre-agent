@@ -67,6 +67,7 @@ import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { SearchBoxWithDebounce } from '../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
+import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { getResourceTypeFriendlyName } from '../../Common/Helpers/Resources';
@@ -256,6 +257,8 @@ const ChatBoxFooter = ({
     forcedAgentName,
     lockAgentSelection,
     inputDisabledMessage,
+    isIncidentTestModeTurnedOn,
+    toggleIncidentTestMode,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -283,7 +286,9 @@ const ChatBoxFooter = ({
     const { isConnected } = useContext(StreamingContext);
     const { canWriteThreads } = usePermissionContext();
     const { logAmplitudeControlEvent } = useAzPortalContext();
-    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { sreAgentEndpoint, userInfo } = useContext(EnvironmentContext);
+
+    const incidentTestModeEnabled = FirstPartyHelper.isFirstPartyAgent(userInfo?.directoryId || '');
 
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
     const imperativeControlPluginRef = useRef<ImperativeControlPluginRef>(null);
@@ -321,8 +326,9 @@ const ChatBoxFooter = ({
     const matchedShortcuts = useMemo(() => {
         return Object.values(Shortcut)
             .filter(shortcut => !lockAgentSelection || shortcut !== Shortcut.Agent)
+            .filter(shortcut => incidentTestModeEnabled || shortcut !== Shortcut.IncidentTestMode)
             .filter(shortcut => !matchedShortcutString || shortcut.toLowerCase().startsWith(matchedShortcutString.toLowerCase()));
-    }, [lockAgentSelection, matchedShortcutString]);
+    }, [lockAgentSelection, matchedShortcutString, incidentTestModeEnabled]);
 
     useEffect(() => {
         if (forcedAgentName) {
@@ -484,8 +490,8 @@ const ChatBoxFooter = ({
                     const shortcutNode = $isElementNode(node)
                         ? node.getChildAtIndex(anchor.offset - 1)
                         : $isTextNode(node) && offset !== -1
-                          ? node.getPreviousSibling()
-                          : null;
+                            ? node.getPreviousSibling()
+                            : null;
 
                     if ($isShortcutNode(shortcutNode)) {
                         removeShortcutNode();
@@ -527,6 +533,11 @@ const ChatBoxFooter = ({
             const messageToSend = input?.trim() ?? '';
 
             if (messageToSend && !disableInputInteraction && !isTyping) {
+                // Toggle test mode UI immediately if sending the test mode command
+                if (messageToSend.toLowerCase() === '/incidenttestmode') {
+                    toggleIncidentTestMode?.();
+                }
+
                 imperativeControlPluginRef.current?.setInputText('');
                 setHistoryIndex(-1);
                 setOriginalInput('');
@@ -557,6 +568,7 @@ const ChatBoxFooter = ({
             threadId,
             threadSource,
             inputDisabledMessage,
+            toggleIncidentTestMode,
         ]
     );
 
@@ -601,6 +613,10 @@ const ChatBoxFooter = ({
                             emptySpaceNode.select(1, 1);
                         }
                     });
+                    return;
+                case Shortcut.IncidentTestMode:
+                    closeShortcutList();
+                    chatInputHandleSendClick('/incidentTestMode');
                     return;
                 case Shortcut.Agent:
                 case Shortcut.Incident:
@@ -802,6 +818,8 @@ const ChatBoxFooter = ({
                 return intl.formatMessage(ActivitiesResources.clearShortcutDescription);
             case Shortcut.Compact:
                 return intl.formatMessage(ActivitiesResources.compactShortcutDescription);
+            case Shortcut.IncidentTestMode:
+                return intl.formatMessage(ActivitiesResources.incidentTestModeShortcutDescription);
             case Shortcut.Incident:
                 return intl.formatMessage(ActivitiesResources.incidentsShortcutDescription);
             case Shortcut.Resource:
@@ -1166,8 +1184,10 @@ const ChatBoxFooter = ({
                             selectedAgentName={selectedAgentName}
                             isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                             isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
+                            isIncidentTestModeTurnedOn={isIncidentTestModeTurnedOn}
                             handleClearSelectedAgent={handleClearSelectedAgent}
                             handleDisableDeepInvestigation={onClickDeepInvestigationButton}
+                            handleToggleTestMode={() => chatInputHandleSendClick('/incidentTestMode')}
                             lockAgentSelection={lockAgentSelection}
                         />
                     }
@@ -1309,12 +1329,14 @@ const Attachments = memo(
         lockAgentSelection?: boolean;
         isDeepInvestigationTurnedOn: boolean;
         isDeepInvestigationEnabled: boolean;
+        isIncidentTestModeTurnedOn?: boolean;
         handleClearSelectedAgent: () => void;
         handleDisableDeepInvestigation: () => void;
+        handleToggleTestMode?: () => void;
     }) => {
         const intl = useIntl();
 
-        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn;
+        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn || props.isIncidentTestModeTurnedOn;
 
         return showAttachmentList ? (
             <AttachmentList
@@ -1331,11 +1353,11 @@ const Attachments = memo(
                             props.lockAgentSelection
                                 ? undefined
                                 : {
-                                      'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                                          agentName: props.selectedAgentName,
-                                      }),
-                                      onClick: () => props.handleClearSelectedAgent(),
-                                  }
+                                    'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                        agentName: props.selectedAgentName,
+                                    }),
+                                    onClick: () => props.handleClearSelectedAgent(),
+                                }
                         }
                     >
                         <Tooltip
@@ -1374,6 +1396,22 @@ const Attachments = memo(
                         <Tooltip content={<FormattedMessage {...AgentTaskResources.deepInvestigation} />} relationship="label">
                             <Text weight="semibold" wrap={false}>
                                 <FormattedMessage {...AgentTaskResources.deepInvestigation} />
+                            </Text>
+                        </Tooltip>
+                    </Attachment>
+                )}
+                {props.isIncidentTestModeTurnedOn && (
+                    <Attachment
+                        id={'incident-test-mode-attachment'}
+                        key={'incident-test-mode-attachment'}
+                        dismissButton={{
+                            'aria-label': intl.formatMessage(AgentTaskResources.incidentTestMode),
+                            onClick: () => props.handleToggleTestMode?.(),
+                        }}
+                    >
+                        <Tooltip content={<FormattedMessage {...AgentTaskResources.incidentTestMode} />} relationship="label">
+                            <Text weight="semibold" wrap={false}>
+                                <FormattedMessage {...AgentTaskResources.incidentTestMode} />
                             </Text>
                         </Tooltip>
                     </Attachment>

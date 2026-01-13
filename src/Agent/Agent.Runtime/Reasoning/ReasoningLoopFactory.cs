@@ -11,11 +11,8 @@ using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Logging;
-using Agent.Runtime.Communication;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 
 namespace Agent.Runtime.Reasoning;
@@ -81,8 +78,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IToolOutputTruncationService toolOutputTruncationService,
         IMeterFactory meterFactory,
         IncidentManagementSettings incidentManagementSettings,
-        ISkillRegistry skillRegistry
-        )
+        ISkillRegistry skillRegistry)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
@@ -229,7 +225,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     coreSettings: _coreSettings,
                     modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
                     skillRegistry: _skillRegistry,
-                    toolOutputTruncationService: _toolOutputTruncationService);
+                    toolOutputTruncationService: _toolOutputTruncationService,
+                    hostEnvironment: _hostEnvironment);
 
             }
             catch (Exception ex)
@@ -262,6 +259,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier,
             toolOutputTruncationService: _toolOutputTruncationService,
+            hostEnvironment: _hostEnvironment,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
             skillRegistry: _skillRegistry);
 

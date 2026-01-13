@@ -17,6 +17,7 @@ export interface Thread {
     favorite?: boolean;
     incidentDetails?: IncidentDetails;
     trajectoryGeneratedTimestamp?: string;
+    isIncidentTestModeEnabled?: boolean;
 }
 
 export interface AgentStatus {

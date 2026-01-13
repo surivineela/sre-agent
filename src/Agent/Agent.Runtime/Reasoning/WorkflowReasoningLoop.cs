@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Diagnostics.Metrics;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -11,8 +10,8 @@ using Agent.Data.AgentMemory;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Logging;
-using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 
@@ -56,7 +55,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
     IncidentManagementSettings incidentManagementSettings,
     CoreSettings coreSettings,
     bool modeSwitchEnabled,
-    IToolOutputTruncationService toolOutputTruncationService)
+    IToolOutputTruncationService toolOutputTruncationService,
+    IHostEnvironment hostEnvironment)
         : base(
             loggerFactory: loggerFactory,
             chatClientProvider: chatClientProvider,
@@ -81,7 +81,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentRuntimeModifier: agentRuntimeModifier,
             modeSwitchEnabled: modeSwitchEnabled,
             skillRegistry: skillRegistry,
-            toolOutputTruncationService: toolOutputTruncationService)
+            toolOutputTruncationService: toolOutputTruncationService,
+            hostEnvironment: hostEnvironment)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,

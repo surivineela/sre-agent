@@ -33,10 +33,10 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly ILogger<ToolFactory<TContext>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEnumerable<Assembly> _assemblies;
-    private readonly Dictionary<string, AggregateToolCallPluginDefinitionBase> _aggregatePluginDefinitionsByType = new();
+    private readonly Dictionary<string, AggregateToolCallPluginDefinitionBase> _aggregatePluginDefinitionsByType = [];
     private readonly ConcurrentDictionary<string, IDeferredToolFunction<TContext>> _tools = new();
-    private readonly HashSet<string> _disabledTools = new();
-    private readonly HashSet<string> _extendedTools = new();
+    private readonly HashSet<string> _disabledTools = [];
+    private readonly HashSet<string> _extendedTools = [];
     private readonly IExtensibilityLoader? _extensibilityLoader;
     private readonly IMcpConnectable _mcpToolsRepository;
     private readonly ISkillRegistry _skillRegistry;
@@ -169,7 +169,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
                 ResourceType = aiFunction?.GetToolResourceType(deferredToolFunction.GetPluginResourceType()) ?? string.Empty,
                 Description = aiFunction?.Description,
                 PluginName = deferredToolFunction.GetPluginName(),
-                Parameters = aiFunction?.UnderlyingMethod?.GetParameters()?.Select(p => p.Name)?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string?>(),
+                Parameters = aiFunction?.UnderlyingMethod?.GetParameters()?.Select(p => p.Name)?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? [],
                 IsIncidentHandlerTool = classAttribute?.IsIncidentHandlerPlugin ?? false,
                 IncidentHandlerPlatform = classAttribute?.IncidentPlatform.ToString() ?? string.Empty,
                 IsMcp = aiFunction?.IsMcpTool() ?? false

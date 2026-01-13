@@ -459,6 +459,25 @@ namespace Agent.Data.Repositories
             return Task.FromResult<Thread?>(updatedThread);
         }
 
+        public Task<Thread?> UpdateThreadIncidentTestModeAsync(Guid threadId, bool isEnabled)
+        {
+            if (!_threads.TryGetValue(threadId, out var thread))
+            {
+                _logger.LogInternalWarning("Cannot update incident test mode: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread?>(null);
+            }
+
+            var updatedThread = thread with
+            {
+                IsIncidentTestModeEnabled = isEnabled,
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation("Successfully updated incident test mode for thread {ThreadId} to {IsEnabled}", threadId, isEnabled);
+            return Task.FromResult<Thread?>(updatedThread);
+        }
+
         #endregion
 
         #region Helper Functions

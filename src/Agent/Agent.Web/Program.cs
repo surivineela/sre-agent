@@ -586,8 +586,6 @@ public class Program
             .AddTransient<ILogicAppsPlugin, LogicAppsPlugin>()
             .AddTransient<ICdbSDKDiagnosePlugin, CdbSDKDiagnosePlugin>()
 
-            // Ensure thread context accessor is available for plugins to read ambient ThreadId
-            .AddSingleton<IThreadContextAccessor, ThreadContextAccessor>()
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()

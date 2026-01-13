@@ -776,6 +776,7 @@
   "GpHWFC": "Choose a connector",
   "GpZr9J": "Automatically run {agentName} on a schedule to keep key systems healthy.",
   "GpcNV2": "Failed to update subagent {agentName}. Error: {errorMessage}",
+  "GrKRHI": "Incident Test Mode",
   "GroBmn": "repository alerts found",
   "GufXy5": "Value",
   "GzKpRn": "{count} params detected",
@@ -2624,6 +2625,7 @@
   "zuQF37": "Review Your tool",
   "zvKOAu": "Fullscreen",
   "zvLfRe": "Prompt library",
+  "zvWk/o": "Preview Feature: Filter IcM discussions to only retrieve alerting entries for the agent. Useful when re-running agent on past incidents.",
   "zxvhnE": "Daily",
   "zztZjz": "Fix with AI"
 }

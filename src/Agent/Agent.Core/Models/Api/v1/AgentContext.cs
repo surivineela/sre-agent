@@ -20,7 +20,8 @@ public record AgentContext(
     List<string>? AgentHandoffChain = null, // handoff stack of agents
     List<string>? AllowedTools = null,
     string? AgentMode = null, // agent mode configuration for the context,
-    List<string>? ActiveSkills = null
+    List<string>? ActiveSkills = null,
+    bool? IsIncidentTestModeEnabled = null
 )
 {
     public List<string> AgentHandoffChain { get; init; } = AgentHandoffChain ?? new List<string>();

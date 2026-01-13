@@ -10,6 +10,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Logging;
@@ -96,6 +97,18 @@ public class WorkflowOrchestrator : IDisposable
         _rootSpan = _tracer.StartSpan($"workflow.orchestrator.{_context.ThreadId}");
         _rootSpan.SetAttribute("workflow.thread_id", _context.ThreadId.ToString());
         _rootSpan.SetAttribute("workflow.orchestrator", "WorkflowOrchestrator");
+    }
+
+    private async Task SetAmbientThreadContextAsync()
+    {
+        Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+
+        if (!_context.IsIncidentTestModeEnabled.HasValue)
+        {
+            var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+            _context = _context with { IsIncidentTestModeEnabled = thread?.IsIncidentTestModeEnabled ?? false };
+        }
+        ThreadContextAccessor.SetThreadContext(_context);
     }
 
     /// <summary>
@@ -213,10 +226,9 @@ public class WorkflowOrchestrator : IDisposable
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
 
-            // Set AsyncLocal for tool factory access
-            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            await SetAmbientThreadContextAsync();
 
-            var result = await Framework.Runner.RunWithHandoffDetectionAsync(
+            var result = await Runner.RunWithHandoffDetectionAsync(
                 routerAgent,
                 _chatHistory,
                 new RunConfig
@@ -558,11 +570,10 @@ public class WorkflowOrchestrator : IDisposable
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
 
-            // Set AsyncLocal for tool factory access
-            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            await SetAmbientThreadContextAsync();
 
             // Use the existing chat history for parameter extraction
-            var result = await Framework.Runner.RunAsync(
+            var result = await Runner.RunAsync(
                 agent,
                 _chatHistory,
                 new RunConfig
@@ -604,8 +615,7 @@ public class WorkflowOrchestrator : IDisposable
             // Create RunHooks for tool resolution
             var runHooks = CreateRunHooks();
 
-            // Set AsyncLocal for tool factory access
-            Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
+            await SetAmbientThreadContextAsync();
 
             // Backfill IncidentId from parameters if context property not yet set
             if (string.IsNullOrWhiteSpace(executionContext.IncidentId))
@@ -631,7 +641,7 @@ public class WorkflowOrchestrator : IDisposable
 
             var messages = new List<ChatMessage> { parameterMessage };
 
-            var result = await Framework.Runner.RunAsync(
+            var result = await Runner.RunAsync(
                 agent,
                 messages,
                 new RunConfig
@@ -1448,8 +1458,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
 
                 _logger.LogInternalInformation("Invoking tool from model call: {ToolName} with args: {Args}", func.Name, JsonSerializer.Serialize(args));
 
-                Agent.Core.ToolStatic.AsyncLocalThreadId.Value = _context.ThreadId;
-                Agent.Core.ToolStatic.AsyncLocalCancellationToken.Value = ct;
+                Core.ToolStatic.AsyncLocalCancellationToken.Value = ct;
 
                 var result = await func.InvokeAsync(new AIFunctionArguments(args), ct);
 

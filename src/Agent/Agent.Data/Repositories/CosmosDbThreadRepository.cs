@@ -872,6 +872,48 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    public async Task<Thread?> UpdateThreadIncidentTestModeAsync(Guid threadId, bool isEnabled)
+    {
+        var threadIdStr = threadId.ToString();
+
+        try
+        {
+            var threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update incident test mode: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            var updatedThreadDoc = threadDoc with
+            {
+                IsIncidentTestModeEnabled = isEnabled,
+            };
+
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            var updatedThread = await GetThreadAsync(threadId);
+
+            _logger.LogInternalInformation("Successfully updated incident test mode for thread {ThreadId} to {IsEnabled}", threadId, isEnabled);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update incident test mode: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating incident test mode for thread {ThreadId}", threadId);
+            throw;
+        }
+    }
+
     #endregion
 
     #region Message Operations
