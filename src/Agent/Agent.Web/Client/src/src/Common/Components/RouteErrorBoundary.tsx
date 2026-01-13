@@ -4,7 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useRouteError } from 'react-router-dom';
 import GithubIssueDialog from '../../Space/Components/GithubIssueDialog';
-import { GithubIssueIcon } from '../../Space/Components/Nav/FeedbackNavItem';
+import { GithubIssueIcon } from '../../Space/Components/Nav/FeedbackMenu';
 import { GithubIssueResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';

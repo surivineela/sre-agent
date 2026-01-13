@@ -1,26 +1,17 @@
-import { SplitCopilotNavItem } from '@fluentui-copilot/react-copilot';
-import { Menu, MenuButtonProps, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
-import { bundleIcon, Open20Filled, Open20Regular, PersonFeedback20Filled, PersonFeedback20Regular } from '@fluentui/react-icons';
+import { Body1, Button, Menu, MenuButtonProps, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import { bundleIcon, Open20Filled, Open20Regular, PersonFeedback24Filled, PersonFeedback24Regular } from '@fluentui/react-icons';
 import { memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import {
-    FeedbackResources,
-    GithubIssueResources,
-    SreAgentResources,
-    SreAgentTabResources,
-    SupportResources,
-} from '../../../Strings/SREAgentResources';
+import { FeedbackResources, GithubIssueResources, SreAgentTabResources, SupportResources } from '../../../Strings/SREAgentResources';
 import { openSupportBlade } from '../../Settings/AzureSettings.ReactView';
-import Fade from '../Fade';
 import { FeedbackDialog } from '../FeedbackDialog';
 import GithubIssueDialog from '../GithubIssueDialog';
 
-const FeedbackIcon = bundleIcon(PersonFeedback20Filled, PersonFeedback20Regular);
+const FeedbackIcon = bundleIcon(PersonFeedback24Filled, PersonFeedback24Regular);
 const OpenSupportTicketIcon = bundleIcon(Open20Filled, Open20Regular);
 
-// Directly use SVG for more control over colors
 export const GithubIssueIcon = () => {
     return (
         <svg width="18" height="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -33,7 +24,7 @@ export const GithubIssueIcon = () => {
     );
 };
 
-const FeedbackNavItem = ({ isNavOpen }: { isNavOpen: boolean }) => {
+const FeedbackMenu = ({ isNavOpen }: { isNavOpen: boolean }) => {
     const intl = useIntl();
 
     const azPortalProxy = useContext(AzPortalContext);
@@ -68,49 +59,33 @@ const FeedbackNavItem = ({ isNavOpen }: { isNavOpen: boolean }) => {
 
     return (
         <>
-            <Fade visible={isNavOpen} unmountOnExit>
-                <div>
-                    <Menu open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
-                        <MenuTrigger>
-                            {(triggerProps: MenuButtonProps) => (
-                                <SplitCopilotNavItem
-                                    navItem={{
-                                        level: 1,
-                                        value: 'feedback',
-                                        children: intl.formatMessage(SreAgentTabResources.feedback),
-                                        icon: <FeedbackIcon />,
-                                        onContextMenu: (e: React.MouseEvent) => {
-                                            setIsOpen(true);
-                                            e.preventDefault();
-                                        },
-                                    }}
-                                    menuButton={{
-                                        ...triggerProps,
-                                        'aria-label': intl.formatMessage(SreAgentResources.moreOptions),
-                                    }}
-                                    menuButtonTooltip={{
-                                        content: intl.formatMessage(SreAgentResources.moreOptions),
-                                        relationship: 'label',
-                                    }}
-                                />
-                            )}
-                        </MenuTrigger>
-                        <MenuPopover>
-                            <MenuList>
-                                {navItems.map((item, index) => (
-                                    <MenuItem key={index} icon={item.icon} onClick={item.onClick}>
-                                        {item.label}
-                                    </MenuItem>
-                                ))}
-                            </MenuList>
-                        </MenuPopover>
-                    </Menu>
-                </div>
-            </Fade>
+            <Menu open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
+                <MenuTrigger disableButtonEnhancement>
+                    {(triggerProps: MenuButtonProps) => (
+                        <Button
+                            {...triggerProps}
+                            appearance="transparent"
+                            icon={<FeedbackIcon />}
+                            size={'large'}
+                            aria-label={intl.formatMessage(SreAgentTabResources.helpAndSupport)}
+                            children={isNavOpen && <Body1 wrap={false}>{intl.formatMessage(SreAgentTabResources.helpAndSupport)}</Body1>}
+                        />
+                    )}
+                </MenuTrigger>
+                <MenuPopover>
+                    <MenuList>
+                        {navItems.map((item, index) => (
+                            <MenuItem key={index} icon={item.icon} onClick={item.onClick}>
+                                {item.label}
+                            </MenuItem>
+                        ))}
+                    </MenuList>
+                </MenuPopover>
+            </Menu>
             <FeedbackDialog isOpen={isFeedbackDialogOpen} setIsOpen={setIsFeedbackDialogOpen} />
             <GithubIssueDialog isOpen={isGithubIssueDialogOpen} setIsOpen={setIsGithubIssueDialogOpen} />
         </>
     );
 };
 
-export default memo(FeedbackNavItem);
+export default memo(FeedbackMenu);

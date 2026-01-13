@@ -96,6 +96,7 @@ const Item = memo(
                 value={props.value}
                 onClick={props.onClick}
                 className={props.isNavOpen ? undefined : navItemCollapsed}
+                aria-label={props.label}
             >
                 <Fade visible={props.isNavOpen} unmountOnExit>
                     <Body1 wrap={false}>{props.label}</Body1>

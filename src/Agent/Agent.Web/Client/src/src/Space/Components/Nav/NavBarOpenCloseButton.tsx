@@ -1,8 +1,14 @@
-import { Button } from "@fluentui/react-components";
-import { useIntl } from "react-intl";
-import { SreAgentResources } from "../../../Strings/SREAgentResources";
-import { bundleIcon, PanelLeftContract28Filled, PanelLeftContract28Regular, PanelLeftExpand28Filled, PanelLeftExpand28Regular } from "@fluentui/react-icons";
-import { memo } from "react";
+import { Button } from '@fluentui/react-components';
+import {
+    bundleIcon,
+    PanelLeftContract28Filled,
+    PanelLeftContract28Regular,
+    PanelLeftExpand28Filled,
+    PanelLeftExpand28Regular,
+} from '@fluentui/react-icons';
+import { memo } from 'react';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../../Strings/SREAgentResources';
 
 interface NavOpenCloseButtonProps {
     isNavOpen: boolean;
@@ -18,14 +24,14 @@ const NavBarOpenCloseButton: React.FC<NavOpenCloseButtonProps> = ({ isNavOpen, o
     return (
         <Button
             appearance="transparent"
-            aria-label={intl.formatMessage(SreAgentResources.collapse)}
+            aria-label={isNavOpen ? intl.formatMessage(SreAgentResources.collapse) : intl.formatMessage(SreAgentResources.expand)}
             icon={isNavOpen ? <PanelLeftContractIcon /> : <PanelRightContractIcon />}
             onClick={() => {
                 const newState = !isNavOpen;
                 onExpandOrCollapseNavBar(newState);
             }}
         />
-    )
-}
+    );
+};
 
 export default memo(NavBarOpenCloseButton);

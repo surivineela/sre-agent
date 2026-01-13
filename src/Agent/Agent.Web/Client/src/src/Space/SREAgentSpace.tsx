@@ -25,6 +25,7 @@ import { AntUxStringComparison, equals } from '../Common/Helpers/Strings';
 import { useScrollableComponentStyles } from '../Common/Styles/Scrollable';
 import { SreAgentResources } from '../Strings/SREAgentResources';
 import Thread from './Activities/Thread';
+import FeedbackMenu from './Components/Nav/FeedbackMenu';
 import NavBarOpenCloseButton from './Components/Nav/NavBarOpenCloseButton';
 import NonThreadCategoryNavItems from './Components/Nav/NonThreadCategoryNavItems';
 import ThreadsNav from './Components/Nav/ThreadsNav';
@@ -268,6 +269,16 @@ const TabsListWrapper: FC = () => {
                                         onClickCategoryNavItem={onClickCategoryNavItem}
                                     />
                                 </CopilotNavDrawerBody>
+                                <div
+                                    style={{
+                                        padding: `${copilotTokens.spacingVerticalS}`,
+                                        borderTop: `1px solid ${copilotTokens.colorNeutralStroke2}`,
+                                        display: 'flex',
+                                        justifyContent: isNavOpen ? 'flex-start' : 'center',
+                                    }}
+                                >
+                                    <FeedbackMenu isNavOpen={isNavOpen} />
+                                </div>
                             </CopilotNavDrawer>
                         </CopilotProvider>
                     )}

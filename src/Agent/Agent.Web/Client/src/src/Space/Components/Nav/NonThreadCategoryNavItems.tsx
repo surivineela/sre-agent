@@ -3,7 +3,6 @@ import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread
 import { PrimaryNavItemValues, SecondaryNavItemValues, ThreadCategoryKey } from '../../Contracts/SreAgentSpace';
 import ActivitiesCategoryNavItem from './ActivitiesCategoryNavItem';
 import BuilderCategoryNavItem from './BuilderCategoryNavItem';
-import FeedbackNavItem from './FeedbackNavItem';
 import MonitoringCategoryNavItem from './MonitoringCategoryNavItem';
 import NewChatItem from './NewChatItem';
 import SettingsCategoryNavItem from './SettingsCategoryNavItem';
@@ -73,7 +72,6 @@ const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
                 onClickCategoryNavItem={onClickCategoryNavItem}
                 onClickSubNavItem={onClickSubNavItem}
             />
-            <FeedbackNavItem isNavOpen={isNavOpen} />
         </>
     );
 };
