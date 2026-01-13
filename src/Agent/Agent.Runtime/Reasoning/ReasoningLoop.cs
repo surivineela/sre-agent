@@ -453,12 +453,11 @@ public class ReasoningLoop : IDisposable
                 {
                     case ReasoningLoopChatMessage chatMessage:
                         {
+                            // If there are pending approvals or CLI executions, cancel them and continue with the new message
                             if (await HasPendingApprovalsOrCliExecutionsAsync())
                             {
-                                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                                    _context.ThreadId,
-                                    new ChatMessage(ChatRole.Assistant, "You have pending approvals. Please resolve them before continuing."));
-                                return;
+                                _logger.LogInternalInformation("[{threadId}]Cancelling all pending approvals and CLI executions due to new user message.", _context.ThreadId);
+                                await CancelAllPendingApprovalsAndCliExecutionsAsync(agentChatHistory);
                             }
 
                             // Unified /mode handling (RCA router only). Minimal surface area: single call; early-return if handled.
@@ -717,10 +716,8 @@ public class ReasoningLoop : IDisposable
 
     private async ValueTask<bool> HasPendingApprovalsOrCliExecutionsAsync()
     {
-        if (_context.ApprovalInformation != null &&
-            _context.ApprovalInformation.PendingApprovals.Count > 0)
+        if (await HasPendingApprovalsAsync())
         {
-            _logger.LogInternalInformation("[{threadId}]Pending approvals exist.", _context.ThreadId);
             return true;
         }
 
@@ -733,6 +730,19 @@ public class ReasoningLoop : IDisposable
         }
 
         return false;
+    }
+
+    private ValueTask<bool> HasPendingApprovalsAsync()
+    {
+        var hasPending = _context.ApprovalInformation != null &&
+            _context.ApprovalInformation.PendingApprovals.Count > 0;
+
+        if (hasPending)
+        {
+            _logger.LogInternalInformation("[{threadId}]Pending approvals exist.", _context.ThreadId);
+        }
+
+        return ValueTask.FromResult(hasPending);
     }
 
     private string ConstructUserMessage(ReasoningLoopChatMessage chatMessage)
@@ -2242,6 +2252,160 @@ public class ReasoningLoop : IDisposable
             };
             await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
         }
+    }
+
+    /// <summary>
+    /// Cancels all pending approvals and CLI executions, and adds tool result messages to chat history.
+    /// This is called when a new user message comes in while there are pending approvals or CLI executions.
+    /// </summary>
+    private async Task CancelAllPendingApprovalsAndCliExecutionsAsync(AgentChatHistory agentChatHistory)
+    {
+        var toolResultMessages = new List<ChatMessage>();
+
+        // Build a map of approval titles to function calls from chat history
+        var functionCallsByTitle = new Dictionary<string, FunctionCallContent>();
+        if (_chatHistory != null)
+        {
+            foreach (var message in _chatHistory)
+            {
+                foreach (var content in message.Contents)
+                {
+                    if (content is FunctionCallContent functionCall)
+                    {
+                        var title = GetApprovalTitle(functionCall);
+                        functionCallsByTitle[title] = functionCall;
+                    }
+                }
+            }
+        }
+
+        // Cancel pending approvals
+        var pendingApprovalIds = _context.ApprovalInformation?.PendingApprovals?.ToList();
+        if (pendingApprovalIds != null && pendingApprovalIds.Count > 0)
+        {
+            foreach (var approvalId in pendingApprovalIds)
+            {
+                var approval = await _threadRepository.GetApprovalAsync(_context.ThreadId, approvalId);
+                if (approval == null)
+                {
+                    _logger.LogInternalWarning("[{threadId}]Approval {approvalId} not found when trying to cancel.", _context.ThreadId, approvalId);
+                    continue;
+                }
+
+                // Update approval status to Cancelled
+                var cancelledApproval = approval with
+                {
+                    Status = ApprovalDecision.Cancelled,
+                    DecisionTimestamp = DateTime.UtcNow
+                };
+                await _threadRepository.UpdateApprovalAsync(cancelledApproval);
+                await _outboundCommunicationService.NotifyApprovalUpdate(_context.ThreadId, cancelledApproval);
+                _logger.LogInternalInformation("[{threadId}]Cancelled approval {approvalId} ({title}) due to new user message.",
+                    _context.ThreadId, approvalId, approval.Title);
+
+                // Find the corresponding function call and create a tool result message
+                if (functionCallsByTitle.TryGetValue(approval.Title, out var functionCall))
+                {
+                    var result = new FunctionResultContent(functionCall.CallId,
+                        "User cancelled the execution and sent a new message. Reflect on the new context.");
+                    toolResultMessages.Add(new ChatMessage(ChatRole.Tool, [result]));
+                }
+            }
+
+            // Clear all pending approvals from context
+            _context = _context with
+            {
+                ApprovalInformation = new ApprovalInformation([]),
+            };
+        }
+
+        // Cancel pending CLI executions
+        var (azCliExecution, kubectlExecution, psqlExecution) = await ListPendingExecutions(_context.ThreadId);
+
+        if (azCliExecution != null)
+        {
+            var cancelledExecution = azCliExecution with
+            {
+                Status = AzCliExecutionStatus.Cancelled,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+            await _threadRepository.UpdateAzCliExecutionAsync(_context.ThreadId, cancelledExecution);
+            await _outboundCommunicationService.NotifyAzCliUpdate(_context.ThreadId, cancelledExecution);
+            _logger.LogInternalInformation("[{threadId}]Cancelled AzCli execution {executionId} due to new user message.",
+                _context.ThreadId, azCliExecution.Id);
+
+            // Add tool result message if we have the original function call
+            if (!string.IsNullOrEmpty(azCliExecution.OriginalFunctionCall))
+            {
+                var functionCall = JsonSerializer.Deserialize<FunctionCallContent>(azCliExecution.OriginalFunctionCall);
+                if (functionCall != null)
+                {
+                    var result = new FunctionResultContent(functionCall.CallId,
+                        "User cancelled the execution and sent a new message. Reflect on the new context.");
+                    toolResultMessages.Add(new ChatMessage(ChatRole.Tool, [result]));
+                }
+            }
+        }
+
+        if (kubectlExecution != null)
+        {
+            var cancelledExecution = kubectlExecution with
+            {
+                Status = KubectlExecutionStatus.Cancelled,
+                CompletedTimestamp = DateTime.UtcNow
+            };
+            await _threadRepository.UpdateKubectlExecutionAsync(_context.ThreadId, cancelledExecution);
+            await _outboundCommunicationService.NotifyKubectlUpdate(_context.ThreadId, cancelledExecution);
+            _logger.LogInternalInformation("[{threadId}]Cancelled Kubectl execution {executionId} due to new user message.",
+                _context.ThreadId, kubectlExecution.Id);
+
+            // Add tool result message if we have the original function call
+            if (!string.IsNullOrEmpty(kubectlExecution.OriginalFunctionCall))
+            {
+                var functionCall = JsonSerializer.Deserialize<FunctionCallContent>(kubectlExecution.OriginalFunctionCall);
+                if (functionCall != null)
+                {
+                    var result = new FunctionResultContent(functionCall.CallId,
+                        "User cancelled the execution and sent a new message. Reflect on the new context.");
+                    toolResultMessages.Add(new ChatMessage(ChatRole.Tool, [result]));
+                }
+            }
+        }
+
+        // I just have no idea why psqlExecution totally reuses the az cli execution document
+        // which means we cannot distinct them here. So, in theory, pending psql execution should have been already handled above.
+        // if (psqlExecution != null)
+        // {
+        //     var cancelledExecution = psqlExecution with
+        //     {
+        //         Status = AzCliExecutionStatus.Cancelled,
+        //         CompletedTimestamp = DateTime.UtcNow
+        //     };
+        //     await _threadRepository.UpdatePsqlExecutionAsync(_context.ThreadId, cancelledExecution);
+        //     await _outboundCommunicationService.NotifyPsqlUpdate(_context.ThreadId, cancelledExecution);
+        //     _logger.LogInternalInformation("[{threadId}]Cancelled Psql execution {executionId} due to new user message.",
+        //         _context.ThreadId, psqlExecution.Id);
+
+        //     // Add tool result message if we have the original function call
+        //     if (!string.IsNullOrEmpty(psqlExecution.OriginalFunctionCall))
+        //     {
+        //         var functionCall = JsonSerializer.Deserialize<FunctionCallContent>(psqlExecution.OriginalFunctionCall);
+        //         if (functionCall != null)
+        //         {
+        //             var result = new FunctionResultContent(functionCall.CallId,
+        //                 "User cancelled the execution and sent a new message. Reflect on the new context.");
+        //             toolResultMessages.Add(new ChatMessage(ChatRole.Tool, [result]));
+        //         }
+        //     }
+        // }
+
+        // Persist all tool result messages
+        if (toolResultMessages.Count > 0)
+        {
+            await PersistReasoningMessagesAsync(agentChatHistory, toolResultMessages);
+        }
+
+        await ChangeAgentContextStateAsync(ContextStateEnum.Processing);
     }
 
     private async Task<CheckApprovalActivityOutput> CheckApprovalAsync(ManualToolCall toolCall)
