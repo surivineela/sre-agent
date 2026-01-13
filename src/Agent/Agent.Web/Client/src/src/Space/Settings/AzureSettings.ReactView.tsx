@@ -1,6 +1,4 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
-import { ThemeContext } from '@fluentui/react';
-import { Subtitle1, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { Subtitle1, tokens } from '@fluentui/react-components';
 import { FC, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { ApiVersions } from '../../Common/ApiVersions';
@@ -29,7 +27,6 @@ export const openSupportBlade = (az: AzPortalProxy, resourceId: string) => {
 const AzureSettings: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);
-    const theme = useContext(ThemeContext);
     const intl = useIntl();
 
     const items = useMemo(() => {
@@ -77,20 +74,22 @@ const AzureSettings: FC = () => {
     }, [az, resourceId, intl]);
 
     return (
-        <CopilotProvider
-            {...CopilotTheme}
-            mode={'canvas'}
-            theme={theme?.isInverted ? webDarkTheme : webLightTheme}
+        <div
             style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: tokens.spacingVerticalXXL,
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '100%',
+
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                bottom: '0',
+                right: '0',
             }}
         >
-            <Subtitle1>{'Configure Azure settings'}</Subtitle1>
+            <Subtitle1>{intl.formatMessage(SettingsTabResources.configureAzureSettings)}</Subtitle1>
 
             <div
                 style={{
@@ -99,13 +98,14 @@ const AzureSettings: FC = () => {
                     flexWrap: 'wrap',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    minHeight: '0px',
                 }}
             >
                 {items.map((item, index) => (
                     <AzurePortalBladeLinkPage key={index} {...item} />
                 ))}
             </div>
-        </CopilotProvider>
+        </div>
     );
 };
 

@@ -435,7 +435,6 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 onSelectionChange={onSelectionChange}
                 getRowId={item => item.id}
                 className={mergeClasses(styles.dataGrid, scrollable)}
-                style={{ minWidth: 'unset' }}
             >
                 <DataGridHeader className={styles.dataGridHeader}>
                     <DataGridRow

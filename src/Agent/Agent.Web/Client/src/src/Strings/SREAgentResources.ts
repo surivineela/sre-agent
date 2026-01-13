@@ -2272,6 +2272,7 @@ export const SettingsTabResources = defineMessages({
     connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
+    configureAzureSettings: { defaultMessage: 'Configure Azure settings', id: 'Q9DSD7' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },

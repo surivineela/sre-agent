@@ -1,6 +1,5 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
-import { initializeIcons, MessageBar, MessageBarType, useTheme } from '@fluentui/react';
-import { Spinner, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { initializeIcons, MessageBar, MessageBarType } from '@fluentui/react';
+import { mergeClasses, Spinner } from '@fluentui/react-components';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../Common/AzPortalProxy/AzPortalProxy';
@@ -13,6 +12,7 @@ import { SreAgentContext, SreAgentSpaceContext } from '../Contracts/Context';
 import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
 import { useAgentSiteNavigate } from '../Hooks/useAgentSiteNavigate';
 import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
+import { useCommonStyles } from '../Styles/Common.styles';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import Analysis from './Analysis';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
@@ -37,8 +37,7 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
     const showControlPlaneDependentFeatures = useMemo(() => !inStandaloneMode && !isCrossTenantPortalMode, [isCrossTenantPortalMode]);
 
     const styles = useIncidentManagementStyles();
-
-    const theme = useTheme();
+    const commonStyles = useCommonStyles();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const [selectedKey, setSelectedKey] = useState<SecondaryNavItemValues | undefined>(undefined);
@@ -80,23 +79,7 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
 
     return (
         iconsInitialized && (
-            <CopilotProvider
-                {...CopilotTheme}
-                mode={'canvas'}
-                theme={theme.isInverted ? webDarkTheme : webLightTheme}
-                style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'flex-start',
-                    overflow: 'hidden',
-                    height: '100%',
-                    position: 'relative',
-                    borderRadius: '24px',
-                    boxShadow: tokens.shadow4,
-                    backgroundColor: tokens.colorNeutralBackground1,
-                }}
-            >
+            <div className={mergeClasses(commonStyles.contentRootBorderAndBackground, styles.root)}>
                 {agentLoading || !iconsInitialized ? (
                     <div className={styles.spinner}>
                         <Spinner size="huge" />
@@ -133,7 +116,7 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
                         {selectedKey === SecondaryNavItemValues.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}
-            </CopilotProvider>
+            </div>
         )
     );
 };

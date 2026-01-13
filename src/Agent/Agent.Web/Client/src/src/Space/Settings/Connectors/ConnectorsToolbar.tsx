@@ -1,4 +1,4 @@
-import { Button, Divider } from '@fluentui/react-components';
+import { Button, Divider, mergeClasses } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -76,7 +76,7 @@ const ConnectorsToolbar: FC<ConnectorsToolbarProps> = ({
             <PermissionedButton
                 icon={<Add16Regular />}
                 appearance="transparent"
-                className={styles.button}
+                className={mergeClasses(styles.button, styles.addConnectorButton)}
                 canPerform={canWriteAgent}
                 disabledReason={isOperationInProgress}
                 noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionDataConnectors)}

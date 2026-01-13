@@ -1,4 +1,3 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
 import {
     Button,
@@ -7,9 +6,7 @@ import {
     MessageBarActions,
     MessageBarBody,
     Spinner,
-    Text,
-    webDarkTheme,
-    webLightTheme
+    Text
 } from '@fluentui/react-components';
 import { BeakerRegular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
@@ -163,8 +160,17 @@ const ExtendedAgentGraphContent = memo(() => {
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
-    const { visualRoot, reactFlow, spinner, container, selectorOverlay, infoPanelContainer, infoPanelFloating, statusMessageContainer } =
-        useExtendedAgentGraphStyles();
+    const {
+        rootContainer,
+        visualRoot,
+        reactFlow,
+        spinner,
+        container,
+        selectorOverlay,
+        infoPanelContainer,
+        infoPanelFloating,
+        statusMessageContainer,
+    } = useExtendedAgentGraphStyles();
 
     const commonStyles = useCommonStyles();
 
@@ -1933,17 +1939,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     setIsOperationInProgress,
                 }}
             >
-                <CopilotProvider
-                    {...CopilotTheme}
-                    mode={'canvas'}
-                    theme={theme.isInverted ? webDarkTheme : webLightTheme}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                        height: '100%',
-                    }}
-                >
+                <div className={rootContainer}>
                     <ExtendedAgentToolbar
                         currentView={currentView}
                         onViewChange={onChangeViewType}
@@ -2215,7 +2211,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         systemTools={systemTools}
                         mcpConnections={mcpConnections}
                     />
-                </CopilotProvider>
+                </div>
             </ScheduledTasksContext.Provider>
         </ExtendedAgentGraphContext.Provider>
     );

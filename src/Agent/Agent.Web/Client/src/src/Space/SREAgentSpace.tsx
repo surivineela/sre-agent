@@ -1,13 +1,5 @@
-import {
-    CopilotNavDrawer,
-    CopilotNavDrawerBody,
-    CopilotNavDrawerHeader,
-    CopilotProvider,
-    CopilotTheme,
-    tokens as copilotTokens,
-} from '@fluentui-copilot/react-copilot';
-import { ThemeContext } from '@fluentui/react';
-import { Body1, Button, mergeClasses, Subtitle1, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { CopilotNavDrawer, CopilotNavDrawerBody, CopilotNavDrawerHeader, tokens as copilotTokens } from '@fluentui-copilot/react-copilot';
+import { Body1, Button, mergeClasses, Subtitle1 } from '@fluentui/react-components';
 import { FC, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { createHashRouter, Outlet, RouterProvider, useLocation } from 'react-router-dom';
@@ -122,7 +114,6 @@ const useControlPlaneDependentTabs = ({ inStandaloneMode, isCrossTenantPortalMod
 };
 
 const TabsListWrapper: FC = () => {
-    const theme = useContext(ThemeContext);
     const sreAgentContext = useContext(SreAgentContext);
     const { isDirty } = useContext(DirtyStateContext);
     const { isCrossTenantPortalMode, resourceId } = useContext(EnvironmentContext);
@@ -213,7 +204,7 @@ const TabsListWrapper: FC = () => {
                 <WarningBanner />
                 <div className={styles.content}>
                     {!isAgentStopped && (
-                        <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme?.isInverted ? webDarkTheme : webLightTheme}>
+                        <div>
                             <CopilotNavDrawer
                                 open={true}
                                 type={navBarType}
@@ -280,7 +271,7 @@ const TabsListWrapper: FC = () => {
                                     <FeedbackMenu isNavOpen={isNavOpen} />
                                 </div>
                             </CopilotNavDrawer>
-                        </CopilotProvider>
+                        </div>
                     )}
                     <OutletComponent isAgentStopped={isAgentStopped} startAgent={startAgent} isNavBarHidden={isNavBarHidden} />
                 </div>

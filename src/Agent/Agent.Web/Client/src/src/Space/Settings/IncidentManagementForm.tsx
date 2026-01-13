@@ -4,7 +4,6 @@ import {
     BreadcrumbDivider,
     BreadcrumbItem,
     Button,
-    Checkbox,
     Dialog,
     DialogActions,
     DialogBody,
@@ -44,6 +43,7 @@ import {
     SreAgentResources,
     SreAgentTabResources,
 } from '../../Strings/SREAgentResources';
+import { CopilotCheckbox as Checkbox } from '../Components/Common/CopilotCheckbox';
 import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
 import { PlatformConnectionIndicator } from '../IncidentManagement/Common/PlatformConnectionIndicator';
 import { PlatformConnectionMessageBar } from '../IncidentManagement/Common/PlatformConnectionMessageBar';

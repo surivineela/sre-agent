@@ -1,6 +1,5 @@
-import { CopilotChat, CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
-import { mergeClasses, webDarkTheme, webLightTheme } from '@fluentui/react-components';
-import { useTheme } from '@fluentui/react/lib/Theme';
+import { CopilotChat } from '@fluentui-copilot/react-copilot';
+import { mergeClasses } from '@fluentui/react-components';
 import { forwardRef, memo, useEffect, useMemo, useRef } from 'react';
 import { ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -46,8 +45,6 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         inputDisabledMessage,
         initialTestModeEnabled,
     } = props;
-
-    const theme = useTheme();
 
     const {
         messageGroups,
@@ -174,18 +171,10 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         setSidePanelWidth,
     };
 
-    // Use style instead of classname to override the CopilotProvider styule to avoid global styles conflict
     return (
-        <CopilotProvider
-            {...CopilotTheme}
-            mode={'canvas'}
-            theme={theme.isInverted ? webDarkTheme : webLightTheme}
-            style={stylesProps?.rootStyle || { minHeight: '0px', flex: '1' }}
-        >
-            <ChatBoxSidePanelContext.Provider
-                value={{ openAgentTask, openTodoPlan, openMemorySearchResult, openKnowledgeGraphSearchResult }}
-            >
-                <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+        <ChatBoxSidePanelContext.Provider value={{ openAgentTask, openTodoPlan, openMemorySearchResult, openKnowledgeGraphSearchResult }}>
+            <ThreadAgentModeContext.Provider value={{ ...threadAgentModeData }}>
+                <div style={stylesProps?.rootStyle || { minHeight: '0px', flex: '1' }}>
                     <div className={chatBoxStyles.chatBoxAndAgentTask}>
                         <div className={chatBoxStyles.chatBox}>
                             <div className={chatBoxStyles.chatBoxInner}>
@@ -288,9 +277,9 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                         setIsOpen={setIsDeepInvestigationDialogVisible}
                         onClickDeepInvestigationDialogActionButton={onClickDeepInvestigationDialogActionButton}
                     />
-                </ThreadAgentModeContext.Provider>
-            </ChatBoxSidePanelContext.Provider>
-        </CopilotProvider>
+                </div>
+            </ThreadAgentModeContext.Provider>
+        </ChatBoxSidePanelContext.Provider>
     );
 });
 

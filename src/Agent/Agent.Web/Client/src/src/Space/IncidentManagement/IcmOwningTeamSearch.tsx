@@ -1,4 +1,4 @@
-import { Checkbox, Combobox, Field, Option, OptionOnSelectData } from '@fluentui/react-components';
+import { Combobox, Field, Option, OptionOnSelectData } from '@fluentui/react-components';
 import debounce from 'lodash/debounce';
 import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -7,6 +7,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 import { IncidentTeamSearchResponse } from '../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentManagementResources } from '../../Strings/SREAgentResources';
+import { CopilotCheckbox as Checkbox } from '../Components/Common/CopilotCheckbox';
 
 export const IcmOwningTeamSearch: FC<IcmOwningTeamSearchProps> = ({
     defaultTeamId,

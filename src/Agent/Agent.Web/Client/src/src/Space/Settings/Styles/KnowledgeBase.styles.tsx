@@ -32,10 +32,13 @@ export const useKnowledgeBaseStyles = makeStyles({
     },
     toolbarButton: {
         paddingLeft: '0px',
-        minWidth: '20px',
+        minWidth: '50px',
+    },
+    addFileToolbarButton: {
+        minWidth: '90px',
     },
     toolbarRefresh: {
-        minWidth: '20px',
+        minWidth: '80px',
         marginLeft: 'auto',
     },
     toolbarDivider: {

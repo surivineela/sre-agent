@@ -51,20 +51,28 @@ const gridStyle: React.CSSProperties = {
     columnGap: '100px',
     alignItems: 'center',
     maxWidth: '600px',
+    overflowX: 'auto',
 };
 
 const generalSettingsHeader: CSSProperties = { marginBottom: '20px', fontSize: '18px', fontWeight: 600 };
 
 const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
 
-const navPivotContainer: CSSProperties = {
+const settingsContainer: CSSProperties = {
     flex: '1 1 auto',
-    padding: '20px 30px',
-    overflowY: 'auto',
+    padding: '18px 0px',
+    overflow: 'hidden',
     height: '100%',
     borderRadius: '24px',
     boxShadow: tokens.shadow4,
     backgroundColor: tokens.colorNeutralBackground1,
+};
+
+const settingsContainerInner: CSSProperties = {
+    overflow: 'auto',
+    padding: '0 30px',
+    height: '100%',
+    position: 'relative',
 };
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
@@ -112,10 +120,8 @@ const basicsCardStyle: CSSProperties = {
     padding: '24px',
     marginBottom: '16px',
     maxWidth: '700px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: tokens.borderRadiusXLarge,
     boxShadow: tokens.shadow4,
+    overflowX: 'hidden',
 };
 
 const sectionTitleStyle: CSSProperties = {
@@ -155,7 +161,8 @@ export const useSettingsStyles = () => {
         gridStyle,
         generalSettingsHeader,
         accessControlSettingsContainer,
-        navPivotContainer,
+        settingsContainer,
+        settingsContainerInner,
         incidentManagementDescriptionStyle,
         pagerDutyWrapperStyle,
         pagerDutyLogoStyle,

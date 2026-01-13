@@ -125,7 +125,7 @@ const KnowledgeBase: FC = () => {
                 <Toolbar>
                     <ToolbarButton
                         icon={<Add16Regular />}
-                        className={styles.toolbarButton}
+                        className={mergeClasses(styles.toolbarButton, styles.addFileToolbarButton)}
                         appearance="subtle"
                         disabled={isLoadingFiles || isUploading}
                         onClick={() => setIsUploadModalOpen(true)}

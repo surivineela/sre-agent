@@ -8,7 +8,6 @@ export const useIncidentManagementStyles = makeStyles({
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
         overflow: 'hidden',
-        backgroundColor: tokens.colorNeutralBackground3,
         height: '100%',
         position: 'relative',
     },
@@ -104,7 +103,7 @@ export const useIncidentManagementStyles = makeStyles({
     button: {
         fontWeight: 400,
         padding: 0,
-        minWidth: '20px',
+        minWidth: '80px',
     },
     dangerButton: {
         backgroundColor: tokens.colorStatusDangerBackground3,

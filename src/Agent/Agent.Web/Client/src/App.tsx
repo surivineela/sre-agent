@@ -1,6 +1,7 @@
+import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { AzureThemeDark, AzureThemeLight } from '@fluentui/azure-themes';
 import { initializeIcons, ThemeProvider } from '@fluentui/react';
-import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useEffect, useState } from 'react';
 import './App.css';
 import AzPortalProxy, { defaultSreAgentEndpoint } from './src/Common/AzPortalProxy/AzPortalProxy';
@@ -52,7 +53,11 @@ const App: React.FC = () => {
     return isUiReady ? (
         <EnvironmentContext.Provider value={environmentInfo}>
             <ThemeProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? AzureThemeDark : AzureThemeLight}>
-                <FluentProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}>
+                <CopilotProvider
+                    {...CopilotTheme}
+                    mode={'canvas'}
+                    theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}
+                >
                     <IntlProvider locale={environmentInfo.effectiveLocale}>
                         <AzPortalContext.Provider value={portalProxy}>
                             <StreamingProvider>
@@ -66,7 +71,7 @@ const App: React.FC = () => {
                             </StreamingProvider>
                         </AzPortalContext.Provider>
                     </IntlProvider>
-                </FluentProvider>
+                </CopilotProvider>
             </ThemeProvider>
         </EnvironmentContext.Provider>
     ) : null;

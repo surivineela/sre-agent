@@ -1,6 +1,4 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
-import { initializeIcons, useTheme } from '@fluentui/react';
-import { webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { initializeIcons } from '@fluentui/react';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
@@ -19,8 +17,6 @@ import SubAgents from './SubAgents.ReactView';
 import Usage from './Usage';
 
 const Settings: FC = () => {
-    const theme = useTheme();
-
     const styles = useSettingsStyles();
     const { menuItem } = useParams();
     const showConnectors = useConfigSetting(SettingNames.Connectors);
@@ -41,24 +37,21 @@ const Settings: FC = () => {
 
     return (
         iconsInitialized && (
-            <CopilotProvider
-                {...CopilotTheme}
-                mode={'canvas'}
-                theme={theme.isInverted ? webDarkTheme : webLightTheme}
-                style={styles.navPivotContainer}
-            >
-                {selectedKey === SecondaryNavItemValues.Basics && <Basics />}
-                {selectedKey === SecondaryNavItemValues.AzureSettings && <AzureSettings />}
-                {selectedKey === SecondaryNavItemValues.ManagedResources && <ManagedResources />}
-                {selectedKey === SecondaryNavItemValues.GrafanaDashboard && <GrafanaDashboard />}
-                {selectedKey === SecondaryNavItemValues.Connectors && showConnectors && <Connectors />}
-                {selectedKey === SecondaryNavItemValues.KnowledgeBase && <KnowledgeBase />}
-                {selectedKey === SecondaryNavItemValues.Permissions && <Permissions />}
-                {selectedKey === SecondaryNavItemValues.SubAgents && showSubAgents && <SubAgents />}
-                {selectedKey === SecondaryNavItemValues.McpServers && <McpServer />}
-                {selectedKey === SecondaryNavItemValues.Usage && <Usage />}
-                {selectedKey === SecondaryNavItemValues.SessionInsights && <SessionInsights />}
-            </CopilotProvider>
+            <div style={styles.settingsContainer}>
+                <div style={styles.settingsContainerInner}>
+                    {selectedKey === SecondaryNavItemValues.Basics && <Basics />}
+                    {selectedKey === SecondaryNavItemValues.AzureSettings && <AzureSettings />}
+                    {selectedKey === SecondaryNavItemValues.ManagedResources && <ManagedResources />}
+                    {selectedKey === SecondaryNavItemValues.GrafanaDashboard && <GrafanaDashboard />}
+                    {selectedKey === SecondaryNavItemValues.Connectors && showConnectors && <Connectors />}
+                    {selectedKey === SecondaryNavItemValues.KnowledgeBase && <KnowledgeBase />}
+                    {selectedKey === SecondaryNavItemValues.Permissions && <Permissions />}
+                    {selectedKey === SecondaryNavItemValues.SubAgents && showSubAgents && <SubAgents />}
+                    {selectedKey === SecondaryNavItemValues.McpServers && <McpServer />}
+                    {selectedKey === SecondaryNavItemValues.Usage && <Usage />}
+                    {selectedKey === SecondaryNavItemValues.SessionInsights && <SessionInsights />}
+                </div>
+            </div>
         )
     );
 };

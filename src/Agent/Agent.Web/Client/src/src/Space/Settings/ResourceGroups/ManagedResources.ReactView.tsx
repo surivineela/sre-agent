@@ -240,6 +240,7 @@ const ManagedResources: FC = () => {
                     placeholder={intl.formatMessage(ManagedResourcesStringResources.searchForResourceGroups)}
                     value={searchText}
                     onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? ''))}
+                    size={'small'}
                 />
             </div>
             <div style={{ width: '100%', paddingTop: '10px' }}>

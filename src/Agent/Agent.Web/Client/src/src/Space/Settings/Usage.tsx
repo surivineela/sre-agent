@@ -1,15 +1,4 @@
-import {
-    Body1,
-    Body2,
-    Body2Strong,
-    Body3Strong,
-    Caption1,
-    Caption1Strong,
-    CopilotProvider,
-    CopilotTheme,
-    EntityCard,
-    EntityTitle,
-} from '@fluentui-copilot/react-copilot';
+import { Body1, Body2, Body2Strong, Body3Strong, Caption1, Caption1Strong, EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
 import { VerticalBarChart, VerticalBarChartDataPoint } from '@fluentui/react-charts';
 import {
     Button,
@@ -33,11 +22,8 @@ import {
     Toolbar,
     ToolbarButton,
     useRestoreFocusTarget,
-    webDarkTheme,
-    webLightTheme,
 } from '@fluentui/react-components';
 import { ArrowCounterclockwiseRegular, EditRegular } from '@fluentui/react-icons';
-import { useTheme } from '@fluentui/react/lib/Theme';
 import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -168,7 +154,6 @@ const roundToScale = (num: number): number => {
 const MAX_LIMIT = 200000;
 
 const Usage = () => {
-    const theme = useTheme();
     const restoreFocusTargetAttribute = useRestoreFocusTarget();
     const intl = useIntl();
 
@@ -359,9 +344,8 @@ const Usage = () => {
         fetchData();
     }, [fetchData]);
 
-    // ToDo: Set CopilotProvider on the app root level to apply copilot them to all components
     return (
-        <CopilotProvider {...CopilotTheme} mode={'canvas'} theme={theme.isInverted ? webDarkTheme : webLightTheme}>
+        <div>
             <div className={styles.root}>
                 <div className={styles.title}>
                     <div style={settingStyles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.usage)}</div>
@@ -516,7 +500,7 @@ const Usage = () => {
                 currentUsage={currentUsage || 0}
                 changeAAUAllocation={onUpdate}
             />
-        </CopilotProvider>
+        </div>
     );
 };
 

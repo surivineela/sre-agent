@@ -1,6 +1,13 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const useScheduledTasksStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        position: 'relative',
+        flex: 1,
+    },
     tabRoot: {
         display: 'flex',
         flexDirection: 'column',
@@ -64,12 +71,11 @@ export const useScheduledTasksStyles = makeStyles({
         gap: '5px',
         padding: '20px',
         paddingLeft: '0px',
-        flexWrap: 'wrap',
     },
     toolbarButtons: {
         display: 'flex',
         gap: '12px',
-        flexWrap: 'wrap',
+        flex: '0 0 auto',
     },
     toolbarButton: {
         fontWeight: 'normal',
@@ -88,6 +94,8 @@ export const useScheduledTasksStyles = makeStyles({
         display: 'flex',
         gap: '6px',
         alignItems: 'center',
+        justifyContent: 'flex-end',
+        flex: '0 0 auto',
     },
     taskForm: {
         display: 'flex',

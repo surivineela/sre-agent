@@ -1,6 +1,5 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { useTheme } from '@fluentui/react';
-import { mergeClasses, RadioGroup, Spinner, webDarkTheme, webLightTheme } from '@fluentui/react-components';
+import { mergeClasses, RadioGroup, Spinner } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react';
 import { memo, useCallback, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -113,16 +112,13 @@ const GraphContent = () => {
                 selectedAppGroupId,
             }}
         >
-            <CopilotProvider
+            <div
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '0.25rem',
                     height: '100%',
                 }}
-                {...CopilotTheme}
-                mode={'canvas'}
-                theme={theme.isInverted ? webDarkTheme : webLightTheme}
             >
                 {hasChatPermissions && canReadGraph ? (
                     <>
@@ -190,7 +186,7 @@ const GraphContent = () => {
                 ) : (
                     <NoAccessError requiredPermission={PermissionActions.AgentGraphRead} resourceId={resourceId || 'unknown'} />
                 )}
-            </CopilotProvider>
+            </div>
         </GraphContext.Provider>
     );
 };

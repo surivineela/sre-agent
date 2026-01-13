@@ -1,7 +1,5 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
-import { useTheme } from '@fluentui/react';
-import { Text, tokens, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { mergeClasses, Text } from '@fluentui/react-components';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { TextWithLink } from '../../Common/Components/TextWithLink';
@@ -10,6 +8,7 @@ import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, PaginatedResponse } from '../Contracts/ExtendedAgentGraph';
 import { ScheduledTask, ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
+import { useCommonStyles } from '../Styles/Common.styles';
 import { ScheduledTaskCard } from './Common/ScheduledTaskCard';
 import { ScheduledTaskExecutionsView } from './Executions/ScheduledTaskExecutionsView';
 import { ScheduledTasksContext } from './Hooks/ScheduledTasksContext';
@@ -21,10 +20,11 @@ import { getFilterKeyFromScheduledTaskStatus, TaskStatusFilterKey } from './Sche
 
 export const ScheduledTasks: FC = () => {
     const intl = useIntl();
-    const theme = useTheme();
+
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const styles = useScheduledTasksStyles();
+    const commonStyles = useCommonStyles();
 
     const {
         scheduledTasks,
@@ -116,21 +116,7 @@ export const ScheduledTasks: FC = () => {
                 setIsOperationInProgress,
             }}
         >
-            <CopilotProvider
-                {...CopilotTheme}
-                mode={'canvas'}
-                theme={theme.isInverted ? webDarkTheme : webLightTheme}
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: '24px',
-                    boxShadow: tokens.shadow4,
-                    backgroundColor: tokens.colorNeutralBackground1,
-                    overflow: 'hidden',
-                    position: 'relative',
-                    flex: 1,
-                }}
-            >
+            <div className={mergeClasses(commonStyles.contentRootBorderAndBackground, styles.root)}>
                 {currentSelectedTask ? (
                     <ScheduledTaskExecutionsView task={currentSelectedTask} onBack={handleBackToList} />
                 ) : (
@@ -170,7 +156,7 @@ export const ScheduledTasks: FC = () => {
                         </div>
                     </div>
                 )}
-            </CopilotProvider>
+            </div>
         </ScheduledTasksContext.Provider>
     );
 };

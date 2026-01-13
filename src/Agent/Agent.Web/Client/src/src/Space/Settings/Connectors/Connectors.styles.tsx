@@ -20,6 +20,7 @@ export const useConnectorsStyles = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-start',
+        alignItems: 'center',
         gap: tokens.spacingHorizontalM,
     },
     divider: {
@@ -28,7 +29,10 @@ export const useConnectorsStyles = makeStyles({
     button: {
         fontWeight: tokens.fontWeightRegular,
         padding: 0,
-        minWidth: '20px',
+        minWidth: '80px',
+    },
+    addConnectorButton: {
+        minWidth: '120px',
     },
     searchBox: {
         width: '230px',
