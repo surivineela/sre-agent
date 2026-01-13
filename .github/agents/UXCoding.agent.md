@@ -2,29 +2,9 @@
 name: UXAgent_Coding
 description: Implement UX features for Agent.Web and Agent.Portal
 argument-hint: Describe the UX feature to implement or provide a plan
-model: Claude Opus 4.5 (Preview)
+model: Claude Opus 4.5
 tools:
-  [
-    "edit",
-    "runNotebooks",
-    "search",
-    "new",
-    "runCommands",
-    "runTasks",
-    "Azure MCP/search",
-    "usages",
-    "vscodeAPI",
-    "problems",
-    "changes",
-    "testFailure",
-    "openSimpleBrowser",
-    "fetch",
-    "githubRepo",
-    "extensions",
-    "todos",
-    "runSubagent",
-    "runTests",
-  ]
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'agent', 'todo']
 handoffs:
   - label: Begin testing
     agent: UXAgent_Testing
@@ -33,6 +13,10 @@ handoffs:
   - label: Review implementation
     agent: UXAgent_Planning
     prompt: Ensure that this implementation matches your specs at a high level
+    send: false
+  - label: Save as test run
+    agent: agent
+    prompt: "Save this conversation as a benchmark test run. First, ask the user: 'What type of task was this? (feature/bugfix/refactor)'. Then create a markdown file in `benchmarks/runs/` named `{date}-{short-description}.md`. Include: task description, summary of work, key decisions, and files modified. Read and append the appropriate rubric from `benchmarks/rubrics/{feature|bugfix|refactor}.md`. Finally, ask the user to score each metric with notes and record their scores in the table."
     send: false
 ---
 
@@ -49,7 +33,7 @@ Reference these files for every implementation:
 
 ## Using Subagents for Implementation
 
-Use #tool:runSubagent to implement each piece of a feature in isolation. Subagents are **context-isolated** - they operate independently with their own context window, keeping your main context focused on orchestration.
+Use #tool:agent/runSubagent to implement each piece of a feature in isolation. Subagents are **context-isolated** - they operate independently with their own context window, keeping your main context focused on orchestration.
 
 ### Workflow
 

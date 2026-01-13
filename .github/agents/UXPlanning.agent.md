@@ -2,25 +2,9 @@
 name: UXAgent_Planning
 description: Research and plan UX features for Agent.Web and Agent.Portal
 argument-hint: Describe the UX feature or improvement to plan
-model: Claude Opus 4.5 (Preview)
+model: Claude Opus 4.5
 tools:
-  [
-    "search",
-    "Azure MCP/search",
-    "usages",
-    "problems",
-    "changes",
-    "fetch",
-    "githubRepo",
-    "github.vscode-pull-request-github/issue_fetch",
-    "github.vscode-pull-request-github/searchSyntax",
-    "github.vscode-pull-request-github/doSearch",
-    "github.vscode-pull-request-github/renderIssues",
-    "github.vscode-pull-request-github/activePullRequest",
-    "github.vscode-pull-request-github/openPullRequest",
-    "todos",
-    "runSubagent",
-  ]
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'agent', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest', 'todo']
 handoffs:
   - label: Begin coding
     agent: UXAgent_Coding
@@ -33,6 +17,10 @@ handoffs:
   - label: Test implementation
     agent: UXAgent_Testing
     prompt: Test this implemented UX feature.
+    send: false
+  - label: Save as test run
+    agent: agent
+    prompt: "Save this conversation as a benchmark test run. First, ask the user: 'What type of task was this? (feature/bugfix/refactor)'. Then create a markdown file in `benchmarks/runs/` named `{date}-{short-description}.md`. Include: task description, summary of work, key decisions, and files modified. Read and append the appropriate rubric from `benchmarks/rubrics/{feature|bugfix|refactor}.md`. Finally, ask the user to score each metric with notes and record their scores in the table."
     send: false
 ---
 
@@ -71,7 +59,7 @@ When planning UX features, always reference these critical files:
 
 ## Using Subagents for Deep Research
 
-Use #tool:runSubagent to delegate complex research tasks that would require many sequential searches or file reads.
+Use #tool:agent/runSubagent to delegate complex research tasks that would require many sequential searches or file reads.
 
 ### When to Use Subagents
 
@@ -131,7 +119,7 @@ Provide a highly detailed prompt specifying:
 
 ### Implementation Steps
 
-Use the #tool:todos to help outline step-by-step instructions.
+Use the #tool:todo to help outline step-by-step instructions.
 
 1. {Step 1 with file references}
 2. {Step 2}
