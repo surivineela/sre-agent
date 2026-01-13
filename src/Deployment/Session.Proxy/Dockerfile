@@ -1,5 +1,5 @@
 # Use the Python code interpreter image as the base
-FROM mcr.microsoft.com/k8se/services/codeinterpreter:0.9.34-python3.12 AS runtime
+FROM mcr.microsoft.com/k8se/services/codeinterpreter:0.9.34.3-python3.12 AS runtime
 
 USER root
 
