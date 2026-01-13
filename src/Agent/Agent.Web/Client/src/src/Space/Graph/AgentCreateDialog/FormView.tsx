@@ -113,7 +113,6 @@ export const FormView: FC<FormViewProps> = ({
                         />
                         <TextareaFormik
                             name="handoffInstructions"
-                            required
                             label={intl.formatMessage(ExtendedAgentsGraphResources.agentHandoffInstructions)}
                             placeholder={intl.formatMessage(ExtendedAgentsGraphResources.agentHandoffInstructionsPlaceholder)}
                             disabled={disableControls}

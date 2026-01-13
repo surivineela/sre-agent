@@ -44,7 +44,6 @@ export const useAgentCreateDialog = (
         return object({
             agentName: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
             instructions: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
-            handoffInstructions: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
         });
     }, [intl]);
 

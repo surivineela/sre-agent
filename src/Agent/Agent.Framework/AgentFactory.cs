@@ -520,7 +520,10 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             foreach (var extendedAgent in extendedAgents)
             {
                 // A user can overwrite meta_agent using extended agents. So skip adding meta_agent to its own handoffs.
-                if (!metaAgent.Handoffs.Any(h => h.AgentName == extendedAgent.Name) && extendedAgent.Name != "meta_agent")
+                // Also skip agents with null or empty HandoffDescription - they are not intended to be called via handoffs.
+                if (!metaAgent.Handoffs.Any(h => h.AgentName == extendedAgent.Name)
+                    && extendedAgent.Name != "meta_agent"
+                    && !string.IsNullOrEmpty(extendedAgent.HandoffDescription?.GetOriginalText()))
                 {
                     metaAgent.Handoffs.Add(Handoff<TContext>.Create(
                         agent: extendedAgent,
