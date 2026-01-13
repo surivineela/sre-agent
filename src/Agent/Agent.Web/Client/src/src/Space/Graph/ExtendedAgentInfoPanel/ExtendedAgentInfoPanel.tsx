@@ -276,7 +276,7 @@ export const ExtendedAgentInfoPanel = memo(
                         onEditPythonTool(tool);
                         return;
                     }
-                    if (onEditKustoTool) {
+                    if (tool.type === 'KustoTool' && onEditKustoTool) {
                         onEditKustoTool(tool);
                         return;
                     }
