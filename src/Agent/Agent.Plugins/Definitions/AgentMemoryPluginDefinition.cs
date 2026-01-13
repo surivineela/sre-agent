@@ -4,6 +4,8 @@
 
 using System.ComponentModel;
 using System.Text;
+using System.Text.RegularExpressions;
+using Agent.Core.Attributes;
 using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
@@ -24,15 +26,159 @@ public class AgentMemoryPluginDefinition(
     IAgentMemoryClient agentMemoryClient,
     AgentMemorySettings agentMemorySettings,
     DataConnectorIndex dataConnectorindex,
+    DataConnectorStorage<UserDocumentDataConnector> dataConnectorStorage,
     ILogger<AgentMemoryPluginDefinition> logger,
     IAgentOutboundCommunicationService agentOutboundCommunicationService,
     IChatClientProvider chatClient)
 {
+    private static readonly char[] InvalidFileNameChars = [
+        '\\',
+        '/',
+        '?',
+        '#',
+        .. Path.GetInvalidFileNameChars()];
+
+    private static readonly Regex SafeIndexKeyRegex = new(
+        pattern: @"[^A-Za-z0-9_\-=]+",
+        options: RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled,
+        matchTimeout: TimeSpan.FromSeconds(1));
+
+    private static readonly HashSet<string> AllowedExtensions = [".md", ".txt"];
+
+    // Maximum file size limit: 16MB (Azure AI Search limit)
+    private const long MaxFileSize = 16 * 1024 * 1024;
+
     public const string NoRelevantResultsMessage = "No relevant memories, documents, or past incidents found for the current symptoms";
     public const string NoSameResourceIncidentsMessage = "No past incidents found on the same resource";
     public const string NoSimilarSymptomsMessage = "No past incidents found with similar symptoms";
     public const string NoUserMemoriesMessage = "No relevant user memories found";
     public const string NoDocumentsMessage = "No relevant documents found";
+
+    [WriteAction]
+    [Description(@"Uploads or overwrites a document in the agent's knowledge base. Use this tool to add new documentation, runbooks, troubleshooting guides, or any text-based knowledge that should be available for future searches. The document will be indexed and made available for semantic search through SearchMemory and SearchIncidentKnowledge tools. Supported file formats: .md (Markdown) and .txt (Plain text). Maximum file size: 16MB. If a document with the same filename already exists, it will be overwritten.")]
+    public async Task<string> UploadKnowledgeDocument(
+        [Description("The filename for the document including extension (e.g., 'troubleshooting-guide.md', 'runbook-database-issues.txt'). Must end with .md or .txt extension. The filename will be used as the document title in search results.")] string fileName,
+        [Description("The full text content of the document to upload. This should be the complete document content in plain text or Markdown format. The content will be chunked and vectorized for semantic search.")] string content,
+        [Description("Whether to trigger indexing immediately after upload. Set to true (default) for the document to be searchable right away, or false if you plan to upload multiple documents and want to trigger indexing manually later.")] bool triggerIndexing = true)
+    {
+        if (!agentMemorySettings.Enabled)
+        {
+            return "Agent memory is disabled. Cannot upload documents.";
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return "Error: File name cannot be empty.";
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return "Error: Document content cannot be empty.";
+        }
+
+        // Validate file extension
+        var extension = Path.GetExtension(fileName);
+        if (string.IsNullOrEmpty(extension) || !AllowedExtensions.Contains(extension.ToLowerInvariant()))
+        {
+            return $"Error: Invalid file extension '{extension}'. Only .md and .txt files are allowed.";
+        }
+
+        // Validate content size
+        var contentBytes = System.Text.Encoding.UTF8.GetByteCount(content);
+        if (contentBytes > MaxFileSize)
+        {
+            return $"Error: Document content exceeds maximum size of 16MB. Current size: {contentBytes / (1024 * 1024):F2}MB.";
+        }
+
+        // Generate safe file name for blob storage
+        var safeFileName = GetSafeBlobName(fileName);
+        if (string.IsNullOrWhiteSpace(safeFileName))
+        {
+            return "Error: Invalid file name. File name contains invalid characters or is too long.";
+        }
+
+        // Generate safe index ID
+        if (!TryGetSafeIndexId(fileName, out var indexIdString))
+        {
+            return "Error: Could not generate a valid index ID from the file name.";
+        }
+
+        try
+        {
+            var doc = new UserDocument()
+            {
+                Id = indexIdString,
+                Title = safeFileName,
+                Filter = string.Empty,
+                Contents = content,
+            };
+
+            await dataConnectorStorage.UploadBlobContentsAsync(safeFileName, doc);
+
+            logger.LogInternalInformation("Successfully uploaded document '{FileName}' to knowledge base", fileName);
+
+            // Trigger indexing if requested
+            if (triggerIndexing)
+            {
+                try
+                {
+                    await dataConnectorindex.RunIndexerAsync();
+                    logger.LogInternalInformation("Indexing triggered for newly uploaded document '{FileName}'", fileName);
+                    return $"Document '{fileName}' uploaded successfully and indexing triggered. The document will be searchable shortly.";
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalError(ex, "Failed to trigger indexing after uploading document '{FileName}'", fileName);
+                    return $"Document '{fileName}' uploaded successfully, but indexing failed to trigger. The document may not be immediately searchable. Error: {ex.Message}";
+                }
+            }
+
+            return $"Document '{fileName}' uploaded successfully. Note: Indexing was not triggered. Call this tool again or use the rebuildIndex endpoint to make the document searchable.";
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex, "Failed to upload document '{FileName}'", fileName);
+            return $"Error: Failed to upload document '{fileName}'. {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Sanitizes a file name for use as a blob name in Azure Blob Storage.
+    /// </summary>
+    private static string? GetSafeBlobName(string fileName)
+    {
+        var safeName = new string(fileName.Where(ch => !InvalidFileNameChars.Contains(ch)).ToArray());
+        safeName = safeName.Trim().TrimEnd('.');
+        if (safeName.Length == 0 || safeName.Length > 1024)
+        {
+            return null;
+        }
+
+        return safeName;
+    }
+
+    /// <summary>
+    /// Generates a safe index ID from a file name.
+    /// </summary>
+    private static bool TryGetSafeIndexId(string fileName, out string result)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            result = string.Empty;
+            return false;
+        }
+
+        result = SafeIndexKeyRegex.Replace(fileName, "_");
+        result = Regex.Replace(result, "_{2,}", "_");
+        result = result.Trim('_', '-', '=');
+
+        if (string.IsNullOrWhiteSpace(result))
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     [Description(@"Searches across all agent memory knowledge bases to retrieve relevant information for any query or task. This tool performs a comprehensive search across three distinct knowledge sources: past incident trajectories (resolution steps and root causes from previous incidents), user memories (explicit facts and preferences saved by users), and documentation (TSG guides, runbooks, and technical documentation). Use this tool proactively at the start of any new conversation or when exploring a topic to ground your response in historical knowledge and learned patterns. This is your primary tool for leveraging organizational knowledge and past learnings to inform current decisions.")]
     public async Task<string> SearchMemory(

@@ -411,6 +411,11 @@
       "name": "ExecutePythonCode",
       "version": "latest",
       "description": "Executes Python code in a Jupyter-style environment with full outbound internet connectivity, enabling advanced data processing, web content retrieval, automation, and file generation. The environment comes pre-installed with over 700 commonly used packages including pandas, numpy, matplotlib, seaborn, scikit-learn, requests, beautifulsoup4, and many more. Playwright with Chromium is pre-installed for web scraping, browser automation, and rendering web pages. This tool supports generating downloadable artifacts including PDFs, CSV files, Excel spreadsheets, images, PowerPoint presentations, Word documents, and other file formats—files saved to /mnt/data/ are automatically retrieved and returned as downloadable links. Use this for: retrieving and analyzing web page content, creating complex visualizations (heatmaps, scatter plots, 3D graphics), processing and transforming data, performing statistical analysis and machine learning experiments, calling external HTTP APIs, generating reports and documents, and implementing custom logic not covered by other tools. The environment provides full network access for fetching external data, making API calls, and downloading resources from the internet."
+    },
+    {
+      "name": "UploadKnowledgeDocument",
+      "version": "latest",
+      "description": "Uploads or overwrites a document in the agent's knowledge base. Use this tool to add new documentation, runbooks, troubleshooting guides, or any text-based knowledge that should be available for future searches. The document will be indexed and made available for semantic search through SearchMemory and SearchIncidentKnowledge tools. Supported file formats: .md (Markdown) and .txt (Plain text). Maximum file size: 16MB. If a document with the same filename already exists, it will be overwritten."
     }
   ]
 }
