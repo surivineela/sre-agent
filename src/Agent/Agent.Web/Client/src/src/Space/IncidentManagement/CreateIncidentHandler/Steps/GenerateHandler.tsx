@@ -226,7 +226,7 @@ export const GenerateHandler = () => {
                         disabled={generatingInstructions || !handlerLoaded}
                     />
                 </Field>
-                <Text size={400} weight="semibold">
+                <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                     {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
                 </Text>
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
@@ -265,17 +265,17 @@ export const GenerateHandler = () => {
                     />
                     <SelectedItemsList
                         items={selectedIncidents || []}
-                        onRemove={removedIncident =>
-                            onSelectedIncidentsChange(selectedIncidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])
-                        }
+                        onRemove={removedIncident => onSelectedIncidentsChange(selectedIncidentIds?.filter(incidentId => incidentId !== removedIncident.id) || [])}
                         getItemTitle={incident => incident.title}
                         getItemId={incident => incident.id}
+                        getRemoveButtonAriaLabel={incident =>
+                            intl.formatMessage(IncidentHandlerCreateResources.removeIncidentItem, { incidentId: incident.id, incidentTitle: incident.title })
+                        }
                         title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
                         emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
-                        disabled={generatingInstructions || !handlerLoaded}
-                    />
+                        disabled={generatingInstructions || !handlerLoaded} />
                 </div>
-                <Text size={400} weight="semibold">
+                <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                     {intl.formatMessage(IncidentHandlerCreateResources.availableToolsTitle)}
                 </Text>
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.availableToolsDescription)}</Text>
@@ -294,7 +294,7 @@ export const GenerateHandler = () => {
                         );
                     }}
                 />
-                <Text size={400} weight="semibold">
+                <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                     {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
                 </Text>
                 <Textarea

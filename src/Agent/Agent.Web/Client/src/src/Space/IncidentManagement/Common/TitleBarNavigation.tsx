@@ -1,6 +1,8 @@
 import { Button, tokens } from '@fluentui/react-components';
 import { ArrowLeft16Regular } from '@fluentui/react-icons';
 import { FC } from 'react';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { useIncidentManagementStyles } from '../../Styles/IncidentManagement.styles';
 import { DirtyStateConfirmationWrapper } from '../CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { DirtyStateNavigationConfirmDialog } from '../CreateIncidentHandler/NavigationConfirmDialog';
@@ -23,6 +25,7 @@ const TitleBarNavigation: FC<TitleBarNavigationProps> = ({
     isDirty = false,
 }) => {
     const styles = useIncidentManagementStyles();
+    const intl = useIntl();
 
     return (
         <div className={styles.navPanelWrapper}>
@@ -37,7 +40,11 @@ const TitleBarNavigation: FC<TitleBarNavigationProps> = ({
                 }}
             >
                 <DirtyStateConfirmationWrapper isDirty={isDirty} onConfirm={onBackClick}>
-                    <Button appearance="transparent" icon={<ArrowLeft16Regular />} />
+                    <Button
+                        appearance="transparent"
+                        icon={<ArrowLeft16Regular />}
+                        aria-label={intl.formatMessage(SreAgentResources.back)}
+                    />
                 </DirtyStateConfirmationWrapper>
                 <h2
                     style={{

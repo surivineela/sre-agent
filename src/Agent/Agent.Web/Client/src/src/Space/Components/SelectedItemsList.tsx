@@ -23,6 +23,7 @@ const useSelectedIncidentsListStyles = makeStyles({
         fontSize: '14px',
         lineHeight: '20px',
         padding: '12px',
+        margin: '0px',
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     incidentItem: {
@@ -74,6 +75,7 @@ interface SelectedItemsListProps<T> {
     items: T[];
     getItemTitle: (item: T) => string;
     getItemId: (item: T) => string;
+    getRemoveButtonAriaLabel: (item: T) => string;
     onRemove: (item: T) => void;
     disabled: boolean;
 }
@@ -101,7 +103,9 @@ export const SelectedItemsList = <T extends object>({
             handleStyle={{ top: 2, bottom: 2 }}
         >
             <div className={styles.root}>
-                <Text className={styles.header}>{title}</Text>
+                <Text className={styles.header} as="h3">
+                    {title}
+                </Text>
                 {!items?.length && <Text className={styles.emptyText}>{emptyText}</Text>}
                 {items?.map(item => (
                     <div key={getId(item)} className={styles.incidentItem}>

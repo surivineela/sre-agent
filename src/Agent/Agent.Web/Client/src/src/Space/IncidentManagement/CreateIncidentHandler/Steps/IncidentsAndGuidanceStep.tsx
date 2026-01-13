@@ -189,7 +189,7 @@ export const IncidentsAndGuidanceStep = () => {
             >
                 <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.customHandlerCreateDescription)}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
+                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
@@ -237,6 +237,9 @@ export const IncidentsAndGuidanceStep = () => {
                             }
                             getItemTitle={incident => incident.title}
                             getItemId={incident => incident.id}
+                            getRemoveButtonAriaLabel={incident =>
+                                intl.formatMessage(IncidentHandlerCreateResources.removeIncidentItem, { incidentId: incident.id, incidentTitle: incident.title })
+                            }
                             title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
                             emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
                             disabled={!handlerLoaded || generatingInstructions}
@@ -244,7 +247,7 @@ export const IncidentsAndGuidanceStep = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
+                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionDescription)}</Text>

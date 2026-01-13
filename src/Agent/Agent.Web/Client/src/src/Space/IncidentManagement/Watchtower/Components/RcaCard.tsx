@@ -189,7 +189,9 @@ export const RcaCard = ({ openedResponsePlan, selectedTimeRange, appInsightsId, 
             <Card style={{ flex: '1 1 650px', minWidth: 650, height: 310 }} appearance={isDarkMode ? 'filled-alternative' : undefined}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                        <Subtitle2>{intl.formatMessage(IncidentManagementResources.rootCauseAnalysis)}</Subtitle2>
+                        <Subtitle2 as="h2" style={{ margin: 0 }}>
+                            {intl.formatMessage(IncidentManagementResources.rootCauseAnalysis)}
+                        </Subtitle2>
                         <AiGeneratedBadge />
                     </div>
                     <Text style={{ color: tokens.colorNeutralForeground4 }}>

@@ -116,7 +116,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: '33%', flex: 'none' }}>
                         {!view && (
-                            <Text size={400} weight="semibold">
+                            <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                                 {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
                             </Text>
                         )}
@@ -134,7 +134,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                         />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '0%', flex: '1 1 auto' }}>
-                        <Text size={400} weight="semibold" style={{ marginTop: 32 }}>
+                        <Text size={400} weight="semibold" style={{ marginTop: 32, marginBottom: 0 }} as="h2">
                             {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
                         </Text>
                         <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.reviewToolsDescription)}</Text>
@@ -183,7 +183,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                     }}
                 >
                     {!view && (
-                        <Text size={400} weight="semibold">
+                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                             {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
                         </Text>
                     )}

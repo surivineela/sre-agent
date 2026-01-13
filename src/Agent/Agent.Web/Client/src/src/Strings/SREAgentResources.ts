@@ -1712,6 +1712,7 @@ export const IncidentHandlerCreateResources = defineMessages({
         defaultMessage: 'Yes, turn on deep investigation',
         id: 'tFoDh3',
     },
+    removeIncidentItem: { defaultMessage: 'Remove incident {incidentId}: {incidentTitle}', id: 'lsQR//' },
 });
 
 export const IncidentManagementResources = defineMessages({

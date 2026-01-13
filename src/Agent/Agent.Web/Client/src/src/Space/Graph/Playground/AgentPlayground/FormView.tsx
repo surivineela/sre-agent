@@ -69,7 +69,7 @@ export const FormView: FC<FormViewProps> = ({
                         />
                     </div>
                     <div className={styles.formSection}>
-                        <Text size={400} weight="semibold">
+                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
                         </Text>
                         <div className={styles.instructionsButtonsContainer}>
@@ -134,7 +134,7 @@ export const FormView: FC<FormViewProps> = ({
                         />
                     </div>
                     <div className={styles.formSection}>
-                        <Text size={400} weight="semibold">
+                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.advancedSettings)}
                         </Text>
                         <DropdownFormik

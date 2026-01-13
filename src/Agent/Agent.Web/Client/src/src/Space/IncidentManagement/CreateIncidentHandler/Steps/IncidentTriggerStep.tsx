@@ -118,7 +118,7 @@ export const IncidentTriggerStep: FC = () => {
                 }}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
+                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(ExtendedAgentsGraphResources.triggerDetails)}
                     </Text>
 
@@ -222,7 +222,6 @@ export const IncidentTriggerStep: FC = () => {
                             className={styles.inputField}
                         />
                     </Field>
-
                     {incidentPlatformType === IncidentManagementType.Icm && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <Field label={intl.formatMessage(IncidentManagementResources.monitorId)}>
@@ -251,7 +250,7 @@ export const IncidentTriggerStep: FC = () => {
                 </div>
                 {!values.isIncidentTriggerWithLearnings && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <Text size={400} weight="semibold">
+                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.subagent)}
                         </Text>
                         <Field label={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagent)} required>
@@ -274,7 +273,6 @@ export const IncidentTriggerStep: FC = () => {
                                 ))}
                             </Dropdown>
                         </Field>
-
                         <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
                             <RadioGroup
                                 name="agentMode"

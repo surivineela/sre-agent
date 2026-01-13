@@ -175,7 +175,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
             <DrawerBody className={styles.body}>
                 <div className={styles.content}>
                     <div className={styles.section}>
-                        <Caption1 className={styles.sectionLabel}>
+                        <Caption1 className={styles.sectionLabel} as="h3">
                             {intl.formatMessage(IncidentManagementResources.responsePlanDetails)}
                         </Caption1>
                         <div className={styles.gridStyle}>
@@ -196,7 +196,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
 
                     {handlerDetails?.incidentProcessingGuide && handlerDetails.incidentProcessingGuide.length > 0 && (
                         <div className={styles.section}>
-                            <Caption1 className={styles.sectionLabel}>
+                            <Caption1 className={styles.sectionLabel} as="h3">
                                 {intl.formatMessage(IncidentHandlerCreateResources.customInstructions)}
                             </Caption1>
                             <div className={styles.instructionsBox}>
@@ -273,6 +273,7 @@ const useResponsePlanDetailsDrawerStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
         fontSize: tokens.fontSizeBase400,
         paddingTop: '10px',
+        margin: '0px',
     },
     gridStyle: {
         display: 'grid',

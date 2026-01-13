@@ -1,8 +1,9 @@
-import { List, ListItem, makeStyles, SearchBox, tokens } from '@fluentui/react-components';
+import { List, ListItem, makeStyles, tokens } from '@fluentui/react-components';
 import { Checkmark16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
+import { SearchBoxWithDebounce } from '../SearchBox/SearchBoxWithDebounce';
 
 export interface LabelKeyPair {
     label: string;
@@ -182,11 +183,14 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
 
     return (
         <div className={styles.root}>
-            <SearchBox
+            <SearchBoxWithDebounce
                 placeholder={intl.formatMessage(SreAgentResources.search)}
-                value={searchText}
-                onChange={(_, data) => setSearchText(data.value)}
+                setSearchTerm={setSearchText}
                 className={styles.searchBox}
+                textToAnnounce={
+                    filteredOptions.length === 0 ? intl.formatMessage(SreAgentResources.noMatches) : undefined
+                }
+                isDirectlyUnderDocumentBody={true}
             />
             <div className={styles.listWrapper}>
                 {filteredOptions.length === 0 ? (

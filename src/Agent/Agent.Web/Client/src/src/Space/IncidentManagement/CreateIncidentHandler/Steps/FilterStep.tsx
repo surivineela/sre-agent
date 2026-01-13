@@ -133,7 +133,7 @@ export const FilterStep: FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
+                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
@@ -303,7 +303,7 @@ export const FilterStep: FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold">
+                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceDescription)}</Text>
