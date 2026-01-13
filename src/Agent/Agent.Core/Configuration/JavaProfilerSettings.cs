@@ -13,5 +13,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public int ProfileTimeoutMinutes { get; set; } = 5;
+
+        [Required]
+        public int MaxDebugContainers { get; set; } = 5;
     }
 }

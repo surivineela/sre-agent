@@ -358,6 +358,77 @@ namespace Agent.Plugins
             }
         }
 
+        /// <summary>
+        /// Checks for previous java-profiler debug containers on the pod.
+        /// </summary>
+        /// <param name="threadId">The thread ID</param>
+        /// <param name="resourceId">The resource ID for the kubectl command</param>
+        /// <param name="pod">The pod to check</param>
+        /// <param name="kubePlugin">The Kubernetes plugin instance</param>
+        /// <returns>Empty string if check passes, error message if 5 or more java-profiler containers exist</returns>
+        private async Task<string> CheckPreviousDebugContainerAsync(
+            Guid threadId,
+            string resourceId,
+            V1Pod pod,
+            IKubePlugin kubePlugin)
+        {
+            try
+            {
+                _logger?.LogDebug("Checking for previous java-profiler ephemeral containers on pod '{PodName}'", pod.Name());
+
+                var statusCommand = $"kubectl get pod {pod.Name()} -n {pod.Namespace()} -o json";
+                var statusResult = await RunKubeCommandWithThreadId<CliExecutionResult>(threadId, kubePlugin, async () =>
+                  await kubePlugin.ExecuteKubectlCommandSafely(resourceId, statusCommand, "", TimeSpan.FromMinutes(2))
+                 );
+
+                if (statusResult.ErrorOccurred == true)
+                {
+                    _logger?.LogError("Failed to get pod status while checking for previous debug containers. Error Type: {Error}", statusResult.ErrorType);
+                    return "Error checking for previous debug containers.";
+                }
+
+                var podJson = JsonDocument.Parse(statusResult.Output);
+
+                // Check ephemeral containers in spec (desired state)
+                if (podJson.RootElement.GetProperty("spec").TryGetProperty("ephemeralContainers", out var specEphemeralContainers))
+                {
+                    var javaProfilerContainers = specEphemeralContainers.EnumerateArray()
+                        .Where(c => c.TryGetProperty("name", out var name) &&
+                                    name.GetString()?.StartsWith("java-profiler-", StringComparison.OrdinalIgnoreCase) == true)
+                        .ToList();
+
+                    var count = javaProfilerContainers.Count;
+
+                    _logger?.LogInformation("Found {Count} existing java-profiler ephemeral containers on pod '{PodName}'", count, pod.Name());
+
+                    if (count >= _javaProfilerSettings.MaxDebugContainers)
+                    {
+                        var containerNames = string.Join(", ", javaProfilerContainers
+                            .Select(c => c.GetProperty("name").GetString())
+                            .Where(n => n != null));
+
+                        var errorMessage = $"Error: Pod '{pod.Name()}' already has {count} java-profiler ephemeral containers ({containerNames}). " +
+                                         $"Cannot create more than '{_javaProfilerSettings.MaxDebugContainers}' debug containers.";
+
+                        _logger?.LogWarning(errorMessage);
+                        return errorMessage;
+                    }
+                }
+
+                return string.Empty; // Success - no issues found
+            }
+            catch (JsonException ex)
+            {
+                _logger?.LogError(ex, "Error parsing pod status JSON while checking for previous debug containers");
+                return "Error checking for previous debug containers.";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error while checking for previous debug containers on pod '{PodName}'", pod.Name());
+                return "Error checking for previous debug containers.";
+            }
+        }
+
         public async Task<string> CreateDebugContainerAsync(
             Guid threadId,
             string resourceId,
@@ -372,6 +443,13 @@ namespace Agent.Plugins
         {
             try
             {
+                var previousDebugContainerCheck = await CheckPreviousDebugContainerAsync(threadId, resourceId, pod, kubePlugin);
+
+                if (!string.IsNullOrEmpty(previousDebugContainerCheck) && previousDebugContainerCheck.StartsWith("Error", StringComparison.OrdinalIgnoreCase))
+                {
+                    return previousDebugContainerCheck;
+                }
+
                 var cmd = $$"""[{"op" : "add","path" : "/spec/ephemeralContainers","value" : [{"command" : ["/home/illuminate/diagnose.sh"],"image" : "{{debugImageName}}","imagePullPolicy" : "Always","name" : "{{containerName}}","securityContext" : {"privileged" : true},"stdin" : true,"targetContainerName" : "{{targetContainerName}}","terminationMessagePath" : "/dev/termination-log","terminationMessagePolicy" : "File","tty" : true}]}]""";
 
                 if (await HasEphemeralContainersAsync(threadId, resourceId, pod, kubePlugin))

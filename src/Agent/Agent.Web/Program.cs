@@ -352,7 +352,8 @@ public class Program
                 settings = new Agent.Core.Configuration.JavaProfilerSettings
                 {
                     DebugProfileContainer = "",
-                    ProfileTimeoutMinutes = 5
+                    ProfileTimeoutMinutes = 5,
+                    MaxDebugContainers = 5
                 };
             }
 

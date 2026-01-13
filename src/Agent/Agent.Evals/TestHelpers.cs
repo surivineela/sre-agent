@@ -487,7 +487,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<JavaProfilerSettings>(new JavaProfilerSettings
         {
             DebugProfileContainer = string.Empty,
-            ProfileTimeoutMinutes = 5
+            ProfileTimeoutMinutes = 5,
+            MaxDebugContainers = 5
         });
 
         builder.Services.AddSingleton<SearchHelper>();
