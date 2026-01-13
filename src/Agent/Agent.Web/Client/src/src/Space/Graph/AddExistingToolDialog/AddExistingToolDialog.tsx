@@ -94,6 +94,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
     const [selectedMcpToolNames, setSelectedMcpToolNames] = useState<string[]>([]);
 
     const {
+        toolTypeOptions,
         toolType,
         onToolTypeChange,
         expandedGroupNames,
@@ -144,6 +145,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                 />
                 <div className={styles.dialogContentWrapper}>
                     <ToolsPicker
+                        toolTypeOptions={toolTypeOptions}
                         toolType={toolType}
                         onToolTypeChange={onToolTypeChange}
                         groups={groups}

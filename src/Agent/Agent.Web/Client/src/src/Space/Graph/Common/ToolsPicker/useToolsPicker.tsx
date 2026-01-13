@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
-import { ToolPickerOption, ToolsPickerProps } from './ToolsPicker';
 import { PillSetItem } from '../PillSet';
+import { ToolPickerOption, ToolPickerTypeFilter, ToolsPickerProps } from './ToolsPicker';
 
 export interface UseToolsPickerProps {
     selectedToolNames: string[];
@@ -26,13 +26,39 @@ export interface UseToolsPickerReturn extends ToolsPickerProps {
 
 export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn => {
     const intl = useIntl();
-    const { selectedToolNames, setSelectedToolNames, selectedMcpToolNames, setSelectedMcpToolNames, existingTools, systemTools, mcpConnections, excludedToolNames, excludedMcpToolNames } = props;
+    const {
+        selectedToolNames,
+        setSelectedToolNames,
+        selectedMcpToolNames,
+        setSelectedMcpToolNames,
+        existingTools,
+        systemTools,
+        mcpConnections,
+        excludedToolNames,
+        excludedMcpToolNames,
+    } = props;
 
-    const excludedToolKeys = useMemo(() => new Set((excludedToolNames ?? []).map(name => `${ToolTypePrefix.TOOL}${normalizeName(name)}`).filter(Boolean)), [excludedToolNames]);
-    const excludedMcpToolKeys = useMemo(() => new Set((excludedMcpToolNames ?? []).map(name => `${ToolTypePrefix.MCP}${normalizeName(name)}`).filter(Boolean)), [excludedMcpToolNames]);
+    const excludedToolKeys = useMemo(
+        () => new Set((excludedToolNames ?? []).map(name => `${ToolTypePrefix.TOOL}${normalizeName(name)}`).filter(Boolean)),
+        [excludedToolNames]
+    );
+    const excludedMcpToolKeys = useMemo(
+        () => new Set((excludedMcpToolNames ?? []).map(name => `${ToolTypePrefix.MCP}${normalizeName(name)}`).filter(Boolean)),
+        [excludedMcpToolNames]
+    );
 
-    const [toolType, setToolType] = useState<'mcp' | 'all'>('all');
+    const [toolType, setToolType] = useState<ToolPickerTypeFilter>('all');
+    const toolTypeOptions: ToolsPickerProps['toolTypeOptions'] = useMemo(
+        () => [
+            { key: 'all' as ToolPickerTypeFilter, label: intl.formatMessage(SreAgentResources.all) },
+            { key: 'custom' as ToolPickerTypeFilter, label: intl.formatMessage(ExtendedAgentsGraphResources.customTool) },
+            { key: 'mcp' as ToolPickerTypeFilter, label: intl.formatMessage(ExtendedAgentsGraphResources.mcpTool) },
+        ],
+        [intl]
+    );
+
     const [searchQuery, setSearchQuery] = useState<string>('');
+
     const [expandedGroupNames, setExpandedGroupNames] = useState<string[]>([]);
     const onGroupExpandedChange = useCallback(
         (groupName: string, expanded: boolean) => {
@@ -79,7 +105,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         mcpConnections?.forEach(connection => {
             connection.tools?.forEach(mcpTool => {
                 const name = normalizeName(mcpTool.name);
-                const key = `${ToolTypePrefix.MCP}${name}`
+                const key = `${ToolTypePrefix.MCP}${name}`;
                 if (!name || excludedMcpToolKeys.has(key) || addedToolsNormalized.has(key)) {
                     return;
                 }
@@ -99,7 +125,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
 
         systemTools?.forEach(systemTool => {
             const name = normalizeName(systemTool.name);
-            const key = `${ToolTypePrefix.TOOL}${name}`
+            const key = `${ToolTypePrefix.TOOL}${name}`;
             if (!name || excludedToolKeys.has(key) || addedToolsNormalized.has(key)) {
                 return;
             }
@@ -126,7 +152,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
 
         existingTools?.forEach(tool => {
             const name = normalizeName(tool.name);
-            const key = `${ToolTypePrefix.TOOL}${name}`
+            const key = `${ToolTypePrefix.TOOL}${name}`;
             if (!name || excludedToolKeys.has(key) || addedToolsNormalized.has(key)) {
                 return;
             }
@@ -157,15 +183,16 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
             const { toolKind, toolName } = key.startsWith(ToolTypePrefix.MCP)
                 ? { toolKind: ToolType.MCP, toolName: key.slice(ToolTypePrefix.MCP.length) }
                 : key.startsWith(ToolTypePrefix.TOOL)
-                ? { toolKind: ToolType.TOOL, toolName: key.slice(ToolTypePrefix.TOOL.length) }
-                : { toolKind: undefined, toolName: undefined };
+                  ? { toolKind: ToolType.TOOL, toolName: key.slice(ToolTypePrefix.TOOL.length) }
+                  : { toolKind: undefined, toolName: undefined };
 
             if (!toolKind || !toolName) {
                 return;
             }
-            const { values, setValues } = toolKind === ToolType.MCP
-                ? { values: selectedMcpToolNames, setValues: setSelectedMcpToolNames }
-                : { values: selectedToolNames, setValues: setSelectedToolNames };
+            const { values, setValues } =
+                toolKind === ToolType.MCP
+                    ? { values: selectedMcpToolNames, setValues: setSelectedMcpToolNames }
+                    : { values: selectedToolNames, setValues: setSelectedToolNames };
 
             if (isSelected) {
                 setValues([...values, toolName]);
@@ -188,24 +215,36 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         return matches;
     }, [availableToolOptions, searchQuery]);
 
-    const mcpGroups = useMemo(() => {
-        const filteredMcpTools = filteredToolOptions.filter(option => option.kind === 'mcp');
-        const groups = getGroups(filteredMcpTools);
-        return [...groups];
-    }, [filteredToolOptions]);
+    const { mcpGroups, systemGroups, customGroups } = useMemo(() => {
+        const filteredMcpTools: ToolPickerOption[] = [];
+        const filteredSystemTools: ToolPickerOption[] = [];
+        const filteredCustomTools: ToolPickerOption[] = [];
 
-    const nonMcpGroups = useMemo(() => {
-        const filteredMcpTools = filteredToolOptions.filter(option => option.kind !== 'mcp');
-        const groups = getGroups(filteredMcpTools);
-        return [...groups];
+        filteredToolOptions.forEach(option => {
+            if (option.kind === 'mcp') {
+                filteredMcpTools.push(option);
+            } else if (option.kind === 'system') {
+                filteredSystemTools.push(option);
+            } else {
+                filteredCustomTools.push(option);
+            }
+        });
+        const mcpGroups = getGroups(filteredMcpTools);
+        const systemGroups = getGroups(filteredSystemTools);
+        const customGroups = getGroups(filteredCustomTools);
+
+        return { mcpGroups, systemGroups, customGroups };
     }, [filteredToolOptions]);
 
     const groups = useMemo(() => {
+        if (toolType === 'custom') {
+            return customGroups;
+        }
         if (toolType === 'mcp') {
             return mcpGroups;
         }
-        return [...mcpGroups, ...nonMcpGroups];
-    }, [toolType, mcpGroups, nonMcpGroups]);
+        return [...customGroups, ...mcpGroups, ...systemGroups];
+    }, [toolType, customGroups, mcpGroups, systemGroups]);
 
     const pillItems = useMemo(() => {
         const nonMcpItems = selectedToolNames?.map(name => ({ key: `${ToolTypePrefix.TOOL}${normalizeName(name)}`, label: name })) ?? [];
@@ -214,8 +253,8 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     }, [selectedToolNames, selectedMcpToolNames]);
 
     const selectedToolKeys = useMemo(() => {
-        const nonMcpKeys = selectedToolNames?.map(name => (`${ToolTypePrefix.TOOL}${normalizeName(name)}`)) ?? [];
-        const mcpKeys = selectedMcpToolNames?.map(name => (`${ToolTypePrefix.MCP}${normalizeName(name)}`)) ?? [];
+        const nonMcpKeys = selectedToolNames?.map(name => `${ToolTypePrefix.TOOL}${normalizeName(name)}`) ?? [];
+        const mcpKeys = selectedMcpToolNames?.map(name => `${ToolTypePrefix.MCP}${normalizeName(name)}`) ?? [];
         return [...nonMcpKeys, ...mcpKeys];
     }, [selectedToolNames, selectedMcpToolNames]);
 
@@ -295,6 +334,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     );
 
     return {
+        toolTypeOptions,
         toolType,
         onToolTypeChange: setToolType,
         expandedGroupNames,

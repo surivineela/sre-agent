@@ -4460,7 +4460,6 @@ export const ExtendedAgentsGraphResources = defineMessages({
     subagentName: { defaultMessage: 'Subagent name', id: '2reUcp' },
     noAgentsFoundForHandoff: { defaultMessage: 'No agents found', id: '451B6Z' },
     addSubagent: { defaultMessage: 'Add subagent', id: 'PbaaPs' },
-    mcpTools: { defaultMessage: 'MCP tools', id: 'GSCabm' },
     allTools: { defaultMessage: 'All tools', id: '0Qocmw' },
     selectTool: { defaultMessage: 'Select tool', id: 'BakoFg' },
     selectToolWithName: { defaultMessage: 'Select tool {toolName}', id: 'FWou/7' },

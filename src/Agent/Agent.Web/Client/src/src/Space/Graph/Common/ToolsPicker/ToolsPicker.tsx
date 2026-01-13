@@ -3,7 +3,6 @@ import {
     Checkbox,
     makeStyles,
     mergeClasses,
-    RadioGroup,
     SearchBox,
     useTableCell_unstable,
     useTableCellStyles_unstable,
@@ -12,13 +11,13 @@ import {
     useTableHeaderCellStyles_unstable,
     useTableHeaderStyles_unstable,
     useTableRow_unstable,
-    useTableRowStyles_unstable,
+    useTableRowStyles_unstable
 } from '@fluentui/react-components';
 import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
-import { createRef, FC, useCallback } from 'react';
+import { createRef, FC, useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { CopilotRadio } from '../../../Components/Common/CopilotRadio';
 
 export interface ToolPickerOption {
     key: string;
@@ -38,9 +37,12 @@ export interface ToolTreeGridGroup {
     tools: ToolPickerOption[];
 }
 
+export type ToolPickerTypeFilter = 'mcp' | 'custom' | 'all';
+
 export interface ToolsPickerProps {
-    toolType: 'mcp' | 'all';
-    onToolTypeChange: (toolType: 'mcp' | 'all') => void;
+    toolTypeOptions: { key: ToolPickerTypeFilter; label: string }[];
+    toolType: ToolPickerTypeFilter;
+    onToolTypeChange: (toolType: ToolPickerTypeFilter) => void;
     groups: ToolTreeGridGroup[];
     expandedGroupNames: string[];
     onGroupExpandedChange: (groupName: string, expanded: boolean) => void;
@@ -54,6 +56,7 @@ export interface ToolsPickerProps {
 }
 
 export const ToolsPicker: FC<ToolsPickerProps> = ({
+    toolTypeOptions,
     toolType,
     onToolTypeChange,
     groups,
@@ -74,17 +77,24 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
     const styles = useToolsTreeGridStyles();
 
     // Calculate if all tools are selected
-    const allToolKeys = groups.flatMap(group => group.tools.map(tool => tool.key));
-    const allToolsSelected = allToolKeys.length > 0 && allToolKeys.every(key => selectedToolKeys.includes(key));
-    const someToolsSelected = allToolKeys.some(key => selectedToolKeys.includes(key));
+    const allToolKeys = useMemo(() => groups.flatMap(group => group.tools.map(tool => tool.key)), [groups]);
+    const allToolsSelected = useMemo(() => allToolKeys.length > 0 && allToolKeys.every(key => selectedToolKeys.includes(key)), [allToolKeys, selectedToolKeys]);
+    const someToolsSelected = useMemo(() => allToolKeys.some(key => selectedToolKeys.includes(key)), [allToolKeys, selectedToolKeys]);
 
     return (
         <>
             <div className={styles.toolBar}>
-                <RadioGroup value={toolType} layout="horizontal" onChange={(_, data) => onToolTypeChange(data.value as 'mcp' | 'all')}>
-                    <CopilotRadio value="all" label={intl.formatMessage(ExtendedAgentsGraphResources.allTools)} />
-                    <CopilotRadio value="mcp" label={intl.formatMessage(ExtendedAgentsGraphResources.mcpTools)} />
-                </RadioGroup>
+                <PillFilter
+                    label={intl.formatMessage(ExtendedAgentsGraphResources.type)}
+                    filterType="combobox"
+                    multiSelect={false}
+                    options={toolTypeOptions}
+                    selectedKeys={[toolType]}
+                    onApply={keys => {
+                        onToolTypeChange(keys[0] as ToolPickerTypeFilter);
+                    }}
+                    useInDialog={true}
+                />
                 <SearchBox
                     className={styles.searchBox}
                     placeholder={intl.formatMessage(SreAgentResources.search)}
