@@ -1,0 +1,20 @@
+/*
+Copyright (c) Microsoft Corporation. All rights reserved.
+*/
+
+.octicon {
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+  margin-right: 7px;
+  flex: none;
+}
+
+.color-icon-success {
+  color: var(--color-success-fg) !important;
+}
+
+.color-text-danger {
+  color: var(--color-danger-fg) !important;
+}

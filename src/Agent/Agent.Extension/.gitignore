@@ -1,0 +1,6 @@
+# Extension build output
+dist/
+lib/
+
+# Package files
+*.zip
