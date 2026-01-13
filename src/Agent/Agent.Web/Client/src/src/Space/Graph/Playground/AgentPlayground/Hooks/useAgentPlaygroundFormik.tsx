@@ -66,8 +66,10 @@ export const useAgentPlaygroundFormik = (
     );
 
     const toolsPickerHook = useToolsPicker({
-        selectedToolNames: [...values.tools, ...values.mcpTools],
+        selectedToolNames: values.tools,
         setSelectedToolNames: (value: string[]) => setFieldValue('tools', value),
+        selectedMcpToolNames: values.mcpTools,
+        setSelectedMcpToolNames: (value: string[]) => setFieldValue('mcpTools', value),
         existingTools,
         systemTools,
         mcpConnections,

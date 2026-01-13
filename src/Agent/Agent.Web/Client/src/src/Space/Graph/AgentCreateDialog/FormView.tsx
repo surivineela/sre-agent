@@ -159,7 +159,7 @@ export const FormView: FC<FormViewProps> = ({
                         </Field>
                         <PillSet
                             items={toolsPickerHook.pillItems}
-                            onRemoveItem={toolName => toolsPickerHook.onSelectedToolChange(toolName, false)}
+                            onRemoveItem={key => toolsPickerHook.onSelectedToolChange(key, false)}
                             onClearAll={toolsPickerHook.onClearSelectedTools}
                             disabled={disableControls}
                             className={styles.formControl}

@@ -4,25 +4,32 @@ import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResour
 import { ExtendedTool, SystemTool } from '../../../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { ToolPickerOption, ToolsPickerProps } from './ToolsPicker';
+import { PillSetItem } from '../PillSet';
 
 export interface UseToolsPickerProps {
     selectedToolNames: string[];
     setSelectedToolNames: (toolNames: string[]) => void;
+    selectedMcpToolNames: string[];
+    setSelectedMcpToolNames: (toolNames: string[]) => void;
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
     mcpConnections?: McpConnection[];
     excludedToolNames?: string[];
+    excludedMcpToolNames?: string[];
 }
 
 export interface UseToolsPickerReturn extends ToolsPickerProps {
-    pillItems: { key: string; label: string }[];
+    pillItems: PillSetItem[];
     onClearSelectedTools: () => void;
     onClearSearchAndExpandedGroups: () => void;
 }
 
 export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn => {
-    const { selectedToolNames, setSelectedToolNames, existingTools, systemTools, mcpConnections, excludedToolNames } = props;
     const intl = useIntl();
+    const { selectedToolNames, setSelectedToolNames, selectedMcpToolNames, setSelectedMcpToolNames, existingTools, systemTools, mcpConnections, excludedToolNames, excludedMcpToolNames } = props;
+
+    const excludedToolKeys = useMemo(() => new Set((excludedToolNames ?? []).map(name => `${ToolTypePrefix.TOOL}${normalizeName(name)}`).filter(Boolean)), [excludedToolNames]);
+    const excludedMcpToolKeys = useMemo(() => new Set((excludedMcpToolNames ?? []).map(name => `${ToolTypePrefix.MCP}${normalizeName(name)}`).filter(Boolean)), [excludedMcpToolNames]);
 
     const [toolType, setToolType] = useState<'mcp' | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -37,17 +44,6 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
             });
         },
         [setExpandedGroupNames]
-    );
-
-    const onSelectedToolChange = useCallback(
-        (toolName: string, isSelected: boolean) => {
-            if (isSelected) {
-                setSelectedToolNames([...selectedToolNames, toolName]);
-            } else {
-                setSelectedToolNames(selectedToolNames.filter(name => name !== toolName));
-            }
-        },
-        [setSelectedToolNames, selectedToolNames]
     );
 
     const getExtendedToolCategory = useCallback(
@@ -70,42 +66,44 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         [intl]
     );
 
-    // Helper to get tool names in a specific group from filtered options
-    const getToolNamesInGroup = useCallback((groupName: string, groups: { category: string; tools: { name: string }[] }[]) => {
+    // Helper to get tools in a specific group from filtered options
+    const getToolsInGroup = useCallback((groupName: string, groups: { category: string; tools: ToolPickerOption[] }[]) => {
         const group = groups.find(g => g.category === groupName);
-        return group?.tools.map(t => t.name) ?? [];
+        return group?.tools ?? [];
     }, []);
 
     const availableToolOptions = useMemo(() => {
-        const normalize = (value?: string | null) => (value ?? '').trim();
-        const currentToolsNormalized = new Set((excludedToolNames ?? []).map(normalize).filter(Boolean));
-
         const addedToolsNormalized = new Set<string>();
         const options: ToolPickerOption[] = [];
 
         mcpConnections?.forEach(connection => {
             connection.tools?.forEach(mcpTool => {
-                const name = normalize(mcpTool.name);
-                if (!name || currentToolsNormalized.has(name)) {
+                const name = normalizeName(mcpTool.name);
+                const key = `${ToolTypePrefix.MCP}${name}`
+                if (!name || excludedMcpToolKeys.has(key) || addedToolsNormalized.has(key)) {
                     return;
                 }
+                addedToolsNormalized.add(key);
+
                 options.push({
-                    name: normalize(mcpTool.name),
+                    key,
+                    name,
                     description: mcpTool.description,
                     groupLabel: connection.name,
                     categoryLabel: connection.name,
                     kind: 'mcp',
                     searchText: `${mcpTool.name} ${connection.name} ${mcpTool.description ?? ''}`.toLowerCase(),
                 });
-                addedToolsNormalized.add(name);
             });
         });
 
         systemTools?.forEach(systemTool => {
-            const name = normalize(systemTool.name);
-            if (!name || currentToolsNormalized.has(name) || addedToolsNormalized.has(name)) {
+            const name = normalizeName(systemTool.name);
+            const key = `${ToolTypePrefix.TOOL}${name}`
+            if (!name || excludedToolKeys.has(key) || addedToolsNormalized.has(key)) {
                 return;
             }
+            addedToolsNormalized.add(key);
 
             const category = systemTool.category || intl.formatMessage(ExtendedAgentsGraphResources.relationshipToolCategoryFallback);
             const pluginName = systemTool.pluginName ?? '';
@@ -114,6 +112,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
             const searchText = `${name} ${category} ${pluginName} ${resourceType} ${description}`.toLowerCase();
 
             options.push({
+                key,
                 name,
                 description: systemTool.description,
                 groupLabel: category,
@@ -126,10 +125,12 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         });
 
         existingTools?.forEach(tool => {
-            const name = normalize(tool.name);
-            if (!name || currentToolsNormalized.has(name) || addedToolsNormalized.has(name)) {
+            const name = normalizeName(tool.name);
+            const key = `${ToolTypePrefix.TOOL}${name}`
+            if (!name || excludedToolKeys.has(key) || addedToolsNormalized.has(key)) {
                 return;
             }
+            addedToolsNormalized.add(key);
 
             const category = getExtendedToolCategory(tool);
             const description = tool.description ?? '';
@@ -137,18 +138,43 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
             const searchText = `${name} ${category} ${metadataCategory} ${description} ${tool.type ?? ''}`.toLowerCase();
 
             options.push({
+                key,
                 name,
                 description: tool.description,
                 connector: tool.connector,
                 groupLabel: category,
                 categoryLabel: category,
-                kind: 'tool',
+                kind: ToolType.TOOL,
                 searchText,
             });
         });
 
         return options;
-    }, [excludedToolNames, existingTools, systemTools, mcpConnections, getExtendedToolCategory, intl]);
+    }, [excludedMcpToolKeys, excludedToolKeys, existingTools, systemTools, mcpConnections, getExtendedToolCategory, intl]);
+
+    const onSelectedToolChange = useCallback(
+        (key: string, isSelected: boolean) => {
+            const { toolKind, toolName } = key.startsWith(ToolTypePrefix.MCP)
+                ? { toolKind: ToolType.MCP, toolName: key.slice(ToolTypePrefix.MCP.length) }
+                : key.startsWith(ToolTypePrefix.TOOL)
+                ? { toolKind: ToolType.TOOL, toolName: key.slice(ToolTypePrefix.TOOL.length) }
+                : { toolKind: undefined, toolName: undefined };
+
+            if (!toolKind || !toolName) {
+                return;
+            }
+            const { values, setValues } = toolKind === ToolType.MCP
+                ? { values: selectedMcpToolNames, setValues: setSelectedMcpToolNames }
+                : { values: selectedToolNames, setValues: setSelectedToolNames };
+
+            if (isSelected) {
+                setValues([...values, toolName]);
+            } else {
+                setValues(values.filter(name => name !== toolName));
+            }
+        },
+        [setSelectedToolNames, selectedToolNames, setSelectedMcpToolNames, selectedMcpToolNames]
+    );
 
     const filteredToolOptions = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
@@ -182,11 +208,20 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     }, [toolType, mcpGroups, nonMcpGroups]);
 
     const pillItems = useMemo(() => {
-        return selectedToolNames.map(name => ({ key: name, label: name }));
-    }, [selectedToolNames]);
+        const nonMcpItems = selectedToolNames?.map(name => ({ key: `${ToolTypePrefix.TOOL}${normalizeName(name)}`, label: name })) ?? [];
+        const mcpItems = selectedMcpToolNames?.map(name => ({ key: `${ToolTypePrefix.MCP}${normalizeName(name)}`, label: name })) ?? [];
+        return [...nonMcpItems, ...mcpItems];
+    }, [selectedToolNames, selectedMcpToolNames]);
+
+    const selectedToolKeys = useMemo(() => {
+        const nonMcpKeys = selectedToolNames?.map(name => (`${ToolTypePrefix.TOOL}${normalizeName(name)}`)) ?? [];
+        const mcpKeys = selectedMcpToolNames?.map(name => (`${ToolTypePrefix.MCP}${normalizeName(name)}`)) ?? [];
+        return [...nonMcpKeys, ...mcpKeys];
+    }, [selectedToolNames, selectedMcpToolNames]);
 
     const onClearSelectedTools = useCallback(() => {
         setSelectedToolNames([]);
+        setSelectedMcpToolNames([]);
     }, []);
 
     const onClearSearchAndExpandedGroups = useCallback(() => {
@@ -197,44 +232,66 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
     // Select/deselect all tools in a specific group
     const onSelectAllToolsInGroup = useCallback(
         (groupName: string, isSelected: boolean) => {
-            const toolNamesInGroup = getToolNamesInGroup(groupName, groups);
+            const toolsInGroup = getToolsInGroup(groupName, groups);
             if (isSelected) {
                 // Add all tools in the group that are not already selected
                 const newSelectedTools = [...selectedToolNames];
-                toolNamesInGroup.forEach(name => {
-                    if (!newSelectedTools.includes(name)) {
-                        newSelectedTools.push(name);
+                const newSelectedMcpTools = [...selectedMcpToolNames];
+                toolsInGroup.forEach(tool => {
+                    if (tool.kind === 'mcp') {
+                        if (!newSelectedMcpTools.includes(tool.name)) {
+                            newSelectedMcpTools.push(tool.name);
+                        }
+                    } else {
+                        if (!newSelectedTools.includes(tool.name)) {
+                            newSelectedTools.push(tool.name);
+                        }
                     }
                 });
                 setSelectedToolNames(newSelectedTools);
+                setSelectedMcpToolNames(newSelectedMcpTools);
             } else {
                 // Remove all tools in the group from selection
-                setSelectedToolNames(selectedToolNames.filter(name => !toolNamesInGroup.includes(name)));
+                const nonMcpToolsInGroup = toolsInGroup.filter(tool => tool.kind !== 'mcp');
+                const mcpToolsInGroup = toolsInGroup.filter(tool => tool.kind === 'mcp');
+
+                setSelectedToolNames(selectedToolNames.filter(name => !nonMcpToolsInGroup.map(tool => tool.name).includes(name)));
+                setSelectedMcpToolNames(selectedMcpToolNames.filter(name => !mcpToolsInGroup.map(tool => tool.name).includes(name)));
             }
         },
-        [selectedToolNames, setSelectedToolNames, groups, getToolNamesInGroup]
+        [selectedToolNames, setSelectedToolNames, selectedMcpToolNames, setSelectedMcpToolNames, groups, getToolsInGroup]
     );
 
     // Select/deselect all tools across all groups
     const onSelectAllTools = useCallback(
         (isSelected: boolean) => {
+            const allTools = groups.flatMap(group => group.tools);
             if (isSelected) {
                 // Select all tools from all groups
-                const allToolNames = groups.flatMap(group => group.tools.map(tool => tool.name));
                 const newSelectedTools = [...selectedToolNames];
-                allToolNames.forEach(name => {
-                    if (!newSelectedTools.includes(name)) {
-                        newSelectedTools.push(name);
+                const newSelectedMcpTools = [...selectedMcpToolNames];
+                allTools.forEach(tool => {
+                    if (tool.kind === 'mcp') {
+                        if (!newSelectedMcpTools.includes(tool.name)) {
+                            newSelectedMcpTools.push(tool.name);
+                        }
+                    } else {
+                        if (!newSelectedTools.includes(tool.name)) {
+                            newSelectedTools.push(tool.name);
+                        }
                     }
                 });
                 setSelectedToolNames(newSelectedTools);
+                setSelectedMcpToolNames(newSelectedMcpTools);
             } else {
                 // Deselect all tools from all groups
-                const allToolNames = new Set(groups.flatMap(group => group.tools.map(tool => tool.name)));
-                setSelectedToolNames(selectedToolNames.filter(name => !allToolNames.has(name)));
+                const allNonMcpTools = allTools.filter(tool => tool.kind !== 'mcp');
+                const allMcpTools = allTools.filter(tool => tool.kind === 'mcp');
+                setSelectedToolNames(selectedToolNames.filter(name => !allNonMcpTools.map(tool => tool.name).includes(name)));
+                setSelectedMcpToolNames(selectedMcpToolNames.filter(name => !allMcpTools.map(tool => tool.name).includes(name)));
             }
         },
-        [selectedToolNames, setSelectedToolNames, groups]
+        [selectedToolNames, setSelectedToolNames, selectedMcpToolNames, setSelectedMcpToolNames, groups]
     );
 
     return {
@@ -242,7 +299,7 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         onToolTypeChange: setToolType,
         expandedGroupNames,
         onGroupExpandedChange,
-        selectedToolNames,
+        selectedToolKeys,
         onSelectedToolChange,
         onSelectAllToolsInGroup,
         onSelectAllTools,
@@ -254,6 +311,18 @@ export const useToolsPicker = (props: UseToolsPickerProps): UseToolsPickerReturn
         pillItems,
     };
 };
+
+enum ToolTypePrefix {
+    TOOL = 'tool_',
+    MCP = 'mcp_',
+}
+
+enum ToolType {
+    TOOL = 'tool',
+    MCP = 'mcp',
+}
+
+const normalizeName = (name?: string | null) => (name ?? '').trim();
 
 const getGroups = (tools: ToolPickerOption[]) => {
     const groups = new Map<string, ToolPickerOption[]>();

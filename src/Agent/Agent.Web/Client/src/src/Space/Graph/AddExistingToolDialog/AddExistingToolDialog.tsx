@@ -12,7 +12,7 @@ import { useAddExistingToolDialogStyles } from './AddExistingToolDialog.Styles';
 
 export interface AddExistingToolDialogProps {
     onDismiss: () => void;
-    addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
+    addToolsToAgent: (agentName: string, nonMcpToolNames: string[], mcpToolNames: string[]) => void;
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
     mcpConnections?: McpConnection[];
@@ -32,9 +32,14 @@ export const AddExistingToolDialog: FC<AddExistingToolDialogProps> = ({
         () => [
             ...(toolPickerInfo?.agent?.tools || []),
             ...(toolPickerInfo?.agent?.systemTools || []),
+        ],
+        [toolPickerInfo?.agent?.tools, toolPickerInfo?.agent?.systemTools]
+    );
+    const excludedMcpToolNames = useMemo(
+        () => [
             ...(toolPickerInfo?.agent?.mcpTools || []),
         ],
-        [toolPickerInfo?.agent?.tools, toolPickerInfo?.agent?.systemTools, toolPickerInfo?.agent?.mcpTools]
+        [toolPickerInfo?.agent?.mcpTools]
     );
 
     return (
@@ -48,9 +53,9 @@ export const AddExistingToolDialog: FC<AddExistingToolDialogProps> = ({
         >
             <AddExistingToolDialogInner
                 onDismiss={onDismiss}
-                onSubmit={(selectedToolNames: string[]) => {
+                onSubmit={(selectedNonMcpToolNames: string[], selectedMcpToolNames: string[]) => {
                     if (agentName) {
-                        addToolsToAgent(agentName, selectedToolNames);
+                        addToolsToAgent(agentName, selectedNonMcpToolNames, selectedMcpToolNames);
                     }
                     onDismiss();
                 }}
@@ -58,6 +63,7 @@ export const AddExistingToolDialog: FC<AddExistingToolDialogProps> = ({
                 systemTools={systemTools}
                 mcpConnections={mcpConnections}
                 excludedToolNames={excludedToolNames}
+                excludedMcpToolNames={excludedMcpToolNames}
             />
         </Dialog>
     );
@@ -65,11 +71,12 @@ export const AddExistingToolDialog: FC<AddExistingToolDialogProps> = ({
 
 interface AddExistingToolDialogInnerProps {
     onDismiss: () => void;
-    onSubmit: (selectedToolNames: string[]) => void;
+    onSubmit: (selectedNonMcpToolNames: string[], selectedMcpToolNames: string[]) => void;
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
     mcpConnections?: McpConnection[];
     excludedToolNames?: string[];
+    excludedMcpToolNames?: string[];
 }
 
 const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
@@ -79,10 +86,12 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
     systemTools,
     mcpConnections,
     excludedToolNames,
+    excludedMcpToolNames,
 }) => {
     const intl = useIntl();
     const styles = useAddExistingToolDialogStyles();
     const [selectedToolNames, setSelectedToolNames] = useState<string[]>([]);
+    const [selectedMcpToolNames, setSelectedMcpToolNames] = useState<string[]>([]);
 
     const {
         toolType,
@@ -97,13 +106,17 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
         setSearchQuery,
         groups,
         pillItems,
+        selectedToolKeys,
     } = useToolsPicker({
         selectedToolNames,
         setSelectedToolNames,
+        selectedMcpToolNames,
+        setSelectedMcpToolNames,
         existingTools,
         systemTools,
         mcpConnections,
         excludedToolNames,
+        excludedMcpToolNames
     });
 
     return (
@@ -126,7 +139,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                 </div>
                 <PillSet
                     items={pillItems}
-                    onRemoveItem={toolName => onSelectedToolChange(toolName, false)}
+                    onRemoveItem={key => onSelectedToolChange(key, false)}
                     onClearAll={onClearSelectedTools}
                 />
                 <div className={styles.dialogContentWrapper}>
@@ -136,7 +149,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                         groups={groups}
                         expandedGroupNames={expandedGroupNames}
                         onGroupExpandedChange={onGroupExpandedChange}
-                        selectedToolNames={selectedToolNames}
+                        selectedToolKeys={selectedToolKeys}
                         onSelectedToolChange={onSelectedToolChange}
                         onSelectAllToolsInGroup={onSelectAllToolsInGroup}
                         onSelectAllTools={onSelectAllTools}
@@ -148,9 +161,9 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                     <Button
                         appearance="primary"
                         onClick={() => {
-                            onSubmit(selectedToolNames);
+                            onSubmit(selectedToolNames, selectedMcpToolNames);
                         }}
-                        disabled={!selectedToolNames.length}
+                        disabled={!selectedToolNames.length && !selectedMcpToolNames.length}
                     >
                         {intl.formatMessage(ExtendedAgentsGraphResources.addTools)}
                     </Button>

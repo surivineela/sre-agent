@@ -31,7 +31,7 @@ interface KustoToolDialogProps {
     setIsDialogOpen: (open: boolean) => void;
     connectors: ExtendedConnector[];
     agentName?: string;
-    addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
+    addToolsToAgent: (agentName: string, nonMcpToolNames: string[], mcpToolNames: string[]) => void;
     refresh?: () => void;
     kustoTool?: ExtendedTool;
     mode: KustoToolDialogMode;
@@ -81,7 +81,7 @@ export const KustoToolDialog: FC<KustoToolDialogProps> = ({
                         setIsDialogOpen(false);
                         if (mode === KustoToolDialogMode.Create) {
                             if (agentName) {
-                                await addToolsToAgent(agentName, [values.name]);
+                                await addToolsToAgent(agentName, [values.name], []);
                             }
                         } else {
                             refresh?.();

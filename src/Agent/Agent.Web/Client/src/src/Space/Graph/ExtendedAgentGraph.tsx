@@ -1094,18 +1094,8 @@ const ExtendedAgentGraphContent = memo(() => {
         [agents, applyEntity, intl, systemTools, tools]
     );
 
-    const allMcpToolNames = useMemo(() => {
-        const names = new Set<string>();
-        mcpConnections?.forEach(connection => {
-            connection.tools?.forEach(tool => {
-                names.add(tool.name);
-            });
-        });
-        return names;
-    }, [mcpConnections]);
-
     const addToolsToAgent = useCallback(
-        async (targetAgentName: string, toolNames: string[]): Promise<OperationResult> => {
+        async (targetAgentName: string, nonMcpToolNames: string[], mcpToolNames: string[]): Promise<OperationResult> => {
             const currentAgent = agents.find(agent => agent.name === targetAgentName);
 
             if (!currentAgent) {
@@ -1113,16 +1103,6 @@ const ExtendedAgentGraphContent = memo(() => {
                     success: false,
                     message: intl.formatMessage(ExtendedAgentsGraphResources.relationshipQuickNoAgentSelected),
                 };
-            }
-
-            const mcpToolNames = [];
-            const nonMcpToolNames = [];
-            for (const name of toolNames) {
-                if (allMcpToolNames.has(name)) {
-                    mcpToolNames.push(name);
-                } else {
-                    nonMcpToolNames.push(name);
-                }
             }
 
             const filteredMcpToolNames = mcpToolNames.filter(name => !currentAgent.mcpTools?.includes(name));
@@ -2233,6 +2213,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         existingSkill={editingSkill}
                         existingTools={tools}
                         systemTools={systemTools}
+                        mcpConnections={mcpConnections}
                     />
                 </CopilotProvider>
             </ScheduledTasksContext.Provider>

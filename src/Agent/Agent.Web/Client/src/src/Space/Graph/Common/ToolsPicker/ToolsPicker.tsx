@@ -21,6 +21,7 @@ import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Str
 import { CopilotRadio } from '../../../Components/Common/CopilotRadio';
 
 export interface ToolPickerOption {
+    key: string;
     name: string;
     description?: string;
     connector?: string;
@@ -43,8 +44,8 @@ export interface ToolsPickerProps {
     groups: ToolTreeGridGroup[];
     expandedGroupNames: string[];
     onGroupExpandedChange: (groupName: string, expanded: boolean) => void;
-    selectedToolNames: string[];
-    onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    selectedToolKeys: string[];
+    onSelectedToolChange: (key: string, isSelected: boolean) => void;
     onSelectAllToolsInGroup: (groupName: string, isSelected: boolean) => void;
     onSelectAllTools: (isSelected: boolean) => void;
     searchQuery: string;
@@ -58,7 +59,7 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
     groups,
     expandedGroupNames,
     onGroupExpandedChange,
-    selectedToolNames,
+    selectedToolKeys,
     onSelectedToolChange,
     onSelectAllToolsInGroup,
     onSelectAllTools,
@@ -73,9 +74,9 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
     const styles = useToolsTreeGridStyles();
 
     // Calculate if all tools are selected
-    const allToolNames = groups.flatMap(group => group.tools.map(tool => tool.name));
-    const allToolsSelected = allToolNames.length > 0 && allToolNames.every(name => selectedToolNames.includes(name));
-    const someToolsSelected = allToolNames.some(name => selectedToolNames.includes(name));
+    const allToolKeys = groups.flatMap(group => group.tools.map(tool => tool.key));
+    const allToolsSelected = allToolKeys.length > 0 && allToolKeys.every(key => selectedToolKeys.includes(key));
+    const someToolsSelected = allToolKeys.some(key => selectedToolKeys.includes(key));
 
     return (
         <>
@@ -106,7 +107,7 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
                                         ? intl.formatMessage(ExtendedAgentsGraphResources.deselectAllTools)
                                         : intl.formatMessage(ExtendedAgentsGraphResources.selectAllTools)
                                 }
-                                disabled={disabled || allToolNames.length === 0}
+                                disabled={disabled || allToolKeys.length === 0}
                             />
                         </div>
                         <div role="columnheader" className={tableCellStyle}>
@@ -125,7 +126,7 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
                             expanded={!!expandedGroupNames.includes(group.category)}
                             onExpandedChange={expanded => onGroupExpandedChange(group.category, expanded)}
                             tools={group.tools}
-                            selectedToolsNames={selectedToolNames}
+                            selectedToolKeys={selectedToolKeys}
                             onSelectedToolChange={onSelectedToolChange}
                             onSelectAllToolsInGroup={onSelectAllToolsInGroup}
                             disabled={disabled}
@@ -139,12 +140,12 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
 
 interface ToolListProps {
     tools?: ToolPickerOption[];
-    selectedToolsNames: string[];
-    onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    selectedToolKeys: string[];
+    onSelectedToolChange: (key: string, isSelected: boolean) => void;
     disabled?: boolean;
 }
 
-const ToolList: FC<ToolListProps> = ({ tools, selectedToolsNames, onSelectedToolChange, disabled }) => {
+const ToolList: FC<ToolListProps> = ({ tools, selectedToolKeys, onSelectedToolChange, disabled }) => {
     const intl = useIntl();
     const tableRowStyle = useTableRowStyle();
     const tableCellStyle = useTableCellStyle();
@@ -161,8 +162,8 @@ const ToolList: FC<ToolListProps> = ({ tools, selectedToolsNames, onSelectedTool
                     <TreeGridCell className={styles.checkboxCell}>
                         <div className={styles.chevronPlaceholder} />
                         <Checkbox
-                            checked={selectedToolsNames.includes(tool.name)}
-                            onChange={(_, data) => onSelectedToolChange(tool.name, !!data.checked)}
+                            checked={selectedToolKeys.includes(tool.key)}
+                            onChange={(_, data) => onSelectedToolChange(tool.key, !!data.checked)}
                             aria-label={intl.formatMessage(ExtendedAgentsGraphResources.selectToolWithName, { toolName: tool.name })}
                             disabled={disabled}
                         />
@@ -180,8 +181,8 @@ interface ToolGroupProps {
     expanded: boolean;
     onExpandedChange: (expanded: boolean) => void;
     tools?: ToolPickerOption[];
-    selectedToolsNames: string[];
-    onSelectedToolChange: (toolName: string, isSelected: boolean) => void;
+    selectedToolKeys: string[];
+    onSelectedToolChange: (key: string, isSelected: boolean) => void;
     onSelectAllToolsInGroup: (groupName: string, isSelected: boolean) => void;
     disabled?: boolean;
 }
@@ -191,7 +192,7 @@ const ToolGroup: FC<ToolGroupProps> = ({
     tools,
     expanded,
     onExpandedChange,
-    selectedToolsNames,
+    selectedToolKeys,
     onSelectedToolChange,
     onSelectAllToolsInGroup,
     disabled,
@@ -202,9 +203,9 @@ const ToolGroup: FC<ToolGroupProps> = ({
     const styles = useToolsTreeGridStyles();
 
     // Calculate selection state for this group
-    const toolNamesInGroup = tools?.map(tool => tool.name) ?? [];
-    const allToolsInGroupSelected = toolNamesInGroup.length > 0 && toolNamesInGroup.every(name => selectedToolsNames.includes(name));
-    const someToolsInGroupSelected = toolNamesInGroup.some(name => selectedToolsNames.includes(name));
+    const toolKeysInGroup = tools?.map(tool => tool.key) ?? [];
+    const allToolsInGroupSelected = toolKeysInGroup.length > 0 && toolKeysInGroup.every(key => selectedToolKeys.includes(key));
+    const someToolsInGroupSelected = toolKeysInGroup.some(key => selectedToolKeys.includes(key));
 
     const handleGroupCheckboxChange = useCallback(
         (e: React.MouseEvent) => {
@@ -221,7 +222,7 @@ const ToolGroup: FC<ToolGroupProps> = ({
             subtree={
                 <ToolList
                     tools={tools}
-                    selectedToolsNames={selectedToolsNames}
+                    selectedToolKeys={selectedToolKeys}
                     onSelectedToolChange={onSelectedToolChange}
                     disabled={disabled}
                 />
@@ -242,7 +243,7 @@ const ToolGroup: FC<ToolGroupProps> = ({
                                     ? intl.formatMessage(ExtendedAgentsGraphResources.deselectAllToolsInGroup, { groupName: name })
                                     : intl.formatMessage(ExtendedAgentsGraphResources.selectAllToolsInGroup, { groupName: name })
                             }
-                            disabled={disabled || toolNamesInGroup.length === 0}
+                            disabled={disabled || toolKeysInGroup.length === 0}
                         />
                     </div>
                     <span className={styles.groupNameText}>{expanded ? name : `${name} (${tools?.length ?? 0})`}</span>

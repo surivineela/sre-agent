@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent } from '../../../Contracts/ExtendedAgentGraph';
+import { PillSetItem } from '../../Common/PillSet';
 
 export interface UseHandoffAgentsReturn {
     handoffAgentOptions: string[];
@@ -9,7 +10,7 @@ export interface UseHandoffAgentsReturn {
     selectedAgentNames: string[];
     setSelectedAgentNames: (names: string[]) => void;
     dropdownDisplay: string;
-    pillItems: { key: string; label: string }[];
+    pillItems: PillSetItem[];
     clear: () => void;
 }
 

@@ -24,6 +24,7 @@ import { ExtendedTool, Skill, SkillFile, SystemTool } from '../../../Contracts/E
 import { PillSet } from '../../Common/PillSet';
 import { ToolsPicker } from '../../Common/ToolsPicker/ToolsPicker';
 import { useToolsPicker } from '../../Common/ToolsPicker/useToolsPicker';
+import { McpConnection } from '../../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
 import { useSkillDialogStyles } from './CreateSkillDialog.styles';
 import { FileSystemItem, SKILL_MD_FILENAME, SkillFileBrowser } from './SkillFileBrowser';
 import { getFileLanguage, SkillFileEditor } from './SkillFileEditor';
@@ -42,6 +43,7 @@ interface CreateSkillDialogProps {
     existingSkill?: Skill;
     existingTools?: ExtendedTool[];
     systemTools?: SystemTool[];
+    mcpConnections?: McpConnection[];
 }
 
 export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
@@ -51,6 +53,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
     existingSkill,
     existingTools = [],
     systemTools = [],
+    mcpConnections,
 }) => {
     const intl = useIntl();
     const styles = useSkillDialogStyles();
@@ -58,7 +61,8 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
 
     const [name, setName] = useState(existingSkill?.name || '');
     const [description, setDescription] = useState(existingSkill?.description || '');
-    const [selectedTools, setSelectedTools] = useState<string[]>(existingSkill?.tools || []);
+    const [selectedNonMcpTools, setSelectedNonMcpTools] = useState<string[]>([]);
+    const [selectedMcpTools, setSelectedMcpTools] = useState<string[]>([]);
     const [skillMdContent, setSkillMdContent] = useState(existingSkill?.skillMdContent || '');
     const [additionalFiles, setAdditionalFiles] = useState<SkillFile[]>(existingSkill?.additionalFiles || []);
     const [emptyFolders, setEmptyFolders] = useState<string[]>([]);
@@ -102,19 +106,25 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
         [selectedFile, additionalFiles]
     );
 
-    // Tools picker hook
-    const setSelectedToolNames = useCallback(
-        (toolNames: string[]) => {
-            setSelectedTools(toolNames);
-        },
-        [setSelectedTools]
-    );
+    const allMcpToolNames = useMemo(() => {
+        const names = new Set<string>();
+        mcpConnections?.forEach(connection => {
+            connection.tools?.forEach(tool => {
+                names.add(tool.name);
+            });
+        });
+        return names;
+    }, [mcpConnections]);
 
+    // Tools picker hook
     const toolsPickerHook = useToolsPicker({
-        selectedToolNames: selectedTools,
-        setSelectedToolNames,
+        selectedToolNames: selectedNonMcpTools,
+        setSelectedToolNames: setSelectedNonMcpTools,
+        selectedMcpToolNames: selectedMcpTools,
+        setSelectedMcpToolNames: setSelectedMcpTools,
         existingTools,
         systemTools,
+        mcpConnections,
     });
 
     const isEditMode = !!existingSkill;
@@ -123,7 +133,9 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
     useEffect(() => {
         setName(existingSkill?.name || '');
         setDescription(existingSkill?.description || '');
-        setSelectedTools(existingSkill?.tools || []);
+        const { mcpTools, nonMcpTools } = splitMcpAndNonMcpTools(existingSkill?.tools || [], allMcpToolNames);
+        setSelectedNonMcpTools(nonMcpTools);
+        setSelectedMcpTools(mcpTools);
         setSkillMdContent(existingSkill?.skillMdContent || '');
         setAdditionalFiles(existingSkill?.additionalFiles || []);
         setEmptyFolders([]);
@@ -131,7 +143,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
         setIsToolsPanelOpen(false);
         setIsEditingDescription(false);
         setSelectedFile(DEFAULT_SKILL_FILE);
-    }, [existingSkill]);
+    }, [existingSkill, allMcpToolNames]);
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -145,7 +157,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
         const skill: Skill = {
             name: name.trim(),
             description: description.trim() || undefined,
-            tools: selectedTools,
+            tools: [...selectedNonMcpTools, ...selectedMcpTools],
             skillMdContent: skillMdContent.trim() || undefined,
             additionalFiles,
         };
@@ -163,7 +175,8 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
     const handleDismiss = () => {
         setName('');
         setDescription('');
-        setSelectedTools([]);
+        setSelectedNonMcpTools([]);
+        setSelectedMcpTools([]);
         setSkillMdContent('');
         setAdditionalFiles([]);
         setEmptyFolders([]);
@@ -278,7 +291,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
                                     <div className={styles.toolsFieldContent}>
                                         <PillSet
                                             items={toolsPickerHook.pillItems}
-                                            onRemoveItem={toolName => toolsPickerHook.onSelectedToolChange(toolName, false)}
+                                            onRemoveItem={key => toolsPickerHook.onSelectedToolChange(key, false)}
                                             onClearAll={toolsPickerHook.onClearSelectedTools}
                                         />
 
@@ -331,12 +344,27 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
                             {isSaving
                                 ? intl.formatMessage(ExtendedAgentsGraphResources.saving)
                                 : isEditMode
-                                  ? intl.formatMessage(ExtendedAgentsGraphResources.save)
-                                  : intl.formatMessage(ExtendedAgentsGraphResources.create)}
+                                    ? intl.formatMessage(ExtendedAgentsGraphResources.save)
+                                    : intl.formatMessage(ExtendedAgentsGraphResources.create)}
                         </Button>
                     </DialogActions>
                 </DialogBody>
             </DialogSurface>
         </Dialog>
     );
+};
+
+const splitMcpAndNonMcpTools = (toolNames: string[], allMcpToolNames: Set<string>) => {
+    const mcpTools: string[] = [];
+    const nonMcpTools: string[] = [];
+
+    toolNames.forEach(name => {
+        if (allMcpToolNames.has(name)) {
+            mcpTools.push(name);
+        } else {
+            nonMcpTools.push(name);
+        }
+    });
+
+    return { mcpTools, nonMcpTools };
 };

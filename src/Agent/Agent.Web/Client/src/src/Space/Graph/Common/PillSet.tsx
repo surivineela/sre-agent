@@ -4,13 +4,18 @@ import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 
+export interface PillSetItem {
+    key: string;
+    label: string;
+};
+
 export interface PillSetProps {
-    items: { key: string; label: string }[];
+    items: PillSetItem[];
     onRemoveItem: (key: string) => void;
     onClearAll: () => void;
     disabled?: boolean;
     className?: string;
-}
+};
 
 export const PillSet: FC<PillSetProps> = ({ items, onRemoveItem, onClearAll, disabled, className }) => {
     const intl = useIntl();

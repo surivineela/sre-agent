@@ -92,6 +92,21 @@ const getSaveUpdateOrDeleteActionForHandler = (
     return 'update-incidentHandler';
 };
 
+const splitMcpAndNonMcpTools = (toolNames: string[], allMcpToolNames: Set<string>) => {
+    const mcpTools: string[] = [];
+    const nonMcpTools: string[] = [];
+
+    toolNames.forEach(name => {
+        if (allMcpToolNames.has(name)) {
+            mcpTools.push(name);
+        } else {
+            nonMcpTools.push(name);
+        }
+    });
+
+    return { mcpTools, nonMcpTools };
+};
+
 export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
     exitToHome: (filterId?: string, handlerId?: string, isNew?: boolean) => void,
     setHandlerOperationStatus: React.Dispatch<React.SetStateAction<OperationStatus | undefined>>,
@@ -176,6 +191,16 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
         },
         [prefetchedIncidents, incidents, setFieldValue]
     );
+
+    const allMcpToolNames = useMemo(() => {
+        const names = new Set<string>();
+        handlerCreateOrEditInfo.incidentTriggerWithLearningsInfo?.mcpConnections?.forEach(connection => {
+            connection.tools?.forEach(tool => {
+                names.add(tool.name);
+            });
+        });
+        return names;
+    }, [handlerCreateOrEditInfo.incidentTriggerWithLearningsInfo?.mcpConnections]);
 
     // Tools field
     const [tools, setTools] = useState<ToolInfo[] | undefined>();
@@ -265,7 +290,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
             .generateInstructions({
                 agentName,
                 incidents: values.incidentIds ?? [],
-                tools: tools?.map(tool => tool.name) ?? [],
+                tools: [],
                 customInstructions: values.customInstructions ?? '',
             })
             .then(instructionsResult => {
@@ -296,7 +321,9 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
 
                     if (values.isIncidentTriggerWithLearnings) {
                         setFieldValue('subagentInstructions', instructionsResult.content.generatedInstructions);
-                        setFieldValue('subagentToolNames', instructionsResult.content.tools);
+                        const { mcpTools, nonMcpTools } = splitMcpAndNonMcpTools(instructionsResult.content.tools, allMcpToolNames);
+                        setFieldValue('subagentToolNames', nonMcpTools);
+                        setFieldValue('subagentMcpToolNames', mcpTools);
                     }
 
                     setCurrentStep(
@@ -312,11 +339,11 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
         resourceId,
         incidentHandlerClient.generateInstructions,
         agentName,
-        tools,
         values.incidentIds,
         values.customInstructions,
         values.isIncidentTriggerWithLearnings,
         setFieldValue,
+        allMcpToolNames
     ]);
 
     const deleteHandler = useCallback(() => {
@@ -658,15 +685,6 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
 
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
     const incidentsPreviewMetadata = usePreviewIncidents();
-
-    useEffect(() => {
-        if (handlerMode === 'create' && !values.toolNames && tools) {
-            setFieldValue(
-                'toolNames',
-                tools.map(tool => tool.name)
-            );
-        }
-    }, [setFieldValue, tools, values.toolNames, handlerMode]);
 
     useEffect(() => {
         let subscribed = true;

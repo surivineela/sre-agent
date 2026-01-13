@@ -32,6 +32,7 @@ export interface IncidentHandlerCreateFormValues {
     subagentHandoffSubagents?: string[];
     subagentAutonomyLevel?: AgentMode;
     subagentToolNames?: string[];
+    subagentMcpToolNames?: string[];
 
     extendedAgents?: ExtendedAgent[];
     systemTools?: SystemTool[];

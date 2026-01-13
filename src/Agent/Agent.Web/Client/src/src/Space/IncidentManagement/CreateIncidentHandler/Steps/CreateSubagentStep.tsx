@@ -97,6 +97,7 @@ export const CreateSubagentStep: FC = () => {
             handoffInstructions: parentValues.subagentHandoffInstructions || initialValues.handoffInstructions,
             handoffSubagents: parentValues.subagentHandoffSubagents || initialValues.handoffSubagents,
             tools: parentValues.subagentToolNames || initialValues.tools,
+            mcpTools: parentValues.subagentMcpToolNames || initialValues.mcpTools,
         }),
         [
             initialValues,
@@ -105,6 +106,7 @@ export const CreateSubagentStep: FC = () => {
             parentValues.subagentHandoffInstructions,
             parentValues.subagentHandoffSubagents,
             parentValues.subagentToolNames,
+            parentValues.subagentMcpToolNames,
         ]
     );
 

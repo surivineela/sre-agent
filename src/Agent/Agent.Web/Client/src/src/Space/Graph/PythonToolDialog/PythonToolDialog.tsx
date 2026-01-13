@@ -25,7 +25,7 @@ interface PythonToolDialogProps {
     isDialogOpen: boolean;
     setIsDialogOpen: (open: boolean) => void;
     agentName?: string;
-    addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
+    addToolsToAgent: (agentName: string, nonMcpToolNames: string[], mcpToolNames: string[]) => void;
     refresh?: () => void;
     pythonTool?: ExtendedTool;
     mode: PythonToolDialogMode;
@@ -73,7 +73,7 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
                         setIsDialogOpen(false);
                         if (mode === PythonToolDialogMode.Create) {
                             if (agentName) {
-                                await addToolsToAgent(agentName, [values.name]);
+                                await addToolsToAgent(agentName, [values.name], []);
                             }
                         } else {
                             refresh?.();

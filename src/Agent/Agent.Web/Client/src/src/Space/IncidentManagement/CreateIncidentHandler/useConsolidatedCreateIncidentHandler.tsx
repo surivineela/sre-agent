@@ -258,7 +258,7 @@ export const useConsolidatedCreateIncidentHandler = (
             .generateInstructions({
                 agentName,
                 incidents: values.incidentIds ?? [],
-                tools: tools?.map(tool => tool.name) ?? [],
+                tools: [],
                 customInstructions: values.customInstructions ?? '',
             })
             .then(instructionsResult => {
@@ -295,7 +295,6 @@ export const useConsolidatedCreateIncidentHandler = (
         resourceId,
         incidentHandlerClient.generateInstructions,
         agentName,
-        tools,
         values.incidentIds,
         values.customInstructions,
         setFieldValue,
@@ -636,15 +635,6 @@ export const useConsolidatedCreateIncidentHandler = (
 
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
     const incidentsPreviewMetadata = usePreviewIncidents();
-
-    useEffect(() => {
-        if (handlerMode === 'create' && !values.toolNames && tools) {
-            setFieldValue(
-                'toolNames',
-                tools.map(tool => tool.name)
-            );
-        }
-    }, [setFieldValue, tools, values.toolNames, handlerMode]);
 
     useEffect(() => {
         let subscribed = true;

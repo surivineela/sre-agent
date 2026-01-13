@@ -24,7 +24,7 @@ import { KustoToolFormProps } from './KustoToolUtilities';
 interface KustoToolPlaygroundProps {
     connectors: ExtendedConnector[];
     agentName?: string;
-    addToolsToAgent: (agentName: string, toolsNames: string[]) => void;
+    addToolsToAgent: (agentName: string, nonMcpToolNames: string[], mcpToolNames: string[]) => void;
     refresh?: () => void;
     kustoTool?: ExtendedTool;
     mode: KustoToolDialogMode;
