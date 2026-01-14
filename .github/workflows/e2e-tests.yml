@@ -40,6 +40,24 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: 🧹 Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          # Remove large pre-installed packages we don't need
+          sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/6.* || true
+          sudo rm -rf /usr/share/dotnet/shared/Microsoft.AspNetCore.App/7.* || true
+          sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/6.* || true
+          sudo rm -rf /usr/share/dotnet/shared/Microsoft.NETCore.App/7.* || true
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+          sudo rm -rf /usr/local/share/boost || true
+          # Clean Docker
+          docker system prune -af || true
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: 🔐 Azure OIDC Login (CFS)
         uses: azure/login@v2
         with:
@@ -144,6 +162,7 @@ jobs:
           if [ ! -d "$PUBLISH_DIR" ]; then echo "::error::Publish directory '$PUBLISH_DIR' not found"; exit 1; fi
           DOCKERFILE=src/Deployment/Agent.Web/Dockerfile
           docker build -f ${DOCKERFILE} -t ${IMAGE_REPO}:${IMAGE_TAG} ${PUBLISH_DIR} \
+            --no-cache \
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
             --label pr.number=${{ github.event.pull_request.number }}
           docker push ${IMAGE_REPO}:${IMAGE_TAG}
