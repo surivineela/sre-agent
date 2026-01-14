@@ -144,8 +144,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming task update for thread {ThreadId}", threadId);
-
             // Create a ChatResponseUpdate with the task data and TaskUpdate type
             var streamMessage = new ChatResponseUpdate
             {
@@ -162,8 +160,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.TaskUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed task update for thread {ThreadId}", threadId);
         }
         catch (OperationCanceledException)
         {
@@ -183,9 +179,6 @@ public class SignalRStreamingService : IStreamingService
         {
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
-
-            _logger.LogInternalInformation("Streaming incident update for thread {ThreadId}", threadId);
-
             // Create a ChatResponseUpdate with the incident data and IncidentStatus type
             var streamMessage = new ChatResponseUpdate
             {
@@ -202,8 +195,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.IncidentUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed incident update for thread {ThreadId}", threadId);
         }
         catch (OperationCanceledException)
         {
@@ -224,8 +215,6 @@ public class SignalRStreamingService : IStreamingService
             // Check for cancellation before processing
             cancellationToken.ThrowIfCancellationRequested();
 
-            _logger.LogInternalInformation("Streaming todo plan update for thread {ThreadId}", threadId);
-
             var streamMessage = new ChatResponseUpdate
             {
                 AuthorName = "Azure SRE Agent",
@@ -241,8 +230,6 @@ public class SignalRStreamingService : IStreamingService
             };
 
             await _hubContext.Clients.All.TodoPlanUpdate(streamMessage);
-
-            _logger.LogInternalInformation("Successfully streamed todo plan update for thread {ThreadId}", threadId);
         }
         catch (OperationCanceledException)
         {
