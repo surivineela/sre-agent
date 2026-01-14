@@ -40,45 +40,54 @@ resource parentAgent 'Microsoft.App/agents@2025-05-01-preview' existing = {
 
 // Deploy subagent extensions sequentially
 @batchSize(1)
-resource subagentExtensions 'Microsoft.App/agents/subagents@2025-05-01-preview' = [for subagent in subagents: {
-  parent: parentAgent
-  name: subagent.metadata.name
-  properties: {
-    value: base64(string(subagent.spec))
+resource subagentExtensions 'Microsoft.App/agents/subagents@2025-05-01-preview' = [
+  for subagent in subagents: {
+    parent: parentAgent
+    name: subagent.metadata.name
+    properties: {
+      value: base64(string(subagent.spec))
+    }
   }
-}]
+]
 
 // Deploy tool extensions sequentially
 @batchSize(1)
-resource toolExtensions 'Microsoft.App/agents/tools@2025-05-01-preview' = [for tool in tools: {
-  parent: parentAgent
-  name: tool.metadata.name
-  properties: {
-    value: base64(string(tool.spec))
+resource toolExtensions 'Microsoft.App/agents/tools@2025-05-01-preview' = [
+  for tool in tools: {
+    parent: parentAgent
+    name: tool.metadata.name
+    properties: {
+      value: base64(string(tool.spec))
+    }
   }
-}]
+]
 
 // Deploy skill extensions sequentially
 @batchSize(1)
-resource skillExtensions 'Microsoft.App/agents/skills@2025-05-01-preview' = [for skill in skills: {
-  parent: parentAgent
-  name: skill.metadata.name
-  properties: {
-    value: base64(string({
-      name: skill.metadata.metadata.name
-      description: skill.metadata.spec.description
-      skillContent: skill.skillContent
-      additionalFiles: skill.additionalFiles
-    }))
+resource skillExtensions 'Microsoft.App/agents/skills@2025-05-01-preview' = [
+  for skill in skills: {
+    parent: parentAgent
+    name: skill.metadata.name
+    properties: {
+      value: base64(string({
+        name: skill.metadata.name
+        description: skill.metadata.description
+        tools: skill.metadata.spec.tools
+        skillContent: skill.skillContent
+        additionalFiles: skill.additionalFiles
+      }))
+    }
   }
-}]
+]
 
 // Deploy scheduledTasks extensions sequentially
 @batchSize(1)
-resource scheduledTasksExtension 'Microsoft.App/agents/scheduledTasks@2025-05-01-preview' = [for scheduledTask in scheduledTasks: {
-  parent: parentAgent
-  name: scheduledTask.metadata.name
-  properties: {
-    value: base64(string(scheduledTask.spec))
+resource scheduledTasksExtension 'Microsoft.App/agents/scheduledTasks@2025-05-01-preview' = [
+  for scheduledTask in scheduledTasks: {
+    parent: parentAgent
+    name: scheduledTask.metadata.name
+    properties: {
+      value: base64(string(scheduledTask.spec))
+    }
   }
-}]
+]
