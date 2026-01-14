@@ -37,6 +37,19 @@ interface PermissionWithId extends Permission {
 
 const SHIMMER_ITEMS_COUNT = 5;
 
+const KNOWN_TENANT_NAMES: Record<string, string> = {
+    '124edf19-b350-4797-aefc-3206115ffdb3': 'GME',
+    '33e01921-4d64-4f8c-a055-5bdaffd5e33d': 'AME',
+    '72f988bf-86f1-41af-91ab-2d7cd011db47': 'Microsoft',
+    '975f013f-7f24-47e8-a7d3-abc4752bf346': 'PME',
+    'cdc5aeea-15c5-4db6-b079-fcadd2505dc2': 'Torus',
+};
+
+const getTenantDisplayName = (tenantId: string): string => {
+    const knownName = KNOWN_TENANT_NAMES[tenantId.toLowerCase()];
+    return knownName || tenantId;
+};
+
 export const PermissionsDataGrid: FC<PermissionsDataGridProps> = ({
     permissions,
     selectedItems,
@@ -65,7 +78,7 @@ export const PermissionsDataGrid: FC<PermissionsDataGridProps> = ({
         }
         return permissions.map(permission => ({
             ...permission,
-            id: permission.objectId,
+            id: `${permission.objectId}-${permission.role}-${permission.tenantId}`,
         }));
     }, [permissions, isLoading, createShimmerData]);
 
@@ -125,7 +138,7 @@ export const PermissionsDataGrid: FC<PermissionsDataGridProps> = ({
                     if (item.isShimmer) {
                         return createShimmerCell('200px');
                     }
-                    return <TableCellLayout>{item.tenantId}</TableCellLayout>;
+                    return <TableCellLayout>{getTenantDisplayName(item.tenantId)}</TableCellLayout>;
                 },
             }),
         ],

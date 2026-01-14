@@ -56,6 +56,7 @@ const Permissions: FC = () => {
             });
 
             if (response.metadata.success) {
+                refresh();
                 stopNotification(notificationId, true, intl.formatMessage(AgentPermissionsResources.permissionAddedSuccess));
                 log({
                     action: 'addPermission',
@@ -78,7 +79,7 @@ const Permissions: FC = () => {
                 });
             }
         },
-        [permissions, patchAgent, log, startNotification, stopNotification, intl]
+        [permissions, patchAgent, log, startNotification, stopNotification, intl, refresh]
     );
 
     const handleDelete = useCallback(async () => {
@@ -87,7 +88,10 @@ const Permissions: FC = () => {
             intl.formatMessage(AgentPermissionsResources.deletingPermissionDescription, { count: selectedItems.size })
         );
 
-        const updatedPermissions = permissions.filter(permission => !selectedItems.has(permission.objectId));
+        const updatedPermissions = permissions.filter(permission => {
+            const permissionId = `${permission.objectId}-${permission.role}-${permission.tenantId}`;
+            return !selectedItems.has(permissionId);
+        });
 
         const response = await patchAgent({
             properties: {
@@ -96,6 +100,7 @@ const Permissions: FC = () => {
         });
 
         if (response.metadata.success) {
+            refresh();
             setSelectedItems(new Set());
             stopNotification(notificationId, true, intl.formatMessage(AgentPermissionsResources.permissionDeletedSuccess));
             log({
@@ -118,7 +123,7 @@ const Permissions: FC = () => {
                 },
             });
         }
-    }, [permissions, selectedItems, patchAgent, log, startNotification, stopNotification, intl]);
+    }, [permissions, selectedItems, patchAgent, log, startNotification, stopNotification, intl, refresh]);
 
     const isDeleteDisabled = useMemo(
         () => selectedItems.size === 0 || isLoading || isOperationInProgress,

@@ -96,7 +96,7 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
             },
             {
                 value: SecondaryNavItemValues.Permissions,
-                isVisible: showPermissionsInSettings,
+                isVisible: showPermissionsInSettings && !isCrossTenantPortalMode,
                 disabled: false,
                 label: intl.formatMessage(SettingsTabResources.crossTenantPermissions),
             },
@@ -131,6 +131,7 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
         showSubAgents,
         showMcpServer,
         showPermissionsInSettings,
+        isCrossTenantPortalMode,
     ]);
 
     return (
