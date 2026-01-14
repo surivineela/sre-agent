@@ -199,16 +199,20 @@ namespace Agent.Plugins
 
         [Description("""
 Execute az commands for Azure resource read operations. Commands run IMMEDIATELY without approval.
-USAGE: Provide complete az cli command string. ALWAYS specify --subscription parameter with valid subscriptionId/guid.
+USAGE: Provide complete az cli command string. YOU MUST ALWAYS specify --subscription parameter with valid subscriptionId if available. This is critical for the command to operate in the correct scope.
+If subscriptionId is unavailable, you MUST obtain it using discovery commands like az graph query, az account list etc. And provide it in subsequent calls."
 ALLOWED: Read-only commands such as 'list', 'show', 'get'. (non-mutating only)
 FORBIDDEN: 'aks command invoke' NOT allowed.
 DO NOT USE for: DGrep queries, log analysis, diagnostic data, telemetry queries - use PerformDgrepSearch tool instead.
 EXAMPLES:
 - List: 'az containerapp list -g MyRG --subscription <subId>'
 - Show with query: 'az containerapp show -g MyRG -n MyApp --query properties.configuration.ingress --subscription <subId>'
+- Find resource by name: 'az graph query -q "Resources | where name =~ 'my-resource-name'" --first 10'
+- Find resource by name and type: 'az graph query -q "Resources | where name =~ 'my-redis' and type =~ 'Microsoft.Cache/Redis'" --first 10'
+- List subscriptions: 'az account list --query "[].{name:name, id:id}" -o table'
 BEST PRACTICES:
 - Use only if no specific tool available
-- Always include --subscription parameter
+- Include --subscription parameter when known; discover it first if unknown
 - Executes immediately - no approval needed
 - Use to understand current state before changes
 - For log/diagnostic queries, use PerformDgrepSearch tool instead
@@ -221,7 +225,8 @@ BEST PRACTICES:
 
 ## Step-by-Step Query Handling Process for Read Operations
   ### 1. Understand the Goal
-        - Gather known context (subscription, resource group, resource names/IDs) from conversation history; only prompt for what's missing.
+        - Gather context (subscription, resource group, resource names/IDs) from chat history if available. Use discovery commands if unavailable.
+        - Only prompt the user when discovery returns zero matches or multiple ambiguous matches requiring selection.
         - Restate user objectives and distinguish read vs write actions.
         - For write actions, plan to understand current state first.
   ### 2. Formulate Investigation Plan
