@@ -360,7 +360,9 @@ export const ExtendedAgentInfoPanel = memo(
                         <div className={styles.paddingVertical10}>
                             <div className={styles.subSection}>
                                 <Text className={mergeClasses(styles.sectionTitle, styles.marginBottom8)}>
-                                    {intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
+                                    {tool.type === 'mcp'
+                                        ? intl.formatMessage(ExtendedAgentsGraphResources.description)
+                                        : intl.formatMessage(ExtendedAgentsGraphResources.instructions)}
                                 </Text>
                                 <Text className={styles.subText}>
                                     {tool.description || intl.formatMessage(ExtendedAgentsGraphResources.listViewDescriptionFallback)}
