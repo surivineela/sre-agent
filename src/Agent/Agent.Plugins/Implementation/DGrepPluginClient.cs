@@ -130,10 +130,9 @@ public class DGrepPluginClient : IDGrepPluginClient
             _logger.LogInternalInformation("ExecuteViaAgentSpaceProxy: DGrep query executed with status code: {StatusCode}, response length: {ContentLength}",
                 response.StatusCode, response.Content.Length);
 
-            // Return error string on failure (don't throw)
             if (!response.IsSuccessStatusCode)
             {
-                return $"DGrep proxy query failed with status {response.StatusCode}: {response.Content}";
+                throw new Exception($"DGrep proxy query failed with status {response.StatusCode}: {response.Content}");
             }
 
             return response.Content;
@@ -141,7 +140,7 @@ public class DGrepPluginClient : IDGrepPluginClient
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "ExecuteViaAgentSpaceProxy: Request failed - {ErrorMessage}", ex.Message);
-            return $"DGrep proxy request failed: {ex.Message}";
+            throw;
         }
     }
 
