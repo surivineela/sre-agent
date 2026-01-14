@@ -1,13 +1,5 @@
 import { useTheme } from '@fluentui/react';
-import {
-    Button,
-    mergeClasses,
-    MessageBar,
-    MessageBarActions,
-    MessageBarBody,
-    Spinner,
-    Text
-} from '@fluentui/react-components';
+import { Button, mergeClasses, MessageBar, MessageBarActions, MessageBarBody, Spinner, Text } from '@fluentui/react-components';
 import { BeakerRegular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -116,10 +108,10 @@ type LinkRetryContext = {
 type CreationDialogContext =
     | undefined
     | {
-        kind: 'linkFromAgent';
-        sourceAgentName: string;
-        targetType: 'agent' | 'tool';
-    };
+          kind: 'linkFromAgent';
+          sourceAgentName: string;
+          targetType: 'agent' | 'tool';
+      };
 
 const ExtendedAgentGraphContent = memo(() => {
     const {
@@ -202,7 +194,7 @@ const ExtendedAgentGraphContent = memo(() => {
     const [pythonToolToEdit, setPythonToolToEdit] = useState<ExtendedTool>();
     const [pythonToolAgentName, setPythonToolAgentName] = useState<string>();
 
-    const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Visual);
+    const [currentView, setCurrentView] = useState<ExtendedAgentGraphView>(ExtendedAgentGraphView.Canvas);
     const [currentTableViewTab, setCurrentTableViewTab] = useState<TableViewTabValue>('agents');
     const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
@@ -395,7 +387,7 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [handleInfoPanelPointerMove, handleInfoPanelPointerUp, handleInfoPanelResizePointerMove, handleInfoPanelResizePointerUp]);
 
     useEffect(() => {
-        if (currentView !== ExtendedAgentGraphView.Visual) {
+        if (currentView !== ExtendedAgentGraphView.Canvas) {
             setIsInfoPanelFloating(false);
             setInfoPanelPosition({ x: 0, y: 0 });
             setIsInfoPanelDragging(false);
@@ -431,7 +423,7 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [graphNodes, graphEdges, layoutGraph, setNodes, setEdges]);
 
     useEffect(() => {
-        if (currentView !== ExtendedAgentGraphView.Visual) {
+        if (currentView !== ExtendedAgentGraphView.Canvas) {
             return;
         }
 
@@ -756,8 +748,8 @@ const ExtendedAgentGraphContent = memo(() => {
             const entityNodeId = !entity
                 ? undefined
                 : entity.entityType === 'Agent'
-                    ? `agent_${entity.entityName}`
-                    : `trigger_${entity.entityName}`;
+                  ? `agent_${entity.entityName}`
+                  : `trigger_${entity.entityName}`;
             const targetNode = !entityNodeId ? undefined : nodes.find(node => node.id === entityNodeId);
             if (targetNode) {
                 requestAnimationFrame(() => {
@@ -1334,8 +1326,8 @@ const ExtendedAgentGraphContent = memo(() => {
                         action === 'createHandoffSourceAgent'
                             ? 'createSource'
                             : action === 'createHandoffTargetAgent'
-                                ? 'createTarget'
-                                : 'edit',
+                              ? 'createTarget'
+                              : 'edit',
                 });
                 return;
             }
@@ -1655,7 +1647,7 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
-        if (currentView === ExtendedAgentGraphView.Visual) {
+        if (currentView === ExtendedAgentGraphView.Canvas) {
             return (
                 <ReactFlow
                     style={{ width: '100%', height: '100%' }}
@@ -1717,7 +1709,7 @@ const ExtendedAgentGraphContent = memo(() => {
                             key={`ExtendedTool_${playgroundEntity.entity.name}`}
                             connectors={connectors}
                             agentName={undefined}
-                            addToolsToAgent={() => { }}
+                            addToolsToAgent={() => {}}
                             refresh={handleRefresh}
                             kustoTool={playgroundEntity.entity}
                             mode={KustoToolDialogMode.Edit}
@@ -2007,7 +1999,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                         <div className={visualRoot} ref={visualRootRef}>
                             <div className={reactFlow}>
-                                {currentView === ExtendedAgentGraphView.Visual && hasAnyResources && !showEmptyState && (
+                                {currentView === ExtendedAgentGraphView.Canvas && hasAnyResources && !showEmptyState && (
                                     <div className={selectorOverlay}>
                                         <ExtendedAgentSelector
                                             agents={agents}
@@ -2043,7 +2035,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                 )}
                             </div>
 
-                            {currentView === ExtendedAgentGraphView.Visual && !showEmptyState && !!selectedNode?.data?.data && (
+                            {currentView === ExtendedAgentGraphView.Canvas && !showEmptyState && !!selectedNode?.data?.data && (
                                 <div
                                     ref={infoPanelRef}
                                     className={mergeClasses(infoPanelContainer, isInfoPanelFloating && infoPanelFloating)}
@@ -2129,7 +2121,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                 });
                             }
                         }}
-                        setHandlerOperationStatus={() => { }}
+                        setHandlerOperationStatus={() => {}}
                         handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                     />
                     <ScheduledTaskCreateOrEditDialog

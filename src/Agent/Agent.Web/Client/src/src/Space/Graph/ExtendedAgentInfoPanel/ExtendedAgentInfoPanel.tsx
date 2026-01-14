@@ -521,20 +521,18 @@ export const ExtendedAgentInfoPanel = memo(
                 console.error('Error deleting entity:', error);
                 let message: string;
                 if (context.type === 'agent') {
-                    message = intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { count: 1, name: context.entity.name });
+                    message = intl.formatMessage(SreAgentResources.deleteAgentNotificationFailure, { count: 1, name: context.entity.name });
                 } else if (context.type === 'tool') {
                     message = intl.formatMessage(SreAgentResources.deleteToolNotificationError, { name: context.entity.name });
                 } else if (context.type === 'incidentTrigger') {
-                    message = intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationError, {
+                    message = intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationFailure, {
                         name: context.entity.name,
                         count: 1,
-                        errorMessage: undefined,
                     });
                 } else if (context.type === 'scheduledTrigger') {
-                    message = intl.formatMessage(SreAgentResources.deleteScheduledTaskNotificationError, {
+                    message = intl.formatMessage(SreAgentResources.deleteScheduledTaskNotificationFailure, {
                         name: context.entity.name,
                         count: 1,
-                        errorMessage: undefined,
                     });
                 } else {
                     message = intl.formatMessage(ExtendedAgentsGraphResources.deleteSkillNotificationError, { name: context.entity.name });

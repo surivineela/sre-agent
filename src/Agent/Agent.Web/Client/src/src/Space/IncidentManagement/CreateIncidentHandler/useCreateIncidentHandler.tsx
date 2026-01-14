@@ -2,7 +2,6 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getDataPlaneErrorMessage } from '../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { IncidentDocument, IncidentHandler, IncidentQueryRequest, ToolInfo } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
@@ -167,9 +166,7 @@ export const useCreateIncidentHandler = (
                 setGeneratingInstructions(false);
                 if (!instructionsResult.isSuccessful || !instructionsResult.content) {
                     // TODO (andimarc): Surface errors to the user.
-                    const error = !instructionsResult.isSuccessful
-                        ? getDataPlaneErrorMessage(instructionsResult.error)
-                        : 'No content returned';
+                    const error = !instructionsResult.isSuccessful ? instructionsResult.error : 'No content returned';
                     azPortalContext.log({
                         action: 'generate-instructions',
                         actionModifier: 'failed',
@@ -214,15 +211,15 @@ export const useCreateIncidentHandler = (
     const deleteHandler = useCallback(() => {
         const {
             customHandlerDeleteNotificationTitle,
-            customHandlerDeleteNotificationDescription,
-            customHandlerDeleteNotificationError,
+            customHandlerDeleteNotificationInProgress,
+            customHandlerDeleteNotificationFailure,
             customHandlerDeleteNotificationSuccess,
         } = IncidentHandlerCreateResources;
 
         if (handlerCreateOrEditInfo?.handlerId) {
             const notificationId = azPortalContext.startNotification(
                 intl.formatMessage(customHandlerDeleteNotificationTitle),
-                intl.formatMessage(customHandlerDeleteNotificationDescription)
+                intl.formatMessage(customHandlerDeleteNotificationInProgress)
             );
 
             exitToHome();
@@ -251,8 +248,8 @@ export const useCreateIncidentHandler = (
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(customHandlerDeleteNotificationError, {
-                            errorMessage: getDataPlaneErrorMessage(deleteResult.error),
+                        intl.formatMessage(customHandlerDeleteNotificationFailure, {
+                            errorMessage: deleteResult.error,
                         })
                     );
                 } else {
@@ -294,8 +291,8 @@ export const useCreateIncidentHandler = (
                       handler,
                       incidentHandlerClient.updateHandler,
                       IncidentHandlerCreateResources.customHandlerUpdateNotificationTitle,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationDescription,
-                      IncidentHandlerCreateResources.customHandlerUpdateNotificationError,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationInProgress,
+                      IncidentHandlerCreateResources.customHandlerUpdateNotificationFailure,
                       IncidentHandlerCreateResources.customHandlerUpdateNotificationSuccess,
                   ]
                 : [
@@ -303,8 +300,8 @@ export const useCreateIncidentHandler = (
                       { ...handler, id: Guid.newShortGuid() },
                       incidentHandlerClient.createHandler,
                       IncidentHandlerCreateResources.customHandlerAddNotificationTitle,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationDescription,
-                      IncidentHandlerCreateResources.customHandlerAddNotificationError,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationInProgress,
+                      IncidentHandlerCreateResources.customHandlerAddNotificationFailure,
                       IncidentHandlerCreateResources.customHandlerAddNotificationSuccess,
                   ];
 
@@ -331,19 +328,20 @@ export const useCreateIncidentHandler = (
 
             createOrUpdateHandler(handlerPayload).then(saveResult => {
                 if (!saveResult.isSuccessful) {
+                    const errorMessage = saveResult.error;
                     azPortalContext.log({
                         action,
                         actionModifier: 'failed',
                         logLevel: 'error',
                         resourceId: resourceId,
-                        data: { ...additionalInfo, error: saveResult.error },
+                        data: { ...additionalInfo, errorMessage },
                     });
                     setHandlerOperationStatus('failed');
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
                         intl.formatMessage(notificationErrorMessage, {
-                            errorMessage: getDataPlaneErrorMessage(saveResult.error),
+                            errorMessage,
                         })
                     );
                 } else {
@@ -612,7 +610,7 @@ export const useCreateIncidentHandler = (
             incidentHandlerClient.getHandler(handlerCreateOrEditInfo.handlerId).then(getResult => {
                 if (subscribed) {
                     if (!getResult.isSuccessful || !getResult.content) {
-                        const error = !getResult.isSuccessful ? getDataPlaneErrorMessage(getResult.error) : 'No content returned';
+                        const error = !getResult.isSuccessful ? getResult.error : 'No content returned';
                         azPortalContext.log({
                             action: 'get-incidentHandler',
                             actionModifier: 'failed',

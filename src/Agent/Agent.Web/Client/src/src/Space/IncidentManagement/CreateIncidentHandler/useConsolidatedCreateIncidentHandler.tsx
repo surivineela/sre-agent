@@ -303,15 +303,15 @@ export const useConsolidatedCreateIncidentHandler = (
     const deleteHandler = useCallback(() => {
         const {
             customHandlerDeleteNotificationTitle,
-            customHandlerDeleteNotificationDescription,
-            customHandlerDeleteNotificationError,
+            customHandlerDeleteNotificationInProgress,
+            customHandlerDeleteNotificationFailure,
             customHandlerDeleteNotificationSuccess,
         } = IncidentHandlerCreateResources;
 
         if (handlerCreateOrEditInfo?.handlerId) {
             const notificationId = azPortalContext.startNotification(
                 intl.formatMessage(customHandlerDeleteNotificationTitle),
-                intl.formatMessage(customHandlerDeleteNotificationDescription)
+                intl.formatMessage(customHandlerDeleteNotificationInProgress)
             );
 
             exitToHome();
@@ -329,20 +329,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
             incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId).then(deleteResult => {
                 if (!deleteResult.isSuccessful) {
-                    const error = getDataPlaneErrorMessage(deleteResult.error);
+                    const errorMessage = deleteResult.error;
                     azPortalContext.log({
                         action: 'delete-incidentHandler',
                         actionModifier: 'failed',
                         logLevel: 'error',
                         resourceId: resourceId,
-                        data: { ...additionalInfo, error },
+                        data: { ...additionalInfo, errorMessage },
                     });
                     setHandlerOperationStatus('failed');
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(customHandlerDeleteNotificationError, {
-                            errorMessage: getDataPlaneErrorMessage(error),
+                        intl.formatMessage(customHandlerDeleteNotificationFailure, {
+                            errorMessage,
                         })
                     );
                 } else {
@@ -425,20 +425,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
             const saveOrUpdateFilterResult = await saveOrUpdateFilterFunction(filterPayload);
             if (!saveOrUpdateFilterResult.isSuccessful) {
-                const error = getDataPlaneErrorMessage(saveOrUpdateFilterResult.error);
+                const errorMessage = saveOrUpdateFilterResult.error;
                 azPortalContext.log({
                     action: saveOrUpdateFilterAction,
                     actionModifier: 'failed',
                     logLevel: 'error',
                     resourceId: resourceId,
-                    data: { ...additionalInfo, error },
+                    data: { ...additionalInfo, errorMessage },
                 });
                 setHandlerOperationStatus('failed');
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
                     intl.formatMessage(notificationErrorMessage, {
-                        errorMessage: error,
+                        errorMessage,
                     })
                 );
                 return;
@@ -494,20 +494,20 @@ export const useConsolidatedCreateIncidentHandler = (
 
         const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
         if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
-            const error = getDataPlaneErrorMessage(saveUpdateOrDeleteHandlerResult.error);
+            const errorMessage = saveUpdateOrDeleteHandlerResult.error;
             azPortalContext.log({
                 action: saveUpdateOrDeleteHandlerAction,
                 actionModifier: 'failed',
                 logLevel: 'error',
                 resourceId: resourceId,
-                data: { ...additionalInfo, error },
+                data: { ...additionalInfo, errorMessage },
             });
             setHandlerOperationStatus('failed');
             azPortalContext.stopNotification(
                 notificationId,
                 false,
                 intl.formatMessage(notificationErrorMessage, {
-                    errorMessage: error,
+                    errorMessage: errorMessage,
                 })
             );
             // TODO (andimarc): Revert/delete the filter if it was created/updated.

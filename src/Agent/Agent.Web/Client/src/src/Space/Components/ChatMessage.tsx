@@ -61,7 +61,7 @@ const ChatMessage = ({
             mode: 'canvas',
             name: (
                 <div style={nameAndTimestampContainerStyle}>
-                    <span>{intl.formatMessage(SreAgentResources.sreAgent)}</span>
+                    <span>{intl.formatMessage(SreAgentResources.azureSreAgent)}</span>
                     {threadAgentModeToDisplay && (
                         <span className={chatStyles.modePill}>{getAgentModeDisplayName(threadAgentModeToDisplay, intl)}</span>
                     )}

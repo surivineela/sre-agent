@@ -126,8 +126,8 @@ export function useSreAgent(resourceId: string): SreAgentHook {
 
         const agentName = new ArmResourceDescriptor(resourceId)?.resourceName || '';
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(SreAgentResources.startingSreAgentTitle),
-            intl.formatMessage(SreAgentResources.startingSreAgentInProgress, { name: agentName })
+            intl.formatMessage(SreAgentResources.startSreAgentNotificationTitle),
+            intl.formatMessage(SreAgentResources.startSreAgentNotificationInProgress, { name: agentName })
         );
 
         const response = await SreAgentClient.startAgent(resourceId);
@@ -141,7 +141,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
             azPortalContext.stopNotification(
                 notificationId,
                 true,
-                intl.formatMessage(SreAgentResources.startingSreAgentSuccess, { name: agentName })
+                intl.formatMessage(SreAgentResources.startSreAgentNotificationSuccess, { name: agentName })
             );
             setAgent(response.data);
         } else {
@@ -158,9 +158,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                errorMessage
-                    ? intl.formatMessage(SreAgentResources.startingSreAgentFailedWithError, { name: agentName, error: errorMessage })
-                    : intl.formatMessage(SreAgentResources.startingSreAgentFailed, { name: agentName })
+                intl.formatMessage(SreAgentResources.startSreAgentNotificationFailure, { name: agentName, errorMessage })
             );
         }
 
@@ -177,8 +175,8 @@ export function useSreAgent(resourceId: string): SreAgentHook {
 
         const agentName = new ArmResourceDescriptor(resourceId)?.resourceName || '';
         const notificationId = azPortalContext.startNotification(
-            intl.formatMessage(SreAgentResources.stoppingSreAgentTitle),
-            intl.formatMessage(SreAgentResources.stoppingSreAgentInProgress, { name: agentName })
+            intl.formatMessage(SreAgentResources.stopSreAgentNotificationTitle),
+            intl.formatMessage(SreAgentResources.stopSreAgentNotificationInProgress, { name: agentName })
         );
 
         const response = await SreAgentClient.stopAgent(resourceId);
@@ -193,7 +191,7 @@ export function useSreAgent(resourceId: string): SreAgentHook {
             azPortalContext.stopNotification(
                 notificationId,
                 true,
-                intl.formatMessage(SreAgentResources.stoppingSreAgentSuccess, { name: agentName })
+                intl.formatMessage(SreAgentResources.stopSreAgentNotificationSuccess, { name: agentName })
             );
 
             setAgent(response.data);
@@ -211,9 +209,10 @@ export function useSreAgent(resourceId: string): SreAgentHook {
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                errorMessage
-                    ? intl.formatMessage(SreAgentResources.stoppingSreAgentFailedWithError, { name: agentName, error: errorMessage })
-                    : intl.formatMessage(SreAgentResources.stoppingSreAgentFailed, { name: agentName })
+                intl.formatMessage(SreAgentResources.stopSreAgentNotificationFailure, {
+                    name: agentName,
+                    errorMessage,
+                })
             );
         }
 

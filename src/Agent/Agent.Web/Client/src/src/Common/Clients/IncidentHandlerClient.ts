@@ -59,7 +59,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -84,7 +84,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -109,7 +109,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -134,7 +134,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -158,7 +158,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -183,7 +183,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -208,7 +208,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -233,7 +233,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -258,7 +258,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -283,7 +283,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -315,7 +315,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -340,7 +340,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -365,7 +365,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -390,7 +390,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -417,7 +417,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -442,7 +442,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -467,7 +467,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -492,7 +492,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -516,7 +516,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -541,7 +541,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -566,7 +566,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -591,7 +591,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
             });
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -628,7 +628,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
 
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -666,7 +666,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
 
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };
@@ -693,7 +693,7 @@ export class IncidentHandlerClient extends DataPlaneClient {
 
             return {
                 isSuccessful: false,
-                error: error,
+                error: errorMessage,
             };
         }
     };

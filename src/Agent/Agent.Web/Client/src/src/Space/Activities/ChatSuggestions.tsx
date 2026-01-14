@@ -303,9 +303,9 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
             {showSreAgentLogo && (
                 <div className={mergeClasses(chatSuggestionsStyles.brandContainer, alignLeft && chatSuggestionsStyles.leftBrandContainer)}>
-                    <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.sreAgent)} />
+                    <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />
                     <Text as={'h2'} size={500} weight="semibold">
-                        {intl.formatMessage(SreAgentResources.sreAgent)}
+                        {intl.formatMessage(SreAgentResources.azureSreAgent)}
                     </Text>
                 </div>
             )}

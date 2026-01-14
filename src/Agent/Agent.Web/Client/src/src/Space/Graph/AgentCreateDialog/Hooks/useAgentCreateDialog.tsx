@@ -3,7 +3,6 @@ import { useIntl } from 'react-intl';
 import { object, string } from 'yup';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { Guid } from '../../../../Common/Helpers/Guid';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
@@ -81,26 +80,16 @@ export const useAgentCreateDialog = (
                 intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationTitle, { agentName: values.agentName }),
                 intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationInProgress, { agentName: values.agentName })
             );
-            try {
-                const response = await extendedAgentClient.applyEntity(agentCreateBody, 'agent');
-                if (response.isSuccessful) {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationSuccess, {
-                        agentName: values.agentName,
-                    });
-                    azPortalContext.stopNotification(agentCreateNotificationId, true, message);
-                } else {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationFailure, {
-                        agentName: values.agentName,
-                        errorMessage: response.error,
-                    });
-                    azPortalContext.stopNotification(agentCreateNotificationId, false, message);
-                    setIsSubmitting(false);
-                    return;
-                }
-            } catch (error) {
+            const createResponse = await extendedAgentClient.applyEntity(agentCreateBody, 'agent');
+            if (createResponse.isSuccessful) {
+                const message = intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationSuccess, {
+                    agentName: values.agentName,
+                });
+                azPortalContext.stopNotification(agentCreateNotificationId, true, message);
+            } else {
                 const message = intl.formatMessage(ExtendedAgentsGraphResources.createSubagentNotificationFailure, {
                     agentName: values.agentName,
-                    errorMessage: getErrorMessageOrStringify(error),
+                    errorMessage: createResponse.error,
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                 setIsSubmitting(false);
@@ -130,34 +119,26 @@ export const useAgentCreateDialog = (
                     targetAgent: values.agentName,
                 })
             );
-            try {
-                const response = await extendedAgentClient.applyEntity(agentLinkBody, 'agent');
-                if (response.isSuccessful) {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.addHandoffNotificationSuccess, {
-                        sourceAgent: sourceAgent.name,
-                        targetAgent: values.agentName,
-                    });
-                    azPortalContext.stopNotification(agentLinkNotificationId, true, message);
-                    setIsSubmitting(false);
-                    onAgentCreated(selectCreatedAgent ? values.agentName : undefined);
-                } else {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.addHandoffNotificationFailure, {
-                        sourceAgent: sourceAgent.name,
-                        targetAgent: values.agentName,
-                        errorMessage: response.error,
-                    });
-                    azPortalContext.stopNotification(agentLinkNotificationId, false, message);
-                    setIsSubmitting(false);
-                }
-            } catch (error) {
-                const message = intl.formatMessage(ExtendedAgentsGraphResources.failedToCreateTool, {
-                    errorMessage: getErrorMessageOrStringify(error),
+            const linkResponse = await extendedAgentClient.applyEntity(agentLinkBody, 'agent');
+            if (linkResponse.isSuccessful) {
+                const message = intl.formatMessage(ExtendedAgentsGraphResources.addHandoffNotificationSuccess, {
+                    sourceAgent: sourceAgent.name,
+                    targetAgent: values.agentName,
+                });
+                azPortalContext.stopNotification(agentLinkNotificationId, true, message);
+                setIsSubmitting(false);
+                onAgentCreated(selectCreatedAgent ? values.agentName : undefined);
+            } else {
+                const message = intl.formatMessage(ExtendedAgentsGraphResources.addHandoffNotificationFailure, {
+                    sourceAgent: sourceAgent.name,
+                    targetAgent: values.agentName,
+                    errorMessage: linkResponse.error,
                 });
                 azPortalContext.stopNotification(agentLinkNotificationId, false, message);
                 setIsSubmitting(false);
             }
         },
-        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources, onAgentCreated, isOverrideScenario]
+        [isOverrideScenario, azPortalContext, intl, extendedAgentClient, onAgentCreated, skills]
     );
 
     const onUpdate = useCallback(
@@ -184,38 +165,28 @@ export const useAgentCreateDialog = (
                 intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationTitle, { agentName: values.agentName }),
                 intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationInProgress, { agentName: values.agentName })
             );
-            try {
-                const response = await extendedAgentClient.applyEntity(agentUpdateBody, 'agent');
-                if (response.isSuccessful) {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationSuccess, {
-                        agentName: values.agentName,
-                    });
-                    azPortalContext.stopNotification(agentCreateNotificationId, true, message);
-                    setIsSubmitting(false);
-                    onAgentCreated();
-                    setInitialValues({ ...values });
-                    setExistingAgentGuid(Guid.newGuid());
-                    return;
-                } else {
-                    const message = intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationFailure, {
-                        agentName: values.agentName,
-                        errorMessage: response.error,
-                    });
-                    azPortalContext.stopNotification(agentCreateNotificationId, false, message);
-                    setIsSubmitting(false);
-                    return;
-                }
-            } catch (error) {
+            const response = await extendedAgentClient.applyEntity(agentUpdateBody, 'agent');
+            if (response.isSuccessful) {
+                const message = intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationSuccess, {
+                    agentName: values.agentName,
+                });
+                azPortalContext.stopNotification(agentCreateNotificationId, true, message);
+                setIsSubmitting(false);
+                onAgentCreated();
+                setInitialValues({ ...values });
+                setExistingAgentGuid(Guid.newGuid());
+                return;
+            } else {
                 const message = intl.formatMessage(ExtendedAgentsGraphResources.updateSubagentNotificationFailure, {
                     agentName: values.agentName,
-                    errorMessage: getErrorMessageOrStringify(error),
+                    errorMessage: response.error,
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
                 setIsSubmitting(false);
                 return;
             }
         },
-        [azPortalContext, extendedAgentClient, intl, ExtendedAgentsGraphResources]
+        [azPortalContext, intl, extendedAgentClient, onAgentCreated]
     );
 
     const onSubmit = useCallback(

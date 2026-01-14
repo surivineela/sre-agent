@@ -226,8 +226,8 @@ export type AgentQuickAction =
     | 'createPythonTool';
 
 export enum ExtendedAgentGraphView {
-    Grid = 'grid',
-    Visual = 'visual',
+    Table = 'table',
+    Canvas = 'canvas',
     Playground = 'playground',
 }
 

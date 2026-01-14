@@ -39,10 +39,11 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: data,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
@@ -56,10 +57,11 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: undefined,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
@@ -229,10 +231,11 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: skills,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
@@ -254,10 +257,11 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: skill,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
@@ -289,10 +293,11 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: skill,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
@@ -306,25 +311,34 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
                 content: undefined,
             };
-        } catch (e) {
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
             return {
                 isSuccessful: false,
-                error: e,
+                error: errorMessage,
             };
         }
     };
 
     public getConnectorStatus = async (connectorName: string): Promise<Response<ConnectorStatus>> => {
-        const { data } = await axios.get(
-            this.getRequestUrl(`/api/v2/extendedAgent/connectors/${encodeURIComponent(connectorName)}/status`),
-            {
-                headers: getAgentHeaders(),
-            }
-        );
-        return {
-            isSuccessful: !!data,
-            content: data,
-        };
+        try {
+            const { data } = await axios.get(
+                this.getRequestUrl(`/api/v2/extendedAgent/connectors/${encodeURIComponent(connectorName)}/status`),
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+            return {
+                isSuccessful: !!data,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
     };
 
     private convertExtendedEntityToYamlDocuments(

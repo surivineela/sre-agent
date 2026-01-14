@@ -11,7 +11,7 @@ import { RoleAssignmentTemplateResource } from '../../../Common/ArmTemplateFragm
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { SpecialControlValue } from '../../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { getErrorMessage, getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
 import { DeploymentClient } from '../../../Common/Clients/DeploymentClient';
 import { IdentityClient } from '../../../Common/Clients/IdentityClient';
 import { ResourceGroupClient } from '../../../Common/Clients/ResourceGroupClient';
@@ -303,11 +303,13 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             setShowResourceGroupPicker(false);
             const notification = portalContext.startNotification(
                 numberOfRgs > 1
-                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, { number: numberOfRgs })
+                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, {
+                          number: numberOfRgs,
+                      })
                     : intl.formatMessage(ManagedResourcesStringResources.addNotificationTitle, { number: numberOfRgs }),
                 numberOfRgs > 1
-                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralDescription)
-                    : intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
+                    ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralInProgress)
+                    : intl.formatMessage(ManagedResourcesStringResources.addNotificationInProgress)
             );
             setNotification(notification);
 
@@ -381,7 +383,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(ManagedResourcesStringResources.addNotificationError, {
+                    intl.formatMessage(ManagedResourcesStringResources.addNotificationFailure, {
                         error: errorMsg,
                     })
                 );
@@ -406,7 +408,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
         setIsUpdating(true);
         const notification = portalContext.startNotification(
             intl.formatMessage(ManagedResourcesStringResources.deleteNotificationTitle),
-            intl.formatMessage(ManagedResourcesStringResources.deleteNotificationDescription)
+            intl.formatMessage(ManagedResourcesStringResources.deleteNotificationInProgress)
         );
 
         logAmplitudeControlEvent({
@@ -442,10 +444,13 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             );
             refresh();
         } else {
+            const errorMessage = getErrorMessageOrStringify(response.metadata.error);
             portalContext.stopNotification(
                 notification,
                 false,
-                intl.formatMessage(ManagedResourcesStringResources.deleteNotificationError)
+                intl.formatMessage(ManagedResourcesStringResources.deleteNotificationFailure, {
+                    error: errorMessage,
+                })
             );
             portalContext.log({
                 action: 'deleteManagedResourceGroups',
@@ -453,7 +458,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 resourceId,
                 logLevel: 'error',
                 data: {
-                    message: `Failed to delete managed resources: ${response.metadata.error?.Message}`,
+                    message: `Failed to delete managed resources: ${errorMessage}`,
                 },
             });
         }
@@ -482,20 +487,21 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                     clearInterval(intervalId);
                     setIsUpdating(false);
                     setDeploymentId('');
+                    const errorMessage = getErrorMessage(response?.data?.properties?.error) || getErrorMessage(response?.metadata?.error);
                     portalContext.log({
                         action: 'deleteManagedResourceGroups',
                         actionModifier: 'failed',
                         resourceId,
                         logLevel: 'error',
                         data: {
-                            message: `Failed to delete managed resources: ${response.metadata.error?.Message}`,
+                            message: `Failed to delete managed resources: ${errorMessage}`,
                         },
                     });
                     portalContext.stopNotification(
                         notification,
                         false,
-                        intl.formatMessage(ManagedResourcesStringResources.addNotificationError, {
-                            error: getErrorMessage(response?.data?.properties?.error),
+                        intl.formatMessage(ManagedResourcesStringResources.addNotificationFailure, {
+                            error: errorMessage,
                         })
                     );
                 }

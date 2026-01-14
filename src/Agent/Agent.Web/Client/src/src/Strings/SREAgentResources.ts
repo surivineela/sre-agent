@@ -18,7 +18,7 @@ export const SreAgentResources = defineMessages({
         id: 'tTjB+b',
     },
     deleteAgentNotificationTitle: { defaultMessage: '{count, plural, one {Delete SRE Agent} other {Delete SRE Agents}}', id: 'Kfr1WB' },
-    deleteAgentNotificationDescription: {
+    deleteAgentNotificationInProgress: {
         defaultMessage: '{count, plural, one {Deleting SRE Agent {name}} other {Deleting SRE Agents}}',
         id: 'jIcHPc',
     },
@@ -26,17 +26,17 @@ export const SreAgentResources = defineMessages({
         defaultMessage: '{count, plural, one {SRE Agent {name} deleted successfully} other {SRE Agents deleted successfully}}',
         id: '8yfUKp',
     },
-    deleteAgentNotificationError: {
+    deleteAgentNotificationFailure: {
         defaultMessage:
-            '{count, plural, one {Failed to delete SRE Agent {name}} other {Failed to delete SRE Agents}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
-        id: 'MGZggN',
+            '{count, plural, one {Failed to delete SRE Agent {name}} other {Failed to delete SRE Agents}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'O5SXvo',
     },
 
     deleteKustoToolNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete Kusto tool} other {Delete Kusto tools}}',
         id: 'zpENeF',
     },
-    deleteKustoToolNotificationDescription: {
+    deleteKustoToolNotificationInProgress: {
         defaultMessage: '{count, plural, one {Deleting Kusto tool {name}} other {Deleting Kusto tools}}',
         id: '/8swfk',
     },
@@ -44,17 +44,17 @@ export const SreAgentResources = defineMessages({
         defaultMessage: '{count, plural, one {Kusto tool {name} deleted successfully} other {Kusto tools deleted successfully}}',
         id: '7K6W8s',
     },
-    deleteKustoToolNotificationError: {
+    deleteKustoToolNotificationFailure: {
         defaultMessage:
-            '{count, plural, one {Failed to delete Kusto tool {name}} other {Failed to delete Kusto tools}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
-        id: 'yrDI3f',
+            '{count, plural, one {Failed to delete Kusto tool {name}} other {Failed to delete Kusto tools}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'uvxuDW',
     },
 
     deleteIncidentTriggerNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete incident trigger} other {Delete incident triggers}}',
         id: 'TGc4Lh',
     },
-    deleteIncidentTriggerNotificationDescription: {
+    deleteIncidentTriggerNotificationInProgress: {
         defaultMessage: '{count, plural, one {Deleting incident trigger {name}} other {Deleting incident triggers}}',
         id: '3hmrCJ',
     },
@@ -63,10 +63,10 @@ export const SreAgentResources = defineMessages({
             '{count, plural, one {Incident trigger {name} deleted successfully} other {Incident triggers deleted successfully}}',
         id: 'AEgxqN',
     },
-    deleteIncidentTriggerNotificationError: {
+    deleteIncidentTriggerNotificationFailure: {
         defaultMessage:
-            '{count, plural, one {Failed to delete incident trigger {name}} other {Failed to delete incident triggers}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
-        id: '5iE4cZ',
+            '{count, plural, one {Failed to delete incident trigger {name}} other {Failed to delete incident triggers}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'k4apTV',
     },
     deleteIncidentTriggerConfirmationDescription: {
         defaultMessage: 'Are you sure you want to delete this incident trigger? This action cannot be undone.',
@@ -76,16 +76,15 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Delete Incident Trigger',
         id: 'Rtd2bs',
     },
-    deleteScheduledTriggerMenuTitle: {
-        defaultMessage: 'Delete Scheduled Trigger',
-        id: 'b1DYE3',
+    deleteScheduledTaskMenuTitle: {
+        defaultMessage: 'Delete Scheduled Task',
+        id: 'tNpKpz',
     },
-
     deleteScheduledTaskNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete scheduled task} other {Delete scheduled tasks}}',
         id: 'WuyjCf',
     },
-    deleteScheduledTaskNotificationDescription: {
+    deleteScheduledTaskNotificationInProgress: {
         defaultMessage: '{count, plural, one {Deleting scheduled task {name}} other {Deleting scheduled tasks}}',
         id: 'bjDKAe',
     },
@@ -93,29 +92,31 @@ export const SreAgentResources = defineMessages({
         defaultMessage: '{count, plural, one {Scheduled task {name} deleted successfully} other {Scheduled tasks deleted successfully}}',
         id: 'rIbCjV',
     },
-    deleteScheduledTaskNotificationError: {
+    deleteScheduledTaskNotificationFailure: {
         defaultMessage:
-            '{count, plural, one {Failed to delete scheduled task {name}} other {Failed to delete scheduled tasks}}{errorMessage, select, undefined {} other {: {errorMessage}}}',
-        id: 'G4gaOn',
+            '{count, plural, one {Failed to delete scheduled task {name}} other {Failed to delete scheduled tasks}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: '2ks6k/',
     },
-
     edit: { defaultMessage: 'Edit', id: 'wEQDC6' },
     stopAgent: { defaultMessage: 'Stop agent', id: 'JKFypr' },
     stopAgentDescription: { defaultMessage: 'Temporarily stop the agent from all activities.', id: 'DFfvL6' },
-    stoppingSreAgentTitle: { defaultMessage: 'Stopping SRE Agent', id: 'XDcbqQ' },
-    stoppingSreAgentInProgress: { defaultMessage: 'Stopping SRE Agent {name} in progress', id: 'iMaY2Q' },
-    stoppingSreAgentSuccess: { defaultMessage: 'SRE Agent {name} stopped successfully', id: '0DUgkZ' },
-    stoppingSreAgentFailed: { defaultMessage: 'Failed to stop SRE Agent {name}', id: '4Xep39' },
-    stoppingSreAgentFailedWithError: { defaultMessage: 'Failed to stop SRE Agent {name}: {error}', id: 'JnDKv3' },
+    stopSreAgentNotificationTitle: { defaultMessage: 'Stop SRE Agent', id: 'dJJ+SO' },
+    stopSreAgentNotificationInProgress: { defaultMessage: 'Stopping SRE Agent {name}', id: 'l7Khms' },
+    stopSreAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} stopped successfully', id: '0DUgkZ' },
+    stopSreAgentNotificationFailure: {
+        defaultMessage: 'Failed to stop SRE Agent {name}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'aPGEVk',
+    },
     startAgent: { defaultMessage: 'Start agent', id: 'tu6JYo' },
     startAgentDescription: { defaultMessage: 'The agent will resume all activities.', id: 'c5hwBU' },
-    startingSreAgentTitle: { defaultMessage: 'Starting SRE Agent', id: 'JSW9Xw' },
-    startingSreAgentInProgress: { defaultMessage: 'Starting SRE Agent {name} in progress', id: 'FpUGgx' },
-    startingSreAgentSuccess: { defaultMessage: 'SRE Agent {name} started successfully', id: 'F8v2Mz' },
-    startingSreAgentFailed: { defaultMessage: 'Failed to start SRE Agent {name}', id: '8Zl3PA' },
-    startingSreAgentFailedWithError: { defaultMessage: 'Failed to start SRE Agent {name}: {error}', id: '6tzuXg' },
+    startSreAgentNotificationTitle: { defaultMessage: 'Start SRE Agent', id: 'Mw9Uwy' },
+    startSreAgentNotificationInProgress: { defaultMessage: 'Starting SRE Agent {name}', id: '5lmMpT' },
+    startSreAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} started successfully', id: 'F8v2Mz' },
+    startSreAgentNotificationFailure: {
+        defaultMessage: 'Failed to start SRE Agent {name}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: '4OyG7p',
+    },
     expand: { defaultMessage: 'Expand', id: '0oLj/t' },
-    sreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     remove: { defaultMessage: 'Remove', id: 'G/yZLu' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
@@ -1292,21 +1293,18 @@ export const RbacWarningBannerResources = defineMessages({
     learnMoreAboutRbac: { defaultMessage: 'Click here to learn more about SRE Agent RBAC', id: 'qhApmK' },
     dismissBanner: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
     addAdminNotificationTitle: { defaultMessage: 'Add SRE Agent Administrator role', id: 'MxYLKu' },
-    addAdminNotificationDescription: {
+    addAdminNotificationInProgress: {
         defaultMessage: 'Adding SRE Agent Administrator role to your agent {name}',
         id: 'jfgCRQ',
     },
     addAdminNotificationSuccess: {
-        defaultMessage: 'Successfully added SRE Agent Administrator role to your agent {name}',
-        id: 'csu95N',
+        defaultMessage: 'SRE Agent Administrator role added to agent {name} successfully',
+        id: 'Gb3QAB',
     },
-    addAdminNotificationError: {
-        defaultMessage: 'Failed to add SRE Agent Administrator role to your agent {name}',
-        id: 'LUSiug',
-    },
-    addAdminNotificationErrorWithMessage: {
-        defaultMessage: 'Failed to add SRE Agent Administrator role to your agent {name}. Error: {error}',
-        id: 'krH81A',
+    addAdminNotificationFailure: {
+        defaultMessage:
+            'Failed to add SRE Agent Administrator role to your agent {name}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'dwPltr',
     },
     muteWarnings: {
         defaultMessage: 'Mute all warnings',
@@ -1638,27 +1636,27 @@ export const IncidentHandlerCreateResources = defineMessages({
     retry: { defaultMessage: 'Retry', id: '62nsdy' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     customHandlerAddNotificationTitle: { defaultMessage: 'Add custom incident response plan', id: 'wezZny' },
-    customHandlerAddNotificationDescription: { defaultMessage: 'Adding custom incident response plan', id: 'T8DCV7' },
-    customHandlerAddNotificationSuccess: { defaultMessage: 'The custom incident response plan was successfully added', id: '8F5cJQ' },
-    customHandlerAddNotificationError: {
-        defaultMessage: 'Failed to add the custom incident response plan. Error: {errorMessage}',
-        id: 'nNwFuy',
+    customHandlerAddNotificationInProgress: { defaultMessage: 'Adding custom incident response plan', id: 'T8DCV7' },
+    customHandlerAddNotificationSuccess: { defaultMessage: 'Custom incident response plan added successfully', id: 'X/Olkp' },
+    customHandlerAddNotificationFailure: {
+        defaultMessage: 'Failed to add custom incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'Y0as8l',
     },
     customHandlerUpdateNotificationTitle: { defaultMessage: 'Update custom incident response plan', id: 'Nf85D+' },
-    customHandlerUpdateNotificationDescription: { defaultMessage: 'Updating custom incident response plan', id: 'Dh9oJp' },
-    customHandlerUpdateNotificationSuccess: { defaultMessage: 'The custom incident response plan was successfully updated', id: '4+Jgpb' },
-    customHandlerUpdateNotificationError: {
-        defaultMessage: 'Failed to update the custom incident response plan. Error: {errorMessage}',
-        id: 'tbTzZV',
+    customHandlerUpdateNotificationInProgress: { defaultMessage: 'Updating custom incident response plan', id: 'Dh9oJp' },
+    customHandlerUpdateNotificationSuccess: { defaultMessage: 'Custom incident response plan updated successfully', id: '4jRGiU' },
+    customHandlerUpdateNotificationFailure: {
+        defaultMessage: 'Failed to update custom incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'qsp7AG',
     },
     customHandlerDeleteConfirmationTitle: { defaultMessage: 'Delete custom incident response plan', id: 'b2kjHU' },
     customHandlerDeleteConfirmationMessage: { defaultMessage: 'Are you sure you want to delete the custom response plan?', id: 'lawXja' },
     customHandlerDeleteNotificationTitle: { defaultMessage: 'Delete custom incident response plan', id: 'b2kjHU' },
-    customHandlerDeleteNotificationDescription: { defaultMessage: 'Deleting custom incident response plan', id: 'y+SPRf' },
-    customHandlerDeleteNotificationSuccess: { defaultMessage: 'The custom incident response plan was successfully deleted', id: 'qyTQAA' },
-    customHandlerDeleteNotificationError: {
-        defaultMessage: 'Failed to delete the custom incident response plan. Error: {errorMessage}',
-        id: 'Hh0q8u',
+    customHandlerDeleteNotificationInProgress: { defaultMessage: 'Deleting custom incident response plan', id: 'y+SPRf' },
+    customHandlerDeleteNotificationSuccess: { defaultMessage: 'Custom incident response plan deleted successfully', id: 'SOFuFO' },
+    customHandlerDeleteNotificationFailure: {
+        defaultMessage: 'Failed to delete custom incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'cwnpJU',
     },
     customHandlerName: { defaultMessage: 'Custom response plan name', id: 'Lq4eva' },
     customHandlerDescription: { defaultMessage: 'Description', id: 'Q8Qw5B' },
@@ -1997,38 +1995,68 @@ export const IncidentManagementPlatformResources = defineMessages({
 });
 
 export const IncidentManagementNotificationResources = defineMessages({
-    saveTitle: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
+    saveTitle: { defaultMessage: 'Save incident management configuration', id: '35UE1s' },
     saveInProgress: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
-    saveSucceeded: { defaultMessage: 'Saved incident management configuration', id: 'yxXhfZ' },
-    saveFailed: { defaultMessage: 'Failed to save incident management configuration. Error: {errorMessage}', id: 'slxYbm' },
-    connectionToPlatformTitle: { defaultMessage: 'Connecting to {platformName} ...', id: 'b2PyOl' },
-    connectionToPlatformInProgress: { defaultMessage: 'Connecting to {platformName} ...', id: 'b2PyOl' },
+    saveSucceeded: { defaultMessage: 'Incident management configuration saved successfully', id: '8BWsJT' },
+    saveFailed: {
+        defaultMessage: 'Failed to save incident management configuration.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'YHQD93',
+    },
+    connectionToPlatformTitle: { defaultMessage: 'Connect to {platformName}', id: 'irVxHA' },
+    connectionToPlatformInProgress: { defaultMessage: 'Connecting to {platformName}', id: 'GbozW9' },
     connectionToPlatformSuccess: { defaultMessage: 'Connected to {platformName}', id: 'X4oOy4' },
-    connectionToPlatformFailed: { defaultMessage: 'Failed to connect to {platformName}', id: '8v0Pyn' },
-    createDefaultHandlerTitle: { defaultMessage: 'Creating default incident response plan', id: 't3wAiN' },
+    connectionToPlatformFailed: {
+        defaultMessage: 'Failed to connect to {platformName}.',
+        id: 'rgXhXa',
+    },
+    createDefaultHandlerTitle: { defaultMessage: 'Create default incident response plan', id: 'rCRxv3' },
     createDefaultHandlerInProgress: { defaultMessage: 'Creating default incident response plan', id: 't3wAiN' },
-    createDefaultHandlerSuccess: { defaultMessage: 'Created default incident response plan', id: 'AmnkPD' },
-    createDefaultHandlerFailed: { defaultMessage: 'Failed to create default incident response plan. Error: {errorMessage}', id: 'ysBuRt' },
-    deleteFilterTitle: { defaultMessage: 'Deleting incident response plan', id: 'it8L1Q' },
+    createDefaultHandlerSuccess: { defaultMessage: 'Default incident response plan created successfully', id: 'L18IN6' },
+    createDefaultHandlerFailed: {
+        defaultMessage: 'Failed to create default incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'C0vzRp',
+    },
+    deleteFilterTitle: { defaultMessage: 'Delete incident response plan', id: 'h+7264' },
     deleteFilterInProgress: { defaultMessage: 'Deleting incident response plan', id: 'it8L1Q' },
-    deleteFilterSuccess: { defaultMessage: 'Deleted incident response plan', id: '4ZoIgV' },
-    deleteFilterError: { defaultMessage: 'Failed to delete incident response plan', id: 'zEg90u' },
-    createFilterTitle: { defaultMessage: 'Creating incident response plan', id: 'H5vHIu' },
-    createFilterInProgress: { defaultMessage: 'Creating incident response plan', id: 'H5vHIu' },
-    createFilterSuccess: { defaultMessage: 'Created incident response plan', id: 'LLt8Ve' },
-    createFilterError: { defaultMessage: 'Failed to create incident response plan', id: 'xrnaaX' },
-    updateFilterTitle: { defaultMessage: 'Updating incident response plan', id: '5Wtjeo' },
+    deleteFilterSuccess: { defaultMessage: 'Incident response plan deleted successfully', id: 'oM3hEk' },
+    deleteFilterError: {
+        defaultMessage: 'Failed to delete incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'nnyEXp',
+    },
+    createFilterTitle: { defaultMessage: 'Create incident response plan', id: 'Z9pRs5' },
+    createFilterInProgress: {
+        defaultMessage: 'Incident response plan is being set up',
+        id: 'Z40Ix8',
+    },
+    createFilterSuccess: {
+        defaultMessage: 'Incident response plan is now active',
+        id: 'nsjSCu',
+    },
+    createFilterError: {
+        defaultMessage: 'Failed to create incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'IIaiI3',
+    },
+    updateFilterTitle: { defaultMessage: 'Update incident response plan', id: 'V3zbqK' },
     updateFilterInProgress: { defaultMessage: 'Updating incident response plan', id: '5Wtjeo' },
-    updateFilterSuccess: { defaultMessage: 'Updated incident response plan', id: '91775r' },
-    updateFilterError: { defaultMessage: 'Failed to update incident response plan', id: 'smNgqR' },
-    enableFilterTitle: { defaultMessage: 'Enabling incident response plan', id: 'vs8s5B' },
+    updateFilterSuccess: { defaultMessage: 'Incident response plan updated successfully', id: '87f0dD' },
+    updateFilterError: {
+        defaultMessage: 'Failed to update incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'BpoINX',
+    },
+    enableFilterTitle: { defaultMessage: 'Enable incident response plan', id: 'S23ESg' },
     enableFilterInProgress: { defaultMessage: 'Enabling incident response plan', id: 'vs8s5B' },
-    enableFilterSuccess: { defaultMessage: 'Enabled incident response plan', id: 'bxcc6L' },
-    enableFilterError: { defaultMessage: 'Failed to enable incident response plan', id: 'I7aBF4' },
-    disableFilterTitle: { defaultMessage: 'Disabling incident response plan', id: 'NMSoXQ' },
+    enableFilterSuccess: { defaultMessage: 'Incident response plan enabled successfully', id: '4QqxFr' },
+    enableFilterError: {
+        defaultMessage: 'Failed to enable incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'SjojX/',
+    },
+    disableFilterTitle: { defaultMessage: 'Disable incident response plan', id: 's8un+D' },
     disableFilterInProgress: { defaultMessage: 'Disabling incident response plan', id: 'NMSoXQ' },
-    disableFilterSuccess: { defaultMessage: 'Disabled incident response plan', id: 'YJ+mk9' },
-    disableFilterError: { defaultMessage: 'Failed to disable incident response plan', id: 'tHCvDB' },
+    disableFilterSuccess: { defaultMessage: 'Incident response plan disabled successfully', id: 'cwOZbl' },
+    disableFilterError: {
+        defaultMessage: 'Failed to disable incident response plan.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'bIDqsr',
+    },
 });
 
 export const IncidentManagementSaveErrorResources = defineMessages({
@@ -2062,18 +2090,26 @@ export const ManagedResourcesStringResources = defineMessages({
             "This will permanently remove a resource group from the agent's managed resource groups. Are you sure you want to remove?",
         id: '3BubSI',
     },
-    deleteNotificationTitle: { defaultMessage: 'Deleting selected managed resource groups', id: '3Rh7XU' },
-    deleteNotificationDescription: { defaultMessage: 'Deleting selected managed resource groups in progress', id: '3PgCIp' },
-    deleteNotificationSuccess: { defaultMessage: 'The selected managed resource groups were deleted successfully', id: '1PVhxx' },
-    deleteNotificationError: { defaultMessage: 'Failed to delete the selected managed resource groups', id: 'hK4HcH' },
-    addNotificationTitle: { defaultMessage: 'Adding {number} managed resource group', id: 'Bcgdb7' },
-    addNotificationPluralTitle: { defaultMessage: 'Adding {number} managed resource groups', id: '0UwFzs' },
-    addNotificationPluralDescription: { defaultMessage: 'The selected resource groups are being set up', id: '2OQ6yB' },
-    addNotificationDescription: { defaultMessage: 'The selected resource group is being set up', id: 'tSKi9q' },
+    deleteNotificationTitle: { defaultMessage: 'Delete managed resource groups', id: 'oGvb0t' },
+    deleteNotificationInProgress: { defaultMessage: 'Deleting selected managed resource groups', id: '3Rh7XU' },
+    deleteNotificationSuccess: {
+        defaultMessage: 'Selected managed resource groups deleted successfully',
+        id: 'eOVtNs',
+    },
+    deleteNotificationFailure: {
+        defaultMessage: 'Failed to delete selected managed resource groups.{error, select, undefined {} other { {error}}}',
+        id: 'A0iOS/',
+    },
+    addNotificationTitle: { defaultMessage: 'Add {number} managed resource group', id: 'dPl6kt' },
+    addNotificationPluralTitle: { defaultMessage: 'Add {number} managed resource groups', id: 'xhtVXi' },
+    addNotificationInProgress: { defaultMessage: 'Adding selected resource group', id: 'voKHoX' },
+    addNotificationPluralInProgress: { defaultMessage: 'Adding selected resource groups', id: 'eLgaID' },
     addNotificationSuccess: { defaultMessage: 'Managed resource group added successfully', id: '5yG7b2' },
     addNotificationPluralSuccess: { defaultMessage: 'Managed resource groups added successfully', id: 'FGAk9M' },
-    addNotificationAgentError: { defaultMessage: 'Failed to add {number} managed resource groups to your SRE Agent', id: 'ZukeYV' },
-    addNotificationError: { defaultMessage: 'Failed to assign roles to managed resource groups with error: {error}', id: 'nCbZ6p' },
+    addNotificationFailure: {
+        defaultMessage: 'Failed to add {number} managed resource groups to SRE Agent.{error, select, undefined {} other { {error}}}',
+        id: 'cfTJg4',
+    },
     locationsSelected: { defaultMessage: '{0} locations selected', id: 'JbB2Vb' },
     resourceGroupsLoadFailure: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
     selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
@@ -2564,8 +2600,8 @@ export const GraphResources = defineMessages({
             "This map shows how your application's resources are connected across multiple resource groups, regions, and subscriptions. The agent analyzes these resources and organizes them into a core application group based on the primary resource.",
         id: '0G14fL',
     },
-    visualView: { defaultMessage: 'Visual view', id: 'Ua0Vpv' },
-    gridView: { defaultMessage: 'Grid view', id: 'N+sJfO' },
+    canvasView: { defaultMessage: 'Canvas view', id: 'uKwm6S' },
+    tableView: { defaultMessage: 'Table view', id: 'ufzv1A' },
     tableHeaderName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
     tableHeaderResourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     tableHeaderRepositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
@@ -3180,7 +3216,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled task{name, select, undefined {} other { {name}}} is now active.',
         id: 'TKNqWx',
     },
-    createScheduledTaskNotificationError: {
+    createScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to create scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: 'R56nxF',
     },
@@ -3193,7 +3229,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled task{name, select, undefined {} other { {name}}} has been updated.',
         id: 'SEdSoA',
     },
-    updateScheduledTaskNotificationError: {
+    updateScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to update scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: '1/3fw+',
     },
@@ -3222,7 +3258,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled tasks are now off.',
         id: 'J3nUiY',
     },
-    pauseScheduledTaskNotificationError: {
+    pauseScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to turn off scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: 'bGIW7m',
     },
@@ -3251,7 +3287,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled tasks are now on.',
         id: 'LjwVHP',
     },
-    resumeScheduledTaskNotificationError: {
+    resumeScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to turn on scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: 'KlWAix',
     },
@@ -3280,11 +3316,10 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled tasks have been run.',
         id: 'pByJCZ',
     },
-    runScheduledTaskNotificationError: {
+    runScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to run scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: '1vVgdq',
     },
-
     deleteScheduledTaskConfirmationDescriptionSingle: {
         defaultMessage: 'Are you sure you want to delete this scheduled task? This action cannot be undone.',
         id: 'oDb8Xv',
@@ -3317,7 +3352,7 @@ export const ScheduledTasksResources = defineMessages({
         defaultMessage: 'Scheduled tasks have been deleted.',
         id: '8lQNdb',
     },
-    deleteScheduledTaskNotificationError: {
+    deleteScheduledTaskNotificationFailure: {
         defaultMessage: 'Failed to delete scheduled task.{errorMessage, select, undefined {} other { {errorMessage}}}',
         id: '8H0PeE',
     },
@@ -3494,7 +3529,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     triggerIncidentButton: { defaultMessage: 'Open incident triggers', id: 'w6nz4p' },
     triggerScheduledButton: { defaultMessage: 'Open scheduled tasks', id: 'CaZAZZ' },
     triggerBadgeIncident: { defaultMessage: 'Incident trigger', id: 'THFIRB' },
-    triggerBadgeScheduled: { defaultMessage: 'Scheduled trigger', id: 'vlv+Ch' },
+    triggerBadgeScheduled: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
     connectorNavigateCta: { defaultMessage: 'Manage connectors', id: 'cqx+Rd' },
 
     // Trigger Creation Defaults
@@ -3560,8 +3595,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     },
     triggerDescriptionLabel: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     triggerDescriptionPlaceholder: {
-        defaultMessage: 'Explain what this scheduled trigger does for {agentName}.',
-        id: 'OeU7Xk',
+        defaultMessage: 'Explain what this scheduled task does for {agentName}.',
+        id: 'vwOZof',
     },
     triggerScheduleInputModeLabel: {
         defaultMessage: 'How would you like to define the schedule?',
@@ -4148,7 +4183,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     incidentTriggerNameTitle: { id: '/qCaiZ', defaultMessage: 'Incident trigger name' },
     incidentImpactedService: { id: 'fdCjVS', defaultMessage: 'Impacted service' },
     incidentTitleContains: { id: 'brxlTt', defaultMessage: 'Title contains' },
-    scheduledTriggerNameTitle: { id: 'C6Jt4c', defaultMessage: 'Scheduled task name' },
+    scheduledTaskNameTitle: { id: 'C6Jt4c', defaultMessage: 'Scheduled task name' },
     scheduleTitle: { id: 'hGQqkW', defaultMessage: 'Schedule' },
     kustoToolName: { id: 'cg54iX', defaultMessage: 'Kusto tool name' },
     connectorStatus: { id: 'cLHCHE', defaultMessage: 'Connector status' },
@@ -4227,7 +4262,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     relationshipCurrentTools: { defaultMessage: 'Connected tools', id: 'XM+FCY' },
     relationshipNoTools: { defaultMessage: 'No tools connected yet.', id: 'mJXXeS' },
     relationshipDismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
-    relationshipQuickActionTooltip: { defaultMessage: 'Connect handoffs and tools', id: 'IJX2gV' },
+    relationshipQuickActionTooltip: { defaultMessage: 'Connect to trigger, task, or subagent', id: 'rXl6W2' },
     relationshipQuickDialogTitle: { defaultMessage: 'Connect relationships for {name}', id: 'VTkRGg' },
     relationshipQuickDialogTitleFallback: { defaultMessage: 'Connect relationships', id: 'uFaAgq' },
     relationshipQuickDialogDescription: {
@@ -4271,8 +4306,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'UjNXaV',
     },
     relationshipQuickAddHandoffSuccess: {
-        defaultMessage: 'Added handoff to {handoffName} for {agentName}.',
-        id: 'sVJ+oz',
+        defaultMessage: 'Handoff from {agentName} to {handoffName} has been added.',
+        id: 'W8FZa3',
     },
     relationshipQuickAlreadyTool: {
         defaultMessage: '{toolName} is already connected to {agentName}.',
@@ -4291,8 +4326,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
         id: 'YKwGp6',
     },
     relationshipQuickCreateToolSuccess: {
-        defaultMessage: 'Created {toolName} and connected it to {agentName}.',
-        id: 'N0wOFf',
+        defaultMessage: '{toolName} is now active and connected to {agentName}.',
+        id: 'aztQ0s',
     },
     relationshipQuickCreateAgentSuccess: {
         defaultMessage: 'Created {handoffName} and added it as a handoff for {agentName}.',
@@ -4494,26 +4529,29 @@ export const ExtendedAgentsGraphResources = defineMessages({
     warnings: { defaultMessage: 'Warnings', id: 'VSWkne' },
     improvedInstructions: { defaultMessage: 'Improved instructions', id: 'XyUQa7' },
     improvedHandoffInstructions: { defaultMessage: 'Improved handoff instructions', id: 'hoHnYn' },
-    createMetaAgentNotificationTitle: { defaultMessage: 'Create meta agent', id: 'qrs+1B' },
-    createMetaAgentNotificationInProgress: { defaultMessage: 'Creating meta agent', id: '+6/51l' },
-    createMetaAgentNotificationSuccess: { defaultMessage: 'Created meta agent', id: '+nnQeH' },
-    createMetaAgentNotificationFailure: { defaultMessage: 'Failed to create meta agent. Error: {errorMessage}', id: 'pw1ueF' },
     createSubagentNotificationTitle: { defaultMessage: 'Create subagent {agentName}', id: '4lv5gO' },
     createSubagentNotificationInProgress: { defaultMessage: 'Creating subagent {agentName}', id: 'SB7SRx' },
-    createSubagentNotificationSuccess: { defaultMessage: 'Created subagent {agentName}', id: 'CIAL+k' },
-    createSubagentNotificationFailure: { defaultMessage: 'Failed to create subagent {agentName}. Error: {errorMessage}', id: 'Bn/txo' },
+    createSubagentNotificationSuccess: { defaultMessage: '{agentName} is now running.', id: 'XzVlOF' },
+    createSubagentNotificationFailure: {
+        defaultMessage: 'Failed to create subagent {agentName}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'jyTjEG',
+    },
     updateSubagentNotificationTitle: { defaultMessage: 'Update subagent {agentName}', id: '6RNwei' },
     updateSubagentNotificationInProgress: { defaultMessage: 'Updating subagent {agentName}', id: 'YBHvOV' },
-    updateSubagentNotificationSuccess: { defaultMessage: 'Updated subagent {agentName}', id: 'QP91Js' },
-    updateSubagentNotificationFailure: { defaultMessage: 'Failed to update subagent {agentName}. Error: {errorMessage}', id: 'GpcNV2' },
+    updateSubagentNotificationSuccess: { defaultMessage: 'Subagent {agentName} updated successfully', id: '6tFwIO' },
+    updateSubagentNotificationFailure: {
+        defaultMessage: 'Failed to update subagent {agentName}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'FtQyAg',
+    },
     addHandoffNotificationTitle: { defaultMessage: 'Add handoff from {sourceAgent} to subagent {targetAgent}', id: 'mVB9Bd' },
     addHandoffNotificationInProgress: { defaultMessage: 'Adding handoff from {sourceAgent} to subagent {targetAgent}', id: 'Vs/db/' },
-    addHandoffNotificationSuccess: { defaultMessage: 'Added handoff from {sourceAgent} to subagent {targetAgent}', id: '+Y8m6A' },
+    addHandoffNotificationSuccess: { defaultMessage: 'Handoff from {sourceAgent} to {targetAgent} has been added.', id: 'ea3CHr' },
     addHandoffNotificationFailure: {
-        defaultMessage: 'Failed to add handoff from {sourceAgent} to subagent {targetAgent}. Error: {errorMessage}',
-        id: 'RMD0Mj',
+        defaultMessage:
+            'Failed to add handoff from {sourceAgent} to subagent {targetAgent}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'g3PtBS',
     },
-    openInVisualView: { defaultMessage: 'Open in visual view', id: 'L/ct40' },
+    openInCanvasView: { defaultMessage: 'Open in canvas view', id: 'yWOzox' },
     subAgentCreateMenuLabel: { defaultMessage: 'Subagent', id: 'Q++yMM' },
     subAgentCreateMenuDescription: { defaultMessage: 'Performs specialized tasks on behalf of the SRE Agent.', id: 'stbbGt' },
     metaAgentCreateMenuLabel: { defaultMessage: 'SRE Agent', id: '+WRusC' },
@@ -4530,8 +4568,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
         defaultMessage: 'Incident trigger that includes past incident learnings and analysis.',
         id: '8Tlee1',
     },
-    scheduledTaskTriggerCreateMenuLabel: { defaultMessage: 'Scheduled task trigger', id: 'ioRcwS' },
-    scheduledTaskTriggerCreateMenuDescription: { defaultMessage: 'Starts a task at a defined time or interval.', id: 'JA/VO+' },
+    scheduledTaskCreateMenuLabel: { defaultMessage: 'Scheduled task', id: 'dG8VrM' },
+    scheduledTaskCreateMenuDescription: { defaultMessage: 'Starts a task at a defined time or interval.', id: 'JA/VO+' },
     kustoToolCreateMenuLabel: { defaultMessage: 'Kusto tool', id: 'v6cujo' },
     kustoToolCreateMenuDescription: {
         defaultMessage: 'Query tool the subagent uses to collect data from Azure Data Explorer.',

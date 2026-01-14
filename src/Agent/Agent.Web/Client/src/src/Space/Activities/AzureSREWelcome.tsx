@@ -215,8 +215,8 @@ const FakeAgentMessage = ({ content }: FakeAgentMessageProps) => {
 
     return (
         <CopilotMessage
-            avatar={<Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.sreAgent)} />}
-            name={intl.formatMessage(SreAgentResources.sreAgent)}
+            avatar={<Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />}
+            name={intl.formatMessage(SreAgentResources.azureSreAgent)}
             mode="canvas"
             disclaimer={null}
             style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%', whiteSpace: 'pre-line' }}

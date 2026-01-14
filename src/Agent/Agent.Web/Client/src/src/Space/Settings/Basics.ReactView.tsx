@@ -22,6 +22,7 @@ import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitud
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
+import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
@@ -169,7 +170,7 @@ const Basics: FC = () => {
         setDeleteDialogOpen(false);
         const notificationId = az.startNotification(
             intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle, { count: 1 }),
-            intl.formatMessage(SreAgentResources.deleteAgentNotificationDescription, { count: 1, name: resourceName })
+            intl.formatMessage(SreAgentResources.deleteAgentNotificationInProgress, { count: 1, name: resourceName })
         );
 
         az.log({
@@ -216,7 +217,11 @@ const Basics: FC = () => {
             az.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(SreAgentResources.deleteAgentNotificationError, { count: 1, name: resourceName })
+                intl.formatMessage(SreAgentResources.deleteAgentNotificationFailure, {
+                    count: 1,
+                    name: resourceName,
+                    errorMessage: getErrorMessageOrStringify(response.metadata.error),
+                })
             );
             az.log({
                 action: 'deleteAgent',

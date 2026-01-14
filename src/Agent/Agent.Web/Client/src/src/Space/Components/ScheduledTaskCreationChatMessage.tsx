@@ -5,7 +5,6 @@ import { useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { ScheduledTasksClient } from '../../Common/Clients/ScheduledTasksClient';
 import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
@@ -50,8 +49,8 @@ const ScheduledTaskCreationChatMessage: React.FC<ScheduledTaskCreationChatMessag
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationError, {
-                    errorMessage: getErrorMessageOrStringify(response.error),
+                intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationFailure, {
+                    errorMessage: response.error,
                 })
             );
         }

@@ -60,7 +60,7 @@ export const useRbacWarning = () => {
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(RbacWarningBannerResources.addAdminNotificationTitle, { name: agentName }),
-            intl.formatMessage(RbacWarningBannerResources.addAdminNotificationDescription, { name: agentName })
+            intl.formatMessage(RbacWarningBannerResources.addAdminNotificationInProgress, { name: agentName })
         );
         azPortalContext.logAmplitudeOperationEvent({
             targetType: 'update',
@@ -82,12 +82,10 @@ export const useRbacWarning = () => {
             });
         } else {
             const errorMessage = getErrorMessage(response.metadata.error);
-            const failMsg = errorMessage
-                ? intl.formatMessage(RbacWarningBannerResources.addAdminNotificationErrorWithMessage, {
-                      name: agentName,
-                      error: errorMessage,
-                  })
-                : intl.formatMessage(RbacWarningBannerResources.addAdminNotificationError, { name: agentName });
+            const failMsg = intl.formatMessage(RbacWarningBannerResources.addAdminNotificationFailure, {
+                name: agentName,
+                errorMessage,
+            });
             azPortalContext.stopNotification(notificationId, false, failMsg);
             azPortalContext.logAmplitudeOperationEvent({
                 targetType: 'update',

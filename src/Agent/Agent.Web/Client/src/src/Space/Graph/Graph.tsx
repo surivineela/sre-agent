@@ -32,8 +32,8 @@ const Graph = () => {
 };
 
 export enum GraphView {
-    Grid = 'grid',
-    Visual = 'visual',
+    Table = 'table',
+    Canvas = 'canvas',
 }
 
 const GraphContent = () => {
@@ -81,7 +81,7 @@ const GraphContent = () => {
     const theme = useTheme();
     const { resourceId } = useContext(EnvironmentContext);
 
-    const [currentView, setCurrentView] = useState<GraphView>(GraphView.Visual);
+    const [currentView, setCurrentView] = useState<GraphView>(GraphView.Canvas);
 
     const onChangeViewType = useCallback(
         (view: GraphView) => {
@@ -128,13 +128,13 @@ const GraphContent = () => {
                                 onChange={(_, data) => onChangeViewType(data.value as GraphView)}
                                 layout="horizontal"
                             >
-                                <CopilotRadio value={GraphView.Visual} label={intl.formatMessage(GraphResources.visualView)} />
-                                <CopilotRadio value={GraphView.Grid} label={intl.formatMessage(GraphResources.gridView)} />
+                                <CopilotRadio value={GraphView.Canvas} label={intl.formatMessage(GraphResources.canvasView)} />
+                                <CopilotRadio value={GraphView.Table} label={intl.formatMessage(GraphResources.tableView)} />
                             </RadioGroup>
                         </div>
                         <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                             <div className={visualRoot}>
-                                {currentView === GraphView.Grid ? (
+                                {currentView === GraphView.Table ? (
                                     <GraphGridView
                                         resources={resources}
                                         selectedAppGroup={selectedAppGroup}
@@ -157,7 +157,7 @@ const GraphContent = () => {
                                                 onEdgesChange={onEdgesChange}
                                                 proOptions={{ hideAttribution: true }}
                                                 colorMode={theme.isInverted ? 'dark' : 'light'}
-                                                style={{ display: currentView === GraphView.Visual ? 'block' : 'none' }}
+                                                style={{ display: currentView === GraphView.Canvas ? 'block' : 'none' }}
                                             >
                                                 <Controls />
                                                 <MiniMap />
@@ -180,7 +180,7 @@ const GraphContent = () => {
                                     </div>
                                 )}
                             </div>
-                            {currentView === GraphView.Visual && <ResourceInfo />}
+                            {currentView === GraphView.Canvas && <ResourceInfo />}
                         </div>
                     </>
                 ) : (

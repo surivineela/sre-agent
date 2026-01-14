@@ -27,15 +27,8 @@ import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
-import { getDataPlaneErrorMessage } from '../../../../Common/Clients/DataPlaneClient';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
-import {
-    ExtendedAgentsGraphResources,
-    GenericErrorResources,
-    ScheduledTasksResources,
-    SreAgentResources,
-} from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import {
     ExtendedAgent,
     ExtendedAgentGraphContext,
@@ -178,10 +171,10 @@ export const AgentTable: FC<AgentTableProps> = ({
                                     appearance="subtle"
                                     size="small"
                                     icon={<Whiteboard16Regular />}
-                                    aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInVisualView)}
+                                    aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInCanvasView)}
                                     onClick={() => {
                                         extendedAgentGraphContext.onEntitySelect({ entityType: 'Agent', entityName: agentItem.name });
-                                        extendedAgentGraphContext.onViewChange(ExtendedAgentGraphView.Visual);
+                                        extendedAgentGraphContext.onViewChange(ExtendedAgentGraphView.Canvas);
                                     }}
                                 />
                                 <Menu>
@@ -190,7 +183,7 @@ export const AgentTable: FC<AgentTableProps> = ({
                                             appearance="subtle"
                                             size="small"
                                             icon={<MoreHorizontal16Regular />}
-                                            aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInVisualView)}
+                                            aria-label={intl.formatMessage(ExtendedAgentsGraphResources.openInCanvasView)}
                                         />
                                     </MenuTrigger>
                                     <MenuPopover>
@@ -351,105 +344,47 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(SreAgentResources.deleteAgentNotificationTitle, { count: selectedAgents.length }),
-            intl.formatMessage(SreAgentResources.deleteAgentNotificationDescription, {
+            intl.formatMessage(SreAgentResources.deleteAgentNotificationInProgress, {
                 count: selectedAgents.length,
-                name:
-                    agentNames.length === 1
-                        ? agentNames[0]
-                        : `${agentNames.length} ${intl.formatMessage(SreAgentResources.agents).toLowerCase()}`,
+                name: agentNames[0],
             })
         );
 
-        try {
-            const responses = await Promise.all(
-                selectedAgents.map(async agentItem => {
-                    const response = await agentClient.deleteExtendedAgent(agentItem.name);
-                    return { agentName: agentItem.name, response };
-                })
+        const responses = await Promise.all(selectedAgents.map(agent => agentClient.deleteExtendedAgent(agent.name + '/testerror')));
+        if (responses.some(response => response.isSuccessful)) {
+            azPortalContext.log({
+                action: 'delete-agents',
+                actionModifier: 'success',
+                logLevel: 'info',
+                data: { agentNames },
+            });
+
+            await refresh();
+            azPortalContext.stopNotification(
+                notificationId,
+                true,
+                intl.formatMessage(SreAgentResources.deleteAgentNotificationSuccess, { count: selectedAgents.length, name: agentNames[0] })
             );
-
-            const failures = responses.filter(({ response }) => !response.isSuccessful);
-
-            if (failures.length === 0) {
-                azPortalContext.log({
-                    action: 'delete-agents',
-                    actionModifier: 'success',
-                    logLevel: 'info',
-                    data: { agentNames },
-                });
-
-                azPortalContext.stopNotification(
-                    notificationId,
-                    true,
-                    intl.formatMessage(SreAgentResources.deleteAgentNotificationSuccess, {
-                        count: selectedAgents.length,
-                        name:
-                            agentNames.length === 1
-                                ? agentNames[0]
-                                : `${agentNames.length} ${intl.formatMessage(SreAgentResources.agents).toLowerCase()}`,
-                    })
-                );
-
-                refresh();
-            } else {
-                const failedAgents = failures.map(f => f.agentName);
-                const errorMessages = failures
-                    .map(f => getDataPlaneErrorMessage(f.response.error) || getErrorMessageOrStringify(f.response.error))
-                    .join('; ');
-
-                azPortalContext.log({
-                    action: 'delete-agents',
-                    actionModifier: 'failure',
-                    logLevel: 'error',
-                    data: {
-                        failedAgents,
-                        error: errorMessages,
-                    },
-                });
-
-                azPortalContext.stopNotification(
-                    notificationId,
-                    false,
-                    intl.formatMessage(SreAgentResources.deleteAgentNotificationError, {
-                        count: failedAgents.length,
-                        name:
-                            failedAgents.length === 1
-                                ? failedAgents[0]
-                                : `${failedAgents.length} ${intl.formatMessage(SreAgentResources.agents).toLowerCase()}`,
-                        errorMessage: errorMessages || undefined,
-                    })
-                );
-                if (failures.length < selectedAgents.length) {
-                    refresh();
-                }
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : intl.formatMessage(GenericErrorResources.unknownError);
+        } else {
+            const errorMessage = responses.find(r => !r.isSuccessful)?.error;
             azPortalContext.log({
                 action: 'delete-agents',
                 actionModifier: 'failure',
                 logLevel: 'error',
-                data: {
-                    agentNames,
-                    error: errorMessage,
-                },
+                data: { agentNames, errorMessage },
             });
 
             azPortalContext.stopNotification(
                 notificationId,
                 false,
-                `${intl.formatMessage(SreAgentResources.deleteAgentNotificationError, {
+                intl.formatMessage(SreAgentResources.deleteAgentNotificationFailure, {
                     count: selectedAgents.length,
-                    name:
-                        agentNames.length === 1
-                            ? agentNames[0]
-                            : `${agentNames.length} ${intl.formatMessage(SreAgentResources.agents).toLowerCase()}`,
-                    errorMessage: errorMessage || undefined,
-                })}`
+                    name: agentNames[0],
+                    errorMessage,
+                })
             );
-        } finally {
-            setIsDeleting(false);
         }
+        setIsDeleting(false);
     }, [selectedAgents, azPortalContext, intl, agentClient, refresh]);
 
     return (

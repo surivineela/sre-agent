@@ -71,7 +71,7 @@ export const ScheduledTaskTable: FC<ScheduledTaskTableProps> = ({
         return (
             <>
                 <TableHeaderCell className={styles.tableHeader}>
-                    {intl.formatMessage(ExtendedAgentsGraphResources.scheduledTriggerNameTitle)}
+                    {intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskNameTitle)}
                 </TableHeaderCell>
                 <TableHeaderCell className={styles.tableHeader}>
                     {intl.formatMessage(ExtendedAgentsGraphResources.statusLabel)}
@@ -189,32 +189,53 @@ const ScheduledTaskTableToolbar = memo<ScheduledTaskTableToolbarProps>(
         const handleDelete = useCallback(async () => {
             setIsDeleting(true);
             setShowDeleteConfirmationDialog(false);
+            const taskIds = selectedTasks?.map(task => task.id) || [];
+
+            azPortalContext.log({
+                action: 'delete-scheduled-tasks',
+                actionModifier: 'start',
+                logLevel: 'info',
+                data: { taskIds },
+            });
+
             const notificationId = azPortalContext.startNotification(
                 intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationTitleMultiple),
                 intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationInProgressMultiple)
             );
 
-            try {
-                const responses = await Promise.all(selectedTasks?.map(task => deleteTask(task.id ?? '')) || []);
-                if (responses.some(response => response.isSuccessful)) {
-                    await refresh();
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessMultiple)
-                    );
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, {
-                            errorMessage: responses.find(r => !r.isSuccessful)?.error,
-                        })
-                    );
-                }
-            } finally {
-                setIsDeleting(false);
+            const responses = await Promise.all(selectedTasks?.map(task => deleteTask(task.id ?? '')) || []);
+            if (responses.some(response => response.isSuccessful)) {
+                azPortalContext.log({
+                    action: 'delete-scheduled-tasks',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    data: { taskIds },
+                });
+
+                await refresh();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessMultiple)
+                );
+            } else {
+                const errorMessage = responses.find(r => !r.isSuccessful)?.error;
+                azPortalContext.log({
+                    action: 'delete-scheduled-tasks',
+                    actionModifier: 'failure',
+                    logLevel: 'error',
+                    data: { taskIds, errorMessage },
+                });
+
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationFailure, {
+                        errorMessage,
+                    })
+                );
             }
+            setIsDeleting(false);
         }, [azPortalContext, deleteTask, intl, refresh, selectedTasks]);
 
         return (

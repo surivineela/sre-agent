@@ -171,7 +171,7 @@ export const PanelHeader = memo(
                                         >
                                             {selectedTrigger.type === 'incident'
                                                 ? intl.formatMessage(SreAgentResources.deleteIncidentTriggerMenuTitle)
-                                                : intl.formatMessage(SreAgentResources.deleteScheduledTriggerMenuTitle)}
+                                                : intl.formatMessage(SreAgentResources.deleteScheduledTaskMenuTitle)}
                                         </MenuItem>
                                     )}
                                     {headerEditContext?.type === 'skill' && selectedSkill && (

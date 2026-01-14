@@ -2,7 +2,6 @@ import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { mixed, object, string } from 'yup';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessageOrStringify } from '../../../Common/Clients/ArmClient';
 import { roundTimeToNearestMinuteInterval } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -137,39 +136,28 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                         name: values.name,
                     })
                 );
-                try {
-                    setIsOperationInProgress(true);
-                    const response = await createTask(body);
-                    if (response.isSuccessful) {
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            true,
-                            intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationSuccess, {
-                                name: values.name,
-                            })
-                        );
-                    } else {
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            false,
-                            intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationError, {
-                                errorMessage: response.error,
-                            })
-                        );
-                    }
-                    return response;
-                } catch (error) {
+                setIsOperationInProgress(true);
+                const response = await createTask(body);
+                if (response.isSuccessful) {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationSuccess, {
+                            name: values.name,
+                        })
+                    );
+                } else {
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationError, {
-                            errorMessage: getErrorMessageOrStringify(error),
+                        intl.formatMessage(ScheduledTasksResources.createScheduledTaskNotificationFailure, {
+                            errorMessage: response.error,
                         })
                     );
-                } finally {
-                    setIsSaving(false);
-                    setIsOperationInProgress(false);
                 }
+                setIsSaving(false);
+                setIsOperationInProgress(false);
+                return response;
             } else {
                 const notificationId = azPortalContext.startNotification(
                     intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationTitle),
@@ -177,40 +165,28 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                         name: values.name,
                     })
                 );
-                try {
-                    setIsOperationInProgress(true);
-                    const response = await updateTask(scheduledTask?.id ?? '', body);
-                    if (response.isSuccessful) {
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            true,
-                            intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationSuccess, {
-                                name: values.name,
-                            })
-                        );
-                    } else {
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            false,
-                            intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationError, {
-                                errorMessage: response.error,
-                            })
-                        );
-                    }
-
-                    return response;
-                } catch (error) {
+                setIsOperationInProgress(true);
+                const response = await updateTask(scheduledTask?.id ?? '', body);
+                if (response.isSuccessful) {
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationSuccess, {
+                            name: values.name,
+                        })
+                    );
+                } else {
                     azPortalContext.stopNotification(
                         notificationId,
                         false,
-                        intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationError, {
-                            errorMessage: getErrorMessageOrStringify(error),
+                        intl.formatMessage(ScheduledTasksResources.updateScheduledTaskNotificationFailure, {
+                            errorMessage: response.error,
                         })
                     );
-                } finally {
-                    setIsSaving(false);
-                    setIsOperationInProgress(false);
                 }
+                setIsSaving(false);
+                setIsOperationInProgress(false);
+                return response;
             }
         },
         [

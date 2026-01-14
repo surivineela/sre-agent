@@ -16,16 +16,9 @@ import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
-import { getDataPlaneErrorMessage } from '../../../../Common/Clients/DataPlaneClient';
 import { IncidentHandlerClient } from '../../../../Common/Clients/IncidentHandlerClient';
 import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
-import {
-    ExtendedAgentsGraphResources,
-    GenericErrorResources,
-    ScheduledTasksResources,
-    SreAgentResources,
-} from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
@@ -226,7 +219,6 @@ const IncidentTriggerTableToolbar = memo<IncidentTriggerTableToolbarProps>(
             setIsDeleting(true);
             setShowDeleteConfirmationDialog(false);
             const triggerNames = selectedTriggers.map(trigger => trigger.name);
-            const triggerCount = selectedTriggers.length;
 
             azPortalContext.log({
                 action: 'delete-incident-triggers',
@@ -236,96 +228,51 @@ const IncidentTriggerTableToolbar = memo<IncidentTriggerTableToolbarProps>(
             });
 
             const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationTitle, { count: triggerCount }),
-                intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationDescription, {
-                    count: triggerCount,
-                    name: triggerCount === 1 ? triggerNames[0] : undefined,
+                intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationTitle, { count: selectedTriggers.length }),
+                intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationInProgress, {
+                    count: selectedTriggers.length,
+                    name: triggerNames[0],
                 })
             );
 
-            try {
-                const responses = await Promise.all(
-                    selectedTriggers.map(async triggerItem => {
-                        const response = await incidentHandlerClient.deleteIncidentFilter(triggerItem.name);
-                        return { triggerName: triggerItem.name, response };
+            const responses = await Promise.all(selectedTriggers.map(trigger => incidentHandlerClient.deleteIncidentFilter(trigger.name)));
+            if (responses.some(response => response.isSuccessful)) {
+                azPortalContext.log({
+                    action: 'delete-incident-triggers',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    data: { triggerNames },
+                });
+
+                await refresh();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationSuccess, {
+                        count: selectedTriggers.length,
+                        name: triggerNames[0],
                     })
                 );
-
-                const failures = responses.filter(({ response }) => !response.isSuccessful);
-
-                if (failures.length === 0) {
-                    azPortalContext.log({
-                        action: 'delete-incident-triggers',
-                        actionModifier: 'success',
-                        logLevel: 'info',
-                        data: { triggerNames },
-                    });
-
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationSuccess, {
-                            count: triggerCount,
-                            name: triggerCount === 1 ? triggerNames[0] : undefined,
-                        })
-                    );
-
-                    refresh();
-                } else {
-                    const failedTriggers = failures.map(f => f.triggerName);
-                    const failedCount = failedTriggers.length;
-                    const errorMessages = failures
-                        .map(f => getDataPlaneErrorMessage(f.response.error) || getErrorMessageOrStringify(f.response.error))
-                        .join('; ');
-
-                    azPortalContext.log({
-                        action: 'delete-incident-triggers',
-                        actionModifier: 'failure',
-                        logLevel: 'error',
-                        data: {
-                            failedTriggers,
-                            error: errorMessages,
-                        },
-                    });
-
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationError, {
-                            count: failedCount,
-                            name: failedCount === 1 ? failedTriggers[0] : undefined,
-                            errorMessage: errorMessages || undefined,
-                        })
-                    );
-                    if (failures.length < selectedTriggers.length) {
-                        refresh();
-                    }
-                }
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : intl.formatMessage(GenericErrorResources.unexpectedError);
-
+            } else {
+                const errorMessage = responses.find(r => !r.isSuccessful)?.error;
                 azPortalContext.log({
                     action: 'delete-incident-triggers',
                     actionModifier: 'failure',
                     logLevel: 'error',
-                    data: {
-                        triggerNames,
-                        error: errorMessage,
-                    },
+                    data: { triggerNames, errorMessage },
                 });
 
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationError, {
-                        count: triggerCount,
-                        name: triggerCount === 1 ? triggerNames[0] : undefined,
-                        errorMessage: errorMessage || undefined,
+                    intl.formatMessage(SreAgentResources.deleteIncidentTriggerNotificationFailure, {
+                        count: selectedTriggers.length,
+                        name: triggerNames[0],
+                        errorMessage,
                     })
                 );
-            } finally {
-                setIsDeleting(false);
             }
+            setIsDeleting(false);
         }, [azPortalContext, incidentHandlerClient, intl, refresh, selectedTriggers]);
 
         return (

@@ -74,12 +74,14 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                     metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
                 });
             } else {
+                const errorMessage = deleteFilterResponse.error;
                 portalContext.log({
                     action: 'deleteIncidentFilter',
                     actionModifier: 'failed',
                     logLevel: 'error',
                     data: {
                         message: `Failed to delete incident filter`,
+                        errorMessage,
                     },
                 });
                 portalContext.logAmplitudeOperationEvent({
@@ -92,7 +94,9 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(IncidentManagementNotificationResources.deleteFilterError)
+                    intl.formatMessage(IncidentManagementNotificationResources.deleteFilterError, {
+                        errorMessage,
+                    })
                 );
             }
         },
@@ -132,18 +136,22 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                     metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
                 });
             } else {
+                const errorMessage = createFilterResponse.error;
                 portalContext.log({
                     action: 'createIncidentFilter',
                     actionModifier: 'failed',
                     logLevel: 'error',
                     data: {
                         message: `Failed to create incident filter`,
+                        errorMessage,
                     },
                 });
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(IncidentManagementNotificationResources.createFilterError)
+                    intl.formatMessage(IncidentManagementNotificationResources.createFilterError, {
+                        errorMessage,
+                    })
                 );
                 portalContext.logAmplitudeOperationEvent({
                     targetAction: 'failed',
@@ -195,18 +203,22 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                     metadata: { incidentHandlersCount: incidentFilters?.length ?? 0 },
                 });
             } else {
+                const errorMessage = updateFilterResponse.error;
                 portalContext.log({
                     action: 'updateIncidentFilter',
                     actionModifier: 'failed',
                     logLevel: 'error',
                     data: {
                         message: `Failed to update incident filter`,
+                        errorMessage,
                     },
                 });
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(IncidentManagementNotificationResources.updateFilterError)
+                    intl.formatMessage(IncidentManagementNotificationResources.updateFilterError, {
+                        errorMessage,
+                    })
                 );
                 portalContext.logAmplitudeOperationEvent({
                     targetAction: 'failed',
@@ -238,18 +250,22 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                     return updated ?? [];
                 });
             } else {
+                const errorMessage = enableFilterResponse.error;
                 portalContext.log({
                     action: 'enableIncidentFilter',
                     actionModifier: 'failed',
                     logLevel: 'error',
                     data: {
                         message: `Failed to enable incident filter`,
+                        errorMessage,
                     },
                 });
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(IncidentManagementNotificationResources.enableFilterError)
+                    intl.formatMessage(IncidentManagementNotificationResources.enableFilterError, {
+                        errorMessage,
+                    })
                 );
             }
         },
@@ -274,18 +290,22 @@ export const useIncidentFilters = (filterType: 'subagentTrigger' | 'filter' | 'a
                     return updated ?? [];
                 });
             } else {
+                const errorMessage = disableFilterResponse.error;
                 portalContext.log({
                     action: 'disableIncidentFilter',
                     actionModifier: 'failed',
                     logLevel: 'error',
                     data: {
                         message: `Failed to disable incident filter`,
+                        errorMessage,
                     },
                 });
                 portalContext.stopNotification(
                     notification,
                     false,
-                    intl.formatMessage(IncidentManagementNotificationResources.disableFilterError)
+                    intl.formatMessage(IncidentManagementNotificationResources.disableFilterError, {
+                        errorMessage,
+                    })
                 );
             }
         },

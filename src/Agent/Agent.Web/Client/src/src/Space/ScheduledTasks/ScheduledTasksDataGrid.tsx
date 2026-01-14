@@ -29,7 +29,6 @@ import { Link } from '@fluentui/react/lib/Link';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import { getHumanReadableCronExpression } from '../../Common/Helpers/CronExpression';
 import { getLocaleDateTimeHHMM } from '../../Common/Helpers/Date';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -84,7 +83,7 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
     const { scrollable } = useScrollableComponentStyles();
 
     const azPortalContext = useContext(AzPortalContext);
-    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, getTaskExecutions, isOperationInProgress, setIsOperationInProgress } =
+    const { refreshTasks, pauseTask, resumeTask, runTask, deleteTask, isOperationInProgress, setIsOperationInProgress } =
         useContext(ScheduledTasksContext);
 
     const [editingTask, setEditingTask] = useState<ScheduledTask | null>(null);
@@ -106,34 +105,23 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationInProgressSingle, { name: name ?? id })
             );
 
-            try {
-                setIsOperationInProgress(true);
-                const response = await pauseTask(id);
-                if (response.isSuccessful) {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationSuccessSingle, { name: name ?? id })
-                    );
-                    await refreshTasks();
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationError, { errorMessage: response.error })
-                    );
-                }
-            } catch (error) {
+            setIsOperationInProgress(true);
+            const response = await pauseTask(id);
+            if (response.isSuccessful) {
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationSuccessSingle, { name: name ?? id })
+                );
+                await refreshTasks();
+            } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationError, {
-                        errorMessage: getErrorMessageOrStringify(error),
-                    })
+                    intl.formatMessage(ScheduledTasksResources.pauseScheduledTaskNotificationFailure, { errorMessage: response.error })
                 );
-            } finally {
-                setIsOperationInProgress(false);
             }
+            setIsOperationInProgress(false);
         },
         [azPortalContext, intl, setIsOperationInProgress, pauseTask, refreshTasks]
     );
@@ -147,34 +135,23 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationInProgressSingle, { name: name ?? id })
             );
 
-            try {
-                setIsOperationInProgress(true);
-                const response = await resumeTask(id);
-                if (response.isSuccessful) {
-                    await refreshTasks();
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationSuccessSingle, { name: name ?? id })
-                    );
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationError, { errorMessage: response.error })
-                    );
-                }
-            } catch (error) {
+            setIsOperationInProgress(true);
+            const response = await resumeTask(id);
+            if (response.isSuccessful) {
+                await refreshTasks();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationSuccessSingle, { name: name ?? id })
+                );
+            } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationError, {
-                        errorMessage: getErrorMessageOrStringify(error),
-                    })
+                    intl.formatMessage(ScheduledTasksResources.resumeScheduledTaskNotificationFailure, { errorMessage: response.error })
                 );
-            } finally {
-                setIsOperationInProgress(false);
             }
+            setIsOperationInProgress(false);
         },
         [azPortalContext, intl, setIsOperationInProgress, resumeTask, refreshTasks]
     );
@@ -187,8 +164,6 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationTitleSingle),
                 intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationInProgressSingle, { name: name ?? id })
             );
-
-            console.log(await getTaskExecutions(id));
 
             setIsOperationInProgress(true);
             const response = await runTask(id);
@@ -203,12 +178,12 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationError, { errorMessage: response.error })
+                    intl.formatMessage(ScheduledTasksResources.runScheduledTaskNotificationFailure, { errorMessage: response.error })
                 );
             }
             setIsOperationInProgress(false);
         },
-        [azPortalContext, intl, getTaskExecutions, setIsOperationInProgress, runTask, refreshTasks]
+        [azPortalContext, intl, setIsOperationInProgress, runTask, refreshTasks]
     );
 
     const onDeleteTask = useCallback(
@@ -220,34 +195,23 @@ export const ScheduledTasksDataGrid: FC<ScheduledTasksDataGridProps> = ({
                 intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationInProgressSingle, { name: name ?? id })
             );
 
-            try {
-                setIsOperationInProgress(true);
-                const response = await deleteTask(id);
-                if (response.isSuccessful) {
-                    await refreshTasks();
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessSingle, { name: name ?? id })
-                    );
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, { errorMessage: response.error })
-                    );
-                }
-            } catch (error) {
+            setIsOperationInProgress(true);
+            const response = await deleteTask(id);
+            if (response.isSuccessful) {
+                await refreshTasks();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationSuccessSingle, { name: name ?? id })
+                );
+            } else {
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationError, {
-                        errorMessage: getErrorMessageOrStringify(error),
-                    })
+                    intl.formatMessage(ScheduledTasksResources.deleteScheduledTaskNotificationFailure, { errorMessage: response.error })
                 );
-            } finally {
-                setIsOperationInProgress(false);
             }
+            setIsOperationInProgress(false);
         },
         [azPortalContext, intl, setIsOperationInProgress, deleteTask, refreshTasks]
     );

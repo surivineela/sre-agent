@@ -67,9 +67,9 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                     layout="horizontal"
                     onChange={(_, data) => onViewChange(data.value as ExtendedAgentGraphView)}
                 >
-                    <Radio value={ExtendedAgentGraphView.Visual} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
+                    <Radio value={ExtendedAgentGraphView.Canvas} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
                     <Radio
-                        value={ExtendedAgentGraphView.Grid}
+                        value={ExtendedAgentGraphView.Table}
                         label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)}
                         disabled={showEmptyState}
                     />

@@ -15,16 +15,9 @@ import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getErrorMessageOrStringify } from '../../../../Common/Clients/ArmClient';
-import { getDataPlaneErrorMessage } from '../../../../Common/Clients/DataPlaneClient';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
-import {
-    ExtendedAgentsGraphResources,
-    GenericErrorResources,
-    ScheduledTasksResources,
-    SreAgentResources,
-} from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
@@ -244,7 +237,6 @@ const KustoToolTableToolbar = memo<KustoToolTableToolbarProps>(
             setIsDeleting(true);
             setShowDeleteConfirmationDialog(false);
             const toolNames = selectedTools.map(tool => tool.name);
-            const toolCount = selectedTools.length;
 
             azPortalContext.log({
                 action: 'delete-tools',
@@ -254,96 +246,51 @@ const KustoToolTableToolbar = memo<KustoToolTableToolbarProps>(
             });
 
             const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationTitle, { count: toolCount }),
-                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationDescription, {
-                    count: toolCount,
-                    name: toolCount === 1 ? toolNames[0] : undefined,
+                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationTitle, { count: selectedTools.length }),
+                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationInProgress, {
+                    count: selectedTools.length,
+                    name: toolNames[0],
                 })
             );
 
-            try {
-                const responses = await Promise.all(
-                    selectedTools.map(async toolItem => {
-                        const response = await agentClient.deleteKustoTool(toolItem.name);
-                        return { toolName: toolItem.name, response };
+            const responses = await Promise.all(selectedTools.map(tool => agentClient.deleteKustoTool(tool.name)));
+            if (responses.some(response => response.isSuccessful)) {
+                azPortalContext.log({
+                    action: 'delete-tools',
+                    actionModifier: 'success',
+                    logLevel: 'info',
+                    data: { toolNames },
+                });
+
+                await refresh();
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(SreAgentResources.deleteKustoToolNotificationSuccess, {
+                        count: selectedTools.length,
+                        name: toolNames[0],
                     })
                 );
-
-                const failures = responses.filter(({ response }) => !response.isSuccessful);
-
-                if (failures.length === 0) {
-                    azPortalContext.log({
-                        action: 'delete-tools',
-                        actionModifier: 'success',
-                        logLevel: 'info',
-                        data: { toolNames },
-                    });
-
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(SreAgentResources.deleteKustoToolNotificationSuccess, {
-                            count: toolCount,
-                            name: toolCount === 1 ? toolNames[0] : undefined,
-                        })
-                    );
-
-                    refresh();
-                } else {
-                    const failedTools = failures.map(f => f.toolName);
-                    const failedCount = failedTools.length;
-                    const errorMessages = failures
-                        .map(f => getDataPlaneErrorMessage(f.response.error) || getErrorMessageOrStringify(f.response.error))
-                        .join('; ');
-
-                    azPortalContext.log({
-                        action: 'delete-tools',
-                        actionModifier: 'failure',
-                        logLevel: 'error',
-                        data: {
-                            failedAgents: failedTools,
-                            error: errorMessages,
-                        },
-                    });
-
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(SreAgentResources.deleteKustoToolNotificationError, {
-                            count: failedCount,
-                            name: failedCount === 1 ? failedTools[0] : undefined,
-                            errorMessage: errorMessages || undefined,
-                        })
-                    );
-                    if (failures.length < selectedTools.length) {
-                        refresh();
-                    }
-                }
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : intl.formatMessage(GenericErrorResources.unexpectedError);
-
+            } else {
+                const errorMessage = responses.find(r => !r.isSuccessful)?.error;
                 azPortalContext.log({
                     action: 'delete-tools',
                     actionModifier: 'failure',
                     logLevel: 'error',
-                    data: {
-                        agentNames: toolNames,
-                        error: errorMessage,
-                    },
+                    data: { toolNames, errorMessage },
                 });
 
                 azPortalContext.stopNotification(
                     notificationId,
                     false,
-                    intl.formatMessage(SreAgentResources.deleteKustoToolNotificationError, {
-                        count: toolCount,
-                        name: toolCount === 1 ? toolNames[0] : undefined,
-                        errorMessage: errorMessage || undefined,
+                    intl.formatMessage(SreAgentResources.deleteKustoToolNotificationFailure, {
+                        count: selectedTools.length,
+                        name: toolNames[0],
+                        errorMessage,
                     })
                 );
-            } finally {
-                setIsDeleting(false);
             }
+            setIsDeleting(false);
         }, [agentClient, azPortalContext, intl, refresh, selectedTools]);
 
         return (

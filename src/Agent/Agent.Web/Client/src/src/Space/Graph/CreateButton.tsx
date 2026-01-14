@@ -76,7 +76,7 @@ const CreateButton = memo(
                                         </MenuItem>
                                     )}
                                     <MenuItem onClick={() => handleCreateItemStandalone('scheduledTask')}>
-                                        {intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskTriggerCreateMenuLabel)}
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.scheduledTaskCreateMenuLabel)}
                                     </MenuItem>
                                 </MenuList>
                             </MenuPopover>
