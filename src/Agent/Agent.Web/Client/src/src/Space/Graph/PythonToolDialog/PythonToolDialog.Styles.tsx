@@ -249,4 +249,146 @@ export const usePythonToolDialogStyles = makeStyles({
         overflow: 'auto',
         paddingBottom: tokens.spacingVerticalM,
     },
+
+    // Auth Panel styles
+    authPanel: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        flex: 1,
+        overflow: 'auto',
+        paddingTop: tokens.spacingVerticalM,
+    },
+    authSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    authHeaderRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
+    authToggleRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+    },
+    authDescription: {
+        color: tokens.colorNeutralForeground3,
+    },
+    authDivider: {
+        height: '1px',
+        backgroundColor: tokens.colorNeutralStroke2,
+        marginTop: tokens.spacingVerticalS,
+        marginBottom: tokens.spacingVerticalS,
+    },
+    authPresetRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+        marginTop: tokens.spacingVerticalS,
+    },
+    authPresetButtons: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalS,
+        flexWrap: 'wrap',
+    },
+    authScopesList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+        marginTop: tokens.spacingVerticalM,
+    },
+    authScopeItem: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        padding: tokens.spacingVerticalS,
+        backgroundColor: tokens.colorNeutralBackground2,
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    authScopeText: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: tokens.spacingVerticalXXS,
+        flex: 1,
+        minWidth: 0,
+    },
+    authScopeUrl: {
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+        wordBreak: 'break-all',
+    },
+    authScopeHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
+    authScopeName: {
+        fontWeight: tokens.fontWeightSemibold,
+        fontSize: tokens.fontSizeBase300,
+        wordBreak: 'break-all',
+    },
+    authPrimaryBadge: {
+        color: tokens.colorBrandForeground1,
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        fontFamily: tokens.fontFamilyBase,
+    },
+    authVariableRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        marginTop: tokens.spacingVerticalXS,
+    },
+    authVariableInput: {
+        flex: 1,
+        maxWidth: '200px',
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+    },
+    authCustomScopeRow: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalS,
+        marginTop: tokens.spacingVerticalS,
+    },
+    authCustomScopeInput: {
+        flex: 1,
+    },
+    authSnippetPreview: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        padding: tokens.spacingVerticalM,
+        overflow: 'auto',
+        maxHeight: '200px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    authSnippetCode: {
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        fontSize: tokens.fontSizeBase200,
+        margin: 0,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-all',
+    },
+    authSnippetInfo: {
+        marginTop: tokens.spacingVerticalS,
+    },
+    authWarning: {
+        marginTop: tokens.spacingVerticalM,
+    },
+    infoIcon: {
+        color: tokens.colorNeutralForeground3,
+        cursor: 'help',
+    },
+    newCodeIndicator: {
+        display: 'inline-block',
+        width: '8px',
+        height: '8px',
+        borderRadius: '50%',
+        backgroundColor: tokens.colorBrandForeground1,
+        marginLeft: tokens.spacingHorizontalXS,
+        verticalAlign: 'middle',
+    },
 });

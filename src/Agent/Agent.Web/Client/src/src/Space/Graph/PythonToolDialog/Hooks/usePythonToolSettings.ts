@@ -1,13 +1,19 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { array, number, object, string } from 'yup';
+import { array, boolean, number, object, string } from 'yup';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedTool } from '../../../Contracts/ExtendedAgentGraph';
 import { ENTITY_NAME_MAX_LENGTH } from '../../ExtendedAgentCreationDialog/utils/nameValidation';
-import { PythonToolDialogMode, PythonToolFormProps, getDefaultCode } from '../PythonToolUtilities';
+import {
+    PythonToolDialogMode,
+    PythonToolFormProps,
+    getDefaultCode,
+    scopeConfigsToStrings,
+    scopeStringsToConfigs,
+} from '../PythonToolUtilities';
 
 export const usePythonToolSettings = (mode: PythonToolDialogMode, tool?: ExtendedTool) => {
     const intl = useIntl();
@@ -23,6 +29,8 @@ export const usePythonToolSettings = (mode: PythonToolDialogMode, tool?: Extende
             functionCode: tool?.functionCode ?? getDefaultCode(),
             timeoutSeconds: tool?.timeoutSeconds ?? 120,
             parameters: tool?.parameters ?? [],
+            authEnabled: tool?.authEnabled ?? false,
+            authScopes: scopeStringsToConfigs(tool?.authScopes),
         };
     }, [tool]);
 
@@ -62,6 +70,13 @@ export const usePythonToolSettings = (mode: PythonToolDialogMode, tool?: Extende
                         required: string(),
                     })
                 ),
+                authEnabled: boolean(),
+                authScopes: array()
+                    .of(string())
+                    .when('authEnabled', {
+                        is: true,
+                        then: schema => schema.min(1, intl.formatMessage(SreAgentResources.pythonToolAuthScopeRequired)),
+                    }),
             }),
         [intl]
     );
@@ -77,53 +92,42 @@ export const usePythonToolSettings = (mode: PythonToolDialogMode, tool?: Extende
                 functionCode: values.functionCode,
                 timeoutSeconds: values.timeoutSeconds,
                 parameters: values.parameters,
+                authEnabled: values.authEnabled,
+                authScopes: scopeConfigsToStrings(values.authScopes),
             };
 
-            if (mode === PythonToolDialogMode.Create) {
-                const notificationId = azPortalContext.startNotification(
-                    intl.formatMessage(ExtendedAgentsGraphResources.createPythonToolTitle),
-                    intl.formatMessage(ExtendedAgentsGraphResources.createPythonToolInProgress)
-                );
+            const isCreate = mode === PythonToolDialogMode.Create;
+            const resources = isCreate
+                ? {
+                      title: ExtendedAgentsGraphResources.createPythonToolTitle,
+                      inProgress: ExtendedAgentsGraphResources.createPythonToolInProgress,
+                      success: ExtendedAgentsGraphResources.toolCreatedSuccessfully,
+                      failure: ExtendedAgentsGraphResources.failedToCreateTool,
+                  }
+                : {
+                      title: ExtendedAgentsGraphResources.updatePythonToolTitle,
+                      inProgress: ExtendedAgentsGraphResources.updatePythonToolInProgress,
+                      success: ExtendedAgentsGraphResources.toolUpdatedSuccessfully,
+                      failure: ExtendedAgentsGraphResources.failedToUpdateTool,
+                  };
 
-                const response = await extendedAgentClient.applyEntity(body, 'tool');
-                if (response.isSuccessful) {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ExtendedAgentsGraphResources.toolCreatedSuccessfully)
-                    );
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ExtendedAgentsGraphResources.failedToCreateTool, { errorMessage: response.error })
-                    );
-                }
-                setIsSaving(false);
-                return response;
-            } else {
-                const notificationId = azPortalContext.startNotification(
-                    intl.formatMessage(ExtendedAgentsGraphResources.updatePythonToolTitle),
-                    intl.formatMessage(ExtendedAgentsGraphResources.updatePythonToolInProgress)
-                );
+            const notificationId = azPortalContext.startNotification(
+                intl.formatMessage(resources.title),
+                intl.formatMessage(resources.inProgress)
+            );
 
-                const response = await extendedAgentClient.applyEntity(body, 'tool');
-                if (response.isSuccessful) {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        true,
-                        intl.formatMessage(ExtendedAgentsGraphResources.toolUpdatedSuccessfully)
-                    );
-                } else {
-                    azPortalContext.stopNotification(
-                        notificationId,
-                        false,
-                        intl.formatMessage(ExtendedAgentsGraphResources.failedToUpdateTool, { errorMessage: response.error })
-                    );
-                }
-                setIsSaving(false);
-                return response;
-            }
+            const response = await extendedAgentClient.applyEntity(body, 'tool');
+
+            azPortalContext.stopNotification(
+                notificationId,
+                response.isSuccessful,
+                response.isSuccessful
+                    ? intl.formatMessage(resources.success)
+                    : intl.formatMessage(resources.failure, { errorMessage: response.error })
+            );
+
+            setIsSaving(false);
+            return response;
         },
         [azPortalContext, extendedAgentClient, intl, mode]
     );

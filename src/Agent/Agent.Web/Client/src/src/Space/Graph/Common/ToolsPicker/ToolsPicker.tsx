@@ -11,7 +11,7 @@ import {
     useTableHeaderCellStyles_unstable,
     useTableHeaderStyles_unstable,
     useTableRow_unstable,
-    useTableRowStyles_unstable
+    useTableRowStyles_unstable,
 } from '@fluentui/react-components';
 import { ChevronDownRegular, ChevronRightRegular } from '@fluentui/react-icons';
 import { createRef, FC, useCallback, useMemo } from 'react';
@@ -78,7 +78,10 @@ export const ToolsPicker: FC<ToolsPickerProps> = ({
 
     // Calculate if all tools are selected
     const allToolKeys = useMemo(() => groups.flatMap(group => group.tools.map(tool => tool.key)), [groups]);
-    const allToolsSelected = useMemo(() => allToolKeys.length > 0 && allToolKeys.every(key => selectedToolKeys.includes(key)), [allToolKeys, selectedToolKeys]);
+    const allToolsSelected = useMemo(
+        () => allToolKeys.length > 0 && allToolKeys.every(key => selectedToolKeys.includes(key)),
+        [allToolKeys, selectedToolKeys]
+    );
     const someToolsSelected = useMemo(() => allToolKeys.some(key => selectedToolKeys.includes(key)), [allToolKeys, selectedToolKeys]);
 
     return (

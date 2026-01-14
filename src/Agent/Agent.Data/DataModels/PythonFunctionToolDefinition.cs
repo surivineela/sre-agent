@@ -22,6 +22,12 @@ namespace Agent.Data.Tools
         [YamlMember(Alias = "dependencies")]
         public List<string> Dependencies { get; set; } = new List<string>();
 
+        [YamlMember(Alias = "auth_enabled")]
+        public bool AuthEnabled { get; set; } = false;
+
+        [YamlMember(Alias = "auth_scopes")]
+        public List<string>? AuthScopes { get; set; }
+
         public override void Validate()
         {
             if (string.IsNullOrWhiteSpace(FunctionCode))

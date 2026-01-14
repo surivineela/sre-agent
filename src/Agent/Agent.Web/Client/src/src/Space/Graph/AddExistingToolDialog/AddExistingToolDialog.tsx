@@ -29,18 +29,10 @@ export const AddExistingToolDialog: FC<AddExistingToolDialogProps> = ({
 }) => {
     const agentName = useMemo(() => toolPickerInfo?.agent?.name, [toolPickerInfo?.agent?.name]);
     const excludedToolNames = useMemo(
-        () => [
-            ...(toolPickerInfo?.agent?.tools || []),
-            ...(toolPickerInfo?.agent?.systemTools || []),
-        ],
+        () => [...(toolPickerInfo?.agent?.tools || []), ...(toolPickerInfo?.agent?.systemTools || [])],
         [toolPickerInfo?.agent?.tools, toolPickerInfo?.agent?.systemTools]
     );
-    const excludedMcpToolNames = useMemo(
-        () => [
-            ...(toolPickerInfo?.agent?.mcpTools || []),
-        ],
-        [toolPickerInfo?.agent?.mcpTools]
-    );
+    const excludedMcpToolNames = useMemo(() => [...(toolPickerInfo?.agent?.mcpTools || [])], [toolPickerInfo?.agent?.mcpTools]);
 
     return (
         <Dialog
@@ -117,7 +109,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
         systemTools,
         mcpConnections,
         excludedToolNames,
-        excludedMcpToolNames
+        excludedMcpToolNames,
     });
 
     return (
@@ -138,11 +130,7 @@ const AddExistingToolDialogInner: FC<AddExistingToolDialogInnerProps> = ({
                         {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingTools)}
                     </DialogTitle>
                 </div>
-                <PillSet
-                    items={pillItems}
-                    onRemoveItem={key => onSelectedToolChange(key, false)}
-                    onClearAll={onClearSelectedTools}
-                />
+                <PillSet items={pillItems} onRemoveItem={key => onSelectedToolChange(key, false)} onClearAll={onClearSelectedTools} />
                 <div className={styles.dialogContentWrapper}>
                     <ToolsPicker
                         toolTypeOptions={toolTypeOptions}

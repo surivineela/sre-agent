@@ -344,8 +344,8 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
                             {isSaving
                                 ? intl.formatMessage(ExtendedAgentsGraphResources.saving)
                                 : isEditMode
-                                    ? intl.formatMessage(ExtendedAgentsGraphResources.save)
-                                    : intl.formatMessage(ExtendedAgentsGraphResources.create)}
+                                  ? intl.formatMessage(ExtendedAgentsGraphResources.save)
+                                  : intl.formatMessage(ExtendedAgentsGraphResources.create)}
                         </Button>
                     </DialogActions>
                 </DialogBody>

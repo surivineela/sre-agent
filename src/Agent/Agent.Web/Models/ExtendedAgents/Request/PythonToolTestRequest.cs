@@ -35,4 +35,14 @@ public class PythonToolTestRequest
     /// Parameter definitions extracted from function signature (optional)
     /// </summary>
     public List<YamlParameter> ParameterDefinitions { get; set; } = new();
+
+    /// <summary>
+    /// Whether Azure Identity authentication is enabled
+    /// </summary>
+    public bool AuthEnabled { get; set; } = false;
+
+    /// <summary>
+    /// List of Azure AD token scopes the tool can access
+    /// </summary>
+    public List<string>? AuthScopes { get; set; }
 }

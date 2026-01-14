@@ -21,5 +21,11 @@ namespace Agent.Cli.Models
 
         [YamlMember(Alias = "dependencies", Order = 12, DefaultValuesHandling = DefaultValuesHandling.OmitEmptyCollections)]
         public List<string>? Dependencies { get; set; }
+
+        [YamlMember(Alias = "authEnabled", Order = 13, DefaultValuesHandling = DefaultValuesHandling.OmitDefaults)]
+        public bool AuthEnabled { get; set; } = false;
+
+        [YamlMember(Alias = "authScopes", Order = 14, DefaultValuesHandling = DefaultValuesHandling.OmitEmptyCollections)]
+        public List<string>? AuthScopes { get; set; }
     }
 }

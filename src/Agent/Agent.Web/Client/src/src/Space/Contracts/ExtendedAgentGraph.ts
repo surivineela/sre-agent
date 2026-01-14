@@ -105,6 +105,9 @@ export type ExtendedTool = {
     functionCode?: string;
     timeoutSeconds?: number;
     dependencies?: string[];
+    // Python tool auth settings
+    authEnabled?: boolean;
+    authScopes?: string[];
 };
 
 export type ToolParameter = {
@@ -372,6 +375,8 @@ export interface GeneratePythonToolRequest {
     suggestedName?: string;
     timeoutSeconds?: number;
     existingCode?: string;
+    authEnabled?: boolean;
+    authScopes?: { scope: string; variableName: string }[];
 }
 
 export interface GeneratePythonToolResponse {

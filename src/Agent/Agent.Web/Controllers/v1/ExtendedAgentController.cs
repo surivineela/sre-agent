@@ -825,7 +825,10 @@ User Intent (between <<< and >>>):
                 ? string.Empty
                 : $"\n\nExisting code:\n```python\n{request.ExistingCode}\n```\n\n";
 
-            var prompt = systemPrompt + existingCodeContext + request.Intent + "\n>>>";
+            // Include Azure Identity auth context if enabled
+            var authContext = GetAuthContextPrompt(request);
+
+            var prompt = systemPrompt + existingCodeContext + authContext + request.Intent + "\n>>>";
 
             var chatOptions = new ChatOptions { Temperature = 0.7f };
             var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
@@ -929,6 +932,30 @@ User Intent (between <<< and >>>):
                 ErrorMessage = ex.Message
             });
         }
+    }
+
+    /// <summary>
+    /// Builds the Azure Identity auth context prompt section for code generation
+    /// </summary>
+    private static string GetAuthContextPrompt(GeneratePythonToolRequest request)
+    {
+        if (!request.AuthEnabled || request.AuthScopes.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var tokenVars = string.Join(", ", request.AuthScopes.Select(s => $"{s.VariableName} (for {s.Scope})"));
+        var hasExistingAuth = request.ExistingCode?.Contains("from azure.identity import DefaultAzureCredential") == true;
+
+        if (hasExistingAuth)
+        {
+            return $"\n\nNOTE: Azure Identity authentication is already configured. Available token variables: {tokenVars}. Do NOT add duplicate authentication code.\n\n";
+        }
+
+        var exampleVar = request.AuthScopes[0].VariableName;
+        return $"\n\nAZURE IDENTITY: This tool has Azure Identity enabled. Available token variables: {tokenVars}. " +
+               $"Auth code is auto-injected - do NOT include DefaultAzureCredential. " +
+               $"Example usage: headers = {{'Authorization': f'Bearer {{{exampleVar}}}'}}\n\n";
     }
 
     /// <summary>

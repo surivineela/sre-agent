@@ -10,6 +10,7 @@ import InputFormik from '../../../Common/Components/Input/InputFormik';
 import TextareaFormik from '../../../Common/Components/Textarea/TextareaFormik';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { sanitizeEntityName } from '../ExtendedAgentCreationDialog/utils/nameValidation';
+import { PythonToolAuthPanel } from './PythonToolAuthPanel';
 import { usePythonToolDialogStyles } from './PythonToolDialog.Styles';
 import {
     PythonToolFormProps,
@@ -30,6 +31,8 @@ interface PythonToolCodeAndTestPanelProps {
     selectedTab: RightPanelTabValue;
     setSelectedTab: (tab: RightPanelTabValue) => void;
     onFixWithAI: (errorMessage: string) => void;
+    hasNewCode: boolean;
+    setHasNewCode: (hasNew: boolean) => void;
 }
 
 export const PythonToolCodeAndTestPanel: FC<PythonToolCodeAndTestPanelProps> = ({
@@ -41,6 +44,8 @@ export const PythonToolCodeAndTestPanel: FC<PythonToolCodeAndTestPanelProps> = (
     selectedTab,
     setSelectedTab,
     onFixWithAI,
+    hasNewCode,
+    setHasNewCode,
 }) => {
     const intl = useIntl();
     const styles = usePythonToolDialogStyles();
@@ -222,11 +227,27 @@ export const PythonToolCodeAndTestPanel: FC<PythonToolCodeAndTestPanelProps> = (
         onFixWithAI(errorMessage);
     }, [testError, testResult, onFixWithAI]);
 
+    const handleTabSelect = useCallback(
+        (_: unknown, data: { value: unknown }) => {
+            const tab = data.value as RightPanelTabValue;
+            setSelectedTab(tab);
+            // Clear the new code indicator when user views the code tab
+            if (tab === 'code' && hasNewCode) {
+                setHasNewCode(false);
+            }
+        },
+        [setSelectedTab, hasNewCode, setHasNewCode]
+    );
+
     return (
         <div className={styles.codeAndTestPanel}>
-            <TabList selectedValue={selectedTab} onTabSelect={(_, data) => setSelectedTab(data.value as RightPanelTabValue)}>
-                <Tab value="code">{intl.formatMessage(SreAgentResources.pythonToolCreatorCodeTab)}</Tab>
+            <TabList selectedValue={selectedTab} onTabSelect={handleTabSelect}>
+                <Tab value="code">
+                    {intl.formatMessage(SreAgentResources.pythonToolCreatorCodeTab)}
+                    {hasNewCode && selectedTab !== 'code' && <span className={styles.newCodeIndicator} />}
+                </Tab>
                 <Tab value="test">{intl.formatMessage(SreAgentResources.pythonToolCreatorTestPlaygroundTab)}</Tab>
+                <Tab value="auth">{intl.formatMessage(SreAgentResources.pythonToolAuthTabLabel)}</Tab>
             </TabList>
 
             {/* Code Tab */}
@@ -395,6 +416,9 @@ export const PythonToolCodeAndTestPanel: FC<PythonToolCodeAndTestPanelProps> = (
                     )}
                 </div>
             )}
+
+            {/* Auth Tab */}
+            {selectedTab === 'auth' && <PythonToolAuthPanel isGenerating={isGenerating} />}
         </div>
     );
 };

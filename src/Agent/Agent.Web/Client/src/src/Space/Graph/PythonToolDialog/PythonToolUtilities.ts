@@ -1,11 +1,21 @@
 import { ToolParameter } from '../../Contracts/ExtendedAgentGraph';
 
+/**
+ * Configuration for an auth scope with its environment variable name
+ */
+export interface AuthScopeConfig {
+    scope: string;
+    variableName: string;
+}
+
 export interface PythonToolFormProps {
     name: string;
     description: string;
     functionCode: string;
     timeoutSeconds: number;
     parameters: ToolParameter[];
+    authEnabled: boolean;
+    authScopes: AuthScopeConfig[];
 }
 
 export enum PythonToolDialogMode {
@@ -24,7 +34,129 @@ export interface TestResult {
 }
 
 export type ToolTestStatus = 'idle' | 'running' | 'success' | 'error';
-export type RightPanelTabValue = 'code' | 'test';
+export type RightPanelTabValue = 'code' | 'test' | 'auth';
+
+/**
+ * Predefined scope presets for quick selection
+ */
+export const AUTH_SCOPE_PRESETS = [
+    {
+        id: 'arm',
+        label: 'ARM',
+        scope: 'https://management.azure.com/.default',
+        description: 'Azure Resource Manager',
+        defaultVariableName: 'AZURE_ARM_TOKEN',
+    },
+    {
+        id: 'keyvault',
+        label: 'Key Vault',
+        scope: 'https://vault.azure.net/.default',
+        description: 'Azure Key Vault',
+        defaultVariableName: 'AZURE_KEYVAULT_TOKEN',
+    },
+    {
+        id: 'storage',
+        label: 'Storage',
+        scope: 'https://storage.azure.com/.default',
+        description: 'Azure Storage',
+        defaultVariableName: 'AZURE_STORAGE_TOKEN',
+    },
+] as const;
+
+/**
+ * Default scope when auth is enabled
+ */
+export const DEFAULT_AUTH_SCOPE: AuthScopeConfig = {
+    scope: 'https://management.azure.com/.default',
+    variableName: 'AZURE_ARM_TOKEN',
+};
+
+/**
+ * Generates a default variable name for a scope URL
+ */
+export function getDefaultVariableName(scope: string): string {
+    const preset = AUTH_SCOPE_PRESETS.find(p => p.scope === scope);
+    if (preset) {
+        return preset.defaultVariableName;
+    }
+
+    // Generate name from scope URL: https://graph.microsoft.com/.default -> AZURE_GRAPH_TOKEN
+    try {
+        const hostname = new URL(scope).hostname;
+        const serviceName = hostname
+            .split('.')[0]
+            .replace(/[^a-zA-Z0-9]/g, '_')
+            .toUpperCase();
+        return `AZURE_${serviceName}_TOKEN`;
+    } catch {
+        return 'AZURE_CUSTOM_TOKEN';
+    }
+}
+
+/**
+ * Creates an AuthScopeConfig from a scope URL with default variable name
+ */
+export function createAuthScopeConfig(scope: string, variableName?: string): AuthScopeConfig {
+    return {
+        scope,
+        variableName: variableName ?? getDefaultVariableName(scope),
+    };
+}
+
+/**
+ * Converts an array of scope strings to AuthScopeConfig array (for loading from API)
+ */
+export function scopeStringsToConfigs(scopes: string[] | undefined): AuthScopeConfig[] {
+    if (!scopes?.length) return [];
+    return scopes.map(scope => createAuthScopeConfig(scope));
+}
+
+/**
+ * Converts AuthScopeConfig array to scope strings (for saving to API)
+ */
+export function scopeConfigsToStrings(configs: AuthScopeConfig[]): string[] {
+    return configs.map(c => c.scope);
+}
+
+/**
+ * Gets the preset info for a scope URL, if it matches a known preset
+ */
+export function getScopePresetInfo(scope: string): { label: string; description: string } | null {
+    const preset = AUTH_SCOPE_PRESETS.find(p => p.scope === scope);
+    if (!preset) return null;
+    return { label: preset.label, description: preset.description };
+}
+
+/**
+ * Generates the auth snippet code for the Python tool showing all configured scopes
+ */
+export function getAuthSnippetCode(scopes: AuthScopeConfig[]): string {
+    if (scopes.length === 0) return '';
+
+    const tokenLines = scopes.map(s => `${s.variableName} = credential.get_token("${s.scope}").token`).join('\n');
+
+    return `# Azure Identity Authentication
+from azure.identity import DefaultAzureCredential
+
+credential = DefaultAzureCredential()
+${tokenLines}
+`;
+}
+
+/**
+ * Checks if the code already contains the auth snippet
+ */
+export function hasAuthSnippet(code: string): boolean {
+    return code.includes('from azure.identity import DefaultAzureCredential');
+}
+
+/**
+ * Inserts the auth snippet at the beginning of the code if not already present
+ */
+export function insertAuthSnippet(code: string, scopes: AuthScopeConfig[]): string {
+    if (hasAuthSnippet(code) || scopes.length === 0) return code;
+    return getAuthSnippetCode(scopes) + code;
+}
 
 /**
  * Default Python code template for new tools

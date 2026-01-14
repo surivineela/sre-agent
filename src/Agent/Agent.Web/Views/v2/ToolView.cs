@@ -392,6 +392,10 @@ public class PythonToolView : ToolView
 
     public Settable<List<string>> Dependencies { get; set; }
 
+    public Settable<bool> AuthEnabled { get; set; }
+
+    public Settable<List<string>> AuthScopes { get; set; }
+
     public static ApiResponseEnvelope<PythonToolView> CreateApiResponseEnvelope(PythonToolDocumentModel toolDoc)
     {
         var tool = toolDoc.Spec;
@@ -405,6 +409,8 @@ public class PythonToolView : ToolView
             TimeoutSeconds = tool.TimeoutSeconds,
             Dependencies = tool.Dependencies,
             ToolMode = tool.ToolMode,
+            AuthEnabled = tool.AuthEnabled,
+            AuthScopes = tool.AuthScopes,
         };
 
         var paramView = new List<ParameterView>();
@@ -494,6 +500,8 @@ public class PythonToolView : ToolView
             properties.TimeoutSeconds.ApplyTo(value => result.Spec.TimeoutSeconds = value);
             properties.Dependencies.ApplyTo(value => result.Spec.Dependencies = value);
             properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
+            properties.AuthEnabled.ApplyTo(value => result.Spec.AuthEnabled = value);
+            properties.AuthScopes.ApplyTo(value => result.Spec.AuthScopes = value);
         });
 
         return result;

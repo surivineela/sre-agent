@@ -320,6 +320,27 @@ export const SreAgentResources = defineMessages({
         id: 'cJucrk',
         defaultMessage: 'Timeout cannot exceed 900 seconds',
     },
+    // Python Tool Auth Tab
+    pythonToolAuthTabLabel: { id: 'tShbyC', defaultMessage: 'Identity' },
+    pythonToolAuthTitle: { id: 'wNiFkY', defaultMessage: 'Azure Identity Access' },
+    pythonToolAuthToggleLabel: { id: '+75DYS', defaultMessage: 'Enable Azure Identity' },
+    pythonToolAuthToggleDescription: { id: 'BKWMyZ', defaultMessage: 'Allow this tool to obtain Azure AD tokens using managed identity' },
+    pythonToolAuthScopesTitle: { id: '/LP30t', defaultMessage: 'Token Scopes' },
+    pythonToolAuthScopesDescription: { id: 'ebco+P', defaultMessage: 'Configure which Azure resources this tool can access' },
+    pythonToolAuthQuickAddLabel: { id: 'Q2SMg3', defaultMessage: 'Quick Add:' },
+    pythonToolAuthConfiguredScopes: { id: '9XI008', defaultMessage: 'Configured Scopes:' },
+    pythonToolAuthAddCustomScope: { id: '2/2yg+', defaultMessage: 'Add' },
+    pythonToolAuthSnippetTitle: { id: '+mO9i4', defaultMessage: 'Code Snippet' },
+    pythonToolAuthSnippetInfo: {
+        id: '+kfoS2',
+        defaultMessage: 'This code will be automatically added to your function when auth is enabled.',
+    },
+    pythonToolAuthScopeRequired: { id: 'o3D/w5', defaultMessage: 'At least one scope is required when auth is enabled' },
+    pythonToolAuthRemoveScope: { id: 'tE6XYS', defaultMessage: 'Remove scope' },
+    pythonToolAuthCustomScopePlaceholder: { id: 'DDrO0c', defaultMessage: 'Enter scope URL (e.g., https://example.com/.default)' },
+    pythonToolAuthPrimaryBadge: { id: 't2Wr8I', defaultMessage: 'Primary' },
+    pythonToolAuthCustomScope: { id: 'x9Q0OP', defaultMessage: 'Custom Scope' },
+    pythonToolAuthVariableName: { id: 'UiDeMx', defaultMessage: 'Variable name' },
     deleteToolTitle: {
         id: 'bn84V+',
         defaultMessage: 'Delete tool',
@@ -3942,8 +3963,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     installMcpDialogTitle: { defaultMessage: 'Install SRE Agent MCP Server to VS Code', id: 'CA4K2B' },
     installMcpDialogDescription: {
         defaultMessage:
-            'Install the SRE Agent MCP server to enable AI-assisted development of custom agents, subagents, scheduled tasks, and incident handlers. It provides tools for configuration, validation, code generation, and includes comprehensive platform documentation with session memory for multi-turn conversations.\n\n**Available Tools:**\n- **Agent Building:** Documentation, configuration, trigger setup, YAML generation, validation\n- **Subagent Building:** Custom C# subagent creation, tool methods, dependencies, handoffs, code generation\n- **Knowledge Base:** Session memory, topic learning, knowledge search, deep dive examples\n- **Session Management:** Session summary, notes, and memory management',
-        id: 'EEzLAA',
+            'Install the SRE Agent MCP server to enable AI-assisted development of custom agents, subagents, scheduled tasks, and incident handlers. It provides tools for configuration, validation, code generation, and includes comprehensive platform documentation with session memory for multi-turn conversations. **Available Tools:**\n- **Agent Building:** Documentation, configuration, trigger setup, YAML generation, validation\n- **Subagent Building:** Custom C# subagent creation, tool methods, dependencies, handoffs, code generation\n- **Knowledge Base:** Session memory, topic learning, knowledge search, deep dive examples\n- **Session Management:** Session summary, notes, and memory management',
+        id: 'JqSiqE',
     },
     installMcpDialogInstallButton: { defaultMessage: 'Install', id: 'ubmFc8' },
     installMcpDialogCloseButton: { defaultMessage: 'Close', id: 'rbrahO' },

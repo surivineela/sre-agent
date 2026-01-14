@@ -343,7 +343,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
         values.customInstructions,
         values.isIncidentTriggerWithLearnings,
         setFieldValue,
-        allMcpToolNames
+        allMcpToolNames,
     ]);
 
     const deleteHandler = useCallback(() => {

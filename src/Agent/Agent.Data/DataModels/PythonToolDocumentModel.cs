@@ -34,6 +34,8 @@ public record PythonToolDocumentModel : ToolDocumentModel
             FunctionCode = Spec.FunctionCode,
             TimeoutSeconds = Spec.TimeoutSeconds,
             Dependencies = Spec.Dependencies ?? new List<string>(),
+            AuthEnabled = Spec.AuthEnabled,
+            AuthScopes = Spec.AuthScopes,
         };
     }
 }
@@ -46,4 +48,6 @@ public class PythonToolSpec : ToolSpec
     public string FunctionCode { get; set; } = string.Empty;
     public int TimeoutSeconds { get; set; } = 120;
     public List<string>? Dependencies { get; set; }
+    public bool AuthEnabled { get; set; } = false;
+    public List<string>? AuthScopes { get; set; }
 }

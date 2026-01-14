@@ -47,6 +47,8 @@ export const PythonToolAssistantPanel: FC<PythonToolAssistantPanelProps> = ({
                 suggestedName: values.name || undefined,
                 timeoutSeconds: values.timeoutSeconds || 120,
                 existingCode: values.functionCode || undefined,
+                authEnabled: values.authEnabled || false,
+                authScopes: values.authScopes || [],
             });
 
             if (!response.isSuccessful) {

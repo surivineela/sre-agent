@@ -17,4 +17,10 @@ public class PythonToolApiModel : ExtendedAgentToolApiModel
 
     [YamlMember(Alias = "dependencies")]
     public List<string> Dependencies { get; set; } = new();
+
+    [YamlMember(Alias = "auth_enabled")]
+    public bool AuthEnabled { get; set; } = false;
+
+    [YamlMember(Alias = "auth_scopes")]
+    public List<string>? AuthScopes { get; set; }
 }

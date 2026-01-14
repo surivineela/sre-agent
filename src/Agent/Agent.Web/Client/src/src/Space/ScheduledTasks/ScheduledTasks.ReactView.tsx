@@ -1,5 +1,5 @@
-import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { mergeClasses, Text } from '@fluentui/react-components';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { TextWithLink } from '../../Common/Components/TextWithLink';

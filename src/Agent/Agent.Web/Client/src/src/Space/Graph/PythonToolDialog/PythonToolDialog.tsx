@@ -53,6 +53,7 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [rightPanelTab, setRightPanelTab] = useState<RightPanelTabValue>('code');
     const [prompt, setPrompt] = useState<string>('');
+    const [hasNewCode, setHasNewCode] = useState<boolean>(false);
 
     // Reset state when dialog opens
     useEffect(() => {
@@ -62,11 +63,13 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
             setIsGenerating(false);
             setRightPanelTab('code');
             setPrompt('');
+            setHasNewCode(false);
         }
     }, [isDialogOpen]);
 
     const handleGenerationComplete = useCallback(() => {
         setRightPanelTab('test');
+        setHasNewCode(true); // Show indicator on Code tab
     }, []);
 
     const handleFixWithAI = useCallback((errorMessage: string) => {
@@ -140,6 +143,8 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
                                             selectedTab={rightPanelTab}
                                             setSelectedTab={setRightPanelTab}
                                             onFixWithAI={handleFixWithAI}
+                                            hasNewCode={hasNewCode}
+                                            setHasNewCode={setHasNewCode}
                                         />
                                     </div>
                                 </DialogContent>

@@ -157,15 +157,15 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                 selectedSidePanelType === ChatBoxSidePanelType.AgentTask
                     ? '50%'
                     : selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan
-                        ? '480px'
-                        : '450px',
+                      ? '480px'
+                      : '450px',
         },
         defaultSidePanelWidth:
             selectedSidePanelType === ChatBoxSidePanelType.AgentTask
                 ? undefined
                 : selectedSidePanelType === ChatBoxSidePanelType.ToDoPlan
-                    ? '520px'
-                    : '40%',
+                  ? '520px'
+                  : '40%',
         onResize: selectedSidePanelType === ChatBoxSidePanelType.AgentTask ? () => agentTaskGraphRef.current?.centerGraph() : undefined,
         sidePanelWidth,
         setSidePanelWidth,

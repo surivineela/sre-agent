@@ -7,7 +7,7 @@ import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../String
 export interface PillSetItem {
     key: string;
     label: string;
-};
+}
 
 export interface PillSetProps {
     items: PillSetItem[];
@@ -15,7 +15,7 @@ export interface PillSetProps {
     onClearAll: () => void;
     disabled?: boolean;
     className?: string;
-};
+}
 
 export const PillSet: FC<PillSetProps> = ({ items, onRemoveItem, onClearAll, disabled, className }) => {
     const intl = useIntl();
