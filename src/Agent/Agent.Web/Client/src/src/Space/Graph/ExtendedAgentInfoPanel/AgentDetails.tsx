@@ -4,10 +4,10 @@ import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
+import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
 import { useExtendedAgentInfoStyles } from '../../Styles/ExtendedAgentGraph.styles';
 import { HandoffsTable } from './HandoffsTable';
 import { ToolsTable } from './ToolsTable';
-import { constructNavItemId } from '../../Utilities';
 
 type AgentDetailsProps = {
     agent: ExtendedAgent;
@@ -23,6 +23,7 @@ export const AgentDetails = memo(
     ({ agent, agents, toolNames, toolMap, systemToolMap, memoryEnabled, documentCount }: AgentDetailsProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
+        const navigate = useAgentSiteNavigate();
 
         return (
             <>
@@ -47,11 +48,12 @@ export const AgentDetails = memo(
                     {memoryEnabled && documentCount !== null && (
                         <div className={styles.marginTopLeft}>
                             <Link
-                                href={`#/${constructNavItemId(
-                                    PrimaryNavItemValues.Settings,
-                                    SecondaryNavItemValues.KnowledgeBase,
-                                    undefined
-                                )}`}
+                                onClick={() =>
+                                    navigate({
+                                        primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                        secondaryNavItemValue: SecondaryNavItemValues.KnowledgeBase,
+                                    })
+                                }
                                 className={styles.knowledgeBaseLink}
                             >
                                 {documentCount > 0
