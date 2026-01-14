@@ -643,13 +643,13 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                     InvestigationStatus.InProgress)
             );
 
+            _logger.LogInternalInformation("[IncidentHandlingService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}, attempting to set home agent to '{CurrentAgent}'", thread.Id, request.IncidentId, string.IsNullOrEmpty(currentAgent) ? "(none)" : currentAgent);
+
             if (!string.IsNullOrEmpty(currentAgent))
             {
                 // Set as home agent - during auto handoff, the agent will return to this agent
                 await _reasoningLoopManager.SetHomeAgentAsync(agentContext, currentAgent);
             }
-
-            _logger.LogInternalInformation("[IncidentHandlingService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId} with CurrentAgent: {CurrentAgent}", thread.Id, request.IncidentId, currentAgent);
 
             // Emit agent action telemetry for meta thread creation with incident source
             try

@@ -72,11 +72,11 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     where TContext : class
 {
     // A map from Agent name -> Agent descriptor
-    private readonly Dictionary<string, Agent<TContext>> _agents = [];
+    private readonly Dictionary<string, Agent<TContext>> _agents = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = [];
-    private readonly Dictionary<string, IPromptDescriptor> _promptDescriptors = [];
-    private readonly Dictionary<string, List<string>> _commonToolsDescriptors = [];
+    private readonly Dictionary<string, IAgentDescriptor> _agentDescriptors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IPromptDescriptor> _promptDescriptors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<string>> _commonToolsDescriptors = new(StringComparer.OrdinalIgnoreCase);
     private readonly ILogger<AgentFactory<TContext>> _logger;
     private readonly IToolFactory<TContext> _toolFactory;
     private readonly IChatClientProvider _chatClientProvider;

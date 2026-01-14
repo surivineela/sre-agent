@@ -248,10 +248,13 @@ public class ReasoningLoop : IDisposable
             _currentAgent = currentAgent;
             _defaultStartingAgent = currentAgent;  // Set as home agent. during auto handoff, the agent will return to this agent
             _context = await _threadRepository.UpdateAgentContextAsync(_context);
+
+            _logger.LogInternalInformation("Successfully set home agent to '{AgentName}' for thread {ThreadId}", agentName, _context.ThreadId);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // no-op
+            _logger.LogInternalWarning(ex, "Failed to set home agent '{AgentName}' for thread {ThreadId}. Continuing with current agent '{CurrentAgent}'.",
+                agentName, _context.ThreadId, _currentAgent.Name);
         }
     }
 

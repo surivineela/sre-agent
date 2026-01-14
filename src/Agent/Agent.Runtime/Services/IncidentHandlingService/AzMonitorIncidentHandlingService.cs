@@ -679,7 +679,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         {
             // Set as home agent - during auto handoff, the agent will return to this agent
             await _reasoningLoopManager.SetHomeAgentAsync(agentContext, handlingAgent);
-            _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThread: Set home agent to '{handlingAgent}' for thread {thread.Id}");
         }
 
         try
@@ -816,7 +815,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
 
         // Custom handler / subagent handoff - set as home agent so it persists across auto handoffs
         await _reasoningLoopManager.SetHomeAgentAsync(agentContext, dynamicAgentName);
-        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] CreateIncidentThreadWithHandler: Set home agent to '{dynamicAgentName}' for thread {thread.Id}");
 
         // Emit agent action telemetry for thread creation
         try
