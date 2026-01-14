@@ -1,4 +1,4 @@
-name: code_execution_runtime
+name: executing_code_and_shell_commands
 description: |
   This skill enables any Python code execution (Jupyter environment) and copilot like POSIX shell commands for general programming, web content retrieval, data analysis, automation, and artifact (csv, txt, pdf, pptx, docx etc) generation with full outbound network connectivity in a VM.
 

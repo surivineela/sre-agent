@@ -1573,7 +1573,7 @@ public static class Runner
     }
 
     private static void AddSkillsReminderIfNeeded<TContext>(
-        IList<ChatMessage> modelInput,
+        List<ChatMessage> modelInput,
         Agent<TContext> agent,
         SkillList activeSkills
     ) where TContext : class

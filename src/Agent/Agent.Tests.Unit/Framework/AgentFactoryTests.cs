@@ -944,6 +944,13 @@ public class TestTodoWritePrompt : IPromptDescriptor
     public string Prompt { get; set; } = PromptText;
 }
 
+public class TestSkillsPrompt : IPromptDescriptor
+{
+    public const string PromptText = "# Skills Enabled Instructions\n\nYou have access to various skills to assist you in completing tasks effectively. Utilize these skills as needed to enhance your performance.";
+    public string Name { get; set; } = "skills";
+    public string Prompt { get; set; } = PromptText;
+}
+
 public class TestCommonPrompt : IPromptDescriptor
 {
     public const string PromptText = "test prompt text";

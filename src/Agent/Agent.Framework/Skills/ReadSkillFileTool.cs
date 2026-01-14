@@ -41,12 +41,7 @@ public class ReadSkillFileTool<TContext>(
     Skills help you gain domain-specific expertise and knowledge, and may also add additional tools for specialized operations.
     You MUST load and utilize the relevant skills to inform your actions and decisions. Do not attempt to answer domain-specific questions without first loading the appropriate skill(s).
 
-    Skills contain detailed instructions, examples, best practices, and tools for specific domains such as:
-    - Kubernetes cluster management and troubleshooting
-    - PostgreSQL performance diagnostics and optimization
-    - Azure Container Apps autoscaling and diagnostics
-    - Azure Monitor metrics analysis and visualization
-    - And many other specialized domains
+    Skills contain detailed instructions, examples, best practices, and tools for specific domains.
 
     How to use skills effectively:
     1. **Start with SKILL.md**: ALWAYS begin by reading the main SKILL.md file from a skill. This file is guaranteed to exist and contains the primary skill instructions.
@@ -80,11 +75,12 @@ public class ReadSkillFileTool<TContext>(
     - You want to follow best practices for a specific technology or platform
     - You need examples of how to solve domain-specific problems
 
-    Important:
+    **IMPORTANT**:
     - Only use skills listed in <available_skills> below
     - Do not attempt to read files that are not part of the skill set
-    - Do not read metadata.yaml
+    - Do not read metadata.yaml (this information is already provided in <available_skills>)
     - Do not read skill files more than once per task to avoid redundancy
+    - Follow the instructions and best practices outlined in the skill files closely. If the skill outlines a specific workflow, adhere to it strictly.
 
     <blocked_handling>
     When you are blocked:
@@ -115,27 +111,14 @@ public class ReadSkillFileTool<TContext>(
     <sample_skills>
     - metrics_and_chart_visualization: Skill for analyzing and visualizing metrics with charts
     - scheduled_task: Skill for setting up recurring monitoring tasks
-    - logs_resource_discovery: Skill for discovering monitoring resources
     - aks_general: Skill for general AKS operations
-    - container_apps: Skill for managing Azure Container Apps
-    - web_app_down: Skill for diagnosing web app downtime
-    - function_app: Skill for managing Azure Functions
-    - logic_app: Skill for managing Azure Logic Apps
-    - postgresql: Skill for managing Azure PostgreSQL databases
-    - cannot_connect_to_vm: Skill for diagnosing VM connectivity issues
+    - executing_code: Skill for executing code snippets
     </sample_skills>
     <decisions>
     - User: "Show CPU metrics for X" → Assistant: Load `metrics_and_chart_visualization` skill → Execute analysis
     - User: "Can you keep monitoring my resource foo?" → Assistant: Load `scheduled_task` skill for recurring monitoring setup
-    - User: "What changed at 2 PM?" → Assistant: Discover resources → Analyze activity logs
-    - User: "What monitoring resources are associated to a resource?" → Assistant: Load `logs_resource_discovery` skill
     - User: "AKS: list deployments" → Assistant: Load `aks_general` skill → Execute kubectl commands per skill guidance
-    - User: "Container App network issues" → Assistant: Load `container_apps` skill → Apply networking troubleshooting procedures
-    - User: "Web App errors" → Assistant: Load `web_app_down` skill → Diagnose using skill best practices
-    - User: "Function App is down" → Assistant: Load `function_app` skill → Execute diagnostic procedures
-    - User: "Logic Apps recommendations" → Assistant: Load `logic_app` skill
-    - User: "PostgreSQL performance" → Assistant: Load `postgresql` skill → Apply performance diagnostics
-    - User: "Cannot connect to VM" → Assistant: Load `cannot_connect_to_vm` skill → Execute connectivity diagnostics
+    - User: "Generate a report with charts" → Assistant: Load `executing_code` skill → Use code execution and PDF generation tools as per skill instructions
     </decisions>
     </example_context>
     </example_decision_flows>
@@ -195,6 +178,7 @@ public class ReadSkillFileTool<TContext>(
     #region Statics
 
     public const string ToolName = "read_skill_file";
+    public const string CommonPromptName = "skills";
 
     private static readonly JsonElement InputJsonSchema = AIJsonUtilities.CreateFunctionJsonSchema(
         method: typeof(ReadSkillFileTool<TContext>).GetMethod(nameof(ReadSkillFile))!);

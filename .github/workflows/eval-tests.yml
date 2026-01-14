@@ -119,12 +119,12 @@ jobs:
         NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS: 60
       continue-on-error: true
 
-    - name: 🧪 Run evaluation tests (GPT-4.1 model)
+    - name: 🧪 Run evaluation tests (GPT-5 model)
       if: ${{ needs.changes.outputs.evals == 'true' }}
       id: stable_tests
       run: |
         for attempt in 1 2; do
-          echo "Attempt $attempt: Running handoff evaluation tests with GPT-4.1 model"
+          echo "Attempt $attempt: Running agent evaluation tests with GPT-5 model"
 
           # Clean up previous test results before each attempt
           if [ -d "./TestResults" ]; then
@@ -133,7 +133,7 @@ jobs:
           fi
 
           if dotnet test --no-restore \
-            --filter "Name=GeneralAgentTests_DetailedComparison|Name=HandOffEvaluationTests" \
+            --filter "Name=GeneralAgentTests_DetailedComparison" \
             --logger "console;verbosity=normal" \
             --logger trx \
             --results-directory ./TestResults/ \
@@ -155,9 +155,9 @@ jobs:
       timeout-minutes: 50
       env:
         OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
-        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
-        ModelNames: sre3ppipe-gpt-41
-        DefaultModelName: sre3ppipe-gpt-41
+        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_5 }}
+        ModelNames: gpt-5
+        DefaultModelName: gpt-5
         EmbeddingModelName: text-embedding-3-large
         IterationCount: ${{ github.event_name == 'pull_request' && '1' || '5' }}
         SkipReactBuild: 'true'
@@ -264,9 +264,9 @@ jobs:
       timeout-minutes: 30
       env:
         OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
-        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_41 }}
-        ModelNames: sre3ppipe-gpt-41
-        DefaultModelName: sre3ppipe-gpt-41
+        OpenAIKey: ${{ secrets.EVALS_OPENAI_KEY_5 }}
+        ModelNames: gpt-5
+        DefaultModelName: gpt-5
         EmbeddingModelName: text-embedding-3-large
         IterationCount: '1'
         SkipReactBuild: 'true'

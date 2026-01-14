@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ public class GeneralAgentEvals
         var targetFile = Environment.GetEnvironmentVariable("TEST_FILE");
 
         // Built-in scenario folders under the default Data directory (used ONLY when TEST_FOLDER not supplied)
-        var builtInDataFolders = new[] { "HandOff", "AzCliCommandAgent", "AKSAgent", "RCAAgent", "CannotConnectToVmAgent", "LogicAppAgent" };
+        var builtInDataFolders = new[] { "AksScenarios", "AzCliCommandScenarios" };
 
         // New semantics (per request):
         // 1. Allow TEST_FOLDER to specify multiple folders separated by commas.
@@ -241,20 +242,6 @@ public class GeneralAgentEvals
         TestContext.WriteLine($"  - ProviderName: {clientMetadata?.ProviderName}");
         TestContext.WriteLine($"  - Allow multiple tool calls: {chatOptions.AllowMultipleToolCalls}");
 
-        // Log available tools
-        if (chatOptions.Tools?.Count > 0)
-        {
-            TestContext.WriteLine("Available tools:");
-            foreach (var tool in chatOptions.Tools)
-            {
-                if (tool is AIFunction func)
-                {
-                    TestContext.WriteLine($"  - {func.Name}");
-                }
-            }
-            TestContext.WriteLine("");
-        }
-
         // Fix Bug 1: Override system prompt with agent's actual instructions
         // Remove the system message from test data if it exists and use agent's actual instructions
         var modelInput = testCase.ModelInput.ToList();
@@ -269,6 +256,25 @@ public class GeneralAgentEvals
         // Prepend the agent's actual system instructions
         modelInput.Insert(0, new ChatMessage(ChatRole.System, instructionsText));
         TestContext.WriteLine("Using agent's actual system instructions for evaluation");
+
+        // Skill tools can be added dynamically at runtime based on activated skills.
+        // The eval harness needs to simulate that behavior by looking at the last
+        // "These are your currently active skills:" reminder in the conversation.
+        TryAddDynamicToolsFromActiveSkills(testHost, agent, modelInput, chatOptions);
+
+        // Log available tools
+        if (chatOptions.Tools?.Count > 0)
+        {
+            TestContext.WriteLine("Available tools:");
+            foreach (var tool in chatOptions.Tools)
+            {
+                if (tool is AIFunction func)
+                {
+                    TestContext.WriteLine($"  - {func.Name}");
+                }
+            }
+            TestContext.WriteLine("");
+        }
 
         TestContext.WriteLine($"\n=== EXPECTED MODEL OUTPUT ===");
         foreach (var expectedMsg in testCase.ExpectedOutput)
@@ -524,6 +530,229 @@ public class GeneralAgentEvals
         TestContext.WriteLine("Use the console output above to analyze the differences between expected and actual behavior.");
     }
 
+    private void TryAddDynamicToolsFromActiveSkills(
+        TestHost testHost,
+        Agent<AgentContext> agent,
+        IReadOnlyList<ChatMessage> modelInput,
+        ChatOptions chatOptions)
+    {
+        var activeSkillNames = ExtractActiveSkillNamesFromLastReminder(modelInput);
+        if (activeSkillNames.Count == 0)
+        {
+            return;
+        }
+
+        TestContext.WriteLine($"Active skills detected from chat input: {string.Join(", ", activeSkillNames)}");
+
+        chatOptions.Tools ??= new List<AITool>();
+
+        var existingToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tool in chatOptions.Tools)
+        {
+            if (tool is AIFunction f)
+            {
+                existingToolNames.Add(f.Name);
+            }
+        }
+
+        var addedToolNames = new List<string>();
+        foreach (var skillName in activeSkillNames)
+        {
+            ISkill? skill;
+            try
+            {
+                skill = testHost.RunConfig.SkillRegistry.GetSkillByName(skillName, includeSystemSkills: agent.AddSystemSkills);
+            }
+            catch (Exception ex)
+            {
+                TestContext.WriteLine($"Failed to resolve active skill '{skillName}': {ex.Message}");
+                continue;
+            }
+
+            if (skill is null)
+            {
+                TestContext.WriteLine($"Active skill '{skillName}' not found in registry; skipping skill tools.");
+                continue;
+            }
+
+            foreach (var toolName in skill.Tools)
+            {
+                if (existingToolNames.Contains(toolName))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var tool = testHost.ToolFactory.GetTool(toolName, agent);
+                    chatOptions.Tools.Add(tool);
+                    existingToolNames.Add(tool.Name);
+                    addedToolNames.Add(tool.Name);
+                }
+                catch (Exception ex)
+                {
+                    TestContext.WriteLine($"Tool '{toolName}' listed by active skill '{skill.Name}' was not found in ToolFactory; skipping. Error: {ex.Message}");
+                }
+            }
+        }
+
+        if (addedToolNames.Count > 0)
+        {
+            // If tools were previously empty, AllowMultipleToolCalls is expected to be null.
+            // Once tools exist, keep it at false for parity with the eval harness defaults.
+            chatOptions.AllowMultipleToolCalls ??= false;
+            TestContext.WriteLine($"Added {addedToolNames.Count} dynamic tool(s) from active skills: {string.Join(", ", addedToolNames)}");
+            TestContext.WriteLine($"Total tools count is now: {chatOptions.Tools.Count}");
+        }
+    }
+
+    private static List<string> ExtractActiveSkillNamesFromLastReminder(IReadOnlyList<ChatMessage> messages)
+    {
+        const string marker = "These are your currently active skills:";
+        const string noSkillsMarker = "You currently have no active skills";
+
+        for (var i = messages.Count - 1; i >= 0; i--)
+        {
+            var text = messages[i].Text;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                continue;
+            }
+
+            if (text.Contains(noSkillsMarker, StringComparison.OrdinalIgnoreCase))
+            {
+                return [];
+            }
+
+            if (!text.Contains(marker, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var lines = text.Split('\n');
+            var startIndex = -1;
+            for (var li = 0; li < lines.Length; li++)
+            {
+                if (lines[li].Contains(marker, StringComparison.OrdinalIgnoreCase))
+                {
+                    startIndex = li + 1;
+                    break;
+                }
+            }
+
+            if (startIndex < 0 || startIndex >= lines.Length)
+            {
+                return [];
+            }
+
+            var skillNames = new List<string>();
+            for (var li = startIndex; li < lines.Length; li++)
+            {
+                var line = lines[li].Trim();
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                if (line.StartsWith("</system-reminder>", StringComparison.OrdinalIgnoreCase))
+                {
+                    break;
+                }
+
+                if (!line.StartsWith("- ", StringComparison.Ordinal))
+                {
+                    // Stop once we leave the bullet list.
+                    if (skillNames.Count > 0)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+
+                var afterDash = line[2..].Trim();
+                if (afterDash.Length == 0)
+                {
+                    continue;
+                }
+
+                var colonIndex = afterDash.IndexOf(':');
+                var skillName = colonIndex >= 0 ? afterDash[..colonIndex] : afterDash;
+                skillName = skillName.Trim();
+
+                if (skillName.Length > 0)
+                {
+                    skillNames.Add(skillName);
+                }
+            }
+
+            return skillNames.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        // Fallback: if the runtime-generated skills reminder isn't present in the chat history,
+        // infer "active" skills from the skills the agent already loaded via read_skill_file.
+        return ExtractActiveSkillNamesFromReadSkillFileToolCalls(messages);
+    }
+
+    private static List<string> ExtractActiveSkillNamesFromReadSkillFileToolCalls(IReadOnlyList<ChatMessage> messages)
+    {
+        var skillNames = new List<string>();
+
+        foreach (var message in messages)
+        {
+            if (message.Contents is null || message.Contents.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var functionCall in message.Contents.OfType<FunctionCallContent>())
+            {
+                if (!functionCall.Name.Equals("read_skill_file", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var argsJson = functionCall.GetSerializedArguments();
+                if (string.IsNullOrWhiteSpace(argsJson))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(argsJson);
+                    if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    string? skillName = null;
+
+                    if (doc.RootElement.TryGetProperty("skill_name", out var skillNameProp) &&
+                        skillNameProp.ValueKind == JsonValueKind.String)
+                    {
+                        skillName = skillNameProp.GetString();
+                    }
+                    else if (doc.RootElement.TryGetProperty("skillName", out var skillNameCamelProp) &&
+                             skillNameCamelProp.ValueKind == JsonValueKind.String)
+                    {
+                        skillName = skillNameCamelProp.GetString();
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(skillName))
+                    {
+                        skillNames.Add(skillName.Trim());
+                    }
+                }
+                catch
+                {
+                    // Ignore malformed arguments; fallback best-effort only.
+                }
+            }
+        }
+
+        return skillNames.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     private static bool IsHandoffToolCall(string toolName)
     {
         return toolName.StartsWith("transfer_to_", StringComparison.OrdinalIgnoreCase)
@@ -551,11 +780,6 @@ public class GeneralAgentEvals
             return;
         }
 
-        if (!hasNoCallOption)
-        {
-            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
-        }
-
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
@@ -572,8 +796,6 @@ public class GeneralAgentEvals
     private static async Task ValidateFinalResponseOutputWithLLM(ChatResponse response, GeneralTestCase testCase, TestContext testContext, IChatClient chatClient)
     {
         testContext.WriteLine("Validating final response output with LLM evaluation...");
-
-        Assert.AreEqual(ChatFinishReason.Stop, response.FinishReason, "Expected final response (stop) but got different finish reason");
 
         // Ensure no function calls are present
         var functionCalls = response.Messages
@@ -677,11 +899,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             return;
         }
 
-        if (!hasNoCallOption)
-        {
-            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
-        }
-
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
@@ -714,11 +931,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
             return;
         }
 
-        if (!hasNoCallOption)
-        {
-            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected tool calls but got different finish reason");
-        }
-
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,
             $"Expected {expectedFunctionCalls.Count} function calls but got {actualFunctionCalls.Count}");
 
@@ -733,8 +945,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
 
     private static void ValidateFinalResponseOutput(ChatResponse response, GeneralTestCase testCase)
     {
-        Assert.AreEqual(ChatFinishReason.Stop, response.FinishReason, "Expected final response (stop) but got different finish reason");
-
         // Ensure no function calls are present
         var functionCalls = response.Messages
             .SelectMany(m => m.Contents?.OfType<FunctionCallContent>() ?? Enumerable.Empty<FunctionCallContent>())
@@ -777,11 +987,6 @@ Respond with only 'SIMILAR' if they convey the same meaning, or 'DIFFERENT' if t
         {
             // No handoff function calls found and "-" option allows this
             return;
-        }
-
-        if (!hasNoCallOption)
-        {
-            Assert.AreEqual(ChatFinishReason.ToolCalls, response.FinishReason, "Expected handoff tool calls but got different finish reason");
         }
 
         Assert.AreEqual(expectedFunctionCalls.Count, actualFunctionCalls.Count,

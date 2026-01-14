@@ -1,0 +1,67 @@
+{
+  "agentName": "meta_agent",
+  "modelInput": [
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Hello!"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "\u003Csystem-reminder\u003E\r\nThis is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.\r\n\u003C/system-reminder\u003E"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "\u003Csystem-reminder\u003E\r\nYou currently have no active skills. If you need to use any skills to assist with the user\u0027s request, please use the \u0027read_skill_file\u0027 tool to activate the necessary skills.\r\nRemember to only activate skills that are relevant to the current user\u0027s request.\r\n\u003C/system-reminder\u003E\r\n"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "\u003Csystem-reminder\u003EThe current date is 2026-01-14 13:05:41 -07:00\u003C/system-reminder\u003E"
+          }
+        }
+      ]
+    }
+  ],
+  "modelOutput": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "type": "TextContent",
+          "value": {
+            "$type": "text",
+            "text": "Hello! How can I assist you today?"
+          }
+        }
+      ]
+    }
+  ]
+}

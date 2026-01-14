@@ -1,4 +1,4 @@
-name: repository
+name: code_repository_management
 description: |
   Load when you need to: (a) discover whether an Azure resource has a connected code repository, (b) link or unlink an Azure DevOps repository (GitHub linking not supported), or (c) create tracking artifacts (GitHub Issue / Azure DevOps Work Item) with rich incident context and audit records.
 tools:

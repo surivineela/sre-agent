@@ -254,10 +254,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         AugmentToDoWrite(agentDescriptor, agent);
 
         // Automatically add read_skill_file tool if skills are enabled
-        if (agent.EnableSkills && !agent.FactoryTools.Contains(ReadSkillFileTool<TContext>.ToolName))
-        {
-            agent.FactoryTools.Add(ReadSkillFileTool<TContext>.ToolName);
-        }
+        AugmentSkills(agentDescriptor, agent);
 
         // Add memory tools and common prompts
         AugmentMemoryTools(agentDescriptor, agent);
@@ -346,13 +343,14 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         // Add memory common prompts to agents if tools are added
+        // Skip if already in CommonPrompts list or if already templated in instructions
         if (agent.FactoryTools.Contains(SearchMemoryTool)
-            && !agentDescriptor.CommonPrompts.Contains(SearchMemoryCommonPrompt))
+            && !AgentInstructionsContainsCommonPrompt(agentDescriptor, SearchMemoryCommonPrompt))
         {
             agentDescriptor.CommonPrompts.Add(SearchMemoryCommonPrompt);
         }
         if (agent.FactoryTools.Contains(SearchIncidentsTool)
-            && !agentDescriptor.CommonPrompts.Contains(SearchIncidentsCommonPrompt))
+            && !AgentInstructionsContainsCommonPrompt(agentDescriptor, SearchIncidentsCommonPrompt))
         {
             agentDescriptor.CommonPrompts.Add(SearchIncidentsCommonPrompt);
         }
@@ -367,11 +365,65 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         // add todo common prompt to agent if todo tool is added
+        // Skip if already in CommonPrompts list or if already templated in instructions
         if (agent.FactoryTools.Contains(ToDoWriteTool<TContext>.ToolName)
-            && !agentDescriptor.CommonPrompts.Contains(ToDoWriteTool<TContext>.CommonPromptName))
+            && !AgentInstructionsContainsCommonPrompt(agentDescriptor, ToDoWriteTool<TContext>.CommonPromptName))
         {
             agentDescriptor.CommonPrompts.Add(ToDoWriteTool<TContext>.CommonPromptName);
         }
+    }
+
+    private static void AugmentSkills(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        if (!agent.EnableSkills)
+        {
+            return;
+        }
+
+        if (!agent.FactoryTools.Contains(ReadSkillFileTool<TContext>.ToolName))
+        {
+            agent.FactoryTools.Add(ReadSkillFileTool<TContext>.ToolName);
+        }
+
+        // add skill common prompt to agent if skill tool is added
+
+        if (agent.FactoryTools.Contains(ReadSkillFileTool<TContext>.ToolName)
+            && !AgentInstructionsContainsCommonPrompt(agentDescriptor, ReadSkillFileTool<TContext>.CommonPromptName))
+        {
+            agentDescriptor.CommonPrompts.Add(ReadSkillFileTool<TContext>.CommonPromptName);
+        }
+    }
+
+    /// <summary>
+    /// Checks if the agent instructions already reference a common prompt,
+    /// either directly in the CommonPrompts list or as an inline template.
+    /// </summary>
+    /// <param name="agentDescriptor">The agent descriptor containing the instructions and common prompts.</param>
+    /// <param name="promptName">The name of the common prompt to check for.</param>
+    /// <returns>True if the common prompt is referenced, false otherwise.</returns>
+    private static bool AgentInstructionsContainsCommonPrompt(IAgentDescriptor agentDescriptor, string promptName)
+    {
+        return agentDescriptor.CommonPrompts.Contains(promptName)
+            || IsPromptTemplated(agentDescriptor.Instructions, promptName);
+    }
+
+    /// <summary>
+    /// Checks if a common prompt is already referenced as an inline template in the instructions.
+    /// Templates use the {{prompt_name}} syntax and are matched case-insensitively.
+    /// </summary>
+    /// <param name="instructions">The agent instructions to check.</param>
+    /// <param name="promptName">The name of the common prompt to look for.</param>
+    /// <returns>True if the prompt is templated in the instructions, false otherwise.</returns>
+    private static bool IsPromptTemplated(string? instructions, string promptName)
+    {
+        if (string.IsNullOrEmpty(instructions))
+        {
+            return false;
+        }
+
+        // Check for {{prompt_name}} template syntax (case-insensitive)
+        var templatePattern = $"{{{{{promptName}}}}}";
+        return instructions.Contains(templatePattern, StringComparison.OrdinalIgnoreCase);
     }
 
     private void AugmentPartialOutputTool(Agent<TContext> agent)
@@ -439,6 +491,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                     agent.Instructions.AddPromptEnder(promptEnder);
                 }
             }
+        }
+
+        // for system meta agent, always add the mode-specific common prompt (regardless of vanilla mode)
+        if (!agent.IsExtended && agent.Name == "meta_agent")
+        {
+            _modeConfigurator.ConfigureAgent(agent, agentDescriptor, _promptDescriptors);
         }
     }
 

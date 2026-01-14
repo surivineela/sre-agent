@@ -706,16 +706,8 @@ public class Program
             var forcedVariants = Environment.GetEnvironmentVariable(FrameworkConstants.ForceExperimentVariantsEnvVar);
 
             // Add runtime forced variants based on configuration
-            if (ShouldForceEnableSkills(builder))
-            {
-                logger.LogInternalInformation("Forcing skill enablement.");
-                var runtimeForcedVariants = "agent_skills=single_agent_with_skills";
-                forcedVariants = string.IsNullOrEmpty(forcedVariants)
-                    ? runtimeForcedVariants
-                    : $"{forcedVariants};{runtimeForcedVariants}";
-            }
-
             var additionalForcedVariants = GetRuntimeForcedExperimentVariants(builder);
+
             if (!string.IsNullOrEmpty(additionalForcedVariants))
             {
                 logger.LogInternalInformation($"Adding additional runtime forced experiment variants: {additionalForcedVariants}");
@@ -1770,16 +1762,6 @@ public class Program
             && !string.IsNullOrEmpty(settings.AzureAISearchName)
             && !string.IsNullOrEmpty(settings.AzureAISearchIndexName)
             && !string.IsNullOrEmpty(settings.ManagedIdentityResourceId);
-    }
-
-    private static bool ShouldForceEnableSkills(WebApplicationBuilder builder)
-    {
-        // TODO: this is a temporary way to enable skills for e2e testing of 3p skills w/o changing default agent configs
-
-        var agentName = AgentNameHelper.GetCustomerAgentName(isProd: builder.Environment.IsProduction());
-        var configSet = builder.Configuration.GetValue<bool>("Enable3PSkills");
-
-        return agentName.Contains("enable-3p-skills", StringComparison.InvariantCultureIgnoreCase) || configSet;
     }
 
     private static string GetRuntimeForcedExperimentVariants(WebApplicationBuilder builder)

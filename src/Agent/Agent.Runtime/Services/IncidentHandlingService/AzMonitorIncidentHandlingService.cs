@@ -470,6 +470,8 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         AgentContext agentContext,
         IncidentHandlerDocumentPayload? handlerDoc)
     {
+        _logger.LogInternalInformation($"[AzMonitorIncidentHandlingService] Sending initial investigation message for alert {alert.Id} in thread {thread.Id}.");
+
         var alertInfo = GetAlertInfoAsPrompt(alert);
 
         string subAgentPrompt = handlerDoc != null
