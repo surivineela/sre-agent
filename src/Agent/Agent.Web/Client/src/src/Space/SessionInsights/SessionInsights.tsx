@@ -1,10 +1,11 @@
-import { Button, makeStyles, shorthands, Spinner, Text, tokens } from '@fluentui/react-components';
+import { Button, makeStyles, mergeClasses, shorthands, Spinner, Text, tokens } from '@fluentui/react-components';
 import { ArrowSyncRegular } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { SreAgentResources, SreAgentTabResources } from '../../Strings/SREAgentResources';
+import { useCommonStyles } from '../Styles/Common.styles';
 import InsightsDetailPanel from './InsightsDetailPanel';
 import InsightsList from './InsightsList';
 
@@ -15,6 +16,7 @@ const useStyles = makeStyles({
         height: '100%',
         minHeight: 0,
         backgroundColor: tokens.colorNeutralBackground1,
+        padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXXL}`,
         ...shorthands.overflow('hidden'),
         // Remove any margins that might affect positioning
         ...shorthands.margin(0),
@@ -89,6 +91,8 @@ interface SessionInsightData {
 
 const SessionInsights: FC = () => {
     const styles = useStyles();
+    const commonStyles = useCommonStyles();
+
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [insights, setInsights] = useState<SessionInsightData[]>([]);
@@ -174,47 +178,45 @@ const SessionInsights: FC = () => {
 
     const selectedInsight = useMemo(() => insights.find(i => i.threadId === selectedInsightId), [insights, selectedInsightId]);
 
-    if (loading) {
-        return (
-            <div className={styles.container}>
+    return (
+        <div className={mergeClasses(commonStyles.contentRootBorderAndBackground, styles.container)}>
+            {loading ? (
                 <div className={styles.loadingContainer}>
                     <Spinner label="Loading session insights..." />
                 </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <Text className={styles.title}>
-                    <FormattedMessage {...SreAgentTabResources.sessionInsights} />
-                </Text>
-                <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh} disabled={refreshing}>
-                    {refreshing ? 'Refreshing...' : 'Refresh'}
-                </Button>
-            </div>
-            <div className={styles.content}>
-                <div className={styles.threadsPanel}>
-                    <InsightsList insights={insights} selectedInsightId={selectedInsightId} onInsightSelect={handleInsightSelect} />
-                </div>
-                <div className={styles.insightsPanel}>
-                    {selectedInsight ? (
-                        <InsightsDetailPanel insight={selectedInsight} onInsightsGenerated={() => loadInsights(false)} />
-                    ) : (
-                        <div className={styles.emptyState}>
-                            <Text size={400} weight="semibold">
-                                <FormattedMessage {...SreAgentResources.noInsightSelected} />
-                            </Text>
-                            <Text size={300}>
-                                {insights.length === 0
-                                    ? 'No session insights found. Generate insights for a thread by clicking the chart icon (📊) in the chat footer.'
-                                    : 'Select an insight from the list to view details'}
-                            </Text>
+            ) : (
+                <>
+                    <div className={styles.header}>
+                        <Text className={styles.title}>
+                            <FormattedMessage {...SreAgentTabResources.sessionInsights} />
+                        </Text>
+                        <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh} disabled={refreshing}>
+                            {refreshing ? 'Refreshing...' : 'Refresh'}
+                        </Button>
+                    </div>
+                    <div className={styles.content}>
+                        <div className={styles.threadsPanel}>
+                            <InsightsList insights={insights} selectedInsightId={selectedInsightId} onInsightSelect={handleInsightSelect} />
                         </div>
-                    )}
-                </div>
-            </div>
+                        <div className={styles.insightsPanel}>
+                            {selectedInsight ? (
+                                <InsightsDetailPanel insight={selectedInsight} onInsightsGenerated={() => loadInsights(false)} />
+                            ) : (
+                                <div className={styles.emptyState}>
+                                    <Text size={400} weight="semibold">
+                                        <FormattedMessage {...SreAgentResources.noInsightSelected} />
+                                    </Text>
+                                    <Text size={300}>
+                                        {insights.length === 0
+                                            ? 'No session insights found. Generate insights for a thread by clicking the chart icon (📊) in the chat footer.'
+                                            : 'Select an insight from the list to view details'}
+                                    </Text>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

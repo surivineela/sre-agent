@@ -14,6 +14,12 @@ export const getNavItemIdFromPathName = (pathname: string): string => {
           : pathname;
 };
 
+export const getCategoryNavItemIdFromPathName = (pathname: string): string => {
+    const navItemId = getNavItemIdFromPathName(pathname);
+    const navItemParts = navItemId.split('/');
+    return navItemParts.length > 0 ? navItemParts[0] : '';
+};
+
 export const constructNavItemId = (
     primaryNavItemValue: PrimaryNavItemValues,
     secondaryNavItemValue: SecondaryNavItemValues | undefined,

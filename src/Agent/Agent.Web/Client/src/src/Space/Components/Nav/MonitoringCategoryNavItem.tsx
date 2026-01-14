@@ -84,7 +84,8 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
             value: PrimaryNavItemValues.Monitor,
             label: intl.formatMessage(SreAgentTabResources.monitor),
             icon: bundleIcon(Eye20Filled, Eye20Regular),
-            isVisible: isNavOpen,
+            filledIcon: Eye20Filled,
+            isCollapsed: !isNavOpen,
             disabled: false,
         }),
         [isNavOpen, intl]

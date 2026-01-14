@@ -1,6 +1,6 @@
+import { Body2Strong } from '@fluentui-copilot/react-copilot';
 import { Button, Tooltip } from '@fluentui/react-components';
 import { Branch16Regular, TaskListLtr20Regular } from '@fluentui/react-icons';
-import { Text } from '@fluentui/react-text';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
@@ -201,9 +201,9 @@ const ThreadContentTitle = ({
 
 const ThreadTitleText = memo(({ title }: { title?: string }) => {
     return (
-        <Text as="h2" wrap={false} block weight="semibold" size={400} className={ThreadContentStyles.title}>
+        <Body2Strong as="h2" wrap={false} block>
             {title ?? <FormattedMessage {...SreAgentResources.newThread} />}
-        </Text>
+        </Body2Strong>
     );
 });
 

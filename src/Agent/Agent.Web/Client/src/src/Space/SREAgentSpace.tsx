@@ -38,7 +38,7 @@ import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
 import { useCommonStyles } from './Styles/Common.styles';
 import { useSreAgentSpaceStyles } from './Styles/SreAgentSpaceStyles';
-import { getNavItemIdFromPathName, getPathName } from './Utilities';
+import { getCategoryNavItemIdFromPathName, getNavItemIdFromPathName, getPathName } from './Utilities';
 
 /*
 NOTE: The current idea is to do only data plane (agent site), and NOT control plane (ARM) calls, in
@@ -209,32 +209,26 @@ const TabsListWrapper: FC = () => {
                                 open={true}
                                 type={navBarType}
                                 selectedValue={getNavItemIdFromPathName(location.pathname)}
+                                selectedCategoryValue={getCategoryNavItemIdFromPathName(location.pathname)}
                                 style={{
-                                    width: isNavOpen ? undefined : '55px',
+                                    width: isNavOpen ? undefined : '56px',
                                     transition: 'width 0.25s ease',
                                     height: '100%',
-                                    padding: `${copilotTokens.spacingVerticalM} 0px 0px 0px`,
+                                    padding: `${copilotTokens.spacingVerticalS} 0px 0px 0px`,
                                 }}
                                 openCategories={openedCategoryNavItems}
                                 tabbable={true}
                             >
                                 <CopilotNavDrawerHeader
                                     style={{
-                                        padding: `${copilotTokens.spacingHorizontalM} ${isNavOpen ? copilotTokens.spacingVerticalXL : copilotTokens.spacingVerticalM}`,
+                                        padding: `${copilotTokens.spacingVerticalS} ${copilotTokens.spacingVerticalM}`,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        alignItems: 'flex-start',
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            justifyContent: 'flex-end',
-                                            paddingRight: isNavOpen
-                                                ? `calc(${copilotTokens.spacingHorizontalL} - ${copilotTokens.spacingHorizontalS})`
-                                                : undefined,
-                                        }}
-                                    >
-                                        <NavBarOpenCloseButton isNavOpen={isNavOpen} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
-                                    </div>
+                                    <NavBarOpenCloseButton isNavOpen={isNavOpen} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
                                 </CopilotNavDrawerHeader>
 
                                 <CopilotNavDrawerBody
@@ -262,10 +256,9 @@ const TabsListWrapper: FC = () => {
                                 </CopilotNavDrawerBody>
                                 <div
                                     style={{
-                                        padding: `${copilotTokens.spacingVerticalS}`,
+                                        padding: copilotTokens.spacingVerticalS,
                                         borderTop: `1px solid ${copilotTokens.colorNeutralStroke2}`,
                                         display: 'flex',
-                                        justifyContent: isNavOpen ? 'flex-start' : 'center',
                                     }}
                                 >
                                     <FeedbackMenu isNavOpen={isNavOpen} />

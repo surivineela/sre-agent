@@ -42,7 +42,8 @@ const BuilderCategoryNavItem: FC<IBuilderCategoryNavItemProps> = ({
             value: PrimaryNavItemValues.Builder,
             label: intl.formatMessage(SreAgentTabResources.builder),
             icon: bundleIcon(Toolbox20Filled, Toolbox20Regular),
-            isVisible: isNavOpen,
+            filledIcon: Toolbox20Filled,
+            isCollapsed: !isNavOpen,
             disabled: false,
         }),
         [isNavOpen, intl]

@@ -1,6 +1,4 @@
-import { Body1, tokens } from '@fluentui-copilot/react-copilot';
-import { CopilotNavItem } from '@fluentui-copilot/react-copilot-nav';
-import { Dialog, makeStyles, useRestoreFocusTarget } from '@fluentui/react-components';
+import { Dialog, Tooltip, useRestoreFocusTarget } from '@fluentui/react-components';
 import { Add20Filled, Add20Regular, bundleIcon, Search20Filled, Search20Regular } from '@fluentui/react-icons';
 import { memo, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -13,8 +11,8 @@ import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/Know
 import { ActivitiesResources } from '../../../Strings/SREAgentResources';
 import { usePermissionContext } from '../../Contracts/PermissionContext';
 import { getNavItemIdFromPathName } from '../../Utilities';
-import Fade from '../Fade';
 import ThreadSearchDialog from '../ThreadSearchDialog';
+import { CopilotNavItem } from './CopilotNavItem';
 
 interface ITNewChatNavItemProps {
     isNavOpen: boolean;
@@ -25,12 +23,6 @@ interface ITNewChatNavItemProps {
 
 const NewChatIcon = bundleIcon(Add20Filled, Add20Regular);
 const SearchIcon = bundleIcon(Search20Filled, Search20Regular);
-
-const useStyles = makeStyles({
-    navItemCollapsed: {
-        paddingInlineStart: tokens.spacingHorizontalS,
-    },
-});
 
 const NewChatNavItem = (props: ITNewChatNavItemProps) => {
     const location = useLocation();
@@ -84,24 +76,21 @@ const NewChatNavItem = (props: ITNewChatNavItemProps) => {
 
 const Item = memo(
     (props: { disabled: boolean; icon: JSX.Element; value: string; onClick: () => void; label: string; isNavOpen: boolean }) => {
-        const { navItemCollapsed } = useStyles();
-
         const restoreFocusTargetAttribute = useRestoreFocusTarget();
 
         return (
-            <CopilotNavItem
-                {...restoreFocusTargetAttribute}
-                disabled={props.disabled}
-                icon={props.icon}
-                value={props.value}
-                onClick={props.onClick}
-                className={props.isNavOpen ? undefined : navItemCollapsed}
-                aria-label={props.label}
-            >
-                <Fade visible={props.isNavOpen} unmountOnExit>
-                    <Body1 wrap={false}>{props.label}</Body1>
-                </Fade>
-            </CopilotNavItem>
+            <Tooltip content={props.label} relationship="label">
+                <CopilotNavItem
+                    {...restoreFocusTargetAttribute}
+                    disabled={props.disabled}
+                    icon={props.icon}
+                    value={props.value}
+                    onClick={props.onClick}
+                    aria-label={props.label}
+                >
+                    {props.isNavOpen ? props.label : null}
+                </CopilotNavItem>
+            </Tooltip>
         );
     }
 );

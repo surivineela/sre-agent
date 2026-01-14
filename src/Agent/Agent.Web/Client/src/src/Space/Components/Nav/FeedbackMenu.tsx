@@ -1,5 +1,14 @@
+import { tokens } from '@fluentui-copilot/react-copilot';
 import { Body1, Button, Menu, MenuButtonProps, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
-import { bundleIcon, Open20Filled, Open20Regular, PersonFeedback24Filled, PersonFeedback24Regular } from '@fluentui/react-icons';
+import {
+    bundleIcon,
+    Open20Filled,
+    Open20Regular,
+    PersonFeedback20Filled,
+    PersonFeedback20Regular,
+    PersonFeedback24Filled,
+    PersonFeedback24Regular,
+} from '@fluentui/react-icons';
 import { memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -9,7 +18,8 @@ import { openSupportBlade } from '../../Settings/AzureSettings.ReactView';
 import { FeedbackDialog } from '../FeedbackDialog';
 import GithubIssueDialog from '../GithubIssueDialog';
 
-const FeedbackIcon = bundleIcon(PersonFeedback24Filled, PersonFeedback24Regular);
+const ParentFeedbackIcon = bundleIcon(PersonFeedback24Filled, PersonFeedback24Regular);
+const ChildFeedbackIcon = bundleIcon(PersonFeedback20Filled, PersonFeedback20Regular);
 const OpenSupportTicketIcon = bundleIcon(Open20Filled, Open20Regular);
 
 export const GithubIssueIcon = () => {
@@ -37,7 +47,7 @@ const FeedbackMenu = ({ isNavOpen }: { isNavOpen: boolean }) => {
     const navItems = useMemo(() => {
         return [
             {
-                icon: <FeedbackIcon />,
+                icon: <ChildFeedbackIcon />,
                 value: 'agentFeedback',
                 onClick: () => setIsFeedbackDialogOpen(true),
                 label: intl.formatMessage(FeedbackResources.provideAgentFeedback),
@@ -65,11 +75,18 @@ const FeedbackMenu = ({ isNavOpen }: { isNavOpen: boolean }) => {
                         <Button
                             {...triggerProps}
                             appearance="transparent"
-                            icon={<FeedbackIcon />}
+                            icon={<ParentFeedbackIcon />}
                             size={'large'}
                             aria-label={intl.formatMessage(SreAgentTabResources.helpAndSupport)}
-                            children={isNavOpen && <Body1 wrap={false}>{intl.formatMessage(SreAgentTabResources.helpAndSupport)}</Body1>}
-                        />
+                            style={{
+                                borderRadius: tokens.borderRadius2XL,
+                                justifyContent: 'flex-start',
+                                flex: '1 0 auto',
+                                padding: `8px ${tokens.spacingHorizontalS}`,
+                            }}
+                        >
+                            {isNavOpen ? <Body1 wrap={false}>{intl.formatMessage(SreAgentTabResources.helpAndSupport)}</Body1> : null}
+                        </Button>
                     )}
                 </MenuTrigger>
                 <MenuPopover>

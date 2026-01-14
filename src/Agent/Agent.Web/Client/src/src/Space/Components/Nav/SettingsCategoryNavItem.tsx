@@ -43,7 +43,8 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
             value: PrimaryNavItemValues.Settings,
             label: intl.formatMessage(SreAgentTabResources.settings),
             icon: bundleIcon(Settings20Filled, Settings20Regular),
-            isVisible: isNavOpen,
+            filledIcon: Settings20Filled,
+            isCollapsed: !isNavOpen,
             disabled: false,
         }),
         [intl, isNavOpen]

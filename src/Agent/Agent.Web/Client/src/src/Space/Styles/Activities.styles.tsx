@@ -6,7 +6,7 @@ import { CSSProperties } from 'react';
 
 export const ThreadItemHeightInPx = 18;
 export const ThreadItemPaddingTopBottomInPx = 8;
-export const ThreadTitleHeight = 50;
+export const ThreadTitleHeight = 40;
 
 // Note: Shared navigation styles (list item hover/selection) are now in Navigation.styles.tsx
 
@@ -58,11 +58,6 @@ export const ThreadContentStyles = mergeStyleSets({
         gap: '10px',
         height: `${ThreadTitleHeight}px`,
         paddingLeft: '5px',
-    },
-    title: {
-        lineHeight: '24px',
-        paddingBottom: '-10px',
-        marginBlock: '0px 0px',
     },
     todoPlanContainer: {
         display: 'flex',

@@ -45,19 +45,22 @@ export enum ThreadCategoryKey {
 }
 
 export interface NavItemInput {
-    isVisible: boolean;
     disabled: boolean;
-    label: ReactNode;
     icon?: FluentIcon;
     onClick?: () => void;
 }
 
 export interface CategoryNavItemInput extends NavItemInput {
     value: PrimaryNavItemValues;
+    label: string;
+    filledIcon: FluentIcon;
+    isCollapsed?: boolean;
     ref?: RefObject<HTMLButtonElement>;
 }
 
 export interface SubNavItemInput extends NavItemInput {
     value: SecondaryNavItemValues;
+    label: ReactNode;
+    isVisible: boolean;
     ref?: RefObject<HTMLDivElement>;
 }
