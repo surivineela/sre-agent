@@ -24,7 +24,7 @@ type TestFixtures = {
 };
 
 const test = base.extend<TestFixtures>({
-  pathToExtension: async ({}, use) => {
+  pathToExtension: async ({ }, use) => {
     await use(path.resolve(__dirname, '../dist'));
   },
 
@@ -61,14 +61,14 @@ const test = base.extend<TestFixtures>({
     await browserContext?.close();
   },
 
-  useShortConnectionTimeout: async ({}, use) => {
+  useShortConnectionTimeout: async ({ }, use) => {
     await use((timeoutMs: number) => {
       process.env.PWMCP_TEST_CONNECTION_TIMEOUT = timeoutMs.toString();
     });
     process.env.PWMCP_TEST_CONNECTION_TIMEOUT = undefined;
   },
 
-  overrideProtocolVersion: async ({}, use) => {
+  overrideProtocolVersion: async ({ }, use) => {
     await use((version: number) => {
       process.env.PWMCP_TEST_PROTOCOL_VERSION = version.toString();
     });
@@ -89,7 +89,7 @@ async function startWithExtensionFlag(browserWithExtension: BrowserWithExtension
 }
 
 const testWithOldExtensionVersion = test.extend({
-  pathToExtension: async ({}, use, testInfo) => {
+  pathToExtension: async ({ }, use, testInfo) => {
     const extensionDir = testInfo.outputPath('extension');
     const oldPath = path.resolve(__dirname, '../dist');
 
@@ -145,7 +145,7 @@ test(`snapshot of an existing page`, async ({ browserWithExtension, startClient,
 
   const navigateResponse = client.callTool({
     name: 'browser_snapshot',
-    arguments: { },
+    arguments: {},
   });
 
   const selectorPage = await confirmationPagePromise;

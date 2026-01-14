@@ -7,7 +7,7 @@ import { CopyToClipboard } from './copyToClipboard';
 import * as icons from './icons';
 import './authToken.css';
 
-export const AuthTokenSection: React.FC<{}> = ({}) => {
+export const AuthTokenSection: React.FC<{}> = ({ }) => {
   const [authToken, setAuthToken] = useState<string>(getOrCreateAuthToken);
   const [isExampleExpanded, setIsExampleExpanded] = useState<boolean>(false);
 
@@ -28,7 +28,7 @@ export const AuthTokenSection: React.FC<{}> = ({}) => {
       </div>
       <div className='auth-token-container'>
         <code className='auth-token-code'>{authTokenCode(authToken)}</code>
-        <button className='auth-token-refresh' title='Generate new token' aria-label='Generate new token'onClick={onRegenerateToken}>{icons.refresh()}</button>
+        <button className='auth-token-refresh' title='Generate new token' aria-label='Generate new token' onClick={onRegenerateToken}>{icons.refresh()}</button>
         <CopyToClipboard value={authTokenCode(authToken)} />
       </div>
 
@@ -86,14 +86,14 @@ function generateAuthToken(): string {
   crypto.getRandomValues(array);
   // Convert to base64 and make it URL-safe
   return btoa(String.fromCharCode.apply(null, Array.from(array)))
-      .replace(/[+/=]/g, match => {
-        switch (match) {
-          case '+': return '-';
-          case '/': return '_';
-          case '=': return '';
-          default: return match;
-        }
-      });
+    .replace(/[+/=]/g, match => {
+      switch (match) {
+        case '+': return '-';
+        case '/': return '_';
+        case '=': return '';
+        default: return match;
+      }
+    });
 }
 
 export const getOrCreateAuthToken = (): string => {
