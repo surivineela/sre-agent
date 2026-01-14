@@ -430,5 +430,6 @@ src/Agent/Agent.Web/wwwroot/react/
 
 # claude
 .claude/
+tmpclaude*
 
 TestPlayground/
