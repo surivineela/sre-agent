@@ -25,11 +25,11 @@ import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
-import { getAgentAccessLevelDisplayName } from '../../Common/Helpers/AgentMode';
+import { getAgentAccessLevelDisplayName, getLocalizedAgentMode } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
-import { SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { AgentModeResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { ApplicationInsightsDialog } from './Components/ApplicationInsightsDialog';
 import { useSubscription } from './Hooks/useSubscription';
@@ -105,6 +105,11 @@ const Basics: FC = () => {
     const agentAccessLevelValue = useMemo(
         () => getAgentAccessLevelDisplayName(agent?.properties?.actionConfiguration?.accessLevel, intl),
         [agent?.properties?.actionConfiguration?.accessLevel, intl]
+    );
+
+    const agentActionModeValue = useMemo(
+        () => getLocalizedAgentMode(agent?.properties?.actionConfiguration?.mode || '-', intl),
+        [agent?.properties?.actionConfiguration?.mode, intl]
     );
 
     const isAgentStopped = useMemo(
@@ -338,6 +343,8 @@ const Basics: FC = () => {
                     </Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
+                    <Label>{intl.formatMessage(AgentModeResources.agentMode)}</Label>
+                    <Shimmer isDataLoaded={!agentLoading || !!agentActionModeValue}>{agentActionModeValue}</Shimmer>
                     <Label>{intl.formatMessage(SreAgentResources.agentSpace)}</Label>
                     <Shimmer isDataLoaded={!agentLoading || !!agentSpaceId}>
                         {agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-'}
