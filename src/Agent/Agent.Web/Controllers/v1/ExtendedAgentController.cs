@@ -820,7 +820,12 @@ User Intent (between <<< and >>>):
 <<<
 """;
 
-            var prompt = systemPrompt + request.Intent + "\n>>>";
+            // Include existing code in the prompt if provided (for fix/modify scenarios)
+            var existingCodeContext = string.IsNullOrWhiteSpace(request.ExistingCode)
+                ? string.Empty
+                : $"\n\nExisting code:\n```python\n{request.ExistingCode}\n```\n\n";
+
+            var prompt = systemPrompt + existingCodeContext + request.Intent + "\n>>>";
 
             var chatOptions = new ChatOptions { Temperature = 0.7f };
             var chatResponse = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);

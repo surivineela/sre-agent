@@ -42,7 +42,7 @@ export const PythonToolForm: FC<PythonToolFormProps2> = ({ isGenerating }) => {
     );
 
     return (
-        <div className={styles.toolFormLeft}>
+        <div className={styles.toolFormRight}>
             {/* Name and Timeout Row */}
             <div className={styles.headerRow}>
                 <InputFormik

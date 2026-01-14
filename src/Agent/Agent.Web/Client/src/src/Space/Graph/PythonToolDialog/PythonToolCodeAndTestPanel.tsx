@@ -1,66 +1,67 @@
-import { Button, Field, Input, Label, MessageBar, MessageBarBody, Tab, TabList, Text, Textarea } from '@fluentui/react-components';
+import { Button, Field, Input, Label, MessageBar, MessageBarBody, Tab, TabList, Text } from '@fluentui/react-components';
 import { Play16Regular } from '@fluentui/react-icons';
+import MonacoEditor from '@monaco-editor/react';
 import { useFormikContext } from 'formik';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getAgentHeaders } from '../../../Common/Helpers/headers';
+import { ExtendedAgentClient } from '../../../Common/Clients/ExtendedAgentClient';
+import InputFormik from '../../../Common/Components/Input/InputFormik';
+import TextareaFormik from '../../../Common/Components/Textarea/TextareaFormik';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
 import { sanitizeEntityName } from '../ExtendedAgentCreationDialog/utils/nameValidation';
 import { usePythonToolDialogStyles } from './PythonToolDialog.Styles';
 import {
     PythonToolFormProps,
-    TabValue,
+    RightPanelTabValue,
     TestResult,
     extractParametersFromCode,
+    getDefaultCode,
     getPythonToolFingerprint,
     hasValidMainFunction,
 } from './PythonToolUtilities';
 
-interface PythonToolTestPanelProps {
+interface PythonToolCodeAndTestPanelProps {
     hasSuccessRunTest: boolean;
     setHasSuccessRunTest: (hasSuccess: boolean) => void;
     lastTestedFingerprint: string | null;
     setLastTestedFingerprint: (fingerprint: string | null) => void;
     isGenerating: boolean;
-    setIsGenerating: (isGenerating: boolean) => void;
+    selectedTab: RightPanelTabValue;
+    setSelectedTab: (tab: RightPanelTabValue) => void;
+    onFixWithAI: (errorMessage: string) => void;
 }
 
-export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
+export const PythonToolCodeAndTestPanel: FC<PythonToolCodeAndTestPanelProps> = ({
     hasSuccessRunTest,
     setHasSuccessRunTest,
     lastTestedFingerprint,
     setLastTestedFingerprint,
     isGenerating,
-    setIsGenerating,
+    selectedTab,
+    setSelectedTab,
+    onFixWithAI,
 }) => {
     const intl = useIntl();
     const styles = usePythonToolDialogStyles();
-    const { values, setFieldValue, setValues, isValid } = useFormikContext<PythonToolFormProps>();
+    const { values, setFieldValue, errors, touched, isValid } = useFormikContext<PythonToolFormProps>();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
 
-    // Local state
-    const [selectedTab, setSelectedTab] = useState<TabValue>('assistant');
-    const [prompt, setPrompt] = useState('');
-    const [generateError, setGenerateError] = useState<string | null>(null);
     const [isTesting, setIsTesting] = useState(false);
     const [testResult, setTestResult] = useState<TestResult | null>(null);
     const [testError, setTestError] = useState<string | null>(null);
     const [paramValues, setParamValues] = useState<Record<string, string>>({});
 
-    // Current fingerprint for detecting changes
     const currentFingerprint = useMemo(
         () => getPythonToolFingerprint(values.functionCode, values.parameters, values.timeoutSeconds),
         [values.functionCode, values.parameters, values.timeoutSeconds]
     );
 
-    // Check if code changed after successful test
     const codeChangedAfterTest = useMemo(() => {
         if (!hasSuccessRunTest) return false;
         return currentFingerprint !== lastTestedFingerprint;
     }, [hasSuccessRunTest, currentFingerprint, lastTestedFingerprint]);
 
-    // Reset test status when code changes
     useEffect(() => {
         if (codeChangedAfterTest) {
             setHasSuccessRunTest(false);
@@ -69,7 +70,6 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
         }
     }, [codeChangedAfterTest, setHasSuccessRunTest]);
 
-    // Auto-extract parameters from function code when it changes
     useEffect(() => {
         if (!values.functionCode || !hasValidMainFunction(values.functionCode)) {
             return;
@@ -78,7 +78,6 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
         const extractedParams = extractParametersFromCode(values.functionCode);
         const currentParams = values.parameters || [];
 
-        // Check if parameters changed (names, types, or required status)
         const extractedSignatures = new Set(extractedParams.map(p => `${p.name}:${p.type}:${p.required}`));
         const currentSignatures = new Set(currentParams.map(p => `${p.name}:${p.type}:${p.required}`));
 
@@ -95,7 +94,6 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
         }
     }, [values.functionCode, values.parameters, setFieldValue]);
 
-    // Sync param values with current parameters
     useEffect(() => {
         setParamValues(prev => {
             const next: Record<string, string> = {};
@@ -159,78 +157,26 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
         };
     }, [isTesting, testResult, testError, intl, codeChangedAfterTest]);
 
-    // Handlers
-    const handleGenerate = useCallback(
-        async (promptOverride?: string) => {
-            const promptToUse = promptOverride ?? prompt;
-            if (!promptToUse.trim()) return;
-
-            setIsGenerating(true);
-            setGenerateError(null);
-
-            try {
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/generate-python-tool`, {
-                    method: 'POST',
-                    headers: { ...getAgentHeaders(), 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        intent: promptToUse,
-                        suggestedName: values.name || undefined,
-                        timeoutSeconds: values.timeoutSeconds || 120,
-                        existingCode: values.functionCode || undefined,
-                    }),
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    let errorMessage = `HTTP ${response.status}`;
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        errorMessage = errorJson.message || errorJson.Message || errorMessage;
-                    } catch {
-                        errorMessage = errorText || errorMessage;
-                    }
-                    throw new Error(errorMessage);
-                }
-
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.errorMessage || 'Generation failed');
-                }
-
-                const functionCode = result.function_code || result.functionCode || '';
-                const timeoutSeconds = result.timeout_seconds || result.timeoutSeconds || 120;
-
-                if (!functionCode) {
-                    throw new Error('Generated function code is empty');
-                }
-
-                setValues(
-                    {
-                        ...values,
-                        name: !values.name && result.name ? sanitizeEntityName(result.name) : values.name,
-                        description: result.description || values.description,
-                        functionCode,
-                        parameters: result.parameters || [],
-                        timeoutSeconds,
-                    },
-                    true
-                );
-
-                setPrompt('');
-                setTestResult(null);
-                setTestError(null);
-                setHasSuccessRunTest(false);
-
-                // Switch to test playground tab after successful generation
-                setSelectedTab('test');
-            } catch (error) {
-                setGenerateError(error instanceof Error ? error.message : 'Failed to generate');
-            } finally {
-                setIsGenerating(false);
-            }
+    const handleNameChange = useCallback(
+        (_: React.ChangeEvent<HTMLInputElement>, data: { value: string }) => {
+            setFieldValue('name', sanitizeEntityName(data.value));
         },
-        [prompt, sreAgentEndpoint, values, setValues, setIsGenerating, setHasSuccessRunTest]
+        [setFieldValue]
+    );
+
+    const handleTimeoutChange = useCallback(
+        (_: React.ChangeEvent<HTMLInputElement>, data: { value: string }) => {
+            const parsed = parseInt(data.value) || 120;
+            setFieldValue('timeoutSeconds', parsed);
+        },
+        [setFieldValue]
+    );
+
+    const handleCodeChange = useCallback(
+        (value: string | undefined) => {
+            setFieldValue('functionCode', value || '');
+        },
+        [setFieldValue]
     );
 
     const handleTest = useCallback(async () => {
@@ -240,102 +186,124 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
         setTestError(null);
         setTestResult(null);
 
-        try {
-            const response = await fetch(`${sreAgentEndpoint}/api/v1/extendedAgent/tools/python/test`, {
-                method: 'POST',
-                headers: { ...getAgentHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    functionCode: values.functionCode,
-                    timeoutSeconds: values.timeoutSeconds || 120,
-                    parameters: paramValues,
-                    parameterDefinitions: values.parameters ?? [],
-                }),
-            });
+        const client = ExtendedAgentClient.getInstance(sreAgentEndpoint);
+        const response = await client.testPythonTool({
+            functionCode: values.functionCode,
+            timeoutSeconds: values.timeoutSeconds || 120,
+            parameters: paramValues,
+            parameterDefinitions: values.parameters ?? [],
+        });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Test endpoint failed`);
-            }
-
-            const results = await response.json();
-            setTestResult(results);
-
-            if (results.success) {
-                setHasSuccessRunTest(true);
-                setLastTestedFingerprint(currentFingerprint);
-            } else {
-                const errorMessage = results.errorMessage || results.stderr || intl.formatMessage(SreAgentResources.error);
-                setTestError(errorMessage);
-                setHasSuccessRunTest(false);
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : intl.formatMessage(SreAgentResources.error);
+        if (!response.isSuccessful) {
+            const errorMessage = typeof response.error === 'string' ? response.error : intl.formatMessage(SreAgentResources.error);
             setTestError(errorMessage);
             setHasSuccessRunTest(false);
-        } finally {
             setIsTesting(false);
+            return;
         }
+
+        const results = response.content;
+        setTestResult(results ?? null);
+
+        if (results?.success) {
+            setHasSuccessRunTest(true);
+            setLastTestedFingerprint(currentFingerprint);
+        } else {
+            const errorMessage = results?.errorMessage || results?.stderr || intl.formatMessage(SreAgentResources.error);
+            setTestError(errorMessage);
+            setHasSuccessRunTest(false);
+        }
+
+        setIsTesting(false);
     }, [canTest, values, paramValues, sreAgentEndpoint, intl, setHasSuccessRunTest, setLastTestedFingerprint, currentFingerprint]);
 
     const handleFixWithAI = useCallback(() => {
         const errorMessage = testError || testResult?.errorMessage || testResult?.stderr || 'Unknown error';
-        const fixPrompt = `Fix the following error in my Python code:
-            Error: ${errorMessage}
-
-            Current code:
-            \`\`\`python
-            ${values.functionCode || ''}
-            \`\`\`
-            `;
-
-        setPrompt(fixPrompt);
-        setSelectedTab('assistant');
-        // Auto-start generation
-        handleGenerate(fixPrompt);
-    }, [testError, testResult, values.functionCode, handleGenerate]);
+        onFixWithAI(errorMessage);
+    }, [testError, testResult, onFixWithAI]);
 
     return (
-        <div className={styles.toolFormRight}>
-            <TabList selectedValue={selectedTab} onTabSelect={(_, data) => setSelectedTab(data.value as TabValue)}>
-                <Tab value="assistant">{intl.formatMessage(SreAgentResources.pythonToolCreatorAssistantTab)}</Tab>
+        <div className={styles.codeAndTestPanel}>
+            <TabList selectedValue={selectedTab} onTabSelect={(_, data) => setSelectedTab(data.value as RightPanelTabValue)}>
+                <Tab value="code">{intl.formatMessage(SreAgentResources.pythonToolCreatorCodeTab)}</Tab>
                 <Tab value="test">{intl.formatMessage(SreAgentResources.pythonToolCreatorTestPlaygroundTab)}</Tab>
             </TabList>
 
-            {/* Assistant Tab */}
-            {selectedTab === 'assistant' && (
-                <div className={styles.tabContent}>
-                    <div className={styles.promptArea}>
-                        <Label>{intl.formatMessage(SreAgentResources.pythonToolCreatorPromptLabel)}</Label>
-                        <Textarea
-                            value={prompt}
-                            onChange={(_, data) => setPrompt(data.value)}
-                            placeholder={intl.formatMessage(SreAgentResources.pythonToolBuilderIntentPlaceholder)}
-                            className={styles.promptTextarea}
-                            resize="vertical"
+            {/* Code Tab */}
+            {selectedTab === 'code' && (
+                <div className={styles.codeTabContent}>
+                    {/* Name and Timeout Row */}
+                    <div className={styles.headerRow}>
+                        <InputFormik
+                            name="name"
+                            label={intl.formatMessage(SreAgentResources.pythonToolBuilderNameLabel)}
+                            placeholder={intl.formatMessage(SreAgentResources.pythonToolCreatorToolNamePlaceholder)}
+                            orientation="vertical"
+                            required
+                            onChange={handleNameChange}
+                            className={styles.nameField}
                             disabled={isGenerating}
                         />
-                        <Button appearance="primary" disabled={!prompt.trim() || isGenerating} onClick={() => handleGenerate()}>
-                            {isGenerating
-                                ? intl.formatMessage(SreAgentResources.pythonToolCreatorGeneratingButton)
-                                : intl.formatMessage(SreAgentResources.pythonToolCreatorGenerateButton)}
-                        </Button>
+                        <Field
+                            label={intl.formatMessage(SreAgentResources.pythonToolBuilderTimeoutLabel)}
+                            validationState={touched.timeoutSeconds && errors.timeoutSeconds ? 'error' : undefined}
+                            validationMessage={touched.timeoutSeconds ? errors.timeoutSeconds : undefined}
+                        >
+                            <Input
+                                type="number"
+                                value={values.timeoutSeconds?.toString() || '120'}
+                                onChange={handleTimeoutChange}
+                                min={5}
+                                max={900}
+                                disabled={isGenerating}
+                            />
+                        </Field>
                     </div>
 
-                    {generateError && (
-                        <MessageBar intent="error">
-                            <MessageBarBody>
-                                {intl.formatMessage(SreAgentResources.pythonToolCreatorGenerateError, { message: generateError })}
-                            </MessageBarBody>
-                        </MessageBar>
-                    )}
+                    <TextareaFormik
+                        name="description"
+                        label={intl.formatMessage(SreAgentResources.pythonToolBuilderDescriptionLabel)}
+                        placeholder={intl.formatMessage(SreAgentResources.pythonToolCreatorDescriptionPlaceholder)}
+                        orientation="vertical"
+                        required
+                        className={styles.descriptionField}
+                        resize="vertical"
+                        disabled={isGenerating}
+                    />
+
+                    {/* Monaco Editor */}
+                    <div className={styles.editorContainer}>
+                        <MonacoEditor
+                            height="100%"
+                            language="python"
+                            theme="vs-light"
+                            value={values.functionCode || getDefaultCode()}
+                            onChange={handleCodeChange}
+                            options={{
+                                minimap: { enabled: false },
+                                lineNumbers: 'on',
+                                scrollBeyondLastLine: false,
+                                fontSize: 13,
+                                fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                tabSize: 4,
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                                readOnly: isGenerating,
+                                padding: { top: 12, bottom: 12 },
+                            }}
+                        />
+                    </div>
                 </div>
             )}
 
             {/* Test Playground Tab */}
             {selectedTab === 'test' && (
                 <div className={styles.tabContent}>
-                    <MessageBar intent="warning">
-                        <MessageBarBody>{intl.formatMessage(SreAgentResources.pythonToolCreatorTestPlaygroundWarning)}</MessageBarBody>
-                    </MessageBar>
+                    {!hasSuccessRunTest && (
+                        <MessageBar intent="warning">
+                            <MessageBarBody>{intl.formatMessage(SreAgentResources.pythonToolCreatorTestPlaygroundWarning)}</MessageBarBody>
+                        </MessageBar>
+                    )}
 
                     <div className={styles.testPanelHeader}>
                         <Text size={300} weight="semibold">
@@ -353,14 +321,12 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
                         </Button>
                     </div>
 
-                    {/* Test Results Section - only show after a test has been run */}
                     {(testResult || testError || isTesting) && (
                         <div className={styles.executionResultsSection}>
                             <Text size={300} weight="semibold">
                                 {intl.formatMessage(SreAgentResources.pythonToolCreatorResultsLabel)}
                             </Text>
 
-                            {/* Error state with Fix with AI button */}
                             {testerStatus.intent === 'error' && (
                                 <div className={styles.errorContainer}>
                                     <MessageBar className={styles.testPanelMessageBar} intent={testerStatus.intent} role="alert">
@@ -372,14 +338,12 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
                                 </div>
                             )}
 
-                            {/* Running status message */}
                             {testerStatus.intent === 'info' && (
                                 <MessageBar className={styles.testPanelMessageBar} intent={testerStatus.intent} role="status">
                                     <MessageBarBody>{testerStatus.message}</MessageBarBody>
                                 </MessageBar>
                             )}
 
-                            {/* Success results */}
                             {testResult?.success && !codeChangedAfterTest && (
                                 <>
                                     <MessageBar intent="success" className={styles.testPanelMessageBar}>
@@ -400,19 +364,8 @@ export const PythonToolTestPanel: FC<PythonToolTestPanelProps> = ({
                         </div>
                     )}
 
-                    {/* Parameters */}
                     {values.parameters && values.parameters.length > 0 && (
                         <div className={styles.parameterSection}>
-                            {/* Missing Params Warning - at top of parameter section */}
-                            {missingParamNames.length > 0 && (
-                                <MessageBar intent="warning">
-                                    <MessageBarBody>
-                                        {intl.formatMessage(SreAgentResources.pythonToolCreatorTestMissingParams, {
-                                            parameters: missingParamNames.join(', '),
-                                        })}
-                                    </MessageBarBody>
-                                </MessageBar>
-                            )}
                             <Label>{intl.formatMessage(SreAgentResources.pythonToolCreatorParameterValuesLabel)}</Label>
                             <div className={styles.parameterList}>
                                 {values.parameters.map((param, index) => (

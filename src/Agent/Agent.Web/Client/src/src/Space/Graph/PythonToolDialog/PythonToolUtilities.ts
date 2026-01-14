@@ -24,7 +24,7 @@ export interface TestResult {
 }
 
 export type ToolTestStatus = 'idle' | 'running' | 'success' | 'error';
-export type TabValue = 'assistant' | 'test';
+export type RightPanelTabValue = 'code' | 'test';
 
 /**
  * Default Python code template for new tools

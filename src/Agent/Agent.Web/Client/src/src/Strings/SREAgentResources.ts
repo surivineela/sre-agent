@@ -223,6 +223,10 @@ export const SreAgentResources = defineMessages({
         id: 'wSAvhu',
         defaultMessage: 'Assistant',
     },
+    pythonToolCreatorCodeTab: {
+        id: 'h2vipu',
+        defaultMessage: 'Code',
+    },
     pythonToolCreatorTestPlaygroundTab: {
         id: 'smIXdP',
         defaultMessage: 'Test playground',
@@ -272,8 +276,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Provide values for: {parameters}',
     },
     pythonToolCreatorTestPlaygroundWarning: {
-        id: 'B2qjyO',
-        defaultMessage: 'Test the tool to continue',
+        id: 'hlmcDP',
+        defaultMessage: 'Test the tool before creating',
     },
     pythonToolCreatorParamFieldWarning: {
         id: 'Q7/1w4',

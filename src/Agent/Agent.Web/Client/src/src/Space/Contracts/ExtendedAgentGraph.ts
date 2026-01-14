@@ -367,6 +367,42 @@ export interface PromptImprovementResponse {
     handoffDescription?: string;
 }
 
+export interface GeneratePythonToolRequest {
+    intent: string;
+    suggestedName?: string;
+    timeoutSeconds?: number;
+    existingCode?: string;
+}
+
+export interface GeneratePythonToolResponse {
+    success: boolean;
+    name?: string;
+    description?: string;
+    functionCode?: string;
+    function_code?: string;
+    parameters?: ToolParameter[];
+    timeoutSeconds?: number;
+    timeout_seconds?: number;
+    errorMessage?: string;
+}
+
+export interface TestPythonToolRequest {
+    functionCode: string;
+    timeoutSeconds?: number;
+    parameters: Record<string, string>;
+    parameterDefinitions: ToolParameter[];
+}
+
+export interface TestPythonToolResponse {
+    success: boolean;
+    result?: unknown;
+    errorMessage?: string;
+    stderr?: string;
+    stdout?: string;
+    executionTimeMs?: number;
+    errorType?: string;
+}
+
 export const INFO_PANEL_MIN_WIDTH = 360;
 export const INFO_PANEL_MAX_WIDTH = 720;
 export const INFO_PANEL_DEFAULT_WIDTH = 600;

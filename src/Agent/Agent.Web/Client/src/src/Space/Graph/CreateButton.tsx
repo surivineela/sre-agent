@@ -3,7 +3,6 @@ import { AddRegular } from '@fluentui/react-icons';
 import { memo, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
-import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { EntityTypeExt } from './ExtendedAgentCreationDialog/types';
 
@@ -19,7 +18,6 @@ const CreateButton = memo(
     ({ handleCreateItemStandalone, disableCreateMetaAgent, disableCreateSubagent, disableCreateSkill, disabled }: CreateButtonProps) => {
         const allowMetaAgentOverride = useConfigSetting(SettingNames.AllowMetaAgentOverride);
         const showIncidentTriggerWithLearnings = useConfigSetting(SettingNames.ShowIncidentTriggerWithLearnings);
-        const { features } = useFeatureFlags();
         const intl = useIntl();
         const createButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -92,11 +90,9 @@ const CreateButton = memo(
                                     <MenuItem onClick={() => handleCreateItemStandalone('tool')}>
                                         {intl.formatMessage(ExtendedAgentsGraphResources.kustoToolCreateMenuLabel)}
                                     </MenuItem>
-                                    {features.pythonTool && (
-                                        <MenuItem onClick={() => handleCreateItemStandalone('pythonTool')}>
-                                            {intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuLabel)}
-                                        </MenuItem>
-                                    )}
+                                    <MenuItem onClick={() => handleCreateItemStandalone('pythonTool')}>
+                                        {intl.formatMessage(ExtendedAgentsGraphResources.pythonToolCreateMenuLabel)}
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>

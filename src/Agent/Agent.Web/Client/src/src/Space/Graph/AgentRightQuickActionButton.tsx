@@ -13,7 +13,6 @@ import {
 import { Add20Regular } from '@fluentui/react-icons';
 import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useFeatureFlags } from '../../Common/Hooks/useFeatureFlags';
 import { ExtendedAgentsGraphResources } from '../../Strings/SREAgentResources';
 import { ExtendedAgent, ExtendedAgentGraphContext } from '../Contracts/ExtendedAgentGraph';
 import { useExtendedAgentGraphStyles, useExtendedAgentNodeStyles } from '../Styles/ExtendedAgentGraph.styles';
@@ -27,7 +26,6 @@ export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonPr
     const { quickActionButton, menuPopover } = useExtendedAgentNodeStyles();
     const { contextMenuItemWithIcon, menuIconDisabled } = useExtendedAgentGraphStyles();
     const { triggerAgentQuickAction, hasSkills } = useContext(ExtendedAgentGraphContext);
-    const { features } = useFeatureFlags();
     const iconSizeProp = useMemo(() => ({ wrapperSize: 20, iconSize: 16, borderRadius: 6 }), []);
 
     return (
@@ -57,14 +55,12 @@ export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonPr
                             onClick={() => triggerAgentQuickAction(agent.name, 'createTool')}
                             content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewKustoTool)}
                         />
-                        {features.pythonTool && (
-                            <MenuItem
-                                className={contextMenuItemWithIcon}
-                                icon={<EntityIcon type="pythonTool" shorthandStyle={iconSizeProp} />}
-                                onClick={() => triggerAgentQuickAction(agent.name, 'createPythonTool')}
-                                content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewPythonTool)}
-                            />
-                        )}
+                        <MenuItem
+                            className={contextMenuItemWithIcon}
+                            icon={<EntityIcon type="pythonTool" shorthandStyle={iconSizeProp} />}
+                            onClick={() => triggerAgentQuickAction(agent.name, 'createPythonTool')}
+                            content={intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewPythonTool)}
+                        />
                     </MenuGroup>
                     <MenuDivider />
                     <MenuGroup>

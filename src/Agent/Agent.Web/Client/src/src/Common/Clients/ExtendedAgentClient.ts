@@ -3,9 +3,13 @@ import {
     ExtendedAgent,
     ExtendedConnector,
     ExtendedTool,
+    GeneratePythonToolRequest,
+    GeneratePythonToolResponse,
     PaginatedResponse,
     PromptImprovementResponse,
     Skill,
+    TestPythonToolRequest,
+    TestPythonToolResponse,
 } from '../../Space/Contracts/ExtendedAgentGraph.ts';
 import { buildMetaAgentYaml, convertExtendedEntityToYaml } from '../../Space/Graph/ExtendedAgentYamlUtils.ts';
 import { ConnectorStatus } from '../Contracts/Azure/SreAgent.ts';
@@ -153,6 +157,48 @@ export class ExtendedAgentClient extends DataPlaneClient {
                     },
                 }
             );
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
+    public generatePythonTool = async (request: GeneratePythonToolRequest): Promise<Response<GeneratePythonToolResponse>> => {
+        try {
+            const { data } = await axios.post(this.getRequestUrl('/api/v1/extendedAgent/generate-python-tool'), request, {
+                headers: {
+                    ...getAgentHeaders(),
+                    'Content-Type': 'application/json',
+                },
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
+    public testPythonTool = async (request: TestPythonToolRequest): Promise<Response<TestPythonToolResponse>> => {
+        try {
+            const { data } = await axios.post(this.getRequestUrl('/api/v1/extendedAgent/tools/python/test'), request, {
+                headers: {
+                    ...getAgentHeaders(),
+                    'Content-Type': 'application/json',
+                },
+            });
             return {
                 isSuccessful: true,
                 content: data,

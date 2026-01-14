@@ -32,6 +32,12 @@ export const usePythonToolDialogStyles = makeStyles({
         padding: tokens.spacingHorizontalL,
         borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
     },
+    dialogContent: {
+        display: 'flex',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'hidden',
+    },
 
     // Main content layout
     toolForm: {
@@ -45,9 +51,11 @@ export const usePythonToolDialogStyles = makeStyles({
     toolFormLeft: {
         display: 'flex',
         flexDirection: 'column',
-        gap: tokens.spacingVerticalM,
-        minWidth: '500px',
+        alignItems: 'flex-start',
+        gap: tokens.spacingVerticalL,
         flex: '1 1 50%',
+        alignSelf: 'stretch',
+        minWidth: '400px',
         overflow: 'hidden',
     },
     toolFormDivider: {
@@ -60,11 +68,9 @@ export const usePythonToolDialogStyles = makeStyles({
     toolFormRight: {
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: tokens.spacingVerticalL,
+        gap: tokens.spacingVerticalM,
+        minWidth: '500px',
         flex: '1 1 50%',
-        alignSelf: 'stretch',
-        minWidth: '400px',
         overflow: 'hidden',
     },
 
@@ -87,7 +93,7 @@ export const usePythonToolDialogStyles = makeStyles({
     // Editor
     editorContainer: {
         flex: 1,
-        minHeight: '300px',
+        minHeight: '200px',
         border: `1px solid ${tokens.colorNeutralStroke1}`,
         borderRadius: tokens.borderRadiusMedium,
         overflow: 'hidden',
@@ -100,6 +106,7 @@ export const usePythonToolDialogStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalM,
         paddingTop: tokens.spacingVerticalM,
+        minHeight: 0,
         overflow: 'auto',
         width: '100%',
     },
@@ -196,5 +203,50 @@ export const usePythonToolDialogStyles = makeStyles({
         width: '100%',
         maxHeight: '364px',
         flexGrow: 1,
+    },
+
+    // Assistant panel (left side, standalone)
+    assistantPanel: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+        flex: '1 1 50%',
+        minWidth: '350px',
+        overflow: 'hidden',
+    },
+    assistantHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+        paddingBottom: tokens.spacingVerticalS,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    assistantContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        flex: 1,
+        overflow: 'auto',
+        paddingTop: '12px', // Align with content below tabs on right panel
+    },
+
+    // Code and Test panel (right side, tabbed)
+    codeAndTestPanel: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        flex: '1 1 50%',
+        minWidth: '400px',
+        minHeight: 0,
+        overflow: 'hidden',
+    },
+    codeTabContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+        paddingBottom: tokens.spacingVerticalM,
     },
 });

@@ -11,15 +11,15 @@ import {
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { Formik } from 'formik';
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedTool } from '../../Contracts/ExtendedAgentGraph';
 import { usePythonToolSettings } from './Hooks/usePythonToolSettings';
+import { PythonToolAssistantPanel } from './PythonToolAssistantPanel';
+import { PythonToolCodeAndTestPanel } from './PythonToolCodeAndTestPanel';
 import { usePythonToolDialogStyles } from './PythonToolDialog.Styles';
-import { PythonToolForm } from './PythonToolForm';
-import { PythonToolTestPanel } from './PythonToolTestPanel';
-import { PythonToolDialogMode, PythonToolFormProps, getPythonToolFingerprint } from './PythonToolUtilities';
+import { PythonToolDialogMode, PythonToolFormProps, RightPanelTabValue, getPythonToolFingerprint } from './PythonToolUtilities';
 
 interface PythonToolDialogProps {
     isDialogOpen: boolean;
@@ -51,15 +51,28 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
     const [hasSuccessRunTest, setHasSuccessRunTest] = useState<boolean>(false);
     const [lastTestedFingerprint, setLastTestedFingerprint] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    const [rightPanelTab, setRightPanelTab] = useState<RightPanelTabValue>('code');
+    const [prompt, setPrompt] = useState<string>('');
 
-    // Reset test state when dialog opens
+    // Reset state when dialog opens
     useEffect(() => {
         if (isDialogOpen) {
             setHasSuccessRunTest(false);
             setLastTestedFingerprint(null);
             setIsGenerating(false);
+            setRightPanelTab('code');
+            setPrompt('');
         }
     }, [isDialogOpen]);
+
+    const handleGenerationComplete = useCallback(() => {
+        setRightPanelTab('test');
+    }, []);
+
+    const handleFixWithAI = useCallback((errorMessage: string) => {
+        const fixPrompt = `Fix the following error in my Python code:\nError: ${errorMessage}`;
+        setPrompt(fixPrompt);
+    }, []);
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={(_, data) => setIsDialogOpen(data.open)} modalType="alert">
@@ -107,17 +120,26 @@ export const PythonToolDialog: FC<PythonToolDialogProps> = ({
                                             : intl.formatMessage(ExtendedAgentsGraphResources.editPythonTool)}
                                     </DialogTitle>
                                 </div>
-                                <DialogContent>
+                                <DialogContent className={styles.dialogContent}>
                                     <div className={styles.toolForm}>
-                                        <PythonToolForm isGenerating={isGenerating} />
+                                        <PythonToolAssistantPanel
+                                            isGenerating={isGenerating}
+                                            setIsGenerating={setIsGenerating}
+                                            setHasSuccessRunTest={setHasSuccessRunTest}
+                                            onGenerationComplete={handleGenerationComplete}
+                                            prompt={prompt}
+                                            setPrompt={setPrompt}
+                                        />
                                         <div className={styles.toolFormDivider} />
-                                        <PythonToolTestPanel
+                                        <PythonToolCodeAndTestPanel
                                             hasSuccessRunTest={hasSuccessRunTest}
                                             setHasSuccessRunTest={setHasSuccessRunTest}
                                             lastTestedFingerprint={lastTestedFingerprint}
                                             setLastTestedFingerprint={setLastTestedFingerprint}
                                             isGenerating={isGenerating}
-                                            setIsGenerating={setIsGenerating}
+                                            selectedTab={rightPanelTab}
+                                            setSelectedTab={setRightPanelTab}
+                                            onFixWithAI={handleFixWithAI}
                                         />
                                     </div>
                                 </DialogContent>
