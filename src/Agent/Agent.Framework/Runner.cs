@@ -39,6 +39,7 @@ public static class Runner
     private const int Gpt5InputWindow = 272000;
     private const int TokenThreshold = Gpt5InputWindow * 4 / 10;
     private const int ToolCountHardMax = 128;
+
     public static async Task<RunResult<TContext>> ResumeFromManualToolsAsync<TContext>(
         RunResult<TContext> previousResult,
         List<ManualToolCallResult> manualToolResults,
@@ -328,7 +329,7 @@ public static class Runner
 
                 if (turnResult.NextStep.Type == NextStepType.FinalOutput)
                 {
-                    logger.LogInformation(
+                    logger.LogInternalInformation(
                         "FinalOutput received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
                         currentAgent.Name,
                         trajectory.GetCriticCount(currentAgent.Name),
@@ -429,12 +430,12 @@ public static class Runner
         }
         catch (OperationCanceledException)
         {
-            logger.LogInformation("Operation was cancelled.");
+            logger.LogInternalInformation("Operation was cancelled.");
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError($"Exception thrown while executing reasoning loop: {ex.Message}");
+            logger.LogInternalError($"Exception thrown while executing reasoning loop: {ex.Message}");
             // todo: log
             throw;
         }
@@ -539,7 +540,7 @@ public static class Runner
             }
             else
             {
-                logger.LogInformation("Critic approved response: {CriticResult}", criticResult);
+                logger.LogInternalInformation("Critic approved response: {CriticResult}", criticResult);
                 if (config.EnableDebugOutput
                     && displayModelOutput is not null)
                 {
@@ -549,7 +550,7 @@ public static class Runner
         }
         else
         {
-            logger.LogInformation(
+            logger.LogInternalInformation(
                 "Critic skipped for {AgentName}: MaxReflectionCount={MaxReflectionCount}, CriticCount={CriticCount}",
                 currentAgent.Name,
                 currentAgent.MaxReflectionCount,
@@ -587,7 +588,7 @@ public static class Runner
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
-        logger.LogInformation("Running agent {AgentName} with runtime modifier {HasRuntimeModifier}", agent.Name, runtimeModifier != null);
+        logger.LogInternalInformation("Running agent {AgentName} with runtime modifier {HasRuntimeModifier}", agent.Name, runtimeModifier != null);
         // Apply runtime modifications at the beginning of each turn
         if (runtimeModifier != null)
         {
@@ -642,18 +643,27 @@ public static class Runner
             modelInput = ProcessHandoffPromptOverride(modelInput, agent);
         }
 
-        // add plan reminder as required
-        AddPlanReminderIfNeeded<TContext>(modelInput, tools);
+        // add plan reminder as required (skip if ambient context provider handles it)
+        if (!config.AmbientContextProvider.Enabled)
+        {
+            AddPlanReminderIfNeeded<TContext>(modelInput, tools);
 
-        // Add skills reminder if required
-        AddSkillsReminderIfNeeded(modelInput, agent, activeSkills);
+            // Add skills reminder if required
+            AddSkillsReminderIfNeeded(modelInput, agent, activeSkills);
 
-        // tool invocations like metrics query depend on current time
-        // Note: this message used to be a system message which works for openai models. But claude only supports one system message
-        // Multple system messages are hoisted to a signle one by the Anthropic SDK, generating a confusing system prompt with multiple date time messages
-        // Besides, it is also bad for prompt caching because the system prompt changes every time
-        // So it's changed to a user message
-        modelInput.Add(new ChatMessage(ChatRole.User, $"<system-reminder>The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}</system-reminder>"));
+            // tool invocations like metrics query depend on current time
+            // Note: this message used to be a system message which works for openai models. But claude only supports one system message
+            // Multple system messages are hoisted to a signle one by the Anthropic SDK, generating a confusing system prompt with multiple date time messages
+            // Besides, it is also bad for prompt caching because the system prompt changes every time
+            // So it's changed to a user message
+            modelInput.Add(new ChatMessage(ChatRole.User, $"<system-reminder>The current date is {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz}</system-reminder>"));
+        }
+        else
+        {
+            logger.LogInternalInformation("Adding context via IAmbientContextProvider");
+            // Inject ambient context if provider is enabled
+            await AddAmbientContextAsync(modelInput, config.AmbientContextProvider, cancellationToken);
+        }
 
         await hooks.OnModelGenerationStart(contextWrapper, agent, modelInput, chatOptions);
 
@@ -876,7 +886,7 @@ public static class Runner
 
                         if (!criticApproval)
                         {
-                            logger.LogInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
+                            logger.LogInternalInformation("Critic intervened to break handoff loop for {AgentName}", agent.Name);
 
                             continue;
                         }
@@ -885,7 +895,7 @@ public static class Runner
                     // trigger critic on handoff attempt if configured
                     if (agent.CriticOnHandOff)
                     {
-                        logger.LogInformation(
+                        logger.LogInternalInformation(
                             "HandOff received from {AgentName}, Critic: {criticCount}/{MaxReflectionCount}",
                             agent.Name,
                             trajectory.GetCriticCount(agent.Name),
@@ -914,7 +924,7 @@ public static class Runner
 
                         if (!criticApproval)
                         {
-                            logger.LogInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
+                            logger.LogInternalInformation("Critic failure {AgentName}. Running reasoning step again.", agent.Name);
 
                             continue;
                         }
@@ -1030,15 +1040,28 @@ public static class Runner
                             toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
 
                             // Process tool output for potential truncation
-                            if (runConfig.EnablePartialToolOutput && toolOutputTruncationService != null)
+                            if (runConfig.EnablePartialToolOutput
+                                && toolOutputTruncationService != null)
                             {
-                                toolResult = await toolOutputTruncationService.ProcessToolOutputAsync(contextWrapper.Context, tool, toolResult, cancellationToken);
+                                toolResult = await toolOutputTruncationService.ProcessToolOutputAsync(
+                                    contextWrapper.Context,
+                                    tool,
+                                    toolResult,
+                                    cancellationToken);
                             }
                         }
                         catch (Exception e)
                         {
                             // TODO Need logging.
                             toolResult = GetToolErrorMessage(functionCall, e);
+                        }
+
+                        if (config.EnableDebugOutput
+                                && displayModelOutput is not null)
+                        {
+                            await displayModelOutput.OnComplete($"[DEBUG]\n\nTool Result: {functionCall.Name}"
+                                + $"\n\nParameters: {functionCall.GetSerializedArguments()}"
+                                + $"\n\nOutput: {JsonSerializer.Serialize(toolResult, AIJsonUtilities.DefaultOptions)}");
                         }
 
                         await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, toolResult);
@@ -1384,6 +1407,133 @@ public static class Runner
         // If no compacted summary found, return the original input
         return modelInput;
     }
+
+    #region Ambient Context Injection
+
+    /// <summary>
+    /// Injects ambient context (instructions, environment, pre-query) into the model input.
+    /// Replicates Copilot Chat's context injection pattern.
+    /// </summary>
+    private static async Task AddAmbientContextAsync(
+        List<ChatMessage> modelInput,
+        IAmbientContextProvider provider,
+        CancellationToken ct)
+    {
+        // 1. Insert INSTRUCTIONS context as first system message (after main system prompt)
+        await AddInstructionsContextAsync(modelInput, provider, ct);
+
+        // 2. Insert ENVIRONMENT context as first user message
+        await AddEnvironmentContextAsync(modelInput, provider, ct);
+
+        // 3. Before the final user message, insert PRE-QUERY context
+        await AddPreUserQueryContextAsync(modelInput, provider, ct);
+
+        // 4. Wrap the user's query in <user_query> tags
+        WrapUserQueryMessage(modelInput);
+    }
+
+    private static async Task AddInstructionsContextAsync(
+        List<ChatMessage> modelInput,
+        IAmbientContextProvider provider,
+        CancellationToken ct)
+    {
+        var instructionsContext = await provider.GetInstructionsContextAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(instructionsContext))
+        {
+            // Insert as SYSTEM message right after the main system prompt (index 1)
+            modelInput.Insert(1, new ChatMessage(ChatRole.System, instructionsContext));
+        }
+    }
+
+    private static async Task AddEnvironmentContextAsync(
+        List<ChatMessage> modelInput,
+        IAmbientContextProvider provider,
+        CancellationToken ct)
+    {
+        var envContext = await provider.GetEnvironmentContextAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(envContext))
+        {
+            // Find index after system messages (first non-system message position)
+            var insertIndex = modelInput.FindIndex(m => m.Role != ChatRole.System);
+            if (insertIndex < 0)
+            {
+                insertIndex = modelInput.Count;
+            }
+
+            modelInput.Insert(insertIndex, new ChatMessage(ChatRole.User, envContext));
+        }
+    }
+
+    private static async Task AddPreUserQueryContextAsync(
+        List<ChatMessage> modelInput,
+        IAmbientContextProvider provider,
+        CancellationToken ct)
+    {
+        var preQueryContext = await provider.GetPreUserQueryContextAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(preQueryContext))
+        {
+            // Insert as 2ND LAST message (before the user's query)
+            // Find the last user message position
+            var lastUserIndex = -1;
+            for (var i = modelInput.Count - 1; i >= 0; i--)
+            {
+                if (modelInput[i].Role == ChatRole.User)
+                {
+                    lastUserIndex = i;
+                    break;
+                }
+            }
+
+            if (lastUserIndex >= 0)
+            {
+                modelInput.Insert(lastUserIndex, new ChatMessage(ChatRole.User, preQueryContext));
+            }
+            else
+            {
+                // No user message found, just append
+                modelInput.Add(new ChatMessage(ChatRole.User, preQueryContext));
+            }
+        }
+    }
+
+    private static void WrapUserQueryMessage(List<ChatMessage> modelInput)
+    {
+        // Find the last user message (the actual user query)
+        var lastUserIndex = -1;
+        for (var i = modelInput.Count - 1; i >= 0; i--)
+        {
+            if (modelInput[i].Role == ChatRole.User)
+            {
+                lastUserIndex = i;
+                break;
+            }
+        }
+
+        if (lastUserIndex < 0)
+        {
+            return;
+        }
+
+        var originalContent = modelInput[lastUserIndex].Text;
+
+        // Don't wrap if already wrapped or if it's a system-reminder/context message
+        if (originalContent.Contains("<user_query>") ||
+            originalContent.StartsWith("<system-reminder>") ||
+            originalContent.StartsWith("<environment_info>") ||
+            originalContent.StartsWith("<context>") ||
+            originalContent.StartsWith("<attachments>"))
+        {
+            return;
+        }
+
+        var wrappedContent = $"<user_query>\n{originalContent}\n</user_query>";
+        modelInput[lastUserIndex] = new ChatMessage(ChatRole.User, wrappedContent);
+    }
+
+    #endregion
 
     private const string EmptyToDoReminder =
     """

@@ -73,6 +73,7 @@ public class ReasoningLoop : IDisposable
     private TelemetrySpan? _rootSpan;
     private TelemetrySpan? _currentAgentSpan;
     private readonly ConcurrentDictionary<string, TelemetrySpan?> _toolSpans = new();
+    private readonly ConcurrentDictionary<string, (McpToolExecution Execution, Guid MessageId)> _mcpExecutions = new();
     private TelemetrySpan? _currentGenerationSpan;
     private Stopwatch? _currentGenerationStopwatch;
     private Exception? _currentException;
@@ -127,6 +128,9 @@ public class ReasoningLoop : IDisposable
     // tool output truncation
     private readonly IToolOutputTruncationService _toolOutputTruncationService;
 
+    // ambient context provider for VS Code tools integration
+    private readonly IAmbientContextProvider _ambientContextProvider;
+
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
@@ -152,7 +156,8 @@ public class ReasoningLoop : IDisposable
         ISkillRegistry skillRegistry,
         IToolOutputTruncationService toolOutputTruncationService,
         IHostEnvironment hostEnvironment,
-        bool modeSwitchEnabled = false)
+        IAmbientContextProvider ambientContextProvider,
+        bool modeSwitchEnabled)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -187,6 +192,7 @@ public class ReasoningLoop : IDisposable
         _agentRuntimeModifier = agentRuntimeModifier;
         _modeSwitchEnabled = modeSwitchEnabled;
         _skillRegistry = skillRegistry;
+        _ambientContextProvider = ambientContextProvider;
         if (_modeSwitchEnabled)
         {
             // Initialize handler only when feature flag enabled to keep overhead minimal for other agents
@@ -208,6 +214,7 @@ public class ReasoningLoop : IDisposable
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
         _toolOutputTruncationService = toolOutputTruncationService;
     }
+
     public virtual void CancelCurrentOperation()
     {
         if (_disposed)
@@ -905,7 +912,8 @@ public class ReasoningLoop : IDisposable
             EnableDebugOutput = _enableReasoningDebugOutput,
             ThreadId = _context.ThreadId,
             SkillRegistry = _skillRegistry,
-            EnablePartialToolOutput = _featureConfig.PartialOutputEnabled
+            EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
+            AmbientContextProvider = _ambientContextProvider
         };
 
         List<UserActionRequiredResult> userActionRequiredResults = [];
@@ -1646,15 +1654,25 @@ public class ReasoningLoop : IDisposable
             // Stream auto tools to avoid missing them (manual tools are handled separately)
             if (tool.GetToolMode() == ToolMode.Auto)
             {
-                var callId = Framework.ToolStatic.AsyncLocalFunctionCallId.Value;
+                var callId = ToolStatic.AsyncLocalFunctionCallId.Value;
                 if (!string.IsNullOrEmpty(callId))
                 {
                     _logger.LogInternalInformation("Streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var toolCallMessageId = Guid.NewGuid();
-                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, tool, toolCallMessageId, callId);
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, functionCall, toolCallMessageId);
                     // Store the message ID for OnToolEnd to use
                     Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;
                 }
+            }
+
+            // Stream MCP tool execution for special UI display
+            if (tool.IsMcpTool())
+            {
+                var mcpExecution = McpToolExecutionHelper.CreateFromFunctionCall(functionCall);
+                var mcpMessageId = Guid.NewGuid(); // Use a dedicated message ID for MCP execution
+                await _outboundCommunicationService.NotifyMcpToolExecution(_context.ThreadId, mcpExecution, mcpMessageId);
+                // Store execution with message ID for ToolEnd to update status
+                _mcpExecutions[functionCall.CallId] = (mcpExecution, mcpMessageId);
             }
         };
 
@@ -1681,6 +1699,16 @@ public class ReasoningLoop : IDisposable
                     Framework.ToolStatic.AsyncLocalFunctionCallId.Value = null;
                     Framework.ToolStatic.AsyncLocalToolCallMessageId.Value = null;
                 }
+            }
+
+            // Update MCP tool execution status to completed
+            if (_mcpExecutions.TryRemove(functionCallContent.CallId, out var mcpData))
+            {
+                var (mcpExecution, mcpMessageId) = mcpData;
+                mcpExecution.Status = McpToolExecutionStatus.Completed;
+                mcpExecution.CompletedAt = DateTime.UtcNow;
+                mcpExecution.Result = output?.ToString();
+                await _outboundCommunicationService.NotifyMcpToolExecution(_context.ThreadId, mcpExecution, mcpMessageId);
             }
 
             LogToolExecution(tool, output);
@@ -2054,7 +2082,7 @@ public class ReasoningLoop : IDisposable
 
         try
         {
-            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, aiTool, toolCallMessageId, functionCall.CallId);
+            await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, functionCall, toolCallMessageId);
             var functionResult = await aiTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
 
             FunctionResultContent result;
@@ -3338,6 +3366,7 @@ public class ReasoningLoop : IDisposable
                 ThreadId = _context.ThreadId,
                 SkillRegistry = _skillRegistry,
                 EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
+                AmbientContextProvider = _ambientContextProvider
             };
 
             try

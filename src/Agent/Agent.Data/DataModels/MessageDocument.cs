@@ -31,6 +31,14 @@ public record MessageDocument(
     MemorySearchResult? MemorySearchResult = null,
     // Knowledge graph search results from knowledge graph plugin
     KnowledgeGraphSearchResult? KnowledgeGraphSearchResult = null,
+    // Grep search results from workspace tools plugin
+    GrepSearchResult? GrepSearchResult = null,
+    // Read file results from workspace tools plugin
+    ReadFileResult? ReadFileResult = null,
+    // Terminal execution results from workspace tools plugin
+    TerminalExecutionResult? TerminalResult = null,
+    // User question requiring interactive response (similar to Claude Code's AskUserQuestion)
+    UserQuestion? UserQuestion = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)
@@ -61,6 +69,10 @@ public record MessageDocument(
             message.AgentTaskInfo ?? null,
             message.MemorySearchResult ?? null,
             message.KnowledgeGraphSearchResult ?? null,
+            message.GrepSearchResult ?? null,
+            message.ReadFileResult ?? null,
+            message.TerminalResult ?? null,
+            message.UserQuestion ?? null,
             message.TodoInfo ?? null,
             message.IsComplete,
             message.MessageType
@@ -83,6 +95,10 @@ public record MessageDocument(
             AgentTaskInfo,
             MemorySearchResult: MemorySearchResult,
             KnowledgeGraphSearchResult: KnowledgeGraphSearchResult,
+            GrepSearchResult: GrepSearchResult,
+            ReadFileResult: ReadFileResult,
+            TerminalResult: TerminalResult,
+            UserQuestion: UserQuestion,
             TodoInfo: TodoInfo,
             IsComplete: IsComplete,
             MessageType: MessageType
@@ -98,5 +114,9 @@ public record MessageDocument(
         && AgentTaskInfo is null
         && MemorySearchResult is null
         && KnowledgeGraphSearchResult is null
+        && GrepSearchResult is null
+        && ReadFileResult is null
+        && TerminalResult is null
+        && UserQuestion is null
         && TodoInfo is null;
 }

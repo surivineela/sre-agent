@@ -282,6 +282,7 @@ public class Constants
     public static class FeatureFlags
     {
         public const string EnableResponsesApi = "EnableResponsesApi";
+        public const string EnableWorkspaceTools = "EnableWorkspaceTools";
     }
 
     public static readonly TimeSpan AzCliDefaultTimeout = TimeSpan.FromMinutes(15);

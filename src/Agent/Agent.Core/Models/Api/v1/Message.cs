@@ -44,6 +44,14 @@ public record Message(
     MemorySearchResult? MemorySearchResult = null,
     // Knowledge graph search results from knowledge graph plugin
     KnowledgeGraphSearchResult? KnowledgeGraphSearchResult = null,
+    // Grep search results from Workspace tools plugin
+    GrepSearchResult? GrepSearchResult = null,
+    // File read results from Workspace tools plugin
+    ReadFileResult? ReadFileResult = null,
+    // Terminal execution results from Workspace tools plugin
+    TerminalExecutionResult? TerminalResult = null,
+    // User question requiring interactive response (similar to Claude Code's AskUserQuestion)
+    UserQuestion? UserQuestion = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
     // Indicates if the message is complete (e.g., streaming is finished)

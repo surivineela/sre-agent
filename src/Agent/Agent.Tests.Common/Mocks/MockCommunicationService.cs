@@ -69,9 +69,9 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         return Task.CompletedTask;
     }
 
-    public Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
+    public Task AppendAgentToolCallMessage(Guid threadId, FunctionCallContent functionCall, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
-        Messages.Add(aiTool.Name);
+        Messages.Add(functionCall.Name);
         return Task.CompletedTask;
     }
 
@@ -204,11 +204,53 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         return Task.FromResult(Guid.NewGuid());
     }
 
+    public Task<Guid> AppendAgentGrepSearchMessage(Guid threadId, GrepSearchResult grepSearchResult, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, GrepSearchResult: {grepSearchResult}");
+        Messages.Add(grepSearchResult?.ToString() ?? string.Empty);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
+    public Task<Guid> AppendAgentUserQuestionMessage(Guid threadId, UserQuestion userQuestion, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, UserQuestion: {userQuestion?.Question}");
+        Messages.Add(userQuestion?.Question ?? string.Empty);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
+    public Task NotifyUserQuestionUpdate(Guid threadId, UserQuestion userQuestion, Guid messageId)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, UserQuestion update: {userQuestion?.Question}, Status: {userQuestion?.Status}");
+        Messages.Add($"UserQuestion update: {userQuestion?.Question}");
+        return Task.CompletedTask;
+    }
+
     public Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default)
     {
         _logger?.LogInternalInformation($"ThreadId: {threadId}, intermediate message {message}");
         Messages.Add(message);
         return Task.CompletedTask;
+    }
+
+    public Task NotifyMcpToolExecution(Guid threadId, McpToolExecution execution, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, MCP tool execution {execution.FullToolName}, status {execution.Status}");
+        Messages.Add($"MCP Tool: {execution.FullToolName}");
+        return Task.CompletedTask;
+    }
+
+    public Task<Guid> AppendAgentReadFileMessage(Guid threadId, ReadFileResult readFileResult, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, ReadFileResult: {readFileResult?.FilePath}");
+        Messages.Add(readFileResult?.FilePath ?? string.Empty);
+        return Task.FromResult(Guid.NewGuid());
+    }
+
+    public Task<Guid> AppendAgentTerminalMessage(Guid threadId, TerminalExecutionResult terminalResult, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, TerminalResult: {terminalResult?.Command}");
+        Messages.Add(terminalResult?.Command ?? string.Empty);
+        return Task.FromResult(Guid.NewGuid());
     }
 }
 

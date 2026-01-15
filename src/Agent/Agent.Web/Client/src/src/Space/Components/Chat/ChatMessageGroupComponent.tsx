@@ -13,6 +13,7 @@ const ChatMessageGroupComponent = ({
     isWaitingForStreamingMessages,
     sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
+    onSubmitUserQuestionResponse,
 }: IChatMessageGroupProps) => {
     const messagesToCopy = useMemo(
         () =>
@@ -51,6 +52,7 @@ const ChatMessageGroupComponent = ({
                     messagesToCopy={messagesToCopy}
                     sendMessage={sendMessage}
                     updateApprovalOrCliMessageInStreamingMessage={updateApprovalOrCliMessageInStreamingMessage}
+                    onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
                     isTyping={isTyping}
                     role={'SREAgent'}
                 />

@@ -41,6 +41,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly CustomerLogger _customerLogger;
     private readonly ISkillRegistry _skillRegistry;
     private readonly IToolOutputTruncationService _toolOutputTruncationService;
+    private readonly IAmbientContextProvider _ambientContextProvider;
 
     private readonly Tracer _tracer;
 
@@ -78,7 +79,9 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IToolOutputTruncationService toolOutputTruncationService,
         IMeterFactory meterFactory,
         IncidentManagementSettings incidentManagementSettings,
-        ISkillRegistry skillRegistry)
+        ISkillRegistry skillRegistry,
+        IAmbientContextProvider ambientContextProvider
+        )
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoopFactory>();
@@ -103,6 +106,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _toolOutputTruncationService = toolOutputTruncationService;
         _incidentManagementSettings = incidentManagementSettings;
         _skillRegistry = skillRegistry;
+        _ambientContextProvider = ambientContextProvider;
 
         // enable handoff reasoning for developer envs
         var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
@@ -226,7 +230,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
                     skillRegistry: _skillRegistry,
                     toolOutputTruncationService: _toolOutputTruncationService,
-                    hostEnvironment: _hostEnvironment);
+                    hostEnvironment: _hostEnvironment,
+                    ambientContextProvider: _ambientContextProvider);
 
             }
             catch (Exception ex)
@@ -261,7 +266,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             toolOutputTruncationService: _toolOutputTruncationService,
             hostEnvironment: _hostEnvironment,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
-            skillRegistry: _skillRegistry);
+            skillRegistry: _skillRegistry,
+            ambientContextProvider: _ambientContextProvider);
 
         await loop.LoadChatHistoryAsync();
         return loop;

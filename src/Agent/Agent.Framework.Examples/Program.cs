@@ -15,6 +15,7 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DataModels;
+using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Plugins;
@@ -112,45 +113,45 @@ class MockStreamingService : IStreamingService
 
     public Task StreamMessageAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
+        _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);
         return Task.CompletedTask;
     }
 
     public Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Streaming message for thread {ThreadId}", threadId);
+        _logger.LogInternalInformation("Mock: Streaming message for thread {ThreadId}", threadId);
         return Task.CompletedTask;
     }
 
     public Task StreamThreadUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Thread update for thread {ThreadId} with type {Type}: {Message}",
+        _logger.LogInternalInformation("Mock: Thread update for thread {ThreadId} with type {Type}: {Message}",
             threadId, type, message);
         return Task.CompletedTask;
     }
 
     public Task StreamActionUpdateAsync(Guid threadId, string message, StreamMessageType? type, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Streaming action for thread {ThreadId}", threadId);
+        _logger.LogInternalInformation("Mock: Streaming action for thread {ThreadId}", threadId);
         return Task.CompletedTask;
     }
 
     public Task StreamTaskUpdateAsync(Guid threadId, string taskData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Task update for thread {ThreadId}: {TaskData}", threadId, taskData);
+        _logger.LogInternalInformation("Mock: Task update for thread {ThreadId}: {TaskData}", threadId, taskData);
         return Task.CompletedTask;
     }
 
     public Task StreamIncidentUpdateAsync(Guid threadId, string incidentData, Guid? messageId = null, DateTime? recordedDateTime = null, StreamMessageType? messageType = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Streaming incident for thread {ThreadId}", threadId);
+        _logger.LogInternalInformation("Mock: Streaming incident for thread {ThreadId}", threadId);
         return Task.CompletedTask;
     }
 
     public Task StreamTodoPlanUpdateAsync(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock: Todo plan update for thread {ThreadId}: {TodoPlanData}", threadId, todoPlanData);
+        _logger.LogInternalInformation("Mock: Todo plan update for thread {ThreadId}: {TodoPlanData}", threadId, todoPlanData);
         return Task.CompletedTask;
     }
 }
@@ -338,7 +339,8 @@ class Program
                 {
                     ChatClient = chatClient,
                     LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
-                    SkillRegistry = new EmptySkillRegistry()
+                    SkillRegistry = new EmptySkillRegistry(),
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 },
                 context: new CustomContext()
             );
@@ -375,7 +377,7 @@ class Program
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
         var logger = loggerFactory.CreateLogger("Agent.Framework.Examples.RunBasicExampleDIAsync");
-        logger.LogInformation("Starting basic example with DI");
+        logger.LogInternalInformation("Starting basic example with DI");
 
         var output = await Runner.RunAsync(
             startingAgent: agent1,
@@ -384,22 +386,23 @@ class Program
             {
                 ChatClient = chatClient,
                 LoggerFactory = loggerFactory,
-                SkillRegistry = new EmptySkillRegistry()
+                SkillRegistry = new EmptySkillRegistry(),
+                AmbientContextProvider = DisabledAmbientContextProvider.Instance
             },
             context: new CustomContext()
         );
 
         foreach (var message in output.Input)
         {
-            logger.LogInformation(JsonSerializer.Serialize(message));
+            logger.LogInternalInformation(JsonSerializer.Serialize(message));
         }
 
         foreach (var message in output.NewItems)
         {
-            logger.LogInformation(JsonSerializer.Serialize(message));
+            logger.LogInternalInformation(JsonSerializer.Serialize(message));
         }
 
-        logger.LogInformation($"Final Output: {output.Output}");
+        logger.LogInternalInformation($"Final Output: {output.Output}");
     }
 
     static async Task RunBasicExampleNoDIAsync(HostApplicationBuilder builder)
@@ -430,7 +433,7 @@ class Program
         var chatClient = host.Services.GetRequiredService<IChatClient>();
 
         var logger = loggerFactory.CreateLogger("Agent.Framework.Examples.RunBasicExampleNoDIAsync");
-        logger.LogInformation("Starting basic example without DI");
+        logger.LogInternalInformation("Starting basic example without DI");
 
         var output = await Runner.RunAsync(
             startingAgent: agent1,
@@ -439,22 +442,23 @@ class Program
             {
                 ChatClient = chatClient,
                 LoggerFactory = loggerFactory,
-                SkillRegistry = new EmptySkillRegistry()
+                SkillRegistry = new EmptySkillRegistry(),
+                AmbientContextProvider = DisabledAmbientContextProvider.Instance
             },
             context: new CustomContext()
         );
 
         foreach (var message in output.Input)
         {
-            logger.LogInformation(JsonSerializer.Serialize(message));
+            logger.LogInternalInformation(JsonSerializer.Serialize(message));
         }
 
         foreach (var message in output.NewItems)
         {
-            logger.LogInformation(JsonSerializer.Serialize(message));
+            logger.LogInternalInformation(JsonSerializer.Serialize(message));
         }
 
-        logger.LogInformation($"Final Output: {output.Output}");
+        logger.LogInternalInformation($"Final Output: {output.Output}");
     }
 
     public static async Task ReasoningLoop(HostApplicationBuilder builder)
@@ -499,7 +503,8 @@ class Program
                 {
                     ChatClient = chatClient,
                     LoggerFactory = loggerFactory,
-                    SkillRegistry = new EmptySkillRegistry()
+                    SkillRegistry = new EmptySkillRegistry(),
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 },
                 context: context
             );
@@ -590,7 +595,7 @@ class Program
 
                 await approvalRepo.CreateApprovalAsync(newApproval);
 
-                logger.LogInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", newApproval.Id, context.ThreadId, newApproval.Title);
+                logger.LogInternalInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", newApproval.Id, context.ThreadId, newApproval.Title);
 
                 return new CheckApprovalActivityOutput()
                 {
@@ -600,7 +605,7 @@ class Program
             }
             else
             {
-                logger.LogInformation("Found existing approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status {Status}", approval.Id, context.ThreadId, approval.Title, approval.Status);
+                logger.LogInternalInformation("Found existing approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status {Status}", approval.Id, context.ThreadId, approval.Title, approval.Status);
                 return new CheckApprovalActivityOutput()
                 {
                     ApprovalId = approval.Id,

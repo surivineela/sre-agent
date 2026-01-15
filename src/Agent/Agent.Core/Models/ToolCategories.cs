@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Core.Models;
 
 public static class ToolCategories
@@ -8,6 +12,7 @@ public static class ToolCategories
     public const string Deployment = "Deployment";
     public const string DevOps = "DevOps";
     public const string Diagnostics = "Diagnostics";
+    public const string WorkspaceOperation = "Workspace Operation";
     public const string IncidentManagement = "Incident Management";
     public const string KnowledgeBase = "Knowledge Base";
     public const string LogQuery = "Log Query";

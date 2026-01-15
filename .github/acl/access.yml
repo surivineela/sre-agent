@@ -41,6 +41,8 @@ configuration:
     role: Read
   - team: k4appscore
     role: Write
+  - team: srea-ux-devs
+    role: Write
 # Core Identity - SRE Agent External Partners: https://coreidentity.microsoft.com/manage/Entitlement/entitlement/sreagentexte-f1fv
 # Each top level Core Identity Group has two subgroups
   - team: crg-sreagentexte-f1fv-reader-4wok
@@ -56,6 +58,4 @@ configuration:
   - team: ccg-sreagentexte-f1fv-contributor-up2b-1
     role: Write
   - member: csigs
-    role: Write
-  - team: srea-ux-devs
     role: Write

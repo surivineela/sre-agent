@@ -8,6 +8,7 @@ import DailyReportMessage from './DailyReportMessage';
 import ErrorChatMessage from './ErrorMessage';
 import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
 import KnowledgeGraphChatMessage from './KnowledgeGraphChatMessage';
+import McpToolExecutionMessage from './McpToolExecutionMessage';
 import MemoryChatMessage from './MemoryChatMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ReasoningChatMessage from './ReasoningChatMessage';
@@ -16,6 +17,8 @@ import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessa
 import SessionInsightCard from './SessionInsightCard';
 import TextOrImageMessage from './TextOrImageMessage';
 import TodoPlanChatMessage from './TodoPlanChatMessage';
+import { ToolCallCard } from './ToolCallCard';
+import UserQuestionMessage from './UserQuestionMessage';
 
 const AgentMessage = ({
     message,
@@ -25,6 +28,7 @@ const AgentMessage = ({
     threadId,
     sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
+    onSubmitUserQuestionResponse,
 }: IAgentMessageProps) => {
     // Check if this is a scheduled task execution message
     const scheduledTaskData = useScheduledTaskMessage(message.text || '');
@@ -88,6 +92,16 @@ const AgentMessage = ({
                 <MemoryChatMessage memorySearchResult={message.memorySearchResult} />
             ) : message.knowledgeGraphSearchResult ? (
                 <KnowledgeGraphChatMessage knowledgeGraphSearchResult={message.knowledgeGraphSearchResult} />
+            ) : message.grepSearchResult ? (
+                <ToolCallCard toolType="grep" grepResult={message.grepSearchResult} />
+            ) : message.readFileResult ? (
+                <ToolCallCard toolType="readfile" readFileResult={message.readFileResult} />
+            ) : message.terminalResult ? (
+                <ToolCallCard toolType="terminal" terminalResult={message.terminalResult} />
+            ) : message.userQuestion ? (
+                <UserQuestionMessage userQuestion={message.userQuestion} onSubmitResponse={onSubmitUserQuestionResponse} />
+            ) : message.mcpToolExecution ? (
+                <McpToolExecutionMessage execution={message.mcpToolExecution} />
             ) : message.reasoning ? (
                 <ReasoningChatMessage reasoning={message.reasoning} />
             ) : (message.text || isTyping) &&

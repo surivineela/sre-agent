@@ -67,6 +67,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         downButtonState,
         onClickDownButton,
         updateApprovalOrCliMessageInStreamingMessage,
+        submitUserQuestionResponse,
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,
         isDeepInvestigationDialogVisible,
@@ -74,6 +75,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
         isIncidentRetroModeTurnedOn,
+        hasPendingUserQuestion,
         toggleIncidentRetroMode,
     } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource, initialRetroModeEnabled);
 
@@ -209,6 +211,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                                     messageGroups={messageGroups}
                                                     threadId={currentThreadId || ''}
                                                     sendMessage={sendMessage}
+                                                    onSubmitUserQuestionResponse={submitUserQuestionResponse}
                                                 />
                                                 {streamingMessageGroup && (
                                                     <ChatMessageGroupComponent
@@ -223,6 +226,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                                         updateApprovalOrCliMessageInStreamingMessage={
                                                             updateApprovalOrCliMessageInStreamingMessage
                                                         }
+                                                        onSubmitUserQuestionResponse={submitUserQuestionResponse}
                                                     />
                                                 )}
                                             </>
@@ -250,6 +254,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                     inputDisabledMessage={inputDisabledMessage}
                                     isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
                                     toggleIncidentRetroMode={toggleIncidentRetroMode}
+                                    hasPendingUserQuestion={hasPendingUserQuestion}
                                 />
                             </div>
                         </div>

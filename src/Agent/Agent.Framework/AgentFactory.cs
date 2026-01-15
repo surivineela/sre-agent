@@ -102,6 +102,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     private readonly bool _agentMemoryRetrievalEnabled;
     private readonly bool _scheduledTasksEnabled;
     private readonly bool _enablePartialOutput;
+    private readonly bool _workspaceToolsEnabled;
 
     // NEW: store deferred MCP agent descriptors (descriptor, isCustom, overwrite)
     private readonly List<(IAgentDescriptor Descriptor, bool IsCustom, bool Overwrite)> _deferredMcpAgentDescriptors = [];
@@ -135,7 +136,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         bool agentMemoryRetrievalEnabled = false,
         bool scheduledTasksEnabled = false,
         bool enablePartialOutput = false,
-        IEnumerable<Func<IAgentDescriptor?>>? dynamicAgentDescriptors = null
+        IEnumerable<Func<IAgentDescriptor?>>? dynamicAgentDescriptors = null,
+        bool workspaceToolsEnabled = false
     )
     {
         _toolFactory = toolFactory;
@@ -155,6 +157,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         _agentMemoryRetrievalEnabled = agentMemoryRetrievalEnabled;
         _scheduledTasksEnabled = scheduledTasksEnabled;
         _enablePartialOutput = enablePartialOutput;
+        _workspaceToolsEnabled = workspaceToolsEnabled;
 
         if (dynamicAgentDescriptors is not null)
         {
@@ -251,7 +254,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             NextAgentMappings = agentDescriptor.NextAgentMappings?.ToList() ?? []
         };
 
-        AugmentToDoWrite(agentDescriptor, agent);
+        // Only add ToDoWrite tool if workspace tools are not enabled
+        // (workspace tools provide their own ManageTodoList tool)
+        if (!_workspaceToolsEnabled)
+        {
+            AugmentToDoWrite(agentDescriptor, agent);
+        }
 
         // Automatically add read_skill_file tool if skills are enabled
         AugmentSkills(agentDescriptor, agent);

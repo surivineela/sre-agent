@@ -52,11 +52,12 @@ public class WorkflowReasoningLoop : ReasoningLoop
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
-    IncidentManagementSettings incidentManagementSettings,
-    CoreSettings coreSettings,
-    bool modeSwitchEnabled,
-    IToolOutputTruncationService toolOutputTruncationService,
-    IHostEnvironment hostEnvironment)
+        IncidentManagementSettings incidentManagementSettings,
+        CoreSettings coreSettings,
+        bool modeSwitchEnabled,
+        IToolOutputTruncationService toolOutputTruncationService,
+        IHostEnvironment hostEnvironment,
+        IAmbientContextProvider ambientContextProvider)
         : base(
             loggerFactory: loggerFactory,
             chatClientProvider: chatClientProvider,
@@ -82,7 +83,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             modeSwitchEnabled: modeSwitchEnabled,
             skillRegistry: skillRegistry,
             toolOutputTruncationService: toolOutputTruncationService,
-            hostEnvironment: hostEnvironment)
+            hostEnvironment: hostEnvironment,
+            ambientContextProvider: ambientContextProvider)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,

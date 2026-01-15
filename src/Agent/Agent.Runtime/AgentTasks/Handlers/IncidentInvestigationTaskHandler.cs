@@ -392,7 +392,7 @@ public sealed class IncidentInvestigationTaskHandler(
                         AIFunction tool,
                         IEnumerable<KeyValuePair<string, object?>>? input)
                     {
-                        var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(tool.Name);
+                        var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCall(functionCall);
                         state.InitialInvestigation.StatusMessage = userDisplayedToolDescription;
                         state = await SaveStateAndStreamUpdateAsync(cancellationToken: cancellationToken);
                     }
@@ -1390,7 +1390,8 @@ public sealed class IncidentInvestigationTaskHandler(
                 {
                     ChatClient = chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = loggerFactory,
-                    SkillRegistry = new EmptySkillRegistry()
+                    SkillRegistry = new EmptySkillRegistry(),
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 };
 
                 // Inject tool call history into the chat input

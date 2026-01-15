@@ -8,6 +8,7 @@ import { KnowledgeGraphSearchResult, MemorySearchResult } from '../../Common/Con
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { UserQuestionResponse } from '../../Common/Contracts/DataPlane/UserQuestion';
 import { ChatBoxSidePanelData } from './Activities';
 
 export type IncidentManagementConnectionState = 'connected' | 'notConnected' | 'waiting';
@@ -59,6 +60,7 @@ type StreamingContextProps = {
     startMessageStreamingOnNewThread: (newThreadId: string, threadCreateRequest: any) => void;
     startMessageStreamingOnExistingThread: (threadId: string, messageCreateRequest: any) => void;
     cancelMessageStreaming: (threadId: string) => void;
+    submitUserQuestionResponse: (threadId: string, questionId: string, response: UserQuestionResponse) => void;
     subscribeMessageUpdateEvent: (input: {
         handler: (message: StreamingMessage) => void;
         threadId?: string;
@@ -196,6 +198,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
     startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
     startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
     cancelMessageStreaming: (_threadId: string) => {},
+    submitUserQuestionResponse: (_threadId: string, _questionId: string, _response: UserQuestionResponse) => {},
     subscribeMessageUpdateEvent:
         (_: {
             handler: (message: StreamingMessage) => void;

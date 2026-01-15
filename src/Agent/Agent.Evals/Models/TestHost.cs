@@ -21,6 +21,7 @@ public sealed record TestHost(
             ChatClient = host.Services.GetRequiredService<IChatClientProvider>().EvalModel,
             LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
             SkillRegistry = host.Services.GetRequiredService<ISkillRegistry>(),
+            AmbientContextProvider = DisabledAmbientContextProvider.Instance,
         };
 
         return new(

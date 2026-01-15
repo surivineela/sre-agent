@@ -1,5 +1,6 @@
 import { defineMessages } from 'react-intl';
 
+/* eslint-disable formatjs/no-multiple-plurals -- grepMatchesFound requires two plurals for proper localization */
 export const SreAgentResources = defineMessages({
     aiGeneratedHyphenated: { defaultMessage: 'AI-generated', id: 'vfrUDN' },
     all: { defaultMessage: 'All', id: 'zQvVDJ' },
@@ -850,6 +851,50 @@ export const SreAgentResources = defineMessages({
     refineWithAi: { defaultMessage: 'Refine with AI', id: 'uwY8Nf' },
     refining: { defaultMessage: 'Refining...', id: 'ueVpay' },
     refineWithAiTooltip: { defaultMessage: 'Use AI to enhance and validate your task instructions', id: '17sQau' },
+    grepMatchesFound: {
+        defaultMessage: '{count} {count, plural, one {match} other {matches}} in {fileCount} {fileCount, plural, one {file} other {files}}',
+        id: 'TJkdHD',
+    },
+    grepNoMatchesFound: { defaultMessage: 'No matches found for: {query}', id: 'x1Y8pO' },
+    grepResultsTruncated: {
+        defaultMessage: 'Results limited to {limit} matches. Use a more specific query or increase maxResults.',
+        id: 'EC9msN',
+    },
+    grepMatch: { defaultMessage: 'match', id: 'zHoH3/' },
+    grepMatches: { defaultMessage: 'matches', id: 'IVxMfR' },
+    grepFile: { defaultMessage: 'file', id: 'vwxMsy' },
+    grepFiles: { defaultMessage: 'files', id: 'l17U7P' },
+    grepRegex: { defaultMessage: 'regex', id: 'scPXsn' },
+    grepSearchedFor: { defaultMessage: 'Searched for', id: '9GWow3' },
+    grepViewResults: { defaultMessage: 'View search results', id: 'ZR1gO3' },
+    grepHideResults: { defaultMessage: 'Hide search results', id: 'eGgzCD' },
+    grepNoResults: { defaultMessage: 'No results found', id: 'hX5PAb' },
+    // User Question strings
+    userQuestionSubmit: { defaultMessage: 'Submit', id: 'wSZR47' },
+    userQuestionPlaceholder: { defaultMessage: 'Type your response...', id: 'BdCcU8' },
+    userQuestionAnswered: { defaultMessage: 'Answered', id: 'Xq1XH+' },
+    userQuestionPending: { defaultMessage: 'Awaiting response', id: 'ZRjHGg' },
+    userQuestionOr: { defaultMessage: 'or', id: 'Ntjkqd' },
+    userQuestionSelectedOption: { defaultMessage: 'Selected', id: 'byP6IC' },
+    userQuestionResponse: { defaultMessage: 'Response', id: 'MgdnPi' },
+    userQuestionOther: { defaultMessage: 'Other', id: '/VnDMl' },
+
+    // MCP Tool Execution Message resources
+    mcpQueryKql: { defaultMessage: 'Query (KQL)', id: 'wqKpaT' },
+    mcpSampleSize: { defaultMessage: 'Sample Size:', id: 'N3KMc+' },
+    mcpLabel: { defaultMessage: 'MCP', id: 'RbWH8Q' },
+    mcpResult: { defaultMessage: 'Result', id: 'ZpQ6us' },
+    mcpNullValue: { defaultMessage: 'null', id: 'BPj/Jo' },
+
+    // Tool Content Messages
+    outputTruncatedUseOffset: {
+        defaultMessage: 'Output truncated. Use offset parameter to read more lines.',
+        id: 'Gz2lHb',
+    },
+    commandCompletedNoOutput: {
+        defaultMessage: 'Command completed with no output.',
+        id: 'sY4rUA',
+    },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -931,6 +976,8 @@ export const GraphViewerResources = defineMessages({
     clickToOpenFullscreen: { defaultMessage: 'Click to open fullscreen', id: 'Slnpm8' },
     copyCommand: { defaultMessage: 'Copy command', id: 'ifcOhH' },
     copyOutput: { defaultMessage: 'Copy output', id: '2os8R1' },
+    copyQuery: { defaultMessage: 'Copy query', id: '3MNcWn' },
+    copyContent: { defaultMessage: 'Copy content', id: 'MjsbS7' },
     tipLabel: { defaultMessage: 'Tip:', id: 'JT7be1' },
     tipInstructions: {
         defaultMessage: 'Click and drag to move • Scroll or use buttons to zoom • Press ESC to close',
@@ -5877,6 +5924,13 @@ export const ConnectorsResources = defineMessages({
     requestTimeout: { defaultMessage: 'Request timeout', id: 'inXqB2' },
     failedToFetchStatus: { defaultMessage: 'Failed to fetch status', id: 'VeyLxc' },
     mcpServerDescription: { defaultMessage: 'Add a custom MCP server for the agent to reference.', id: 'DJydCh' },
+
+    // MCP Tool Execution Messages
+    mcpQueryKql: { defaultMessage: 'Query (KQL):', id: 'Dn1EZZ' },
+    mcpSampleSize: { defaultMessage: 'Sample Size:', id: 'N3KMc+' },
+    mcpLabel: { defaultMessage: 'MCP', id: 'RbWH8Q' },
+    mcpResult: { defaultMessage: 'Result', id: 'ZpQ6us' },
+    mcpNullValue: { defaultMessage: 'null', id: 'BPj/Jo' },
 });
 
 export const AgentPermissionsResources = defineMessages({

@@ -47,14 +47,5 @@ namespace Agent.Core.Services
                 _retroModeByThread[context.ThreadId] = context.IsIncidentTestModeEnabled.Value;
             }
         }
-
-
-        /// <summary>
-        /// Clears retro mode state for a specific thread. Call when thread is disposed to prevent memory leaks.
-        /// </summary>
-        public static void ClearRetroMode(Guid threadId)
-        {
-            _retroModeByThread.TryRemove(threadId, out _);
-        }
     }
 }

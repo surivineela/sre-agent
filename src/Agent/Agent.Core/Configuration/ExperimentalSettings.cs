@@ -14,6 +14,10 @@ namespace Agent.Core.Configuration
         /// </summary>
         public bool EnableModeSwitch { get; set; } = false;
         public bool UseResponsesApi { get; set; } = false;
+        /// <summary>
+        /// Enables workspace tools (file operations, terminal, todo list) which replace the built-in ToDoWrite tool.
+        /// </summary>
+        public bool EnableWorkspaceTools { get; set; } = false;
     }
 }
 

@@ -1,7 +1,10 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
@@ -77,7 +80,7 @@ public class FunctionsGraphTests
 
         foreach (var app in apps)
         {
-            _logger.LogInformation($"Function App: {app.Name}, Resource ID: {app.ResourceId}");
+            _logger.LogInternalInformation($"Function App: {app.Name}, Resource ID: {app.ResourceId}");
         }
 
         Assert.True(apps.Count == 14, "No apps found");

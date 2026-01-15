@@ -49,8 +49,13 @@ export const useChatBox = (
     const intl = useIntl();
 
     const proxy = useContext(AzPortalContext);
-    const { startMessageStreamingOnNewThread, startMessageStreamingOnExistingThread, cancelMessageStreaming, subscribeMessageUpdateEvent } =
-        useContext(StreamingContext);
+    const {
+        startMessageStreamingOnNewThread,
+        startMessageStreamingOnExistingThread,
+        cancelMessageStreaming,
+        subscribeMessageUpdateEvent,
+        submitUserQuestionResponse: contextSubmitUserQuestionResponse,
+    } = useContext(StreamingContext);
 
     const {
         userIdAndDisplayName: { userId, displayName },
@@ -379,6 +384,50 @@ export const useChatBox = (
         return undefined;
     };
 
+    const getUserQuestionMessageIndexInStreamingMessage = (
+        streamingMessageGroup: ChatMessageGroup | undefined | null,
+        questionId: string | undefined
+    ) => {
+        const result = streamingMessageGroup?.agentMessages.findIndex(message => {
+            return message.userQuestion?.questionId === questionId;
+        });
+        return result === -1 ? undefined : result;
+    };
+
+    const getUserQuestionMessageIndexInExistingMessages = (messageGroups: ChatMessageGroup[], questionId: string | undefined) => {
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            for (let j = messageGroups[i].agentMessages.length - 1; j >= 0; j--) {
+                const message = messageGroups[i].agentMessages[j];
+                if (message.userQuestion?.questionId === questionId) {
+                    return [i, j];
+                }
+            }
+        }
+        return undefined;
+    };
+
+    const getMcpToolExecutionMessageIndexInStreamingMessage = (
+        streamingMessageGroup: ChatMessageGroup | undefined | null,
+        executionId: string | undefined
+    ) => {
+        const result = streamingMessageGroup?.agentMessages.findIndex(message => {
+            return message.mcpToolExecution?.id === executionId;
+        });
+        return result === -1 ? undefined : result;
+    };
+
+    const getMcpToolExecutionMessageIndexInExistingMessages = (messageGroups: ChatMessageGroup[], executionId: string | undefined) => {
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            for (let j = messageGroups[i].agentMessages.length - 1; j >= 0; j--) {
+                const message = messageGroups[i].agentMessages[j];
+                if (message.mcpToolExecution?.id === executionId) {
+                    return [i, j];
+                }
+            }
+        }
+        return undefined;
+    };
+
     const updateApprovalOrCliMessageInStreamingMessage = useCallback(
         (approvalOrCliMessageProperties: {
             approval?: Approval;
@@ -555,14 +604,18 @@ export const useChatBox = (
             });
         };
 
-        const updateSpecialMessage = (type: 'approvalOrCli' | 'agentTask', id: string) => {
+        const updateSpecialMessage = (type: 'approvalOrCli' | 'agentTask' | 'userQuestion' | 'mcpToolExecution', id: string) => {
             setStreamingMessageGroup(prev => {
                 if (!prev) return prev;
 
                 const index =
                     type === 'approvalOrCli'
                         ? getApprovalOrCliMessageIndexInStreamingMessage(prev, id)
-                        : getAgentTaskMessageIndexInStreamingMessage(prev, id);
+                        : type === 'agentTask'
+                          ? getAgentTaskMessageIndexInStreamingMessage(prev, id)
+                          : type === 'mcpToolExecution'
+                            ? getMcpToolExecutionMessageIndexInStreamingMessage(prev, id)
+                            : getUserQuestionMessageIndexInStreamingMessage(prev, id);
 
                 if (index !== undefined) {
                     const updatedAgentMessages = [...prev.agentMessages];
@@ -581,7 +634,11 @@ export const useChatBox = (
                 const index =
                     type === 'approvalOrCli'
                         ? getApprovalOrCliMessageIndexInExistingMessages(messageGroups, id)
-                        : getAgentTaskMessageIndexInExistingMessages(messageGroups, id);
+                        : type === 'agentTask'
+                          ? getAgentTaskMessageIndexInExistingMessages(messageGroups, id)
+                          : type === 'mcpToolExecution'
+                            ? getMcpToolExecutionMessageIndexInExistingMessages(messageGroups, id)
+                            : getUserQuestionMessageIndexInExistingMessages(messageGroups, id);
                 if (index !== undefined) {
                     const [messageGroupIndex, messageIndex] = index;
                     const messageGroup = { ...messageGroups[messageGroupIndex] };
@@ -608,6 +665,22 @@ export const useChatBox = (
         } else if (agentTaskInfo) {
             const id = agentTaskInfo.id;
             updateSpecialMessage('agentTask', id);
+        } else if (chatMessage.userQuestion) {
+            // UserQuestion: if status is 'Pending', it's a new question; otherwise it's an update
+            if (chatMessage.userQuestion.status === 'Pending') {
+                appendMessageInTheStreamingMessage();
+            } else {
+                const questionId = chatMessage.userQuestion.questionId;
+                updateSpecialMessage('userQuestion', questionId);
+            }
+        } else if (chatMessage.mcpToolExecution) {
+            // McpToolExecution: if status is 'Running', it's a new message; otherwise it's an update
+            if (chatMessage.mcpToolExecution.status === 'Running') {
+                appendMessageInTheStreamingMessage();
+            } else {
+                const executionId = chatMessage.mcpToolExecution.id;
+                updateSpecialMessage('mcpToolExecution', executionId);
+            }
         } else {
             appendMessageInTheStreamingMessage();
         }
@@ -866,6 +939,47 @@ export const useChatBox = (
         };
     }, []);
 
+    // Wrapper for submitUserQuestionResponse that includes threadId
+    const submitUserQuestionResponse = useCallback(
+        (questionId: string, response: { selectedLabel?: string; freeText?: string }) => {
+            const threadIdToUse = currentThreadIdRef.current || threadIdUsedForCreatingNewThreadRef.current;
+            console.log('[UserQuestion] Submitting response:', { threadId: threadIdToUse, questionId, response });
+
+            if (!threadIdToUse) {
+                console.error('[UserQuestion] Cannot submit response: no threadId available');
+                return;
+            }
+            if (!questionId) {
+                console.error('[UserQuestion] Cannot submit response: no questionId provided');
+                return;
+            }
+
+            contextSubmitUserQuestionResponse(threadIdToUse, questionId, response);
+        },
+        [contextSubmitUserQuestionResponse]
+    );
+
+    // Check if there's a pending user question that needs response
+    const hasPendingUserQuestion = useMemo(() => {
+        // Check streaming message group first
+        if (streamingMessageGroup) {
+            for (const msg of streamingMessageGroup.agentMessages) {
+                if (msg.userQuestion && msg.userQuestion.status === 'Pending') {
+                    return true;
+                }
+            }
+        }
+        // Check existing message groups (from newest to oldest)
+        for (let i = messageGroups.length - 1; i >= 0; i--) {
+            for (const msg of messageGroups[i].agentMessages) {
+                if (msg.userQuestion && msg.userQuestion.status === 'Pending') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }, [messageGroups, streamingMessageGroup]);
+
     return {
         messageGroups,
         isLoading: isLoadingInitialChatHistory,
@@ -886,7 +1000,9 @@ export const useChatBox = (
         downButtonState,
         onClickDownButton,
         updateApprovalOrCliMessageInStreamingMessage,
+        submitUserQuestionResponse,
         threadIdUsedForCreatingNewThread,
+        hasPendingUserQuestion,
 
         isDeepInvestigationButtonEnabled,
         isDeepInvestigationTurnedOn,

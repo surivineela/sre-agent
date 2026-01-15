@@ -1,6 +1,8 @@
 import { createIntl, createIntlCache } from 'react-intl';
 import { SREAgentUserId } from '../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskStreamingData } from '../../Common/Contracts/DataPlane/AgentTask';
+import { GrepSearchResult } from '../../Common/Contracts/DataPlane/GrepResult';
+import { McpToolExecution } from '../../Common/Contracts/DataPlane/McpToolExecution';
 import {
     Approval,
     ApprovalDecision,
@@ -13,9 +15,12 @@ import {
     MessageType,
     PsqlExecution,
 } from '../../Common/Contracts/DataPlane/Message';
+import { ReadFileResult } from '../../Common/Contracts/DataPlane/ReadFileResult';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
+import { TerminalExecutionResult } from '../../Common/Contracts/DataPlane/TerminalResult';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { UserQuestion } from '../../Common/Contracts/DataPlane/UserQuestion';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
@@ -523,8 +528,13 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         streamingMessage,
         'knowledgegraph'
     );
+    const grepSearchResult = getSpecialMessageContentFromStreamingMessage<GrepSearchResult>(streamingMessage, 'grepsearch');
+    const readFileResult = getSpecialMessageContentFromStreamingMessage<ReadFileResult>(streamingMessage, 'readfile');
+    const terminalResult = getSpecialMessageContentFromStreamingMessage<TerminalExecutionResult>(streamingMessage, 'terminal');
     const todoInfo = getSpecialMessageContentFromStreamingMessage<TodoInfo>(streamingMessage, 'todoplan');
     const psqlExecution = getSpecialMessageContentFromStreamingMessage<PsqlExecution>(streamingMessage, 'psql');
+    const userQuestion = getSpecialMessageContentFromStreamingMessage<UserQuestion>(streamingMessage, 'userquestion');
+    const mcpToolExecution = getSpecialMessageContentFromStreamingMessage<McpToolExecution>(streamingMessage, 'mcptool');
 
     let approval = getSpecialMessageContentFromStreamingMessage<Approval>(streamingMessage, 'approval');
     const agentTaskData = getSpecialMessageContentFromStreamingMessage<AgentTaskStreamingData>(streamingMessage, 'deepinvestigation');
@@ -557,9 +567,14 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         !kubectlExecution &&
         !memorySearchResult &&
         !knowledgeGraphSearchResult &&
+        !grepSearchResult &&
+        !readFileResult &&
+        !terminalResult &&
         !psqlExecution &&
         !todoInfo &&
         !agentTaskData &&
+        !userQuestion &&
+        !mcpToolExecution &&
         !isReasoning
             ? messageContent.text
             : '';
@@ -579,6 +594,11 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         psqlExecution,
         memorySearchResult,
         knowledgeGraphSearchResult,
+        grepSearchResult,
+        readFileResult,
+        terminalResult,
+        userQuestion,
+        mcpToolExecution,
         agentTaskInfo: agentTaskData?.agentTaskInfo,
         todoInfo,
         changeDiff: undefined,
@@ -661,9 +681,21 @@ export const isUpdatedCliOrApprovalStreamingMessage = (streamingMessage: Streami
     const azCliExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'azcli');
     const kubectlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'kubectl');
     const psqlExecution = getSpecialMessageContentFromStreamingMessage<AzCliExecution>(streamingMessage, 'psql');
+    const userQuestion = getSpecialMessageContentFromStreamingMessage<UserQuestion>(streamingMessage, 'userquestion');
+    const mcpToolExecution = getSpecialMessageContentFromStreamingMessage<McpToolExecution>(streamingMessage, 'mcptool');
     const status = approval?.status || azCliExecution?.status || kubectlExecution?.status || psqlExecution?.status;
 
-    return (!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution) && !isInitialState(status);
+    // UserQuestion updates have status 'Answered' - detect as update when not Pending
+    const isUserQuestionUpdate = !!userQuestion && userQuestion.status !== 'Pending';
+
+    // McpToolExecution updates have status 'Completed', 'Failed', or 'Cancelled' - detect as update when not Running
+    const isMcpToolExecutionUpdate = !!mcpToolExecution && mcpToolExecution.status !== 'Running';
+
+    return (
+        ((!!approval || !!azCliExecution || !!psqlExecution || !!kubectlExecution) && !isInitialState(status)) ||
+        isUserQuestionUpdate ||
+        isMcpToolExecutionUpdate
+    );
 };
 
 export const processApprovalStreamingMessageStatus = (status: ApprovalDecision | number): ApprovalDecision => {

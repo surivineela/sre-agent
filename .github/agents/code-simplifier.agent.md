@@ -2,7 +2,7 @@
 name: code-simplifier
 description: Simplifies and refines code for clarity, consistency, and maintainability while preserving all functionality. Focuses on recently modified code unless instructed otherwise.
 model: Claude Opus 4.5
-tools: ['edit', 'search', 'runCommands', 'usages', 'vscodeAPI', 'problems', 'changes', 'githubRepo', 'fetch', 'testFailure', 'runTests']
+tools: ['edit', 'search', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'search/usages', 'vscode/vscodeAPI', 'read/problems', 'search/changes', 'web/githubRepo', 'web/fetch', 'execute/testFailure', 'execute/runTests']
 ---
 
 # Code Simplifier Agent

@@ -4,7 +4,6 @@
 
 using System.Reflection;
 using System.Text.Json;
-using Agent.Core.Attributes;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -42,7 +41,7 @@ public class ReadOnlyMockFunction : AIFunction
     {
         var argString = JsonSerializer.Serialize(arguments, new JsonSerializerOptions { WriteIndented = false });
 
-        _logger?.LogInformation("Read-only mode: Mocking call to {MethodName} with arguments: {Arguments}",
+        _logger?.LogInternalInformation("Read-only mode: Mocking call to {MethodName} with arguments: {Arguments}",
             _originalMethod.Name, argString);
 
         // Return appropriate type based on method signature

@@ -259,6 +259,7 @@ const ChatBoxFooter = ({
     inputDisabledMessage,
     isIncidentRetroModeTurnedOn,
     toggleIncidentRetroMode,
+    hasPendingUserQuestion,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -314,8 +315,8 @@ const ChatBoxFooter = ({
     const shortcutStyles = useShortcutStyles();
 
     const disableInputInteractionUnforced = useMemo(
-        () => isLoading || !isConnected || isCancellingStreaming || !canWriteThreads,
-        [isLoading, isConnected, isCancellingStreaming, canWriteThreads]
+        () => isLoading || !isConnected || isCancellingStreaming || !canWriteThreads || (hasPendingUserQuestion ?? false),
+        [isLoading, isConnected, isCancellingStreaming, canWriteThreads, hasPendingUserQuestion]
     );
 
     const disableInputInteraction = useMemo(

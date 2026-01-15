@@ -71,4 +71,8 @@ public interface IICMPlugin
     Task<List<ICMIncident>> ListIncidents(uint limit, uint offset, DateTime? since, string? owningServiceId, string? owningTeamId, string? incidentType, string? severity);
 
     //Task<string> DownloadIncidentAttachment(string incidentId, string attachmentId);
+
+    Task<string> GetIncidentDetails(string incidentId, bool includeAlertDetails = false);
+
+    Task<string> GetIncidentAlertDetails(string incidentId);
 }

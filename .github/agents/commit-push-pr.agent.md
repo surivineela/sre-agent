@@ -2,7 +2,7 @@
 name: commit-push-pr
 description: Commit all changes, push to remote, and create a pull request. Creates a new branch if on main.
 model: Claude Opus 4.5
-tools: ['runCommands']
+tools: ['execute/getTerminalOutput','execute/runInTerminal','read/terminalLastCommand','read/terminalSelection']
 ---
 
 # Commit, Push, and PR Agent

@@ -4,7 +4,7 @@ description: Implement UX features for Agent.Web and Agent.Portal
 argument-hint: Describe the UX feature to implement or provide a plan
 model: Claude Opus 4.5
 tools:
-  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'agent', 'todo']
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'todo']
 handoffs:
   - label: Begin testing
     agent: UXAgent_Testing

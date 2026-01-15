@@ -2,8 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.Helpers;
 
@@ -14,14 +16,43 @@ public static class ToolDescriptionHelper
     /// </summary>
     public const string DefaultSafeDescription = "Working...";
 
-    public static string GetUserDescriptionForFunctionCallName(string functionName)
+    /// <summary>
+    /// Gets a user-friendly description for a function call, using the arguments to provide more context.
+    /// </summary>
+    public static string GetUserDescriptionForFunctionCall(FunctionCallContent functionCall)
     {
-        return functionName switch
+        var arguments = functionCall.Arguments;
+
+        return functionCall.Name switch
         {
             // Existing cases
-            "GetIncidentDetails" => "Fetching details of the incident...",
+            "GetIncidentDetails" => FormatGetIncidentDetails(arguments),
             "GetAlertDetails" => "Fetching details of the alert...",
             "GetThreadDetails" => "Fetching details of the thread...",
+            "GetTopDiscussionEntries" => FormatGetTopDiscussionEntries(arguments),
+            "GetIncidentAlertDetails" => FormatGetIncidentAlertDetails(arguments),
+            "SearchIncidents" => FormatSearchIncidents(arguments),
+            "GetSimilarIncidents" => FormatGetSimilarIncidents(arguments),
+
+            // Kusto MCP tools
+            "kusto-mcp_kusto_cluster_get" => FormatKustoClusterGet(arguments),
+            "kusto-mcp_kusto_cluster_list" => "Listing available Kusto clusters...",
+            "kusto-mcp_kusto_database_list" => FormatKustoDatabaseList(arguments),
+            "kusto-mcp_kusto_query" => FormatKustoQuery(arguments),
+            "kusto-mcp_kusto_sample" => FormatKustoSample(arguments),
+            "kusto-mcp_kusto_table_list" => FormatKustoTableList(arguments),
+            "kusto-mcp_kusto_table_schema" => FormatKustoTableSchema(arguments),
+            "mcp_azure_mcp_kusto_cluster_get" => FormatKustoClusterGet(arguments),
+            "mcp_azure_mcp_kusto_cluster_list" => "Listing available Kusto clusters...",
+            "mcp_azure_mcp_kusto_database_list" => FormatKustoDatabaseList(arguments),
+            "mcp_azure_mcp_kusto_query" => FormatKustoQuery(arguments),
+            "mcp_azure_mcp_kusto_sample" => FormatKustoSample(arguments),
+            "mcp_azure_mcp_kusto_table_list" => FormatKustoTableList(arguments),
+            "mcp_azure_mcp_kusto_table_schema" => FormatKustoTableSchema(arguments),
+
+            // Azure DevOps MCP tools
+            "ado-mcp_repo_create_pull_request" => FormatAdoPullRequest(arguments),
+            "mcp_azure-devops-_repo_create_pull_request" => FormatAdoPullRequest(arguments),
 
             // Control Flow functions
             "Wait" => "Waiting for a specified duration...",
@@ -412,8 +443,292 @@ public static class ToolDescriptionHelper
             nameof(AgentMemoryPluginDefinition.SearchIncidentKnowledge) => "Searching past incident knowledge...",
             nameof(AgentMemoryPluginDefinition.SearchMemory) => "Searching knowledge base...",
 
+            // VS Code Tools
+            nameof(WorkspacePluginDefinition.ReadFile) => FormatReadFile(arguments),
+            nameof(WorkspacePluginDefinition.CreateFile) => FormatCreateFile(arguments),
+            nameof(WorkspacePluginDefinition.CreateDirectory) => FormatCreateDirectory(arguments),
+            nameof(WorkspacePluginDefinition.ListDir) => FormatListDir(arguments),
+            nameof(WorkspacePluginDefinition.ReplaceStringInFile) => FormatReplaceStringInFile(arguments),
+            nameof(WorkspacePluginDefinition.MultiReplaceStringInFile) => FormatMultiReplaceStringInFile(arguments),
+            nameof(WorkspacePluginDefinition.FileSearch) => FormatFileSearch(arguments),
+            nameof(WorkspacePluginDefinition.GrepSearch) => FormatGrepSearch(arguments),
+            nameof(WorkspacePluginDefinition.RunInTerminal) => FormatRunInTerminal(arguments),
+            nameof(WorkspacePluginDefinition.TerminalLastCommand) => "Getting last terminal command...",
+            nameof(WorkspacePluginDefinition.ManageTodoList) => FormatManageTodoList(arguments),
+            nameof(WorkspacePluginDefinition.FetchWebpage) => FormatFetchWebpage(arguments),
+            "AskUserQuestion" => "Preparing question for user input...",
+
             // Default case
             _ => DefaultSafeDescription
         };
     }
+
+    #region VS Code Tool Formatters
+
+    private static string FormatReadFile(IDictionary<string, object?>? arguments)
+    {
+        var filePath = GetArgument<string>(arguments, "filePath");
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return "Reading file...";
+        }
+        var fileName = Path.GetFileName(filePath);
+        return $"Reading {fileName}...";
+    }
+
+    private static string FormatCreateFile(IDictionary<string, object?>? arguments)
+    {
+        var filePath = GetArgument<string>(arguments, "filePath");
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return "Creating file...";
+        }
+        var fileName = Path.GetFileName(filePath);
+        return $"Creating {fileName}...";
+    }
+
+    private static string FormatCreateDirectory(IDictionary<string, object?>? arguments)
+    {
+        var dirPath = GetArgument<string>(arguments, "dirPath");
+        if (string.IsNullOrEmpty(dirPath))
+        {
+            return "Creating directory...";
+        }
+        var dirName = Path.GetFileName(dirPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return $"Creating directory {dirName}...";
+    }
+
+    private static string FormatListDir(IDictionary<string, object?>? arguments)
+    {
+        var path = GetArgument<string>(arguments, "path");
+        if (string.IsNullOrEmpty(path))
+        {
+            return "Listing directory...";
+        }
+        var dirName = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return $"Listing {dirName}...";
+    }
+
+    private static string FormatReplaceStringInFile(IDictionary<string, object?>? arguments)
+    {
+        var filePath = GetArgument<string>(arguments, "filePath");
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return "Editing file...";
+        }
+        var fileName = Path.GetFileName(filePath);
+        return $"Editing {fileName}...";
+    }
+
+    private static string FormatMultiReplaceStringInFile(IDictionary<string, object?>? arguments)
+    {
+        var explanation = GetArgument<string>(arguments, "explanation");
+        if (!string.IsNullOrEmpty(explanation))
+        {
+            return explanation;
+        }
+        return "Making multiple edits...";
+    }
+
+    private static string FormatFileSearch(IDictionary<string, object?>? arguments)
+    {
+        var query = GetArgument<string>(arguments, "query");
+        if (string.IsNullOrEmpty(query))
+        {
+            return "Searching for files...";
+        }
+        return $"Searching for {query}...";
+    }
+
+    private static string FormatGrepSearch(IDictionary<string, object?>? arguments)
+    {
+        var query = GetArgument<string>(arguments, "query");
+        var includePattern = GetArgument<string>(arguments, "includePattern");
+
+        if (string.IsNullOrEmpty(query))
+        {
+            return "Searching in files...";
+        }
+
+        if (!string.IsNullOrEmpty(includePattern))
+        {
+            return $"Searching for '{query}' in {includePattern}...";
+        }
+
+        return $"Searching for '{query}'...";
+    }
+
+    private static string FormatRunInTerminal(IDictionary<string, object?>? arguments)
+    {
+        var explanation = GetArgument<string>(arguments, "explanation");
+        if (!string.IsNullOrEmpty(explanation))
+        {
+            return explanation;
+        }
+        return "Running terminal command...";
+    }
+
+    private static string FormatManageTodoList(IDictionary<string, object?>? arguments)
+    {
+        var operation = GetArgument<string>(arguments, "operation");
+        return operation?.ToLowerInvariant() switch
+        {
+            "write" => "Updating todo list...",
+            "read" => "Reading todo list...",
+            _ => "Managing todo list..."
+        };
+    }
+
+    private static string FormatFetchWebpage(IDictionary<string, object?>? arguments)
+    {
+        var query = GetArgument<string>(arguments, "query");
+        if (!string.IsNullOrEmpty(query))
+        {
+            return $"Fetching webpage for '{query}'...";
+        }
+        return "Fetching webpage...";
+    }
+
+    #endregion
+
+    #region ICM Tool Formatters
+
+    private static string FormatGetIncidentDetails(IDictionary<string, object?>? arguments)
+    {
+        var incidentId = GetArgument<long>(arguments, "incidentId");
+        return incidentId > 0 ? $"Fetching details of incident {incidentId}..." : "Fetching details of the incident...";
+    }
+
+    private static string FormatGetTopDiscussionEntries(IDictionary<string, object?>? arguments)
+    {
+        var incidentId = GetArgument<long>(arguments, "incidentId");
+        return incidentId > 0 ? $"Fetching top discussion entries from incident {incidentId}..." : "Fetching top discussion entries from incident...";
+    }
+
+    private static string FormatGetIncidentAlertDetails(IDictionary<string, object?>? arguments)
+    {
+        var incidentId = GetArgument<long>(arguments, "incidentId");
+        return incidentId > 0 ? $"Fetching alert details for incident {incidentId}..." : "Fetching alert details for incident...";
+    }
+
+    private static string FormatSearchIncidents(IDictionary<string, object?>? arguments)
+    {
+        var searchString = GetArgument<string>(arguments, "searchString");
+        return !string.IsNullOrEmpty(searchString) ? $"Searching incidents for '{searchString}'..." : "Searching for incidents...";
+    }
+
+    private static string FormatGetSimilarIncidents(IDictionary<string, object?>? arguments)
+    {
+        var query = GetArgument<string>(arguments, "query");
+        if (!string.IsNullOrEmpty(query))
+        {
+            return $"Finding incidents similar to '{query}'...";
+        }
+        return "Finding similar incidents...";
+    }
+
+    #endregion
+
+    #region Kusto MCP Tool Formatters
+
+    private static string FormatKustoClusterGet(IDictionary<string, object?>? arguments)
+    {
+        var cluster = GetArgument<string>(arguments, "cluster");
+        return !string.IsNullOrEmpty(cluster) ? $"Getting info for Kusto cluster {cluster}..." : "Getting Kusto cluster information...";
+    }
+
+    private static string FormatKustoDatabaseList(IDictionary<string, object?>? arguments)
+    {
+        var cluster = GetArgument<string>(arguments, "cluster");
+        var clusterUri = GetArgument<string>(arguments, "cluster-uri");
+        var name = cluster ?? clusterUri;
+        return !string.IsNullOrEmpty(name) ? $"Listing databases in {name}..." : "Listing databases in Kusto cluster...";
+    }
+
+    private static string FormatKustoQuery(IDictionary<string, object?>? arguments)
+    {
+        var database = GetArgument<string>(arguments, "database");
+        return !string.IsNullOrEmpty(database) ? $"Running Kusto query on {database}..." : "Running Kusto query...";
+    }
+
+    private static string FormatKustoSample(IDictionary<string, object?>? arguments)
+    {
+        var table = GetArgument<string>(arguments, "table");
+        return !string.IsNullOrEmpty(table) ? $"Getting sample data from {table}..." : "Getting sample data from Kusto table...";
+    }
+
+    private static string FormatKustoTableList(IDictionary<string, object?>? arguments)
+    {
+        var database = GetArgument<string>(arguments, "database");
+        return !string.IsNullOrEmpty(database) ? $"Listing tables in {database}..." : "Listing tables in Kusto database...";
+    }
+
+    private static string FormatKustoTableSchema(IDictionary<string, object?>? arguments)
+    {
+        var table = GetArgument<string>(arguments, "table");
+        return !string.IsNullOrEmpty(table) ? $"Getting schema for {table}..." : "Getting Kusto table schema...";
+    }
+
+    #endregion
+
+    #region Azure DevOps MCP Tool Formatters
+
+    private static string FormatAdoPullRequest(IDictionary<string, object?>? arguments)
+    {
+        var title = GetArgument<string>(arguments, "title");
+        var repositoryId = GetArgument<string>(arguments, "repositoryId");
+        var sourceRef = GetArgument<string>(arguments, "sourceRefName");
+
+        if (!string.IsNullOrEmpty(title))
+        {
+            if (!string.IsNullOrEmpty(repositoryId))
+            {
+                return $"Creating PR '{title}' in {repositoryId}...";
+            }
+            else if (!string.IsNullOrEmpty(sourceRef))
+            {
+                // Extract branch name from refs/heads/branch-name
+                var branch = sourceRef.StartsWith("refs/heads/") ? sourceRef.Substring(11) : sourceRef;
+                return $"Creating PR '{title}' from {branch}...";
+            }
+
+            return $"Creating PR '{title}'...";
+        }
+
+        return "Creating pull request in Azure DevOps...";
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private static T? GetArgument<T>(IDictionary<string, object?>? arguments, string key)
+    {
+        if (arguments == null || !arguments.TryGetValue(key, out var value) || value == null)
+        {
+            return default;
+        }
+
+        if (value is T typedValue)
+        {
+            return typedValue;
+        }
+
+        // Handle JsonElement conversion
+        if (value is JsonElement jsonElement)
+        {
+            try
+            {
+                return jsonElement.Deserialize<T>();
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        return default;
+    }
+
+    #endregion
 }

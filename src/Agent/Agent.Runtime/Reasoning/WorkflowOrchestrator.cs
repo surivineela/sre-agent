@@ -235,7 +235,8 @@ public class WorkflowOrchestrator : IDisposable
                 {
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
-                    SkillRegistry = _skillRegistry
+                    SkillRegistry = _skillRegistry,
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 },
                 context: _context,
                 hooks: runHooks,
@@ -580,7 +581,8 @@ public class WorkflowOrchestrator : IDisposable
                 {
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
-                    SkillRegistry = _skillRegistry
+                    SkillRegistry = _skillRegistry,
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 },
                 context: _context,
                 hooks: runHooks,
@@ -648,7 +650,8 @@ public class WorkflowOrchestrator : IDisposable
                 {
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
-                    SkillRegistry = _skillRegistry
+                    SkillRegistry = _skillRegistry,
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
                 },
                 context: _context,
                 hooks: runHooks,
@@ -1233,7 +1236,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 {
                     _logger.LogInternalInformation("Workflow streaming auto tool call: {ToolName} with CallId: {CallId}", tool.Name, callId);
                     var toolCallMessageId = Guid.NewGuid();
-                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, tool, toolCallMessageId, callId);
+                    await _outboundCommunicationService.AppendAgentToolCallMessage(_context.ThreadId, functionCall, toolCallMessageId);
 
                     // Store the message ID for OnToolEnd to use
                     ToolStatic.AsyncLocalToolCallMessageId.Value = toolCallMessageId;

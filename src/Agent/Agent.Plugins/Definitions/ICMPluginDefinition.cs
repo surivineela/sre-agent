@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using Agent.Core.Models;
+using Agent.Framework;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.Interface;
 using Microsoft.AzureAd.Icm.IcmV3OData.Models;
@@ -67,22 +68,25 @@ public class ICMPluginDefinition
     }
 
     [Description("Get ICM incident details")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<Incident> GetIncidentInfo(
-       [Description("Incident ID")] string incidentId)
+       [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.GetIncidentInfo(incidentId);
+        return await _icmPlugin.GetIncidentInfo(incidentId.ToString());
     }
 
     [Description("Get ICM incident custom fields")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<CustomField>> GetCustomFields(
-        [Description("Incident ID")] string incidentId)
+        [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.GetCustomFields(incidentId);
+        return await _icmPlugin.GetCustomFields(incidentId.ToString());
     }
 
     [Description("Search for incidents and returns matching incidents with details like CreatedDateTime, Id, Title etc.")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<string> SearchIncidents(
-        [Description("Search String")] string searchString,
+        [Description("Keywords expected in incident title. Passing in just the incident id like 1234 will not produce any results.")] string searchString,
         [Description("Lookback Period in Days")] int lookbackPeriodInDays,
         [Description("Limit on result count")] int resultCountLimit)
     {
@@ -90,6 +94,7 @@ public class ICMPluginDefinition
     }
 
     [Description("Get current UTC date and time")]
+    [AgentTool(ToolMode.Auto)]
     public string GetCurrentUtcDateTime()
     {
         return _icmPlugin.GetCurrentUtcDateTime();
@@ -102,104 +107,108 @@ public class ICMPluginDefinition
     }
 
     [Description("Get Azure Alerting discussion entry")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<DescriptionEntry?> GetAlertingDiscussionEntry(
-        [Description("Incident ID")] string incidentId)
+        [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.GetAlertingDiscussionEntry(incidentId);
+        return await _icmPlugin.GetAlertingDiscussionEntry(incidentId.ToString());
     }
 
     [Description("Get ICM discussion entries")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<DescriptionEntry>> GetDiscussionEntries(
-        [Description("Incident ID")] string incidentId)
+        [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.GetDiscussionEntries(incidentId);
+        return await _icmPlugin.GetDiscussionEntries(incidentId.ToString());
     }
 
     [Description("Get top N ICM discussion entries")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<DescriptionEntry>> GetTopDiscussionEntries(
-        [Description("Incident ID")] string incidentId,
-        [Description("Number of top discussion entries to retrieve")] uint? limit,
-        [Description("Set to true to get entries in ascending order, false for descending order")] bool IsAscending = true)
+        [Description("Incident ID")] long incidentId,
+        [Description("Number of top discussion entries to retrieve")] uint limit = 10,
+        [Description("Set to true to get entries in ascending order of time, false for descending order")] bool IsAscending = true)
     {
-        return await _icmPlugin.GetTopDiscussionEntries(incidentId, limit, IsAscending);
+        return await _icmPlugin.GetTopDiscussionEntries(incidentId.ToString(), limit, IsAscending);
     }
 
     [Description("Transfer ICM incident")]
     public async Task<string> TransferIncident(
-           [Description("Incident ID")] string incidentId,
+           [Description("Incident ID")] long incidentId,
            [Description("Discussion Entry - reason for transferring the incident")] string discussionEntry,
            [Description("Tenant ID of the team to transfer the incident to")] string tenantName,
            [Description("Team ID of the team to transfer the incident to")] string owningTeam)
     {
-        return await _icmPlugin.TransferIncident(incidentId, discussionEntry, tenantName, owningTeam);
+        return await _icmPlugin.TransferIncident(incidentId.ToString(), discussionEntry, tenantName, owningTeam);
     }
 
     [Description("Mitigate ICM incident")]
     public async Task<string> MitigateIncident(
-       [Description("Incident ID")] string incidentId,
+       [Description("Incident ID")] long incidentId,
        [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for mitigating the incident")] string discussionEntry)
     {
-        return await _icmPlugin.MitigateIncident(incidentId, discussionEntry);
+        return await _icmPlugin.MitigateIncident(incidentId.ToString(), discussionEntry);
     }
 
     [Description("Downgrade severity of ICM incident 2 to 3")]
     public async Task<string> DowngradeSeverity(
-        [Description("Incident ID")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for downgrading the incident")] string discussionEntry)
     {
-        return await _icmPlugin.DowngradeSeverity(incidentId, discussionEntry);
+        return await _icmPlugin.DowngradeSeverity(incidentId.ToString(), discussionEntry);
     }
 
     //For the purposes of SRE Agent usage, we are only allowing SRE Agent to set severities 2 or lower.
     [Description("Update the severity level of an ICM incident to any level (1=Critical, 2=High, 3=Medium, 4=Low)")]
     public async Task<string> UpdateIncidentSeverity(
-        [Description("Incident ID")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("New severity level (2=Highest, 25 (reserved for Security Incidents), 3, 4=Lowest)")] int severity,
         [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for updating the incident severity")] string discussionEntry)
     {
-        return await _icmPlugin.UpdateIncidentSeverity(incidentId, severity, discussionEntry);
+        return await _icmPlugin.UpdateIncidentSeverity(incidentId.ToString(), severity, discussionEntry);
     }
 
     [Description("Resolve ICM incident")]
     public async Task<string> ResolveIncident(
-           [Description("Incident ID")] string incidentId,
+           [Description("Incident ID")] long incidentId,
            [Description("Discussion Entry (must be HTML, markdown is not allowed) - reason for resolving the incident")] string discussionEntry)
     {
-        return await _icmPlugin.ResolveIncident(incidentId, discussionEntry);
+        return await _icmPlugin.ResolveIncident(incidentId.ToString(), discussionEntry);
     }
 
     [Description("Post an ICM discussion entry. IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
     public async Task<string> PostDiscussionEntry(
-       [Description("Incident ID")] string incidentId,
+       [Description("Incident ID")] long incidentId,
        [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
     {
-        return await _icmPlugin.PostDiscussionEntry(incidentId, discussionEntry);
+        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), discussionEntry);
     }
 
     [Description("Add a tag to an ICM incident")]
     public async Task<string> AddTagToIncident(
-        [Description("Id of the incident")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("Tag to add")] string tag)
     {
-        return await _icmPlugin.AddTagToIncident(incidentId, tag);
+        return await _icmPlugin.AddTagToIncident(incidentId.ToString(), tag);
     }
 
     [Description("Add a keyword to an ICM incident")]
     public async Task<string> AddKeywordToIncident(
-        [Description("Id of the incident")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("Keyword to add")] string keyword)
     {
-        return await _icmPlugin.AddKeywordToIncident(incidentId, keyword);
+        return await _icmPlugin.AddKeywordToIncident(incidentId.ToString(), keyword);
     }
 
     [Description("Acknowledges an ICM incident. Before Acknowledging validate if the incident is not already acknowledged, skip calling this tool if already acknowledged")]
     public async Task<string> AcknowledgeIncident(
-        [Description("Incident ID")] string incidentId)
+        [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.AcknowledgeIncident(incidentId);
+        return await _icmPlugin.AcknowledgeIncident(incidentId.ToString());
     }
 
     [Description("Get repair items associated with an ICM incident")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<ExternalLink>> GetIncidentRepairItems(
         [Description("Incident ID")] long incidentId)
     {
@@ -207,6 +216,7 @@ public class ICMPluginDefinition
     }
 
     [Description("​Gets basic info for all the linked incidents maked as related and associated with the given incident id")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<string>> GetLinkedRelatedIncidentInfo(
         [Description("Incident ID used to fetch and return basic information about the related incidents associated with it.")] long incidentId)
     {
@@ -230,6 +240,7 @@ public class ICMPluginDefinition
     }
 
     [Description("​Gets basic info of the parent incident associated with the given incident id")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<string> GetParentIncidentInfo(
         [Description("Incident ID used to fetch and return basic information about the parent incident ID associated with it.")] long incidentId)
     {
@@ -252,6 +263,7 @@ public class ICMPluginDefinition
     }
 
     [Description("​Gets basic info for all the child incidents associated with the given incident id")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<string>> GetChildIncidentsInfo(
         [Description("Incident ID used to fetch and return basic information about the child incidents associated with it.")] long incidentId)
     {
@@ -260,19 +272,19 @@ public class ICMPluginDefinition
 
     [Description("Add a file attachment to an ICM incident by reading a file from the local filesystem")]
     public async Task<string> AddIncidentAttachmentFromFile(
-        [Description("Incident ID")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("Local file path to attach to the incident")] string filePath)
     {
-        return await _icmPlugin.AddIncidentAttachmentFromFile(incidentId, filePath);
+        return await _icmPlugin.AddIncidentAttachmentFromFile(incidentId.ToString(), filePath);
     }
 
     [Description("Add a file attachment to an ICM incident from string content without requiring a local file")]
     public async Task<string> AddIncidentAttachmentFromContent(
-        [Description("Incident ID")] string incidentId,
+        [Description("Incident ID")] long incidentId,
         [Description("Name of the file to create (with extension)")] string fileName,
         [Description("String content to attach as a file")] string content)
     {
-        return await _icmPlugin.AddIncidentAttachmentFromContent(incidentId, fileName, content);
+        return await _icmPlugin.AddIncidentAttachmentFromContent(incidentId.ToString(), fileName, content);
     }
 
     [Description(@"""
@@ -288,6 +300,7 @@ public class ICMPluginDefinition
         - EndDate (string): ISO 8601 timestamp of investigation end
         """
         )]
+    [AgentTool(ToolMode.Auto)]
     public InvestigationTimeRangeResult GetIssueInvestigationTimeRange(
             [Description("ISO 8601 string for the first occurrence of the issue, or leave null if not available.")] string? issueFirstOccurrence,
             [Description("ISO 8601 string for the last occurrence of the issue, or leave null if not available.")] string? issueLastOccurrence,
@@ -301,13 +314,15 @@ public class ICMPluginDefinition
     }
 
     [Description("List all attachments for an ICM incident")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<Attachment>> ListIncidentAttachments(
-        [Description("Incident ID")] string incidentId)
+        [Description("Incident ID")] long incidentId)
     {
-        return await _icmPlugin.ListIncidentAttachments(incidentId);
+        return await _icmPlugin.ListIncidentAttachments(incidentId.ToString());
     }
 
     [Description("List ICM incidents with filtering and pagination support")]
+    [AgentTool(ToolMode.Auto)]
     public async Task<List<Incident>> ListIncidents(
         [Description("Maximum number of incidents to return in a page")] int limit,
         [Description("Starting offset for pagination")] int offset,
@@ -340,4 +355,21 @@ public class ICMPluginDefinition
     //{
     //    return await _icmPlugin.DownloadIncidentAttachment(incidentId, attachmentId);
     //}
+
+    [Description("Get incident details from IcM, using AI-enriched data when available. Set includeAlertDetails=false for a quick overview, or true for full context including the alerting Kusto query and results.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<string> GetIncidentDetails(
+        [Description("Incident ID")] long incidentId,
+        [Description("Set to true to include alerting details (Kusto query and results), false for quick overview")] bool includeAlertDetails = false)
+    {
+        return await _icmPlugin.GetIncidentDetails(incidentId.ToString(), includeAlertDetails);
+    }
+
+    [Description("Get the alerting entry that created the incident, including Kusto query and results.")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<string> GetIncidentAlertDetails(
+        [Description("Incident ID")] long incidentId)
+    {
+        return await _icmPlugin.GetIncidentAlertDetails(incidentId.ToString());
+    }
 }

@@ -1,5 +1,10 @@
 import { AgentTaskMetaData } from './AgentTask';
+import { GrepSearchResult } from './GrepResult';
+import { McpToolExecution } from './McpToolExecution';
+import { ReadFileResult } from './ReadFileResult';
+import { TerminalExecutionResult } from './TerminalResult';
 import { TodoInfo } from './TodoPlan';
+import { UserQuestion } from './UserQuestion';
 
 export type ChatMessageError = 'PermissionDenied' | 'UnknownError';
 
@@ -17,6 +22,11 @@ export type MessageType =
     | 'todoplan'
     | 'trajectoryinsight'
     | 'reasoning'
+    | 'grepsearch'
+    | 'readfile'
+    | 'terminal'
+    | 'userquestion'
+    | 'mcptool'
     | null;
 
 export interface Message {
@@ -37,6 +47,11 @@ export interface Message {
     memorySearchResult: MemorySearchResult | null | undefined;
     knowledgeGraphSearchResult: KnowledgeGraphSearchResult | null | undefined;
     todoInfo: TodoInfo | null | undefined;
+    grepSearchResult?: GrepSearchResult | null | undefined;
+    readFileResult?: ReadFileResult | null | undefined;
+    terminalResult?: TerminalExecutionResult | null | undefined;
+    userQuestion?: UserQuestion | null | undefined;
+    mcpToolExecution?: McpToolExecution | null | undefined;
 
     isComplete: boolean | null | undefined;
     isImageContent: boolean | null | undefined;
