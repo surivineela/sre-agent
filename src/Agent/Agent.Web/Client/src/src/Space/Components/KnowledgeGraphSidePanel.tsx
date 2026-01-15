@@ -1,10 +1,9 @@
-import { Button, DrawerHeader, Subtitle2 } from '@fluentui/react-components';
+import { Button, DrawerHeader, makeStyles, Subtitle2, tokens } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { KnowledgeGraphSearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { KnowledgeGraphCardResources, SreAgentResources } from '../../Strings/SREAgentResources';
-import { useMemorySidePanelStyles } from '../Styles/MemorySidePanel.styles';
 import KnowledgeGraphPanelContent from './KnowledgeGraphPanelContent';
 
 interface KnowledgeGraphSidePanelProps {
@@ -12,8 +11,36 @@ interface KnowledgeGraphSidePanelProps {
     onClose: () => void;
 }
 
+const useStyles = makeStyles({
+    header: {
+        display: 'flex',
+        flexWrap: 'nowrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minWidth: '0px',
+        minHeight: '0px',
+        gap: tokens.spacingHorizontalS,
+    },
+    headerText: {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: '1 1 auto',
+    },
+    headerButton: {
+        flex: '0 1 auto',
+    },
+    content: {
+        padding: '12px',
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        overflowY: 'auto',
+    },
+});
+
 const KnowledgeGraphSidePanel = ({ knowledgeGraphResult, onClose }: KnowledgeGraphSidePanelProps) => {
-    const styles = useMemorySidePanelStyles();
+    const styles = useStyles();
     const intl = useIntl();
 
     if (!knowledgeGraphResult) return null;

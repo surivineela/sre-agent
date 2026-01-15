@@ -3510,6 +3510,9 @@ export const MemorySearchCardResources = defineMessages({
     viewMemorySearchResults: { defaultMessage: 'View Memory Search Results', id: 'I1tfGG' },
     symptomsLabel: { defaultMessage: 'Symptoms:', id: 'h4XDJP' },
     rootCauseLabel: { defaultMessage: 'Root Cause:', id: 'sILeXv' },
+    viewFullDocument: { defaultMessage: 'View Full Document', id: 'LsxQP2' },
+    hideFullDocument: { defaultMessage: 'Hide Full Document', id: 'ZAshJw' },
+    documentAriaLabel: { defaultMessage: 'Document', id: 'wmirkP' },
 });
 
 export const KnowledgeGraphCardResources = defineMessages({
