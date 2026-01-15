@@ -29,6 +29,7 @@ public static partial class CommandBuilder
                 ExtensionCommandOptions.GenerateEv2.AgentFolderOption,
                 ExtensionCommandOptions.GenerateEv2.SkillsFolderOption,
                 ExtensionCommandOptions.GenerateEv2.ScheduledTasksFolderOption,
+                ExtensionCommandOptions.GenerateEv2.IncidentFilterFolderOption,
                 ExtensionCommandOptions.GenerateEv2.OutputOption,
                 ExtensionCommandOptions.GenerateEv2.ServiceIdentifierOption,
                 ExtensionCommandOptions.GenerateEv2.ServiceGroupOption,

@@ -490,8 +490,8 @@ const ChatBoxFooter = ({
                     const shortcutNode = $isElementNode(node)
                         ? node.getChildAtIndex(anchor.offset - 1)
                         : $isTextNode(node) && offset !== -1
-                            ? node.getPreviousSibling()
-                            : null;
+                          ? node.getPreviousSibling()
+                          : null;
 
                     if ($isShortcutNode(shortcutNode)) {
                         removeShortcutNode();
@@ -1353,11 +1353,11 @@ const Attachments = memo(
                             props.lockAgentSelection
                                 ? undefined
                                 : {
-                                    'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                                        agentName: props.selectedAgentName,
-                                    }),
-                                    onClick: () => props.handleClearSelectedAgent(),
-                                }
+                                      'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                          agentName: props.selectedAgentName,
+                                      }),
+                                      onClick: () => props.handleClearSelectedAgent(),
+                                  }
                         }
                     >
                         <Tooltip

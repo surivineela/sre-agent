@@ -19,5 +19,6 @@ module extensionDeployment 'modules/sreagentExtension.bicep' = {
     tools: extensionFiles.outputs.tools
     skills: extensionFiles.outputs.skills
     scheduledTasks: extensionFiles.outputs.scheduledTasks
+    incidentFilters: extensionFiles.outputs.incidentFilters
   }
 }

@@ -41,6 +41,12 @@ public static class ExtensionCommandOptions
             Description = "Path to the scheduled task folder containing scheduled task configurations"
         };
 
+        public static readonly Option<string> IncidentFilterFolderOption = new("--incident-filter-folder")
+        {
+            Required = false,
+            Description = "Path to the incident filter folder containing incident filter configurations"
+        };
+
         public static readonly Option<string> OutputOption = new("--output")
         {
             Required = true,

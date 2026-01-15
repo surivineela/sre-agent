@@ -238,7 +238,10 @@ export const IncidentsAndGuidanceStep = () => {
                             getItemTitle={incident => incident.title}
                             getItemId={incident => incident.id}
                             getRemoveButtonAriaLabel={incident =>
-                                intl.formatMessage(IncidentHandlerCreateResources.removeIncidentItem, { incidentId: incident.id, incidentTitle: incident.title })
+                                intl.formatMessage(IncidentHandlerCreateResources.removeIncidentItem, {
+                                    incidentId: incident.id,
+                                    incidentTitle: incident.title,
+                                })
                             }
                             title={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidents)}
                             emptyText={intl.formatMessage(IncidentHandlerCreateResources.selectedIncidentsEmptyText)}
