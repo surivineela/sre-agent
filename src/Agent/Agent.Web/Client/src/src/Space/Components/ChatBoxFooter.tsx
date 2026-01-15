@@ -257,8 +257,8 @@ const ChatBoxFooter = ({
     forcedAgentName,
     lockAgentSelection,
     inputDisabledMessage,
-    isIncidentTestModeTurnedOn,
-    toggleIncidentTestMode,
+    isIncidentRetroModeTurnedOn,
+    toggleIncidentRetroMode,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -288,7 +288,7 @@ const ChatBoxFooter = ({
     const { logAmplitudeControlEvent } = useAzPortalContext();
     const { sreAgentEndpoint, userInfo } = useContext(EnvironmentContext);
 
-    const incidentTestModeEnabled = FirstPartyHelper.isFirstPartyAgent(userInfo?.directoryId || '');
+    const incidentRetroModeEnabled = FirstPartyHelper.isFirstPartyAgent(userInfo?.directoryId || '');
 
     const extendedAgentClient = ExtendedAgentClient.getInstance(sreAgentEndpoint);
     const imperativeControlPluginRef = useRef<ImperativeControlPluginRef>(null);
@@ -326,9 +326,9 @@ const ChatBoxFooter = ({
     const matchedShortcuts = useMemo(() => {
         return Object.values(Shortcut)
             .filter(shortcut => !lockAgentSelection || shortcut !== Shortcut.Agent)
-            .filter(shortcut => incidentTestModeEnabled || shortcut !== Shortcut.IncidentTestMode)
+            .filter(shortcut => incidentRetroModeEnabled || shortcut !== Shortcut.IncidentRetroMode)
             .filter(shortcut => !matchedShortcutString || shortcut.toLowerCase().startsWith(matchedShortcutString.toLowerCase()));
-    }, [lockAgentSelection, matchedShortcutString, incidentTestModeEnabled]);
+    }, [lockAgentSelection, matchedShortcutString, incidentRetroModeEnabled]);
 
     useEffect(() => {
         if (forcedAgentName) {
@@ -533,9 +533,9 @@ const ChatBoxFooter = ({
             const messageToSend = input?.trim() ?? '';
 
             if (messageToSend && !disableInputInteraction && !isTyping) {
-                // Toggle test mode UI immediately if sending the test mode command
-                if (messageToSend.toLowerCase() === '/incidenttestmode') {
-                    toggleIncidentTestMode?.();
+                // Toggle retro mode UI immediately if sending the retro mode command
+                if (messageToSend.toLowerCase() === '/incidentretromode') {
+                    toggleIncidentRetroMode?.();
                 }
 
                 imperativeControlPluginRef.current?.setInputText('');
@@ -568,7 +568,7 @@ const ChatBoxFooter = ({
             threadId,
             threadSource,
             inputDisabledMessage,
-            toggleIncidentTestMode,
+            toggleIncidentRetroMode,
         ]
     );
 
@@ -614,9 +614,9 @@ const ChatBoxFooter = ({
                         }
                     });
                     return;
-                case Shortcut.IncidentTestMode:
+                case Shortcut.IncidentRetroMode:
                     closeShortcutList();
-                    chatInputHandleSendClick('/incidentTestMode');
+                    chatInputHandleSendClick('/incidentRetroMode');
                     return;
                 case Shortcut.Agent:
                 case Shortcut.Incident:
@@ -818,8 +818,8 @@ const ChatBoxFooter = ({
                 return intl.formatMessage(ActivitiesResources.clearShortcutDescription);
             case Shortcut.Compact:
                 return intl.formatMessage(ActivitiesResources.compactShortcutDescription);
-            case Shortcut.IncidentTestMode:
-                return intl.formatMessage(ActivitiesResources.incidentTestModeShortcutDescription);
+            case Shortcut.IncidentRetroMode:
+                return intl.formatMessage(ActivitiesResources.incidentRetroModeShortcutDescription);
             case Shortcut.Incident:
                 return intl.formatMessage(ActivitiesResources.incidentsShortcutDescription);
             case Shortcut.Resource:
@@ -1184,10 +1184,10 @@ const ChatBoxFooter = ({
                             selectedAgentName={selectedAgentName}
                             isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                             isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
-                            isIncidentTestModeTurnedOn={isIncidentTestModeTurnedOn}
+                            isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
                             handleClearSelectedAgent={handleClearSelectedAgent}
                             handleDisableDeepInvestigation={onClickDeepInvestigationButton}
-                            handleToggleTestMode={() => chatInputHandleSendClick('/incidentTestMode')}
+                            handleToggleRetroMode={() => chatInputHandleSendClick('/incidentRetroMode')}
                             lockAgentSelection={lockAgentSelection}
                         />
                     }
@@ -1329,14 +1329,14 @@ const Attachments = memo(
         lockAgentSelection?: boolean;
         isDeepInvestigationTurnedOn: boolean;
         isDeepInvestigationEnabled: boolean;
-        isIncidentTestModeTurnedOn?: boolean;
+        isIncidentRetroModeTurnedOn?: boolean;
         handleClearSelectedAgent: () => void;
         handleDisableDeepInvestigation: () => void;
-        handleToggleTestMode?: () => void;
+        handleToggleRetroMode?: () => void;
     }) => {
         const intl = useIntl();
 
-        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn || props.isIncidentTestModeTurnedOn;
+        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn || props.isIncidentRetroModeTurnedOn;
 
         return showAttachmentList ? (
             <AttachmentList
@@ -1400,18 +1400,18 @@ const Attachments = memo(
                         </Tooltip>
                     </Attachment>
                 )}
-                {props.isIncidentTestModeTurnedOn && (
+                {props.isIncidentRetroModeTurnedOn && (
                     <Attachment
-                        id={'incident-test-mode-attachment'}
-                        key={'incident-test-mode-attachment'}
+                        id={'incident-retro-mode-attachment'}
+                        key={'incident-retro-mode-attachment'}
                         dismissButton={{
-                            'aria-label': intl.formatMessage(AgentTaskResources.incidentTestMode),
-                            onClick: () => props.handleToggleTestMode?.(),
+                            'aria-label': intl.formatMessage(AgentTaskResources.incidentRetroMode),
+                            onClick: () => props.handleToggleRetroMode?.(),
                         }}
                     >
-                        <Tooltip content={<FormattedMessage {...AgentTaskResources.incidentTestMode} />} relationship="label">
+                        <Tooltip content={<FormattedMessage {...AgentTaskResources.incidentRetroMode} />} relationship="label">
                             <Text weight="semibold" wrap={false}>
-                                <FormattedMessage {...AgentTaskResources.incidentTestMode} />
+                                <FormattedMessage {...AgentTaskResources.incidentRetroMode} />
                             </Text>
                         </Tooltip>
                     </Attachment>

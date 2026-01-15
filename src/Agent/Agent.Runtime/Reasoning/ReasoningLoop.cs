@@ -119,7 +119,7 @@ public class ReasoningLoop : IDisposable
     private const string RememberMarker = "#remember";
     private const string ForgetMarker = "#forget";
     private const string CompactMarker = "/compact";
-    private const string IncidentTestModeMarker = "/incidentTestMode";
+    private const string IncidentRetroModeMarker = "/incidentRetroMode";
 
     // user-required action tracking
     private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
@@ -510,10 +510,10 @@ public class ReasoningLoop : IDisposable
                                 return;
                             }
 
-                            // process /incidentTestMode command
-                            if (chatMessage.Message.Text.Trim().Equals(IncidentTestModeMarker, StringComparison.OrdinalIgnoreCase))
+                            // process /incidentRetroMode command
+                            if (chatMessage.Message.Text.Trim().Equals(IncidentRetroModeMarker, StringComparison.OrdinalIgnoreCase))
                             {
-                                await HandleIncidentTestModeCommandAsync();
+                                await HandleIncidentRetroModeCommandAsync();
                                 return;
                             }
 
@@ -2819,20 +2819,20 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private async Task HandleIncidentTestModeCommandAsync()
+    private async Task HandleIncidentRetroModeCommandAsync()
     {
         try
         {
             // Only enabled for Development environment or 1P tenants
             if (!_hostEnvironment.IsDevelopment() && !FirstPartyHelper.IsFirstPartyTenant())
             {
-                _logger.LogInternalInformation($"[{_context.ThreadId}] {IncidentTestModeMarker} command rejected - not a first-party tenant.");
+                _logger.LogInternalInformation($"[{_context.ThreadId}] {IncidentRetroModeMarker} command rejected - not a first-party tenant.");
                 var rejectMessage = new ChatMessage(ChatRole.Assistant, "This command is not available.");
                 await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, rejectMessage);
                 return;
             }
 
-            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {IncidentTestModeMarker} command.");
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {IncidentRetroModeMarker} command.");
 
             bool currentState;
             if (_context.IsIncidentTestModeEnabled.HasValue)
@@ -2852,17 +2852,17 @@ public class ReasoningLoop : IDisposable
 
             var userMessage = new ChatMessage(ChatRole.Assistant,
                 newState
-                    ? "🔍 Incident test mode enabled. ICM discussion entries will be filtered for the agent to show only the alerting entries."
-                    : "Incident test mode disabled. Agent will receive all ICM discussion entries including its own past posts.");
+                    ? "🔍 Incident retro mode enabled. ICM discussion entries will be filtered for the agent to show only the alerting entries."
+                    : "Incident retro mode disabled. Agent will receive all ICM discussion entries including its own past posts.");
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, userMessage);
 
-            _logger.LogInternalInformation($"[{_context.ThreadId}] Incident test mode toggled to: {newState}");
+            _logger.LogInternalInformation($"[{_context.ThreadId}] Incident retro mode toggled to: {newState}");
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {IncidentTestModeMarker} command");
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {IncidentRetroModeMarker} command");
 
-            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error toggling incident test mode. Please try again.");
+            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error toggling incident retro mode. Please try again.");
             await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
         }
     }

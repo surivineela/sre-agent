@@ -42,9 +42,9 @@ public class ICMPlugin : IICMPlugin
     private AgentResourceInfo? _agentInfo;
 
     /// <summary>
-    /// Authors whose discussion entries should be included when test mode is enabled.
+    /// Authors whose discussion entries should be included when retro mode is enabled.
     /// </summary>
-    private static readonly HashSet<string> TestModeAuthors = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> RetroModeAuthors = new(StringComparer.OrdinalIgnoreCase)
     {
         "gautosvc",
         "BRAIN"
@@ -517,17 +517,17 @@ Example structure:
 
         var entries = discussionEntries ?? [];
 
-        // Check if incident test mode is enabled for this thread and filter entries
+        // Check if incident retro mode is enabled for this thread and filter entries
         if (ThreadContextAccessor.IsIncidentTestModeEnabled)
         {
             var filteredEntries = entries.Where(e =>
-                TestModeAuthors.Any(author =>
+                RetroModeAuthors.Any(author =>
                     (!string.IsNullOrEmpty(e.ChangedBy) && e.ChangedBy.Equals(author, StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrEmpty(e.SubmittedBy) && e.SubmittedBy.Equals(author, StringComparison.OrdinalIgnoreCase)))
             ).ToList();
 
             _logger.LogInternalInformation(
-                $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}] IncidentTestMode: Filtered {entries.Count} entries to {filteredEntries.Count} by test mode authors");
+                $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}] IncidentRetroMode: Filtered {entries.Count} entries to {filteredEntries.Count} by retro mode authors");
 
             return filteredEntries;
         }

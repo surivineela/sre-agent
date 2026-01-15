@@ -44,7 +44,7 @@ export const useChatBox = (
     updateThreadLastReadTime: (threadId: string) => void,
     threadId: string | null | undefined,
     threadSource: string | null | undefined,
-    initialTestModeEnabled?: boolean
+    initialRetroModeEnabled?: boolean
 ) => {
     const intl = useIntl();
 
@@ -72,12 +72,12 @@ export const useChatBox = (
     const [isDeepInvestigationButtonEnabled, setIsDeepInvestigationButtonEnabled] = useState<boolean>(false);
     const [isDeepInvestigationTurnedOn, setIsDeepInvestigationTurnedOn] = useState<boolean>(false);
     const [isDeepInvestigationDialogVisible, setIsDeepInvestigationDialogVisible] = useState<boolean>(false);
-    const [isIncidentTestModeTurnedOn, setIsIncidentTestModeTurnedOn] = useState<boolean>(initialTestModeEnabled ?? false);
+    const [isIncidentRetroModeTurnedOn, setIsIncidentRetroModeTurnedOn] = useState<boolean>(initialRetroModeEnabled ?? false);
 
-    // Sync local test mode state with persisted value when thread loads/changes
+    // Sync local retro mode state with persisted value when thread loads/changes
     useEffect(() => {
-        setIsIncidentTestModeTurnedOn(initialTestModeEnabled ?? false);
-    }, [initialTestModeEnabled]);
+        setIsIncidentRetroModeTurnedOn(initialRetroModeEnabled ?? false);
+    }, [initialRetroModeEnabled]);
 
     const [isDeepInvestigationDialogDismissedForCurrentAgent, setIsDeepInvestigationDialogDismissedForCurrentAgent] = useState<boolean>(
         () => {
@@ -192,8 +192,8 @@ export const useChatBox = (
         }
     }, [changeDeepInvestigationStatus, isDeepInvestigationTurnedOn, isDeepInvestigationDialogDismissedForCurrentAgent]);
 
-    const toggleIncidentTestMode = useCallback(() => {
-        setIsIncidentTestModeTurnedOn(prev => !prev);
+    const toggleIncidentRetroMode = useCallback(() => {
+        setIsIncidentRetroModeTurnedOn(prev => !prev);
     }, []);
 
     const onClickDeepInvestigationDialogActionButton = useCallback(
@@ -895,7 +895,7 @@ export const useChatBox = (
         onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
 
-        isIncidentTestModeTurnedOn,
-        toggleIncidentTestMode,
+        isIncidentRetroModeTurnedOn,
+        toggleIncidentRetroMode,
     };
 };

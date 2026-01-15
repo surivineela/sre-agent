@@ -180,7 +180,7 @@ const Thread: FC = () => {
                 onCloseSidePanel={onCloseSidePanel}
                 canOpenSidePanel={true}
                 ref={chatboxHandleRef}
-                initialTestModeEnabled={thread?.isIncidentTestModeEnabled}
+                initialRetroModeEnabled={thread?.isIncidentTestModeEnabled}
             />
             {!!thread && showTrace && agentAppInsightsAppId && (
                 <TracePanel

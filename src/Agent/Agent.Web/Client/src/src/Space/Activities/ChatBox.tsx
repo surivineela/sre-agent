@@ -43,7 +43,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         onTelemetryUpdate,
         renderEmptyState,
         inputDisabledMessage,
-        initialTestModeEnabled,
+        initialRetroModeEnabled,
     } = props;
 
     const {
@@ -73,9 +73,9 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         setIsDeepInvestigationDialogVisible,
         onClickDeepInvestigationDialogActionButton,
         onClickDeepInvestigationButton,
-        isIncidentTestModeTurnedOn,
-        toggleIncidentTestMode,
-    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource, initialTestModeEnabled);
+        isIncidentRetroModeTurnedOn,
+        toggleIncidentRetroMode,
+    } = useChatBox(addThread, updateThreadLastReadTime, threadId, threadSource, initialRetroModeEnabled);
 
     const {
         sidePanelProps: { isSidePanelOpen, selectedSidePanelType, sidePanelWidth, setSidePanelWidth },
@@ -248,8 +248,8 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                     forcedAgentName={forcedAgentName}
                                     lockAgentSelection={lockAgentSelection}
                                     inputDisabledMessage={inputDisabledMessage}
-                                    isIncidentTestModeTurnedOn={isIncidentTestModeTurnedOn}
-                                    toggleIncidentTestMode={toggleIncidentTestMode}
+                                    isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
+                                    toggleIncidentRetroMode={toggleIncidentRetroMode}
                                 />
                             </div>
                         </div>

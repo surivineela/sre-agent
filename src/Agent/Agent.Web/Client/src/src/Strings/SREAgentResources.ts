@@ -960,7 +960,7 @@ export const PromptResources = defineMessages({
 
 export const AgentTaskResources = defineMessages({
     deepInvestigation: { defaultMessage: 'Deep investigation', id: '2a+ttj' },
-    incidentTestMode: { defaultMessage: 'Incident Test Mode', id: 'GrKRHI' },
+    incidentRetroMode: { defaultMessage: 'Incident Retro Mode', id: 'jEKKzc' },
     deepInvestigationTurnedOnMessage: {
         defaultMessage: 'Deep investigation is turned on',
         id: 'cDjhgm',
@@ -1421,7 +1421,7 @@ export const ActivitiesResources = defineMessages({
     emptyExtendedAgentMessages: { defaultMessage: 'No extended agents available', id: '0iLXks' },
     clearShortcutDescription: { defaultMessage: 'Start a new chat thread.', id: 'GkJbiq' },
     compactShortcutDescription: { defaultMessage: 'Agent responses are more concise in this mode.', id: 'lDx7s5' },
-    incidentTestModeShortcutDescription: {
+    incidentRetroModeShortcutDescription: {
         defaultMessage:
             'Preview Feature: Filter IcM discussions to only retrieve alerting entries for the agent. Useful when re-running agent on past incidents.',
         id: 'zvWk/o',
