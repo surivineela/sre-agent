@@ -11,3 +11,25 @@ export function format(template: string, ...args: (string | number)[]): string {
         return args[argIndex] !== undefined ? String(args[argIndex]) : match;
     });
 }
+
+/**
+ * Safely compares two values for sorting. Handles undefined, null, numbers, and strings.
+ * @param a First value to compare
+ * @param b Second value to compare
+ * @returns Comparison result: negative if a < b, positive if a > b, 0 if equal
+ */
+export const safeCompare = (a: unknown, b: unknown): number => {
+    const aVal = a ?? '';
+    const bVal = b ?? '';
+
+    // Handle numeric comparison
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return aVal - bVal;
+    }
+
+    // Convert to strings for comparison
+    const aStr = String(aVal);
+    const bStr = String(bVal);
+
+    return aStr.localeCompare(bStr);
+};

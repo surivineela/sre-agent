@@ -8,10 +8,12 @@ import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry'
 import { useIsInternal } from '../../Common/Hooks/useIsInternal';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentsGrid } from './AgentsGrid';
+import { AgentSpacesGrid } from './AgentSpaces/AgentSpacesGrid';
 import { InternalAgentLinksGrid } from './ExternalAgents/InternalAgentLinksGrid';
 
 enum GridTabKey {
     agents = 'agents',
+    agentSpaces = 'agentSpaces',
     external = 'external',
 }
 
@@ -55,7 +57,7 @@ const HomeBrowseViewContent = () => {
 
     const [selectedTabKey, setSelectedTabKey] = useState<GridTabKey>(GridTabKey.agents);
 
-    const showExternalAgents = useMemo(() => isInternalTenant || isInternalDevTenant, [isInternalTenant, isInternalDevTenant]);
+    const showInternalTabs = useMemo(() => isInternalTenant || isInternalDevTenant, [isInternalTenant, isInternalDevTenant]);
 
     useEffect(() => {
         logNavigationEvent({
@@ -69,9 +71,10 @@ const HomeBrowseViewContent = () => {
     return (
         <div className={styles.container}>
             <div className={styles.agentListContainer}>
-                {showExternalAgents ? (
+                {showInternalTabs ? (
                     <TabList selectedValue={selectedTabKey} onTabSelect={(_, data) => setSelectedTabKey(data.value as GridTabKey)}>
                         <Tab value={GridTabKey.agents}>{intl.formatMessage(PortalResources.agents)}</Tab>
+                        <Tab value={GridTabKey.agentSpaces}>{intl.formatMessage(PortalResources.agentSpaces)}</Tab>
                         <Tab value={GridTabKey.external}>{intl.formatMessage(PortalResources.externalAgents)}</Tab>
                     </TabList>
                 ) : (
@@ -81,6 +84,8 @@ const HomeBrowseViewContent = () => {
                 )}
 
                 {selectedTabKey === GridTabKey.agents && <AgentsGrid />}
+
+                {selectedTabKey === GridTabKey.agentSpaces && <AgentSpacesGrid />}
 
                 {selectedTabKey === GridTabKey.external && <InternalAgentLinksGrid />}
             </div>

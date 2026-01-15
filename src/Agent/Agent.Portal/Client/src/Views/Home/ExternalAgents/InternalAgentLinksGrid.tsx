@@ -33,6 +33,7 @@ import { CopyButton } from '../../../Common/Components/CopyButton';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { useLocalStorage } from '../../../Common/Hooks/useLocalStorage';
 import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
+import { safeCompare } from '../../../Common/Utilities/String';
 import { PortalResources } from '../../../Strings/Resources';
 
 // TODO: Known bug with link in this component not actually updating the view unless you change tabs or refresh the page.
@@ -121,7 +122,7 @@ export const InternalAgentLinksGrid = () => {
         () => [
             createTableColumn<InternalAgentLinkItem>({
                 columnId: 'agent',
-                compare: (a, b) => a.displayName.localeCompare(b.displayName),
+                compare: (a, b) => safeCompare(a.displayName, b.displayName),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.agent)}</Text>,
                 renderCell: item => (
                     <TableCellLayout
@@ -139,7 +140,7 @@ export const InternalAgentLinksGrid = () => {
             }),
             createTableColumn<InternalAgentLinkItem>({
                 columnId: 'uri',
-                compare: (a, b) => a.uri.localeCompare(b.uri),
+                compare: (a, b) => safeCompare(a.uri, b.uri),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.uri)}</Text>,
                 renderCell: item => (
                     <TableCellLayout>

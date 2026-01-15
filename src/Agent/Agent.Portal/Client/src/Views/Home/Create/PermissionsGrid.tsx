@@ -22,6 +22,7 @@ import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { getRoleNamesForResourceGroup, ResourceTypeToDisplayNameMap } from '../../../Common/Contracts/Permissions';
 import { LogLevel } from '../../../Common/Contracts/Telemetry';
 import { useTelemetry } from '../../../Common/Hooks/useTelemetry';
+import { safeCompare } from '../../../Common/Utilities/String';
 import { PortalResources, RolesAndPermissions } from '../../../Strings/Resources';
 import { SreAgentCreateFormProps } from './CreateAgentDialog';
 import { permissionsMap } from './PermissionsConstants';
@@ -141,13 +142,13 @@ const PermissionsGrid = () => {
         () => [
             createTableColumn<RoleGridItem>({
                 columnId: RoleListColumnKey.role,
-                compare: (a, b) => a.title.localeCompare(b.title),
+                compare: (a, b) => safeCompare(a.title, b.title),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(RolesAndPermissions.role)}</Text>,
                 renderCell: item => <TableCellLayout>{item.title}</TableCellLayout>,
             }),
             createTableColumn<RoleGridItem>({
                 columnId: RoleListColumnKey.description,
-                compare: (a, b) => a.description.localeCompare(b.description),
+                compare: (a, b) => safeCompare(a.description, b.description),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(RolesAndPermissions.description)}</Text>,
                 renderCell: item => <TableCellLayout>{item.description}</TableCellLayout>,
             }),

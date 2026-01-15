@@ -1,0 +1,111 @@
+import { makeStyles, tokens } from '@fluentui/react-components';
+
+export const useDeploymentTrackingStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+        padding: tokens.spacingVerticalL,
+        height: '100%',
+        overflow: 'hidden',
+    },
+    metadata: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+        padding: tokens.spacingVerticalM,
+        backgroundColor: tokens.colorNeutralBackground2,
+        borderRadius: tokens.borderRadiusMedium,
+        flexShrink: 0,
+    },
+    metadataRow: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalM,
+    },
+    metadataLabel: {
+        fontWeight: tokens.fontWeightSemibold,
+        minWidth: '140px',
+        color: tokens.colorNeutralForeground2,
+    },
+    metadataValue: {
+        color: tokens.colorNeutralForeground1,
+        wordBreak: 'break-word',
+    },
+    operationsContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalM,
+        flexGrow: 1,
+        minHeight: 0,
+        overflow: 'hidden',
+    },
+    operationsTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+        flexShrink: 0,
+    },
+    operationsList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+        overflowY: 'auto',
+        maxHeight: '275px',
+    },
+    operationItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+        padding: tokens.spacingVerticalS,
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    operationIcon: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '20px',
+    },
+    operationContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minWidth: 0,
+    },
+    operationHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
+    operationName: {
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+    operationStatus: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    expandButton: {
+        minWidth: 'auto',
+        padding: '4px',
+    },
+    errorDetails: {
+        marginTop: tokens.spacingVerticalS,
+        padding: tokens.spacingVerticalS,
+        backgroundColor: tokens.colorPaletteRedBackground1,
+        borderRadius: tokens.borderRadiusSmall,
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorPaletteRedForeground1,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
+    loadingContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
+    },
+});
