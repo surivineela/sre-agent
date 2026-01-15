@@ -110,6 +110,18 @@ import { Button } from "@fluentui/react-components";
 </Button>;
 ```
 
+**Component Props**: Avoid explicitly setting component props to their default values unless clarity is essential. Omitting default values keeps the code concise and reduces noise.
+
+```typescript
+// ❌ WRONG - Explicitly setting default values
+<Button appearance="secondary" disabled={false}>
+  Cancel
+</Button>
+
+// ✅ CORRECT - Omit props that use default values
+<Button>Cancel</Button>
+```
+
 To understand Fluent v9 components and their props, refer to the official documentation: https://react.fluentui.dev/
 
 For docs on specific components, see https://storybooks.fluentui.dev/react/?path=/docs/components-<component_name>--docs. For example, https://storybooks.fluentui.dev/react/?path=/docs/components-datagrid--docs
