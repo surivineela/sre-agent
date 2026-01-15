@@ -467,12 +467,25 @@ const SREAgentSpace: FC = () => {
     useEffect(() => {
         const logSiteVersion = () => {
             const version = import.meta.env.SRE_UX_VERSION;
-            if (!inStandaloneMode && version) {
+            const isCrossTenantMode = AzPortalProxy.envInfo.isCrossTenantPortalMode;
+            const isHostedInSreaPortal = AzPortalProxy.isHostedInSreaPortal;
+
+            let mode = 'standalone';
+            if (!inStandaloneMode) {
+                const portalPrefix = isHostedInSreaPortal ? 'srea-' : '';
+                mode = isCrossTenantMode ? `cross-tenant-${portalPrefix}portal` : `${portalPrefix}portal`;
+            }
+
+            if (version) {
                 console.log(`
                     ╔═══════════════════════════════════╗
                       🤖 SRE Agent Version: ${version}
+                      Mode: ${mode}
                     ╚═══════════════════════════════════╝
                 `);
+            }
+
+            if (!inStandaloneMode) {
                 azPortalProxy.log({
                     action: 'AgentSiteVersion',
                     actionModifier: 'info',

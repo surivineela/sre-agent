@@ -1,5 +1,5 @@
 import AzPortalProxy from '../AzPortalProxy/AzPortalProxy';
-import { sreAgentPortalAkaLink, standaloneReactEndpoint } from '../Constants/Uri';
+import { getCurrentPortalLink, standaloneReactEndpoint } from '../Constants/Uri';
 
 /**
  * Deep link format (needs encoding): `#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/<rsc-id>/sreLink/views/thread/<thread-id>`
@@ -8,6 +8,7 @@ export const useThreadDeepLink = (threadId: string, resourceId: string, agentEnd
     const isStandaloneMode = AzPortalProxy.inStandaloneMode;
     const isCrossTenantMode = AzPortalProxy.envInfo.isCrossTenantPortalMode;
     const agentSiteDeepLink = `views/thread/${threadId}`;
+    const portalLink = getCurrentPortalLink();
 
     if (isStandaloneMode) {
         return `${standaloneReactEndpoint}#/${agentSiteDeepLink}`;
@@ -15,8 +16,8 @@ export const useThreadDeepLink = (threadId: string, resourceId: string, agentEnd
 
     if (isCrossTenantMode) {
         const displayName = agentEndpoint.split('.')[0].replace('https://', '');
-        return `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(displayName)}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(agentSiteDeepLink)}`;
+        return `${portalLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(displayName)}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(agentSiteDeepLink)}`;
     }
 
-    return `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/${encodeURIComponent(agentSiteDeepLink)}`;
+    return `${portalLink}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(resourceId)}/sreLink/${encodeURIComponent(agentSiteDeepLink)}`;
 };
