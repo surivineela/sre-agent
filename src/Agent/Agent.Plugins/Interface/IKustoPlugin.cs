@@ -44,7 +44,7 @@ namespace Agent.Plugins.Interface
             Dictionary<string, string>? args = null,
             string? groupName = null);
 
-        public Task<string> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, bool? printQuery = true, string toolName = "");
+        public Task<string> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, bool? printQuery = true, string toolName = "", KustoDisplayOptions? displayOptions = null);
         public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null, string? groupName = null);
     }
 }
