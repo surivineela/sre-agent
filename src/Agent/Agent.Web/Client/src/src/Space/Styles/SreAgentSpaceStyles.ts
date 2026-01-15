@@ -39,7 +39,9 @@ export const useSreAgentSpaceStyles = makeStyles({
     navBody: {
         overflow: 'hidden',
         padding: `0px ${tokens.spacingHorizontalS}`,
-        //override default padding bottom to remove extra space at bottom of nav pane
+        '&:first-child': {
+            paddingTop: tokens.spacingHorizontalM,
+        },
         '&:last-child': {
             paddingBottom: '0',
         },

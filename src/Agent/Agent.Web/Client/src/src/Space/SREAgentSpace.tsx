@@ -1,4 +1,4 @@
-import { CopilotNavDrawer, CopilotNavDrawerBody, CopilotNavDrawerHeader, tokens as copilotTokens } from '@fluentui-copilot/react-copilot';
+import { CopilotNavDrawer, CopilotNavDrawerBody, tokens as copilotTokens } from '@fluentui-copilot/react-copilot';
 import { Body1, Button, mergeClasses, Subtitle1 } from '@fluentui/react-components';
 import { FC, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -19,6 +19,8 @@ import { SreAgentResources } from '../Strings/SREAgentResources';
 import Thread from './Activities/Thread';
 import FeedbackMenu from './Components/Nav/FeedbackMenu';
 import NavBarOpenCloseButton from './Components/Nav/NavBarOpenCloseButton';
+import NavHeader from './Components/Nav/NavHeader';
+import NewChatItem from './Components/Nav/NewChatItem';
 import NonThreadCategoryNavItems from './Components/Nav/NonThreadCategoryNavItems';
 import ThreadsNav from './Components/Nav/ThreadsNav';
 import { DirtyStateContext, SreAgentContext, SreAgentSpaceContext } from './Contracts/Context';
@@ -219,27 +221,26 @@ const TabsListWrapper: FC = () => {
                                 openCategories={openedCategoryNavItems}
                                 tabbable={true}
                             >
-                                <CopilotNavDrawerHeader
-                                    style={{
-                                        padding: `${copilotTokens.spacingVerticalS} ${copilotTokens.spacingVerticalM}`,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'center',
-                                        alignItems: 'flex-start',
-                                    }}
-                                >
-                                    <NavBarOpenCloseButton isNavOpen={isNavOpen} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
-                                </CopilotNavDrawerHeader>
+                                <NavHeader isNavOpen={isNavOpen}>
+                                    <NavBarOpenCloseButton isNavOpen={false} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
+                                </NavHeader>
 
                                 <CopilotNavDrawerBody
                                     className={mergeClasses(scrollable, styles.navBody, isNavOpen ? undefined : styles.collapsedNavBody)}
                                 >
-                                    <NonThreadCategoryNavItems
+                                    <NewChatItem
                                         isNavOpen={isNavOpen}
-                                        openedCategoryNavItems={openedCategoryNavItems}
                                         threads={threadsNavProps.threadListsState.regularThreadListState.threads}
                                         selectThread={selectThread}
                                         excludedSources={threadsNavProps.excludedSources}
+                                    >
+                                        {isNavOpen && (
+                                            <NavBarOpenCloseButton isNavOpen={true} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
+                                        )}
+                                    </NewChatItem>
+                                    <NonThreadCategoryNavItems
+                                        isNavOpen={isNavOpen}
+                                        openedCategoryNavItems={openedCategoryNavItems}
                                         controlPlaneTabsVisible={controlPlaneTabsVisible}
                                         logsTabDisabled={logsTabDisabled}
                                         onLogsClick={onLogsClick}
