@@ -5847,6 +5847,11 @@ export const ConnectorsResources = defineMessages({
     connectorsDescriptionLearnMore: { defaultMessage: 'Learn more about connectors', id: 'Kfaepo' },
     duplicateNameError: { defaultMessage: 'A connector with this name already exists', id: 'qf1aUJ' },
     urlKustoFormatError: { defaultMessage: 'The url must be in the format: {format}', id: '3sNyAo' },
+    urlAzureDevOpsFormatError: {
+        defaultMessage: 'URL must be a valid Azure DevOps repository or wiki URL',
+        id: 'V8Vizo',
+    },
+    azureDevOpsUrl: { defaultMessage: 'Azure DevOps URL', id: 'AfaemH' },
     namePlaceholder: { defaultMessage: 'Enter connector name', id: '+2NFJn' },
     urlPlaceholder: { defaultMessage: 'Enter endpoint', id: '1xTayQ' },
     teamsChannelLinkPlaceholder: { defaultMessage: 'Enter Teams channel link', id: 'B/qM5p' },

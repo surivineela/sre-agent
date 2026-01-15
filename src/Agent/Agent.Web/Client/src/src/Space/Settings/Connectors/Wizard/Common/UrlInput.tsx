@@ -7,6 +7,7 @@ import { ConnectorFormProps } from '../ConnectorWizardFormik';
 import { ConnectorType, getConnectorService } from './ConnectorType';
 
 export const kustoDataSourceExample = 'https://cluster-url/database-name';
+export const azureDevOpsUrlExample = 'Enter repository or wiki URL';
 
 export const UrlInput: React.FC = () => {
     const intl = useIntl();
@@ -16,21 +17,28 @@ export const UrlInput: React.FC = () => {
     const connectorType = useMemo(() => values.connectorType as ConnectorType, [values.connectorType]);
 
     const urlLabel = useMemo(() => {
-        if (connectorType === ConnectorType.McpServer || connectorType === ConnectorType.GitHub) {
-            return intl.formatMessage(ConnectorsResources.url);
+        switch (connectorType) {
+            case ConnectorType.McpServer:
+            case ConnectorType.GitHub:
+                return intl.formatMessage(ConnectorsResources.url);
+            case ConnectorType.AzureDevOpsDocumentation:
+                return intl.formatMessage(ConnectorsResources.azureDevOpsUrl);
+            default:
+                return connectorType
+                    ? intl.formatMessage(ConnectorsResources.serviceRepositoryUrl, { 0: getConnectorService(connectorType, intl) })
+                    : intl.formatMessage(ConnectorsResources.repositoryUrl);
         }
-
-        return connectorType
-            ? intl.formatMessage(ConnectorsResources.serviceRepositoryUrl, { 0: getConnectorService(connectorType, intl) })
-            : intl.formatMessage(ConnectorsResources.repositoryUrl);
     }, [connectorType, intl]);
 
     const urlPlaceholder = useMemo(() => {
-        if (connectorType === ConnectorType.AzureDataExplorerQuery) {
-            return kustoDataSourceExample;
+        switch (connectorType) {
+            case ConnectorType.AzureDataExplorerQuery:
+                return kustoDataSourceExample;
+            case ConnectorType.AzureDevOpsDocumentation:
+                return azureDevOpsUrlExample;
+            default:
+                return intl.formatMessage(ConnectorsResources.urlPlaceholder);
         }
-
-        return intl.formatMessage(ConnectorsResources.urlPlaceholder);
     }, [connectorType, intl]);
 
     return <InputFormik name="url" label={urlLabel} required orientation="vertical" placeholder={urlPlaceholder} />;

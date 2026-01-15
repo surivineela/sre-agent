@@ -8,6 +8,22 @@ using System.Text.RegularExpressions;
 namespace Agent.Plugins.DataConnectors.TSG
 {
     /// <summary>
+    /// Represents the source type for Azure DevOps content
+    /// </summary>
+    public enum AzureDevOpsSourceType
+    {
+        /// <summary>
+        /// Git repository source
+        /// </summary>
+        Git,
+
+        /// <summary>
+        /// Wiki source
+        /// </summary>
+        Wiki
+    }
+
+    /// <summary>
     /// Helper class for TSG document processing and metadata extraction
     /// </summary>
     internal static class TsgDocumentHelper
@@ -35,33 +51,72 @@ namespace Agent.Plugins.DataConnectors.TSG
         }
 
         /// <summary>
-        /// Parses Azure DevOps URI to extract organization, project, and repository information
+        /// Parses Azure DevOps URI to extract organization, project, and repository/wiki information
         /// </summary>
         /// <param name="uri">The Azure DevOps URI to parse</param>
-        /// <returns>Tuple containing organization, project name, and repository name, or null if parsing fails</returns>
-        public static (string Organization, string ProjectName, string RepositoryName)? ParseAzureDevOpsUri(Uri uri)
+        /// <returns>Tuple containing organization, project name, repository name, wiki identifier, wiki page ID, and source type, or null if parsing fails</returns>
+        public static (string Organization, string ProjectName, string? RepositoryName, string? WikiIdentifier, int? WikiPageId, AzureDevOpsSourceType SourceType)? ParseAzureDevOpsUri(Uri uri)
         {
             try
             {
                 // Examples:
-                // https://dev.azure.com/myorg/myproject/_git/myrepo
-                // https://myorg.visualstudio.com/myproject/_git/myrepo
+                // Git: https://dev.azure.com/myorg/myproject/_git/myrepo
+                // Git: https://myorg.visualstudio.com/myproject/_git/myrepo
+                // Wiki (full): https://dev.azure.com/myorg/myproject/_wiki/wikis/myproject.wiki
+                // Wiki (page): https://dev.azure.com/myorg/myproject/_wiki/wikis/myproject.wiki/123/Page-Name
+                // Wiki (legacy): https://myorg.visualstudio.com/myproject/_wiki/wikis/Wiki-Name/123/Page-Name
+                // Note: The page ID (123) uniquely identifies the page; the path segment after it is just for display
 
                 if (uri.Host == "dev.azure.com")
                 {
                     var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
-                    if (pathSegments.Length >= 4)
+
+                    // Wiki URL: /org/project/_wiki/wikis/wikiname/[pageId/displayPath...]
+                    if (pathSegments.Length >= 5 && pathSegments[2] == "_wiki" && pathSegments[3] == "wikis")
                     {
-                        return (pathSegments[0], pathSegments[1], pathSegments[3]); // Skip "_git"
+                        var wikiIdentifier = pathSegments[4];
+                        int? wikiPageId = null;
+
+                        // Extract page ID if provided (segment after wiki name)
+                        // Format: /org/project/_wiki/wikis/wikiname/pageId/Display-Path
+                        if (pathSegments.Length >= 6 && int.TryParse(pathSegments[5], out int pageId))
+                        {
+                            wikiPageId = pageId;
+                        }
+
+                        return (pathSegments[0], pathSegments[1], null, wikiIdentifier, wikiPageId, AzureDevOpsSourceType.Wiki);
+                    }
+
+                    // Git URL: /org/project/_git/repo
+                    if (pathSegments.Length >= 4 && pathSegments[2] == "_git")
+                    {
+                        return (pathSegments[0], pathSegments[1], pathSegments[3], null, null, AzureDevOpsSourceType.Git);
                     }
                 }
                 else if (uri.Host.EndsWith(".visualstudio.com"))
                 {
                     var organization = uri.Host.Replace(".visualstudio.com", "");
                     var pathSegments = uri.AbsolutePath.Trim('/').Split('/');
-                    if (pathSegments.Length >= 3)
+
+                    // Wiki URL (legacy): /project/_wiki/wikis/wikiname/[pageId/displayPath...]
+                    if (pathSegments.Length >= 4 && pathSegments[1] == "_wiki" && pathSegments[2] == "wikis")
                     {
-                        return (organization, pathSegments[0], pathSegments[2]); // Skip "_git"
+                        var wikiIdentifier = pathSegments[3];
+                        int? wikiPageId = null;
+
+                        // Extract page ID if provided
+                        if (pathSegments.Length >= 5 && int.TryParse(pathSegments[4], out int pageId))
+                        {
+                            wikiPageId = pageId;
+                        }
+
+                        return (organization, pathSegments[0], null, wikiIdentifier, wikiPageId, AzureDevOpsSourceType.Wiki);
+                    }
+
+                    // Git URL: /project/_git/repo
+                    if (pathSegments.Length >= 3 && pathSegments[1] == "_git")
+                    {
+                        return (organization, pathSegments[0], pathSegments[2], null, null, AzureDevOpsSourceType.Git);
                     }
                 }
 
@@ -81,8 +136,12 @@ namespace Agent.Plugins.DataConnectors.TSG
         /// <returns>Sanitized document ID suitable for Azure Search</returns>
         public static string GenerateDocumentId(AzureDevOpsSettings repository, string filePath)
         {
-            // Create the base ID
-            string baseId = $"{repository.Organization}-{repository.ProjectName}-{repository.RepositoryName}-{filePath.Replace('/', '-').Replace('\\', '-')}";
+            // Create the base ID using either repository name or wiki identifier
+            var sourceName = repository.SourceType == AzureDevOpsSourceType.Wiki
+                ? repository.WikiIdentifier
+                : repository.RepositoryName;
+
+            string baseId = $"{repository.Organization}-{repository.ProjectName}-{sourceName}-{filePath.Replace('/', '-').Replace('\\', '-')}";
 
             // Sanitize for Azure Search document key requirements
             // Azure Search keys can only contain letters, digits, underscore (_), dash (-), or equal sign (=)
@@ -193,13 +252,20 @@ namespace Agent.Plugins.DataConnectors.TSG
         /// <returns>Extracted service name</returns>
         public static string ExtractServiceName(AzureDevOpsSettings repository, string filePath)
         {
-            // Extract service name from path or use repository name as fallback
+            // Extract service name from path or use repository/wiki name as fallback
             var pathParts = filePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (pathParts.Length > 1)
             {
                 return pathParts[0]; // Use first directory as service name
             }
-            return repository.RepositoryName;
+
+            // Use wiki identifier or repository name as fallback
+            if (repository.SourceType == AzureDevOpsSourceType.Wiki)
+            {
+                return repository.WikiIdentifier ?? repository.ProjectName;
+            }
+
+            return repository.RepositoryName ?? repository.ProjectName;
         }
 
         /// <summary>
@@ -260,6 +326,14 @@ namespace Agent.Plugins.DataConnectors.TSG
         /// <returns>Azure DevOps URL for the document</returns>
         public static string GenerateDocumentUrl(AzureDevOpsSettings repository, string filePath)
         {
+            if (repository.SourceType == AzureDevOpsSourceType.Wiki)
+            {
+                // Wiki URL format: https://dev.azure.com/org/project/_wiki/wikis/wikiname?pagePath=/path
+                var encodedPath = Uri.EscapeDataString(filePath.StartsWith("/") ? filePath : "/" + filePath);
+                return $"https://dev.azure.com/{repository.Organization}/{repository.ProjectName}/_wiki/wikis/{repository.WikiIdentifier}?pagePath={encodedPath}";
+            }
+
+            // Git URL format: https://dev.azure.com/org/project/_git/repo?path=/path
             return $"https://dev.azure.com/{repository.Organization}/{repository.ProjectName}/_git/{repository.RepositoryName}?path={filePath}";
         }
 
@@ -310,6 +384,11 @@ namespace Agent.Plugins.DataConnectors.TSG
                 // Create the document URL
                 string url = GenerateDocumentUrl(repository, filePath);
 
+                // Use wiki identifier or repository name as the source name
+                var sourceName = repository.SourceType == AzureDevOpsSourceType.Wiki
+                    ? repository.WikiIdentifier
+                    : repository.RepositoryName;
+
                 var document = new TsgDocumentMetadata
                 {
                     Id = id,
@@ -324,9 +403,9 @@ namespace Agent.Plugins.DataConnectors.TSG
                     IndexedAt = DateTime.UtcNow,
                     Tags = tags,
                     Team = ExtractTeam(repository, filePath),
-                    Repository = repository.RepositoryName,
+                    Repository = sourceName,
                     FilePath = filePath,
-                    MetadataConcat = $"{title} {serviceName} {string.Join(" ", tags)} {repository.RepositoryName}"
+                    MetadataConcat = $"{title} {serviceName} {string.Join(" ", tags)} {sourceName}"
                 };
 
                 return document;

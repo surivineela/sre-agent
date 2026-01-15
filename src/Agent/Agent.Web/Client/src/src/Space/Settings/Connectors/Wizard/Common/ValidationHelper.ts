@@ -64,6 +64,27 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
                             return isValidUri;
                         }
                     ),
+            })
+            .when('connectorType', {
+                is: (connectorType: string) => connectorType === ConnectorType.AzureDevOpsDocumentation,
+                then: schema =>
+                    schema.test(
+                        'validateAzureDevOpsUrl',
+                        intl.formatMessage(ConnectorsResources.urlAzureDevOpsFormatError),
+                        function (url: string | undefined) {
+                            if (!url) return true;
+
+                            // Validate Azure DevOps URL format (Git repository or Wiki)
+                            // Git: https://dev.azure.com/{org}/{project}/_git/{repo}
+                            // Git: https://{org}.visualstudio.com/{project}/_git/{repo}
+                            // Wiki: https://dev.azure.com/{org}/{project}/_wiki/wikis/{wiki-name}
+                            // Wiki (legacy): https://{org}.visualstudio.com/{project}/_wiki/wikis/{wiki-name}
+                            const devAzurePattern = /^https:\/\/dev\.azure\.com\/[^/]+\/[^/]+\/(_git|_wiki\/wikis)\/[^/]+/;
+                            const visualStudioPattern = /^https:\/\/[^.]+\.visualstudio\.com\/[^/]+\/(_git|_wiki\/wikis)\/[^/]+/;
+
+                            return devAzurePattern.test(url) || visualStudioPattern.test(url);
+                        }
+                    ),
             }),
         email: string()
             .ensure()
