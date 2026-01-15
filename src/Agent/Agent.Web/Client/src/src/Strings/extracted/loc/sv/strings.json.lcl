@@ -45,6 +45,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+3gcXm" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa ett Python-verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+5BJJL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete thread?]]></Val>
@@ -113,6 +122,15 @@
           <Val><![CDATA[CPU usage]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Processoranvändning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+EEXu3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Manage access to users or apps from other Microsoft Entra tenants. For same-tenant access, use Access control (IAM).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hantera åtkomst till användare eller appar från andra Microsoft Entra-klientorganisationer. Använd Åtkomstkontroll (IAM) för åtkomst med samma klientorganisation.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -239,6 +257,15 @@
           <Val><![CDATA[Agent permissions level]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Agentens behörighetsnivå]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+cRDz7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verktyg]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -579,6 +606,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/YR0Nj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Manage cross-tenant access for this agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hantera åtkomst mellan klientorganisationer för den här agenten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/Z1fHN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool and subagent activity sent to user]]></Val>
@@ -615,20 +651,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/fkwgv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saved to memory]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sparat i minnet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/gCtdO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage Custom Vision projects.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hantera Custom Vision-projekt.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";/jp8iL" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to save tool: {error}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att spara verktyget: {error}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -642,11 +678,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/mPnOR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skills Enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktiverade färdigheter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/qCaiZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident trigger name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Namn på incidentutlösare]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";/rHnDp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System prompt]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Systemprompt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -701,6 +755,15 @@
           <Val><![CDATA[Resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Resursgrupper]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0+9dD8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{hours}h ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{hours} timmar sedan]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -822,6 +885,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0L2J5T" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ny fil]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0Qocmw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All tools]]></Val>
@@ -885,6 +957,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0Xs9vS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Here are the knowledge graph search results:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Här är sökresultaten för kunskapsgrafen:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0aJxT2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updated {time}]]></Val>
@@ -899,6 +980,15 @@
           <Val><![CDATA[Advanced options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Avancerade alternativ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0dIKAx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uppdatera Python-verktyget]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1149,6 +1239,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";12QT7S" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[e.g., check_url_status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[t.ex. check_url_status]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";1389z+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Uses (Trigger)]]></Val>
@@ -1203,11 +1302,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";18boz/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Weak, significant misalignment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Svag, betydande feljustering]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";19xydZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to generate insights for this thread.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Du har inte behörighet att generera insikter för den här tråden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1Boh2Z" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evidence: {evidence}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bevis: {evidence}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1253,6 +1370,15 @@
           <Val><![CDATA[Stopped]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Har stoppats]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1Mwy7c" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} prompt notes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} promptanteckningar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1539,15 +1665,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";25DrlN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What should this function do?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vad ska den här funktionen göra?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";26Vq1R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Leave the field blank if there's no limit]]></Val>
@@ -1580,6 +1697,24 @@
           <Val><![CDATA[Failed to update connector]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att uppdatera anslutningsappen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2CFshX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You have {count} quick {count, plural, one {fix} other {fixes}} available to improve your agent's quality.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Du har {count} quick {count, plural, one {åtgärd} other {åtgärder}} tillgängliga som du kan förbättra agentens kvalitet med.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2CunXT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Giving access to your knowledge base gives the agent more context about your services to make better informed decisions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Genom att ge åtkomst till din kunskapsbas får agenten mer kontext om dina tjänster för att fatta bättre välgrundade beslut]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1674,6 +1809,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2eNyP5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dölj chatt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2ePVf6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test your agent in a simple chat interface]]></Val>
@@ -1688,6 +1832,15 @@
           <Val><![CDATA[Monthly on day {dayOfMonth} at {time}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Varje månad på {dayOfMonth} kl. {time}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2fjiLg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[How well does the agent's behavior align with its stated goal?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hur väl stämmer agentens beteende överens med det angivna målet?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1764,6 +1917,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2pzmrJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What does this function do?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vad gör den här funktionen?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2reUcp" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent name]]></Val>
@@ -1827,6 +1989,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";33BnoA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort behörighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";33HEdR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools this agent can call]]></Val>
@@ -1881,6 +2052,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3Ek5z7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{minutes}m ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{minutes} minuter sedan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3GLH+d" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Examples]]></Val>
@@ -1913,6 +2093,15 @@
           <Val><![CDATA[End]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Slut]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3OwM2P" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidenttyp]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2109,15 +2298,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3rvQhx" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Du kan hantera upp till {max} resursgrupper som du har behörighet för. Din agent hanterar för närvarande {count} resursgrupper.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3sNyAo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The url must be in the format: {format}]]></Val>
@@ -2150,6 +2330,15 @@
           <Val><![CDATA[Expand navigation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Visa navigering]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3xD7BQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add additional files to include with this skill.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägg till ytterligare filer som ska ingå i den här färdigheten.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2343,6 +2532,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";4I2I3m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Acceptera valda korrigeringar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";4IAjnN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Turn on deep investigation?]]></Val>
@@ -2456,6 +2654,15 @@
           <Val><![CDATA[Deleted incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidentsvarsplanen har tagits bort]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";4biGe0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Input: {input} | Output: {output} | Total: {total}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Indata: {input} | Utdata: {output} | Totalt: {total}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2600,6 +2807,15 @@
           <Val><![CDATA[Execution details and request]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Körningsinformation och begäran]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";55Fsy6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} blocking issues]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} blockerande problem]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2793,6 +3009,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5WkCqY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga behörigheter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";5Wtjeo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updating incident response plan]]></Val>
@@ -2807,6 +3032,15 @@
           <Val><![CDATA[Failed to run the test. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att köra testet. Fel: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5X7NpJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Upload folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ladda upp mapp]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2927,15 +3161,6 @@
           <Val><![CDATA[Unknown]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Okänt]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";5kCFXN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate with AI instead]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Generera med AI i stället]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3066,6 +3291,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5yOCuh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide AI suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dölj AI-förslag]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";6+mbvY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{seconds} sec]]></Val>
@@ -3089,6 +3323,15 @@
           <Val><![CDATA[Not applicable]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Saknas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";62nsdy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retry]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Försök igen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3165,15 +3408,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6GLyN3" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generating test cases]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Genererar testfall]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6IIC+D" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Grafana dashboard in the same resource group]]></Val>
@@ -3188,15 +3422,6 @@
           <Val><![CDATA[Cleared the composer. Type a new question to begin a fresh chat.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Komponeraren har rensats. Skriv en ny fråga för att starta en ny chatt.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6LKCR/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Analyzing intent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Analysera avsikt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3251,6 +3476,15 @@
           <Val><![CDATA[Remove attachment]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ta bort bilaga]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6TEeYv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Adding permission for {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägger till behörighet för {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3332,15 +3566,6 @@
           <Val><![CDATA[Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Välj en prenumeration så att du kan hantera distribuerade resurser och kostnader. Använd resursgrupper som mappar för att organisera och hantera alla dina resurser.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6fPJcm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate Code with AI]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Generera kod med AI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3525,6 +3750,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7JgdFw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Comma-separated tool names, e.g., SearchKusto, GetLogs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kommaavgränsade verktygsnamn, t.ex. SearchKusto, GetLogs]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7K6W8s#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Kusto tools deleted successfully]]></Val>
@@ -3618,6 +3852,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7TUyZ1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Applied]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tillämpat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7TVRcx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry link]]></Val>
@@ -3668,6 +3911,24 @@
           <Val><![CDATA[Connected to Teams]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ansluten till Teams]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7e84yC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} successfully processed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidenten {incidentId} har bearbetats.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7egVxu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Object ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Objekt-id]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3864,6 +4125,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";87DT+o" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Result returned from tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Resultat som returneras från verktyget]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";87v+WY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Full access to Azure Digital Twins data.]]></Val>
@@ -4047,6 +4317,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8Tlee1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident trigger that includes past incident learnings and analysis.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidentutlösare som innehåller tidigare incidentinlärningar och analys.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8Vd2Kv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update list]]></Val>
@@ -4119,6 +4398,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8jD/lL" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa färdighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8lCjAM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Priority]]></Val>
@@ -4133,6 +4421,15 @@
           <Val><![CDATA[Scheduled tasks have been deleted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Schemalagda aktiviteter har tagits bort.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8lXGrr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are the right tools linked? Does the agent have all necessary capabilities? Higher scores mean fewer missing tools.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Är rätt verktyg länkade? Har agenten alla nödvändiga funktioner? Högre poäng innebär att färre verktyg saknas.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4275,6 +4572,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";9+U/Wr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analyzed • {time}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Analyserat • {time}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";9+dRta" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will permanently delete {count} files from the knowledge sources the agent uses. Are you sure you want to delete these files?]]></Val>
@@ -4397,15 +4703,6 @@
           <Val><![CDATA[Save failed: {message}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Misslyckades att spara: {message}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";9DqDnP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate Tool]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Generera verktyg]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4746,24 +5043,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ATXGa+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agentnamn]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ATYp8z" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Show only recommended resource groups]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Visa endast rekommenderade resursgrupper]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";AYrXUB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No pending configuration changes to apply]]></Val>
@@ -4926,6 +5205,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";B14lk3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What would you like to retrieve?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vad vill du hämta?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";B2HRS5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} cannot be processed. {message}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incident {incidentId} kan inte bearbetas. {message}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";B2qjyO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test the tool to continue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testa verktyget för att fortsätta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";B3Q5mz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Trigger]]></Val>
@@ -4980,6 +5286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";BIKH4N" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preview changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Förhandsgranska ändringar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";BKMqtr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
@@ -5016,15 +5331,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";BP5nk0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Standard Output]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Standardutdata]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";BSQQkf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query returned no results]]></Val>
@@ -5057,6 +5363,15 @@
           <Val><![CDATA[{actionVerb} {itemType}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{actionVerb} {itemType}?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BVVhyH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Last 14 days]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Senaste 14 dagarna]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5160,6 +5475,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Bw4xrI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Utvärdering]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";C2iTEH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Paused]]></Val>
@@ -5187,6 +5511,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CA4K2B" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install SRE Agent MCP Server to VS Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installera MCP-servern för SRE-agenten i VS Code]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";CBHDb1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Task status]]></Val>
@@ -5210,6 +5543,15 @@
           <Val><![CDATA[Read-only role for Digital Twins data-plane properties.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skrivskyddad roll för Digital Twins-dataplansegenskaper.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";CFLecQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Entities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entiteter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5475,6 +5817,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CxitpT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompt clarity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tydliga promptar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";D+oGFF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing with unsaved changes is not supported. Please apply or discard your changes to begin testing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testande med ändringar som inte sparats stöds inte. Du måste tillämpa eller kassera ändringarna för att kunna börja testa.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";D/TfIH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one.]]></Val>
@@ -5547,6 +5907,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DDM6Sq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Subscription:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Prenumeration:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DDSwQB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{actionVerb} {count} {itemType}s?]]></Val>
@@ -5597,6 +5966,15 @@
           <Val><![CDATA[Choose whether to run deep investigations alongside regular investigations]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Välj om djupgående undersökningar ska köras parallellt med vanliga undersökningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DJydCh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add a custom MCP server for the agent to reference.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägg till en anpassad MCP-server som agenten kan referera till.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5655,6 +6033,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DS/6lY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse to show less]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visa mindre genom att minimera]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DVVbGP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Regenerate will overwrite any edits made within the generated section of code.]]></Val>
@@ -5691,6 +6078,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DXqEro" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter display name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange visningsnamn]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DYeZrX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retrieved from memory]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hämtades från minnet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DYp/nK" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session Insight]]></Val>
@@ -5709,6 +6114,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DadUqS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retrieve previously saved information.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hämta tidigare sparad information.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DasCIQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts.]]></Val>
@@ -5723,15 +6137,6 @@
           <Val><![CDATA[Failed to run test]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att köra testet]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";DeP+ZM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Response plans]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Svarsplaner]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5786,6 +6191,15 @@
           <Val><![CDATA[A data source connection for tools (e.g., Kusto cluster for running queries)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[En datakällanslutning för verktyg (t.ex. Kusto-kluster för att köra frågor)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DlPyyy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident created time range]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tidsintervall för skapad incident]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5934,15 +6348,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";EAGAAs" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test your Python function before saving]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testa Python-funktionen innan du sparar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";EAO/K+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download PNG]]></Val>
@@ -5970,11 +6375,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";EDGRHE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to load suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att läsa in förslag]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EEb00g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run insights to track confidence and recommended fixes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kör insikter för att följa upp konfidens och rekommenderade åtgärder.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EEzLAA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install the SRE Agent MCP server to enable AI-assisted development of custom agents, subagents, scheduled tasks, and incident handlers. It provides tools for configuration, validation, code generation, and includes comprehensive platform documentation with session memory for multi-turn conversations. **Available Tools:** - **Agent Building:** Documentation, configuration, trigger setup, YAML generation, validation - **Subagent Building:** Custom C# subagent creation, tool methods, dependencies, handoffs, code generation - **Knowledge Base:** Session memory, topic learning, knowledge search, deep dive examples - **Session Management:** Session summary, notes, and memory management]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installera MCP-servern för SRE-agenten för att möjliggöra AI-assisterad utveckling av anpassade agenter, underagenter, schemalagda uppgifter och incidenthanterare. Den innehåller verktyg för konfiguration, validering, kodgenerering och omfattande plattformsdokumentation med sessionsminne för konversationer med flera omgångar. **Tillgängliga verktyg:** - **Agentbyggnad:** Dokumentation, konfiguration, utlösarkonfiguration, YAML-generering, validering - **Subagentbyggnad:** Skapande av anpassad C#-subagent, verktygsmetoder, beroenden, överlämningar, kodgenerering - **Kunskapsbas:** Sessionsminne, ämnesinlärning, kunskapssökning, djupdykningsexempel - **Sessionshantering:** Sessionssammanfattning, anteckningar och minneshantering]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6002,6 +6425,15 @@
           <Val><![CDATA[Can you analyze my resource's availability over the last 24 hours?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kan du analysera tillgängligheten för min resurs under de senaste 24 timmarna?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EJSVsO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skills]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Färdigheter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6038,6 +6470,15 @@
           <Val><![CDATA[Grants permission for read operations for App Configuration resources.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Beviljar behörighet för läsåtgärder för App Configuration-resurser.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EOCHhv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} {count, plural, one {action} other {actions}} queued]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} {count, plural, one {åtgärd} other {åtgärder}} i kö]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6231,6 +6672,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Eo9M+K" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a file to edit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Välj en fil att redigera]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Ep74wA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[ServiceNow is connected.]]></Val>
@@ -6272,6 +6722,15 @@
           <Val><![CDATA[Built-in Tools]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inbyggda verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EuUxTD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} open {count, plural, one {note} other {notes}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} open {count, plural, one {anteckning} other {anteckningar}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6393,20 +6852,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";FGN2ax" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tool saved successfully!]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Verktyget har sparats!]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";FGP0Kd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[CPU usage insights]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Insikter om CPU-användning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FKyoe8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Redigera Python-verktyget]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6519,6 +6978,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";FiXNt1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[default]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[standard]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";FitglU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[ServiceNow endpoint is required.]]></Val>
@@ -6569,15 +7037,6 @@
           <Val><![CDATA[Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kunskapsbasen har aktiverats för den här agenten. SearchMemory-verktyget och kunskapsbasprompterna inkluderas automatiskt.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FuPxOh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Save & Use Tool]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Spara > Använd verktyg]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6828,11 +7287,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";GFhSwY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kompetens]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";GGr/yS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Feedback submitted on threads will appear here]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Feedback som skickats om trådar visas här]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";GGvPEB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Quality score for this dimension (0-100)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kvalitetspoäng för den här dimensionsionen (0-100)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7035,6 +7512,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HDeHN9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No executions found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga körningar hittades]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HEgmnC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Investigation Results]]></Val>
@@ -7049,15 +7535,6 @@
           <Val><![CDATA[No code optimization recommendations detected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inga rekommendationer för kodoptimering har hittats.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HHP8Nh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Code generated successfully!]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Koden har genererats!]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7094,6 +7571,15 @@
           <Val><![CDATA[Build Your Agent Ecosystem]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Bygg ditt agentekosystem]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HP6f9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An error occurred while loading suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ett fel uppstod vid inläsning av förslag]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7152,6 +7638,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HZ13wA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable this to use the managed identity to acquire a federated identity credential for cross-tenant authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktivera detta för att använda den hanterade identiteten för att hämta en federerad identitetsautentiseringsuppgift för autentisering mellan klientorganisationer.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HZQtAg" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test values]]></Val>
@@ -7161,11 +7656,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HZoKF5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Traces visualize the internal activity of your agent session. Data is queried from Application Insights custom events. Select an item on the left to view details.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spårningar visualiserar agentsessionens interna aktivitet. Data efterfrågas från Application Insights anpassade händelser. Markera ett objekt till vänster för att visa information.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HbTFJf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pending approvals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Väntar på godkännanden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HeFlq1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill name is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Färdighetsnamn måste anges]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7229,15 +7742,6 @@
           <Val><![CDATA[Time frame]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tidsram]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Hnv6Ej" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Python Function]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python-funktion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7332,15 +7836,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";I3ymC9" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Exit code: {code}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Slutkod: {code}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";I4PbZq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a subagent]]></Val>
@@ -7373,6 +7868,15 @@
           <Val><![CDATA[Approve action]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Godkänn åtgärd]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";I85tfP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} cannot be processed. {message} (Thread ID: {threadId})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incident {incidentId} kan inte bearbetas. {message} (Tråd-ID: {threadId})]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7551,15 +8055,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ITzzTV" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test failed]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testet misslyckades]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";IYLPrk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete scheduled task]]></Val>
@@ -7664,15 +8159,6 @@
           <Val><![CDATA[The agent uses predefined queries for structured logs, telemetry, and time series data.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Agenten använder fördefinierade frågor för strukturerade loggar, telemetri och tidsseriedata.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";IoxJ74" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Writing function code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skriva funktionskod]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7857,6 +8343,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";JHYtif" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Actionability]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Handlingsbarhet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JJNc3c" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Previous]]></Val>
@@ -7916,6 +8411,15 @@
           <Val><![CDATA[Tip:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tips:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JTS+Zf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete skill {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att ta bort färdigheten {name}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8274,6 +8778,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";KIFqqs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool fit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verktygsanpassning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";KJHRU/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add existing subagent]]></Val>
@@ -8565,15 +9078,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";L/BdWN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate with AI ✨]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Generera med AI ✨]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";L/ct40" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in visual view]]></Val>
@@ -8664,15 +9168,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";LPz7Qc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tool Type]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Verktygstyp]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LQ2AtR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleted {successCount} data connectors. Failed to delete {failedCount}: {failedItems}]]></Val>
@@ -8687,6 +9182,15 @@
           <Val><![CDATA[Prompt examples]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Promptexempel]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LRbqvb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Next best step: Capture a transcript to analyze intent match.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nästa bästa steg: Spela in en transkription så att du kan analysera avsiktsmatchningen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8736,6 +9240,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LZPnC6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Subagents in VS Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa underagenter i VS Code]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LZXqGi" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} successfully processed. (Thread ID: {threadId})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidenten {incidentId} har bearbetats. (Tråd-ID: {threadId})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LZyV4T" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step.]]></Val>
@@ -8750,6 +9272,15 @@
           <Val><![CDATA[Creating Kusto Tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kusto-verktyg skapas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LbYKes" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to save skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att spara färdighet]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9201,6 +9732,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Ml5W34" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident trigger with learnings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidentutlösare med utbildningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";MlX0aZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All impacted services]]></Val>
@@ -9591,15 +10131,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";NzhSBf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit the code below or regenerate with different instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Redigera koden nedan eller återskapa med olika instruktioner]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";O+srpo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review {count, plural, =0 {findings} one {# quick fix} other {# quick fixes}}]]></Val>
@@ -9897,11 +10428,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";OgEDPw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Knowledge Graph Search Results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visa sökresultat för Knowledge Graph]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";OlIql8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Moderate]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Måttlig]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OmDQWM" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot create skills when subagents exist]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det går inte att skapa färdigheter när det finns underagenter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10104,6 +10653,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";PGhDTf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No matching entities or relations found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga matchande entiteter eller relationer hittades.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";PI1EY1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Highlighted points indicate significant events or anomalies in the data that warrant attention.]]></Val>
@@ -10163,6 +10721,15 @@
           <Val><![CDATA[Loading more rows...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Läser in fler rader...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PTp9MX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Federated client ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Federerat klient-ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10271,6 +10838,24 @@
           <Val><![CDATA[Full page]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Helsida]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PeFBjl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluation results are outdated due to recent changes. Please re-evaluate to get the latest insights.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Utvärderingsresultaten är inaktuella på grund av senaste ändringarna. Utvärdera igen om du vill få de senaste insikterna.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PfwAB2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show recommended]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visa rekommenderade]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10446,11 +11031,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Q6jwpY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading suggestions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Läser in förslag...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Q7/1w4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Required for testing]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Krävs för testning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Q7T0iv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluate]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Utvärdera]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10581,15 +11184,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";QTVz4e" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe what your tool should do]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskriv vad ditt verktyg ska göra]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";QW+Q5N" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all]]></Val>
@@ -10614,6 +11208,54 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[1. Beskriv vilken åtgärd du vidtog 2. Ange vilken resurs eller tjänst som berörs]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[1 tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1 verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {1 tool} other {{count} tools}}]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10653,11 +11295,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Qg+chS" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";QfoWH0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Describe in plain English, e.g., "Parse JSON logs and count errors by severity"]]></Val>
+          <Val><![CDATA[No alignment with goal]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beskriv på vanlig engelska, t.ex. "Parsa JSON-loggar och räkna fel efter allvarlighetsgrad"]]></Val>
+            <Val><![CDATA[Ingen justering i förhållande till målet]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10730,6 +11372,15 @@
           <Val><![CDATA[e.g., 0 9 * * 1-5]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[t.ex., 0 9 * * 1-5]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QozEE6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Additional files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ytterligare filer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10833,6 +11484,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";R7A5z4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand to show all {count} tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Expandera om du vill visa alla {count} verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";R7DP3y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolved by agent]]></Val>
@@ -10865,6 +11525,15 @@
           <Val><![CDATA[Add a connector to give the agent additional tools for automating incident handling.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lägg till ett anslutningsprogram för att ge agenten fler verktyg för att automatisera incidenthantering.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RGgGWl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No filter criteria]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga filtervillkor]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10910,6 +11579,15 @@
           <Val><![CDATA[Failed to add handoff from {sourceAgent} to subagent {targetAgent}. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att lägga till överlämning från {sourceAgent} till underagenten {targetAgent}. Fel: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RPuopt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[• Agent start/end events with timing • Model generation calls with token usage (prompt, completion, total) • Model thinking (internal reasoning from o1/Claude reasoning models) • Agent reasoning (from reasoningScratchPad) • Agent responses (from notifyUserMessage) • Tool executions with inputs and outputs • Agent handoffs between meta_agent and specialized agents • Azure CLI command status (PendingAuthorization, Failed, Success) • User messages that triggered agent actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[• Agentens start-/sluthändelser med tidsinställning • Modellgenereringsanrop med tokenanvändning (fråga, slutförande, totalt) • Modelltänk (internt skäl från o1/Versionsskälmodeller) • Agentargument (från reasoningScratchPad) • Agentsvar (från notifyUserMessage) • Verktygskörningar med indata och utdata • Agentöverföringar mellan meta_agent och specialiserade agenter • Azure CLI-kommandostatus (PendingAuthorization, Failed, Success) • Användarmeddelanden som utlöste agentåtgärder]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10982,6 +11660,15 @@
           <Val><![CDATA[MCP]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[MCP]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RdMODA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes and continue editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Acceptera valda korrigeringar och fortsätt redigera]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11085,6 +11772,15 @@
       <Item ItemId=";RsY+gv.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count, plural, =0 {Set up incident response plans to trigger agents automatically.} one {1 incident response plan ready to trigger your agents.} other {{count} incident response plans ready to trigger your agents.}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Rtd2bs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete Incident Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ta bort incidentutlösare]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11205,6 +11901,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SE+u5f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Intent match]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Avsiktsmatchning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SEdSoA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been updated.]]></Val>
@@ -11223,6 +11928,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SFuk1v" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Behörigheter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SIW6OB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Threads with Insights ({count})]]></Val>
@@ -11237,6 +11951,15 @@
           <Val><![CDATA[Failed to update the annotation with the error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att uppdatera anteckningen med felet: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SM/hWJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleted {successCount} skills, but {failureCount} failed to delete]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{successCount} färdigheter har tagits bort, men {failureCount} gick inte att ta bort]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11291,6 +12014,15 @@
           <Val><![CDATA[Export]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Exportera]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SWvH2K" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use managed identity as federated identity credential]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Använda hanterad identitet som federerade identitetsautentiseringsuppgifter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11385,6 +12117,54 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill "{name}" deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Färdigheten {name} har tagits bort]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} kompetenser har tagits bort]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {Skill "{name}" deleted successfully} other {{count} skills deleted successfully}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Slnpm8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Click to open fullscreen]]></Val>
@@ -11403,11 +12183,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Sn2nYC" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Sn1s36" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Name]]></Val>
+          <Val><![CDATA[{count} {count, plural, one {follow-up} other {follow-ups}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Redigera namn]]></Val>
+            <Val><![CDATA[{count} {count, plural, one {uppföljning} other {uppföljningar}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11592,6 +12372,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TEziH8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task execution history]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Körningshistorik för schemalagd aktivitet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TFQBcG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent permissions were used, but the action failed to run.]]></Val>
@@ -11703,6 +12492,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TMjYpD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Brief description of what this skill does]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kort beskrivning av vad den här färdigheten gör]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TO55dt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time.]]></Val>
@@ -11793,6 +12591,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TiR/Hq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saving...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sparar...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TkWiD5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New chat thread]]></Val>
@@ -11865,6 +12672,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";U86NEH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permission added successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Behörigheten har lagts till]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";U914O/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No params needed]]></Val>
@@ -11879,6 +12695,15 @@
           <Val><![CDATA[No documents in knowledge base. Add some?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det finns inga dokument i kunskapsbasen. Vill du lägga till några?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UC9FAP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident properties]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidentegenskaper]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11955,6 +12780,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";UWZEBA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Redigera kompetens]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UZMdQH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Managed Identity]]></Val>
@@ -11982,20 +12816,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";UcVdDd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{count} test cases available]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{count} testfall är tillgängliga]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Udeffr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidenttyp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ue9DHy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Region:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Region:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12135,6 +12969,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VAsLEP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create incident trigger with learnings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa incidentutlösare med utbildningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";VB97cf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User assigned]]></Val>
@@ -12149,6 +12992,24 @@
           <Val><![CDATA[Select subagents for handoff]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Välj underagenter för överlämning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VCHJad" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ny mapp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VCxIGW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate suggestions for:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Generera förslag för:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12288,11 +13149,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Ve40iX" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Vd/5xJ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Review (Default)]]></Val>
+          <Val><![CDATA[Search by]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Granska (standard)]]></Val>
+            <Val><![CDATA[Sök med]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VdfqU5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klientorganisations-id]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VeyLxc" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to fetch status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att hämta status]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12468,6 +13347,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";W3d1We" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[About traces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Om spårningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";W5zi/x" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please try again or check the console for details.]]></Val>
@@ -12486,6 +13374,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";W7GhBB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot create subagents when skills are enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det går inte att skapa underagenter när färdigheter är aktiverade]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";W8LUUc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not analyzed]]></Val>
@@ -12500,6 +13397,15 @@
           <Val><![CDATA[Incident response plan name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Namn på incidentsvarsplan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";WCPqyS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This scheduled task has not been run yet.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Den här schemalagda aktiviteten har inte körts ännu.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12563,6 +13469,15 @@
           <Val><![CDATA[Saturday]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lördag]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";WNTEQn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Körningsstatus]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13065,6 +13980,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";XXOHJH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure-inställningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";XYIeUc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent permissions are determined by its assigned RBAC roles.]]></Val>
@@ -13155,6 +14079,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Xm4NcA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Showing suggestions for:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visar förslag för:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Xmty/4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide watcher panel]]></Val>
@@ -13205,6 +14138,15 @@
           <Val><![CDATA[Improved instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Förbättrade instruktioner]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";XynBVY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Next best step: {title} ({impactLabel}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nästa bästa steg: {title} ({impactLabel}).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13479,6 +14421,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";YpVoLg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Övervaka]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ypp6em" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Autonomous (Default)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Autonom (standard)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";YrlQBL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[tool]]></Val>
@@ -13524,6 +14484,54 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting skill...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort färdighet...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort {count} färdigheter...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {Deleting skill...} other {Deleting {count} skills...}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Z+uDP9" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses.]]></Val>
@@ -13556,6 +14564,15 @@
           <Val><![CDATA[Auto-generated if left empty]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Genereras automatiskt om tomt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Z5bRi5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search threads]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sök trådar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13686,15 +14703,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZSbKr/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Write code manually instead]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skriv kod manuellt i stället]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ZUXvHE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create logic app]]></Val>
@@ -13718,6 +14726,15 @@
           <Val><![CDATA[Resource Group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Resursgrupp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Zc8xuE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} prompt {count, plural, one {opportunity} other {opportunities}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} prompt {count, plural, one {möjlighet} other {möjligheter}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13842,15 +14859,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZpQ6us" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Result]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Resultat]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Zq5BCQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to apply changes]]></Val>
@@ -13932,11 +14940,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";a+wvAg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing with unsaved changes is not supported. Please apply or discard your changes to continue testing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testande med ändringar som inte sparats stöds inte. Du måste tillämpa eller kassera ändringarna för att kunna fortsätta testa.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";a1UV+9" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Always-on flow + {count, number} active flow AAUs]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Alltid på-flöde + {count, number} AAE:er i aktivt flöde]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";a4owu3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tar bort {count} behörigheter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14058,6 +15084,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";aJbRki" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Completeness]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fullständighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aKNsTc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Controls how this value is passed to the tool method]]></Val>
@@ -14160,6 +15195,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";aT1kVu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Showing top {count} results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visar de främsta {count} resultaten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aVwj2j" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Strong with minor deviations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Stark med mindre avvikelser]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aWpBzj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show more]]></Val>
@@ -14232,6 +15285,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";anqDu+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[* Only incidents that have not been handled by SRE Agent are considered]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[* Endast incidenter som inte har hanterats av SRE-agenten räknas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aprHig" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Max reflections]]></Val>
@@ -14286,6 +15348,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";b+4JtY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Is the prompt complete with clear role, goal, and operational guidance? Higher scores indicate well-structured, comprehensive prompts.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Är prompten komplett med tydlig roll, tydligt mål och tydliga anvisningar om hur den ska användas? Högre poäng indikerar promptar som är välstrukturerade och heltäckande.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";b0+PAq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Audit check]]></Val>
@@ -14300,6 +15371,15 @@
           <Val><![CDATA[Session ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sessions-ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";b1DYE3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete Scheduled Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ta bort schemalagda utlösare]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14435,6 +15515,15 @@
           <Val><![CDATA[Select all tools in {groupName}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Välj alla verktyg i {groupName}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bSEzRv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review before applying]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Granska innan du tillämpar]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14649,11 +15738,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";btp86z" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa Python-verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bvvGgu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Turn off incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inaktivera incidentsvarsplan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bx8ZvK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Role Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rollnamn]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14838,6 +15945,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cJucrk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timeout cannot exceed 900 seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tidsgränsen får inte överskrida 900 sekunder]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";cLC2fM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AI chat service is currently unavailable. Please try again later.]]></Val>
@@ -14861,6 +15977,15 @@
           <Val><![CDATA[Restart test]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Starta om test]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cNB4/9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What you can see]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vad du kan se]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14892,6 +16017,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cX0aie" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install the SRE Agent MCP server to VS Code to build the subagents more easily.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installera MCP-servern för SRE-agenten i VS Code för att skapa underagenterna enklare.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";cXAlMR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled]]></Val>
@@ -14906,6 +16040,24 @@
           <Val><![CDATA[Intent Match]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Avsiktsmatchning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cZAG1/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No major gaps detected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga större mellanrum har upptäckts]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ca8tFg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save information for the agent to remember.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spara information som agenten ska komma ihåg.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15180,11 +16332,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dM9M1D" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permission deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Behörigheten har tagits bort]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dO3eHj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Make changes to the current agent configuration and test immediately.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Gör ändringar i den aktuella agentkonfigurationen och testa direkt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dOQCL8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visningsnamn]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15221,6 +16391,15 @@
           <Val><![CDATA[Manage API Management services.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hantera API Management-tjänster.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dRQsmw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uppdaterar Python-verktyget]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15324,6 +16503,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dn5ZC0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter owning team to see suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange ägande team för att se förslag]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dnXgff" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mitigated]]></Val>
@@ -15338,6 +16526,15 @@
           <Val><![CDATA[Delete subagent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ta bort underagent]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dsTLW1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Redigera uppgift]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15392,6 +16589,15 @@
           <Val><![CDATA[Device Update Administrator]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Enhetsuppdateringsadministratör]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";eBDp9J" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Grant access to users or apps from other Microsoft Entra tenants. For same-tenant access, use Access control (IAM).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bevilja åtkomst till användare eller appar från andra Microsoft Entra-klientorganisationer. Använd Åtkomstkontroll (IAM) för åtkomst med samma klientorganisation.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15486,6 +16692,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";eXGPt3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Back to scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tillbaka till schemalagda aktiviteter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";eYClyG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Capture AI-driven insights on confidence and next tweaks.]]></Val>
@@ -15531,11 +16746,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";efl/SK" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";effV14" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Run Test (Cmd+Enter)]]></Val>
+          <Val><![CDATA[Message visible to user]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kör test (Cmd+Retur)]]></Val>
+            <Val><![CDATA[Meddelandet visas för användaren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15720,6 +16935,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fBoQwK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident count]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incidentantal]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fCiXKq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add scheduled task]]></Val>
@@ -15801,15 +17025,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";fU7I5j" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Run Test]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Kör test]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";fUgypu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Access control]]></Val>
@@ -15864,6 +17079,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fi7+px" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Knowledge Graph Search Results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sökresultat för Knowledge Graph]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fiLH5L" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To create a Kusto tool, first add an Azure Data Explorer connector.]]></Val>
@@ -15905,15 +17129,6 @@
           <Val><![CDATA[Correlation ranges from -1 (inverse) to 1 (direct)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Korrelationsintervall från -1 (omvänd) till 1 (direkt)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";fmrYkd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Parse JSON and extract error messages]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Parsa JSON och extrahera felmeddelanden]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16017,6 +17232,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";g+WSRl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Standard User]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Standardanvändare]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";g/hfuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy error details]]></Val>
@@ -16098,15 +17322,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gFrqQf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You have unsaved changes. Are you sure you want to close?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Du har ändringar som inte har sparats. Vill du stänga?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";gGfQUL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warm-up scenario]]></Val>
@@ -16125,20 +17340,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";gJWy5X" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analyzed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Analyserat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";gKi3tP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose how to set up this incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Välj hur du vill konfigurera den här incidentsvarsplanen]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";gLbYRM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Calculate percentage from two numbers]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Beräkna procent från två tal]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16206,15 +17421,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gd7vV5" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating your function…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapar din funktion...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ggVnjB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread ID]]></Val>
@@ -16247,6 +17453,24 @@
           <Val><![CDATA[Loading...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Läser in…]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";glC+/k" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Moderate, some mixed focus]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Måttlig, något blandat fokus]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";gmo2Su" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill Content (SKILL.md)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Färdighetsinnehåll (SKILL.md)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16377,15 +17601,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";hCNgyf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Saving tool…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Sparar verktyg...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";hEXUFk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident with ID "{incidentId}" was not found]]></Val>
@@ -16499,6 +17714,15 @@
           <Val><![CDATA[Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vill du ta bort den här utökade agenten? YAML-konfigurationen tas bort permanent och kan inte återställas. Du kan inte ångra den här åtgärden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hX/ezX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Is the prompt clear, specific, and actionable for the LLM? Higher scores indicate better instruction quality.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Är prompten tydlig, specifik och handlingsbar för den stora språkmodellen? Högre poäng indikerar bättre instruktioner.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16674,6 +17898,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hseqm+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete this incident trigger? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vill du ta bort den här incidentutlösaren? Du kan inte ångra den här åtgärden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";htvX+Z" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deny]]></Val>
@@ -16697,15 +17930,6 @@
           <Val><![CDATA[Dashboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Instrumentpanel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";i/pRlX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Click to edit code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Klicka för att redigera kod]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16800,6 +18024,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iKfoIP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to add permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att lägga till behörighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iMaY2Q" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stopping SRE Agent {name} in progress]]></Val>
@@ -16890,6 +18123,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iaCoRs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Välj roll]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ibf4+R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Core application group resource name]]></Val>
@@ -16953,6 +18195,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";inXqB2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Request timeout]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tidsgräns för begäran]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ioRcwS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task trigger]]></Val>
@@ -16976,6 +18227,15 @@
           <Val><![CDATA[New custom response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ny anpassad svarsplan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";iqsZgT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vill du ta bort den här färdigheten? Färdighetskonfigurationen tas bort permanent och kan inte återställas. Du kan inte ångra den här åtgärden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17039,6 +18299,15 @@
           <Val><![CDATA[SRE Agent Space]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SRE-agentutrymme]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ix9hVm" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand to show more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visa mer genom att expandera]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17307,6 +18576,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";jWgenr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes and save]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Acceptera valda korrigeringar och spara]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";jXIYLG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to edit response plans.]]></Val>
@@ -17442,6 +18720,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";k+phZu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ta bort färdighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";k0VNHX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{milliseconds}ms]]></Val>
@@ -17469,11 +18756,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";k5x8I2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Critical fix required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kritisk korrigering krävs]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";k8ZNgH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Alert ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aviserings-id]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";k9qHCC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Download file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ladda ned fil]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17721,15 +19026,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l1+Ilp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generating code…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Genererar kod...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l2Ni9H" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Chat preview is only available for agents.]]></Val>
@@ -17811,15 +19107,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";lOaomi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generation failed: {error}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Det gick inte att skapa: {error}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";lP5P2a" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Affected resources]]></Val>
@@ -17834,6 +19121,15 @@
           <Val><![CDATA[Subagents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Underagenter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";lR/7o8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Folder name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mappnamn]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17937,6 +19233,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ltGXND" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No filter suggestions found for the selected criteria]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga filterförslag hittades för de valda villkoren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";lvNWLS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IoT Hub Registry Contributor]]></Val>
@@ -17978,15 +19283,6 @@
           <Val><![CDATA[Generate custom response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Generera anpassad svarsplan]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";m2KQqp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution Result]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Körningsresultat]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18261,6 +19557,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mkQVlA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tool {count, plural, one {gap} other {gaps}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} tool {count, plural, one {mellanrum} other {mellanrum}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mkhNnB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Read and write Azure Monitor monitoring settings and data.]]></Val>
@@ -18284,6 +19589,15 @@
           <Val><![CDATA[Filter by mitigated by]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Filtrera efter åtgärdat av]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mn5pjI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Relations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Relationer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18441,6 +19755,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";nFJeOP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} chat {count, plural, one {flag} other {flags}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} chat {count, plural, one {flagga} other {flaggor}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";nFOo9o" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review + edit]]></Val>
@@ -18482,6 +19805,24 @@
           <Val><![CDATA[Primary resource type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Primär resurstyp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";nR0FVC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reusable knowledge and instructions that enhance agent capabilities.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Återanvändbar kunskap och anvisningar som förbättrar agentens kapacitet.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";nSmJ6e" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add permissions to control access to this agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägg till behörigheter för att styra åtkomsten till den här agenten.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18594,15 +19935,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";nxBEvY" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating your Python function…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Skapar din Python-funktion...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";nxmZHP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configuration saved successfully.]]></Val>
@@ -18626,6 +19958,15 @@
           <Val><![CDATA[A unique identifier for your tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[En unik identifierare för ditt verktyg]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";o/FLCg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owning Team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ägande team]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18671,6 +20012,24 @@
           <Val><![CDATA[Failed to delete all {count} data connectors]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att ta bort alla {count} dataanslutningar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oDA49h" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Token usage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tokenanvändning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oDH12O" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verktygsnamn]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18752,6 +20111,15 @@
           <Val><![CDATA[Day of month]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dag i månaden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oOF+UT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review and apply]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Granska och använd]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18873,6 +20241,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ohfF15" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Perfect alignment, all on-task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Perfekt justering, helt uppgiftsfokuserad]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oi3wVV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testresultat]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";omHElC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Provide response feedback]]></Val>
@@ -18923,6 +20309,15 @@
           <Val><![CDATA[High risk]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Högrisk]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oyOUhv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Arguments passed to tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Argument som skickats till verktyget]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19116,6 +20511,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";pLFm2y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det gick inte att ta bort behörighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";pPwNx4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Office 365 Outlook]]></Val>
@@ -19287,6 +20691,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ppAn7O" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[File name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filnamn]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ppt4BE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{days}d ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{days} dagar sedan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ppzeDo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Link Tool]]></Val>
@@ -19323,20 +20745,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";psccqt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Executed in {ms}ms]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Körs i {ms}ms]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";puQ/kF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading chat threads]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Läser in chattrådar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";pvpOm2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click the button to start a new chat and ask: {question}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Starta en ny chatt genom att klicka på knappen och ställ frågan: {question}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19395,6 +20817,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";q9k0lN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter AAD application tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange klientorganisations-ID för AAD-program]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";q9vJvD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timeout must be at least 5 seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tidsgränsen måste vara minst 5 sekunder]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";qAhUUO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thursday]]></Val>
@@ -19413,20 +20853,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";qC5uhF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fråga:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";qDwvZ4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unknown error]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Okänt fel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qQRG87" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Parameters auto-detected from code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Parametrar identifieras automatiskt från kod]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19463,6 +20903,15 @@
           <Val><![CDATA[Error details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Felinformation]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";qdxZys" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Last heartbeat: {time}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Senaste pulsslag: {time}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19700,6 +21149,15 @@
           <Val><![CDATA[Connector]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Koppling]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";r8jak4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Does it include error handling, confirmation prompts, and safety checks? Higher scores mean better safeguards.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Innehåller den felhantering, bekräftelsepromptar och säkerhetskontroller? Högre poäng innebär bättre skydd.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19955,6 +21413,15 @@
           <Val><![CDATA[Close]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Stäng]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rc7ZT2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter the skill markdown content...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange markdown-innehåll för färdighet...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20418,6 +21885,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";sXnnRR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Type what you want me to remember...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skriv det du vill att jag ska komma ihåg...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";sYCfrb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test agent]]></Val>
@@ -20463,6 +21939,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";siuURH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Adding permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägger till behörighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";sjlioi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent invoked]]></Val>
@@ -20472,20 +21957,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";sjq9sr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Validate email addresses]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Verifiera e-postadresser]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";slxYbm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to save incident management configuration. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Det gick inte att spara konfiguration för incidenthantering. Fel: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";smIXdP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test playground]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testlekplats]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20522,6 +22007,24 @@
           <Val><![CDATA[You have warnings regarding your agent.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Du har varningar om din agent.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";spehs+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Task summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uppgiftssammanfattning]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";sq1VgP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Expandera chatt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20603,6 +22106,15 @@
           <Val><![CDATA[Scheduled tasks]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Schemalagda uppgifter]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";syr24x" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Federated tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Federerat klientorganisations-ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20823,6 +22335,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tWkQ2J" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Author]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Författare]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tb6uBb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{toolName} is already connected to {agentName}.]]></Val>
@@ -20868,6 +22389,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tiNK7U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Thread name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Trådnamn]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tjE5Cb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No handoffs configured.]]></Val>
@@ -20882,6 +22412,15 @@
           <Val><![CDATA[Experiment with your agent's configuration and see real-time results]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Experimentera med agentens konfiguration och se resultaten i realtid]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";tpD3Ax" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tools: {count}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verktyg: {count}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20985,6 +22524,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";u+H5Wd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter AAD application client ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange klient-ID för AAD-program]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";u04DEJ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error loading the usage data. Please try again later.]]></Val>
@@ -21008,6 +22556,15 @@
           <Val><![CDATA[Incident status:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidentstatus:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";u3mqsz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cross-tenant permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klientorganisationsövergripande behörigheter]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21066,15 +22623,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uC4R7m" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test failed: {message}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testet misslyckades: {message}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";uCkn4+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All priorities]]></Val>
@@ -21084,29 +22632,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uDXk7F" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Python Function Tester]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python-funktionstestare]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";uEYYty" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ny incidentsvarsplan]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";uFDB/3" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Function Code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Funktionskod]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21231,6 +22761,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";uQ/yKk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search by skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sök efter färdighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";uRMqBi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Read, write, and delete Azure Storage containers and blobs.]]></Val>
@@ -21267,20 +22806,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uYv0At" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Extracting parameters]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Extrahera parametrar]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ubULuu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear description for agents to understand when to use this tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tydlig beskrivning för agenter att förstå när det här verktyget ska användas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ubmFc8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installera]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21326,6 +22865,15 @@
           <Val><![CDATA[Folder]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Mapp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ukq8eI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[There has been new chat activity since the last evaluation. Consider re-evaluating to ensure insights are up to date.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Det har förekommit ny chattaktivitet sedan den senaste utvärderingen. Du bör överväga att utvärdera igen, så att du säkerställer att insikterna är aktuella.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21456,6 +23004,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";v84FgY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Handoff reasoning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Överlämningsskäl]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";v8lolG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start chat]]></Val>
@@ -21537,6 +23094,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vEPakK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Additional Files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ytterligare filer]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vG08m6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Improve your agent prompt to increase confidence]]></Val>
@@ -21551,6 +23117,15 @@
           <Val><![CDATA[Auto apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tillämpa automatiskt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vOzK9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create new Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skapa nytt Python-verktyg]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21681,6 +23256,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";voe6nT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Välj högst {max} resursgrupper som du har behörighet till. Din agent hanterar för närvarande {count} resursgrupper.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vs8s5B" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enabling incident response plan]]></Val>
@@ -21744,6 +23328,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";w4MKWD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lägg till behörighet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";w5FDGY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update scheduled task]]></Val>
@@ -21785,6 +23378,15 @@
           <Val><![CDATA[Unknown agent mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Okänt agentläge]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wAZ9A7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Trigger agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Utlösaragent]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21843,15 +23445,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wGM2T+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please provide Python function code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ange Python-funktionskod]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wGcWbo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active tasks]]></Val>
@@ -21906,15 +23499,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wPfhmg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Standard Error]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Standardfel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wQdhYo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a new handoff agent]]></Val>
@@ -21929,6 +23513,15 @@
           <Val><![CDATA[Create Subagent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skapa underagent]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wSAvhu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Assistant]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Assistent]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21951,11 +23544,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wTA9dx" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";wTdxhX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Test Your Function]]></Val>
+          <Val><![CDATA[Enter incident ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testa din funktion]]></Val>
+            <Val><![CDATA[Ange incident-ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21983,6 +23576,15 @@
           <Val><![CDATA[The action is in progress with agent permissions.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Åtgärden pågår med agentbehörigheter.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wXVN4/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Safety]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Säkerhet]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22113,11 +23715,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";x+Cs2X" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Function must contain a main() function]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Funktionen måste innehålla en main()-funktion]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";x/7RC2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking trigger setup…]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kontrollerar utlösarkonfiguration…]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";x/ocZz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Model thinking]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modelltänkande]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22145,6 +23765,15 @@
           <Val><![CDATA[No runs yet]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inga körningar ännu]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xB9aeF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange klientorganisations-id]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22244,15 +23873,6 @@
           <Val><![CDATA[No connectors match your search]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inga anslutningsprogram matchar din sökning]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";xRpMXP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Try:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testa:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22365,11 +23985,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";xgD8Kv" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";xjZrbx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Python Function Code]]></Val>
+          <Val><![CDATA[Editing: {fileName}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python-funktionskod]]></Val>
+            <Val><![CDATA[Redigerar: {fileName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22500,6 +24120,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";y1cukD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No thread found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ingen tråd hittades]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";y5oInX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident priority]]></Val>
@@ -22568,6 +24197,15 @@
           <Val><![CDATA[Mute this warning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Stäng av den här varningen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yL92TR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter object ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ange objekt-ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22890,6 +24528,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";z4NnlT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No skills found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inga färdigheter hittades]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";z8ZYoc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find incident threads and incident response plans together on the Incident Management tab.]]></Val>
@@ -23039,15 +24686,6 @@
           <Val><![CDATA[Incident]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incident]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";zcksw4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[✓ Test passed]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[✓ Testet har godkänts]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23222,6 +24860,15 @@
           <Val><![CDATA[Daily]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dagligen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zztZjz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fix with AI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Åtgärda med AI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
