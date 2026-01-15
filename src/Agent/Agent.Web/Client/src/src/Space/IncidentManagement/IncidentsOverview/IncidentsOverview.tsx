@@ -331,8 +331,8 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             selectedThreadsList.length === 1
                 ? intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncident, { title: selectedThreadsList[0].title })
                 : intl.formatMessage(ActivitiesThreadHeaderResources.deletingIncidents, {
-                    titles: selectedThreadsList.map((t: Thread) => t.title).join(', '),
-                });
+                      titles: selectedThreadsList.map((t: Thread) => t.title).join(', '),
+                  });
 
         const id = proxy.startNotification(
             intl.formatMessage(ActivitiesThreadHeaderResources.deleteIncidentTitle, {
@@ -420,9 +420,9 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         const priorities = getPriorities(incidentPlatformType);
         return priorities
             ? priorities.map(priority => ({
-                key: priority.key,
-                label: intl.formatMessage(priority.intlString),
-            }))
+                  key: priority.key,
+                  label: intl.formatMessage(priority.intlString),
+              }))
             : [];
     }, [incidentPlatformType, intl]);
     // End: Priority
@@ -857,12 +857,22 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
         []
     );
 
+    const closeTriggerAgentDrawer = useCallback(
+        (needRefresh: boolean) => {
+            setIsTriggerAgentDrawerOpen(false);
+            if (needRefresh) {
+                setRefreshCounter(prev => prev + 1);
+            }
+        },
+        [setIsTriggerAgentDrawerOpen, setRefreshCounter]
+    );
+
     return (
         <IncidentsOverviewContext.Provider value={{ initialSidePanelDataMap, onInitialSidePanelDataChanged }}>
             {handlerCreateOrEditInfo ? (
                 <CreateIncidentHandlerConsolidated
                     exitToHome={() => setHandlerCreateOrEditInfo(undefined)}
-                    setHandlerOperationStatus={() => { }}
+                    setHandlerOperationStatus={() => {}}
                     handlerCreateOrEditInfo={handlerCreateOrEditInfo}
                 />
             ) : selectedThreadInfo?.fullScreen ? (
@@ -939,17 +949,18 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                         size={'small'}
                                     />
                                     <PillFilterSet dynamicFilters={dynamicFilters} disabled={disableAllControls || !!selectedThreadInfo} />
-                                    {incidentPlatformType === IncidentManagementType.Icm && (
-                                        <Button
-                                            icon={<Flash16Regular />}
-                                            appearance="transparent"
-                                            className={styles.button}
-                                            disabled={disableAllControls || !!selectedThreadInfo}
-                                            onClick={() => setIsTriggerAgentDrawerOpen(true)}
-                                        >
-                                            {intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}
-                                        </Button>
-                                    )}
+                                    {incidentPlatformType !== IncidentManagementType.None &&
+                                        incidentPlatformType !== IncidentManagementType.AzMonitor && (
+                                            <Button
+                                                icon={<Flash16Regular />}
+                                                appearance="transparent"
+                                                className={styles.button}
+                                                disabled={disableAllControls || !!selectedThreadInfo}
+                                                onClick={() => setIsTriggerAgentDrawerOpen(true)}
+                                            >
+                                                {intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}
+                                            </Button>
+                                        )}
                                     <Button
                                         icon={<ArrowClockwise16Regular />}
                                         appearance="transparent"
@@ -1066,7 +1077,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     onEditHandler={handleEditHandler}
                 />
             )}
-            <TriggerAgentDrawer isOpen={isTriggerAgentDrawerOpen} onClose={() => setIsTriggerAgentDrawerOpen(false)} />
+            <TriggerAgentDrawer isOpen={isTriggerAgentDrawerOpen} onClose={closeTriggerAgentDrawer} />
         </IncidentsOverviewContext.Provider>
     );
 };

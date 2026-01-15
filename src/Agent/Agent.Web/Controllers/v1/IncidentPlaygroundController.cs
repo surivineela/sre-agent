@@ -674,7 +674,7 @@ public class IncidentPlaygroundController : ControllerBase
         catch (Exception ex)
         {
             string incidentPlatformType = _incidentManagementSettings.Type.ToString() ?? string.Empty;
-            _logger.LogInternalError(ex, "SearchTeams Error searching teams with payload: {SearchPayload}, IncidentPlatformType: {IncidentPlatformType}", searchPayload, incidentPlatformType);
+            _logger.LogInternalError(ex, "SearchTeams Error searching teams with payload: {SearchPayload}, IncidentPlatformType: {IncidentPlatformType}", JsonSerializer.Serialize(searchPayload), incidentPlatformType);
             return StatusCode(500, "Failed to search teams");
         }
     }
