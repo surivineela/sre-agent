@@ -105,8 +105,8 @@ spec:
         var yaml = @"name: example_tool
 type: KustoTool
 connector: example_connector
+toolMode: Auto
 description: An example tool that demonstrates how to create tools for SRE agents.
-mode: query
 database: example_database
 query: |
   MyTable

@@ -39,6 +39,9 @@ public static class YamlSchemaDocs
 
         ## KustoTool Schema
 
+        **CRITICAL: Always use `##param##` format for placeholders, NEVER use `{{param}}`**
+        **CRITICAL: Always use `type: string` and `target: dictionary:args:string` for all parameters**
+
         ```yaml
         api_version: azuresre.ai/v2
         kind: ExtendedAgentTool
@@ -47,19 +50,71 @@ public static class YamlSchemaDocs
         spec:
           type: KustoTool
           connector: connector-name           # REQUIRED - from show-connectors
+          toolMode: Auto                      # Auto or Manual (default: Auto)
+          description: |-                     # Use |- for multi-line descriptions
+            Purpose:
+            What this tool does and when to use it
+
+            Usage:
+            How to call this tool with parameters
+
+            Output Format:
+            What columns/data the tool returns
           database: DatabaseName              # REQUIRED
-          description: What this tool does    # REQUIRED
-          query: |
+          query: |-
+            let _startTime = todatetime('##startTime##');
+            let _endTime = todatetime('##endTime##');
+            let _resourceId = '##resourceId##';
             Table
-            | where Column == '{{param}}'
+            | where Timestamp between (_startTime .. _endTime)
+            | where ResourceId == _resourceId
           parameters:
-            - name: param
+            - name: startTime
               type: string
-              description: Parameter purpose  # REQUIRED
+              description: Start time for the query (e.g., 2024-01-01T00:00:00Z)
               required: true
+              target: dictionary:args:string
+            - name: endTime
+              type: string
+              description: End time for the query
+              required: true
+              target: dictionary:args:string
+            - name: resourceId
+              type: string
+              description: Azure resource ID
+              required: true
+              target: dictionary:args:string
         ```
 
+        ### Tool Mode
+
+        - `Auto`: Tool is automatically available to the agent (default)
+        - `Manual`: Tool requires explicit user approval before execution
+
+        ### Query Schema Validation
+
+        When an agent has KustoTools, always validate the query schema:
+        1. Ensure parameter placeholders use `##param##` format (NEVER `{{param}}`)
+        2. Ensure all parameters have `type: string` and `target: dictionary:args:string`
+        3. Verify database and table names are correct
+        4. Test queries with sample data before deployment
+        5. Use `srectl tool validate --file tool.yaml` to validate syntax
+
+        **If Kusto MCP is available**: Use it to validate queries before deployment:
+        - Run `.show table TableName schema as json` to verify table/column names
+        - Test query with hardcoded values first, then replace with `##param##` placeholders
+        - Verify the query returns expected results with sample data
+
+        **For client agents with tools**: Before deployment, validate that:
+        - All referenced tools exist and are accessible
+        - Query parameters use `##param##` format, NOT `{{param}}`
+        - All parameters have `target: dictionary:args:string`
+        - Database permissions are correctly configured for the connector
+        - Run `srectl agent validate --name agent-name` to check tool bindings
+
         ## LinkTool Schema
+
+        **CRITICAL: Use `##param##` format for placeholders in templates**
 
         ```yaml
         api_version: azuresre.ai/v2
@@ -68,18 +123,34 @@ public static class YamlSchemaDocs
           name: tool-name                     # kebab-case
         spec:
           type: LinkTool
-          template: https://url/{{param}}     # REQUIRED - note: 'template' not 'urlTemplate'
+          toolMode: Auto                      # Auto or Manual (default: Auto)
           description: What this link is for  # REQUIRED
+          template: https://url/##param##     # REQUIRED - use ##param## format
           parameters:
             - name: param
               type: string
               description: Parameter purpose  # REQUIRED
               required: true
+              target: dictionary:args:string  # REQUIRED
         ```
 
         ## Scheduled Task Schema
 
+        **CRITICAL: DO NOT use YAML for scheduled tasks. ALWAYS use the CLI command instead.**
+
+        Use `srectl scheduledtask create` command:
+        ```powershell
+        srectl scheduledtask create \
+          --name "daily-report" \
+          --description "Daily scheduled task description" \
+          --cron "0 8 * * *" \
+          --agent "target-agent-name" \
+          --prompt "What to ask the agent"
+        ```
+
+        The YAML schema below is for reference only - DO NOT USE IT:
         ```yaml
+        # DO NOT USE YAML FOR SCHEDULED TASKS - USE CLI COMMAND ABOVE
         api_version: azuresre.ai/v2
         kind: CronScheduledTask
         metadata:
@@ -105,19 +176,15 @@ public static class YamlSchemaDocs
 
         ## CronScheduledTask
 
-        Time-based trigger using cron expressions.
+        **CRITICAL: DO NOT use YAML for scheduled tasks. ALWAYS use the CLI command instead.**
 
-        ```yaml
-        api_version: azuresre.ai/v2
-        kind: CronScheduledTask
-        metadata:
-          name: daily-health-check
-        spec:
-          agentName: health-check-agent
-          schedule: '0 8 * * *'
-          prompt: |-
-            Run daily health check.
-          enabled: true
+        ```powershell
+        srectl scheduledtask create \
+          --name "daily-health-check" \
+          --description "Daily health check task" \
+          --cron "0 8 * * *" \
+          --agent "health-check-agent" \
+          --prompt "Run daily health check."
         ```
 
         ## Cron Expression Reference
@@ -149,23 +216,19 @@ public static class YamlSchemaDocs
 
         Run agents on a schedule.
 
+        ## CRITICAL: Always Use CLI Command - DO NOT Use YAML
+
+        **ALWAYS use `srectl scheduledtask create` command. DO NOT use YAML files for scheduled tasks.**
+
         ## Creating a Scheduled Task
 
-        1. Create the agent first
-        2. Create the scheduled task referencing the agent
-
-        ```yaml
-        api_version: azuresre.ai/v2
-        kind: CronScheduledTask
-        metadata:
-          name: daily-health-check
-        spec:
-          agentName: health-check-agent       # Must exist
-          schedule: '0 8 * * *'               # Daily at 8 AM UTC
-          prompt: |-
-            Run the daily health check.
-            Report any issues found.
-          enabled: true
+        ```powershell
+        srectl scheduledtask create \
+          --name "daily-token-consumption-report" \
+          --description "Daily scheduled task that monitors SRE Agent token consumption" \
+          --cron "0 8 * * *" \
+          --agent "token-consumption-monitor" \
+          --prompt "Generate a daily SRE Agent token consumption report. Query the last 7 days of token consumption data to show trends. Identify the top consuming agents and subscriptions. Compare today's consumption with the 7-day average. Highlight any significant changes or anomalies."
         ```
 
         ## Deployment Order
@@ -177,8 +240,8 @@ public static class YamlSchemaDocs
         # 2. Agent
         srectl apply-yaml --file agents/health-check-agent.yaml
 
-        # 3. Scheduled task LAST
-        srectl apply-yaml --file scheduledtasks/daily-health-check.yaml
+        # 3. Scheduled task LAST - ALWAYS use CLI command
+        srectl scheduledtask create --name "daily-health-check" --agent "health-check-agent" --cron "0 8 * * *" --prompt "Run the daily health check."
         ```
 
         ## Management

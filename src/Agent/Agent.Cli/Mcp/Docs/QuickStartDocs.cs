@@ -54,6 +54,8 @@ public static class QuickStartDocs
 
         ## Step 4: Create a KustoTool
 
+        **CRITICAL: Always use `##param##` format for placeholders. Always include `target: dictionary:args:string`.**
+
         ```yaml
         # tools/get-errors.yaml
         api_version: azuresre.ai/v2
@@ -63,12 +65,23 @@ public static class QuickStartDocs
         spec:
           type: KustoTool
           connector: my-kusto-connector      # From step 2 or 3
+          toolMode: Auto                     # Auto or Manual
+          description: |-
+            Purpose:
+            Get errors for a resource within a time range
+
+            Usage:
+            Call with subscriptionId and hours parameters
+
+            Output Format:
+            Returns error log entries (limited to 100)
           database: TelemetryDB
-          description: Get errors for a resource
-          query: |
+          query: |-
+            let _subscriptionId = '##subscriptionId##';
+            let _hours = toint('##hours##');
             ServiceLogs
-            | where SubscriptionId == '{{subscriptionId}}'
-            | where Timestamp > ago({{hours}}h)
+            | where SubscriptionId == _subscriptionId
+            | where Timestamp > ago(_hours * 1h)
             | where Level == 'Error'
             | take 100
           parameters:
@@ -76,10 +89,12 @@ public static class QuickStartDocs
               type: string
               description: Azure subscription ID
               required: true
+              target: dictionary:args:string
             - name: hours
               type: string
               description: Hours to look back
               required: true
+              target: dictionary:args:string
         ```
 
         ---
