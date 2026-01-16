@@ -29,6 +29,12 @@ export const PortalResources = defineMessages({
     signOut: { defaultMessage: 'Sign out', id: 'xXbJso' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     signIn: { defaultMessage: 'Sign in', id: 'SQJto2' },
+    signInAgain: { defaultMessage: 'Sign in again', id: 'scfgdM' },
+    sessionExpired: { defaultMessage: 'Session expired', id: '3OGyhq' },
+    sessionExpiredMessage: {
+        defaultMessage: 'Your session has expired. Please sign in again to continue.',
+        id: 'ZXiFgI',
+    },
     chatWithAgent: { defaultMessage: 'Chat with agent', id: 'arLfuy' },
     close: { defaultMessage: 'Close', id: 'rbrahO' },
     createYourFirstAgent: { defaultMessage: 'Create your first Azure SRE Agent', id: 'H/i1A+' },

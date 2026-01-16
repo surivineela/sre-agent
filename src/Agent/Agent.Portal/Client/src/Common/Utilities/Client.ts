@@ -1,4 +1,4 @@
-import { InteractionRequiredAuthError } from '@azure/msal-browser';
+import { AuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { getScopesForApi } from '../Auth/cloudConfig';
 import { msalInstance } from '../Auth/msalConfig';
 import { TelemetrySource } from '../Constants/Telemetry';
@@ -6,6 +6,20 @@ import { KeyValue } from '../Contracts/Arm';
 import { LogLevel } from '../Contracts/Telemetry';
 import { AuthScopeIdentifier } from '../Hooks/useAuthTokenManager';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
+
+/**
+ * Custom event name for session expiry notification.
+ * AuthContext listens for this event to show the session expired dialog.
+ */
+export const SESSION_EXPIRED_EVENT = 'sreagent:session-expired';
+
+/**
+ * Dispatches a session expired event that AuthContext listens for.
+ * This allows non-React code to trigger the session expired dialog.
+ */
+const dispatchSessionExpiredEvent = () => {
+    window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+};
 
 /**
  * Acquires an access token for the specified scope identifier using MSAL.
@@ -55,6 +69,23 @@ export const acquireAccessToken = async (
             expiresOn: response.expiresOn || undefined,
         };
     } catch (error) {
+        const errorName = error instanceof Error ? error.constructor.name : typeof error;
+        // Use errorCode instead of message to avoid potential PII (e.g., user email in error messages)
+        const errorCode = error instanceof AuthError ? error.errorCode : 'unknown';
+
+        logTelemetryEvent({
+            telemetrySource: TelemetrySource.Auth,
+            action: 'acquireAccessToken',
+            actionModifier: 'failed',
+            logLevel: LogLevel.Error,
+            additionalData: {
+                scopeIdentifier,
+                errorName,
+                errorCode,
+                isInteractionRequired: error instanceof InteractionRequiredAuthError,
+            },
+        });
+
         // In local dev, attempt popup fallback to more easily catch missing API perms and consent to them for the app registration
         const isLocalDev = window.location.hostname === 'localhost';
         if (isLocalDev) {
@@ -73,7 +104,12 @@ export const acquireAccessToken = async (
             }
         }
 
-        console.error(error);
+        // If the error requires user interaction (e.g., refresh token expired),
+        // dispatch an event so AuthContext can show the session expired dialog
+        if (error instanceof InteractionRequiredAuthError) {
+            dispatchSessionExpiredEvent();
+        }
+
         if (telemetrySource) {
             logTelemetryEvent({
                 action: 'acquire-access-token',
