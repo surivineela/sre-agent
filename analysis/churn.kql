@@ -1,0 +1,48 @@
+// Identifies agents and customers that have "churned", by deleting all their agents.
+// Database https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// AgentDocumentDBState is updated every ~2 hours; determine the most recent update.
+let UpdateFrequency = 2h;
+// Determine the most recent snapshot
+let LatestSnapshot =
+    toscalar(
+    All('AgentDocumentDBState')
+    | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
+    | summarize max(snapshot)
+    );
+// Inventory all 3P agents, their lifespans, and whether they've been deleted.
+All('AgentDocumentDBState')
+| extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
+| where isnotempty(agentEndpoint)
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net")
+    .database("customerdomdata")
+    .Product360CustomerSubscriptions
+    | project SubscriptionId, OfferType, CloudCustomerName, OfferName, BillingType, TPName
+    )
+    on $left.subscriptionId == $right.SubscriptionId
+| distinct
+    agentEndpoint,
+    subscriptionId,
+    resourceGroup,
+    snapshot,
+    OfferType,
+    CloudCustomerName,
+    OfferName,
+    BillingType,
+    TPName
+| where OfferType !contains "Internal"
+| summarize
+    lastSnapshot = max(snapshot),
+    firstSnapshot = min(snapshot),
+    agentLifetime = max(snapshot) - min(snapshot)
+    by
+    agentEndpoint,
+    subscriptionId,
+    CloudCustomerName,
+    TPName,
+    BillingType
+// Agents can be created and deleted in the same snapshot.
+// Consider them deleted if they were not present in the *penultimate* snapshot.
+| extend isDeleted = lastSnapshot < LatestSnapshot - UpdateFrequency;
+
