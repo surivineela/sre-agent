@@ -128,6 +128,9 @@ public class ReasoningLoop : IDisposable
     // tool output truncation
     private readonly IToolOutputTruncationService _toolOutputTruncationService;
 
+    // tool output storage for saving chat history during compaction
+    private readonly IToolOutputStorage _toolOutputStorage;
+
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
 
@@ -155,6 +158,7 @@ public class ReasoningLoop : IDisposable
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
         IToolOutputTruncationService toolOutputTruncationService,
+        IToolOutputStorage toolOutputStorage,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
         bool modeSwitchEnabled)
@@ -213,6 +217,7 @@ public class ReasoningLoop : IDisposable
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
         _toolOutputTruncationService = toolOutputTruncationService;
+        _toolOutputStorage = toolOutputStorage;
     }
 
     public virtual void CancelCurrentOperation()
@@ -2817,6 +2822,35 @@ public class ReasoningLoop : IDisposable
             var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
             var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
 
+            // Build full chat trajectory BEFORE compaction and save to file for later reference
+            var chatTrajectory = new AgentTrajectory(_defaultStartingAgent.Name, _autoHandOffEnabled, _logger);
+            foreach (var msg in _chatHistory!)
+            {
+                chatTrajectory.Append(msg);
+            }
+            var fullChatTranscript = chatTrajectory.GetFullTrajectory();
+
+            // Save full chat history as a file so the model can reference it if needed
+            string? chatHistoryFileKey = null;
+            try
+            {
+                chatHistoryFileKey = await _toolOutputStorage.SaveAsync(
+                    threadId: _context.ThreadId,
+                    toolName: "compaction_history",
+                    content: fullChatTranscript,
+                    fileExtension: "txt",
+                    cancellationToken: cancellationToken);
+
+                _logger.LogInternalInformation(
+                    "[{ThreadId}] Saved pre-compaction chat history to file {FileKey} ({Length} characters)",
+                    _context.ThreadId, chatHistoryFileKey, fullChatTranscript.Length);
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail compaction if file storage fails
+                _logger.LogInternalWarning(ex, "[{ThreadId}] Failed to save pre-compaction chat history to file, continuing without file reference", _context.ThreadId);
+            }
+
             // call LLM to get the compacted chat
             var compactedChat = await Summarizer.CompactChatHistoryAsync(
                 additionalInstructions: compactAdditionalInstructions,
@@ -2825,6 +2859,34 @@ public class ReasoningLoop : IDisposable
                 autoHandOffEnabled: _autoHandOffEnabled,
                 chatClient: _chatClientProvider.GeneralPurposeModel,
                 logger: _logger);
+
+            // Append file reference to the summary if file was saved successfully
+            if (!string.IsNullOrEmpty(chatHistoryFileKey))
+            {
+                var fileReferenceSection = $$"""
+
+---
+**Previous Conversation Archive**
+The full conversation before this compaction has been stored.
+> Use the `ToolOutputRetriever` tool to access the previous conversation if you need to reference specific details not captured in this summary.
+
+```json
+{
+  "fileKey": "{{chatHistoryFileKey}}",
+  "contentLength": {{fullChatTranscript.Length}},
+  "format": "text",
+  "structure": {
+    "userMessage": "Role: user\n<message_text>",
+    "agentResponse": "Role: <agent_name>\n<response_text>",
+    "functionCall": "Role: <agent_name>\nFunction Call: <name>\nParameters: <json>",
+    "toolResult": "CallId: <id>\nResult: <output>",
+    "internalReasoning": "Role: <agent_name>\nInternal Reasoning: <text>"
+  }
+}
+```
+""";
+                compactedChat += fileReferenceSection;
+            }
 
             // modify chat history
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);

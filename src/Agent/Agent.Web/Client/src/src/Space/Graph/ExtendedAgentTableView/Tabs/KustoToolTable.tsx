@@ -2,6 +2,8 @@ import {
     Button,
     InputOnChangeData,
     SearchBox,
+    Skeleton,
+    SkeletonItem,
     TableCell,
     TableHeaderCell,
     Text,
@@ -9,7 +11,7 @@ import {
     ToolbarButton,
     ToolbarDivider,
 } from '@fluentui/react-components';
-import { ArrowClockwise20Regular, CheckmarkCircle20Regular, Delete16Regular, ErrorCircle20Regular } from '@fluentui/react-icons';
+import { ArrowClockwise20Regular, Delete16Regular } from '@fluentui/react-icons';
 import { SearchBoxChangeEvent } from '@fluentui/react-search';
 import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -19,24 +21,20 @@ import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentCli
 import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
 import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
+import { McpConnectorStatus } from '../../../Settings/Connectors/Connectors';
+import { getStatusIcon } from '../../../Settings/Connectors/ConnectorStatusUtils';
 import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
-import {
-    ALL_FILTER_KEY,
-    BaseTableItem,
-    CONNECTOR_STATUS,
-    EntityTableProps,
-    EntityToolbarProps,
-    KustoToolItem,
-} from '../ExtendedAgentTableView.Contracts';
+import { ALL_FILTER_KEY, BaseTableItem, EntityTableProps, EntityToolbarProps, KustoToolItem } from '../ExtendedAgentTableView.Contracts';
 import { useListViewStyles } from '../ExtendedAgentTableView.Styles';
+import { useKustoToolConnectorStatus } from '../Hooks/useKustoToolConnectorStatus';
 
 interface KustoToolTableProps extends EntityTableProps {
     kustoTools: ExtendedTool[];
     connectors: ExtendedConnector[];
 }
 
-export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors, openInfoPanel, refresh, lastUpdated, isLoading }) => {
+export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, openInfoPanel, refresh, lastUpdated, isLoading }) => {
     const intl = useIntl();
     const styles = useListViewStyles();
     const [searchText, setSearchText] = useState<string>();
@@ -44,8 +42,9 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
     const [connectorStatusFilter, setConnectorStatusFilter] = useState<string>(ALL_FILTER_KEY);
     const [selectedTools, setSelectedTools] = useState<ExtendedTool[]>([]);
 
+    const { connectionMap, loadingStatusMap } = useKustoToolConnectorStatus(kustoTools);
+
     const EMPTY_DISPLAY = useMemo(() => intl.formatMessage(SreAgentResources.none), [intl]);
-    const connectorMap = useMemo(() => new Map(connectors.map(connector => [connector.name, connector])), [connectors]);
 
     const kustoToolItems = useMemo(() => {
         const query = searchText?.trim().toLowerCase();
@@ -61,8 +60,9 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
 
         if (connectorStatusFilter !== ALL_FILTER_KEY) {
             filteredTools = filteredTools.filter(tool => {
-                const connector = tool.connector ? connectorMap.get(tool.connector) : undefined;
-                const connectorStatus = connector?.enabled !== false ? CONNECTOR_STATUS.CONNECTED : CONNECTOR_STATUS.NOT_CONNECTED;
+                const connectorName = tool.connector;
+                if (!connectorName) return false;
+                const connectorStatus = connectionMap[connectorName]?.status || '';
                 return connectorStatus === connectorStatusFilter;
             });
         }
@@ -70,8 +70,8 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
         return filteredTools.map(tool => {
             const parameterCount = tool.parameters?.length || 0;
             const parametersText = parameterCount > 0 ? `${parameterCount}` : EMPTY_DISPLAY;
-            const connector = tool.connector ? connectorMap.get(tool.connector) : undefined;
-            const connectorStatus = connector?.enabled !== false ? CONNECTOR_STATUS.CONNECTED : CONNECTOR_STATUS.NOT_CONNECTED;
+            const connectorName = tool.connector;
+            const connectorStatus = connectorName ? connectionMap[connectorName]?.status || EMPTY_DISPLAY : EMPTY_DISPLAY;
 
             return {
                 name: tool.name || EMPTY_DISPLAY,
@@ -82,7 +82,7 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
                 data: tool,
             };
         });
-    }, [searchText, kustoTools, connectorFilter, connectorStatusFilter, EMPTY_DISPLAY, connectorMap]);
+    }, [searchText, kustoTools, connectorFilter, connectorStatusFilter, EMPTY_DISPLAY, connectionMap]);
 
     const renderTableHeaders = useCallback(() => {
         return (
@@ -106,9 +106,36 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
         );
     }, [intl, styles.tableHeader]);
 
+    const renderStatusCell = useCallback(
+        (connectorName: string, status: string) => {
+            const isLoadingThisStatus = loadingStatusMap[connectorName] ?? true;
+            if (isLoadingThisStatus) {
+                return (
+                    <Skeleton>
+                        <SkeletonItem style={{ width: '120px', height: '20px' }} />
+                    </Skeleton>
+                );
+            }
+
+            if (status === EMPTY_DISPLAY) {
+                return <Text>{status}</Text>;
+            }
+
+            const { icon } = getStatusIcon(status);
+            return (
+                <div className={styles.flexRowMedium}>
+                    {icon}
+                    <Text>{status}</Text>
+                </div>
+            );
+        },
+        [loadingStatusMap, styles.flexRowMedium, EMPTY_DISPLAY]
+    );
+
     const renderTableCells = useCallback(
         (item: BaseTableItem) => {
             const toolItem = item as KustoToolItem;
+            const connectorName = toolItem.data?.connector || '';
             return (
                 <>
                     <TableCell tabIndex={0} role="gridcell">
@@ -127,19 +154,7 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
                         <Text>{toolItem.database}</Text>
                     </TableCell>
                     <TableCell tabIndex={0} role="gridcell">
-                        <div className={styles.flexRowMedium}>
-                            {toolItem.connectorStatus === CONNECTOR_STATUS.CONNECTED ? (
-                                <>
-                                    <CheckmarkCircle20Regular className={styles.greenIcon} />
-                                    <Text>{intl.formatMessage(ExtendedAgentsGraphResources.connectedStatus)}</Text>
-                                </>
-                            ) : (
-                                <>
-                                    <ErrorCircle20Regular className={styles.redIcon} />
-                                    <Text>{intl.formatMessage(ExtendedAgentsGraphResources.disconnectedStatus)}</Text>
-                                </>
-                            )}
-                        </div>
+                        {renderStatusCell(connectorName, toolItem.connectorStatus)}
                     </TableCell>
                     <TableCell tabIndex={0} role="gridcell">
                         <Text>{toolItem.parameters}</Text>
@@ -147,7 +162,7 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, connectors
                 </>
             );
         },
-        [styles, intl, openInfoPanel]
+        [styles, openInfoPanel, renderStatusCell]
     );
 
     return (
@@ -225,8 +240,11 @@ const KustoToolTableToolbar = memo<KustoToolTableToolbarProps>(
         const connectorStatusFilterOptions = useMemo(
             () => [
                 { key: ALL_FILTER_KEY, label: intl.formatMessage(SreAgentResources.all) },
-                { key: CONNECTOR_STATUS.CONNECTED, label: intl.formatMessage(ExtendedAgentsGraphResources.connectedStatus) },
-                { key: CONNECTOR_STATUS.NOT_CONNECTED, label: intl.formatMessage(ExtendedAgentsGraphResources.disconnectedStatus) },
+                { key: McpConnectorStatus.Connected, label: McpConnectorStatus.Connected },
+                { key: McpConnectorStatus.Disconnected, label: McpConnectorStatus.Disconnected },
+                { key: McpConnectorStatus.Error, label: McpConnectorStatus.Error },
+                { key: McpConnectorStatus.Failed, label: McpConnectorStatus.Failed },
+                { key: McpConnectorStatus.Initializing, label: McpConnectorStatus.Initializing },
             ],
             [intl]
         );
