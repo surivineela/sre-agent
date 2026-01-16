@@ -7,7 +7,6 @@ import SettingsCategoryNavItem from './SettingsCategoryNavItem';
 
 interface INonThreadCategoryNavItemsProps {
     isNavOpen: boolean;
-    openedCategoryNavItems: (PrimaryNavItemValues | ThreadCategoryKey)[];
     controlPlaneTabsVisible: boolean;
     logsTabDisabled: boolean;
     onLogsClick: () => void;
@@ -19,7 +18,6 @@ interface INonThreadCategoryNavItemsProps {
 
 const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
     isNavOpen,
-    openedCategoryNavItems,
     controlPlaneTabsVisible,
     logsTabDisabled,
     onLogsClick,
@@ -32,7 +30,6 @@ const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
         <>
             <ActivitiesCategoryNavItem
                 isNavOpen={isNavOpen}
-                openedCategoryNavItems={openedCategoryNavItems}
                 incidentVisible={incidentVisible}
                 incidentDisabled={incidentDisabled}
                 onClickCategoryNavItem={onClickCategoryNavItem}

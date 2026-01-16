@@ -1953,11 +1953,6 @@ export const IncidentManagementResources = defineMessages({
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
     expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
     collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
-    incidentThreadsMovedTitle: { defaultMessage: 'Incident threads have moved', id: 'R7g7UT' },
-    incidentThreadsMovedDescription: {
-        defaultMessage: 'Find incident threads and incident response plans together on the Incident Management tab.',
-        id: 'z8ZYoc',
-    },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
     metrics: { defaultMessage: 'Incident metrics', id: 'jzdrQB' },
     responsePlans: { defaultMessage: 'Incident response plans', id: 'mV7WX3' },

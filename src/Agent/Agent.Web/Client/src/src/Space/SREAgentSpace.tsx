@@ -240,7 +240,6 @@ const TabsListWrapper: FC = () => {
                                     </NewChatItem>
                                     <NonThreadCategoryNavItems
                                         isNavOpen={isNavOpen}
-                                        openedCategoryNavItems={openedCategoryNavItems}
                                         controlPlaneTabsVisible={controlPlaneTabsVisible}
                                         logsTabDisabled={logsTabDisabled}
                                         onLogsClick={onLogsClick}
