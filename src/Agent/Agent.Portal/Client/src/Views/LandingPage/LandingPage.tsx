@@ -78,15 +78,10 @@ export const LandingPage = () => {
     return (
         <div className={styles.container}>
             <div className={styles.hero}>
-                <h1 className={styles.heading}>{intl.formatMessage(PortalResources.reduceSiteReliabilityExpenses)}</h1>
+                <h1 className={styles.heading}>{intl.formatMessage(PortalResources.reduceSiteReliabilityExpensesPreview)}</h1>
                 <p className={styles.description}>{intl.formatMessage(PortalResources.reduceSiteReliabilityExpensesDescription)}</p>
                 <div className={styles.buttonContainer}>
-                    <Button
-                        appearance="primary"
-                        size="large"
-                        className={styles.primaryButton}
-                        onClick={() => signIn()}
-                    >
+                    <Button appearance="primary" size="large" className={styles.primaryButton} onClick={() => signIn()}>
                         {intl.formatMessage(PortalResources.signIn)}
                     </Button>
                 </div>

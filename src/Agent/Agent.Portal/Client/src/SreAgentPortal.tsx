@@ -28,7 +28,7 @@ const PortalLayout = () => {
     const location = useLocation();
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
 
-    const siteTitle = useMemo(() => intl.formatMessage(PortalResources.azureSreAgents), [intl]);
+    const siteTitle = useMemo(() => intl.formatMessage(PortalResources.azureSreAgentsPreview), [intl]);
 
     const shouldRedirectUnauthenticated = useMemo(
         () => !isAuthenticated && location.pathname !== '/welcome',
@@ -90,8 +90,8 @@ const router = createBrowserRouter(
             children: [
                 { index: true, element: <HomeBrowseView /> },
                 { path: 'welcome', element: <LandingPage /> },
-                { path: 'agents/:agentId', element: <AgentIFrameView /> },
-                { path: 'externalagents/:agentName/:agentUri', element: <ExternalAgentIFrameView /> },
+                { path: 'agents/:agentId/*', element: <AgentIFrameView /> },
+                { path: 'externalagents/:agentName/:agentUri/*', element: <ExternalAgentIFrameView /> },
                 { path: 'spaces/:spaceId', element: <AgentSpaceView /> },
                 { path: '*', element: <HomeBrowseView /> },
             ],
