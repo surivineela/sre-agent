@@ -49,7 +49,13 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
             customCron: scheduledTask?.cronExpression ?? '',
             startOn: scheduledTask?.startTime ? new Date(scheduledTask.startTime) : date.current,
             repeatUntil: scheduledTask?.endTime ? new Date(scheduledTask.endTime) : null,
-            groupMessages: scheduledTask?.threadId === null ? GroupMessageKey.NewThread : GroupMessageKey.SameThread,
+            // When creating: default to SameThread (current UX behavior)
+            // When editing: check if threadId has a value (SameThread) or is null (NewThread)
+            groupMessages: scheduledTask
+                ? scheduledTask.threadId
+                    ? GroupMessageKey.SameThread
+                    : GroupMessageKey.NewThread
+                : GroupMessageKey.SameThread,
             runLimit: scheduledTask?.maxExecutions?.toString() ?? undefined,
         };
     }, [scheduledTask, startingAgent]);
@@ -119,13 +125,13 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                 // For SameThread mode: Generate or keep a dedicated thread ID
                 //   - When creating: Generate new GUID for dedicated thread
                 //   - When editing: Keep existing threadId
-                // For NewThread mode: undefined so a new thread is created each execution
+                // For NewThread mode: null so backend clears the threadId and creates new thread each execution
                 threadId:
                     values.groupMessages === GroupMessageKey.SameThread
                         ? mode === ScheduledTaskDialogMode.Edit && scheduledTask?.threadId
                             ? scheduledTask.threadId // Keep existing threadId when editing
                             : Guid.newGuid() // Generate dedicated thread ID when creating
-                        : undefined, // undefined for NewThread = create new thread each time
+                        : null, // null for NewThread = create new thread each time (null serializes in JSON unlike undefined)
                 maxExecutions: Number(values.runLimit),
             };
 

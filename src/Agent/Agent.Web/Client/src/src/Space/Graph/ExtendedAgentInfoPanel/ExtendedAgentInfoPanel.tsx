@@ -23,7 +23,6 @@ import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerCl
 import { ScheduledTasksClient } from '../../../Common/Clients/ScheduledTasksClient';
 import { getAgentHeaders } from '../../../Common/Helpers/headers';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
-import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
 import {
     ConnectorsResources,
     ExtendedAgentsGraphResources,
@@ -139,7 +138,6 @@ export const ExtendedAgentInfoPanel = memo(
         onClose,
         collapsibleProps,
     }: ExtendedAgentInfoPanelProps) => {
-        const showAgentBuilderPlayground = useConfigSetting(SettingNames.ShowAgentBuilderPlayground);
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
         const { triggerAgentQuickAction, triggerTriggerQuickAction, setPlaygroundEntity, onViewChange } =
@@ -753,7 +751,6 @@ export const ExtendedAgentInfoPanel = memo(
                                 headerSubtitle={headerSubtitle}
                                 headerEditContext={headerEditContext}
                                 playgroundEntity={playgroundEntity}
-                                showAgentBuilderPlayground={showAgentBuilderPlayground}
                                 isAgentContext={isAgentContext}
                                 selectedAgent={selectedAgent}
                                 selectedTool={selectedTool}

@@ -1,5 +1,7 @@
 import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useEffect } from 'react';
+import { SessionExpiredDialog } from './Common/Components/SessionExpiredDialog';
+import { useAuth } from './Common/Contexts/AuthContext';
 import { NotificationProvider } from './Common/Contexts/NotificationContext';
 import { SubscriptionsProvider } from './Common/Contexts/SubscriptionsContext';
 import { useUserPreferences } from './Common/Contexts/UserPreferencesContext';
@@ -10,6 +12,7 @@ import { IntlProvider } from './Strings/Intl/IntlProvider';
 
 const App = () => {
     const { resolvedTheme, locale } = useUserPreferences();
+    const { isSessionExpired } = useAuth();
 
     // Set data-theme attribute on document for CSS theming
     useEffect(() => {
@@ -22,6 +25,7 @@ const App = () => {
                 <NotificationProvider>
                     <SubscriptionsProvider>
                         <SreAgentPortal />
+                        <SessionExpiredDialog open={isSessionExpired} />
                     </SubscriptionsProvider>
                 </NotificationProvider>
             </FluentProvider>

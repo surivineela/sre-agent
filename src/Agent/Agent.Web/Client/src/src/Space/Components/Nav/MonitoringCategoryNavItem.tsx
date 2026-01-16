@@ -86,6 +86,7 @@ const MonitoringCategoryNavItem: FC<IMonitoringCategoryNavItemProps> = ({
             icon: bundleIcon(Eye20Filled, Eye20Regular),
             filledIcon: Eye20Filled,
             isCollapsed: !isNavOpen,
+            isVisible: true,
             disabled: false,
         }),
         [isNavOpen, intl]

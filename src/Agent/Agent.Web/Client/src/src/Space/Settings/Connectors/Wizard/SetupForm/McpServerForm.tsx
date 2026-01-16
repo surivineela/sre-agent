@@ -43,7 +43,7 @@ export const McpServerForm: React.FC<McpServerFormProps> = props => {
                         value={McpConnectionType.Remote}
                         label={
                             <div className={styles.accountText}>
-                                <Text weight="semibold">{intl.formatMessage(ConnectorsResources.remoteSse)}</Text>
+                                <Text weight="semibold">{intl.formatMessage(ConnectorsResources.streamableHttp)}</Text>
                                 <Text size={200}>{intl.formatMessage(ConnectorsResources.connectViaUrlEndpoint)}</Text>
                             </div>
                         }

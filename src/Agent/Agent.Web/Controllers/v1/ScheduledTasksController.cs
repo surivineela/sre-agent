@@ -43,7 +43,8 @@ namespace Agent.Web.Controllers.v1
         ScheduledTaskStatus? Status = null,
         Dictionary<string, object>? ExecutionContext = null,
         int? MaxExecutions = null,
-        string? NotificationChannel = null
+        string? NotificationChannel = null,
+        string? ThreadId = null
     );
 
     [ApiController]
@@ -196,7 +197,8 @@ namespace Agent.Web.Controllers.v1
                     Status: request.Status,
                     ExecutionContext: request.ExecutionContext,
                     MaxExecutions: request.MaxExecutions,
-                    NotificationChannel: request.NotificationChannel
+                    NotificationChannel: request.NotificationChannel,
+                    ThreadId: request.ThreadId
                 );
 
                 var task = await scheduledTaskService.UpdateScheduledTask(id, updateRequest);

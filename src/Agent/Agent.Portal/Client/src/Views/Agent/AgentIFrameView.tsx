@@ -32,10 +32,9 @@ const AgentIFrameViewContent: FC<AgentIFrameViewContentProps> = ({ agentId, sreL
 };
 
 export const AgentIFrameView = () => {
-    const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
+    // React Router automatically decodes URL params
+    const { agentId } = useParams<{ agentId: string }>();
     const location = useLocation();
-
-    const agentId = useMemo(() => decodeURIComponent(encodedAgentId ?? ''), [encodedAgentId]);
 
     /**
      * Deep link extraction for Agent.Web iframe navigation
@@ -53,10 +52,12 @@ export const AgentIFrameView = () => {
      * is intentionally not implemented - users navigate within the iframe directly.
      */
     const sreLink = useMemo(() => {
-        if (!encodedAgentId) {
+        if (!agentId) {
             return undefined;
         }
 
+        // Re-encode the agentId to match location.pathname format
+        const encodedAgentId = encodeURIComponent(agentId);
         const baseSegment = `/agents/${encodedAgentId}`;
 
         if (!location.pathname.startsWith(baseSegment)) {
@@ -68,7 +69,7 @@ export const AgentIFrameView = () => {
         const fullDeepLink = `${pathAfterAgent}${location.search}${location.hash}`;
 
         return fullDeepLink || undefined;
-    }, [encodedAgentId, location.pathname, location.search, location.hash]);
+    }, [agentId, location.pathname, location.search, location.hash]);
 
     return (
         <AmplitudeContextProvider resourceId={agentId ?? ''} telemetrySource={TelemetrySource.AgentIFrameView}>

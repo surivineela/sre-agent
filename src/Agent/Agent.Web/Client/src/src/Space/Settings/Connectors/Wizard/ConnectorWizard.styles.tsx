@@ -151,6 +151,9 @@ export const useConnectorWizardStyles = makeStyles({
         overflowWrap: 'break-word',
         height: '16px',
     },
+    permissionWarning: {
+        marginBottom: '10px',
+    },
     signInLoading: {
         display: 'flex',
         alignItems: 'center',

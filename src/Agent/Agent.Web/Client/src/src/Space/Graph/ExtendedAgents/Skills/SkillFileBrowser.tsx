@@ -31,7 +31,7 @@ export interface FileSystemItem {
 interface SkillFileBrowserProps {
     files: SkillFile[];
     onFilesChange: (files: SkillFile[]) => void;
-    skillMdContent: string;
+    skillContent: string;
     emptyFolders?: string[];
     onEmptyFoldersChange?: (folders: string[]) => void;
     readOnly?: boolean;
@@ -49,7 +49,7 @@ const getParentPath = (path: string): string => {
 const getDirectoryContents = (
     currentPath: string,
     files: SkillFile[],
-    _skillMdContent: string,
+    _skillContent: string,
     emptyFolders: string[] = []
 ): FileSystemItem[] => {
     const items: FileSystemItem[] = [];
@@ -70,11 +70,12 @@ const getDirectoryContents = (
         // Normalize file path - ensure it starts with /
         const filePath = file.filePath.startsWith('/') ? file.filePath : '/' + file.filePath;
         const fileDir = filePath.substring(0, filePath.lastIndexOf('/') + 1) || '/';
+        const fileName = filePath.split('/').pop() || filePath;
 
         if (fileDir === currentPath) {
             // File is directly in current directory
             items.push({
-                name: file.fileName,
+                name: fileName,
                 type: 'file',
                 path: filePath,
                 fileIndex: index,
@@ -150,7 +151,7 @@ const getDirectoryContents = (
 export const SkillFileBrowser: FC<SkillFileBrowserProps> = ({
     files,
     onFilesChange,
-    skillMdContent,
+    skillContent,
     emptyFolders = [],
     onEmptyFoldersChange,
     readOnly = false,
@@ -170,8 +171,8 @@ export const SkillFileBrowser: FC<SkillFileBrowserProps> = ({
     const folderInputRef = useRef<HTMLInputElement>(null);
 
     const directoryContents = useMemo(
-        () => getDirectoryContents(currentPath, files, skillMdContent, emptyFolders),
-        [currentPath, files, skillMdContent, emptyFolders]
+        () => getDirectoryContents(currentPath, files, skillContent, emptyFolders),
+        [currentPath, files, skillContent, emptyFolders]
     );
 
     const handleFileUpload = async (fileList: FileList | null, isDirectoryUpload = false) => {
@@ -211,7 +212,6 @@ export const SkillFileBrowser: FC<SkillFileBrowserProps> = ({
             });
 
             newFiles.push({
-                fileName: file.name,
                 filePath,
                 content,
             });
@@ -333,7 +333,6 @@ export const SkillFileBrowser: FC<SkillFileBrowserProps> = ({
 
         if (!fileExists) {
             const newFile: SkillFile = {
-                fileName: newFileName.trim(),
                 filePath,
                 content: '',
             };

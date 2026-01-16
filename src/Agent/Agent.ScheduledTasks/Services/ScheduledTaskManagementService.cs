@@ -122,6 +122,9 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
             if (request.StartTime != null) existingTask.StartTime = request.StartTime.Value;
             if (request.EndTime != null) existingTask.EndTime = request.EndTime;
 
+            // Always update ThreadId - frontend sends either a GUID string or null
+            existingTask.ThreadId = request.ThreadId;
+
             // Handle cron expression update
             if (request.CronExpression != null)
             {

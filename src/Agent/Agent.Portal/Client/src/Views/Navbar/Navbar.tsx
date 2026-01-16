@@ -2,6 +2,7 @@ import { Button, Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/reac
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { useParams } from 'react-router-dom';
+import { PreviewBadge } from '../../Common/Components/PreviewBadge';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { useAuth } from '../../Common/Contexts/AuthContext';
 import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
@@ -117,6 +118,7 @@ export const Navbar = () => {
                     <Text weight="semibold" className={styles.logoText}>
                         {intl.formatMessage(PortalResources.azureSreAgents)}
                     </Text>
+                    <PreviewBadge />
                     {agentName && (
                         <>
                             {/* TODO: Fancy selector thingy */}

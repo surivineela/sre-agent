@@ -125,4 +125,8 @@ export const useConnectorsStyles = makeStyles({
     headerCell: {
         fontWeight: '500',
     },
+    seeDetailsLink: {
+        textDecorationLine: 'underline',
+        lineHeight: '20px',
+    },
 });

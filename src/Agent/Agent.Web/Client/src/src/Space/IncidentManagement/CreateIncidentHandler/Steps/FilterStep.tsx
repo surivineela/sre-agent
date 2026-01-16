@@ -278,7 +278,9 @@ export const FilterStep: FC = () => {
                             </>
                         }
                     >
-                        {intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}
+                        <Text size={300} id="enable-deep-investigation-description">
+                            {intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}
+                        </Text>
                     </InfoLabel>
                     <Checkbox
                         name={'deepInvestigationEnabled'}
@@ -286,6 +288,7 @@ export const FilterStep: FC = () => {
                         onChange={(_, data) => setFieldValue('deepInvestigationEnabled', data.checked)}
                         label={intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationDescription)}
                         labelPosition="after"
+                        aria-describedby="enable-deep-investigation-description"
                     />
                     {values.deepInvestigationEnabled && (
                         <MessageBar intent={'warning'} layout={'multiline'} style={{ maxWidth: '850px' }}>
@@ -306,14 +309,16 @@ export const FilterStep: FC = () => {
                     <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
                     </Text>
-                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceDescription)}</Text>
-
+                        <Text size={300} id="add-custom-response-guidance-description">
+                        {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceDescription)}
+                    </Text>
                     <Checkbox
                         name={'useCustomHandler'}
                         checked={values.useCustomHandler}
                         onChange={(_, data) => setFieldValue('useCustomHandler', data.checked)}
                         label={intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceLabel)}
                         labelPosition="after"
+                        aria-describedby="add-custom-response-guidance-description"
                     />
                 </div>
             </div>

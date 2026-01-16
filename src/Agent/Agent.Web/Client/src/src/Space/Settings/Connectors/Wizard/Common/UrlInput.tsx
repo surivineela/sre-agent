@@ -23,6 +23,9 @@ export const UrlInput: React.FC = () => {
                 return intl.formatMessage(ConnectorsResources.url);
             case ConnectorType.AzureDevOpsDocumentation:
                 return intl.formatMessage(ConnectorsResources.azureDevOpsUrl);
+            case ConnectorType.AzureDataExplorerQuery:
+            case ConnectorType.AzureDataExplorerIndexing:
+                return intl.formatMessage(ConnectorsResources.dataExplorerUrl);
             default:
                 return connectorType
                     ? intl.formatMessage(ConnectorsResources.serviceRepositoryUrl, { 0: getConnectorService(connectorType, intl) })

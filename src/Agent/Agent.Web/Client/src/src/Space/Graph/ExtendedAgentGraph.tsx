@@ -1133,7 +1133,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 return { success: false, message };
             }
         },
-        [agents, applyEntity, intl, mcpConnections]
+        [agents, applyEntity, intl]
     );
 
     const handleAddExistingTool = useCallback(
@@ -1770,6 +1770,7 @@ const ExtendedAgentGraphContent = memo(() => {
         tools,
         systemTools,
         connectors,
+        mcpConnections,
         triggers,
         skills,
         loading,

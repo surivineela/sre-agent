@@ -1953,11 +1953,6 @@ export const IncidentManagementResources = defineMessages({
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
     expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
     collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
-    incidentThreadsMovedTitle: { defaultMessage: 'Incident threads have moved', id: 'R7g7UT' },
-    incidentThreadsMovedDescription: {
-        defaultMessage: 'Find incident threads and incident response plans together on the Incident Management tab.',
-        id: 'z8ZYoc',
-    },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
     metrics: { defaultMessage: 'Incident metrics', id: 'jzdrQB' },
     responsePlans: { defaultMessage: 'Incident response plans', id: 'mV7WX3' },
@@ -5768,6 +5763,8 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'Add a connector to give the agent additional tools for automating incident handling.',
         id: 'REOGTJ',
     },
+    defaultOutlookConnectorName: { defaultMessage: 'Outlook connector {id}', id: 'PB0ecx' },
+    defaultTeamsConnectorName: { defaultMessage: 'Teams connector {id}', id: 'BXFezC' },
     addConnector: { defaultMessage: 'Add connector', id: 'QDa8Q+' },
     connector: { defaultMessage: 'connector', id: '44QmgP' },
     connectorCapital: { defaultMessage: 'Connector', id: 'r8XsCU' },
@@ -5790,6 +5787,7 @@ export const ConnectorsResources = defineMessages({
             'Name must start with a letter and can only contain letters, numbers, and hyphens. The name must be non-empty and less than {maxLength} characters.',
         id: 'DK708b',
     },
+    dataExplorerUrl: { defaultMessage: 'Azure Data Explorer URL', id: '83QYM1' },
     authenticationMethodPlaceholder: { defaultMessage: 'Select authentication method', id: 'v1LtqB' },
     patOrApiKey: { defaultMessage: 'Personal access token (PAT) or API key', id: 'ooDMAp' },
     patOrApiKeyPlaceholder: { defaultMessage: 'Enter your PAT or API key', id: 'FMDuHb' },
@@ -5874,7 +5872,7 @@ export const ConnectorsResources = defineMessages({
     description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
     sendEmail: { defaultMessage: 'Send email', id: 'sZIoMy' },
     office365Outlook: { defaultMessage: 'Office 365 Outlook', id: 'pPwNx4' },
-    sendEmailDescription: { defaultMessage: 'The agent sends email messages.', id: 'Ebd6gR' },
+    sendEmailDescription: { defaultMessage: 'The agent sends email messages. Requires contributor role on resource group.', id: 'oyyx8x' },
     sendNotification: { defaultMessage: 'Send notification', id: 'nL/Owh' },
     microsoftTeams: { defaultMessage: 'Microsoft Teams', id: 'IIfj4G' },
     signInToService: { defaultMessage: 'Sign in to {service}', id: 'yBnHns' },
@@ -5884,8 +5882,9 @@ export const ConnectorsResources = defineMessages({
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     establishingConnection: { defaultMessage: 'Establishing connection ...', id: 'uIXQiw' },
     sendNotificationDescription: {
-        defaultMessage: 'The agent posts notifications to the activity feed linking to a chat or team.',
-        id: 'rzC0Xo',
+        defaultMessage:
+            'The agent posts notifications to the activity feed linking to a chat or team. Requires contributor role on resource group.',
+        id: 'qWW4AX',
     },
     setupTitle: { defaultMessage: 'Set up {service} connector', id: 'PBKSeP' },
     editConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
@@ -5913,7 +5912,7 @@ export const ConnectorsResources = defineMessages({
         id: 'LQ2AtR',
     },
     connectionType: { defaultMessage: 'Connection type', id: 'ySdJIx' },
-    remoteSse: { defaultMessage: 'SSE', id: 'DtmRJJ' },
+    streamableHttp: { defaultMessage: 'Streamable-HTTP', id: 'Z8bpgl' },
     localProcess: { defaultMessage: 'Stdio', id: 'mE7Cg1' },
     command: { defaultMessage: 'Command', id: '9WyylR' },
     commandPlaceholder: { defaultMessage: 'Enter command (e.g. npx, python)', id: 'WJ+tyY' },
@@ -5931,7 +5930,30 @@ export const ConnectorsResources = defineMessages({
     error: { defaultMessage: 'Error', id: 'KN7zKn' },
     requestTimeout: { defaultMessage: 'Request timeout', id: 'inXqB2' },
     failedToFetchStatus: { defaultMessage: 'Failed to fetch status', id: 'VeyLxc' },
+    seeDetails: { defaultMessage: 'See details', id: 'RQfEXO' },
     mcpServerDescription: { defaultMessage: 'Add a custom MCP server for the agent to reference.', id: 'DJydCh' },
+    needConnectionWritePermission: {
+        defaultMessage:
+            'You need contributor or Microsoft.Web/connections/write role on the resource group in order to sign in. Click {link} to go to access control or contact your subscription administrator to update your permissions.',
+        id: 'y/usAC',
+    },
+    here: { defaultMessage: 'here', id: 'hniz8Z' },
+    checkingPermissions: { defaultMessage: 'Checking permissions...', id: 'K1tTU1' },
+    connectorAuthorizationFailed: {
+        defaultMessage:
+            "You don't have permission to create connectors in this resource group. Please contact your Azure administrator to grant Contributor access.",
+        id: '2L3Cmb',
+    },
+    connectorAuthorizationFailedAmePme: {
+        defaultMessage:
+            'You currently do not have permission to create connectors. For AME and PME tenants, JIT access is required. Request JIT access to continue setting up your connector.',
+        id: 'Wjp05l',
+    },
+    connectorMethodNotAllowed: {
+        defaultMessage:
+            'Please ensure that your firewall or load balancer allows both POST and GET calls, and that the MCP endpoint is the correct Streamable-HTTP endpoint.',
+        id: 'yit592',
+    },
 
     // MCP Tool Execution Messages
     mcpQueryKql: { defaultMessage: 'Query (KQL):', id: 'Dn1EZZ' },

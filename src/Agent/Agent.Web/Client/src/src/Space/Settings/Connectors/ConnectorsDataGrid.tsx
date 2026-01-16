@@ -25,6 +25,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Connector, ConnectorStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { McpConnectorStatus } from './Connectors';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorStatusDialog } from './ConnectorStatusDialog';
 import { getStatusIcon } from './ConnectorStatusUtils';
@@ -133,28 +134,29 @@ export const ConnectorsDataGrid = ({
     }, []);
 
     const renderStatusIcon = useCallback(
-        (status: string, onClick?: () => void) => {
+        (status: string, onSeeDetailsClick?: () => void) => {
             const { icon } = getStatusIcon(status);
+            const isErrorStatus = status === McpConnectorStatus.Error || status === McpConnectorStatus.Failed;
 
             return (
                 <div className={styles.iconAndTextContainer}>
                     {icon}
-                    {onClick ? (
+                    <Text>{status}</Text>
+                    {isErrorStatus && onSeeDetailsClick && (
                         <Link
+                            className={styles.seeDetailsLink}
                             onClick={e => {
                                 e.stopPropagation();
-                                onClick();
+                                onSeeDetailsClick();
                             }}
                         >
-                            <Text>{status}</Text>
+                            {intl.formatMessage(ConnectorsResources.seeDetails)}
                         </Link>
-                    ) : (
-                        <Text>{status}</Text>
                     )}
                 </div>
             );
         },
-        [styles.iconAndTextContainer]
+        [intl, styles.iconAndTextContainer, styles.seeDetailsLink]
     );
 
     const columns: TableColumnDefinition<ConnectorWithService>[] = useMemo(

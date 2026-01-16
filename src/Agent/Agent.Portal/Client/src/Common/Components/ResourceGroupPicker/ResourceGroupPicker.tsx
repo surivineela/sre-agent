@@ -18,33 +18,51 @@ import {
     makeStyles,
     tokens,
 } from '@fluentui/react-components';
+import { CheckmarkStarburst16Filled, Info16Regular } from '@fluentui/react-icons';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { PortalResources } from '../../../Strings/Resources';
 import { TelemetrySource } from '../../Constants/Telemetry';
+import { SpecialControlValue } from '../../Contracts/Amplitude';
 import { ResourceGroup, Subscription } from '../../Contracts/Arm';
+import { useAmplitudeTelemetry } from '../../Hooks/useAmplitudeTelemetry';
 import { getUserFriendlyLocation } from '../../Utilities/Location';
 import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Utilities/Url';
 import { PillFilter } from '../PillFilter/PillFilter';
 import { useFilteredResourceGroups } from './Hooks/useFilteredResourceGroups';
 import { ResourceGroupWithSelection, useResourceGroupsFromMultipleSubscriptions } from './Hooks/useResourceGroupsFromMultipleSubscriptions';
 import { ResourceGroupPickerSkeleton } from './ResourceGroupPickerSkeleton';
-import { useAmplitudeTelemetry } from '../../Hooks/useAmplitudeTelemetry';
-import { SpecialControlValue } from '../../Contracts/Amplitude';
 
 export const MAX_RESOURCE_GROUPS = 100;
 
 const useStyles = makeStyles({
+    headerSection: {
+        marginBottom: tokens.spacingVerticalM,
+    },
     filtersRow: {
         display: 'flex',
         gap: '10px',
         flexWrap: 'wrap',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
-    toggleRow: {
+    filtersLeft: {
+        display: 'flex',
+        gap: '10px',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+    },
+    toggleSection: {
         display: 'flex',
         gap: tokens.spacingHorizontalS,
         alignItems: 'center',
+    },
+    recommendedIcon: {
+        color: '#0078D4',
+    },
+    infoIcon: {
+        cursor: 'pointer',
+        color: tokens.colorNeutralForeground3,
     },
     gridContainer: {
         minHeight: '420px',
@@ -230,17 +248,21 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                     return (
                         <TableCellLayout>
                             <div className={styles.nameCell}>
-                                <Link onClick={() => {
-                                    openResourceGroupOverviewInNewTab(item.id);
-                                    logControlEvent({
-                                        targetType: 'link',
-                                        targetAction: 'clicked',
-                                        targetName: 'sreAgentCreateResourceGroupLink',
-                                        targetFriendlyName: 'SRE Agent Create - Resource Group Link',
-                                        valueObjectName: SpecialControlValue.CustomerSuppliedData,
-                                        valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
-                                    });
-                                    }}>{item.name}</Link>
+                                <Link
+                                    onClick={() => {
+                                        openResourceGroupOverviewInNewTab(item.id);
+                                        logControlEvent({
+                                            targetType: 'link',
+                                            targetAction: 'clicked',
+                                            targetName: 'sreAgentCreateResourceGroupLink',
+                                            targetFriendlyName: 'SRE Agent Create - Resource Group Link',
+                                            valueObjectName: SpecialControlValue.CustomerSuppliedData,
+                                            valueObjectFriendlyName: SpecialControlValue.CustomerSuppliedData,
+                                        });
+                                    }}
+                                >
+                                    {item.name}
+                                </Link>
                                 {item.recommended && (
                                     <Tooltip
                                         relationship="description"
@@ -275,13 +297,22 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                 renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
             }),
         ],
-        [intl, styles, subscriptionOptions, isAllFilteredSelected, isSomeFilteredSelected, toggleSelectAll, toggleItemSelection, logControlEvent]
+        [
+            intl,
+            styles,
+            subscriptionOptions,
+            isAllFilteredSelected,
+            isSomeFilteredSelected,
+            toggleSelectAll,
+            toggleItemSelection,
+            logControlEvent,
+        ]
     );
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-                <Text>{intl.formatMessage(PortalResources.resourceGroupsMax)}</Text>
+            <div className={styles.headerSection}>
+                <Text>{intl.formatMessage(PortalResources.resourceGroupsMax, { max: MAX_RESOURCE_GROUPS })}</Text>
                 <div aria-live="polite" aria-atomic="true">
                     {selectedResourceGroups.length === 1
                         ? intl.formatMessage(PortalResources.resourceGroupSelected, {
@@ -291,8 +322,49 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                               0: selectedResourceGroups.length,
                           })}
                 </div>
-                <div className={styles.toggleRow}>
+            </div>
+
+            <div className={styles.filtersRow}>
+                <div className={styles.filtersLeft}>
+                    <div>
+                        <SearchBox
+                            placeholder={intl.formatMessage(PortalResources.searchResourceGroups)}
+                            value={searchFilter}
+                            onChange={(_, data) => setSearchFilter(data.value)}
+                            aria-label={intl.formatMessage(PortalResources.searchResourceGroups)}
+                        />
+                    </div>
+                    <div>
+                        <PillFilter
+                            filterType="combobox"
+                            label={intl.formatMessage(PortalResources.subscription)}
+                            options={subscriptionFilterOptions.map(opt => ({ key: opt.key, label: opt.text }))}
+                            onApply={setSelectedSubscriptionIds}
+                            selectedKeys={selectedSubscriptionIds}
+                            multiSelect
+                            addAllOption
+                            useInDialog
+                        />
+                    </div>
+                    <div>
+                        <PillFilter
+                            filterType="combobox"
+                            label={intl.formatMessage(PortalResources.region)}
+                            options={locationOptions.map(opt => ({ key: opt.key, label: opt.text }))}
+                            onApply={setSelectedLocationKeys}
+                            selectedKeys={selectedLocationKeys}
+                            multiSelect
+                            addAllOption
+                            useInDialog
+                        />
+                    </div>
+                </div>
+                <div className={styles.toggleSection}>
+                    <CheckmarkStarburst16Filled className={styles.recommendedIcon} aria-hidden="true" />
                     <Text>{intl.formatMessage(PortalResources.showRecommended)}</Text>
+                    <Tooltip content={intl.formatMessage(PortalResources.showRecommendedTooltip)} relationship="description">
+                        <Info16Regular className={styles.infoIcon} tabIndex={0} role="button" />
+                    </Tooltip>
                     <Switch
                         checked={showRecommended}
                         onChange={(_, data) => {
@@ -307,41 +379,6 @@ export const ResourceGroupPicker: FC<ResourceGroupPickerProps> = ({
                             });
                         }}
                         aria-label={intl.formatMessage(PortalResources.toggleShowRecommendedAriaLabel)}
-                    />
-                </div>
-            </div>
-
-            <div className={styles.filtersRow}>
-                <div>
-                    <SearchBox
-                        placeholder={intl.formatMessage(PortalResources.searchResourceGroups)}
-                        value={searchFilter}
-                        onChange={(_, data) => setSearchFilter(data.value)}
-                        aria-label={intl.formatMessage(PortalResources.searchResourceGroups)}
-                    />
-                </div>
-                <div>
-                    <PillFilter
-                        filterType="combobox"
-                        label={intl.formatMessage(PortalResources.subscription)}
-                        options={subscriptionFilterOptions.map(opt => ({ key: opt.key, label: opt.text }))}
-                        onApply={setSelectedSubscriptionIds}
-                        selectedKeys={selectedSubscriptionIds}
-                        multiSelect
-                        addAllOption
-                        useInDialog
-                    />
-                </div>
-                <div>
-                    <PillFilter
-                        filterType="combobox"
-                        label={intl.formatMessage(PortalResources.region)}
-                        options={locationOptions.map(opt => ({ key: opt.key, label: opt.text }))}
-                        onApply={setSelectedLocationKeys}
-                        selectedKeys={selectedLocationKeys}
-                        multiSelect
-                        addAllOption
-                        useInDialog
                     />
                 </div>
             </div>
