@@ -32,6 +32,8 @@ param tools array
 param skills array
 @description('Array of parsed YAML objects for scheduled task extensions')
 param scheduledTasks array
+@description('Array of parsed YAML objects for incident filter extensions')
+param incidentFilters array
 
 // Reference to the existing parent agent
 resource parentAgent 'Microsoft.App/agents@2025-05-01-preview' existing = {
@@ -90,4 +92,16 @@ resource scheduledTasksExtension 'Microsoft.App/agents/scheduledTasks@2025-05-01
       value: base64(string(scheduledTask.spec))
     }
   }
+]
+
+// Deploy incident filter extensions sequentially
+@batchSize(1)
+resource incidentFilterExtensions 'Microsoft.App/agents/incidentFilters@2025-05-01-preview' = [
+    for incidentFilter in incidentFilters: {
+      parent: parentAgent
+      name: incidentFilter.metadata.name
+      properties: {
+        value: base64(string(incidentFilter.spec))
+      }
+    }
 ]

@@ -46,6 +46,7 @@ const Wrapper: React.FC<{ children: React.ReactNode; permission?: boolean }> = (
                             startMessageStreamingOnNewThread: () => {},
                             startMessageStreamingOnExistingThread: () => {},
                             cancelMessageStreaming: () => {},
+                            submitUserQuestionResponse: (_threadId, _questionId, _response) => {},
                             subscribeMessageUpdateEvent: () => () => {},
                             subscribeThreadUpdateEvent: () => () => {},
                             subscribeTaskUpdateEvent: () => () => {},

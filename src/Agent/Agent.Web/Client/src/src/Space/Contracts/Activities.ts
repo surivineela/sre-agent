@@ -15,6 +15,7 @@ import {
 } from '../../Common/Contracts/DataPlane/Message';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { UserQuestionResponse } from '../../Common/Contracts/DataPlane/UserQuestion';
 import { ChatBoxSidePanelStyleProps, ChatBoxStyleProps } from '../Styles/Activities.styles';
 
 export interface IActivitiesProps {
@@ -101,7 +102,7 @@ export interface IChatBoxProps {
     onTelemetryUpdate?: (snapshot: ChatTelemetrySnapshot) => void;
     renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
     inputDisabledMessage?: string;
-    initialTestModeEnabled?: boolean;
+    initialRetroModeEnabled?: boolean;
 }
 
 export enum ChatBoxSidePanelType {
@@ -140,6 +141,7 @@ export interface IChatMessageProps {
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
     }) => void;
+    onSubmitUserQuestionResponse?: (questionId: string, response: UserQuestionResponse) => void;
 }
 
 export interface IChatMessageGroupProps {
@@ -157,6 +159,7 @@ export interface IChatMessageGroupProps {
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
     }) => void;
+    onSubmitUserQuestionResponse?: (questionId: string, response: UserQuestionResponse) => void;
 }
 
 export interface ReasoningItem {
@@ -191,6 +194,7 @@ export interface IAgentMessageProps {
         kubectlExecution?: KubectlExecution;
         psqlExecution?: PsqlExecution;
     }) => void;
+    onSubmitUserQuestionResponse?: (questionId: string, response: UserQuestionResponse) => void;
 }
 
 export interface IActionsProps {
@@ -216,8 +220,9 @@ export interface IChatBoxFooterProps {
     forcedAgentName?: string;
     lockAgentSelection?: boolean;
     inputDisabledMessage?: string;
-    isIncidentTestModeTurnedOn?: boolean;
-    toggleIncidentTestMode?: () => void;
+    isIncidentRetroModeTurnedOn?: boolean;
+    toggleIncidentRetroMode?: () => void;
+    hasPendingUserQuestion?: boolean;
 }
 
 export interface SendMessageOptions {
@@ -349,5 +354,5 @@ export enum Shortcut {
     Resource = 'resource',
     Remember = 'remember',
     Retrieve = 'retrieve',
-    IncidentTestMode = 'incidentTestMode',
+    IncidentRetroMode = 'incidentRetroMode',
 }

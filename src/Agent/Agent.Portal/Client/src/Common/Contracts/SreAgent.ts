@@ -1,3 +1,5 @@
+export type AgentPowerState = 'Running' | 'Stopped';
+
 export interface SreAgentArgItem {
     id: string;
     name: string;
@@ -5,6 +7,8 @@ export interface SreAgentArgItem {
     type: string;
     subscriptionId: string;
     resourceGroup: string;
+    agentSpaceId?: string | null;
+    powerState?: AgentPowerState;
 }
 
 export enum ProvisioningState {
@@ -108,4 +112,5 @@ export interface Agent {
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
     dashboardConfiguration: DashboardConfiguration;
     upgradeChannel?: UpgradeChannel;
+    powerState?: AgentPowerState;
 }

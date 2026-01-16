@@ -114,14 +114,29 @@ public partial class KustoPlugin : IKustoPlugin
         [Description("The name of the target Kusto database.")] string database,
         [Description("The full Kusto query to execute.")] string fullQuery,
         [Description("Whether to print the result.")] bool? printQuery = true,
-        [Description("The name of the query tool.")] string toolName = ""
+        [Description("The name of the query tool.")] string toolName = "",
+        KustoDisplayOptions? displayOptions = null
         )
     {
         var queryResult = await ExecuteClusterKustoQueryInternal(cluster, database, fullQuery);
         if (printQuery == true && queryResult.Message != null)
         {
             ChatMessage msg;
-            if (!string.IsNullOrEmpty(toolName))
+
+            // Apply display options if provided (for chart/table rendering)
+            if (displayOptions != null)
+            {
+                var enhanced = KustoDisplayFormatter.BuildDisplayMessage(queryResult.Message, queryResult.Result, displayOptions);
+                if (!string.IsNullOrEmpty(toolName))
+                {
+                    msg = new ChatMessage(ChatRole.Tool, $"`{toolName}`{Environment.NewLine + Environment.NewLine}{enhanced.Text}");
+                }
+                else
+                {
+                    msg = enhanced;
+                }
+            }
+            else if (!string.IsNullOrEmpty(toolName))
             {
                 msg = new ChatMessage(ChatRole.Tool, $"`{toolName}`{Environment.NewLine + Environment.NewLine}{queryResult.Message?.Text}");
             }
@@ -587,7 +602,7 @@ public partial class KustoPlugin : IKustoPlugin
 
         await HandleKustoResult(msg);
 
-        return queryResult.Result;
+        return msg.Text ?? queryResult.Result;
     }
 
     public async Task<string> ExecuteLocalFunctionAsync(string functionName, AzureRegion region, Dictionary<string, string> args, string? groupName, SamplingOptions? samplingOptions = null)

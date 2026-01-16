@@ -79,6 +79,32 @@ public interface IAgentOutboundCommunicationService
 
     Task<Guid> AppendAgentKnowledgeGraphSearchMessage(Guid threadId, KnowledgeGraphSearchResult knowledgeGraphSearchResult, Guid messageId = default);
 
+    Task<Guid> AppendAgentGrepSearchMessage(Guid threadId, GrepSearchResult grepSearchResult, Guid messageId = default);
+
+    /// <summary>
+    /// Appends a file read result message to a thread and returns the message ID.
+    /// Used by the ReadFile tool to display file content with rich formatting.
+    /// </summary>
+    Task<Guid> AppendAgentReadFileMessage(Guid threadId, ReadFileResult readFileResult, Guid messageId = default);
+
+    /// <summary>
+    /// Appends a terminal execution result message to a thread and returns the message ID.
+    /// Used by the RunInTerminal tool to display command output with rich formatting.
+    /// </summary>
+    Task<Guid> AppendAgentTerminalMessage(Guid threadId, TerminalExecutionResult terminalResult, Guid messageId = default);
+
+    /// <summary>
+    /// Appends a user question message and returns the message ID.
+    /// Used by the AskUserQuestion tool to present interactive questions to users.
+    /// </summary>
+    Task<Guid> AppendAgentUserQuestionMessage(Guid threadId, UserQuestion userQuestion, Guid messageId = default);
+
+    /// <summary>
+    /// Notifies about an update to a user question (e.g., when answered).
+    /// Streams the updated question to the frontend.
+    /// </summary>
+    Task NotifyUserQuestionUpdate(Guid threadId, UserQuestion userQuestion, Guid messageId);
+
     /// <summary>
     /// Streams a message directly to the reasoning loop, bypassing normal tool call flow
     /// </summary>
@@ -94,7 +120,7 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task AppendTodoPlanUpdate(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 
-    Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default);
+    Task AppendAgentToolCallMessage(Guid threadId, FunctionCallContent functionCall, Guid? messageId = null, CancellationToken cancellationToken = default);
 
     Task AppendAgentManualToolCallMessage(Guid threadId, List<ManualToolCall>? manualToolCalls, Guid? messageId = null, CancellationToken cancellationToken = default);
 
@@ -130,4 +156,10 @@ public interface IAgentOutboundCommunicationService
     /// Saves results to agent task object step instead of streaming to chat.
     /// </summary>
     Task HandleAgentTaskMemoryResult(Guid threadId, string chatMessageContent);
+
+    /// <summary>
+    /// Notifies about an MCP tool execution (start, complete, or failed).
+    /// Streams the execution details to the frontend for display.
+    /// </summary>
+    Task NotifyMcpToolExecution(Guid threadId, McpToolExecution execution, Guid messageId = default);
 }

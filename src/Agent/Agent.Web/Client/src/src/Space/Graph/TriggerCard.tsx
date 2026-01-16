@@ -102,8 +102,8 @@ export const TriggerCard = memo((props: NodeProps<Node<ExtendedAgentGraphNode>>)
             triggerType === 'incident'
                 ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident)
                 : triggerType === 'scheduled'
-                    ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled)
-                    : '',
+                  ? intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled)
+                  : '',
         [triggerType, intl]
     );
 

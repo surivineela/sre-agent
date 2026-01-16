@@ -122,6 +122,11 @@ export const getArmErrorMessage = (error: any, recursionLimit: number = 1): stri
         return error.message || error.ExceptionMessage || error.Message;
     }
 
+    // Check for "content" property (ARM batch response format where error content is a string)
+    if (typeof error.content === 'string') {
+        return error.content;
+    }
+
     // No "message" property was present, so check if there is an inner error object with a "message" property.
     return recursionLimit ? getArmErrorMessage(error.error, recursionLimit - 1) : '';
 };

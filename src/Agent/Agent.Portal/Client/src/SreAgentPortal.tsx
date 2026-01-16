@@ -7,10 +7,12 @@ import { RouteErrorBoundary } from './Common/Components/RouteErrorBoundary';
 import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';
 import { useIsInternal } from './Common/Hooks/useIsInternal';
+import { useMonacoLoaderConfig } from './Common/Hooks/useMonacoLoaderConfig';
 import { useTelemetry } from './Common/Hooks/useTelemetry';
 import { PortalResources } from './Strings/Resources';
 import { AgentIFrameView } from './Views/Agent/AgentIFrameView';
 import { ExternalAgentIFrameView } from './Views/Agent/External/ExternalAgentIFrameView';
+import { AgentSpaceView } from './Views/AgentSpace/AgentSpaceView';
 import { HomeBrowseView } from './Views/Home/HomeBrowseView';
 import { LandingPage } from './Views/LandingPage/LandingPage';
 import { Navbar } from './Views/Navbar/Navbar';
@@ -90,6 +92,7 @@ const router = createBrowserRouter(
                 { path: 'welcome', element: <LandingPage /> },
                 { path: 'agents/:agentId', element: <AgentIFrameView /> },
                 { path: 'externalagents/:agentName/:agentUri', element: <ExternalAgentIFrameView /> },
+                { path: 'spaces/:spaceId', element: <AgentSpaceView /> },
                 { path: '*', element: <HomeBrowseView /> },
             ],
         },
@@ -102,6 +105,8 @@ const router = createBrowserRouter(
 export const SreAgentPortal = () => {
     const { logEvent } = useTelemetry(TelemetrySource.PortalLayout, undefined);
     const { isInternalDevTenant, isInternalTenant, isInternalProdTenant } = useIsInternal();
+
+    useMonacoLoaderConfig();
 
     useEffect(() => {
         const logSiteVersion = () => {

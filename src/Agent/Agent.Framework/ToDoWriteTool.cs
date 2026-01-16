@@ -290,7 +290,7 @@ public class ToDoWriteTool<TContext> : AIToolFunction<ToDoWriteTool<TContext>, T
         }
 
         return todosObj is JsonElement element
-            // Re-serialize to string directly i f possible
+            // Re-serialize to string directly if possible
             ? element.GetRawText()
             // Handle case where it's already some enumerable/dictionary
             : JsonSerializer.Serialize(todosObj, AIJsonUtilities.DefaultOptions);

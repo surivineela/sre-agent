@@ -19,6 +19,7 @@ interface ITNewChatNavItemProps {
     threads: Thread[];
     selectThread: (threadId: string | null) => void;
     excludedSources?: ThreadSource[];
+    children?: React.ReactNode;
 }
 
 const NewChatIcon = bundleIcon(Add20Filled, Add20Regular);
@@ -45,7 +46,9 @@ const NewChatNavItem = (props: ITNewChatNavItemProps) => {
                     onClick={() => props.selectThread(null)}
                     isNavOpen={props.isNavOpen}
                     label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
-                />
+                >
+                    {props.children}
+                </Item>
                 {hasChatPermissions && (
                     <Item
                         icon={<SearchIcon />}
@@ -75,22 +78,33 @@ const NewChatNavItem = (props: ITNewChatNavItemProps) => {
 };
 
 const Item = memo(
-    (props: { disabled: boolean; icon: JSX.Element; value: string; onClick: () => void; label: string; isNavOpen: boolean }) => {
+    (props: {
+        disabled: boolean;
+        icon: JSX.Element;
+        value: string;
+        onClick: () => void;
+        label: string;
+        isNavOpen: boolean;
+        children?: React.ReactNode;
+    }) => {
         const restoreFocusTargetAttribute = useRestoreFocusTarget();
 
         return (
-            <Tooltip content={props.label} relationship="label">
-                <CopilotNavItem
-                    {...restoreFocusTargetAttribute}
-                    disabled={props.disabled}
-                    icon={props.icon}
-                    value={props.value}
-                    onClick={props.onClick}
-                    aria-label={props.label}
-                >
-                    {props.isNavOpen ? props.label : null}
-                </CopilotNavItem>
-            </Tooltip>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Tooltip content={props.label} relationship="label">
+                    <CopilotNavItem
+                        {...restoreFocusTargetAttribute}
+                        disabled={props.disabled}
+                        icon={props.icon}
+                        value={props.value}
+                        onClick={props.onClick}
+                        aria-label={props.label}
+                    >
+                        {props.isNavOpen ? props.label : null}
+                    </CopilotNavItem>
+                </Tooltip>
+                {props.children}
+            </div>
         );
     }
 );

@@ -1,18 +1,8 @@
-/**
- * Core type definitions and interfaces for ARM templates
- */
-
-/**
- * Identity configuration for ARM resources
- */
 export interface Identity {
     type: string;
     userAssignedIdentities?: Record<string, any>;
 }
 
-/**
- * Complete ARM template structure
- */
 export interface ArmTemplate {
     $schema: string;
     contentVersion: string;
@@ -21,17 +11,11 @@ export interface ArmTemplate {
     resources: ArmTemplateResourceFragment<any>[];
 }
 
-/**
- * Deployment properties fragment
- */
 export interface DeploymentFragment {
     mode: string;
     template: any;
 }
 
-/**
- * Template parameter definition
- */
 export interface ArmTemplateParameter {
     type: string;
     allowedValues?: string[];
@@ -41,9 +25,6 @@ export interface ArmTemplateParameter {
     metadata?: object;
 }
 
-/**
- * Generic ARM resource fragment
- */
 export interface ArmTemplateResourceFragment<T> {
     apiVersion: string;
     name: string;
@@ -65,18 +46,12 @@ export interface ArmTemplateResourceFragment<T> {
     };
 }
 
-/**
- * Standard ARM template parameter names
- */
 export enum ArmTemplateParameterName {
     SubscriptionId = 'subscriptionId',
     Location = 'location',
     ResourceGroupName = 'resourceGroupName',
 }
 
-/**
- * SRE Agent specific parameter names
- */
 export enum SreAgentParameterName {
     OidcUserIdentityName = 'oidcUserIdentity',
     ResourceGroups = 'resourceGroups',
@@ -91,9 +66,12 @@ export enum SreAgentParameterName {
     UserObjectId = 'userObjectId',
 }
 
-/**
- * Application Insights parameter names
- */
+export enum AgentSpaceParameterName {
+    AgentSpaceName = 'agentSpaceName',
+    AgentSpaceDescription = 'agentSpaceDescription',
+    AgentSpaceMaxCount = 'agentSpaceMaxCount',
+}
+
 export enum AppInsightsParameterName {
     AppInsightsName = 'appInsightsName',
     AppInsightsResourceId = 'appInsightsResourceId',
@@ -102,11 +80,9 @@ export enum AppInsightsParameterName {
     WorkspaceName = 'workspaceName',
 }
 
-/**
- * ARM service type identifiers
- */
 export enum ArmServiceType {
     Agents = 'Microsoft.App/agents',
+    AgentSpaces = 'Microsoft.App/agentSpaces',
     BotServices = 'Microsoft.BotService/botServices',
     Site = 'Microsoft.Web/Sites',
     ServerFarm = 'Microsoft.Web/Serverfarms',

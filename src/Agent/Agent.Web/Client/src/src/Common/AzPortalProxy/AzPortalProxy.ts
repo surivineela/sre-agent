@@ -47,6 +47,9 @@ export default class AzPortalProxy {
 
     public static envInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
 
+    /** Whether the iframe is hosted in the SRE Agent Portal (sre.azure.com) vs Azure Portal */
+    public static isHostedInSreaPortal: boolean = false;
+
     public static get inStandaloneMode() {
         return window.self === window.top;
     }
@@ -254,6 +257,11 @@ export default class AzPortalProxy {
 
         if (!this.acceptedSignatures.find(s => event.data.signature === s)) {
             return;
+        }
+
+        // Track if we're hosted in SREA Portal based on the iframe signature
+        if (event.data.signature === this.sreAgentPortalSignature) {
+            AzPortalProxy.isHostedInSreaPortal = true;
         }
 
         // Allow local-dev SREA portal to host prod agent site

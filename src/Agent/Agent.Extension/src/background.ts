@@ -29,6 +29,7 @@ type BrowserConnectMessage = {
   extensionEndpoint: string;   // WebSocket URL: ws://127.0.0.1:5073/browser/extension/{sessionId}
   autoConnect?: boolean;       // If true, create a new tab and auto-connect (no user selection)
   targetUrl?: string;          // Optional URL to navigate the new tab to
+  accessToken?: string;        // JWT token for YARP authentication (production mode)
 };
 
 type ExternalMessage = BrowserConnectMessage | {
@@ -50,8 +51,8 @@ function isLoopbackUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return parsed.hostname === '127.0.0.1' ||
-           parsed.hostname === 'localhost' ||
-           parsed.hostname === '[::1]';
+      parsed.hostname === 'localhost' ||
+      parsed.hostname === '[::1]';
   } catch {
     return false;
   }
@@ -139,20 +140,20 @@ class TabShareExtension {
     switch (message.type) {
       case 'connectToMCPRelay':
         this._connectToRelay(sender.tab!.id!, message.mcpRelayUrl).then(
-            () => sendResponse({ success: true }),
-            (error: any) => sendResponse({ success: false, error: error.message }));
+          () => sendResponse({ success: true }),
+          (error: any) => sendResponse({ success: false, error: error.message }));
         return true;
       case 'getTabs':
         this._getTabs().then(
-            tabs => sendResponse({ success: true, tabs, currentTabId: sender.tab?.id }),
-            (error: any) => sendResponse({ success: false, error: error.message }));
+          tabs => sendResponse({ success: true, tabs, currentTabId: sender.tab?.id }),
+          (error: any) => sendResponse({ success: false, error: error.message }));
         return true;
       case 'connectToTab':
         const tabId = message.tabId || sender.tab?.id!;
         const windowId = message.windowId || sender.tab?.windowId!;
         this._connectTab(sender.tab!.id!, tabId, windowId, message.mcpRelayUrl!).then(
-            () => sendResponse({ success: true }),
-            (error: any) => sendResponse({ success: false, error: error.message }));
+          () => sendResponse({ success: true }),
+          (error: any) => sendResponse({ success: false, error: error.message }));
         return true; // Return true to indicate that the response will be sent asynchronously
       case 'getConnectionStatus':
         sendResponse({
@@ -161,8 +162,8 @@ class TabShareExtension {
         return false;
       case 'disconnect':
         this._disconnect().then(
-            () => sendResponse({ success: true }),
-            (error: any) => sendResponse({ success: false, error: error.message }));
+          () => sendResponse({ success: true }),
+          (error: any) => sendResponse({ success: false, error: error.message }));
         return true;
     }
     return false;
@@ -202,21 +203,30 @@ class TabShareExtension {
       return false;
     }
 
-    // Validate sender origin is localhost
-    if (!sender.url || !isLoopbackUrl(sender.url)) {
+    // Determine mode based on presence of accessToken
+    // - Production mode (with token): allows non-localhost origins and endpoints
+    // - Development mode (no token): requires localhost for security
+    const isProductionMode = !!message.accessToken;
+
+    // Validate sender origin
+    // - In dev mode: require localhost
+    // - In prod mode: sender will be the Azure portal domain (allowed by manifest)
+    if (!isProductionMode && (!sender.url || !isLoopbackUrl(sender.url))) {
       debugLog(`External connection rejected: sender URL ${sender.url} is not localhost`);
       sendResponse({ success: false, error: 'Connection only allowed from localhost' });
       return false;
     }
 
-    // Validate extension endpoint is localhost
-    if (!isLoopbackUrl(message.extensionEndpoint)) {
+    // Validate extension endpoint
+    // - In dev mode: require localhost (ws://127.0.0.1:...)
+    // - In prod mode: allow wss:// to YARP proxy
+    if (!isProductionMode && !isLoopbackUrl(message.extensionEndpoint)) {
       debugLog(`External connection rejected: endpoint ${message.extensionEndpoint} is not localhost`);
       sendResponse({ success: false, error: 'Extension endpoint must be localhost' });
       return false;
     }
 
-    debugLog(`External connection request from SRE Agent: sessionId=${message.sessionId}, threadId=${message.threadId}, threadTitle=${message.threadTitle}`);
+    debugLog(`External connection request from SRE Agent: sessionId=${message.sessionId}, threadId=${message.threadId}, threadTitle=${message.threadTitle}, mode=${isProductionMode ? 'production' : 'development'}`);
 
     // Open the connect.html page with the relay URL
     // This allows the user to select which tab to share
@@ -232,7 +242,7 @@ class TabShareExtension {
     // Auto-connect mode: create a new tab or reuse existing one for the thread
     if (message.autoConnect) {
       debugLog(`Auto-connect mode: threadId=${message.threadId}, sessionId=${message.sessionId}`);
-      await this._autoConnectForThread(message.extensionEndpoint, message.threadId, message.targetUrl, message.threadTitle);
+      await this._autoConnectForThread(message.extensionEndpoint, message.threadId, message.targetUrl, message.threadTitle, message.accessToken);
       return;
     }
 
@@ -252,7 +262,7 @@ class TabShareExtension {
   }
 
   // Auto-connect for a thread - reuses existing tab if available
-  private async _autoConnectForThread(extensionEndpoint: string, threadId?: string, _targetUrl?: string, threadTitle?: string): Promise<void> {
+  private async _autoConnectForThread(extensionEndpoint: string, threadId?: string, _targetUrl?: string, threadTitle?: string, accessToken?: string): Promise<void> {
     try {
       // Check if we have an existing tab for this thread
       if (threadId) {
@@ -263,7 +273,7 @@ class TabShareExtension {
             const tab = await chrome.tabs.get(existingMapping.tabId);
             if (tab) {
               debugLog(`Found existing tab ${existingMapping.tabId} for thread ${threadId}, reconnecting...`);
-              await this._reconnectToExistingTab(extensionEndpoint, existingMapping.tabId, threadId);
+              await this._reconnectToExistingTab(extensionEndpoint, existingMapping.tabId, threadId, accessToken);
               return;
             }
           } catch {
@@ -276,7 +286,7 @@ class TabShareExtension {
       }
 
       // No existing tab - create a new one
-      await this._createNewTabForThread(extensionEndpoint, threadId, threadTitle);
+      await this._createNewTabForThread(extensionEndpoint, threadId, threadTitle, accessToken);
     } catch (error: any) {
       debugLog(`Auto-connect failed: ${error.message}`);
       throw error;
@@ -284,7 +294,7 @@ class TabShareExtension {
   }
 
   // Reconnect to an existing tab for a thread
-  private async _reconnectToExistingTab(extensionEndpoint: string, tabId: number, threadId: string): Promise<void> {
+  private async _reconnectToExistingTab(extensionEndpoint: string, tabId: number, threadId: string, accessToken?: string): Promise<void> {
     // Close any existing connection to a different tab
     if (this._activeConnection && this._connectedTabId !== tabId) {
       this._activeConnection.close('Switching to different thread');
@@ -299,8 +309,15 @@ class TabShareExtension {
       return;
     }
 
+    // Build WebSocket URL, appending access token if provided (production mode)
+    let wsUrl = extensionEndpoint;
+    if (accessToken) {
+      const separator = wsUrl.includes('?') ? '&' : '?';
+      wsUrl = `${wsUrl}${separator}access_token=${encodeURIComponent(accessToken)}`;
+    }
+
     // Connect to the relay
-    const socket = new WebSocket(extensionEndpoint);
+    const socket = new WebSocket(wsUrl);
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
       socket.onerror = () => reject(new Error('WebSocket error'));
@@ -326,7 +343,7 @@ class TabShareExtension {
   }
 
   // Create a new tab for a thread with tab group
-  private async _createNewTabForThread(extensionEndpoint: string, threadId?: string, threadTitle?: string, _targetUrl?: string): Promise<void> {
+  private async _createNewTabForThread(extensionEndpoint: string, threadId?: string, threadTitle?: string, accessToken?: string): Promise<void> {
     // Close any existing connection
     if (this._activeConnection) {
       this._activeConnection.close('New auto-connect requested');
@@ -357,8 +374,15 @@ class TabShareExtension {
       }
     }
 
+    // Build WebSocket URL, appending access token if provided (production mode)
+    let wsUrl = extensionEndpoint;
+    if (accessToken) {
+      const separator = wsUrl.includes('?') ? '&' : '?';
+      wsUrl = `${wsUrl}${separator}access_token=${encodeURIComponent(accessToken)}`;
+    }
+
     // Connect to the relay
-    const socket = new WebSocket(extensionEndpoint);
+    const socket = new WebSocket(wsUrl);
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
       socket.onerror = () => reject(new Error('WebSocket error'));

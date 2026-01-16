@@ -45,6 +45,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+3gcXm" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Python 도구 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+5BJJL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete thread?]]></Val>
@@ -113,6 +122,15 @@
           <Val><![CDATA[CPU usage]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[CPU 사용량]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+EEXu3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Manage access to users or apps from other Microsoft Entra tenants. For same-tenant access, use Access control (IAM).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다른 Microsoft Entra 테넌트에서 사용자 또는 앱에 대한 액세스 권한을 관리합니다. 동일한 테넌트 액세스에는 액세스 제어(IAM)를 사용합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -239,6 +257,15 @@
           <Val><![CDATA[Agent permissions level]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트 사용 권한 수준]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+cRDz7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작성기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -576,6 +603,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/YR0Nj" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Manage cross-tenant access for this agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 에이전트에 대한 테넌트 간 액세스 관리]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/Z1fHN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tool and subagent activity sent to user]]></Val>
@@ -612,20 +648,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/fkwgv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saved to memory]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[메모리에 저장됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/gCtdO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage Custom Vision projects.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Custom Vision 프로젝트를 관리합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";/jp8iL" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Failed to save tool: {error}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구 저장 실패: {error}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -639,11 +675,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";/mPnOR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skills Enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 사용]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";/qCaiZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident trigger name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 트리거 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";/rHnDp" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[System prompt]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시스템 프롬프트]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -698,6 +752,15 @@
           <Val><![CDATA[Resource groups]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[리소스 그룹]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0+9dD8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{hours}h ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{hours}시간 전]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -819,6 +882,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0L2J5T" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 파일]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0Qocmw" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All tools]]></Val>
@@ -882,6 +954,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";0Xs9vS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Here are the knowledge graph search results:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다음은 지식 그래프 검색 결과입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";0aJxT2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updated {time}]]></Val>
@@ -896,6 +977,15 @@
           <Val><![CDATA[Advanced options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[고급 옵션]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0dIKAx" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Python 도구 업데이트]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1143,6 +1233,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";12QT7S" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[e.g., check_url_status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예: check_url_status]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";1389z+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Uses (Trigger)]]></Val>
@@ -1197,11 +1296,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";18boz/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Weak, significant misalignment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[약함, 심각한 불일치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";19xydZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to generate insights for this thread.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 스레드에 대한 인사이트를 생성할 수 있는 권한이 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1Boh2Z" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evidence: {evidence}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[증거: {evidence}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1247,6 +1364,15 @@
           <Val><![CDATA[Stopped]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[중지됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";1Mwy7c" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} prompt notes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 프롬프트 노트]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1530,15 +1656,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";25DrlN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What should this function do?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[이 함수는 어떤 작업을 해야 하나요?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";26Vq1R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Leave the field blank if there's no limit]]></Val>
@@ -1571,6 +1688,24 @@
           <Val><![CDATA[Failed to update connector]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[커넥터 업데이트 실패]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2CFshX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You have {count} quick {count, plural, one {fix} other {fixes}} available to improve your agent's quality.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트 품질을 개선하기 위해 {count}개의 빠른 {count, plural, one {수정} other {수정}}을(를) 사용할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2CunXT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Giving access to your knowledge base gives the agent more context about your services to make better informed decisions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 자료에 대한 액세스 권한을 부여하면 에이전트가 서비스에 대한 더 많은 컨텍스트를 제공하여 더 나은 의사 결정을 내릴 수 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1665,6 +1800,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2eNyP5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[채팅 축소]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2ePVf6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test your agent in a simple chat interface]]></Val>
@@ -1679,6 +1823,15 @@
           <Val><![CDATA[Monthly on day {dayOfMonth} at {time}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[매월 {dayOfMonth}일 {time}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";2fjiLg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[How well does the agent's behavior align with its stated goal?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트의 동작이 명시된 목표에 얼마나 잘 부합하나요?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1755,6 +1908,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";2pzmrJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What does this function do?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 함수는 무엇을 하나요?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";2reUcp" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent name]]></Val>
@@ -1818,6 +1980,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";33BnoA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한을 삭제하는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";33HEdR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tools this agent can call]]></Val>
@@ -1872,6 +2043,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";3Ek5z7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{minutes}m ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{minutes}분 전]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";3GLH+d" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Examples]]></Val>
@@ -1904,6 +2084,15 @@
           <Val><![CDATA[End]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[종료]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3OwM2P" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident Type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 유형]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2097,15 +2286,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";3rvQhx" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You can manage up to {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[권한이 있는 리소스 그룹을 최대 {max}개까지 관리할 수 있습니다. 에이전트가 현재 {count}개의 리소스 그룹을 관리합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";3sNyAo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The url must be in the format: {format}]]></Val>
@@ -2138,6 +2318,15 @@
           <Val><![CDATA[Expand navigation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[탐색 확장]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3xD7BQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add additional files to include with this skill.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 기술에 포함할 추가 파일을 추가하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2331,6 +2520,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";4I2I3m" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 수정 사항 수락]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";4IAjnN" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Turn on deep investigation?]]></Val>
@@ -2444,6 +2642,15 @@
           <Val><![CDATA[Deleted incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[삭제된 인시던트 응답 계획]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";4biGe0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Input: {input} | Output: {output} | Total: {total}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[입력: {input} | 출력: {output} | 합계: {total}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2588,6 +2795,15 @@
           <Val><![CDATA[Execution details and request]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[실행 세부 정보 및 요청]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";55Fsy6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} blocking issues]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 차단 문제]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2781,6 +2997,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5WkCqY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";5Wtjeo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Updating incident response plan]]></Val>
@@ -2795,6 +3020,15 @@
           <Val><![CDATA[Failed to run the test. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[테스트를 실행하지 못했습니다. 오류: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";5X7NpJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Upload folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[폴더 업로드]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2912,15 +3146,6 @@
           <Val><![CDATA[Unknown]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[알 수 없음]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";5kCFXN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate with AI instead]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AI로 대신 생성]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3051,6 +3276,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";5yOCuh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide AI suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AI 제안 숨기기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";6+mbvY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{seconds} sec]]></Val>
@@ -3074,6 +3308,15 @@
           <Val><![CDATA[Not applicable]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[해당 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";62nsdy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retry]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다시 시도]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3150,15 +3393,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6GLyN3" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generating test cases]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 사례를 생성하는 중]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6IIC+D" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Grafana dashboard in the same resource group]]></Val>
@@ -3173,15 +3407,6 @@
           <Val><![CDATA[Cleared the composer. Type a new question to begin a fresh chat.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[작성기를 만들었습니다. 새 질문을 입력해 새 채팅을 시작합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6LKCR/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Analyzing intent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[의도 분석 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3236,6 +3461,15 @@
           <Val><![CDATA[Remove attachment]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[첨부 파일 제거]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";6TEeYv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Adding permission for {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{name}에 대한 권한 추가]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3317,15 +3551,6 @@
           <Val><![CDATA[Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[배포된 리소스와 비용을 관리할 구독을 선택합니다. 폴더와 같은 리소스 그룹을 사용하여 모든 리소스를 구성하고 관리합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";6fPJcm" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate Code with AI]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AI로 코드 생성]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3510,6 +3735,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7JgdFw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Comma-separated tool names, e.g., SearchKusto, GetLogs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[쉼표로 구분된 도구 이름(예: SearchKusto, GetLogs)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7K6W8s#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Kusto tools deleted successfully]]></Val>
@@ -3600,6 +3834,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7TUyZ1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Applied]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[적용됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7TVRcx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry link]]></Val>
@@ -3650,6 +3893,24 @@
           <Val><![CDATA[Connected to Teams]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Teams에 연결됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7e84yC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} successfully processed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 {incidentId}이(가) 처리되었습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7egVxu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Object ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[개체 ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3843,6 +4104,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";87DT+o" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Result returned from tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도구에서 반환된 결과]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";87v+WY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Full access to Azure Digital Twins data.]]></Val>
@@ -4023,6 +4293,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8Tlee1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident trigger that includes past incident learnings and analysis.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[과거 인시던트 학습과 분석을 포함하는 인시던트 트리거입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8Vd2Kv" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update list]]></Val>
@@ -4095,6 +4374,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8jD/lL" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8lCjAM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Priority]]></Val>
@@ -4109,6 +4397,15 @@
           <Val><![CDATA[Scheduled tasks have been deleted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[예약된 작업을 삭제했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8lXGrr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are the right tools linked? Does the agent have all necessary capabilities? Higher scores mean fewer missing tools.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[올바른 도구가 연결되어 있나요? 에이전트가 필요한 모든 기능을 갖추고 있나요? 점수가 높을수록 누락된 도구가 적다는 뜻입니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4248,6 +4545,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";9+U/Wr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analyzed • {time}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[분석됨 • {time}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";9+dRta" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This will permanently delete {count} files from the knowledge sources the agent uses. Are you sure you want to delete these files?]]></Val>
@@ -4370,15 +4676,6 @@
           <Val><![CDATA[Save failed: {message}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[저장 실패: {message}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";9DqDnP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate Tool]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구 생성]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4716,24 +5013,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ATXGa+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Agent Name]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[에이전트 이름]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";ATYp8z" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Show only recommended resource groups]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[권장 리소스 그룹만 표시]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";AYrXUB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No pending configuration changes to apply]]></Val>
@@ -4896,6 +5175,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";B14lk3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What would you like to retrieve?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[무엇을 검색하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";B2HRS5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} cannot be processed. {message}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 {incidentId}을(를) 처리할 수 없습니다. {message}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";B2qjyO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test the tool to continue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[계속하려면 도구를 테스트하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";B3Q5mz" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Trigger]]></Val>
@@ -4950,6 +5256,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";BIKH4N" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preview changes]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[변경 내용 미리 보기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";BKMqtr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
@@ -4986,15 +5301,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";BP5nk0" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Standard Output]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[표준 출력]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";BSQQkf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query returned no results]]></Val>
@@ -5027,6 +5333,15 @@
           <Val><![CDATA[{actionVerb} {itemType}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{itemType} {actionVerb}?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BVVhyH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Last 14 days]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[지난 14일]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5130,6 +5445,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Bw4xrI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[평가]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";C2iTEH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Paused]]></Val>
@@ -5157,6 +5481,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CA4K2B" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install SRE Agent MCP Server to VS Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code에 SRE 에이전트 MCP 서버 설치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";CBHDb1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Task status]]></Val>
@@ -5180,6 +5513,15 @@
           <Val><![CDATA[Read-only role for Digital Twins data-plane properties.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Digital Twins 데이터 평면 속성에 대한 읽기 전용 역할.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";CFLecQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Entities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[엔터티]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5445,6 +5787,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";CxitpT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompt clarity]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프롬프트 명확성]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";D+oGFF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing with unsaved changes is not supported. Please apply or discard your changes to begin testing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[저장되지 않은 변경 내용이 있는 테스트는 지원되지 않습니다. 테스트를 시작하려면 변경 사항을 적용하거나 취소해 주세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";D/TfIH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add an incident platform so that the agent can help respond to incidents in real time. To change to a different platform, you'll need to delete the connection to the current one.]]></Val>
@@ -5517,6 +5877,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DDM6Sq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Subscription:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[구독:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DDSwQB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{actionVerb} {count} {itemType}s?]]></Val>
@@ -5567,6 +5936,15 @@
           <Val><![CDATA[Choose whether to run deep investigations alongside regular investigations]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[정기적인 조사와 함께 심층 조사를 실행할지 여부를 선택하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DJydCh" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add a custom MCP server for the agent to reference.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트가 참조할 사용자 지정 MCP 서버를 추가하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5625,6 +6003,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DS/6lY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse to show less]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[축소하여 간단히 표시]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DVVbGP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Regenerate will overwrite any edits made within the generated section of code.]]></Val>
@@ -5661,6 +6048,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DXqEro" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter display name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[표시 이름 입력]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DYeZrX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retrieved from memory]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[메모리에서 검색됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DYp/nK" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session Insight]]></Val>
@@ -5679,6 +6084,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";DadUqS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Retrieve previously saved information.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이전에 저장된 정보를 검색합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";DasCIQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This resource group is recommended for optimal agent performance. It includes one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, Web Apps, Redis, Postgres SQL, CosmosDB, Virtual machines, or Storage accounts.]]></Val>
@@ -5693,15 +6107,6 @@
           <Val><![CDATA[Failed to run test]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[테스트를 실행하지 못함]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";DeP+ZM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Response plans]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[응답 계획]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5756,6 +6161,15 @@
           <Val><![CDATA[A data source connection for tools (e.g., Kusto cluster for running queries)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[도구용 데이터 원본 연결(예: 쿼리 실행을 위한 Kusto 클러스터)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";DlPyyy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident created time range]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 생성 시간 범위]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5904,15 +6318,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";EAGAAs" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test your Python function before saving]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[저장 전에 Python 함수를 테스트하세요.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";EAO/K+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download PNG]]></Val>
@@ -5940,11 +6345,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";EDGRHE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to load suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[제안을 로드하지 못했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EEb00g" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run insights to track confidence and recommended fixes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인사이트를 실행하여 신뢰도 및 권장 수정 사항을 추적합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EEzLAA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install the SRE Agent MCP server to enable AI-assisted development of custom agents, subagents, scheduled tasks, and incident handlers. It provides tools for configuration, validation, code generation, and includes comprehensive platform documentation with session memory for multi-turn conversations. **Available Tools:** - **Agent Building:** Documentation, configuration, trigger setup, YAML generation, validation - **Subagent Building:** Custom C# subagent creation, tool methods, dependencies, handoffs, code generation - **Knowledge Base:** Session memory, topic learning, knowledge search, deep dive examples - **Session Management:** Session summary, notes, and memory management]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE 에이전트 MCP 서버를 설치하여 사용자 지정 에이전트, 하위 에이전트, 예약된 작업 및 인시던트 처리기의 AI 지원 개발을 사용합니다. 구성, 유효성 검사, 코드 생성을 위한 도구를 제공하고 다중 턴 대화를 위한 세션 메모리가 포함된 포괄적인 플랫폼 설명서를 포함합니다. **사용 가능한 도구:** - **에이전트 빌드:** 설명서, 구성, 트리거 설정, YAML 생성, 유효성 검사 - **하위 에이전트 빌드:** 사용자 지정 C# 하위 에이전트 생성, 도구 메서드, 종속성, 핸드오프, 코드 생성 - **기술 자료:** 세션 메모리, 주제 학습, 지식 검색, 심층 분석 예제 - **세션 관리:** 세션 요약, 메모 및 메모리 관리]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5972,6 +6395,15 @@
           <Val><![CDATA[Can you analyze my resource's availability over the last 24 hours?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[지난 24시간 동안 내 리소스의 가용성을 분석할 수 있나요?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EJSVsO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skills]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6008,6 +6440,15 @@
           <Val><![CDATA[Grants permission for read operations for App Configuration resources.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[App Configuration 리소스에 대한 읽기 작업에 대한 권한을 부여합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EOCHhv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} {count, plural, one {action} other {actions}} queued]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} {count, plural, one {작업} other {작업}} 대기 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6201,6 +6642,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Eo9M+K" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a file to edit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[편집할 파일 선택]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Ep74wA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[ServiceNow is connected.]]></Val>
@@ -6242,6 +6692,15 @@
           <Val><![CDATA[Built-in Tools]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[기본 제공 도구]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";EuUxTD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} open {count, plural, one {note} other {notes}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 열기 {count, plural, one {메모} other {메모}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6363,20 +6822,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";FGN2ax" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tool saved successfully!]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구를 저장했습니다!]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";FGP0Kd" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[CPU usage insights]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[CPU 사용량 인사이트]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FKyoe8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Python 도구 편집]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6489,6 +6948,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";FiXNt1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[default]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기본값]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";FitglU" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[ServiceNow endpoint is required.]]></Val>
@@ -6539,15 +7007,6 @@
           <Val><![CDATA[Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 에이전트에 대한 지식 기반이 활성화되어 있습니다. SearchMemory 도구와 지식 기반 프롬프트가 자동으로 포함됩니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";FuPxOh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Save & Use Tool]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구 저장 및 사용]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6795,11 +7254,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";GFhSwY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";GGr/yS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Feedback submitted on threads will appear here]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[스레드에 제출된 피드백이 여기에 표시됩니다]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";GGvPEB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Quality score for this dimension (0-100)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 차원의 품질 점수(0~100)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7002,6 +7479,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HDeHN9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No executions found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[실행을 찾을 수 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HEgmnC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Investigation Results]]></Val>
@@ -7016,15 +7502,6 @@
           <Val><![CDATA[No code optimization recommendations detected.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[코드 최적화 권장 사항이 검색되지 않았습니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";HHP8Nh" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Code generated successfully!]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[코드를 생성했습니다!]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7061,6 +7538,15 @@
           <Val><![CDATA[Build Your Agent Ecosystem]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트 에코시스템 빌드]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HP6f9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An error occurred while loading suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[제안을 로드하는 동안 오류가 발생했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7119,6 +7605,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HZ13wA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable this to use the managed identity to acquire a federated identity credential for cross-tenant authentication.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이를 통해 관리 ID를 사용하여 테넌트 간 인증을 위한 페더레이션 ID 자격 증명을 획득할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HZQtAg" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test values]]></Val>
@@ -7128,11 +7623,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HZoKF5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Traces visualize the internal activity of your agent session. Data is queried from Application Insights custom events. Select an item on the left to view details.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[추적은 에이전트 세션의 내부 활동을 시각화합니다. 데이터는 Application Insights 사용자 지정 이벤트에서 쿼리됩니다. 세부 정보를 보려면 왼쪽에서 항목을 선택하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HbTFJf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pending approvals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[보류 중인 승인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HeFlq1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill name is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 이름이 필요합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7196,15 +7709,6 @@
           <Val><![CDATA[Time frame]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[시간 프레임]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Hnv6Ej" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Python Function]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python 함수]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7299,15 +7803,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";I3ymC9" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Exit code: {code}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[종료 코드: {code}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";I4PbZq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a subagent]]></Val>
@@ -7340,6 +7835,15 @@
           <Val><![CDATA[Approve action]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[작업 승인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";I85tfP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} cannot be processed. {message} (Thread ID: {threadId})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 {incidentId}을(를) 처리할 수 없습니다. {message} (스레드 ID: {threadId})]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7515,15 +8019,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ITzzTV" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test failed]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 실패]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";IYLPrk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete scheduled task]]></Val>
@@ -7628,15 +8123,6 @@
           <Val><![CDATA[The agent uses predefined queries for structured logs, telemetry, and time series data.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트는 구조화된 로그, 원격 분석 및 시계열 데이터에 대해 미리 정의된 쿼리를 사용합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";IoxJ74" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Writing function code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[함수 코드를 작성하는 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7821,6 +8307,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";JHYtif" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Actionability]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[실행 가능성]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";JJNc3c" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Previous]]></Val>
@@ -7880,6 +8375,15 @@
           <Val><![CDATA[Tip:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[팁:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";JTS+Zf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete skill {name}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 {name} 삭제에 실패했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8235,6 +8739,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";KIFqqs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool fit]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도구 적합성]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";KJHRU/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add existing subagent]]></Val>
@@ -8523,15 +9036,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";L/BdWN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generate with AI ✨]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AI를 사용하여 생성 ✨]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";L/ct40" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in visual view]]></Val>
@@ -8622,15 +9126,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";LPz7Qc" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Tool Type]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구 유형]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LQ2AtR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleted {successCount} data connectors. Failed to delete {failedCount}: {failedItems}]]></Val>
@@ -8645,6 +9140,15 @@
           <Val><![CDATA[Prompt examples]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[프롬프트 예제]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LRbqvb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Next best step: Capture a transcript to analyze intent match.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다음 최선의 단계: 의도 일치 분석을 위해 대본을 캡처하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8694,6 +9198,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";LZPnC6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Build Subagents in VS Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code에서 하위 에이전트 빌드]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LZXqGi" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident {incidentId} successfully processed. (Thread ID: {threadId})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 {incidentId}이(가) 처리되었습니다. (스레드 ID: {threadId})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";LZyV4T" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step.]]></Val>
@@ -8708,6 +9230,15 @@
           <Val><![CDATA[Creating Kusto Tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kusto 도구를 만드는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";LbYKes" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to save skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술을 저장하지 못했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9153,6 +9684,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Ml5W34" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident trigger with learnings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[학습 내용을 반영한 인시던트 트리거]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";MlX0aZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All impacted services]]></Val>
@@ -9540,15 +10080,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";NzhSBf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Edit the code below or regenerate with different instructions]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[아래 코드를 편집하거나 다른 명령으로 다시 생성하세요.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";O+srpo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review {count, plural, =0 {findings} one {# quick fix} other {# quick fixes}}]]></Val>
@@ -9846,11 +10377,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";OgEDPw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Knowledge Graph Search Results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 자료 그래프 검색 결과 보기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";OlIql8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Moderate]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[보통]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OmDQWM" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot create skills when subagents exist]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[하위 에이전트가 있으면 기술을 만들 수 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10053,6 +10602,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";PGhDTf" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No matching entities or relations found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[일치하는 엔터티 또는 관계를 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";PI1EY1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Highlighted points indicate significant events or anomalies in the data that warrant attention.]]></Val>
@@ -10112,6 +10670,15 @@
           <Val><![CDATA[Loading more rows...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[더 많은 행을 로드하는 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PTp9MX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Federated client ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[페더레이션 클라이언트 ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10220,6 +10787,24 @@
           <Val><![CDATA[Full page]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[전체 페이지]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PeFBjl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluation results are outdated due to recent changes. Please re-evaluate to get the latest insights.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[최근 변경 내용으로 인해 평가 결과가 오래되었습니다. 최신 인사이트를 얻으려면 다시 평가해 주세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PfwAB2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show recommended]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권장 표시]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10395,11 +10980,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Q6jwpY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading suggestions...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[제안을 로드하는 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Q7/1w4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Required for testing]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[테스트에 필요]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Q7T0iv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Evaluate]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[평가]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10530,15 +11133,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";QTVz4e" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Describe what your tool should do]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구가 수행할 작업을 설명하세요.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";QW+Q5N" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all]]></Val>
@@ -10563,6 +11157,51 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[1. 수행한 작업을 설명해 주세요. 2. 관련된 리소스나 서비스를 언급해 주세요.]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[1 tool]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 도구]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QZnXvZ.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {1 tool} other {{count} tools}}]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10602,11 +11241,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Qg+chS" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";QfoWH0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Describe in plain English, e.g., "Parse JSON logs and count errors by severity"]]></Val>
+          <Val><![CDATA[No alignment with goal]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[일반 영어로 설명해 주세요. 예: "JSON 로그를 구문 분석하고 심각도별로 오류를 집계합니다."]]></Val>
+            <Val><![CDATA[목표와 맞지 않음]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10679,6 +11318,15 @@
           <Val><![CDATA[e.g., 0 9 * * 1-5]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[예: 0 9 * * 1-5]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";QozEE6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Additional files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[추가 파일]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10782,6 +11430,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";R7A5z4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand to show all {count} tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모든 {count}개의 도구를 표시하려면 확장]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";R7DP3y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resolved by agent]]></Val>
@@ -10814,6 +11471,15 @@
           <Val><![CDATA[Add a connector to give the agent additional tools for automating incident handling.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[커넥터를 추가하여 에이전트에 인시던트 처리를 자동화하기 위한 추가 도구를 제공합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RGgGWl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No filter criteria]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[필터 조건 없음]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10859,6 +11525,15 @@
           <Val><![CDATA[Failed to add handoff from {sourceAgent} to subagent {targetAgent}. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{sourceAgent}에서 서브에이전트 {targetAgent}(으)로 전달을 추가하지 못했습니다. 오류: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RPuopt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[• Agent start/end events with timing • Model generation calls with token usage (prompt, completion, total) • Model thinking (internal reasoning from o1/Claude reasoning models) • Agent reasoning (from reasoningScratchPad) • Agent responses (from notifyUserMessage) • Tool executions with inputs and outputs • Agent handoffs between meta_agent and specialized agents • Azure CLI command status (PendingAuthorization, Failed, Success) • User messages that triggered agent actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[• 시간 정보가 포함된 에이전트 시작/종료 이벤트 • 토큰 사용량(프롬프트, 완료, 총 사용량)을 포함한 모델 생성 호출 • 모델 사고(o1/Claude 추론 모델의 내부 추론) • 에이전트 추론(reasoningScratchPad에서) • 에이전트 응답(notifyUserMessage에서) • 입력과 출력을 포함한 도구 실행 • meta_agent와 전문 에이전트 간 에이전트 핸드오프 • Azure CLI 명령 상태(PendingAuthorization, 실패, 성공) • 에이전트 작업을 트리거한 사용자 메시지]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10931,6 +11606,15 @@
           <Val><![CDATA[MCP]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[MCP]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RdMODA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes and continue editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 수정 사항을 적용하고 편집을 계속합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11031,6 +11715,15 @@
       <Item ItemId=";RsY+gv.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{count, plural, =0 {Set up incident response plans to trigger agents automatically.} one {1 incident response plan ready to trigger your agents.} other {{count} incident response plans ready to trigger your agents.}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Rtd2bs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete Incident Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 트리거 삭제]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11151,6 +11844,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SE+u5f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Intent match]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[의도 일치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SEdSoA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task{name, select, undefined {} other { {name}}} has been updated.]]></Val>
@@ -11169,6 +11871,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SFuk1v" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용 권한]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";SIW6OB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Threads with Insights ({count})]]></Val>
@@ -11183,6 +11894,15 @@
           <Val><![CDATA[Failed to update the annotation with the error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[다음 오류로 인해 주석을 업데이트하지 못했습니다. {errorMessage}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SM/hWJ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleted {successCount} skills, but {failureCount} failed to delete]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{successCount}개의 기술을 삭제했지만 {failureCount}개는 삭제하지 못했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11237,6 +11957,15 @@
           <Val><![CDATA[Export]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[내보내기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SWvH2K" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use managed identity as federated identity credential]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[관리 ID를 페더레이션 ID 자격 증명으로 사용]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11331,6 +12060,51 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill "{name}" deleted successfully]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} skills deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 기술이 삭제되었습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";SllKh/.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {Skill "{name}" deleted successfully} other {{count} skills deleted successfully}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Slnpm8" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Click to open fullscreen]]></Val>
@@ -11349,11 +12123,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Sn2nYC" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Sn1s36" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Edit Name]]></Val>
+          <Val><![CDATA[{count} {count, plural, one {follow-up} other {follow-ups}}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[이름 편집]]></Val>
+            <Val><![CDATA[{count} {count, plural, one {후속작업} other {후속작업}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11538,6 +12312,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TEziH8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scheduled task execution history]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예약된 작업 실행 기록]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TFQBcG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent permissions were used, but the action failed to run.]]></Val>
@@ -11646,6 +12429,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TMjYpD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Brief description of what this skill does]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 기술의 용도에 대한 간략한 설명]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TO55dt" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure SRE Agent billing is measured in Azure agent units (AAU). Monthly AAU billing reflects both the fixed always-on flow and variable usage from active flow. You can increase or decrease the active flow AAU allocation at any time.]]></Val>
@@ -11736,6 +12528,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";TiR/Hq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Saving...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[저장 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TkWiD5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New chat thread]]></Val>
@@ -11808,6 +12609,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";U86NEH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permission added successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한을 추가함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";U914O/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No params needed]]></Val>
@@ -11822,6 +12632,15 @@
           <Val><![CDATA[No documents in knowledge base. Add some?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[지식 기반에 문서가 없습니다. 추가하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UC9FAP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident properties]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 속성]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11898,6 +12717,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";UWZEBA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit Skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 편집]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UZMdQH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Managed Identity]]></Val>
@@ -11925,20 +12753,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";UcVdDd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{count} test cases available]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 사례 {count}개 사용 가능]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Udeffr" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 유형]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ue9DHy" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Region:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[지역:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12078,6 +12906,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VAsLEP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create incident trigger with learnings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[학습 내용을 반영한 인시던트 트리거 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";VB97cf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User assigned]]></Val>
@@ -12092,6 +12929,24 @@
           <Val><![CDATA[Select subagents for handoff]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[전달을 위해 서브에이전트 선택]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VCHJad" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 폴더]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VCxIGW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generate suggestions for:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다음에 대한 제안 생성:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12231,11 +13086,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Ve40iX" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";Vd/5xJ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Review (Default)]]></Val>
+          <Val><![CDATA[Search by]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[검토(기본값)]]></Val>
+            <Val><![CDATA[검색 기준]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VdfqU5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[테넌트 ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VeyLxc" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to fetch status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사이트를 가져오지 못함]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12411,6 +13284,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";W3d1We" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[About traces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[추적 정보]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";W5zi/x" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please try again or check the console for details.]]></Val>
@@ -12429,6 +13311,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";W7GhBB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot create subagents when skills are enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술이 활성화된 경우 하위 에이전트를 만들 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";W8LUUc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not analyzed]]></Val>
@@ -12443,6 +13334,15 @@
           <Val><![CDATA[Incident response plan name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 응답 계획 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";WCPqyS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This scheduled task has not been run yet.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 예약 작업은 아직 실행되지 않았습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12506,6 +13406,15 @@
           <Val><![CDATA[Saturday]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[토요일]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";WNTEQn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[실행 상태]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13005,6 +13914,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";XXOHJH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 설정]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";XYIeUc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent permissions are determined by its assigned RBAC roles.]]></Val>
@@ -13095,6 +14013,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Xm4NcA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Showing suggestions for:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다음에 대한 제안 표시:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Xmty/4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide watcher panel]]></Val>
@@ -13145,6 +14072,15 @@
           <Val><![CDATA[Improved instructions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[향상된 지침]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";XynBVY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Next best step: {title} ({impactLabel}).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다음 최선의 단계: {title} ({impactLabel})입니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13419,6 +14355,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";YpVoLg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모니터]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Ypp6em" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Autonomous (Default)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[자율(기본값)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";YrlQBL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[tool]]></Val>
@@ -13464,6 +14418,51 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.few" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.many" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.two" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#ExpandedPlural.0.zero" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#Plural.one" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting skill...]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5#Plural.other" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} skills...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 기술을 삭제하는 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Yymgt5.icu.content" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count, plural, one {Deleting skill...} other {Deleting {count} skills...}}]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Z+uDP9" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add a file or connect an external data source, such as a service or repository, to help the agent generate more informed responses.]]></Val>
@@ -13496,6 +14495,15 @@
           <Val><![CDATA[Auto-generated if left empty]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[비어 있는 경우 자동 생성]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Z5bRi5" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search threads]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[스레드 검색]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13626,15 +14634,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZSbKr/" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Write code manually instead]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[수동으로 대신 코드 작성]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ZUXvHE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create logic app]]></Val>
@@ -13658,6 +14657,15 @@
           <Val><![CDATA[Resource Group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[리소스 그룹]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Zc8xuE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} prompt {count, plural, one {opportunity} other {opportunities}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} 프롬프트 {count, plural, one {기회} other {기회}}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13779,15 +14787,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ZpQ6us" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Result]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[결과]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";Zq5BCQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to apply changes]]></Val>
@@ -13869,11 +14868,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";a+wvAg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Testing with unsaved changes is not supported. Please apply or discard your changes to continue testing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[저장되지 않은 변경 내용이 있는 테스트는 지원되지 않습니다. 테스트를 계속하려면 변경 내용을 적용하거나 취소합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";a1UV+9" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Always-on flow + {count, number} active flow AAUs]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[상시 흐름 + 활성 흐름 AAU {count, number}개]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";a4owu3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deleting {count} permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} 권한을 삭제하는 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13995,6 +15012,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";aJbRki" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Completeness]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[완성도]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aKNsTc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Controls how this value is passed to the tool method]]></Val>
@@ -14094,6 +15120,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";aT1kVu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Showing top {count} results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[상위 {count}개 결과 표시]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";aVwj2j" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Strong with minor deviations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사소한 편차가 있는 강함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aWpBzj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show more]]></Val>
@@ -14166,6 +15210,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";anqDu+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[* Only incidents that have not been handled by SRE Agent are considered]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[* SRE 에이전트가 처리하지 않은 인시던트만 고려됩니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";aprHig" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Max reflections]]></Val>
@@ -14220,6 +15273,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";b+4JtY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Is the prompt complete with clear role, goal, and operational guidance? Higher scores indicate well-structured, comprehensive prompts.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[명확한 역할, 목표 및 운영 지침을 포함하여 프롬프트가 완료되었나요? 점수가 높을수록 체계적이고 포괄적인 프롬프트를 나타냅니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";b0+PAq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Audit check]]></Val>
@@ -14234,6 +15296,15 @@
           <Val><![CDATA[Session ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[세션 ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";b1DYE3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete Scheduled Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예약된 트리거 삭제]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14369,6 +15440,15 @@
           <Val><![CDATA[Select all tools in {groupName}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{groupName}의 도구 모두 선택]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bSEzRv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review before applying]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[적용 전에 검토]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14580,11 +15660,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";btp86z" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Python 도구를 만드는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bvvGgu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Turn off incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 응답 계획 끄기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bx8ZvK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Role Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[역할 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14769,6 +15867,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cJucrk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timeout cannot exceed 900 seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시간 제한은 900초를 초과할 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";cLC2fM" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AI chat service is currently unavailable. Please try again later.]]></Val>
@@ -14792,6 +15899,15 @@
           <Val><![CDATA[Restart test]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[테스트 다시 시작]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cNB4/9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[What you can see]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[볼 수 있는 항목]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14823,6 +15939,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cX0aie" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install the SRE Agent MCP server to VS Code to build the subagents more easily.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code에 SRE 에이전트 MCP 서버를 설치하면 하위 에이전트를 더 쉽게 빌드할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";cXAlMR" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled]]></Val>
@@ -14837,6 +15962,24 @@
           <Val><![CDATA[Intent Match]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[의도 일치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";cZAG1/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No major gaps detected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[큰 격차가 감지되지 않음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ca8tFg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save information for the agent to remember.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트가 기억할 정보를 저장합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15111,11 +16254,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dM9M1D" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Permission deleted successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용 권한을 삭제함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dO3eHj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Make changes to the current agent configuration and test immediately.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[현재 에이전트 구성을 변경하고 즉시 테스트합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dOQCL8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[표시 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15152,6 +16313,15 @@
           <Val><![CDATA[Manage API Management services.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[API Management 서비스를 관리합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dRQsmw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating Python Tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Python 도구 업데이트 중]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15255,6 +16425,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";dn5ZC0" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter owning team to see suggestions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[제안을 보려면 담당 팀을 입력하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dnXgff" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mitigated]]></Val>
@@ -15269,6 +16448,15 @@
           <Val><![CDATA[Delete subagent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[서브에이전트 삭제]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dsTLW1" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 편집]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15323,6 +16511,15 @@
           <Val><![CDATA[Device Update Administrator]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[디바이스 업데이트 관리자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";eBDp9J" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Grant access to users or apps from other Microsoft Entra tenants. For same-tenant access, use Access control (IAM).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다른 Microsoft Entra 테넌트에서 사용자 또는 앱에 대한 액세스 권한을 부여합니다. 동일한 테넌트 액세스에는 액세스 제어(IAM)를 사용합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15417,6 +16614,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";eXGPt3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Back to scheduled tasks]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[예약된 작업으로 돌아가기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";eYClyG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Capture AI-driven insights on confidence and next tweaks.]]></Val>
@@ -15462,11 +16668,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";efl/SK" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";effV14" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Run Test (Cmd+Enter)]]></Val>
+          <Val><![CDATA[Message visible to user]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 실행(Cmd+Enter)]]></Val>
+            <Val><![CDATA[사용자에게 표시되는 메시지]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15651,6 +16857,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fBoQwK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Incident count]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 수]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fCiXKq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add scheduled task]]></Val>
@@ -15732,15 +16947,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";fU7I5j" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Run Test]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 실행]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";fUgypu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Go to Access control]]></Val>
@@ -15795,6 +17001,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";fi7+px" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Knowledge Graph Search Results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[지식 그래프 검색 결과]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";fiLH5L" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To create a Kusto tool, first add an Azure Data Explorer connector.]]></Val>
@@ -15836,15 +17051,6 @@
           <Val><![CDATA[Correlation ranges from -1 (inverse) to 1 (direct)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[상관관계는 -1(역상관)에서 1(정상관) 사이입니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";fmrYkd" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Parse JSON and extract error messages]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[JSON 구문 분석 및 오류 메시지 추출]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15948,6 +17154,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";g+WSRl" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Standard User]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[표준 사용자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";g/hfuE" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy error details]]></Val>
@@ -16029,15 +17244,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gFrqQf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You have unsaved changes. Are you sure you want to close?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[저장하지 않은 변경 내용이 있습니다. 종료하시겠습니까?]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";gGfQUL" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warm-up scenario]]></Val>
@@ -16056,20 +17262,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";gJWy5X" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analyzed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[분석됨]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";gKi3tP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose how to set up this incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 인시던트 응답 계획을 설정하는 방법 선택]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";gLbYRM" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Calculate percentage from two numbers]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[두 숫자의 백분율 계산]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16137,15 +17343,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";gd7vV5" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating your function…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[함수를 만드는 중...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ggVnjB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thread ID]]></Val>
@@ -16178,6 +17375,24 @@
           <Val><![CDATA[Loading...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[로드 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";glC+/k" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Moderate, some mixed focus]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[보통, 일부 혼합된 초점]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";gmo2Su" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Skill Content (SKILL.md)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 콘텐츠(SKILL.md)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16308,15 +17523,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";hCNgyf" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Saving tool…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[도구 저장 중…]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";hEXUFk" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident with ID "{incidentId}" was not found]]></Val>
@@ -16430,6 +17636,15 @@
           <Val><![CDATA[Are you sure you want to delete this Extended Agent? The YAML configuration will be permanently removed and cannot be recovered and cannot be recovered. This action cannot be undone.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 확장 에이전트를 삭제하시겠습니까? YAML 구성이 영구적으로 제거되어 복구할 수 없습니다. 이 작업은 실행을 취소할 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";hX/ezX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Is the prompt clear, specific, and actionable for the LLM? Higher scores indicate better instruction quality.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프롬프트가 LLM에 대해 명확하고 구체적이며 실행 가능합니까? 점수가 높을수록 명령 품질이 뛰어납니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16605,6 +17820,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";hseqm+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete this incident trigger? This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 인시던트 트리거를 삭제하시겠어요? 이 작업은 실행을 취소할 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";htvX+Z" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deny]]></Val>
@@ -16628,15 +17852,6 @@
           <Val><![CDATA[Dashboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[대시보드]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";i/pRlX" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Click to edit code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[코드를 편집하려면 클릭하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16731,6 +17946,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iKfoIP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to add permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한을 추가하지 못함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iMaY2Q" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stopping SRE Agent {name} in progress]]></Val>
@@ -16821,6 +18045,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";iaCoRs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[역할 선택]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ibf4+R" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Core application group resource name]]></Val>
@@ -16884,6 +18117,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";inXqB2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Request timeout]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[요청 시간 제한]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ioRcwS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scheduled task trigger]]></Val>
@@ -16907,6 +18149,15 @@
           <Val><![CDATA[New custom response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[새 사용자 지정 응답 계획]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";iqsZgT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete this skill? The skill configuration will be permanently removed and cannot be recovered. This action cannot be undone.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 기술을 삭제하시겠어요? 기술 구성이 영구적으로 제거되어 복구할 수 없습니다. 이 작업은 실행 취소할 수 없습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16970,6 +18221,15 @@
           <Val><![CDATA[SRE Agent Space]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SRE 에이전트 공간]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ix9hVm" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand to show more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[확장하여 자세히 표시]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17235,6 +18495,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";jWgenr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Accept selected fixes and save]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 수정 사항 수락 및 저장]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";jXIYLG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You do not have permission to edit response plans.]]></Val>
@@ -17370,6 +18639,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";k+phZu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 삭제]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";k0VNHX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{milliseconds}ms]]></Val>
@@ -17397,11 +18675,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";k5x8I2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Critical fix required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[중요한 수정 필요]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";k8ZNgH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Alert ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[경고 ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";k9qHCC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Download file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[파일 다운로드]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17649,15 +18945,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";l1+Ilp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generating code…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[코드 생성 중…]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";l2Ni9H" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Chat preview is only available for agents.]]></Val>
@@ -17739,15 +19026,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";lOaomi" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Generation failed: {error}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[생성 실패: {error}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";lP5P2a" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Affected resources]]></Val>
@@ -17762,6 +19040,15 @@
           <Val><![CDATA[Subagents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[하위 에이전트]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";lR/7o8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Folder name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[폴더 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17865,6 +19152,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ltGXND" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No filter suggestions found for the selected criteria]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 조건에 맞는 필터 제안을 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";lvNWLS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IoT Hub Registry Contributor]]></Val>
@@ -17906,15 +19202,6 @@
           <Val><![CDATA[Generate custom response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[사용자 지정 응답 계획 생성]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";m2KQqp" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Execution Result]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[실행 결과]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18189,6 +19476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mkQVlA" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} tool {count, plural, one {gap} other {gaps}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count} 도구 {count, plural, one {갭} other {갭}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mkhNnB" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Read and write Azure Monitor monitoring settings and data.]]></Val>
@@ -18212,6 +19508,15 @@
           <Val><![CDATA[Filter by mitigated by]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[완화된 항목으로 필터링]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mn5pjI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Relations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[관계]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18369,6 +19674,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";nFJeOP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{count} chat {count, plural, one {flag} other {flags}}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{count}개 채팅 {count, plural, one {플래그} other {플래그}}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";nFOo9o" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review + edit]]></Val>
@@ -18410,6 +19724,24 @@
           <Val><![CDATA[Primary resource type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[기본 리소스 종류]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";nR0FVC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reusable knowledge and instructions that enhance agent capabilities.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트 기능을 향상시키는 재사용 가능한 지식과 지침입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";nSmJ6e" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add permissions to control access to this agent.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 에이전트에 대한 액세스를 제어할 수 있는 권한을 추가합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18522,15 +19854,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";nxBEvY" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Creating your Python function…]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python 함수를 만드는 중...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";nxmZHP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configuration saved successfully.]]></Val>
@@ -18554,6 +19877,15 @@
           <Val><![CDATA[A unique identifier for your tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[도구의 고유 식별자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";o/FLCg" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Owning Team]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[담당 팀]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18599,6 +19931,24 @@
           <Val><![CDATA[Failed to delete all {count} data connectors]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[모든 {count}개의 데이터 커넥터를 삭제하지 못했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oDA49h" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Token usage]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[토큰 사용량]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oDH12O" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tool name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도구 이름]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18680,6 +20030,15 @@
           <Val><![CDATA[Day of month]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[월간 일자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oOF+UT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Review and apply]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[검토 및 적용]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18801,6 +20160,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ohfF15" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Perfect alignment, all on-task]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[완벽하게 일치함, 모든 항목이 작업 수행 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oi3wVV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test results]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[테스트 결과]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";omHElC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Provide response feedback]]></Val>
@@ -18851,6 +20228,15 @@
           <Val><![CDATA[High risk]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[위험 수준 높음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";oyOUhv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Arguments passed to tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도구에 전달된 인수]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19044,6 +20430,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";pLFm2y" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한을 삭제하지 못함]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";pPwNx4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Office 365 Outlook]]></Val>
@@ -19215,6 +20610,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ppAn7O" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[File name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[파일 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ppt4BE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{days}d ago]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{days}일 전]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ppzeDo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Link Tool]]></Val>
@@ -19251,20 +20664,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";psccqt" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Executed in {ms}ms]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{ms}밀리초 만에 실행됨]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";puQ/kF" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading chat threads]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[채팅 스레드 로드 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";pvpOm2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click the button to start a new chat and ask: {question}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[단추를 클릭하여 새 채팅을 시작하고 다음을 질문합니다. {question}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19323,6 +20736,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";q9k0lN" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter AAD application tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AAD 애플리케이션 테넌트 ID 입력]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";q9vJvD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timeout must be at least 5 seconds]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시간 제한은 5초 이상이어야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";qAhUUO" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Thursday]]></Val>
@@ -19341,20 +20772,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";qC5uhF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Query:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[쿼리:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";qDwvZ4" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unknown error]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[알 수 없는 오류]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";qQRG87" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Parameters auto-detected from code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[코드에서 매개 변수를 자동으로 감지함]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19391,6 +20822,15 @@
           <Val><![CDATA[Error details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[오류 세부 정보]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";qdxZys" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Last heartbeat: {time}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[마지막 하트비트: {time}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19625,6 +21065,15 @@
           <Val><![CDATA[Connector]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[커넥터]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";r8jak4" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Does it include error handling, confirmation prompts, and safety checks? Higher scores mean better safeguards.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[오류 처리, 확인 프롬프트 및 안전 검사가 포함되어 있나요? 점수가 높을수록 더 나은 보호 장치를 의미합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19877,6 +21326,15 @@
           <Val><![CDATA[Close]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[닫기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";rc7ZT2" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter the skill markdown content...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술 마크다운 콘텐츠 입력...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20340,6 +21798,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";sXnnRR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Type what you want me to remember...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[제가 기억했으면 하는 내용을 입력해주세요...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";sYCfrb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Test agent]]></Val>
@@ -20385,6 +21852,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";siuURH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Adding permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한을 추가하는 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";sjlioi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Subagent invoked]]></Val>
@@ -20394,20 +21870,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";sjq9sr" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Validate email addresses]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[이메일 주소 검증]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";slxYbm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to save incident management configuration. Error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 관리 구성을 저장하지 못했습니다. 오류: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";smIXdP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Test playground]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[플레이그라운드 테스트]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20444,6 +21920,24 @@
           <Val><![CDATA[You have warnings regarding your agent.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트에 대한 경고가 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";spehs+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Task summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 요약]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";sq1VgP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand chat]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[채팅 확장]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20525,6 +22019,15 @@
           <Val><![CDATA[Scheduled tasks]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[예약된 작업]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";syr24x" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Federated tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[페더레이션 테넌트 ID]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20745,6 +22248,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tWkQ2J" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Author]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작성자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tb6uBb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{toolName} is already connected to {agentName}.]]></Val>
@@ -20790,6 +22302,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";tiNK7U" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Thread name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[스레드 이름]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";tjE5Cb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No handoffs configured.]]></Val>
@@ -20804,6 +22325,15 @@
           <Val><![CDATA[Experiment with your agent's configuration and see real-time results]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트의 구성을 실험하고 실시간 결과 보기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";tpD3Ax" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tools: {count}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도구: {count}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20907,6 +22437,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";u+H5Wd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter AAD application client ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AAD 애플리케이션 클라이언트 ID 입력]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";u04DEJ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error loading the usage data. Please try again later.]]></Val>
@@ -20930,6 +22469,15 @@
           <Val><![CDATA[Incident status:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트 상태:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";u3mqsz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cross-tenant permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[테넌트 간 권한]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20988,15 +22536,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uC4R7m" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Test failed: {message}]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[테스트 실패: {message}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";uCkn4+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All priorities]]></Val>
@@ -21006,29 +22545,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uDXk7F" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Python Function Tester]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python 함수 테스터]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";uEYYty" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New incident response plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[새 인시던트 응답 계획]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";uFDB/3" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Function Code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[함수 코드]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21150,6 +22671,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";uQ/yKk" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search by skill]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술로 검색]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";uRMqBi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Read, write, and delete Azure Storage containers and blobs.]]></Val>
@@ -21186,20 +22716,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";uYv0At" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Extracting parameters]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[매개 변수 추출 중]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ubULuu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear description for agents to understand when to use this tool]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트가 이 도구의 사용 시기를 인식할 수 있도록 설명을 명확히 입력]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ubmFc8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[설치]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21245,6 +22775,15 @@
           <Val><![CDATA[Folder]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[폴더]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ukq8eI" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[There has been new chat activity since the last evaluation. Consider re-evaluating to ensure insights are up to date.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[마지막 평가 이후 새로운 채팅 활동이 있었습니다. 인사이트를 최신 상태로 유지하려면 다시 평가하는 것이 좋습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21375,6 +22914,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";v84FgY" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Handoff reasoning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[핸드오프 추론]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";v8lolG" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start chat]]></Val>
@@ -21456,6 +23004,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vEPakK" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Additional Files]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[추가 파일]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vG08m6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Improve your agent prompt to increase confidence]]></Val>
@@ -21470,6 +23027,15 @@
           <Val><![CDATA[Auto apply]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[자동 적용]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";vOzK9a" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create new Python tool]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 Python 도구 만들기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21600,6 +23166,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";voe6nT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose a maximum of {max} resource groups you have permissions on. Your agent currently manages {count} resource groups.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한이 있는 최대 {max}개의 리소스 그룹을 선택하세요. 에이전트가 현재 {count}개의 리소스 그룹을 관리합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";vs8s5B" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enabling incident response plan]]></Val>
@@ -21663,6 +23238,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";w4MKWD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add permission]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[권한 추가]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";w5FDGY" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Update scheduled task]]></Val>
@@ -21704,6 +23288,15 @@
           <Val><![CDATA[Unknown agent mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[알 수 없는 에이전트 모드]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wAZ9A7" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Trigger agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[트리거 에이전트]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21762,15 +23355,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wGM2T+" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please provide Python function code]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python 함수 코드를 입력하세요.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wGcWbo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Active tasks]]></Val>
@@ -21825,15 +23409,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wPfhmg" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Standard Error]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[표준 오류]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";wQdhYo" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a new handoff agent]]></Val>
@@ -21848,6 +23423,15 @@
           <Val><![CDATA[Create Subagent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[하위 에이전트 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wSAvhu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Assistant]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[도우미]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21870,11 +23454,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";wTA9dx" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";wTdxhX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Test Your Function]]></Val>
+          <Val><![CDATA[Enter incident ID]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[함수 테스트]]></Val>
+            <Val><![CDATA[인시던트 ID 입력]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21902,6 +23486,15 @@
           <Val><![CDATA[The action is in progress with agent permissions.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트 사용 권한으로 작업이 진행 중입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";wXVN4/" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Safety]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[안전]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22032,11 +23625,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";x+Cs2X" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Function must contain a main() function]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[함수는 main() 함수를 포함해야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";x/7RC2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking trigger setup…]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[트리거 설정을 확인하는 중...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";x/ocZz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Model thinking]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모델 사고]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22064,6 +23675,15 @@
           <Val><![CDATA[No runs yet]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[아직 실행이 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";xB9aeF" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter tenant ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[테넌트 ID 입력]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22163,15 +23783,6 @@
           <Val><![CDATA[No connectors match your search]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[검색과 일치하는 커넥터가 없습니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";xRpMXP" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Try:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[시도:]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22284,11 +23895,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";xgD8Kv" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";xjZrbx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Python Function Code]]></Val>
+          <Val><![CDATA[Editing: {fileName}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Python 함수 코드]]></Val>
+            <Val><![CDATA[편집 중: {fileName}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22419,6 +24030,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";y1cukD" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No thread found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[스레드를 찾을 수 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";y5oInX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Incident priority]]></Val>
@@ -22487,6 +24107,15 @@
           <Val><![CDATA[Mute this warning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 경고 음소거]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";yL92TR" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter object ID]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[개체 ID 입력]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22806,6 +24435,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";z4NnlT" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No skills found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[기술을 찾을 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";z8ZYoc" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find incident threads and incident response plans together on the Incident Management tab.]]></Val>
@@ -22955,15 +24593,6 @@
           <Val><![CDATA[Incident]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[인시던트]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";zcksw4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[✓ Test passed]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[✓ 테스트 통과됨]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23135,6 +24764,15 @@
           <Val><![CDATA[Daily]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[매일]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";zztZjz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fix with AI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AI로 수정]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
-using OpenTelemetry.Trace;
 
 namespace Agent.Logging;
 
@@ -60,7 +60,7 @@ public class AgentTraceProcessor : BaseProcessor<Activity>
         if (_filter(activity))
         {
             var operationName = activity.Tags.FirstOrDefault(t => t.Key == "operation.name").Value;
-            _logger.LogInformation($"Processing activity with operation name: {operationName}");
+            _logger.LogInternalInformation($"Processing activity with operation name: {operationName}");
 
             // If any batch processors are configured, send the activity to each one
             if (_batchProcessors.Count > 0)

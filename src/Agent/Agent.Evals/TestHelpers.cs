@@ -31,13 +31,13 @@ using Agent.Plugins.Services.Interfaces;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Extensions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -520,6 +520,8 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<ISessionPoolService>());
         builder.Services.AddSingleton(Mock.Of<IIncidentStatusMetricsService>());
         builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
+
+        builder.Services.AddWorkspaceServices();
 
         return builder;
     }

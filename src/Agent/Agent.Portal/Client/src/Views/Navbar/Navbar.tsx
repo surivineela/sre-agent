@@ -77,7 +77,11 @@ export const Navbar = () => {
     const intl = useIntl();
     const navigate = usePersistentNavigate();
     const styles = useStyles();
-    const { agentId: encodedAgentId, agentName: encodedExternalAgentName } = useParams<{ agentId: string; agentName: string }>();
+    const {
+        agentId: encodedAgentId,
+        agentName: encodedExternalAgentName,
+        spaceId: encodedSpaceId,
+    } = useParams<{ agentId: string; agentName: string; spaceId: string }>();
     const { isAuthenticated } = useAuth();
 
     // Parse agent name from the route if we're on an agent page
@@ -96,6 +100,15 @@ export const Navbar = () => {
         return undefined;
     }, [encodedAgentId, encodedExternalAgentName]);
 
+    // Parse space name from the route if we're on an agent space page
+    const spaceName = useMemo(() => {
+        if (encodedSpaceId) {
+            const spaceRscId = decodeURIComponent(encodedSpaceId);
+            return parseArmId(spaceRscId).resourceName;
+        }
+        return undefined;
+    }, [encodedSpaceId]);
+
     return (
         <div className={styles.navbar}>
             <Tooltip content={intl.formatMessage(PortalResources.azureSreAgents)} relationship="label">
@@ -110,6 +123,16 @@ export const Navbar = () => {
                             <Text className={styles.breadcrumbSeparator}>/</Text>
                             <Text weight="semibold" className={styles.agentName} title={decodeURIComponent(agentName)}>
                                 {decodeURIComponent(agentName)}
+                            </Text>
+                        </>
+                    )}
+                    {spaceName && (
+                        <>
+                            <Text className={styles.breadcrumbSeparator}>/</Text>
+                            <Text>{intl.formatMessage(PortalResources.agentSpaces)}</Text>
+                            <Text className={styles.breadcrumbSeparator}>/</Text>
+                            <Text weight="semibold" className={styles.agentName} title={spaceName}>
+                                {spaceName}
                             </Text>
                         </>
                     )}

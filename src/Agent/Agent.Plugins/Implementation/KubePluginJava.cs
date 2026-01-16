@@ -93,7 +93,7 @@ namespace Agent.Plugins
             }
 
             // Create debug container for enhanced profiling capabilities
-            _logger?.LogInformation("Creating debug container for enhanced profiling access to pod '{PodName}'", pod.Name());
+            _logger?.LogInternalInformation("Creating debug container for enhanced profiling access to pod '{PodName}'", pod.Name());
 
             if (string.IsNullOrWhiteSpace(_javaProfilerSettings.DebugProfileContainer))
             {
@@ -176,7 +176,7 @@ namespace Agent.Plugins
         )
         {
             // Poll for the completion of the debug container and retrieve results
-            _logger?.LogInformation("Polling for debug container '{ContainerName}' completion on pod '{PodName}'", containerName, pod.Name());
+            _logger?.LogInternalInformation("Polling for debug container '{ContainerName}' completion on pod '{PodName}'", containerName, pod.Name());
 
             TimeSpan? timeout = _javaProfilerSettings.ProfileTimeoutMinutes > 0
                 ? TimeSpan.FromMinutes(_javaProfilerSettings.ProfileTimeoutMinutes)
@@ -233,7 +233,7 @@ namespace Agent.Plugins
                         var reason = terminatedState.GetProperty("reason").GetString();
                         var finishedAt = terminatedState.GetProperty("finishedAt").GetString();
 
-                        _logger?.LogInformation("Debug container '{ContainerName}' has terminated with exit code {ExitCode} and reason '{Reason}' at {FinishedAt}",
+                        _logger?.LogInternalInformation("Debug container '{ContainerName}' has terminated with exit code {ExitCode} and reason '{Reason}' at {FinishedAt}",
                             containerName, exitCode, reason, finishedAt);
 
                         // Container has terminated, get full logs
@@ -399,7 +399,7 @@ namespace Agent.Plugins
 
                     var count = javaProfilerContainers.Count;
 
-                    _logger?.LogInformation("Found {Count} existing java-profiler ephemeral containers on pod '{PodName}'", count, pod.Name());
+                    _logger?.LogInternalInformation("Found {Count} existing java-profiler ephemeral containers on pod '{PodName}'", count, pod.Name());
 
                     if (count >= _javaProfilerSettings.MaxDebugContainers)
                     {
@@ -475,13 +475,13 @@ namespace Agent.Plugins
 
                 if (agentMode == ActionMode.ReadOnly.ToString())
                 {
-                    _logger?.LogInformation("Debug container command (ReadOnly mode): kubectl {Command}", debugCommand);
+                    _logger?.LogInternalInformation("Debug container command (ReadOnly mode): kubectl {Command}", debugCommand);
                     return $"Debug container command that would be executed:\nkubectl {debugCommand}\n\n" +
                         $"This would create an ephemeral debug container '{containerName}' using image '{debugImageName}' " +
                         $"attached to pod '{pod.Name}' in namespace '{pod.Namespace}' with shared process namespace.";
                 }
 
-                _logger?.LogInformation(
+                _logger?.LogInternalInformation(
                     "Creating debug container '{ContainerName}' for pod '{PodName}' in namespace '{Namespace}' using image '{Image}'",
                     containerName, pod.Name(), pod.Namespace(), debugImageName);
 

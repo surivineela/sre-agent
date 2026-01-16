@@ -138,9 +138,12 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
     const sendMessage = (method: MessageRequestType, ...args: any[]) => {
         if (isConnectedRef.current && connectionRef.current) {
-            connectionRef.current.invoke(method, ...args).catch(() => {
-                //error handling
+            connectionRef.current.invoke(method, ...args).catch(error => {
+                console.error(`[SignalR] Error invoking ${method}:`, error);
+                console.error(`[SignalR] Args:`, args);
             });
+        } else {
+            console.warn(`[SignalR] Cannot send ${method}: not connected. isConnected=${isConnectedRef.current}`);
         }
     };
 
@@ -155,6 +158,13 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const cancelMessageStreaming = useCallback((threadId: string) => {
         sendMessage(MessageRequestType.CancelThread, threadId);
     }, []);
+
+    const submitUserQuestionResponse = useCallback(
+        (threadId: string, questionId: string, response: { selectedLabel?: string; freeText?: string }) => {
+            sendMessage(MessageRequestType.SubmitUserQuestionResponse, threadId, questionId, response);
+        },
+        []
+    );
 
     useEffect(() => {
         isConnectedRef.current = isConnected;
@@ -322,6 +332,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 startMessageStreamingOnNewThread,
                 startMessageStreamingOnExistingThread,
                 cancelMessageStreaming,
+                submitUserQuestionResponse,
                 subscribeMessageUpdateEvent,
                 subscribeThreadUpdateEvent,
                 subscribeTaskUpdateEvent,

@@ -36,7 +36,7 @@ export class RelayConnection {
   onclose?: () => void;
 
   constructor(ws: WebSocket) {
-    this._debuggee = { };
+    this._debuggee = {};
     this._tabPromise = new Promise(resolve => this._tabPromiseResolve = resolve);
     this._ws = ws;
     this._ws.onmessage = this._onMessage.bind(this);
@@ -67,7 +67,7 @@ export class RelayConnection {
     this._closed = true;
     chrome.debugger.onEvent.removeListener(this._eventListener);
     chrome.debugger.onDetach.removeListener(this._detachListener);
-    chrome.debugger.detach(this._debuggee).catch(() => {});
+    chrome.debugger.detach(this._debuggee).catch(() => { });
     this.onclose?.();
   }
 
@@ -90,7 +90,7 @@ export class RelayConnection {
     if (source.tabId !== this._debuggee.tabId)
       return;
     this.close(`Debugger detached: ${reason}`);
-    this._debuggee = { };
+    this._debuggee = {};
   }
 
   private _onMessage(event: MessageEvent): void {
@@ -143,9 +143,9 @@ export class RelayConnection {
       };
       // Forward CDP command to chrome.debugger
       return await chrome.debugger.sendCommand(
-          debuggerSession,
-          method,
-          params
+        debuggerSession,
+        method,
+        params
       );
     }
   }

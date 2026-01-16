@@ -463,14 +463,14 @@ public class SreAgentTools
         }
 
         // Query warning (not blocking - can be added later)
-        var queryYaml = "    // <REPLACE:your-kql-query>\n    // Use {{paramName}} for parameters";
+        var queryYaml = "    // <REPLACE:your-kql-query>\n    // CRITICAL: Use ##paramName## for parameters (NOT {{paramName}})";
         if (!string.IsNullOrWhiteSpace(query))
         {
             queryYaml = string.Join("\n", query.Split('\n').Select(l => $"    {l}"));
         }
         else
         {
-            warnings.Add("Query is empty. Add KQL before applying.");
+            warnings.Add("Query is empty. Add KQL before applying. Use ##param## format for placeholders.");
         }
 
         var yaml = $"""
@@ -480,9 +480,10 @@ public class SreAgentTools
               name: {name}
             spec:
               type: KustoTool
+              connector: {connector}
+              toolMode: Auto
               description: |
                 {description}
-              connector: {connector}
               database: {database}
               query: |
             {queryYaml}
@@ -508,6 +509,7 @@ public class SreAgentTools
               name: {name}
             spec:
               type: LinkTool
+              toolMode: Auto
               description: |
                 {description}
               template: "{urlTemplate}"
@@ -526,13 +528,14 @@ public class SreAgentTools
         {
             var parts = param.Split(':');
             var paramName = parts[0].Trim();
-            var paramType = parts.Length > 1 ? parts[1].Trim() : "string";
-            var paramDesc = parts.Length > 2 ? parts[2].Trim() : $"Parameter {paramName}";
+            // Always use string type per platform requirements
+            var paramDesc = parts.Length > 2 ? parts[2].Trim() : (parts.Length > 1 ? parts[1].Trim() : $"Parameter {paramName}");
 
             lines.Add($"    - name: {paramName}");
-            lines.Add($"      type: {paramType}");
+            lines.Add("      type: string");
             lines.Add($"      description: {paramDesc}");
             lines.Add("      required: true");
+            lines.Add("      target: dictionary:args:string");
         }
         return string.Join("\n", lines);
     }

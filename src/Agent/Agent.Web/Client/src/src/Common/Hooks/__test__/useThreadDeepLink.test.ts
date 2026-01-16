@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import AzPortalProxy from '../../AzPortalProxy/AzPortalProxy';
-import { sreAgentPortalAkaLink, standaloneReactEndpoint } from '../../Constants/Uri';
+import { azurePortalUrl, standaloneReactEndpoint } from '../../Constants/Uri';
 import { useThreadDeepLink } from '../useThreadDeepLink';
 
 describe('useThreadDeepLink', () => {
@@ -14,11 +14,13 @@ describe('useThreadDeepLink', () => {
     beforeEach(() => {
         // Reset env flags before each test
         AzPortalProxy.envInfo = { ...(AzPortalProxy.envInfo || {}), isCrossTenantPortalMode: false } as any;
+        AzPortalProxy.isHostedInSreaPortal = false;
         restoreStandaloneGetter();
     });
 
     afterEach(() => {
         restoreStandaloneGetter();
+        AzPortalProxy.isHostedInSreaPortal = false;
     });
 
     it('returns standalone deep link when running standalone', () => {
@@ -41,7 +43,7 @@ describe('useThreadDeepLink', () => {
         const displayName = 'myagent';
 
         const link = useThreadDeepLink(threadId, '/rsc-id', agentEndpoint);
-        const expected = `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
+        const expected = `${azurePortalUrl}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
             displayName
         )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
         expect(link).toBe(expected);
@@ -56,9 +58,42 @@ describe('useThreadDeepLink', () => {
         const resourceId = '/subscriptions/0000/resourceGroups/rg/providers/Microsoft.Sample/agents/foo';
 
         const link = useThreadDeepLink(threadId, resourceId, 'https://myagent.contoso.com');
-        const expected = `${sreAgentPortalAkaLink}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(
+        const expected = `${azurePortalUrl}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(
             resourceId
         )}/sreLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
+        expect(link).toBe(expected);
+    });
+
+    it('returns sre.azure.com deep link when hosted in SREA Portal', () => {
+        // Force non-standalone and SREA Portal mode
+        Object.defineProperty(AzPortalProxy, 'inStandaloneMode', { get: () => false });
+        AzPortalProxy.envInfo = { ...(AzPortalProxy.envInfo || {}), isCrossTenantPortalMode: false } as any;
+        AzPortalProxy.isHostedInSreaPortal = true;
+
+        const threadId = 't-srea';
+        const resourceId = '/subscriptions/1111/resourceGroups/rg/providers/Microsoft.Sample/agents/sreaAgent';
+
+        const link = useThreadDeepLink(threadId, resourceId, 'https://myagent.contoso.com');
+        const expected = `https://sre.azure.com#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(
+            resourceId
+        )}/sreLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
+        expect(link).toBe(expected);
+    });
+
+    it('returns sre.azure.com cross-tenant deep link when hosted in SREA Portal', () => {
+        // Force non-standalone, cross-tenant, and SREA Portal mode
+        Object.defineProperty(AzPortalProxy, 'inStandaloneMode', { get: () => false });
+        AzPortalProxy.envInfo = { ...(AzPortalProxy.envInfo || {}), isCrossTenantPortalMode: true } as any;
+        AzPortalProxy.isHostedInSreaPortal = true;
+
+        const threadId = 'ct-srea';
+        const agentEndpoint = 'https://sreaagent.contoso.com';
+        const displayName = 'sreaagent';
+
+        const link = useThreadDeepLink(threadId, '/rsc-id', agentEndpoint);
+        const expected = `https://sre.azure.com#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
+            displayName
+        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
         expect(link).toBe(expected);
     });
 });

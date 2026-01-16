@@ -53,3 +53,14 @@ output skills array = [
 output scheduledTasks array = [
   // {{SCHEDULED_TASK_YAML_FILES}}
 ]
+
+
+// ------------------------------------------------------------
+// IncidentFilter Configuration Files
+// ------------------------------------------------------------
+// Loads IncidentFilter YAML files and extracts extension data for
+// integration with the SRE Agent deployment.
+// ------------------------------------------------------------
+output incidentFilters array = [
+  // {{INCIDENT_FILTER_YAML_FILES}}
+]

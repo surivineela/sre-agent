@@ -25,6 +25,7 @@ namespace Agent.Web.SignalR
         private readonly ThreadManagementService _threadManagementService;
         private readonly IThreadRepository _repository;
         private readonly IReasoningLoopManager _reasoningLoopManager;
+        private readonly IUserQuestionService _userQuestionService;
         private readonly ILogger<AgentHub> _logger;
 
         // Thread-based cancellation tokens
@@ -35,12 +36,14 @@ namespace Agent.Web.SignalR
             ThreadManagementService threadManagementService,
             IThreadRepository repository,
             IReasoningLoopManager reasoningLoopManager,
+            IUserQuestionService userQuestionService,
             ILogger<AgentHub> logger)
         {
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _threadManagementService = threadManagementService;
             _repository = repository;
             _reasoningLoopManager = reasoningLoopManager;
+            _userQuestionService = userQuestionService;
             _logger = logger;
         }
 
@@ -430,6 +433,47 @@ namespace Agent.Web.SignalR
         public async Task Ping()
         {
             await Clients.Caller.Pong(DateTime.UtcNow);
+        }
+
+        /// <summary>
+        /// Submits a user's response to a pending question.
+        /// Called by the frontend when the user clicks an option or submits free text.
+        /// </summary>
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public async Task SubmitUserQuestionResponse(Guid threadId, Guid questionId, UserQuestionResponse response)
+        {
+            try
+            {
+                _logger.LogInternalInformation(
+                    "SignalR SubmitUserQuestionResponse from {ConnectionId} for question {QuestionId} in thread {ThreadId}",
+                    Context.ConnectionId, questionId, threadId);
+
+                await _userQuestionService.SubmitResponseAsync(threadId, questionId, response);
+
+                _logger.LogInternalInformation(
+                    "Successfully submitted response for question {QuestionId}",
+                    questionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error submitting user question response for {QuestionId}", questionId);
+
+                var errorMessage = new ChatResponseUpdate
+                {
+                    AuthorName = "System",
+                    Role = ChatRole.System,
+                    CreatedAt = DateTime.UtcNow,
+                    Contents = [new TextContent($"Error submitting response: {ex.Message}")],
+                    FinishReason = ChatFinishReason.Stop,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        { "connectionId", Context.ConnectionId },
+                        { "actionName", nameof(SubmitUserQuestionResponse) }
+                    }
+                };
+
+                await Clients.Caller.Error(errorMessage);
+            }
         }
     }
 }

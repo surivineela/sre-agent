@@ -36,8 +36,15 @@ export class SreAgentClient extends Client {
      * Fetches all SRE Agent resources across subscriptions using Azure Resource Graph (ARG).
      * @param subscriptionIds - Optional array of subscription IDs to filter by. Empty or undefined means all subscriptions.
      * @param resourceGroupNames - Optional array of resource group names to filter by. Empty or undefined means all resource groups.
+     * @param locationFilter - Optional location to filter agents by.
+     * @param excludeAgentsInSpace - When true, excludes agents that are already assigned to an agent space.
      */
-    public async getAgentsFromArg(subscriptionIds?: string[], resourceGroupNames?: string[]): Promise<Response<SreAgentArgItem[]>> {
+    public async getAgentsFromArg(
+        subscriptionIds?: string[],
+        resourceGroupNames?: string[],
+        locationFilter?: string,
+        excludeAgentsInSpace?: boolean
+    ): Promise<Response<SreAgentArgItem[]>> {
         try {
             // Build WHERE clause with filters
             const whereConditions: string[] = ["type =~ 'microsoft.app/agents'"];
@@ -52,13 +59,21 @@ export class SreAgentClient extends Client {
                 whereConditions.push(`resourceGroup in~ (${rgNamesList})`);
             }
 
+            if (locationFilter) {
+                whereConditions.push(`location =~ '${locationFilter}'`);
+            }
+
+            if (excludeAgentsInSpace) {
+                whereConditions.push(`(isnull(properties.agentSpaceId) or properties.agentSpaceId == '')`);
+            }
+
             const whereClause = whereConditions.join(' and ');
 
             const content = {
                 query: `
                     Resources
                     | where ${whereClause}
-                    | project id, name, location, type, subscriptionId, resourceGroup
+                    | project id, name, location, type, subscriptionId, resourceGroup, agentSpaceId = properties.agentSpaceId, powerState = properties.powerState
                 `,
                 subscriptions: subscriptionIds,
             };
@@ -107,4 +122,42 @@ export class SreAgentClient extends Client {
             apiVersion,
         });
     }
+
+    public startAgent = async (
+        resourceId: string,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ): Promise<Response<ArmObj<Agent>>> => {
+        return this.armClient.makeArmCall<ArmObj<Agent>>({
+            resourceId: `${resourceId}/start`,
+            commandName: 'startAgent',
+            method: 'POST',
+            apiVersion,
+        });
+    };
+
+    public stopAgent = async (
+        resourceId: string,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ): Promise<Response<ArmObj<Agent>>> => {
+        return this.armClient.makeArmCall<ArmObj<Agent>>({
+            resourceId: `${resourceId}/stop`,
+            commandName: 'stopAgent',
+            method: 'POST',
+            apiVersion,
+        });
+    };
+
+    public updateAgent = async (
+        resourceId: string,
+        properties: Partial<Agent>,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ): Promise<Response<ArmObj<Agent>>> => {
+        return this.armClient.makeArmCall<ArmObj<Agent>>({
+            resourceId,
+            commandName: 'updateAgent',
+            method: 'PATCH',
+            apiVersion,
+            body: { properties } as ArmObj<Agent>,
+        });
+    };
 }

@@ -109,4 +109,29 @@ public enum StreamMessageType
     /// Knowledge graph search results with structured data for rendering knowledge graph card
     /// </summary>
     KnowledgeGraph,
+
+    /// <summary>
+    /// Grep search results with structured data for rendering grep result card
+    /// </summary>
+    GrepSearch,
+
+    /// <summary>
+    /// User question requiring interactive response (similar to Claude Code's AskUserQuestion)
+    /// </summary>
+    UserQuestion,
+
+    /// <summary>
+    /// MCP (Model Context Protocol) tool execution with structured parameters
+    /// </summary>
+    McpTool,
+
+    /// <summary>
+    /// File read results with file content preview
+    /// </summary>
+    ReadFile,
+
+    /// <summary>
+    /// Terminal command execution results
+    /// </summary>
+    Terminal,
 }

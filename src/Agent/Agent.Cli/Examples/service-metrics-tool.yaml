@@ -1,82 +1,76 @@
-name: QueryServiceMetrics
-type: KustoTool
-connector: production-telemetry-connector
-description: |
-  Query service performance and health metrics from production telemetry systems.
-  
-  This tool provides comprehensive service health data including:
-  - Request rates and response times
-  - Error rates and failure patterns  
-  - Resource utilization (CPU, memory, disk)
-  - Dependency call patterns and latencies
-  - Custom business metrics
-  
-  Use this as the first step in incident investigation to establish baseline health status.
-
-mode: query
-function: QueryServiceMetrics
-database: ProductionTelemetry
-cluster_hint: prod-telemetry-cluster
-
-query: |
-  let timeRange = ago({timeRange});
-  let serviceName = "{serviceName}";
-  
-  ServiceMetrics
-  | where TimeGenerated >= timeRange
-  | where ServiceName =~ serviceName or serviceName == "all"
-  | summarize
-      RequestCount = sum(RequestCount),
-      AvgResponseTime = avg(ResponseTimeMs),
-      ErrorRate = avg(ErrorRate),
-      P95ResponseTime = percentile(ResponseTimeMs, 95),
-      P99ResponseTime = percentile(ResponseTimeMs, 99),
-      AvgCpuUsage = avg(CpuUsagePercent),
-      AvgMemoryUsage = avg(MemoryUsagePercent)
-      by ServiceName, bin(TimeGenerated, {granularity})
-  | order by TimeGenerated desc
-  | limit 1000
-
-parameters:
-  - name: serviceName
-    type: string
-    required: true
-    description: Name of the service to query (use 'all' for all services)
-    map_to: args
-    target: dictionary:args:string
-    default: "all"
-    
-  - name: timeRange
-    type: string
-    required: false
-    description: Time range for the query (e.g., '1h', '4h', '24h')
-    map_to: args
-    target: dictionary:args:string
-    default: "4h"
-    
-  - name: granularity
-    type: string
-    required: false
-    description: Time granularity for aggregation (e.g., '5m', '15m', '1h')
-    map_to: args
-    target: dictionary:args:string
-    default: "15m"
-
-attributes:
-  - monitoring
-  - telemetry
-  - performance
-  - reliability
-
+api_version: azuresre.ai/v2
+kind: ExtendedAgentTool
 metadata:
-  owner: sre-team
-  version: 1.0
-  category: monitoring
-  data_source: production-telemetry
-  update_frequency: real-time
-  retention_period: 90d
-  tags:
-    - kusto
-    - metrics
-    - service-health
-    - incident-response
+  name: QueryServiceMetrics
+spec:
+  type: KustoTool
+  connector: production-telemetry-connector
+  toolMode: Auto
+  description: |-
+    Purpose:
+    Query service performance and health metrics from production telemetry systems.
+
+    This tool provides comprehensive service health data including:
+    - Request rates and response times
+    - Error rates and failure patterns
+    - Resource utilization (CPU, memory, disk)
+    - Dependency call patterns and latencies
+    - Custom business metrics
+
+    Usage:
+    Call with serviceName (required), timeRange (optional, default: 4h), and granularity (optional, default: 15m)
+
+    Output Format:
+    Returns table with columns: ServiceName, TimeGenerated, RequestCount, AvgResponseTime, ErrorRate, P95ResponseTime, P99ResponseTime, AvgCpuUsage, AvgMemoryUsage
+
+    Use this as the first step in incident investigation to establish baseline health status.
+  database: ProductionTelemetry
+  query: |-
+    let _timeRange = '##timeRange##';
+    let _serviceName = '##serviceName##';
+    let _granularity = '##granularity##';
+    let timeRangeAgo = case(
+        _timeRange == "1h", ago(1h),
+        _timeRange == "4h", ago(4h),
+        _timeRange == "24h", ago(24h),
+        _timeRange == "7d", ago(7d),
+        ago(4h)
+    );
+    let granularityBin = case(
+        _granularity == "5m", 5m,
+        _granularity == "15m", 15m,
+        _granularity == "1h", 1h,
+        15m
+    );
+    ServiceMetrics
+    | where TimeGenerated >= timeRangeAgo
+    | where ServiceName =~ _serviceName or _serviceName == "all"
+    | summarize
+        RequestCount = sum(RequestCount),
+        AvgResponseTime = avg(ResponseTimeMs),
+        ErrorRate = avg(ErrorRate),
+        P95ResponseTime = percentile(ResponseTimeMs, 95),
+        P99ResponseTime = percentile(ResponseTimeMs, 99),
+        AvgCpuUsage = avg(CpuUsagePercent),
+        AvgMemoryUsage = avg(MemoryUsagePercent)
+        by ServiceName, bin(TimeGenerated, granularityBin)
+    | order by TimeGenerated desc
+    | limit 1000
+  parameters:
+    - name: serviceName
+      type: string
+      description: Name of the service to query (use 'all' for all services)
+      required: true
+      target: dictionary:args:string
+
+    - name: timeRange
+      type: string
+      description: Time range for the query (e.g., '1h', '4h', '24h', '7d')
+      required: false
+      target: dictionary:args:string
+
+    - name: granularity
+      type: string
+      description: Time granularity for aggregation (e.g., '5m', '15m', '1h')
+      required: false
+      target: dictionary:args:string

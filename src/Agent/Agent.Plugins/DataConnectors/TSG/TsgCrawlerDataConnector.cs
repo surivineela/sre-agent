@@ -75,8 +75,17 @@ namespace Agent.Plugins.DataConnectors.TSG
             {
                 Organization = repositoryInfo.Value.Organization,
                 ProjectName = repositoryInfo.Value.ProjectName,
-                RepositoryName = repositoryInfo.Value.RepositoryName
+                RepositoryName = repositoryInfo.Value.RepositoryName,
+                WikiIdentifier = repositoryInfo.Value.WikiIdentifier,
+                WikiPageId = repositoryInfo.Value.WikiPageId,
+                SourceType = repositoryInfo.Value.SourceType
             };
+
+            _logger.LogInternalInformation($"Detected source type: {repositoryInfo.Value.SourceType} for {instanceSettings.DataSource}");
+            if (repositoryInfo.Value.WikiPageId.HasValue)
+            {
+                _logger.LogInternalInformation($"Wiki page ID scope: {repositoryInfo.Value.WikiPageId}");
+            }
 
             var authSettings = CreateAuthSettings(instanceSettings.Identity, instanceSettings.ExtendedProperties, _hostEnvironment.IsDevelopment());
 
@@ -183,15 +192,24 @@ namespace Agent.Plugins.DataConnectors.TSG
                 return;
             }
 
-            // Discover all files in the repository
-            _logger.LogInternalInformation("Discovering files in repository {Organization}/{Project}/{Repository}",
-                repositoryInfo.Value.Organization, repositoryInfo.Value.ProjectName, repositoryInfo.Value.RepositoryName);
+            var sourceName = repositoryInfo.Value.SourceType == AzureDevOpsSourceType.Wiki
+                ? repositoryInfo.Value.WikiIdentifier
+                : repositoryInfo.Value.RepositoryName;
+
+            // Discover all files/pages in the repository or wiki
+            _logger.LogInternalInformation("Discovering {SourceType} content in {Organization}/{Project}/{Source}",
+                repositoryInfo.Value.SourceType, repositoryInfo.Value.Organization, repositoryInfo.Value.ProjectName, sourceName);
 
             var filePaths = await _azureDevOpsClient!.GetAllFilesAsync("/");
-            var textFiles = filePaths.Where(TsgDocumentHelper.IsPlainTextFile).ToList();
 
-            _logger.LogInternalInformation("Discovered {FileCount} text files in repository {Repository}",
-                textFiles.Count, repositoryInfo.Value.RepositoryName);
+            // For Git repos, filter to text files only; for wikis, all pages are valid (they're markdown)
+            var textFiles = repositoryInfo.Value.SourceType == AzureDevOpsSourceType.Wiki
+                ? filePaths
+                : filePaths.Where(TsgDocumentHelper.IsPlainTextFile).ToList();
+
+            var itemTypeDescription = repositoryInfo.Value.SourceType == AzureDevOpsSourceType.Wiki ? "wiki pages" : "text files";
+            _logger.LogInternalInformation("Discovered {FileCount} {SourceType} items in {Source}",
+                textFiles.Count, itemTypeDescription, sourceName);
 
             // Process files in parallel batches
             var totalProcessedDocuments = 0;
@@ -217,7 +235,7 @@ namespace Agent.Plugins.DataConnectors.TSG
                     totalProcessedDocuments += validDocuments.Count;
                 }
 
-                _logger.LogInternalInformation("Processed and uploaded batch with {ValidCount} valid documents out of {TotalCount} files",
+                _logger.LogInternalInformation("Processed and uploaded batch with {ValidCount} valid documents out of {TotalCount} items",
                     validDocuments.Count, batch.Count);
             }
 
@@ -225,13 +243,13 @@ namespace Agent.Plugins.DataConnectors.TSG
             _logger.LogInternalInformation("Running indexer for {TotalDocuments} processed documents", totalProcessedDocuments);
             await RunIndexerAsync();
 
-            _logger.LogInternalInformation("TSG crawler completed successfully. Processed {TotalDocuments} documents from {Repository}",
-                totalProcessedDocuments, repositoryInfo.Value.RepositoryName);
+            _logger.LogInternalInformation("TSG crawler completed successfully. Processed {TotalDocuments} documents from {Source}",
+                totalProcessedDocuments, sourceName);
         }
 
         private async Task<List<TsgDocumentMetadata?>> ProcessFileBatchAsync(
             List<string> fileBatch,
-            (string Organization, string ProjectName, string RepositoryName) repositoryInfo,
+            (string Organization, string ProjectName, string? RepositoryName, string? WikiIdentifier, int? WikiPageId, AzureDevOpsSourceType SourceType) repositoryInfo,
             Uri dataSourceUri,
             CancellationToken stoppingToken)
         {
@@ -258,7 +276,7 @@ namespace Agent.Plugins.DataConnectors.TSG
 
         private async Task<TsgDocumentMetadata?> ProcessSingleFileAsync(
             string filePath,
-            (string Organization, string ProjectName, string RepositoryName) repositoryInfo,
+            (string Organization, string ProjectName, string? RepositoryName, string? WikiIdentifier, int? WikiPageId, AzureDevOpsSourceType SourceType) repositoryInfo,
             Uri dataSourceUri)
         {
             try
@@ -274,7 +292,10 @@ namespace Agent.Plugins.DataConnectors.TSG
                 {
                     Organization = repositoryInfo.Organization,
                     ProjectName = repositoryInfo.ProjectName,
-                    RepositoryName = repositoryInfo.RepositoryName
+                    RepositoryName = repositoryInfo.RepositoryName,
+                    WikiIdentifier = repositoryInfo.WikiIdentifier,
+                    WikiPageId = repositoryInfo.WikiPageId,
+                    SourceType = repositoryInfo.SourceType
                 };
 
                 return TsgDocumentHelper.ParseTsgDocument(filePath, fileContent, azureDevOpsSettings, dataSourceUri);
@@ -365,6 +386,13 @@ namespace Agent.Plugins.DataConnectors.TSG
     {
         public required string Organization { get; init; }
         public required string ProjectName { get; init; }
-        public required string RepositoryName { get; init; }
+        public string? RepositoryName { get; init; }
+        public string? WikiIdentifier { get; init; }
+        /// <summary>
+        /// Optional wiki page ID to scope crawling to a specific page and its subpages.
+        /// If null, crawls the entire wiki. The page ID is extracted from the wiki URL.
+        /// </summary>
+        public int? WikiPageId { get; init; }
+        public AzureDevOpsSourceType SourceType { get; init; }
     }
 }

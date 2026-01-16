@@ -4,7 +4,7 @@ description: Implement UX features for Agent.Web and Agent.Portal
 argument-hint: Describe the UX feature to implement or provide a plan
 model: Claude Opus 4.5
 tools:
-  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'agent', 'todo']
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'todo']
 handoffs:
   - label: Begin testing
     agent: UXAgent_Testing
@@ -108,6 +108,18 @@ import { Button } from "@fluentui/react-components";
 <Button appearance="primary" onClick={handleClick}>
   Click me
 </Button>;
+```
+
+**Component Props**: Avoid explicitly setting component props to their default values unless clarity is essential. Omitting default values keeps the code concise and reduces noise.
+
+```typescript
+// ❌ WRONG - Explicitly setting default values
+<Button appearance="secondary" disabled={false}>
+  Cancel
+</Button>
+
+// ✅ CORRECT - Omit props that use default values
+<Button>Cancel</Button>
 ```
 
 To understand Fluent v9 components and their props, refer to the official documentation: https://react.fluentui.dev/

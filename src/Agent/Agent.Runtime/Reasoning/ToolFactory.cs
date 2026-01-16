@@ -13,7 +13,6 @@ using Agent.Plugins.Tools;
 using Agent.Runtime.Interfaces;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -69,9 +68,8 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         _yamlToolFunctionFactory = yamlToolFunctionFactory;
 
         // enable handoff reasoning for dev envs
-        var hostEnvironment = _serviceProvider.GetRequiredService<IHostEnvironment>();
         var experimentalSettings = _serviceProvider.GetRequiredService<ExperimentalSettings>();
-        _handoffReasoningEnabled = experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment();
+        _handoffReasoningEnabled = experimentalSettings.EnableHandoffReasoning;
 
         // Get aggregate tool function setting from environment variable
         var enableAggregateToolEnv = Environment.GetEnvironmentVariable("ENABLE_AGGREGATE_TOOL_FUNCTION");
@@ -298,7 +296,6 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
                     // Create AggregateDeferredToolFunction if this plugin is an aggregate plugin definition
                     IDeferredToolFunction<TContext> tool;
-
 
                     if (isAggregatePlugin)
                     {

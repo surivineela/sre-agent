@@ -187,9 +187,7 @@ export const ListWithSearch: FC<ListWithFilterProps> = ({
                 placeholder={intl.formatMessage(SreAgentResources.search)}
                 setSearchTerm={setSearchText}
                 className={styles.searchBox}
-                textToAnnounce={
-                    filteredOptions.length === 0 ? intl.formatMessage(SreAgentResources.noMatches) : undefined
-                }
+                textToAnnounce={filteredOptions.length === 0 ? intl.formatMessage(SreAgentResources.noMatches) : undefined}
                 isDirectlyUnderDocumentBody={true}
             />
             <div className={styles.listWrapper}>

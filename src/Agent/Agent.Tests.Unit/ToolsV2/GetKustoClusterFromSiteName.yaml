@@ -1,10 +1,9 @@
 name: GetKustoClusterFromSiteName
 type: KustoTool
-tool_mode: Auto
+toolMode: Auto
 connector: kusto-default-wawscus
 description: Looks up EventPrimaryStampName and Kusto cluster for a site name.
 database: wawsprod
-mode: Function
 function: GetKustoClusterFromSiteName
 query: |-
   let _siteName = "##siteName##";

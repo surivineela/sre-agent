@@ -504,20 +504,16 @@ public static class AgentsConfigurationExtensions
         openAiDeploymentName ??= serviceProvider.GetRequiredService<OpenAISettings>().LLMDeploymentName;
 
         var experimentalSettings = serviceProvider.GetRequiredService<ExperimentalSettings>();
-        var useResponsesApi = experimentalSettings.UseResponsesApi;
+        var experimentLoader = serviceProvider.GetRequiredService<IExperimentLoader>();
+        var useResponsesApi = experimentalSettings.UseResponsesApi
+            || experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableResponsesApi);
 
         var chatClientProviderSettings = serviceProvider.GetRequiredService<IOptions<ChatClientProviderSettings>>();
         var maxBurstRequests = chatClientProviderSettings.Value.MaxBurstRequests;
-        // load experiments to see if Responses API is enabled via experiment
-        var experimentLoader = serviceProvider.GetRequiredService<IExperimentLoader>();
-        if (experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableResponsesApi))
-        {
-            useResponsesApi = true;
-        }
 
         var client = serviceProvider.GetRequiredService<OpenAIClient>();
 
-        // Pick OpenAIResponseClient or ChatClient based on experimental settings
+        // Pick OpenAIResponseClient or ChatClient based on responses api config
         var chatClient = useResponsesApi
             ? client.GetOpenAIResponseClient(openAiDeploymentName).AsIChatClient()
             : client.GetChatClient(openAiDeploymentName).AsIChatClient();

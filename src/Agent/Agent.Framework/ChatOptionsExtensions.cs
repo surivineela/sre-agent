@@ -178,6 +178,18 @@ public static class ChatOptionsExtensions
             Model = reasoningOptions.ModelId,
         };
 
+        // When ToolMode is None, explicitly set ToolChoice to null to avoid Anthropic API error:
+        // "tools are required when tool choice is specified"
+        // The Anthropic SDK's ChatClient adapter may set ToolChoice even when Tools is null/empty
+        if (chatOptions.ToolMode == ChatToolMode.None)
+        {
+            messageParams = messageParams with
+            {
+                ToolChoice = null,
+                Tools = null,
+            };
+        }
+
         if (reasoningOptions.ExtendedThinkingEnabled)
         {
             messageParams = messageParams with

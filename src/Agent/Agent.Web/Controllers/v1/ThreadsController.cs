@@ -608,7 +608,7 @@ public class ThreadsController(
     /// <returns>Updated Thread object</returns>
     [HttpPost("{threadId}/favorite")]
     [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
-    public async Task<ActionResult<Thread>> updateFavoriteThread(Guid threadId, [FromBody] UpdateFavoriteRequest request)
+    public async Task<ActionResult<Thread>> UpdateFavoriteThread(Guid threadId, [FromBody] UpdateFavoriteRequest request)
     {
         logger.LogInternalInformation("Marking thread's favorite value as {favorite}: {Id}", request.Favorite, threadId);
 

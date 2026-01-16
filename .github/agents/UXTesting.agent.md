@@ -4,7 +4,7 @@ description: Test UX features directly in the browser using Playwright MCP tools
 argument-hint: Describe what to test or provide the URL/feature to test
 model: Claude Opus 4.5
 tools:
-  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'playwright/*', 'agent', 'todo']
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'playwright/*', 'agent', 'todo']
 handoffs:
   - label: Fix bugs found
     agent: UXAgent_Coding

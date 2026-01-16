@@ -109,7 +109,7 @@ const ConnectApp: React.FC = () => {
   }, []);
 
   const connectToMCPRelay = useCallback(async (mcpRelayUrl: string) => {
-    const response = await chrome.runtime.sendMessage({ type: 'connectToMCPRelay', mcpRelayUrl  });
+    const response = await chrome.runtime.sendMessage({ type: 'connectToMCPRelay', mcpRelayUrl });
     if (!response.success)
       handleReject(response.error);
   }, [handleReject]);

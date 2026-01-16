@@ -30,6 +30,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = new LowerCaseNamingPolicy(),
         WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     // TODO: make this default for all serializer options
@@ -245,6 +246,105 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentKnowledgeGraphMessageAsync(threadId, kgMessageText, resolvedMessageId, knowledgeGraphSearchResult);
     }
 
+    public async Task<Guid> AppendAgentGrepSearchMessage(Guid threadId, GrepSearchResult grepSearchResult, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(grepSearchResult, _serializerOptions);
+            // Stream to frontend using StreamMessageType.GrepSearch
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.GrepSearch, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream grep search message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        var grepMessageText = $"Grep Search: Found {grepSearchResult.TotalMatches} matches in {grepSearchResult.Files.Count} files for query '{grepSearchResult.Query}'";
+        return await _sinkService.SinkAgentGrepSearchMessageAsync(threadId, grepMessageText, resolvedMessageId, grepSearchResult);
+    }
+
+    public async Task<Guid> AppendAgentReadFileMessage(Guid threadId, ReadFileResult readFileResult, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(readFileResult, _serializerOptions);
+            // Stream to frontend using StreamMessageType.ReadFile
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.ReadFile, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream read file message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        var readFileMessageText = readFileResult.Error != null
+            ? $"Read file failed: {readFileResult.FilePath} - {readFileResult.Error}"
+            : $"Read file: {readFileResult.FilePath} (lines {readFileResult.StartLine}-{readFileResult.EndLine} of {readFileResult.TotalLines})";
+        return await _sinkService.SinkAgentReadFileMessageAsync(threadId, readFileMessageText, resolvedMessageId, readFileResult);
+    }
+
+    public async Task<Guid> AppendAgentTerminalMessage(Guid threadId, TerminalExecutionResult terminalResult, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(terminalResult, _serializerOptions);
+            // Stream to frontend using StreamMessageType.Terminal
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.Terminal, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream terminal message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        var statusText = terminalResult.IsBackground ? "background" : $"exit {terminalResult.ExitCode ?? 0}";
+        var terminalMessageText = $"Terminal: {terminalResult.Command} ({statusText})";
+        return await _sinkService.SinkAgentTerminalMessageAsync(threadId, terminalMessageText, resolvedMessageId, terminalResult);
+    }
+
+    public async Task<Guid> AppendAgentUserQuestionMessage(Guid threadId, UserQuestion userQuestion, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(userQuestion, _serializerOptions);
+            // Stream to frontend using StreamMessageType.UserQuestion
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.UserQuestion, resolvedMessageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream user question message for thread {ThreadId}", threadId);
+        }
+
+        // Persist to database - use a descriptive text message
+        var questionText = $"Question: {userQuestion.Question}";
+        return await _sinkService.SinkAgentUserQuestionMessageAsync(threadId, questionText, resolvedMessageId, userQuestion);
+    }
+
     public async Task NotifyThreadEvent(Guid threadId, Core.Models.Api.v1.Thread thread)
     {
         if (threadId == Guid.Empty)
@@ -386,6 +486,30 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task NotifyUserQuestionUpdate(Guid threadId, UserQuestion userQuestion, Guid messageId)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        if (messageId == Guid.Empty)
+        {
+            throw new ArgumentException("Message ID cannot be empty for question update.", nameof(messageId));
+        }
+
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(userQuestion, _serializerOptions);
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.UserQuestion, messageId);
+            _logger.LogInternalInformation("Sent user question update for thread {ThreadId}, question {QuestionId}", threadId, userQuestion.QuestionId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream UserQuestion update for thread {ThreadId}", threadId);
+        }
+    }
+
     public async Task NotifyIntermediateUpdate(Guid threadId, string message, Guid messageId = default)
     {
         if (threadId == Guid.Empty)
@@ -423,6 +547,28 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Failed to stream Approval update for thread {ThreadId}", threadId);
+        }
+    }
+
+    public async Task NotifyMcpToolExecution(Guid threadId, McpToolExecution execution, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(execution, _serializerOptions);
+            await AppendAgentStreamMessage(threadId, jsonString, StreamMessageType.McpTool, resolvedMessageId);
+            _logger.LogInternalInformation(
+                "Sent MCP tool execution update for thread {ThreadId}, tool {ToolName}, status {Status}",
+                threadId, execution.FullToolName, execution.Status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream MCP tool execution for thread {ThreadId}", threadId);
         }
     }
 
@@ -547,7 +693,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task AppendAgentToolCallMessage(Guid threadId, AIFunction aiTool, Guid? messageId = null, string? callId = null, CancellationToken cancellationToken = default)
+    public async Task AppendAgentToolCallMessage(Guid threadId, FunctionCallContent functionCall, Guid? messageId = null, CancellationToken cancellationToken = default)
     {
         if (threadId == Guid.Empty)
         {
@@ -583,9 +729,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             await _streamingService.StreamChatResponseUpdateAsync(threadId, stopMessageToolCalls, cancellationToken);
 
             // Use the streaming service abstraction to send the ChatUpdateResponse
-            var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(aiTool.Name);
-            var functionCallContent = new FunctionCallContent(callId ?? threadId.ToString(), "operation");
-            functionCallContent.AdditionalProperties = new AdditionalPropertiesDictionary
+            var userDisplayedToolDescription = ToolDescriptionHelper.GetUserDescriptionForFunctionCall(functionCall);
+            var safeFunctionCallContent = new FunctionCallContent(functionCall.CallId ?? threadId.ToString(), "operation");
+            safeFunctionCallContent.AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 { "userDescription", userDisplayedToolDescription }
             };
@@ -595,7 +741,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 AuthorName = "Azure SRE Agent",
                 Role = ChatRole.Tool,
                 CreatedAt = DateTime.UtcNow,
-                Contents = [functionCallContent],
+                Contents = [safeFunctionCallContent],
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     { "threadId", threadId.ToString() },
@@ -665,8 +811,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             foreach (var toolCall in manualToolCalls)
             {
                 var functionCall = toolCall.FunctionCall;
-                functionCall.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-                functionCall.AdditionalProperties.Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(functionCall.Name));
+                functionCall.AdditionalProperties ??= [];
+                functionCall.AdditionalProperties
+                    .Add("userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCall(functionCall));
 
                 // Create a safe version that doesn't expose the real function name
                 var safeFunctionCall = new FunctionCallContent(
@@ -787,7 +934,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
                 );
                 safeFunctionResult.AdditionalProperties = new AdditionalPropertiesDictionary
                 {
-                    { "userDescription", ToolDescriptionHelper.GetUserDescriptionForFunctionCallName(manualToolCallResult.FunctionCall.Name) }
+                    { "userDescription",
+                        ToolDescriptionHelper.GetUserDescriptionForFunctionCall(manualToolCallResult.FunctionCall) }
                 };
                 safeFunctionResults.Add(safeFunctionResult);
             }

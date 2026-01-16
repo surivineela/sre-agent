@@ -7,11 +7,12 @@ import {
     DataGridHeader,
     DataGridHeaderCell,
     DataGridRow,
-    Drawer,
-    DrawerBody,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerHeaderTitle,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
     Dropdown,
     Input,
     Label,
@@ -25,21 +26,22 @@ import {
     SkeletonItem,
     TableCellLayout,
     TableColumnDefinition,
-    Text,
-    tokens,
-    Toolbar,
-    ToolbarButton,
+    Text
 } from '@fluentui/react-components';
-import { Dismiss24Regular } from '@fluentui/react-icons';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../../Common/Clients/IncidentHandlerClient';
 import { TimeRangeKeyLabelPair, TimeRangeValue, TimespanKeys } from '../../../Common/Components/PillFilter/Contracts';
 import { PillFilter } from '../../../Common/Components/PillFilter/PillFilter';
-import { IncidentQueryRequest, TestHandlerPayload, TestHandlerResponse } from '../../../Common/Contracts/Azure/IncidentHandler';
-import { IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
+import {
+    IncidentFilterDocumentPayload,
+    IncidentQueryRequest,
+    TestHandlerPayload,
+    TestHandlerResponse,
+} from '../../../Common/Contracts/Azure/IncidentHandler';
+import { IncidentManagementType, IncidentStatus } from '../../../Common/Contracts/Azure/SreAgent';
 import { IncidentManagementResources, SreAgentResources, TriggerIncidentManagementResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { useIncidentFilterFields } from '../../Hooks/useIncidentFilterFields';
@@ -62,7 +64,7 @@ interface IncidentTableItem {
 
 export interface TriggerAgentDrawerProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose: (needRefresh: boolean) => void;
 }
 
 const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
@@ -75,16 +77,25 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
     const [searchType, setSearchType] = useState<SearchType>(SearchType.IncidentId);
     const [incidentId, setIncidentId] = useState<string>('');
     const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeValue>({ key: TimespanKeys.TwentyFourHours });
-    const [owningTeamId, setOwningTeamId] = useState<string | undefined>(undefined);
-    const [incidentType, setIncidentType] = useState<string | undefined>(undefined);
+    const [queryIncidentsFilter, setQueryIncidentsFilter] = useState<IncidentFilterDocumentPayload | undefined>(undefined);
     const [selectedIncidents, setSelectedIncidents] = useState<Set<string>>(new Set());
     const [incidents, setIncidents] = useState<IncidentTableItem[]>([]);
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [processingResults, setProcessingResults] = useState<TestHandlerResponse[]>([]);
+    const contentScrollRef = useRef<HTMLDivElement>(null);
+    const needThreadRefreshRef = useRef<boolean>(false);
 
     const incidentHandlerClient = useMemo(() => IncidentHandlerClient.getInstance(sreAgentEndpoint, log), [sreAgentEndpoint, log]);
-    const { incidentTypeOptions } = useIncidentFilterFields();
+    const { incidentTypeOptions, impactedServiceOptions, priorityOptions } = useIncidentFilterFields();
+
+    useEffect(() => {
+        if (processingResults.length > 0) {
+            setTimeout(() => {
+                contentScrollRef.current?.scrollTo({ top: contentScrollRef.current.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        }
+    }, [processingResults]);
 
     const {
         incidentManagement: { incidentPlatformType },
@@ -95,14 +106,34 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
         setSearchType(SearchType.IncidentId);
         setIncidentId('');
         setSelectedTimeRange({ key: TimespanKeys.TwentyFourHours });
-        setOwningTeamId(undefined);
-        setIncidentType(undefined);
+        setQueryIncidentsFilter(undefined);
         setSelectedIncidents(new Set());
         setIncidents([]);
         setIsSearching(false);
         setIsSubmitting(false);
         setProcessingResults([]);
     };
+
+    const impactedServiceOptionsExtended = useMemo(() => {
+        const options = [{ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allImpactedServices) }];
+        impactedServiceOptions.forEach(option => options.push({ key: option, display: option }));
+        return options;
+    }, [impactedServiceOptions, intl]);
+
+    const priorityOptionsExtended = useMemo(() => {
+        const options = [{ key: 'ALL', display: intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel) }];
+        priorityOptions.forEach(option => options.push({ key: option, display: option }));
+        return options;
+    }, [priorityOptions, intl, platformSpecificStrings]);
+
+    const incidentTypeOptionsExtended = useMemo(() => {
+        const options = [];
+        if (incidentPlatformType !== IncidentManagementType.Icm) {
+            options.push({ key: 'ALL', display: intl.formatMessage(IncidentManagementResources.allIncidentTypes) });
+        }
+        incidentTypeOptions.forEach(option => options.push({ key: option, display: option }));
+        return options;
+    }, [incidentTypeOptions, intl, incidentPlatformType]);
 
     const timeRangeOptions: TimeRangeKeyLabelPair[] = useMemo(
         () => [
@@ -126,6 +157,32 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
         [intl]
     );
 
+    const disableSearchBtnForIncidentProperties = useMemo(() => {
+        if (isSearching) {
+            return true;
+        } else if (searchType === SearchType.IncidentId) {
+            return !incidentId.trim();
+        } else if (searchType === SearchType.IncidentProperties) {
+            switch (incidentPlatformType) {
+                case IncidentManagementType.Icm:
+                    return (
+                        !queryIncidentsFilter?.owningTeamId ||
+                        !queryIncidentsFilter?.incidentType ||
+                        !queryIncidentsFilter?.impactedService ||
+                        !queryIncidentsFilter?.priority
+                    );
+                case IncidentManagementType.PagerDuty:
+                case IncidentManagementType.ServiceNow:
+                    return !queryIncidentsFilter?.incidentType || !queryIncidentsFilter?.impactedService || !queryIncidentsFilter?.priority;
+                case IncidentManagementType.AzMonitor:
+                    return !queryIncidentsFilter?.priority;
+                default:
+                    return false;
+            }
+        } else {
+            return false;
+        }
+    }, [isSearching, searchType, incidentId, queryIncidentsFilter, incidentPlatformType]);
     const handleSubmit = async () => {
         if (selectedIncidents.size === 0) return;
 
@@ -142,6 +199,8 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
             setSelectedIncidents(new Set());
         }
         setIsSubmitting(false);
+        // Notify parent to refresh thread list
+        needThreadRefreshRef.current = true;
     };
 
     const handleSearch = async () => {
@@ -192,10 +251,13 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                     pageSize: queryIncidentsCount,
                     pageNumber: 1,
                     filter: {
-                        ...(owningTeamId && { owningTeamId }),
-                        ...(incidentType && { incidentType }),
+                        ...queryIncidentsFilter,
+                        impactedService:
+                            queryIncidentsFilter?.impactedService === 'ALL' ? undefined : queryIncidentsFilter?.impactedService,
+                        priority: queryIncidentsFilter?.priority === 'ALL' ? undefined : queryIncidentsFilter?.priority,
+                        incidentType: queryIncidentsFilter?.incidentType === 'ALL' ? undefined : queryIncidentsFilter?.incidentType,
                     },
-                    statuses: [IncidentStatus.active],
+                    statuses: [IncidentStatus.active, IncidentStatus.new],
                 };
 
                 const response = await incidentHandlerClient.queryIncidents(queryRequest);
@@ -271,286 +333,330 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                 ),
             }),
         ];
-    }, []);
+    }, [platformSpecificStrings, intl]);
 
     return (
-        <Drawer
-            modalType="non-modal"
+        <Dialog
             open={isOpen}
-            position="end"
-            size="large"
-            className={styles.drawerRoot}
             onOpenChange={(_, data) => {
-                if (!data.open) onClose();
+                if (!data.open) {
+                    resetAllStates();
+                    onClose(needThreadRefreshRef.current);
+                }
             }}
         >
-            <DrawerHeader className={styles.header}>
-                <DrawerHeaderTitle
-                    heading={{
-                        className: styles.headingContainer,
-                    }}
-                    action={
-                        <Toolbar>
-                            <ToolbarButton
-                                aria-label={intl.formatMessage(SreAgentResources.closePanel)}
-                                appearance="transparent"
-                                icon={<Dismiss24Regular />}
-                                onClick={() => {
-                                    resetAllStates();
-                                    onClose();
-                                }}
-                            />
-                        </Toolbar>
-                    }
-                >
-                    <div className={styles.titleText}>{intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}</div>
-                </DrawerHeaderTitle>
-            </DrawerHeader>
-            <DrawerBody className={styles.body}>
-                <div className={styles.content}>
-                    <div className={styles.fieldContainer}>
-                        <Label>{intl.formatMessage(TriggerIncidentManagementResources.searchBy)}</Label>
-                        <RadioGroup
-                            value={searchType}
-                            onChange={(_, data) => {
-                                setSearchType(data.value as SearchType);
-                                setIncidents([]);
-                                setSelectedIncidents(new Set());
-                                setProcessingResults([]);
-                                setIncidentId('');
-                                setOwningTeamId(undefined);
-                                setIncidentType(undefined);
-                                setSelectedTimeRange({ key: TimespanKeys.TwentyFourHours });
-                            }}
-                            defaultValue={SearchType.IncidentId}
-                            layout="horizontal"
-                        >
-                            <Radio
-                                value={SearchType.IncidentId}
-                                label={intl.formatMessage(TriggerIncidentManagementResources.incidentId)}
-                            />
-                            <Radio
-                                value={SearchType.IncidentProperties}
-                                label={intl.formatMessage(TriggerIncidentManagementResources.incidentProperties)}
-                            />
-                        </RadioGroup>
-                    </div>
-                    {searchType === SearchType.IncidentId && (
-                        <div className={styles.fieldContainer}>
-                            <Label htmlFor="incident-id">{intl.formatMessage(TriggerIncidentManagementResources.incidentId)}</Label>
-                            <Input
-                                id="incident-id"
-                                placeholder={intl.formatMessage(TriggerIncidentManagementResources.enterIncidentId)}
-                                value={incidentId}
-                                onChange={(_, data) => setIncidentId(data.value)}
-                                className={styles.incidentIdInput}
-                            />
-                        </div>
-                    )}
-                    {searchType === SearchType.IncidentProperties && (
-                        <>
-                            <IcmOwningTeamSearch
-                                defaultTeamId={owningTeamId}
-                                onFieldTouched={() => {}}
-                                onUpdateOwningTeam={team => setOwningTeamId(`${team.id}`)}
-                                comboboxClassName={styles.incidentIdInput}
-                            />
+            <DialogSurface className={styles.dialogSurface}>
+                <DialogBody className={styles.dialogBody}>
+                    <DialogTitle>{intl.formatMessage(TriggerIncidentManagementResources.triggerAgent)}</DialogTitle>
+                    <DialogContent className={styles.dialogContent} ref={contentScrollRef}>
+                        <div className={styles.content}>
                             <div className={styles.fieldContainer}>
-                                <Label htmlFor="incident-type" required>
-                                    {intl.formatMessage(IncidentManagementResources.incidentType)}
-                                </Label>
-                                <Dropdown
-                                    id="incident-type"
-                                    placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
-                                    value={incidentType || ''}
-                                    selectedOptions={incidentType ? [incidentType] : []}
-                                    onOptionSelect={(_, data) => setIncidentType(data.optionValue)}
-                                    className={styles.incidentIdInput}
-                                >
-                                    {incidentTypeOptions.map(option => (
-                                        <Option key={option} value={option}>
-                                            {option}
-                                        </Option>
-                                    ))}
-                                </Dropdown>
-                            </div>
-                            <div className={styles.fieldContainer}>
-                                <Label>{intl.formatMessage(TriggerIncidentManagementResources.incidentCreateTimeRange)}</Label>
-                                <PillFilter
-                                    filterType="timeRange"
-                                    label={intl.formatMessage(SreAgentResources.timeRange)}
-                                    labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
-                                    options={timeRangeOptions}
-                                    onApply={setSelectedTimeRange}
-                                    selectedValue={selectedTimeRange}
-                                    useInDialog={true}
-                                />
-                            </div>
-                        </>
-                    )}
-                    <div className={styles.searchActions}>
-                        <Button
-                            appearance="primary"
-                            onClick={handleSearch}
-                            disabled={
-                                isSearching ||
-                                (searchType === SearchType.IncidentId && !incidentId.trim()) ||
-                                (searchType === SearchType.IncidentProperties && (!owningTeamId || !incidentType))
-                            }
-                        >
-                            {intl.formatMessage(TriggerIncidentManagementResources.search)}
-                        </Button>
-                    </div>
-                    {isSearching && (
-                        <Skeleton>
-                            <SkeletonItem size={32} />
-                        </Skeleton>
-                    )}
-                    {!isSearching && incidents.length > 0 && (
-                        <>
-                            {searchType === SearchType.IncidentProperties && (
-                                <Text size={300}>
-                                    {intl.formatMessage(TriggerIncidentManagementResources.showingTopResults, {
-                                        count: queryIncidentsCount,
-                                    })}
-                                </Text>
-                            )}
-                            <div className={styles.tableContainer}>
-                                <DataGrid
-                                    items={incidents}
-                                    columns={columns}
-                                    sortable
-                                    selectionMode="multiselect"
-                                    selectedItems={selectedIncidents}
-                                    onSelectionChange={(_, data) => setSelectedIncidents(data.selectedItems as Set<string>)}
-                                    getRowId={item => item.id}
-                                    resizableColumns
-                                    columnSizingOptions={{
-                                        incidentId: {
-                                            minWidth: 100,
-                                            defaultWidth: 120,
-                                        },
-                                        title: {
-                                            minWidth: 180,
-                                            defaultWidth: 220,
-                                        },
-                                        priority: {
-                                            minWidth: 50,
-                                            defaultWidth: 80,
-                                        },
+                                <Label>{intl.formatMessage(TriggerIncidentManagementResources.searchBy)}</Label>
+                                <RadioGroup
+                                    value={searchType}
+                                    onChange={(_, data) => {
+                                        setSearchType(data.value as SearchType);
+                                        setIncidents([]);
+                                        setSelectedIncidents(new Set());
+                                        setProcessingResults([]);
+                                        setIncidentId('');
+                                        setQueryIncidentsFilter(undefined);
+                                        setSelectedTimeRange({ key: TimespanKeys.TwentyFourHours });
                                     }}
-                                    size="small"
-                                    className={styles.dataGrid}
+                                    defaultValue={SearchType.IncidentId}
+                                    layout="horizontal"
                                 >
-                                    <DataGridHeader>
-                                        <DataGridRow>
-                                            {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                                        </DataGridRow>
-                                    </DataGridHeader>
-                                    <DataGridBody<IncidentTableItem>>
-                                        {({ item, rowId }) => (
-                                            <DataGridRow<IncidentTableItem> key={rowId}>
-                                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                                            </DataGridRow>
-                                        )}
-                                    </DataGridBody>
-                                </DataGrid>
+                                    <Radio
+                                        value={SearchType.IncidentId}
+                                        label={intl.formatMessage(TriggerIncidentManagementResources.incidentId)}
+                                    />
+                                    <Radio
+                                        value={SearchType.IncidentProperties}
+                                        label={intl.formatMessage(TriggerIncidentManagementResources.incidentProperties)}
+                                    />
+                                </RadioGroup>
                             </div>
-                        </>
-                    )}
-                    {processingResults.length > 0 && (
-                        <div className={styles.resultsContainer}>
-                            {processingResults.map((result, index) => {
-                                const isSuccess = result.statusCode === 200;
-                                const hasThreadId = result.threadId != null;
-                                let messageResource;
+                            {searchType === SearchType.IncidentId && (
+                                <div className={styles.fieldContainer}>
+                                    <Label htmlFor="incident-id">{intl.formatMessage(TriggerIncidentManagementResources.incidentId)}</Label>
+                                    <Input
+                                        id="incident-id"
+                                        placeholder={intl.formatMessage(TriggerIncidentManagementResources.enterIncidentId)}
+                                        value={incidentId}
+                                        onChange={(_, data) => setIncidentId(data.value)}
+                                        className={styles.incidentIdInput}
+                                    />
+                                </div>
+                            )}
+                            {searchType === SearchType.IncidentProperties && (
+                                <>
+                                    {incidentPlatformType === IncidentManagementType.Icm && (
+                                        <IcmOwningTeamSearch
+                                            defaultTeamId={queryIncidentsFilter?.owningTeamId}
+                                            onFieldTouched={() => { }}
+                                            onUpdateOwningTeam={team =>
+                                                setQueryIncidentsFilter(prev => ({ ...prev, owningTeamId: `${team.id}` }))
+                                            }
+                                            comboboxClassName={styles.incidentIdInput}
+                                        />
+                                    )}
+                                    {incidentPlatformType !== IncidentManagementType.AzMonitor && (
+                                        <>
+                                            <div className={styles.fieldContainerHorizontal}>
+                                                <Label htmlFor="incident-type" required className={styles.fieldLabel}>
+                                                    {intl.formatMessage(IncidentManagementResources.incidentType)}
+                                                </Label>
+                                                <Dropdown
+                                                    id="incident-type"
+                                                    placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
+                                                    value={queryIncidentsFilter?.incidentType || ''}
+                                                    selectedOptions={
+                                                        queryIncidentsFilter?.incidentType ? [queryIncidentsFilter?.incidentType] : []
+                                                    }
+                                                    onOptionSelect={(_, data) =>
+                                                        setQueryIncidentsFilter(prev => ({ ...prev, incidentType: data.optionValue }))
+                                                    }
+                                                    className={styles.fieldInput}
+                                                >
+                                                    {incidentTypeOptionsExtended.map(option => (
+                                                        <Option key={option.key} value={option.key}>
+                                                            {option.display}
+                                                        </Option>
+                                                    ))}
+                                                </Dropdown>
+                                            </div>
+                                            <div className={styles.fieldContainerHorizontal}>
+                                                <Label htmlFor="incident-impactedService" required className={styles.fieldLabel}>
+                                                    {intl.formatMessage(IncidentManagementResources.impactedService)}
+                                                </Label>
+                                                <Dropdown
+                                                    id="incident-impactedService"
+                                                    placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
+                                                    value={queryIncidentsFilter?.impactedService || ''}
+                                                    selectedOptions={queryIncidentsFilter?.impactedService ? [queryIncidentsFilter?.impactedService] : []}
+                                                    onOptionSelect={(_, data) =>
+                                                        setQueryIncidentsFilter(prev => ({ ...prev, impactedService: data.optionValue }))
+                                                    }
+                                                    className={styles.fieldInput}
+                                                >
+                                                    {impactedServiceOptionsExtended.map(option => (
+                                                        <Option key={option.key} value={option.key}>
+                                                            {option.display}
+                                                        </Option>
+                                                    ))}
+                                                </Dropdown>
+                                            </div>
+                                        </>
+                                    )}
 
-                                if (isSuccess) {
-                                    messageResource = hasThreadId
-                                        ? TriggerIncidentManagementResources.incidentProcessSuccessWithThread
-                                        : TriggerIncidentManagementResources.incidentProcessSuccess;
-                                } else {
-                                    messageResource = hasThreadId
-                                        ? TriggerIncidentManagementResources.incidentProcessFailureWithThread
-                                        : TriggerIncidentManagementResources.incidentProcessFailure;
-                                }
+                                    <div className={styles.fieldContainerHorizontal}>
+                                        <Label htmlFor="incident-priority" required className={styles.fieldLabel}>
+                                            {intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)}
+                                        </Label>
+                                        <Dropdown
+                                            id="incident-priority"
+                                            placeholder={intl.formatMessage(platformSpecificStrings.severityOrPriorityPlaceholder)}
+                                            value={queryIncidentsFilter?.priority || ''}
+                                            selectedOptions={queryIncidentsFilter?.priority ? [queryIncidentsFilter?.priority] : []}
+                                            onOptionSelect={(_, data) =>
+                                                setQueryIncidentsFilter(prev => ({ ...prev, priority: data.optionValue }))
+                                            }
+                                            className={styles.fieldInput}
+                                        >
+                                            {priorityOptionsExtended.map(option => (
+                                                <Option key={option.key} value={option.key}>
+                                                    {option.display}
+                                                </Option>
+                                            ))}
+                                        </Dropdown>
+                                    </div>
 
-                                return (
-                                    <MessageBar key={index} intent={isSuccess ? 'success' : 'error'}>
-                                        <MessageBarBody>
-                                            {intl.formatMessage(messageResource, {
-                                                incidentId: result.incidentId,
-                                                threadId: result.threadId,
-                                                message: result.message ?? '',
+                                    <div className={styles.fieldContainerHorizontal}>
+                                        <Label className={styles.fieldLabel}>
+                                            {intl.formatMessage(TriggerIncidentManagementResources.incidentCreateTimeRange)}
+                                        </Label>
+                                        <div className={styles.fieldInput}>
+                                            <PillFilter
+                                                filterType="timeRange"
+                                                label={intl.formatMessage(SreAgentResources.timeRange)}
+                                                labelDelimiter={intl.formatMessage(SreAgentResources.equals)}
+                                                options={timeRangeOptions}
+                                                onApply={setSelectedTimeRange}
+                                                selectedValue={selectedTimeRange}
+                                                useInDialog={true}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <div className={styles.searchActions}>
+                                <Button appearance="primary" onClick={handleSearch} disabled={disableSearchBtnForIncidentProperties}>
+                                    {intl.formatMessage(TriggerIncidentManagementResources.search)}
+                                </Button>
+                            </div>
+                            {isSearching && (
+                                <Skeleton>
+                                    <SkeletonItem size={32} />
+                                </Skeleton>
+                            )}
+                            {!isSearching && incidents.length > 0 && (
+                                <>
+                                    {searchType === SearchType.IncidentProperties && (
+                                        <Text size={300}>
+                                            {intl.formatMessage(TriggerIncidentManagementResources.showingTopResults, {
+                                                count: queryIncidentsCount,
                                             })}
-                                        </MessageBarBody>
-                                    </MessageBar>
-                                );
-                            })}
+                                        </Text>
+                                    )}
+                                    <div
+                                        className={styles.tableContainer}
+                                        style={{ minHeight: 40 + Math.min(incidents.length, 2) * 32 }}
+                                    >
+                                        <div className={styles.scrollableList}>
+                                            <DataGrid
+                                                items={incidents}
+                                                columns={columns}
+                                                sortable
+                                                selectionMode="multiselect"
+                                                selectedItems={selectedIncidents}
+                                                onSelectionChange={(_, data) => setSelectedIncidents(data.selectedItems as Set<string>)}
+                                                getRowId={item => item.id}
+                                                resizableColumns
+                                                columnSizingOptions={{
+                                                    incidentId: {
+                                                        minWidth: 100,
+                                                        defaultWidth: 120,
+                                                    },
+                                                    title: {
+                                                        minWidth: 180,
+                                                        defaultWidth: 220,
+                                                    },
+                                                    priority: {
+                                                        minWidth: 50,
+                                                        defaultWidth: 80,
+                                                    },
+                                                }}
+                                                size="small"
+                                            >
+                                                <DataGridHeader>
+                                                    <DataGridRow>
+                                                        {({ renderHeaderCell }) => (
+                                                            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                                        )}
+                                                    </DataGridRow>
+                                                </DataGridHeader>
+                                                <DataGridBody<IncidentTableItem>>
+                                                    {({ item, rowId }) => (
+                                                        <DataGridRow<IncidentTableItem> key={rowId}>
+                                                            {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                                        </DataGridRow>
+                                                    )}
+                                                </DataGridBody>
+                                            </DataGrid>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            {processingResults.length > 0 && (
+                                <div className={styles.resultsContainer}>
+                                    {processingResults.map((result, index) => {
+                                        const isSuccess = result.statusCode === 200;
+                                        const hasThreadId = result.threadId != null;
+                                        let messageResource;
+
+                                        if (isSuccess) {
+                                            messageResource = hasThreadId
+                                                ? TriggerIncidentManagementResources.incidentProcessSuccessWithThread
+                                                : TriggerIncidentManagementResources.incidentProcessSuccess;
+                                        } else {
+                                            messageResource = hasThreadId
+                                                ? TriggerIncidentManagementResources.incidentProcessFailureWithThread
+                                                : TriggerIncidentManagementResources.incidentProcessFailure;
+                                        }
+
+                                        return (
+                                            <MessageBar key={index} intent={isSuccess ? 'success' : 'error'}>
+                                                <MessageBarBody>
+                                                    {intl.formatMessage(messageResource, {
+                                                        incidentId: result.incidentId,
+                                                        threadId: result.threadId,
+                                                        message: result.message ?? '',
+                                                    })}
+                                                </MessageBarBody>
+                                            </MessageBar>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
-            </DrawerBody>
-            <DrawerFooter className={styles.footer}>
-                <div className={styles.footerActions}>
-                    <Button appearance="primary" onClick={handleSubmit} disabled={selectedIncidents.size === 0 || isSubmitting}>
-                        {intl.formatMessage(TriggerIncidentManagementResources.submit)}
-                    </Button>
-                    <Button
-                        appearance="secondary"
-                        onClick={() => {
-                            resetAllStates();
-                            onClose();
-                        }}
-                    >
-                        {intl.formatMessage(SreAgentResources.close)}
-                    </Button>
-                </div>
-            </DrawerFooter>
-        </Drawer>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button appearance="primary" onClick={handleSubmit} disabled={selectedIncidents.size === 0 || isSubmitting}>
+                            {intl.formatMessage(TriggerIncidentManagementResources.submit)}
+                        </Button>
+                        <Button
+                            appearance="secondary"
+                            onClick={() => {
+                                resetAllStates();
+                                onClose(needThreadRefreshRef.current);
+                            }}
+                        >
+                            {intl.formatMessage(SreAgentResources.close)}
+                        </Button>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };
 
 const useTriggerAgentDrawerStyles = makeStyles({
-    drawerRoot: {
-        marginTop: '50px',
-        marginBottom: '8px',
-        borderRadius: '12px',
-        paddingRight: '15px',
-        paddingLeft: '15px',
-    },
-    header: {
-        padding: '16px 16px 7px 16px',
-    },
-    headingContainer: {
+    dialogSurface: {
+        maxWidth: '900px',
+        maxHeight: '90vh',
+        height: '90vh',
         display: 'flex',
-        flexDirection: 'row',
-        gap: '8px',
-        alignItems: 'center',
-        justifyContent: 'start',
-        overflow: 'hidden',
+        flexDirection: 'column',
     },
-    titleText: {
-        fontSize: '20px',
-        fontWeight: 600,
-        lineHeight: '28px',
+    dialogBody: {
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
+        flex: '1 1 auto',
     },
-    body: {
-        padding: '16px',
+    dialogContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
         overflowY: 'auto',
+        flex: '1 1 auto',
+        height: '0px',
     },
     content: {
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
+        flex: '1 1 0%',
+        height: '100%',
     },
     fieldContainer: {
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
+    },
+    fieldContainerHorizontal: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '16px',
+    },
+    fieldLabel: {
+        minWidth: '150px',
+        flexShrink: 0,
+    },
+    fieldInput: {
+        flex: 1,
+        maxWidth: '300px',
     },
     incidentIdInput: {
         maxWidth: '300px',
@@ -563,27 +669,23 @@ const useTriggerAgentDrawerStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
+        paddingBottom: '24px',
     },
     tableContainer: {
         flex: '1',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '0',
-        overflow: 'auto',
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: '4px',
+        minWidth: '0',
+        overflow: 'hidden',
     },
-    dataGrid: {
-        width: '100%',
-        maxWidth: '100%',
-    },
-    footer: {
-        padding: '16px',
-    },
-    footerActions: {
-        display: 'flex',
-        gap: '8px',
-        justifyContent: 'flex-end',
+    scrollableList: {
+        flex: '1',
+        overflowY: 'auto',
+        overflowX: 'auto',
+        minHeight: '0',
+        minWidth: '0',
+        scrollbarGutter: 'stable',
     },
 });
 

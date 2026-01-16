@@ -38,6 +38,7 @@ import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry'
 import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { getUserFriendlyLocation } from '../../Common/Utilities/Location';
+import { safeCompare } from '../../Common/Utilities/String';
 import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../Common/Utilities/Url';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentListSkeleton } from './AgentListSkeleton';
@@ -123,7 +124,7 @@ export const AgentsGrid = () => {
         () => [
             createTableColumn<SreAgentArgItem>({
                 columnId: 'name',
-                compare: (a, b) => a.name.localeCompare(b.name),
+                compare: (a, b) => safeCompare(a.name, b.name),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.name)}</Text>,
                 renderCell: item => (
                     <TableCellLayout
@@ -135,7 +136,7 @@ export const AgentsGrid = () => {
             }),
             createTableColumn<SreAgentArgItem>({
                 columnId: 'subscription',
-                compare: (a, b) => a.subscriptionId.localeCompare(b.subscriptionId),
+                compare: (a, b) => safeCompare(a.subscriptionId, b.subscriptionId),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.subscription)}</Text>,
                 renderCell: item => (
                     <TableCellLayout>
@@ -147,7 +148,7 @@ export const AgentsGrid = () => {
             }),
             createTableColumn<SreAgentArgItem>({
                 columnId: 'resourceGroup',
-                compare: (a, b) => a.resourceGroup.localeCompare(b.resourceGroup),
+                compare: (a, b) => safeCompare(a.resourceGroup, b.resourceGroup),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.resourceGroup)}</Text>,
                 renderCell: item => (
                     <TableCellLayout>
@@ -157,7 +158,7 @@ export const AgentsGrid = () => {
             }),
             createTableColumn<SreAgentArgItem>({
                 columnId: 'region',
-                compare: (a, b) => a.location.localeCompare(b.location),
+                compare: (a, b) => safeCompare(a.location, b.location),
                 renderHeaderCell: () => <Text weight="semibold">{intl.formatMessage(PortalResources.region)}</Text>,
                 renderCell: item => <TableCellLayout>{getUserFriendlyLocation(item.location)}</TableCellLayout>,
             }),

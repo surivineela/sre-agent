@@ -29,6 +29,16 @@ public class InvestigationTimeRangeResult
     public DateTime EndDate { get; set; }
 }
 
+/// <summary>
+/// Output wrapper for GetIncidentDetails tool.
+/// </summary>
+public class IncidentDetailsResponse
+{
+    public string DataSource { get; set; } = string.Empty;
+    public object? IncidentData { get; set; }
+    public DescriptionEntry? AlertDetails { get; set; }
+}
+
 public class ICMPlugin : IICMPlugin
 {
     private readonly IICMAPIClient _icmApiClient;
@@ -42,9 +52,9 @@ public class ICMPlugin : IICMPlugin
     private AgentResourceInfo? _agentInfo;
 
     /// <summary>
-    /// Authors whose discussion entries should be included when test mode is enabled.
+    /// Authors whose discussion entries should be included when retro mode is enabled.
     /// </summary>
-    private static readonly HashSet<string> TestModeAuthors = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> RetroModeAuthors = new(StringComparer.OrdinalIgnoreCase)
     {
         "gautosvc",
         "BRAIN"
@@ -54,7 +64,11 @@ public class ICMPlugin : IICMPlugin
     public Guid? ThreadId { get; set; }
 
 
-    public ICMPlugin(IICMAPIClient icmAPIClient, ILogger<ICMPlugin> logger, IChatClientProvider chatClientProvider, IHostEnvironment hostEnvironment)
+    public ICMPlugin(
+        IICMAPIClient icmAPIClient,
+        ILogger<ICMPlugin> logger,
+        IChatClientProvider chatClientProvider,
+        IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _icmApiClient = icmAPIClient;
@@ -429,7 +443,7 @@ Example structure:
     //    Kernel kernel)
     //{
     //    var logMessage = $"[advanced_search_for_incidents][{DateTime.UtcNow}] Invoked with lookbackPeriodInDays {lookbackPeriodInDays}";
-    //    await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+    //    await kernel.LogInternalInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
     //    var incidents = await _icmWorkflowClient.SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, filter3Tuple);
     //    return incidents;
     //}
@@ -517,17 +531,17 @@ Example structure:
 
         var entries = discussionEntries ?? [];
 
-        // Check if incident test mode is enabled for this thread and filter entries
+        // Check if incident retro mode is enabled for this thread and filter entries
         if (ThreadContextAccessor.IsIncidentTestModeEnabled)
         {
             var filteredEntries = entries.Where(e =>
-                TestModeAuthors.Any(author =>
+                RetroModeAuthors.Any(author =>
                     (!string.IsNullOrEmpty(e.ChangedBy) && e.ChangedBy.Equals(author, StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrEmpty(e.SubmittedBy) && e.SubmittedBy.Equals(author, StringComparison.OrdinalIgnoreCase)))
             ).ToList();
 
             _logger.LogInternalInformation(
-                $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}] IncidentTestMode: Filtered {entries.Count} entries to {filteredEntries.Count} by test mode authors");
+                $"[{nameof(ICMPlugin)}_{nameof(GetDiscussionEntries)}] IncidentRetroMode: Filtered {entries.Count} entries to {filteredEntries.Count} by retro mode authors");
 
             return filteredEntries;
         }
@@ -1113,4 +1127,48 @@ Example structure:
     //        return errorMessage; // Return error message instead of throwing for download operations
     //    }
     //}
+
+    public async Task<string> GetIncidentDetails(string incidentId, bool includeAlertDetails = false)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentDetails)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, includeAlertDetails {includeAlertDetails}";
+        _logger.LogInternalInformation(logMessage);
+
+        // Start alert fetch early if needed
+        var alertTask = includeAlertDetails
+            ? GetAlertingDiscussionEntry(incidentId)
+            : Task.FromResult<DescriptionEntry?>(null);
+
+        // TODO: Move to GetEnrichedInfo
+        var incident = await GetIncidentInfo(incidentId);
+        if (incident == null)
+        {
+            return $"Incident {incidentId} not found or you don't have access to it.";
+        }
+
+        var alertEntry = await alertTask;
+
+        // TODO: Remove DataSource field?
+        var response = new IncidentDetailsResponse
+        {
+            DataSource = "OData",
+            IncidentData = incident,
+            AlertDetails = alertEntry
+        };
+
+        return System.Text.Json.JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
+
+    public async Task<string> GetIncidentAlertDetails(string incidentId)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentAlertDetails)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+        _logger.LogInternalInformation(logMessage);
+
+        var entry = await GetAlertingDiscussionEntry(incidentId);
+        if (entry == null)
+        {
+            return "No alert details found. The incident may not have been created by a monitor.";
+        }
+
+        return System.Text.Json.JsonSerializer.Serialize(entry, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
 }

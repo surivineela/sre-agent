@@ -71,7 +71,6 @@ using Agent.Web.Authorization;
 using Agent.Web.Services;
 using Agent.Web.Validation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -393,6 +392,12 @@ public class Program
 
         builder.RegisterDataConnectors();
 
+        // Add HttpClient factory for plugins that need to make HTTP requests
+        builder.Services.AddHttpClient();
+
+        // Register workspace tools and services (file ops, terminal, search, user questions)
+        builder.Services.AddWorkspaceServices();
+
         // Register plugins and their dependencies
         builder.Services
             .AddSingleton<IAppServicePlugin, AppServicePlugin>()
@@ -585,7 +590,6 @@ public class Program
             .AddTransient<AgentHelperService>()
             .AddTransient<ILogicAppsPlugin, LogicAppsPlugin>()
             .AddTransient<ICdbSDKDiagnosePlugin, CdbSDKDiagnosePlugin>()
-
             .AddTransient<IICMPlugin, ICMPlugin>()
             .AddTransient<IAzureAlertingPlugin, AzureAlertingPlugin>()
             .AddTransient<IWebAppPlugin, WebAppPlugin>()
@@ -629,6 +633,7 @@ public class Program
             .AddSingleton<AgentTaskToolResultHelper>()
             .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
             .AddSingleton<IApprovalService, ApprovalService>()
+            .AddSingleton<IUserQuestionService, UserQuestionService>()
             .AddSingleton<IRemoteWriteService, RemoteWriteService>()
             .AddSingleton<IMetricsRegistry, MetricsRegistry>()
             .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
@@ -746,6 +751,7 @@ public class Program
                 .GetSection("AppSettings:Core:Azure:ToolOutputSettings")
                 .Get<ToolOutputSettings>();
             var isPartialOutputEnabled = toolOutputSettings?.EnablePartialOutput ?? false;
+            var isWorkspaceModeEnabled = sp.GetRequiredService<IWorkspaceToolsPlugin>().Enabled;
 
             // Build promptStarters array conditionally based on scheduled task enablement
             var promptStarters = new List<string> { Core.Constants.SREAgentPromptStarter };
@@ -768,7 +774,7 @@ public class Program
                 promptStarters: promptStarters.ToArray(),
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
-                enableHandoffReasoning: experimentalSettings?.EnableHandoffReasoning ?? hostEnvironment.IsDevelopment(),
+                enableHandoffReasoning: experimentalSettings.EnableHandoffReasoning,
                 extensibiltyLoader: extensibilityLoader,
                 gpt5Enabled: isGPT5Enabled,
                 agentMemoryRetrievalEnabled: agentMemoryRetrievalEnabled,
@@ -780,7 +786,8 @@ public class Program
                         var dynamicIncidentManagementAgent = sp.GetRequiredService<DynamicIncidentManagementAgent>();
                         return dynamicIncidentManagementAgent.GetIncidentManagementAgentDescriptor();
                     }
-                ]);
+                ],
+                workspaceToolsEnabled: isWorkspaceModeEnabled);
         });
 
         // Register AgentProvider as singleton for per-thread experiment variant support

@@ -1,7 +1,45 @@
 import { describe, expect, it } from 'vitest';
-import { format } from '../String';
+import { format, safeCompare } from '../String';
 
 describe('String utilities', () => {
+    describe('safeCompare', () => {
+        it('compares strings alphabetically', () => {
+            expect(safeCompare('apple', 'banana')).toBeLessThan(0);
+            expect(safeCompare('banana', 'apple')).toBeGreaterThan(0);
+            expect(safeCompare('apple', 'apple')).toBe(0);
+        });
+
+        it('compares numbers numerically', () => {
+            expect(safeCompare(1, 2)).toBeLessThan(0);
+            expect(safeCompare(10, 5)).toBeGreaterThan(0);
+            expect(safeCompare(42, 42)).toBe(0);
+        });
+
+        it('handles undefined values', () => {
+            expect(safeCompare(undefined, 'test')).toBeLessThan(0);
+            expect(safeCompare('test', undefined)).toBeGreaterThan(0);
+            expect(safeCompare(undefined, undefined)).toBe(0);
+        });
+
+        it('handles null values', () => {
+            expect(safeCompare(null, 'test')).toBeLessThan(0);
+            expect(safeCompare('test', null)).toBeGreaterThan(0);
+            expect(safeCompare(null, null)).toBe(0);
+        });
+
+        it('handles empty strings', () => {
+            expect(safeCompare('', 'test')).toBeLessThan(0);
+            expect(safeCompare('test', '')).toBeGreaterThan(0);
+            expect(safeCompare('', '')).toBe(0);
+        });
+
+        it('treats null and undefined as empty string', () => {
+            expect(safeCompare(null, '')).toBe(0);
+            expect(safeCompare(undefined, '')).toBe(0);
+            expect(safeCompare(null, undefined)).toBe(0);
+        });
+    });
+
     describe('format', () => {
         it('replaces single placeholder with string', () => {
             expect(format('Hello {0}', 'World')).toBe('Hello World');

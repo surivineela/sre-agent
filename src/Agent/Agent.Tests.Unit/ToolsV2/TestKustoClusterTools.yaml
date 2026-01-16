@@ -1,10 +1,9 @@
 name: GetKustoClusterFromEventPrimaryStampName
 type: KustoTool
-tool_mode: Auto
+toolMode: Auto
 connector: kusto-default-wawscus
 description: Resolves the default Kusto cluster given an EventPrimaryStampName.
 database: wawsprod
-mode: Function
 function: GetKustoClusterFromEventPrimaryStampName
 query: |-
   let _eventPrimaryStampName = "##eventPrimaryStampName##";

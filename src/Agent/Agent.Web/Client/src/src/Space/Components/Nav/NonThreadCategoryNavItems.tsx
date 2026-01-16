@@ -1,18 +1,13 @@
 import { FC, memo } from 'react';
-import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';
 import { PrimaryNavItemValues, SecondaryNavItemValues, ThreadCategoryKey } from '../../Contracts/SreAgentSpace';
 import ActivitiesCategoryNavItem from './ActivitiesCategoryNavItem';
 import BuilderCategoryNavItem from './BuilderCategoryNavItem';
 import MonitoringCategoryNavItem from './MonitoringCategoryNavItem';
-import NewChatItem from './NewChatItem';
 import SettingsCategoryNavItem from './SettingsCategoryNavItem';
 
 interface INonThreadCategoryNavItemsProps {
     isNavOpen: boolean;
     openedCategoryNavItems: (PrimaryNavItemValues | ThreadCategoryKey)[];
-    threads: Thread[];
-    selectThread: (threadId: string | null) => void;
-    excludedSources?: ThreadSource[];
     controlPlaneTabsVisible: boolean;
     logsTabDisabled: boolean;
     onLogsClick: () => void;
@@ -25,9 +20,6 @@ interface INonThreadCategoryNavItemsProps {
 const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
     isNavOpen,
     openedCategoryNavItems,
-    threads,
-    selectThread,
-    excludedSources,
     controlPlaneTabsVisible,
     logsTabDisabled,
     onLogsClick,
@@ -38,7 +30,6 @@ const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
 }) => {
     return (
         <>
-            <NewChatItem isNavOpen={isNavOpen} threads={threads} selectThread={selectThread} excludedSources={excludedSources} />
             <ActivitiesCategoryNavItem
                 isNavOpen={isNavOpen}
                 openedCategoryNavItems={openedCategoryNavItems}

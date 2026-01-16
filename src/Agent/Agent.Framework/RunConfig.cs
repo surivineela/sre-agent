@@ -23,4 +23,11 @@ public class RunConfig
     public bool EnableDebugOutput { get; set; } = true;
     public int MaxActiveSkills { get; set; } = 5;
     public bool EnablePartialToolOutput { get; set; } = false;
+
+    /// <summary>
+    /// Ambient context provider for injecting environment, workspace,
+    /// and instruction file context into the agent prompt.
+    /// Check the Enabled property to determine if context injection is active.
+    /// </summary>
+    public required IAmbientContextProvider AmbientContextProvider { get; set; }
 }

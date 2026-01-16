@@ -159,5 +159,125 @@ public class SinkService
 
         return messageId;
     }
+
+    public async Task<Guid> SinkAgentGrepSearchMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        GrepSearchResult grepSearchResult)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            GrepSearchResult: grepSearchResult
+        );
+
+        try
+        {
+            await _repository.AddMessageAsync(threadId, agentMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding grep search message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
+
+    public async Task<Guid> SinkAgentReadFileMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        ReadFileResult readFileResult)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            ReadFileResult: readFileResult
+        );
+
+        try
+        {
+            await _repository.AddMessageAsync(threadId, agentMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding read file message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
+
+    public async Task<Guid> SinkAgentTerminalMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        TerminalExecutionResult terminalResult)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            TerminalResult: terminalResult
+        );
+
+        try
+        {
+            await _repository.AddMessageAsync(threadId, agentMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding terminal message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
+
+    public async Task<Guid> SinkAgentUserQuestionMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        UserQuestion userQuestion)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            UserQuestion: userQuestion
+        );
+
+        try
+        {
+            await _repository.AddMessageAsync(threadId, agentMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding user question message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
 }
 

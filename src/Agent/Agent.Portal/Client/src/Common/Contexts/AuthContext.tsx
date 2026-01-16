@@ -80,6 +80,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 instance.setActiveAccount(accounts[0]);
             }
         }
+
+        // TODO: There's something weird about what I assume to be expired auth sessions.
+        // MSAL treats you as still logged in, but you get 400/401s for everything. Need to
+        // see what the best way to check for and handle that is at some point
     }, [isLoadingAuth, instance]);
 
     const value = useMemo<AuthContextValue>(

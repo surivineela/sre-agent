@@ -4,7 +4,7 @@ connector: capps-kusto-connector
 description: |
   Retrieves logs from the Envoy controller to troubleshoot ingress and routing errors in Container Apps.
 
-mode: query
+toolMode: Auto
 function: GetEnvoyControllerLogs
 query: |
   AllCapps("K8SEBillingPodEvents")

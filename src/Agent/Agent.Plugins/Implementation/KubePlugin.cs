@@ -1954,7 +1954,7 @@ public partial class KubePlugin : IKubePlugin
                 _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined.", podName, _namespace);
                 return $"Pod '{podName}' has no containers.";
             }
-            _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
+            _logger?.LogInternalInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
         }
         else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
         {
@@ -1963,7 +1963,7 @@ public partial class KubePlugin : IKubePlugin
             return $"Container '{targetContainerName}' not found in pod '{podName}'. Available: {string.Join(", ", pod.Spec.Containers.Select(c => c.Name))}";
         }
 
-        _logger?.LogInformation("Targeting pod '{PodName}', container '{ContainerName}' for in-container .NET CPU profiling for {Duration} seconds.", podName, targetContainerName, durationSeconds);
+        _logger?.LogInternalInformation("Targeting pod '{PodName}', container '{ContainerName}' for in-container .NET CPU profiling for {Duration} seconds.", podName, targetContainerName, durationSeconds);
 
         var languageStack = GetPodLanguageStack(pod);
         var profileScript = GetProfileScriptForLanguageStack(languageStack);
@@ -2006,7 +2006,7 @@ public partial class KubePlugin : IKubePlugin
         const string noDotNetProcessMarker = "[PROF_SCRIPT_INFO] No debuggable .NET process found."; // Partial match is fine
         if (stdout != null && stdout.Contains(noDotNetProcessMarker))
         {
-            _logger?.LogInformation("In-container script indicated no debuggable .NET process found for pod '{PodName}', container '{ContainerName}', ns '{Namespace}', AKS '{AksResourceId}'. Script stdout contains relevant info.",
+            _logger?.LogInternalInformation("In-container script indicated no debuggable .NET process found for pod '{PodName}', container '{ContainerName}', ns '{Namespace}', AKS '{AksResourceId}'. Script stdout contains relevant info.",
                                     podName, targetContainerName, _namespace, aksResourceId);
             // Find the marker and return a concise message including the script's own explanation.
             var markerIndex = stdout.IndexOf(noDotNetProcessMarker);
@@ -2080,7 +2080,7 @@ public partial class KubePlugin : IKubePlugin
         }
         else
         {
-            _logger?.LogInformation("In-container profiling script completed successfully for pod '{PodName}'. Analysis should be in the output.", podName);
+            _logger?.LogInternalInformation("In-container profiling script completed successfully for pod '{PodName}'. Analysis should be in the output.", podName);
         }
 
         return resultBuilder.ToString();
@@ -2138,7 +2138,7 @@ public partial class KubePlugin : IKubePlugin
                 _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined.", podName, _namespace);
                 return $"Pod '{podName}' has no containers.";
             }
-            _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
+            _logger?.LogInternalInformation("Auto-selected container '{SelectedContainer}' for profiling in pod '{PodName}'.", targetContainerName, podName);
         }
         else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
         {
@@ -2176,7 +2176,7 @@ public partial class KubePlugin : IKubePlugin
         var commandList = new List<string> { command };
         commandList.AddRange(args);
 
-        _logger?.LogInformation("ExecInPodAsync: Pod: '{PodName}', Container: '{ContainerName}', Namespace: '{Namespace}', Command: '{FullCommand}'",
+        _logger?.LogInternalInformation("ExecInPodAsync: Pod: '{PodName}', Container: '{ContainerName}', Namespace: '{Namespace}', Command: '{FullCommand}'",
                                 podName, containerName, ns, string.Join(" ", commandList));
 
         System.Net.WebSockets.WebSocket? webSocket = null;
@@ -2247,7 +2247,7 @@ public partial class KubePlugin : IKubePlugin
                         if (cause != null && int.TryParse(cause.Message, out var ec))
                         {
                             exitCode = ec;
-                            _logger?.LogInformation("ExecInPodAsync: Parsed exit code {ExitCode} from V1Status in stderr for pod '{PodName}'.", exitCode, podName);
+                            _logger?.LogInternalInformation("ExecInPodAsync: Parsed exit code {ExitCode} from V1Status in stderr for pod '{PodName}'.", exitCode, podName);
                         }
                     }
                     else if (status != null && (status.Status == "Failure" || !string.IsNullOrEmpty(status.Reason)))
@@ -2442,7 +2442,7 @@ public partial class KubePlugin : IKubePlugin
                 _logger?.LogError("Pod '{PodName}' in namespace '{Namespace}' has no containers defined for memory analysis.", podName, _namespace);
                 return $"Error: Pod '{podName}' has no containers.";
             }
-            _logger?.LogInformation("Auto-selected container '{SelectedContainer}' for memory analysis in pod '{PodName}'.", targetContainerName, podName);
+            _logger?.LogInternalInformation("Auto-selected container '{SelectedContainer}' for memory analysis in pod '{PodName}'.", targetContainerName, podName);
         }
         else if (!pod.Spec.Containers.Any(c => c.Name.Equals(targetContainerName, StringComparison.OrdinalIgnoreCase)))
         {
@@ -2468,7 +2468,7 @@ public partial class KubePlugin : IKubePlugin
 
             // Use kubectl copy functionality
             await CopyFileToPodAsync(client, podName, _namespace, targetContainerName, analyzerBinaryPath, analyzerPath);
-            _logger?.LogInformation("Successfully copied analyzer binary to pod.");
+            _logger?.LogInternalInformation("Successfully copied analyzer binary to pod.");
         }
         catch (Exception ex)
         {
@@ -2476,7 +2476,7 @@ public partial class KubePlugin : IKubePlugin
             return $"Error: Could not copy analyzer binary. {ex.Message}";
         }
 
-        _logger?.LogInformation("Starting in-container .NET memory analysis for pod '{PodName}', container '{ContainerName}'.", podName, targetContainerName);
+        _logger?.LogInternalInformation("Starting in-container .NET memory analysis for pod '{PodName}', container '{ContainerName}'.", podName, targetContainerName);
 
         var languageStack = GetPodLanguageStack(pod);
         var profileScript = GetMemoryProfileScriptForLanguageStack(languageStack);
@@ -2522,7 +2522,7 @@ public partial class KubePlugin : IKubePlugin
         const string noDotNetProcessMarker = "[MEM_ANALYSIS_SCRIPT_INFO] No debuggable .NET process found.";
         if (stdout != null && stdout.Contains(noDotNetProcessMarker))
         {
-            _logger?.LogInformation("Memory analysis script indicated no debuggable .NET process found for pod '{PodName}'.", podName);
+            _logger?.LogInternalInformation("Memory analysis script indicated no debuggable .NET process found for pod '{PodName}'.", podName);
             resultBuilder.AppendLine("--- Script Standard Output ---");
             resultBuilder.AppendLine(stdout);
             if (!string.IsNullOrEmpty(stderr))
@@ -2550,7 +2550,7 @@ public partial class KubePlugin : IKubePlugin
                 var analysisResult = stdout.Substring(startIndex, endIndex - startIndex).Trim();
                 resultBuilder.AppendLine("--- Memory Analysis ---");
                 resultBuilder.AppendLine(analysisResult);
-                _logger?.LogInformation("Memory analysis script completed with analysis data for pod '{PodName}'.", podName);
+                _logger?.LogInternalInformation("Memory analysis script completed with analysis data for pod '{PodName}'.", podName);
             }
             else
             {

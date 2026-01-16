@@ -75,11 +75,15 @@ namespace Agent.Plugins.Kusto.Tools
 
         private async Task<string> ExecuteFunction(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters)
         {
+            // Build display options from tool definition, auto-detecting | render if present
+            var displayOptions = BuildDisplayOptions(ToolDefinition.Query);
+
             return await kustoPlugin.ExecuteLocalFunctionOnClusterAsync(
                 ToolDefinition.Function!,
                 connector.ClusterUrl,
                 ToolDefinition.Database,
                 parameters,
+                displayOptions: displayOptions,
                 toolDefinition: ToolDefinition);
         }
 
@@ -94,12 +98,16 @@ namespace Agent.Plugins.Kusto.Tools
                 ? connector.Database
                 : ToolDefinition.Database;
 
+            // Build display options, auto-detecting | render if present
+            var displayOptions = BuildDisplayOptions(formattedQuery);
+
             return await kustoPlugin.ExecuteClusterKustoQuery(
                 connector.ClusterUrl,
                 database,
                 formattedQuery,
                 printQuery,
-                ToolDefinition.Name);
+                ToolDefinition.Name,
+                displayOptions);
         }
 
         private async Task<string> ExecuteScript(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters, bool printQuery)
@@ -119,12 +127,58 @@ namespace Agent.Plugins.Kusto.Tools
                 ? connector.Database
                 : ToolDefinition.Database;
 
+            // Build display options, auto-detecting | render if present
+            var displayOptions = BuildDisplayOptions(formattedScript);
+
             return await kustoPlugin.ExecuteClusterKustoQuery(
                 connector.ClusterUrl,
                 database,
                 formattedScript,
                 printQuery,
-                ToolDefinition.Name);
+                ToolDefinition.Name,
+                displayOptions);
+        }
+
+        /// <summary>
+        /// Builds KustoDisplayOptions from the tool definition, auto-enabling ShowChart if query contains "| render".
+        /// YAML definition settings always take precedence over auto-detection.
+        /// </summary>
+        private KustoDisplayOptions BuildDisplayOptions(string? query)
+        {
+            var def = ToolDefinition.DisplayOptions;
+
+            // extract chart type from query, returns null if no render operator
+            var chartType = KustoDisplayFormatter.GetChartType(query ?? string.Empty);
+            bool shouldShowChart;
+            bool shouldShowTable;
+
+            if (chartType == null)
+            {
+                shouldShowChart = def?.ShowChart ?? false;
+                shouldShowTable = def?.ShowTable ?? false;
+            }
+            else if (chartType == "table")
+            {
+                shouldShowChart = def?.ShowChart ?? false;
+                shouldShowTable = def?.ShowTable ?? true;
+            }
+            else
+            {
+                shouldShowChart = def?.ShowChart ?? true;
+                shouldShowTable = def?.ShowTable ?? false;
+            }
+
+            return new KustoDisplayOptions
+            {
+                ShowChart = shouldShowChart,
+                ChartType = chartType,
+                ShowTable = shouldShowTable,
+                MaxTableRows = def?.MaxTableRows ?? 50,
+                MaxChartPoints = def?.MaxChartPoints ?? 200,
+                ChartTitle = def?.ChartTitle,
+                XField = def?.XField,
+                SeriesFields = def?.SeriesFields
+            };
         }
 
         private KustoConnector GetConnector(Dictionary<string, string> parameters, string kustoCluster)

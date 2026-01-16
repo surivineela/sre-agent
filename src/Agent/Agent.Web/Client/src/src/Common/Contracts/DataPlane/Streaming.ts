@@ -4,6 +4,7 @@ export enum MessageRequestType {
     CreateMessage = 'CreateMessage',
     CreateThread = 'CreateThread',
     CancelThread = 'CancelThread',
+    SubmitUserQuestionResponse = 'SubmitUserQuestionResponse',
 }
 
 export enum MessageResponseType {

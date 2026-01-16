@@ -43,6 +43,7 @@ const ChatMessage = ({
     messagesToCopy,
     sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
+    onSubmitUserQuestionResponse,
 }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const chatBoxStyles = getChatBoxStyles();
@@ -145,6 +146,7 @@ const ChatMessage = ({
                                     updateApprovalOrCliMessageInStreamingMessage={
                                         isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
                                     }
+                                    onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
                                 />
                             );
                         })}

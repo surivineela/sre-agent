@@ -22,6 +22,8 @@ public static class WorkflowDocs
 
         ### Phase 2: Generate YAML
         Generate YAML files for custom tools and agents.
+        **CRITICAL: Use `##param##` format for all parameter placeholders.**
+        **CRITICAL: Include `target: dictionary:args:string` for all parameters.**
 
         ### Phase 3: Deploy in Order
 
@@ -34,8 +36,8 @@ public static class WorkflowDocs
         2. AGENTS SECOND
            srectl apply-yaml --file agents/Y/Y.yaml
 
-        3. TRIGGERS LAST (if any)
-           srectl apply-yaml --file scheduledtasks/Z.yaml
+        3. SCHEDULED TASKS LAST (if any) - USE CLI COMMAND, NOT YAML
+           srectl scheduledtask create --name "task-name" --agent "agent-name" --cron "0 8 * * *" --prompt "..."
         ```
 
         ## Why Order Matters
@@ -59,10 +61,13 @@ public static class WorkflowDocs
         - [ ] KustoTool references existing Kusto connector
         - [ ] Connector name matches exactly
 
-        ## 3. Tools Ready?
+        ## 3. Tools Ready? (CRITICAL FORMAT REQUIREMENTS)
         - [ ] Custom tool YAML has connector + database (KustoTool)
         - [ ] Custom tool YAML has template (LinkTool)
         - [ ] All parameters have descriptions
+        - [ ] **All parameters use `type: string`**
+        - [ ] **All parameters have `target: dictionary:args:string`**
+        - [ ] **Query uses `##param##` format (NOT `{{param}}`)**
 
         ## 4. Agent Ready?
         - [ ] Clear, specific instructions
@@ -73,7 +78,7 @@ public static class WorkflowDocs
         ## 5. Deploy Order?
         - [ ] Tools FIRST
         - [ ] Agents SECOND
-        - [ ] Triggers LAST
+        - [ ] **Scheduled Tasks LAST - use CLI command, NOT YAML**
         """;
 
     public static string GetDashboardWorkflowGuidance() => """
@@ -92,6 +97,12 @@ public static class WorkflowDocs
         3. **Create KustoTool** for each query pattern
         4. **Create agent** that uses those tools
 
+        ## CRITICAL: Parameter Format
+
+        - **ALWAYS use `##param##` format for placeholders** (NEVER `{{param}}`)
+        - **ALWAYS use `type: string` for all parameters**
+        - **ALWAYS use `target: dictionary:args:string` for all parameters**
+
         ## KustoTool Example
 
         ```yaml
@@ -102,13 +113,25 @@ public static class WorkflowDocs
         spec:
           type: KustoTool
           connector: my-kusto-connector
+          toolMode: Auto
+          description: |-
+            Purpose:
+            Get error counts for a service within a time range
+
+            Usage:
+            Call with subscriptionId, resourceGroup, and hours parameters
+
+            Output Format:
+            Returns ErrorCount by hourly time bins
           database: TelemetryDB
-          description: Get error counts for a service
-          query: |
+          query: |-
+            let _subscriptionId = '##subscriptionId##';
+            let _resourceGroup = '##resourceGroup##';
+            let _hours = toint('##hours##');
             ServiceLogs
-            | where SubscriptionId == '{{subscriptionId}}'
-            | where ResourceGroup == '{{resourceGroup}}'
-            | where Timestamp > ago({{hours}}h)
+            | where SubscriptionId == _subscriptionId
+            | where ResourceGroup == _resourceGroup
+            | where Timestamp > ago(_hours * 1h)
             | where Level == 'Error'
             | summarize ErrorCount=count() by bin(Timestamp, 1h)
           parameters:
@@ -116,14 +139,17 @@ public static class WorkflowDocs
               type: string
               description: Azure subscription ID
               required: true
+              target: dictionary:args:string
             - name: resourceGroup
               type: string
               description: Resource group name
               required: true
+              target: dictionary:args:string
             - name: hours
               type: string
               description: Hours to look back
               required: true
+              target: dictionary:args:string
         ```
         """;
 }
