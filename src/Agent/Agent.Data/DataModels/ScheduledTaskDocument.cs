@@ -90,7 +90,8 @@ public record UpdateScheduledTaskRequest(
     ScheduledTaskStatus? Status = null,
     Dictionary<string, object>? ExecutionContext = null,
     int? MaxExecutions = null,
-    string? NotificationChannel = null
+    string? NotificationChannel = null,
+    string? ThreadId = null
 );
 
 public record ScheduledTaskCreationResult(

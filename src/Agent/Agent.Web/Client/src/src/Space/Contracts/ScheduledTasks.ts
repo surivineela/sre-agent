@@ -5,7 +5,7 @@ export interface ScheduledTask {
     status: ScheduledTaskStatus;
     cronExpression: string;
     agentPrompt: string;
-    threadId?: string;
+    threadId?: string | null;
     createdBy: string;
     createdAt: string;
     startTime?: string;
@@ -37,7 +37,8 @@ export interface CreateScheduledTaskRequest {
     createdBy: string; // Required field for tracking who created the task
     startTime?: string;
     endTime?: string;
-    threadId?: string;
+    // Must use `null` (not `undefined`) to clear threadId - undefined is omitted from JSON and backend ignores missing fields
+    threadId?: string | null;
     executionContext?: Record<string, any>;
     maxExecutions?: number;
     notificationChannel?: string;
