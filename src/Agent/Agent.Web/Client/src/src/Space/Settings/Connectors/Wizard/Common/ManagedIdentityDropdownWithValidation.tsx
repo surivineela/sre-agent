@@ -66,7 +66,7 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
     }, [intl, isSystemAssignedIdentityEnabled, userAssignedIdentities, required]);
 
     useEffect(() => {
-        // Auto-select the first identity if there's only one option and no current selection
+        // Auto-select the first identity if there are options and no current selection
         const allSelectableOptions = [...userAssignedIdentities];
         if (isSystemAssignedIdentityEnabled) {
             allSelectableOptions.unshift({
@@ -75,7 +75,7 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
             });
         }
 
-        if (allSelectableOptions.length === 1 && !values.identity) {
+        if (allSelectableOptions.length >= 1 && !values.identity) {
             setFieldValue('identity', allSelectableOptions[0].id);
         }
     }, [isSystemAssignedIdentityEnabled, userAssignedIdentities, values.identity, setFieldValue]);

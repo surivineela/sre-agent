@@ -1,11 +1,13 @@
-import { Button, Card, Link, Spinner, Text } from '@fluentui/react-components';
+import { Button, Card, Link, MessageBar, MessageBarBody, Spinner, Text } from '@fluentui/react-components';
 import { CheckmarkCircle20Filled } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { OAuthPopup } from '../../../../../Common/Clients/OAuthPopupClient';
 import { OAuthServiceClient } from '../../../../../Common/Clients/OAuthService';
+import { PermissionClient } from '../../../../../Common/Clients/PermissionsClient';
 import { FieldWrapper } from '../../../../../Common/Components/Field/FieldWrapper';
 import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
@@ -61,6 +63,10 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
     const { consentLink, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectorApiName}`);
     const [isAccountSignInInProgress, setIsAccountSignInInProgress] = useState(false);
     const [isDifferentAccountSignInInProgress, setIsDifferentAccountSignInInProgress] = useState(false);
+    const [isCheckingPermissions, setIsCheckingPermissions] = useState(true);
+    const [hasConnectionWritePermission, setHasConnectionWritePermission] = useState<boolean | null>(null);
+
+    const az = useContext(AzPortalContext);
 
     const onSignInClick = useCallback(async () => {
         setIsAccountSignInInProgress(true);
@@ -129,6 +135,16 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         setIsDifferentAccountSignInInProgress(false);
     }, [agentName, connectorApiName, deleteApiConnection, onSignInClick, resourceGroup, subscription]);
 
+    const checkPermissions = useCallback(async () => {
+        setIsCheckingPermissions(true);
+        const resourceGroupId = `/subscriptions/${subscription}/resourceGroups/${resourceGroup}`;
+
+        const hasPermission = await PermissionClient.getInstance().hasPermission(resourceGroupId, ['Microsoft.Web/connections/write']);
+
+        setHasConnectionWritePermission(hasPermission);
+        setIsCheckingPermissions(false);
+    }, [subscription, resourceGroup]);
+
     const isNotAuthenticated = useMemo(
         () => !apiConnection || !consentLink || consentLink.status === 'Unauthenticated',
         [apiConnection, consentLink]
@@ -152,6 +168,15 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
             loadData();
         }
     }, [isEditMode, loadData]);
+
+    useEffect(() => {
+        if (!isEditMode) {
+            checkPermissions();
+        } else {
+            setIsCheckingPermissions(false);
+            setHasConnectionWritePermission(true);
+        }
+    }, [isEditMode, checkPermissions]);
 
     const [displayChannelId, setDisplayChannelId] = useState<string>('');
     const [displayTeamsGroupId, setDisplayTeamsGroupId] = useState<string>('');
@@ -189,22 +214,53 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
                 orientation="vertical"
             >
                 {!values.email && isNotAuthenticated ? (
-                    <div className={styles.signInLoading}>
-                        <Button
-                            appearance="primary"
-                            onClick={onSignInClick}
-                            disabled={isAccountSignInInProgress}
-                            className={styles.outlookTeamsButton}
-                        >
-                            {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
-                        </Button>
-                        {isAccountSignInInProgress && (
-                            <>
-                                <Spinner size="tiny" />
-                                <Text>{intl.formatMessage(ConnectorsResources.establishingConnection)}</Text>
-                            </>
+                    <>
+                        {!isCheckingPermissions && !hasConnectionWritePermission && (
+                            <MessageBar intent="warning" layout="multiline" className={styles.permissionWarning}>
+                                <MessageBarBody>
+                                    {intl.formatMessage(ConnectorsResources.needConnectionWritePermission, {
+                                        link: (
+                                            <Link
+                                                onClick={() => {
+                                                    az.openBlade({
+                                                        extension: 'Microsoft_Azure_AD',
+                                                        detailBlade: 'AccessControlBlade',
+                                                        detailBladeInputs: {
+                                                            scope: `/subscriptions/${subscription}/resourceGroups/${resourceGroup}`,
+                                                        },
+                                                    });
+                                                }}
+                                            >
+                                                {intl.formatMessage(ConnectorsResources.here)}
+                                            </Link>
+                                        ),
+                                    })}
+                                </MessageBarBody>
+                            </MessageBar>
                         )}
-                    </div>
+                        <div className={styles.signInLoading}>
+                            <Button
+                                appearance="primary"
+                                onClick={onSignInClick}
+                                disabled={isCheckingPermissions || !hasConnectionWritePermission || isAccountSignInInProgress}
+                                className={styles.outlookTeamsButton}
+                            >
+                                {intl.formatMessage(ConnectorsResources.signInToService, { service: connectorService })}
+                            </Button>
+                            {isCheckingPermissions && (
+                                <>
+                                    <Spinner size="tiny" />
+                                    <Text>{intl.formatMessage(ConnectorsResources.checkingPermissions)}</Text>
+                                </>
+                            )}
+                            {isAccountSignInInProgress && (
+                                <>
+                                    <Spinner size="tiny" />
+                                    <Text>{intl.formatMessage(ConnectorsResources.establishingConnection)}</Text>
+                                </>
+                            )}
+                        </div>
+                    </>
                 ) : (
                     <>
                         <Card className={styles.accountCard}>
