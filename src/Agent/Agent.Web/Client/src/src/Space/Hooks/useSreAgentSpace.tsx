@@ -111,7 +111,7 @@ export const useSreAgentSpace = () => {
 
     const addThread = useCallback(
         (threadId: string) => {
-            onClickNavItem(PrimaryNavItemValues.Activities, undefined, threadId);
+            onClickNavItem(PrimaryNavItemValues.Threads, undefined, threadId);
         },
         [onClickNavItem]
     );
