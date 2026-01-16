@@ -75,7 +75,7 @@ const getSubItemProps = (
 
 const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
     const {
-        categoryItem: { isCollapsed, disabled, icon: Icon, filledIcon: FilledIcon, value, label, ref },
+        categoryItem: { isCollapsed, isVisible, disabled, icon: Icon, filledIcon: FilledIcon, value, label, ref },
         subItems,
         onClickCategoryNavItem,
         onClickSubNavItem,
@@ -93,41 +93,45 @@ const CategoryNavItem: FC<ICategoryNavItemProps> = props => {
         onClick: () => onClickCategoryNavItem(value),
     };
 
-    return isCollapsed ? (
-        <Menu positioning={{ autoSize: true, position: 'after', align: 'end' }}>
-            <MenuTrigger disableButtonEnhancement>
-                <Tooltip content={label} relationship="label">
-                    <CopilotNavItem
-                        {...navItemProps}
-                        value={value}
-                        icon={
-                            getCategoryNavItemIdFromPathName(location.pathname) === value ? FilledIcon && <FilledIcon /> : Icon && <Icon />
-                        }
-                        aria-label={label}
-                        className={
-                            getCategoryNavItemIdFromPathName(location.pathname) === value
-                                ? mergeClasses(styles.selectedNavButton, styles.selectedNavCommon)
-                                : undefined
-                        }
-                    />
-                </Tooltip>
-            </MenuTrigger>
-            <MenuPopover>
-                <SubMenuList items={subItems} value={value} onClickSubNavItem={onClickSubNavItem} />
-            </MenuPopover>
-        </Menu>
-    ) : (
-        <div>
-            <CopilotNavCategory value={value}>
-                <CopilotNavCategoryItem {...navItemProps} icon={Icon && <Icon />} value={categoryNavId}>
-                    {label}
-                </CopilotNavCategoryItem>
-                <CopilotNavSubItemGroup aria-labelledby={categoryNavId}>
-                    <SubItems items={subItems} value={value} onClickSubNavItem={onClickSubNavItem} />
-                </CopilotNavSubItemGroup>
-            </CopilotNavCategory>
-        </div>
-    );
+    return isVisible ? (
+        isCollapsed ? (
+            <Menu positioning={{ autoSize: true, position: 'after', align: 'end' }}>
+                <MenuTrigger disableButtonEnhancement>
+                    <Tooltip content={label} relationship="label">
+                        <CopilotNavItem
+                            {...navItemProps}
+                            value={value}
+                            icon={
+                                getCategoryNavItemIdFromPathName(location.pathname) === value
+                                    ? FilledIcon && <FilledIcon />
+                                    : Icon && <Icon />
+                            }
+                            aria-label={label}
+                            className={
+                                getCategoryNavItemIdFromPathName(location.pathname) === value
+                                    ? mergeClasses(styles.selectedNavButton, styles.selectedNavCommon)
+                                    : undefined
+                            }
+                        />
+                    </Tooltip>
+                </MenuTrigger>
+                <MenuPopover>
+                    <SubMenuList items={subItems} value={value} onClickSubNavItem={onClickSubNavItem} />
+                </MenuPopover>
+            </Menu>
+        ) : (
+            <div>
+                <CopilotNavCategory value={value}>
+                    <CopilotNavCategoryItem {...navItemProps} icon={Icon && <Icon />} value={categoryNavId}>
+                        {label}
+                    </CopilotNavCategoryItem>
+                    <CopilotNavSubItemGroup aria-labelledby={categoryNavId}>
+                        <SubItems items={subItems} value={value} onClickSubNavItem={onClickSubNavItem} />
+                    </CopilotNavSubItemGroup>
+                </CopilotNavCategory>
+            </div>
+        )
+    ) : null;
 };
 
 const SubMenuList = memo(

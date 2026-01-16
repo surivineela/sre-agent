@@ -40,6 +40,7 @@ const ActivitiesCategoryNavItem: FC<IActivitiesCategoryNavItemProps> = ({
             icon: bundleIcon(ChatEmpty20Filled, ChatEmpty20Regular),
             filledIcon: ChatEmpty20Filled,
             isCollapsed: !isNavOpen,
+            isVisible: true,
             disabled: false,
             ref: activitiesRef,
         }),
