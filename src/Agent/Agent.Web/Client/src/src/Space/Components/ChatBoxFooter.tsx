@@ -260,6 +260,7 @@ const ChatBoxFooter = ({
     isIncidentRetroModeTurnedOn,
     toggleIncidentRetroMode,
     hasPendingUserQuestion,
+    isOverview,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -1167,6 +1168,7 @@ const ChatBoxFooter = ({
                     customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
                     contentBefore={
                         <ContentBefore
+                            isOverview={isOverview}
                             isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
                             isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
                             onClickDeepInvestigationButton={onClickDeepInvestigationButton}
@@ -1423,6 +1425,7 @@ const Attachments = memo(
 );
 
 const ContentBefore = (props: {
+    isOverview?: boolean;
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
@@ -1438,11 +1441,13 @@ const ContentBefore = (props: {
     const { container, trailingGroup } = useFooterButtonGroupStyles();
     return (
         <div className={container}>
-            <DeepInvestigationButton
-                isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
-                isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
-                onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
-            />
+            {!props.isOverview && (
+                <DeepInvestigationButton
+                    isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
+                    isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
+                    onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
+                />
+            )}
             {props.showAgentModeSelector && props.threadId && (
                 <AgentModeSelector
                     id={ChatBoxButtonIds.AgentMode}

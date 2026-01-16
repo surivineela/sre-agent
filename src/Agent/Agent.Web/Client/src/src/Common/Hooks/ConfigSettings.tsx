@@ -16,6 +16,8 @@ export enum SettingNames {
     AllowMetaAgentOverride = 'allowMetaAgentOverride',
     ShowPermissionsInSettings = 'showPermissionsInSettings',
     ShowIncidentTriggerWithLearnings = 'showIncidentTriggerWithLearnings',
+    /** Use for onboarding experience testing. This will be removed when the feature is ready */
+    Overview = 'overview',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -43,6 +45,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowPermissionsInSettings]: true,
         [SettingNames.Connectors]: true,
         [SettingNames.ShowIncidentTriggerWithLearnings]: true,
+        [SettingNames.Overview]: true,
     },
 };
 

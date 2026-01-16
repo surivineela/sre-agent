@@ -6004,3 +6004,7 @@ export const AgentPermissionsResources = defineMessages({
     permissionDeletedSuccess: { defaultMessage: 'Permission deleted successfully', id: 'dM9M1D' },
     permissionDeleteFailed: { defaultMessage: 'Failed to delete permission', id: 'pLFm2y' },
 });
+
+export const OverviewResources = defineMessages({
+    overview: { defaultMessage: 'Overview', id: '9uOFF3' },
+});

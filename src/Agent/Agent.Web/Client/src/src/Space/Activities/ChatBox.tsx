@@ -7,6 +7,7 @@ import ChatBoxDeepInvestigationDialog from '../Components/Chat/ChatBoxDeepInvest
 import ChatBoxSidePanel, { IChatBoxSidePanelProps } from '../Components/Chat/ChatBoxSidePanel';
 import ChatMessageGroupComponent from '../Components/Chat/ChatMessageGroupComponent';
 import ChatMessageGroups from '../Components/Chat/ChatMessageGroups';
+import { OverviewChatBox } from '../Components/Chat/OverviewChatBox';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import KnowledgeGraphSidePanel from '../Components/KnowledgeGraphSidePanel';
@@ -44,6 +45,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         renderEmptyState,
         inputDisabledMessage,
         initialRetroModeEnabled,
+        isOverview,
     } = props;
 
     const {
@@ -180,82 +182,111 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                     <div className={chatBoxStyles.chatBoxAndAgentTask}>
                         <div className={chatBoxStyles.chatBox}>
                             <div className={chatBoxStyles.chatBoxInner}>
-                                <div
-                                    className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
-                                    ref={messagesDivRef}
-                                    onScroll={onScroll}
-                                >
-                                    <CopilotChat className={chatBoxStyles.chat}>
-                                        <div ref={intersectionObserverRef} />
+                                {isOverview ? (
+                                    <OverviewChatBox
+                                        sendMessage={sendMessage}
+                                        isLoading={isLoading}
+                                        downButtonState={downButtonState}
+                                        onClickDownButton={onClickDownButton}
+                                        prompts={prompts}
+                                        messagePromptsUsed={messagePromptsUsed}
+                                        cancelStreaming={cancelStreaming}
+                                        isTyping={!!isAgentTyping}
+                                        isCancellingStreaming={isCancellingStreaming}
+                                        threadId={currentThreadId}
+                                        threadSource={threadSource}
+                                        isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                        isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                        onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                        forcedAgentName={forcedAgentName}
+                                        lockAgentSelection={lockAgentSelection}
+                                        inputDisabledMessage={inputDisabledMessage}
+                                        isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
+                                        toggleIncidentRetroMode={toggleIncidentRetroMode}
+                                        hasPendingUserQuestion={hasPendingUserQuestion}
+                                    />
+                                ) : (
+                                    <>
+                                        <div
+                                            className={mergeClasses(scrollable, chatBoxStyles.chatContainer)}
+                                            ref={messagesDivRef}
+                                            onScroll={onScroll}
+                                        >
+                                            <CopilotChat className={chatBoxStyles.chat}>
+                                                <div ref={intersectionObserverRef} />
 
-                                        {isLoading && !isWelcomeThread && <ChatLoading />}
+                                                {isLoading && !isWelcomeThread && <ChatLoading />}
 
-                                        {isNewAndCleanThread &&
-                                            !isWelcomeThread &&
-                                            (renderEmptyState ? (
-                                                renderEmptyState({ sendMessage, forcedAgentName })
-                                            ) : (
-                                                <ChatSuggestions sendMessage={sendMessage} />
-                                            ))}
+                                                {isNewAndCleanThread &&
+                                                    !isWelcomeThread &&
+                                                    (renderEmptyState ? (
+                                                        renderEmptyState({ sendMessage, forcedAgentName })
+                                                    ) : (
+                                                        <ChatSuggestions sendMessage={sendMessage} />
+                                                    ))}
 
-                                        {/* Insert the richer welcome experience once at the top for welcome threads */}
-                                        {isWelcomeThread && <AzureSREWelcome threadId={currentThreadId} selectThread={selectThread} />}
-
-                                        {/* Display permission error message if any*/}
-                                        <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
-
-                                        {/* Non streaming messages */}
-                                        {!isLoading && (
-                                            <>
-                                                <ChatMessageGroups
-                                                    messageGroups={messageGroups}
-                                                    threadId={currentThreadId || ''}
-                                                    sendMessage={sendMessage}
-                                                    onSubmitUserQuestionResponse={submitUserQuestionResponse}
-                                                />
-                                                {streamingMessageGroup && (
-                                                    <ChatMessageGroupComponent
-                                                        key={streamingMessageGroup.id}
-                                                        messageGroup={streamingMessageGroup}
-                                                        isStreamingMessage={true}
-                                                        isTyping={isAgentTyping}
-                                                        threadId={currentThreadId || ''}
-                                                        threadSource={threadSource}
-                                                        toolCallText={toolCallText}
-                                                        isWaitingForStreamingMessages={isWaitingForStreamingMessages}
-                                                        updateApprovalOrCliMessageInStreamingMessage={
-                                                            updateApprovalOrCliMessageInStreamingMessage
-                                                        }
-                                                        onSubmitUserQuestionResponse={submitUserQuestionResponse}
-                                                    />
+                                                {/* Insert the richer welcome experience once at the top for welcome threads */}
+                                                {isWelcomeThread && (
+                                                    <AzureSREWelcome threadId={currentThreadId} selectThread={selectThread} />
                                                 )}
-                                            </>
-                                        )}
-                                    </CopilotChat>
-                                </div>
 
-                                <ChatBoxFooter
-                                    sendMessage={sendMessage}
-                                    isLoading={isLoading}
-                                    downButtonState={downButtonState}
-                                    onClickDownButton={onClickDownButton}
-                                    prompts={prompts}
-                                    messagePromptsUsed={messagePromptsUsed}
-                                    cancelStreaming={cancelStreaming}
-                                    isTyping={!!isAgentTyping}
-                                    isCancellingStreaming={isCancellingStreaming}
-                                    threadId={currentThreadId}
-                                    threadSource={threadSource}
-                                    isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
-                                    isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                                    onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                                    forcedAgentName={forcedAgentName}
-                                    lockAgentSelection={lockAgentSelection}
-                                    inputDisabledMessage={inputDisabledMessage}
-                                    isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
-                                    toggleIncidentRetroMode={toggleIncidentRetroMode}
-                                    hasPendingUserQuestion={hasPendingUserQuestion}
-                                />
+                                                {/* Display permission error message if any*/}
+                                                <PermissionErrorChatMessage key={'permission-error-chat-message'} isLoading={isLoading} />
+
+                                                {/* Non streaming messages */}
+                                                {!isLoading && (
+                                                    <>
+                                                        <ChatMessageGroups
+                                                            messageGroups={messageGroups}
+                                                            threadId={currentThreadId || ''}
+                                                            sendMessage={sendMessage}
+                                                            onSubmitUserQuestionResponse={submitUserQuestionResponse}
+                                                        />
+                                                        {streamingMessageGroup && (
+                                                            <ChatMessageGroupComponent
+                                                                key={streamingMessageGroup.id}
+                                                                messageGroup={streamingMessageGroup}
+                                                                isStreamingMessage={true}
+                                                                isTyping={isAgentTyping}
+                                                                threadId={currentThreadId || ''}
+                                                                threadSource={threadSource}
+                                                                toolCallText={toolCallText}
+                                                                isWaitingForStreamingMessages={isWaitingForStreamingMessages}
+                                                                updateApprovalOrCliMessageInStreamingMessage={
+                                                                    updateApprovalOrCliMessageInStreamingMessage
+                                                                }
+                                                                onSubmitUserQuestionResponse={submitUserQuestionResponse}
+                                                            />
+                                                        )}
+                                                    </>
+                                                )}
+                                            </CopilotChat>
+                                        </div>
+
+                                        <ChatBoxFooter
+                                            sendMessage={sendMessage}
+                                            isLoading={isLoading}
+                                            downButtonState={downButtonState}
+                                            onClickDownButton={onClickDownButton}
+                                            prompts={prompts}
+                                            messagePromptsUsed={messagePromptsUsed}
+                                            cancelStreaming={cancelStreaming}
+                                            isTyping={!!isAgentTyping}
+                                            isCancellingStreaming={isCancellingStreaming}
+                                            threadId={currentThreadId}
+                                            threadSource={threadSource}
+                                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled}
+                                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                            forcedAgentName={forcedAgentName}
+                                            lockAgentSelection={lockAgentSelection}
+                                            inputDisabledMessage={inputDisabledMessage}
+                                            isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
+                                            toggleIncidentRetroMode={toggleIncidentRetroMode}
+                                            hasPendingUserQuestion={hasPendingUserQuestion}
+                                        />
+                                    </>
+                                )}
                             </div>
                         </div>
 

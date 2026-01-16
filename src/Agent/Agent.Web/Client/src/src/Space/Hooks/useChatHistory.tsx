@@ -17,7 +17,9 @@ export const useChatHistory = (
     hasExistingStreamingMessage: boolean
 ) => {
     const [newestMessageTimestampInOldMessages, setNewestMessageTimestampInOldMessages] = useState<string | null>(null);
-    const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
+    const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(
+        !!threadId && threadId !== threadIdUsedForCreatingNewThread
+    );
     const [chatHistoryChangeTrigger, setChatHistoryChangeTrigger] = useState<string | null>(null);
 
     const exponentialBackoffDepth = useRef(-1);

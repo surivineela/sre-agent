@@ -103,6 +103,7 @@ export interface IChatBoxProps {
     renderEmptyState?: (options: { sendMessage: (message: string) => Promise<void>; forcedAgentName?: string }) => ReactNode;
     inputDisabledMessage?: string;
     initialRetroModeEnabled?: boolean;
+    isOverview?: boolean;
 }
 
 export enum ChatBoxSidePanelType {
@@ -223,6 +224,7 @@ export interface IChatBoxFooterProps {
     isIncidentRetroModeTurnedOn?: boolean;
     toggleIncidentRetroMode?: () => void;
     hasPendingUserQuestion?: boolean;
+    isOverview?: boolean;
 }
 
 export interface SendMessageOptions {

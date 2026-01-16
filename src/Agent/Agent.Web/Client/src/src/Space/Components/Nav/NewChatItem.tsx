@@ -91,18 +91,29 @@ const Item = memo(
 
         return (
             <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Tooltip content={props.label} relationship="label">
+                {props.isNavOpen ? (
                     <CopilotNavItem
                         {...restoreFocusTargetAttribute}
                         disabled={props.disabled}
                         icon={props.icon}
                         value={props.value}
                         onClick={props.onClick}
-                        aria-label={props.label}
                     >
                         {props.isNavOpen ? props.label : null}
                     </CopilotNavItem>
-                </Tooltip>
+                ) : (
+                    <Tooltip content={props.label} relationship="label">
+                        <CopilotNavItem
+                            {...restoreFocusTargetAttribute}
+                            disabled={props.disabled}
+                            icon={props.icon}
+                            value={props.value}
+                            onClick={props.onClick}
+                            aria-label={props.label}
+                        />
+                    </Tooltip>
+                )}
+
                 {props.children}
             </div>
         );

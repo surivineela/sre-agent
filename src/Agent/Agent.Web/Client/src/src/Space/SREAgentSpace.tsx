@@ -14,6 +14,7 @@ import { ArmObj } from '../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { AntUxStringComparison, equals } from '../Common/Helpers/Strings';
+import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
 import { useScrollableComponentStyles } from '../Common/Styles/Scrollable';
 import { SreAgentResources } from '../Strings/SREAgentResources';
 import Thread from './Activities/Thread';
@@ -22,6 +23,7 @@ import NavBarOpenCloseButton from './Components/Nav/NavBarOpenCloseButton';
 import NavHeader from './Components/Nav/NavHeader';
 import NewChatItem from './Components/Nav/NewChatItem';
 import NonThreadCategoryNavItems from './Components/Nav/NonThreadCategoryNavItems';
+import OverviewNavItem from './Components/Nav/OverviewNavItem';
 import ThreadsNav from './Components/Nav/ThreadsNav';
 import { DirtyStateContext, SreAgentContext, SreAgentSpaceContext } from './Contracts/Context';
 import { PermissionProvider } from './Contracts/PermissionContext';
@@ -34,6 +36,7 @@ import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import { useSreAgentSpace } from './Hooks/useSreAgentSpace';
 import { DirtyStateNavigationConfirmDialog } from './IncidentManagement/CreateIncidentHandler/NavigationConfirmDialog';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
+import Overview from './Overview/Overview';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
@@ -131,6 +134,8 @@ const TabsListWrapper: FC = () => {
     const styles = useSreAgentSpaceStyles();
     const { scrollable } = useScrollableComponentStyles();
 
+    const showOverview = useConfigSetting(SettingNames.Overview);
+
     // Log route/view changes
     useEffect(() => {
         azPortalProxy.log({
@@ -169,6 +174,7 @@ const TabsListWrapper: FC = () => {
         isNavBarHidden,
         openedCategoryNavItems,
         onClickCategoryNavItem,
+        onClickNonThreadNavItem,
         onClickNonThreadSubNavItem,
         ...threadsNavProps
     } = useSreAgentSpace();
@@ -228,13 +234,23 @@ const TabsListWrapper: FC = () => {
                                 <CopilotNavDrawerBody
                                     className={mergeClasses(scrollable, styles.navBody, isNavOpen ? undefined : styles.collapsedNavBody)}
                                 >
+                                    {showOverview && (
+                                        <OverviewNavItem isNavOpen={isNavOpen} onClick={onClickNonThreadNavItem}>
+                                            {isNavOpen && (
+                                                <NavBarOpenCloseButton
+                                                    isNavOpen={true}
+                                                    onExpandOrCollapseNavBar={onExpandOrCollapseNavBar}
+                                                />
+                                            )}
+                                        </OverviewNavItem>
+                                    )}
                                     <NewChatItem
                                         isNavOpen={isNavOpen}
                                         threads={threadsNavProps.threadListsState.regularThreadListState.threads}
                                         selectThread={selectThread}
                                         excludedSources={threadsNavProps.excludedSources}
                                     >
-                                        {isNavOpen && (
+                                        {isNavOpen && !showOverview && (
                                             <NavBarOpenCloseButton isNavOpen={true} onExpandOrCollapseNavBar={onExpandOrCollapseNavBar} />
                                         )}
                                     </NewChatItem>
@@ -320,7 +336,7 @@ const router = createHashRouter([
         errorElement: <RouteErrorBoundary />,
         children: [
             { index: true, element: <Thread /> },
-
+            { path: getPathName(false, PrimaryNavItemValues.Overview), element: <Overview /> },
             {
                 path: getPathName(false, PrimaryNavItemValues.Activities),
                 element: <IncidentManagement menuItem={SecondaryNavItemValues.IncidentOverview} />,

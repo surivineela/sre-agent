@@ -1,4 +1,4 @@
-import { Body1Strong, Button, Image, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
+import { Body1Strong, Button, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
 import { Sparkle16Filled } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -6,7 +6,8 @@ import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPorta
 import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
-import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
+import { SreAgentBranding } from '../Components/Chat/SreAgentBranding';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useChatSuggestionStyles = makeStyles({
@@ -17,13 +18,6 @@ const useChatSuggestionStyles = makeStyles({
         justifyContent: 'center',
         alignItems: 'center',
         flex: '1',
-    },
-    brandContainer: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '8px',
     },
     cardContainer: {
         display: 'flex',
@@ -93,9 +87,6 @@ const useChatSuggestionStyles = makeStyles({
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
         width: '100%',
-    },
-    leftBrandContainer: {
-        justifyContent: 'flex-start',
     },
     leftCardContainer: {
         justifyContent: 'flex-start',
@@ -301,14 +292,7 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
 
     return (
         <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
-            {showSreAgentLogo && (
-                <div className={mergeClasses(chatSuggestionsStyles.brandContainer, alignLeft && chatSuggestionsStyles.leftBrandContainer)}>
-                    <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />
-                    <Text as={'h2'} size={500} weight="semibold">
-                        {intl.formatMessage(SreAgentResources.azureSreAgent)}
-                    </Text>
-                </div>
-            )}
+            {showSreAgentLogo && <SreAgentBranding alignLeft={alignLeft} />}
             <div className={mergeClasses(chatSuggestionsStyles.cardContainer, alignLeft && chatSuggestionsStyles.leftCardContainer)}>
                 {hasChatPermissions &&
                     chatSuggestionCategories.map(suggestion => (

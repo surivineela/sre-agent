@@ -21,7 +21,11 @@ import { isThreadUnread } from './Utility';
 
 const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 
-const Thread: FC = () => {
+interface IThreadProps {
+    isOverview?: boolean;
+}
+
+const Thread: FC<IThreadProps> = ({ isOverview }) => {
     const { threadId } = useParams();
     const location = useLocation();
 
@@ -151,23 +155,25 @@ const Thread: FC = () => {
 
     return canReadThreads ? (
         <div key={threadsRenderKey} className={ThreadContentStyles.root}>
-            <ThreadContentTitle
-                thread={thread}
-                isLoadingThread={isLoadingThread}
-                loadingThreadFailed={loadingThreadFailed}
-                updateThreadTitle={updateThreadTitle}
-                updateThreadFavorite={updateThreadFavorite}
-                subscribeThreadTitleUpdate={subscribeThreadTitleUpdate}
-                subscribeThreadFavoriteUpdate={subscribeThreadFavoriteUpdate}
-                deleteThread={deleteThread}
-                hasToDoPlans={hasToDoPlans}
-                isToDoPlanOpen={isToDoPlanOpen}
-                openToDoPlan={openToDoPlan}
-                closeToDoPlan={closeToDoPlan}
-                showTraceButton={showThreadTraceUI && showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
-                toggleTraceVisibility={() => setShowTrace(!showTrace)}
-                traceFocusRestorationRef={traceFocusRestorationRef}
-            />
+            {!isOverview && (
+                <ThreadContentTitle
+                    thread={thread}
+                    isLoadingThread={isLoadingThread}
+                    loadingThreadFailed={loadingThreadFailed}
+                    updateThreadTitle={updateThreadTitle}
+                    updateThreadFavorite={updateThreadFavorite}
+                    subscribeThreadTitleUpdate={subscribeThreadTitleUpdate}
+                    subscribeThreadFavoriteUpdate={subscribeThreadFavoriteUpdate}
+                    deleteThread={deleteThread}
+                    hasToDoPlans={hasToDoPlans}
+                    isToDoPlanOpen={isToDoPlanOpen}
+                    openToDoPlan={openToDoPlan}
+                    closeToDoPlan={closeToDoPlan}
+                    showTraceButton={showThreadTraceUI && showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
+                    toggleTraceVisibility={() => setShowTrace(!showTrace)}
+                    traceFocusRestorationRef={traceFocusRestorationRef}
+                />
+            )}
             <ChatBox
                 threadId={threadId}
                 selectThread={selectThread}
@@ -181,8 +187,9 @@ const Thread: FC = () => {
                 canOpenSidePanel={true}
                 ref={chatboxHandleRef}
                 initialRetroModeEnabled={thread?.isIncidentTestModeEnabled}
+                isOverview={isOverview}
             />
-            {!!thread && showTrace && agentAppInsightsAppId && (
+            {!isOverview && !!thread && showTrace && agentAppInsightsAppId && (
                 <TracePanel
                     appInsightsAppId={agentAppInsightsAppId}
                     thread={thread}

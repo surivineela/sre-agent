@@ -94,6 +94,13 @@ export const useSreAgentSpace = () => {
         [navigate, onNavItemSelected]
     );
 
+    const onClickNonThreadNavItem = useCallback(
+        (primary: PrimaryNavItemValues) => {
+            onClickNavItem(primary, undefined, undefined);
+        },
+        [onClickNavItem]
+    );
+
     const onClickNonThreadSubNavItem = useCallback(
         (primary: PrimaryNavItemValues, secondary: SecondaryNavItemValues) => {
             onClickNavItem(primary, secondary, undefined);
@@ -433,6 +440,7 @@ export const useSreAgentSpace = () => {
         onExpandOrCollapseNavBar,
         openedCategoryNavItems,
         onClickCategoryNavItem,
+        onClickNonThreadNavItem,
         onClickNonThreadSubNavItem,
 
         isNavOpen: navBarState.isNavBarOpen,
