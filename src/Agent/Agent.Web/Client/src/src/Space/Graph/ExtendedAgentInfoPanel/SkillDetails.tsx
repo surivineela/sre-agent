@@ -89,7 +89,7 @@ export const SkillDetails = memo(({ skill, toolMap, systemToolMap }: SkillDetail
                 </div>
             )}
 
-            {(skill.skillMdContent || (skill.additionalFiles && skill.additionalFiles.length > 0)) && (
+            {(skill.skillContent || (skill.additionalFiles && skill.additionalFiles.length > 0)) && (
                 <div className={styles.section}>
                     <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.skillFiles)}</Text>
                     <Table>
@@ -107,7 +107,7 @@ export const SkillDetails = memo(({ skill, toolMap, systemToolMap }: SkillDetail
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {skill.skillMdContent && (
+                            {skill.skillContent && (
                                 <TableRow key="skill-file-skill-md">
                                     <TableCell className={styles.tableCellTruncate}>
                                         <div className={styles.flexRowCenter8}>

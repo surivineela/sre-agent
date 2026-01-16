@@ -224,7 +224,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 name: item.name,
                 description: item.properties?.description,
                 tools: item.properties?.tools,
-                skillMdContent: item.properties?.skillMdContent,
+                skillContent: item.properties?.skillContent,
                 additionalFiles: item.properties?.additionalFiles,
             }));
             return {
@@ -250,7 +250,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 name: data.name,
                 description: data.properties?.description,
                 tools: data.properties?.tools,
-                skillMdContent: data.properties?.skillMdContent,
+                skillContent: data.properties?.skillContent,
                 additionalFiles: data.properties?.additionalFiles,
             };
             return {
@@ -274,10 +274,9 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 properties: {
                     description: skill.description,
                     tools: skill.tools,
-                    skillMdContent: skill.skillMdContent,
+                    skillContent: skill.skillContent,
                     additionalFiles: skill.additionalFiles?.map(file => ({
-                        fileName: file.fileName,
-                        filePath: file.filePath || file.fileName,
+                        filePath: file.filePath,
                         content: file.content,
                     })),
                 },

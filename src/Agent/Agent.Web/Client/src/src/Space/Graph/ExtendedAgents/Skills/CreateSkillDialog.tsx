@@ -63,7 +63,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
     const [description, setDescription] = useState(existingSkill?.description || '');
     const [selectedNonMcpTools, setSelectedNonMcpTools] = useState<string[]>([]);
     const [selectedMcpTools, setSelectedMcpTools] = useState<string[]>([]);
-    const [skillMdContent, setSkillMdContent] = useState(existingSkill?.skillMdContent || '');
+    const [skillContent, setSkillContent] = useState(existingSkill?.skillContent || '');
     const [additionalFiles, setAdditionalFiles] = useState<SkillFile[]>(existingSkill?.additionalFiles || []);
     const [emptyFolders, setEmptyFolders] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -76,12 +76,12 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
     // Compute selected file content and language
     const selectedFileContent = useMemo(() => {
         if (!selectedFile) return '';
-        if (selectedFile.isDefault) return skillMdContent;
+        if (selectedFile.isDefault) return skillContent;
         if (selectedFile.fileIndex !== undefined) {
             return additionalFiles[selectedFile.fileIndex]?.content || '';
         }
         return '';
-    }, [selectedFile, skillMdContent, additionalFiles]);
+    }, [selectedFile, skillContent, additionalFiles]);
 
     const selectedFileLanguage = useMemo(() => {
         if (!selectedFile) return 'plaintext';
@@ -93,7 +93,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
             if (!selectedFile) return;
 
             if (selectedFile.isDefault) {
-                setSkillMdContent(value);
+                setSkillContent(value);
             } else if (selectedFile.fileIndex !== undefined) {
                 const newFiles = [...additionalFiles];
                 newFiles[selectedFile.fileIndex] = {
@@ -136,7 +136,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
         const { mcpTools, nonMcpTools } = splitMcpAndNonMcpTools(existingSkill?.tools || [], allMcpToolNames);
         setSelectedNonMcpTools(nonMcpTools);
         setSelectedMcpTools(mcpTools);
-        setSkillMdContent(existingSkill?.skillMdContent || '');
+        setSkillContent(existingSkill?.skillContent || '');
         setAdditionalFiles(existingSkill?.additionalFiles || []);
         setEmptyFolders([]);
         setError(undefined);
@@ -158,7 +158,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
             name: name.trim(),
             description: description.trim() || undefined,
             tools: [...selectedNonMcpTools, ...selectedMcpTools],
-            skillMdContent: skillMdContent.trim() || undefined,
+            skillContent: skillContent.trim() || undefined,
             additionalFiles,
         };
 
@@ -177,7 +177,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
         setDescription('');
         setSelectedNonMcpTools([]);
         setSelectedMcpTools([]);
-        setSkillMdContent('');
+        setSkillContent('');
         setAdditionalFiles([]);
         setEmptyFolders([]);
         setError(undefined);
@@ -279,7 +279,7 @@ export const CreateSkillDialog: FC<CreateSkillDialogProps> = ({
                                         <SkillFileBrowser
                                             files={additionalFiles}
                                             onFilesChange={setAdditionalFiles}
-                                            skillMdContent={skillMdContent}
+                                            skillContent={skillContent}
                                             emptyFolders={emptyFolders}
                                             onEmptyFoldersChange={setEmptyFolders}
                                             selectedFile={selectedFile}
