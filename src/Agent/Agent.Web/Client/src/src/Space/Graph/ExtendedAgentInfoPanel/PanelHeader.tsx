@@ -34,7 +34,6 @@ type PanelHeaderProps = {
     headerSubtitle?: string;
     headerEditContext?: HeaderEditContext;
     playgroundEntity?: PlaygroundEntity;
-    showAgentBuilderPlayground: boolean;
     isAgentContext: boolean;
     selectedAgent?: ExtendedAgent;
     selectedTool?: ExtendedTool;
@@ -66,7 +65,6 @@ export const PanelHeader = memo(
         headerSubtitle,
         headerEditContext,
         playgroundEntity,
-        showAgentBuilderPlayground,
         isAgentContext,
         selectedAgent,
         selectedTool,
@@ -125,7 +123,7 @@ export const PanelHeader = memo(
                             title={intl.formatMessage(ExtendedAgentsGraphResources.yamlOpenButton)}
                         />
                     )}
-                    {((playgroundEntity && showAgentBuilderPlayground) ||
+                    {(playgroundEntity ||
                         (headerEditContext?.type === 'agent' && isAgentContext && selectedAgent) ||
                         (headerEditContext?.type === 'tool' && selectedTool) ||
                         (headerEditContext?.type === 'trigger' && selectedTrigger) ||
@@ -136,7 +134,7 @@ export const PanelHeader = memo(
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    {showAgentBuilderPlayground && playgroundEntity && (
+                                    {playgroundEntity && (
                                         <MenuItem icon={<Beaker20Regular />} onClick={onOpenPlaygroundClick}>
                                             {intl.formatMessage(PlaygroundResources.openPlaygroundButton)}
                                         </MenuItem>
