@@ -146,12 +146,13 @@ public class AgentProviderTests
         );
     }
 
-    private SkillRegistry CreateSkillRegistry()
+    private SkillRegistry CreateSkillRegistry(bool isFirstParty = true)
     {
         return new SkillRegistry(
             logger: Mock.Of<ILogger<SkillRegistry>>(),
             systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestSkills"),
-            extensibilityLoader: _mockExtensibilityLoader.Object
+            extensibilityLoader: _mockExtensibilityLoader.Object,
+            isFirstPartyTenantCheck: () => isFirstParty
         );
     }
 

@@ -19,6 +19,8 @@ public class Skill : ISkill
 
     public List<string> Tools { get; init; } = [];
 
+    public bool FirstPartyOnly { get; init; } = false;
+
     public static Skill FromDescriptor(YamlSkillDescriptor descriptor, string directoryPath)
     {
         return new Skill
@@ -26,7 +28,8 @@ public class Skill : ISkill
             Name = descriptor.Name,
             Description = descriptor.Description,
             DirectoryPath = directoryPath,
-            Tools = descriptor.Tools ?? []
+            Tools = descriptor.Tools ?? [],
+            FirstPartyOnly = descriptor.FirstPartyOnly
         };
     }
 }

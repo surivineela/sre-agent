@@ -691,10 +691,12 @@ public class Program
 
         builder.Services.AddSingleton<ISkillRegistry>(sp =>
         {
+            var firstPartyProvider = sp.GetRequiredService<IFirstPartyTenantProvider>();
             return new SkillRegistry(
                 logger: sp.GetRequiredService<ILogger<SkillRegistry>>(),
                 systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Skills"),
-                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                isFirstPartyTenantCheck: firstPartyProvider.IsFirstPartyTenant);
         });
 
         // Register IVariantAssigner (must be before ExperimentLoader)
