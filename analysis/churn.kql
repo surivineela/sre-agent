@@ -10,55 +10,42 @@ let LatestSnapshot =
     | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
     | summarize max(snapshot)
     );
+// Identify 3P customers
+let ThirdPartyCustomers = cluster("customerdomrptwus3prod.westus3.kusto.windows.net")
+    .database("customerdomdata")
+    .Product360CustomerSubscriptions
+    | where OfferType !contains "Internal" and isnotempty(CloudCustomerGuid)
+    | project
+        SubscriptionId,
+        OfferType,
+        CloudCustomerName,
+        OfferName,
+        BillingType, // Note that we may want to filter out "External - Non Billable"
+        TPName,
+        TPNameTranslated,
+        TPID,
+        SegmentName,
+        IndustryName,
+        CloudCustomerGuid; // (SubscriptionId, CloudCustomerGuid) is a unique key
 // Inventory all 3P agents, their lifespans, and whether they've been deleted.
 let AgentCensus = All('AgentDocumentDBState')
     | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
     | where isnotempty(agentEndpoint)
-    | join kind=leftouter (
-        cluster("customerdomrptwus3prod.westus3.kusto.windows.net")
-        .database("customerdomdata")
-        .Product360CustomerSubscriptions
-        | project
-            SubscriptionId,
-            OfferType,
-            CloudCustomerName,
-            OfferName,
-            BillingType,
-            TPName,
-            SegmentName,
-            IndustryName
-        )
+    | join kind=inner ThirdPartyCustomers // filters out *most* 1P customers
         on $left.subscriptionId == $right.SubscriptionId
-    | distinct
-        agentEndpoint,
-        subscriptionId,
-        resourceGroup,
-        snapshot,
-        OfferType,
-        CloudCustomerName,
-        OfferName,
-        BillingType,
-        TPName,
-        SegmentName,
-        IndustryName
-    | where OfferType !contains "Internal"
     | summarize
         lastSnapshot = max(snapshot),
         firstSnapshot = min(snapshot),
         agentLifetime = max(snapshot) - min(snapshot)
         by
         agentEndpoint,
-        subscriptionId,
-        CloudCustomerName,
-        TPName,
-        BillingType,
-        SegmentName,
-        IndustryName
+        subscriptionId
     // Agents can be created and deleted in the same snapshot.
     // Consider them deleted if they were not present in the *penultimate* snapshot.
     | extend isDeleted = lastSnapshot < LatestSnapshot - UpdateFrequency;
 // Summarize by all customers.
 let Customers = AgentCensus
+    | join kind=leftouter ThirdPartyCustomers on $left.subscriptionId == $right.SubscriptionId
     | summarize
         numSubscriptions = dcount(subscriptionId),
         runningAgents = sum(tolong(not(isDeleted))),
@@ -68,9 +55,9 @@ let Customers = AgentCensus
         agentDays = sum(agentLifetime)
         by
         CloudCustomerName,
-        TPName,
+        TPNameTranslated,
         BillingType,
         SegmentName,
-        IndustryName;
-Customers;
+        IndustryName,
+        CloudCustomerGuid;
 
