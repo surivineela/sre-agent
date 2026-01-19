@@ -2,6 +2,7 @@ import {
     BrainCircuit20Regular,
     Chat20Regular,
     Document20Regular,
+    ErrorCircle20Regular,
     Lightbulb20Regular,
     TextDescription20Regular,
 } from '@fluentui/react-icons';
@@ -25,6 +26,8 @@ const getDetailsFromSpan = (span: ISpan) => {
         modelThinking: span.usage_info?.modelThinking ?? undefined, // Model's internal thinking (Responses API)
         reasoning: span.usage_info?.reasoning ?? undefined, // Agent's structured reasoningScratchPad
         response: span.usage_info?.response ?? undefined, // Agent's structured notifyUserMessage
+        errorMessage: span.usage_info?.errorMessage ?? undefined, // Error message if generation failed
+        errorType: span.usage_info?.errorType ?? undefined, // Error type (e.g., TimeoutException)
     };
 };
 
@@ -53,7 +56,11 @@ export const ModelGenerationTraceDetails: FC<ModelGenerationTraceDetailsProps> =
         modelThinking,
         reasoning,
         response,
+        errorMessage,
+        errorType,
     } = useMemo(() => getDetailsFromSpan(span), [span]);
+
+    const hasError = errorMessage || errorType;
     useEffect(() => {
         setInputExpanded(false);
         setSystemPromptExpanded(false);
@@ -101,6 +108,31 @@ export const ModelGenerationTraceDetails: FC<ModelGenerationTraceDetailsProps> =
                     </div>
                 </div>
             </div>
+            {hasError && (
+                <div className={styles.rightPaneSection}>
+                    <div className={styles.rightPaneSectionHeader}>
+                        <ErrorCircle20Regular aria-hidden={true} />
+                        <div className={styles.rightPaneSectionHeaderText}>{intl.formatMessage(ThreadTraceResources.error)}</div>
+                    </div>
+
+                    <div className={styles.rightPaneSubsectionsContainer}>
+                        {errorType && (
+                            <div className={styles.rightPaneSubsection}>
+                                <div className={styles.rightPaneSubsectionHeader}>{intl.formatMessage(ThreadTraceResources.errorType)}</div>
+                                <div className={styles.rightPaneSubsectionBodyExpanded}>{errorType}</div>
+                            </div>
+                        )}
+                        {errorMessage && (
+                            <div className={styles.rightPaneSubsection}>
+                                <div className={styles.rightPaneSubsectionHeader}>
+                                    {intl.formatMessage(ThreadTraceResources.errorMessage)}
+                                </div>
+                                <div className={styles.rightPaneSubsectionBodyExpanded}>{errorMessage}</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
             <div className={styles.rightPaneSection}>
                 <div className={styles.rightPaneSectionHeader}>
                     <Chat20Regular aria-hidden={true} />
