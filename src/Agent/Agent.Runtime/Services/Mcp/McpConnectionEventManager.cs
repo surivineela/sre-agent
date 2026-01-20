@@ -62,7 +62,8 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         string? description = null,
         string? serviceType = null,
         Dictionary<string, string>? envVars = null,
-        string? identity = null)
+        string? identity = null,
+        bool useLocalStdio = false)
     {
         _logger.LogInternalInformation("Creating MCP connection '{Name}' of type '{Type}'", name, type);
 
@@ -85,7 +86,8 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
         {
             McpTransportType.Http when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig),
             //"sse" when !string.IsNullOrEmpty(endpoint) => await CreateHttpTransportAsync(name, endpoint, authConfig), // Legacy SSE now uses HTTP
-            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && !_mcpSettings.UseSessionForStdio => new StdioClientTransport(new StdioClientTransportOptions
+            // Use local stdio when: (1) UseSessionForStdio=false, OR (2) useLocalStdio=true
+            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && (!_mcpSettings.UseSessionForStdio || useLocalStdio) => new StdioClientTransport(new StdioClientTransportOptions
             {
                 Name = _unsafeToolNameChars.Replace(name, string.Empty),
                 Command = command,
@@ -93,8 +95,8 @@ public class McpConnectionEventManager : IMcpConnectionEventManager
                 WorkingDirectory = workingDirectory,
                 EnvironmentVariables = envVars!
             }),
-            // run local MCP servers via session pool proxy
-            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && _mcpSettings.UseSessionForStdio => _sessionTransportFactory.CreateSessionTransport(
+            // Run local MCP servers via session pool proxy (only when UseSessionForStdio=true AND useLocalStdio=false)
+            McpTransportType.Stdio when !string.IsNullOrEmpty(command) && _mcpSettings.UseSessionForStdio && !useLocalStdio => _sessionTransportFactory.CreateSessionTransport(
                 _unsafeToolNameChars.Replace(name, string.Empty),
                 command,
                 arguments ?? Array.Empty<string>(),

@@ -52,8 +52,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedAuth = authConfig;
             })
@@ -96,8 +97,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedAuth = authConfig;
             })
@@ -189,8 +191,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedEndpoint = endpoint;
                 capturedAuth = authConfig;
@@ -246,8 +249,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedCommand = command;
                 capturedArguments = arguments;
@@ -305,8 +309,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedEndpoint = endpoint;
             })
@@ -360,8 +365,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedEndpoint = endpoint;
                 capturedAuth = authConfig;
@@ -423,8 +429,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedCommand = command;
                 capturedArguments = arguments;
@@ -492,8 +499,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedEndpoint = endpoint;
             })
@@ -547,8 +555,9 @@ public class McpDataConnectorTests
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<Dictionary<string, string>?>(),
-                It.IsAny<string?>()))
-            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity) =>
+                It.IsAny<string?>(),
+                It.IsAny<bool>()))
+            .Callback<string, McpTransportType, string?, string?, string[]?, string?, McpAuthenticationConfig?, Dictionary<string, string>?, string?, string?, Dictionary<string, string>?, string?, bool>((name, type, endpoint, command, arguments, workingDirectory, authConfig, headers, description, serviceType, envVars, identity, useLocalStdio) =>
             {
                 capturedAuth = authConfig;
             })
