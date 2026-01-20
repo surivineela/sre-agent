@@ -157,6 +157,9 @@ public class Program
                     logger.LogInternalInformation("Creating necessary cosmos containers...");
                     await app.Services.CreateCosmosContainerIfNotExists(app.Configuration);
 
+                    logger.LogInternalInformation("Loading knowledge graph seed data if configured...");
+                    await app.Services.LoadKnowledgeGraphSeedDataAsync(app.Configuration);
+
                     logger.LogInternalInformation("Setting up Agent Memory...");
                     var agentMemorySettings = app.Configuration.GetSection("AppSettings:Core:AgentMemory").Get<AgentMemorySettings>();
                     if (agentMemorySettings is not null && agentMemorySettings.Enabled)

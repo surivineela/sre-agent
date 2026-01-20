@@ -20,7 +20,9 @@ public static class AgentDataConfiguration
     public const string AgentContextContainerName = "agentContexts";
     public const string ReasoningLoopContainerName = "reasoningloopdocs";
     public const string ExtendedAgentContainerName = "extendedagents";
-    public const string KnowledgeGraphContainerName = "knowledgeGraph";
+    // to be cleaned up after migration
+    public const string KnowledgeGraphContainerNameDeprecated = "knowledgeGraph";
+    public const string KnowledgeGraphContainerName = "knowledgeGraphv2";
     public const string ReasoningLoopEncryptionKeyName = "reansoningloopkey";
     public const string ReasoningLoopDocumentEncryptedPath = "/encryptedProperties";
 
@@ -199,6 +201,13 @@ public static class AgentDataConfiguration
         // Add included paths
         indexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
 
+        // Add vector index
+        indexingPolicy.VectorIndexes.Add(new VectorIndexPath
+        {
+            Path = "/vector",
+            Type = VectorIndexType.DiskANN
+        });
+
         // Add fulltext indexes
         indexingPolicy.FullTextIndexes.Add(new FullTextIndexPath { Path = "/name" });
         indexingPolicy.FullTextIndexes.Add(new FullTextIndexPath { Path = "/entityType" });
@@ -224,6 +233,21 @@ public static class AgentDataConfiguration
 
         // Assign fulltext policy
         knowledgeGraphProperties.FullTextPolicy = fullTextPolicy;
+
+        // Create vector embedding policy
+        var vectorEmbeddingPolicy = new VectorEmbeddingPolicy(
+        [
+            new Embedding
+            {
+                Path = "/vector",
+                DataType = VectorDataType.Float32,
+                Dimensions = 1536,
+                DistanceFunction = DistanceFunction.Cosine
+            }
+        ]);
+
+        // Assign vector embedding policy
+        knowledgeGraphProperties.VectorEmbeddingPolicy = vectorEmbeddingPolicy;
 
         await database.Database.CreateContainerIfNotExistsAsync(
             containerProperties: knowledgeGraphProperties,

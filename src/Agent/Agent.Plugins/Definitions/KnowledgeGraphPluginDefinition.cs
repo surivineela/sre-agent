@@ -152,10 +152,10 @@ public class KnowledgeGraphPluginDefinition
         return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    [Description("Search for nodes in the knowledge graph based on a query string. Searches across entity names, entity types, and observation content. Returns matching entities and their relations. Prefer to get graph schema first to generate effective queries.")]
+    [Description("Search for nodes in the knowledge graph based on a natural language query string. Returns matching entities and their relations. Prefer to get graph schema first to generate effective queries")]
     [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> SearchNodes(
-        [Description("The search query to match against entity names, types, and observation content. Case-insensitive. Example: 'Microsoft' or 'coffee'")]
+        [Description("The natural language question to search the knowledge graph for. e.g. 'Find all employees who work in the Seattle office', 'What's the latest status of ACA deployment xxx in eastus?'")]
         string query,
         [Description("Filter results to a specific entity type. Entity types can be found via GetGraphSchema tool. If empty, no filtering is applied.")]
         string entityType = "",
