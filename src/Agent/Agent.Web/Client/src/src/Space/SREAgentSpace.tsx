@@ -36,6 +36,8 @@ import { useIncidentPlatformType } from './Hooks/useIncidentPlatformType';
 import { useSreAgentSpace } from './Hooks/useSreAgentSpace';
 import { DirtyStateNavigationConfirmDialog } from './IncidentManagement/CreateIncidentHandler/NavigationConfirmDialog';
 import IncidentManagement from './IncidentManagement/IncidentManagement';
+import { useOnboardingVisibility } from './Onboarding/Hooks/useOnboardingVisibility';
+import { OnboardingWizard } from './Onboarding/OnboardingWizard';
 import Overview from './Overview/Overview';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
@@ -564,11 +566,31 @@ const SREAgentSpace: FC = () => {
         >
             <PermissionProvider>
                 <DirtyStateContext.Provider value={{ isDirty, setIsDirty }}>
-                    <RouterProvider router={router} />
+                    <OnboardingGate router={router} />
                 </DirtyStateContext.Provider>
             </PermissionProvider>
         </SreAgentContext.Provider>
     );
+};
+
+/**
+ * Gate component that shows the onboarding wizard OR the main app content.
+ * This must be inside SreAgentContext.Provider to access agent data.
+ */
+const OnboardingGate: FC<{ router: ReturnType<typeof createHashRouter> }> = ({ router }) => {
+    const { showWizard, onComplete } = useOnboardingVisibility();
+
+    // Wait for visibility to be determined
+    if (showWizard === null) {
+        return null;
+    }
+
+    // Show full-page wizard if needed
+    if (showWizard) {
+        return <OnboardingWizard onComplete={onComplete} />;
+    }
+
+    return <RouterProvider router={router} />;
 };
 
 export default SREAgentSpace;

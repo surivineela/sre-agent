@@ -16,6 +16,7 @@ export enum SettingNames {
     AllowMetaAgentOverride = 'allowMetaAgentOverride',
     ShowPermissionsInSettings = 'showPermissionsInSettings',
     ShowIncidentTriggerWithLearnings = 'showIncidentTriggerWithLearnings',
+    ShowOnboardingWizard = 'showOnboardingWizard',
     /** Use for onboarding experience testing. This will be removed when the feature is ready */
     Overview = 'overview',
     ShowDefaultModelPicker = 'showDefaultModelPicker',
@@ -46,6 +47,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowPermissionsInSettings]: true,
         [SettingNames.Connectors]: true,
         [SettingNames.ShowIncidentTriggerWithLearnings]: true,
+        [SettingNames.ShowOnboardingWizard]: true,
         [SettingNames.Overview]: true,
     },
 };

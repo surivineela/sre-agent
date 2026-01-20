@@ -309,7 +309,7 @@ export const FilterStep: FC = () => {
                     <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
                     </Text>
-                        <Text size={300} id="add-custom-response-guidance-description">
+                    <Text size={300} id="add-custom-response-guidance-description">
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceDescription)}
                     </Text>
                     <Checkbox

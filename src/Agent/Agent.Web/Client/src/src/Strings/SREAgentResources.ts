@@ -6031,6 +6031,152 @@ export const AgentPermissionsResources = defineMessages({
     permissionDeleteFailed: { defaultMessage: 'Failed to delete permission', id: 'pLFm2y' },
 });
 
+export const OnboardingWizardResources = defineMessages({
+    welcomeTitle: { defaultMessage: 'Welcome to SRE Agent', id: 'Iq+EHz' },
+    welcomeSubtitle: { defaultMessage: 'Get started by configuring your agent settings.', id: 'mcXRBx' },
+    setupProgress: { defaultMessage: 'Setup progress', id: 'JCOCUP' },
+    infrastructureScope: { defaultMessage: 'Infrastructure scope', id: 'akZ1Wp' },
+    incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
+    connectRepositories: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
+    grantPermissions: { defaultMessage: 'Grant permissions', id: 'u4WKBH' },
+    saveAndNext: { defaultMessage: 'Save + next', id: 't2c+xn' },
+    skip: { defaultMessage: 'Skip', id: '/4tOwT' },
+    finish: { defaultMessage: 'Finish', id: '2O2sfp' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    subscriptionScopeDescription: {
+        defaultMessage: 'Recommended. The agent will discover and monitor all resources within the selected subscription.',
+        id: '0K6PSP',
+    },
+    resourceGroupScopeDescription: {
+        defaultMessage: 'Scope the agent to a specific resource group within your subscription.',
+        id: 'n5u5kf',
+    },
+    subscriptionName: { defaultMessage: 'Subscription name', id: 'uE11tE' },
+    selectSubscription: { defaultMessage: 'Select a subscription', id: 'LrnSHG' },
+    subscriptionDetails: { defaultMessage: 'Subscription details', id: 'hcxiJk' },
+    subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
+    userRole: { defaultMessage: 'User role', id: 'CtICbM' },
+    resourceNumber: { defaultMessage: 'Resource number', id: 'pmh+bZ' },
+    resources: { defaultMessage: '{count} resources', id: 'BuxxAD' },
+    resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    selectResourceGroup: { defaultMessage: 'Select a resource group', id: 'XDl1KP' },
+    selectIncidentPlatform: { defaultMessage: 'Select your incident platform', id: 'lRFlqy' },
+    incidentPlatformDescription: {
+        defaultMessage: 'Connect your incident management system to enable automated incident response.',
+        id: 'qAwYMb',
+    },
+    noIncidentPlatform: { defaultMessage: 'None', id: '450Fty' },
+    skipForNow: { defaultMessage: 'Skip for now - configure later in Settings', id: 'EPzbZL' },
+    apiKey: { defaultMessage: 'API Key', id: '4dZi3Y' },
+    apiKeyPlaceholder: { defaultMessage: 'Enter your API key', id: 'V1YxyZ' },
+    endpoint: { defaultMessage: 'Endpoint', id: 'ljmS5P' },
+    endpointPlaceholder: { defaultMessage: 'Enter endpoint URL', id: 'Fo2z6U' },
+    username: { defaultMessage: 'Username', id: 'JCIgkj' },
+    usernamePlaceholder: { defaultMessage: 'Enter username', id: 'qiqDqt' },
+    password: { defaultMessage: 'Password', id: '5sg7KC' },
+    passwordPlaceholder: { defaultMessage: 'Enter password', id: '2LbrkB' },
+    repositoriesTitle: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
+    repositoriesDescription: {
+        defaultMessage:
+            'Repository connections allow the agent to access your code, issues, and pull requests for enhanced troubleshooting.',
+        id: 'lfjLjJ',
+    },
+    repositoriesComingSoon: {
+        defaultMessage:
+            'Repository auto-detection is coming soon. You can configure repository connections manually in Settings > Connectors after completing setup.',
+        id: 'lDR+6z',
+    },
+    goToConnectors: { defaultMessage: 'Go to Connectors', id: 'QK0vxq' },
+    permissionsTitle: { defaultMessage: 'Grant permissions', id: 'u4WKBH' },
+    permissionsSubscriptionDescription: {
+        defaultMessage: 'Grant read-only access to allow the agent to monitor your subscription.',
+        id: 'ObFiSB',
+    },
+    permissionsResourceGroupDescription: {
+        defaultMessage: 'Grant RBAC roles to allow the agent to monitor and manage your resources.',
+        id: 'Gg9DNP',
+    },
+    permissionsLevel: { defaultMessage: 'Permission level', id: 'n4BXaA' },
+    readerLevel: { defaultMessage: 'Reader', id: '3nhWFW' },
+    readerLevelDescription: {
+        defaultMessage: 'Read-only access. Agent can view resources and metrics but cannot make changes.',
+        id: 'sU1vvm',
+    },
+    privilegedLevel: { defaultMessage: 'Privileged', id: 'TDoBlx' },
+    privilegedLevelDescription: {
+        defaultMessage: 'Read and write access. Agent can diagnose and perform remediation actions.',
+        id: 'zc/Tq9',
+    },
+    scopeLabel: { defaultMessage: 'Scope', id: 'nso3Mj' },
+    subscriptionScopeLabel: { defaultMessage: 'Subscription ({name})', id: 'AEGhJx' },
+    resourceGroupScopeLabel: { defaultMessage: 'Resource Group ({name})', id: 'HaBgvj' },
+    rolesToBeGranted: { defaultMessage: 'Roles to be granted', id: 'FSD8p6' },
+    roleColumn: { defaultMessage: 'Role', id: '1ZgrhW' },
+    descriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    statusColumn: { defaultMessage: 'Status', id: 'tzMNF3' },
+    roleGranted: { defaultMessage: 'Granted', id: 'rKbDyw' },
+    roleNeeded: { defaultMessage: 'Needed', id: 'pipqmw' },
+    grantPermissionsButton: { defaultMessage: 'Grant {count} permission(s)', id: 'RshmO6' },
+    allPermissionsGranted: { defaultMessage: 'All permissions granted', id: 'Hj/+Ju' },
+    checkingPermissions: { defaultMessage: 'Checking permissions...', id: 'K1tTU1' },
+    grantingPermissions: { defaultMessage: 'Granting permissions...', id: 'Zv0EC2' },
+    permissionsGrantSuccess: { defaultMessage: 'Permissions granted successfully.', id: '8twA9l' },
+    permissionsGrantError: { defaultMessage: 'Failed to grant permissions: {error}', id: 'GV6fti' },
+    subscriptionScopeNote: {
+        defaultMessage: 'For more granular permissions, select a resource group scope in Step 1: Infrastructure Scope.',
+        id: 'Py20GA',
+    },
+    permissionsOptional: { defaultMessage: 'This step is optional. You can grant permissions later in Settings.', id: 'wjzNRu' },
+    insufficientPermissionsWarning: {
+        defaultMessage: "You need 'User Access Administrator' or 'Owner' role to grant permissions on this scope.",
+        id: 'cIk5uP',
+    },
+    alreadyGrantedCount: { defaultMessage: 'Already granted ({count})', id: 'rgGLPJ' },
+    needsAssignmentCount: { defaultMessage: 'Needs assignment ({count})', id: 'QAaaSB' },
+    learnMorePermissions: { defaultMessage: 'Learn more about agent permissions', id: 'IKIn72' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    saving: { defaultMessage: 'Saving...', id: 'TiR/Hq' },
+    saveFailed: { defaultMessage: 'Failed to save settings. Please try again.', id: 'RFRn1R' },
+    saveSuccess: { defaultMessage: 'Settings saved successfully.', id: 'vnlr4s' },
+    subscriptionRequired: { defaultMessage: 'Please select a subscription to continue.', id: 'sr8bXY' },
+    resourceGroupRequired: { defaultMessage: 'Please select a resource group to continue.', id: 'WUGr5F' },
+});
+
+/**
+ * Localized display names and descriptions for Azure RBAC roles
+ */
+export const RolesResources = defineMessages({
+    // Reader role
+    reader: { defaultMessage: 'Reader', id: '3nhWFW' },
+    readerDescription: { defaultMessage: 'View all resources, but cannot make changes.', id: 'RJT10W' },
+
+    // Monitoring Reader role
+    monitoringReader: { defaultMessage: 'Monitoring Reader', id: 'Sr4IbA' },
+    monitoringReaderDescription: { defaultMessage: 'Read access to monitoring data.', id: 'xpg0ni' },
+
+    // Log Analytics Reader role
+    logAnalyticsReader: { defaultMessage: 'Log Analytics Reader', id: 'sI+CCC' },
+    logAnalyticsReaderDescription: { defaultMessage: 'Read access to Log Analytics workspaces.', id: '7M8LSv' },
+
+    // Container Apps Contributor role
+    containerAppsContributor: { defaultMessage: 'Container Apps Contributor', id: 'i5OUQE' },
+    containerAppsContributorDescription: { defaultMessage: 'Can manage Container Apps resources.', id: '89HXVE' },
+
+    // Websites Contributor role
+    websitesContributor: { defaultMessage: 'Websites Contributor', id: 'A1cQXL' },
+    websitesContributorDescription: { defaultMessage: 'Can manage web apps and app service plans.', id: '8YAoVP' },
+
+    // Storage Blob Data Contributor role
+    storageBlobDataContributor: { defaultMessage: 'Storage Blob Data Contributor', id: 'ND2EUR' },
+    storageBlobDataContributorDescription: { defaultMessage: 'Read, write, and delete access to blob storage.', id: 'xB3x6m' },
+
+    // Container Apps Session Executor role
+    containerAppsOperator: { defaultMessage: 'Container Apps Session Executor', id: 'tvPkVJ' },
+    containerAppsOperatorDescription: { defaultMessage: 'Can execute sessions in Container Apps.', id: 'rR96NW' },
+});
+
 export const OverviewResources = defineMessages({
     overview: { defaultMessage: 'Overview', id: '9uOFF3' },
 });
