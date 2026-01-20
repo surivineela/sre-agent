@@ -21,7 +21,22 @@ public class OutlookConnectorPluginDefinition
     }
 
     [Description(@"Sends an email through the configured Outlook connector.
-Use this whenever the user asks to send an email or perform an action that requires emailing.
+
+IMPORTANT: This tool should ONLY be used when the user has EXPLICITLY requested to send an email.
+DO NOT use this tool to:
+- Send unsolicited status updates or summaries
+- Proactively notify users about operation results
+- Send any email without direct user instruction
+
+Examples of when to USE this tool:
+- User says: ""Send an email to the team summarizing the incident""
+- User says: ""Email john@contoso.com with the deployment status""
+- User says: ""Notify the oncall via email about this issue""
+
+Examples of when NOT to use this tool:
+- User says: ""Investigate this incident and fix it"" (no email requested)
+- User says: ""What's the status of the deployment?"" (just asking for info, not to email)
+- Agent decides on its own to send a summary after completing a task (unsolicited)
 
 When body_type is HTML (default), the `body` parameter MUST be well-formed, professional HTML:
 - Do NOT use Markdown.
