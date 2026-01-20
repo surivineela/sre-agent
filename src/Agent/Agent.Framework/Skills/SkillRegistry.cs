@@ -13,7 +13,8 @@ namespace Agent.Framework.Skills;
 public class SkillRegistry(
     ILogger<SkillRegistry> logger,
     string systemSkillsDirectory,
-    IExtensibilityLoader extensibilityLoader) : AsyncInitializerBase, ISkillRegistry, IDisposable
+    IExtensibilityLoader extensibilityLoader,
+    Func<bool>? isFirstPartyTenantCheck = null) : AsyncInitializerBase, ISkillRegistry, IDisposable
 {
     private readonly Dictionary<string, ISkill> _systemSkills = [];
     private readonly Dictionary<string, ISkill> _extendedSkills = [];
@@ -22,6 +23,14 @@ public class SkillRegistry(
 
     private bool _isInitialized;
     private bool _disposed;
+
+    private bool ShouldIncludeSystemSkill(ISkill skill)
+    {
+        if (!skill.FirstPartyOnly)
+            return true;
+
+        return isFirstPartyTenantCheck?.Invoke() ?? false;
+    }
 
     protected override async Task InitializeAsyncCore()
     {
@@ -136,7 +145,14 @@ public class SkillRegistry(
 
     public string GetSkillsMetadataForPrompt(bool includeSystemSkills)
     {
-        if ((_systemSkills.Count == 0 || !includeSystemSkills) && _extendedSkills.Count == 0)
+        List<ISkill> includedSkills = [.. _extendedSkills.Values];
+
+        if (includeSystemSkills)
+        {
+            includedSkills.AddRange(_systemSkills.Values.Where(ShouldIncludeSystemSkill));
+        }
+
+        if (includedSkills.Count == 0)
         {
             return "No skills available.";
         }
@@ -145,13 +161,6 @@ public class SkillRegistry(
         sb.AppendLine("You have access to specialized skills for domain-specific tasks. When you need domain expertise, load the relevant skill using the `read_skill_file` tool.");
         sb.AppendLine();
         sb.AppendLine("Available skills:");
-
-        List<ISkill> includedSkills = [.. _extendedSkills.Values];
-
-        if (includeSystemSkills)
-        {
-            includedSkills.AddRange(_systemSkills.Values);
-        }
 
         foreach (var skill in includedSkills.OrderBy(s => s.Name))
         {
@@ -184,18 +193,29 @@ public class SkillRegistry(
 
     public string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills)
     {
-        if (!_extendedSkills.TryGetValue(skillName, out var skill))
+        ISkill? skill = null;
+
+        if (_extendedSkills.TryGetValue(skillName, out var extSkill))
         {
-            if (includeSystemSkills && !_systemSkills.TryGetValue(skillName, out skill))
-            {
-                var availableSkills = string.Join(", ", [.. _systemSkills.Keys, .. _extendedSkills.Keys]);
-                return $"Error: Skill '{skillName}' not found. Available skills: {availableSkills}";
-            }
+            skill = extSkill;
+        }
+        else if (includeSystemSkills &&
+                 _systemSkills.TryGetValue(skillName, out var sysSkill) &&
+                 ShouldIncludeSystemSkill(sysSkill))
+        {
+            skill = sysSkill;
         }
 
-        if (skill == null) // reaching here means skill was not found, and system skills are not included
+        if (skill == null)
         {
-            var availableSkills = string.Join(", ", _extendedSkills.Keys);
+            var availableSkillNames = _extendedSkills.Keys.ToList();
+            if (includeSystemSkills)
+            {
+                availableSkillNames.AddRange(_systemSkills.Values
+                    .Where(ShouldIncludeSystemSkill)
+                    .Select(s => s.Name));
+            }
+            var availableSkills = string.Join(", ", availableSkillNames);
             return $"Error: Skill '{skillName}' not found. Available skills: {availableSkills}";
         }
 
@@ -234,14 +254,16 @@ public class SkillRegistry(
 
     public ISkill? GetSkillByName(string name, bool includeSystemSkills)
     {
-        if (includeSystemSkills && _systemSkills.TryGetValue(name, out var skill))
-        {
-            return skill;
-        }
-
         if (_extendedSkills.TryGetValue(name, out var extSkill))
         {
             return extSkill;
+        }
+
+        if (includeSystemSkills &&
+            _systemSkills.TryGetValue(name, out var skill) &&
+            ShouldIncludeSystemSkill(skill))
+        {
+            return skill;
         }
 
         return null;

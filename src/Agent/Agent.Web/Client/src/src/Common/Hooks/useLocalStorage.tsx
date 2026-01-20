@@ -3,6 +3,8 @@ import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext
 
 export enum LocalStorageFlags {
     IncidentManagementPopoverDismissed = 'sreagent-incident-management-popover-dismissed',
+    OnboardingWizardSkipped = 'sreagent-onboarding-wizard-skipped',
+    OnboardingWizardCurrentStep = 'sreagent-onboarding-wizard-current-step',
 }
 
 export const useLocalStorage = (flag: LocalStorageFlags) => {

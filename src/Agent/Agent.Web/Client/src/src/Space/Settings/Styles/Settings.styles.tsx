@@ -47,7 +47,7 @@ const subscriptionDropdownStyles: CSSProperties = {
 const gridStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: '150px auto',
-    rowGap: '15px',
+    rowGap: '18px',
     columnGap: '100px',
     alignItems: 'center',
     maxWidth: '600px',
@@ -124,6 +124,11 @@ const basicsCardStyle: CSSProperties = {
     overflowX: 'hidden',
 };
 
+const dropdownSkeletonStyle: CSSProperties = {
+    ...controlStyles,
+    height: '40px',
+};
+
 const sectionTitleStyle: CSSProperties = {
     fontSize: '18px',
     fontWeight: 600,
@@ -144,6 +149,27 @@ const actionSectionStyle: CSSProperties = {
 
 const actionTextContainerStyle: CSSProperties = {
     flex: 1,
+};
+
+const commandBarButtonContainerStyle: CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: tokens.spacingHorizontalXS,
+    marginLeft: 'auto',
+};
+
+const failedToLoadMessageBarContentStyle: CSSProperties = {
+    display: 'flex',
+    gap: tokens.spacingHorizontalMNudge,
+    flexDirection: 'row',
+    alignItems: 'center',
+};
+
+const copyFieldContainer: CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '4px',
 };
 
 export const useSettingsStyles = () => {
@@ -183,8 +209,19 @@ export const useSettingsStyles = () => {
         sectionDescriptionStyle,
         actionSectionStyle,
         actionTextContainerStyle,
+        commandBarButtonContainerStyle,
+        failedToLoadMessageBarContentStyle,
+        dropdownSkeletonStyle,
+        copyFieldContainer,
     };
 };
+
+export const useLabelStyles = makeStyles({
+    small: {
+        fontSize: '13px',
+        fontWeight: 400,
+    },
+});
 
 export const useDialogStyles = makeStyles({
     dangerButton: {

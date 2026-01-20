@@ -397,7 +397,8 @@ public static class TestHelpers
             return new SkillRegistry(
                 logger: sp.GetRequiredService<ILogger<SkillRegistry>>(),
                 systemSkillsDirectory: Path.Combine(AppContext.BaseDirectory, "Skills"),
-                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>());
+                extensibilityLoader: sp.GetRequiredService<IExtensibilityLoader>(),
+                isFirstPartyTenantCheck: () => true);
         });
 
         builder.Services.AddSingleton<IYamlToolFunctionFactory<AgentContext>, YamlToolFunctionFactory<AgentContext>>();

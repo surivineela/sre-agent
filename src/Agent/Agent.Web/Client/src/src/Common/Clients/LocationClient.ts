@@ -1,5 +1,6 @@
 import { ApiVersions } from '../ApiVersions';
-import { LocForResTypes } from '../Contracts/Azure/Location';
+import { ArmObj } from '../Contracts/Azure/ArmObj';
+import { LocForResTypes, SupportedModel } from '../Contracts/Azure/Location';
 import MakeArmCall from './ArmClient';
 
 export class LocationClient {
@@ -12,6 +13,18 @@ export class LocationClient {
         return MakeArmCall<LocForResTypes>({
             url,
             commandName: 'GetLocForResTypes',
+        });
+    }
+
+    public static getSupportedModels(
+        subscriptionId: string,
+        location: string,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ) {
+        const url = `/subscriptions/${subscriptionId}/providers/Microsoft.App/locations/${location}/supportedModels?api-version=${apiVersion}`;
+        return MakeArmCall<{ value: ArmObj<SupportedModel>[] }>({
+            url,
+            commandName: 'GetSupportedModels',
         });
     }
 }

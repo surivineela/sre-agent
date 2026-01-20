@@ -318,16 +318,16 @@ class TabShareExtension {
 
     // Connect to the relay
     const socket = new WebSocket(wsUrl);
+
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
-      socket.onerror = () => reject(new Error('WebSocket error'));
-      setTimeout(() => reject(new Error('Connection timeout')), 10000);
+      socket.onerror = () => reject(new Error(`WebSocket reconnect error: readyState=${socket.readyState}`));
+      setTimeout(() => reject(new Error('Reconnect timeout after 10s')), 10000);
     });
 
     const connection = new RelayConnection(socket);
     connection.setTabId(tabId);
     connection.onclose = () => {
-      debugLog('MCP connection closed (reconnect)');
       this._activeConnection = undefined;
       void this._setConnectedTabId(null);
     };
@@ -383,16 +383,16 @@ class TabShareExtension {
 
     // Connect to the relay
     const socket = new WebSocket(wsUrl);
+
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
-      socket.onerror = () => reject(new Error('WebSocket error'));
-      setTimeout(() => reject(new Error('Connection timeout')), 10000);
+      socket.onerror = () => reject(new Error(`WebSocket error: readyState=${socket.readyState}`));
+      setTimeout(() => reject(new Error('Connection timeout after 10s')), 10000);
     });
 
     const connection = new RelayConnection(socket);
     connection.setTabId(newTab.id);
     connection.onclose = () => {
-      debugLog('MCP connection closed (new tab)');
       this._activeConnection = undefined;
       void this._setConnectedTabId(null);
     };

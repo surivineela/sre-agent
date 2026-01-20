@@ -61,7 +61,8 @@ export const useTreeViewItemStyles = makeStyles({
     },
     expandButton: {
         position: 'absolute',
-        bottom: 0,
+        top: '50%',
+        transform: 'translateY(-50%)',
         left: tokens.spacingHorizontalXXS,
         '&:hover': {
             backgroundColor: 'inherit',

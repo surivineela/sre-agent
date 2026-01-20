@@ -42,7 +42,9 @@ export const getThreadTracesDataQuery = (threadId: string) => {
         HandoffReasoning = tostring(customDimensions.HandoffReasoning),
         SpanId = tostring(customDimensions.SpanId),
         ParentSpanId = tostring(customDimensions.ParentSpanId),
-        TraceId = tostring(customDimensions.TraceId)
+        TraceId = tostring(customDimensions.TraceId),
+        ErrorMessage = tostring(customDimensions.ErrorMessage),
+        ErrorType = tostring(customDimensions.ErrorType)
     | extend
         EventName = iff(name == 'MetaAgent', iff(isempty(Message), 'Incident', 'UserMessage'), name)
     | project
@@ -76,7 +78,9 @@ export const getThreadTracesDataQuery = (threadId: string) => {
             'handoffReasoning', HandoffReasoning,
             'spanId', SpanId,
             'parentSpanId', ParentSpanId,
-            'traceId', TraceId
+            'traceId', TraceId,
+            'errorMessage', ErrorMessage,
+            'errorType', ErrorType
         )
     | order by timestamp asc
     `;

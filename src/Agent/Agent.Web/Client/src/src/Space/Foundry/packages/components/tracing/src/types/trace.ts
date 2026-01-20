@@ -10,6 +10,8 @@ export interface ITokenUsageInfo {
     modelThinking?: string;
     reasoning?: string;
     response?: string;
+    errorMessage?: string;
+    errorType?: string;
 }
 
 interface Attributes {
@@ -78,6 +80,7 @@ export type EventType =
     | 'AgentHandoff'
     | 'ModelGenerationStart'
     | 'ModelGenerationEnd'
+    | 'ModelGenerationError'
     | 'ToolStart'
     | 'ToolEnd';
 
@@ -112,6 +115,8 @@ export interface ThreadEventLog {
     spanId?: string;
     parentSpanId?: string;
     traceId?: string;
+    errorMessage?: string;
+    errorType?: string;
 }
 
 export interface INodeDetailProps {

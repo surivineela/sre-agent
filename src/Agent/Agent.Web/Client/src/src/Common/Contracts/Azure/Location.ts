@@ -1,3 +1,5 @@
+import { Model } from './SreAgent';
+
 export interface ResourceType {
     resourceType: string;
     locations: string[];
@@ -9,4 +11,8 @@ export interface LocForResTypes {
     namespace: string;
     resourceTypes: ResourceType[];
     registrationState: string;
+}
+
+export interface SupportedModel extends Model {
+    default: boolean;
 }

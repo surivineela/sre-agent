@@ -36,7 +36,8 @@ public interface IMcpConnectionEventManager
         string? description = null,
         string? serviceType = null,
         Dictionary<string, string>? envVars = null,
-        string? identity = null);
+        string? identity = null,
+        bool useLocalStdio = false);
 
     /// <summary>
     /// Removes an existing MCP connection by ID.

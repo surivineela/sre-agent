@@ -358,6 +358,69 @@ export const generateSpans = (events: ThreadEventLog[]) => {
             continue;
         }
 
+        if (event.eventName === 'ModelGeneration' && event.eventType === 'ModelGenerationError') {
+            if (event.agentName === undefined) {
+                parseErrors.push(
+                    `[ModelGenerationError] ${event.timeStamp.toUTCString()} ModelGenerationError found but there is no agent name.`
+                );
+                continue;
+            }
+
+            const agentType = event.agentName === metaAgentName ? 'Agent' : 'SubAgent';
+            const existingAgentSpanId = unclosedAgentSpanIds[event.agentName];
+            if (existingAgentSpanId === undefined) {
+                parseErrors.push(
+                    `[ModelGenerationError] ${event.timeStamp.toUTCString()} ModelGenerationError found for ${agentType} ${event.agentName} but there is no open span for this agent.`
+                );
+            }
+
+            const existingModelGenerationSpanId = unclosedModelGenerationSpanIds[event.agentName];
+            if (existingModelGenerationSpanId === undefined) {
+                // Create a synthetic span for the error since we don't have a start event
+                parseWarnings.push(
+                    `[ModelGenerationError] ${event.timeStamp.toUTCString()} ModelGenerationError found for ${agentType} ${event.agentName} but there is no open ModelGeneration span. Creating synthetic span.`
+                );
+
+                const syntheticSpan: ISpan = {
+                    kind: 'ModelGeneration',
+                    context: {
+                        span_id: spans.length.toString(),
+                        span_id_number: spans.length,
+                    },
+                    parent_id: existingAgentSpanId?.toString(),
+                    start_time: event.timeStamp,
+                    end_time: event.timeStamp,
+                    attributes: {
+                        agentName: event.agentName,
+                    },
+                    usage_info: {
+                        errorMessage: event.errorMessage,
+                        errorType: event.errorType,
+                    },
+                };
+                spans.push(syntheticSpan);
+                continue;
+            }
+
+            const existingModelGenerationSpan = spans[existingModelGenerationSpanId];
+            if (existingModelGenerationSpan === undefined) {
+                parseWarnings.push(
+                    `[ModelGenerationError] ${event.timeStamp.toUTCString()} Internal error: ${agentType} ${event.agentName} ModelGeneration span with id ${existingModelGenerationSpanId} not found.`
+                );
+                delete unclosedModelGenerationSpanIds[event.agentName];
+                continue;
+            }
+
+            existingModelGenerationSpan.end_time = event.timeStamp;
+            existingModelGenerationSpan.usage_info = {
+                ...existingModelGenerationSpan.usage_info,
+                errorMessage: event.errorMessage,
+                errorType: event.errorType,
+            };
+            delete unclosedModelGenerationSpanIds[event.agentName];
+            continue;
+        }
+
         if (event.eventName === 'AgentHandoff') {
             const metaAgentSpanId = metaAgentName ? unclosedAgentSpanIds[metaAgentName] : undefined;
             if (metaAgentSpanId === undefined) {

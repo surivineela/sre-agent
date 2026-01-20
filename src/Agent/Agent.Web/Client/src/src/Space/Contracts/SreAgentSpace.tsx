@@ -2,6 +2,7 @@ import { FluentIcon } from '@fluentui/react-icons';
 import { ReactNode, RefObject } from 'react';
 
 export enum PrimaryNavItemValues {
+    Overview = 'overview',
     Activities = 'activities',
     Monitor = 'monitor',
     Builder = 'builder',

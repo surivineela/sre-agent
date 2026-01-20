@@ -21,6 +21,9 @@ public class YamlSkillDescriptor
     [YamlMember(Alias = "tools")]
     public List<string> Tools { get; set; } = [];
 
+    [YamlMember(Alias = "first_party_only")]
+    public bool FirstPartyOnly { get; set; } = false;
+
     public static YamlSkillDescriptor FromYaml(string yamlContent)
     {
         var deserializer = new DeserializerBuilder()

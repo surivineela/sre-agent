@@ -49,6 +49,9 @@
     <Content Include="Framework\TestExperiments\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Framework\TestSkillsFirstParty\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Plugins\ACA-FirstParty\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

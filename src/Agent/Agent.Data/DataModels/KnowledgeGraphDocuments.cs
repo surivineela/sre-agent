@@ -27,6 +27,9 @@ public class KnowledgeGraphEntityDocument : ICosmosDocument
 
     [JsonPropertyName("entityType")]
     public string EntityType { get; set; } = string.Empty;
+
+    [JsonPropertyName("vector")]
+    public float[] Vector { get; set; } = [];
 }
 
 /// <summary>
@@ -76,4 +79,7 @@ public class KnowledgeGraphObservationDocument : ICosmosDocument
 
     [JsonPropertyName("content")]
     public string Content { get; set; } = string.Empty;
+
+    [JsonPropertyName("vector")]
+    public float[] Vector { get; set; } = [];
 }

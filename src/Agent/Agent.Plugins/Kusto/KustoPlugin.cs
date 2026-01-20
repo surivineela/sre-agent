@@ -110,7 +110,7 @@ public partial class KustoPlugin : IKustoPlugin
     [KernelFunction("execute_kusto_query_on_cluster")]
     [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
     public async Task<string> ExecuteClusterKustoQuery(
-        [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
+        [Description("The fully qualified domain name (FQDN) of the Kusto cluster without the https:// prefix (e.g., 'cappseus.eastus.kusto.windows.net', 'icmcluster.kusto.windows.net').")] string cluster,
         [Description("The name of the target Kusto database.")] string database,
         [Description("The full Kusto query to execute.")] string fullQuery,
         [Description("Whether to print the result.")] bool? printQuery = true,
@@ -463,20 +463,9 @@ public partial class KustoPlugin : IKustoPlugin
         string fullQuery)
     {
         // Normalize the cluster URL
-        cluster = cluster.Replace("https://", "").Replace("http://", "");
+        cluster = cluster.Replace("https://", "").Replace("http://", "").TrimEnd('/');
 
-        // Only append .kusto.windows.net if the cluster doesn't already have a domain suffix
-        string clusterUrl;
-        if (cluster.Contains('.'))
-        {
-            // Cluster is already a FQDN (e.g., kusto.aria.microsoft.com or mycluster.kusto.windows.net)
-            clusterUrl = $"https://{cluster}";
-        }
-        else
-        {
-            // Cluster is just a name, append the default suffix
-            clusterUrl = $"https://{cluster}.kusto.windows.net";
-        }
+        string clusterUrl = $"https://{cluster}";
 
         var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
         try

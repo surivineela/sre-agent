@@ -30,4 +30,10 @@ public interface ISkill
     /// Used during migration phase; eventually skills won't specify tools.
     /// </summary>
     List<string> Tools { get; }
+
+    /// <summary>
+    /// Indicates if this skill is restricted to first-party tenants only.
+    /// Only applies to system skills; extended skills ignore this property.
+    /// </summary>
+    bool FirstPartyOnly { get; }
 }

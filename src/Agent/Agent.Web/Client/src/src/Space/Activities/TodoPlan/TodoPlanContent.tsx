@@ -1,5 +1,5 @@
-import { Caption2, Spinner, Text, tokens } from '@fluentui/react-components';
-import { CheckmarkRegular, CircleRegular, DismissRegular } from '@fluentui/react-icons';
+import { Caption2, Text, tokens } from '@fluentui/react-components';
+import { CheckmarkRegular, CircleFilled, CircleRegular, DismissRegular } from '@fluentui/react-icons';
 import { memo, useMemo } from 'react';
 import { TodoItem, TodoItemStatus, TodoPlan } from '../../../Common/Contracts/DataPlane/TodoPlan';
 import { getSafeDateTime } from '../../../Common/Helpers/Date';
@@ -31,7 +31,7 @@ const StatusIcon = memo(({ status }: { status: TodoItemStatus }) => {
         case TodoItemStatus.Completed:
             return <CheckmarkRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteGreenForeground1 }} />;
         case TodoItemStatus.InProgress:
-            return <Spinner size={'extra-tiny'} className={styles.taskItemIcon} />;
+            return <CircleFilled className={styles.taskItemIcon} style={{ color: tokens.colorPaletteBlueForeground2 }} />;
         case TodoItemStatus.Failed:
             return <DismissRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteRedForeground1 }} />;
         default:

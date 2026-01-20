@@ -80,8 +80,9 @@ public class McpToolAIFunction : AIFunction
             }
             else if (callToolResult.Content.Count > 1)
             {
-                throw new InvalidOperationException(
-                    $"MCP tool '{_newName}' returned multiple content items, which is not supported.");
+                // Combine multiple content items into a single response
+                // TODO: Handle if the content is an image or not.
+                rawResult = string.Join("\n", callToolResult.Content.Select(c => c.ToAIContent()).OfType<TextContent>().Select(tc => tc.Text));
             }
             else
             {

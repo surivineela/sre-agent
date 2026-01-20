@@ -33,7 +33,6 @@ export const useThreadDeepLink = (threadId: string, resourceId: string, agentEnd
 
     // Azure Portal uses blade-based routing with hash fragments
     if (isCrossTenantMode) {
-
         return `${azurePortalUrl}#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(crossTenantDisplayName)}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(agentSiteDeepLink)}`;
     }
 

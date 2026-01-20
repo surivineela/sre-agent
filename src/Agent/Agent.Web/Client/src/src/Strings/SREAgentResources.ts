@@ -10,6 +10,7 @@ export const SreAgentResources = defineMessages({
     agentPermissionsLevel: { defaultMessage: 'Agent permissions level', id: '+bJIWo' },
     agentEndpoint: { defaultMessage: 'Agent endpoint', id: 's7DlV0' },
     agentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
+    agentSpaceLabel: { defaultMessage: 'Agent Space', id: 'UIvVY8' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     collapse: { defaultMessage: 'Collapse', id: 'W/V6+Y' },
     deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
@@ -699,6 +700,11 @@ export const SreAgentResources = defineMessages({
     dateRange1Day: { defaultMessage: '1 day', id: '+7PjfV' },
     dateRange1Week: { defaultMessage: '1 wk', id: 'CL+NTm' },
     dateRange1Month: { defaultMessage: '1 mo', id: 'zfM/75' },
+    viewJson: { defaultMessage: 'View JSON', id: 'fqjEXz' },
+    apiVersion: { defaultMessage: 'API version', id: 'uA4y7P' },
+    loadingResource: { defaultMessage: 'Loading resource...', id: 'K2QY23' },
+    failedToLoadResource: { defaultMessage: 'Failed to load resource', id: '3tc4vZ' },
+    latestVersionSuffix: { defaultMessage: '(latest)', id: 'Ul5wZf' },
     youDoNotHaveAccess: { defaultMessage: 'You do not have access', id: 'DnkQsX' },
     missingPermissionForAgent: { defaultMessage: 'You are missing the required permission "{permission}" for this agent.', id: 'ldy3CI' },
     errorDetails: { defaultMessage: 'Error details', id: 'qddSy6' },
@@ -895,6 +901,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Command completed with no output.',
         id: 'sY4rUA',
     },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
+    azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -2397,8 +2405,29 @@ export const SettingsTabResources = defineMessages({
     upgradeChannelCurrentStatus: { defaultMessage: 'Current status', id: 'pFm27r' },
     upgradeChannelUpdatingTitle: { defaultMessage: 'Updating upgrade channel', id: 'ppARxn' },
     upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },
-    upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully', id: 'VpsD7s' },
+    upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully. This may take a couple minutes to take effect, and will require refreshing the page.', id: 'IJ3Jsu' },
     upgradeChannelUpdateFailed: { defaultMessage: 'Failed to update upgrade channel', id: 'aRUGFu' },
+    defaultModelUpdatingTitle: { defaultMessage: 'Updating default model provider', id: 'R/9v0F' },
+    defaultModelUpdatingDescription: { defaultMessage: 'Updating default model provider to {model}', id: 'uXCK62' },
+    defaultModelUpdateSuccess: { defaultMessage: 'Default model provider updated to {model} successfully', id: 'vV2byS' },
+    defaultModelUpdateFailed: { defaultMessage: 'Failed to update default model provider', id: '0SK/TZ' },
+    modelProviderLabel: { defaultMessage: 'Model provider', id: 'DTJ2/l' },
+    providerLabel: { defaultMessage: 'Provider', id: 'xaj9Ba' },
+    modelLabel: { defaultMessage: 'Model', id: 'rhSI1/' },
+    getSupportedModelsFailedMessage: { defaultMessage: 'Unable to load available models.', id: 'K9K3Ms' },
+    anthropicEuRegionInfoMessage: {
+        defaultMessage:
+            'Anthropic processes data in the United States and is excluded from European Union Data Boundary (EUDB). This data includes prompts, responses, and resource analysis. If EUDB is required for your use case, select a different model.',
+        id: 'UwPEiY',
+    },
+    anthropicEuRegionLearnMore: {
+        defaultMessage: 'Learn more about SRE Agent data handling',
+        id: 'KOamvU',
+    },
+    anthropicNotAvailable: {
+        defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
+        id: 'x3nLRm',
+    },
 });
 
 export const GrafanaDashboardResources = defineMessages({
@@ -5721,6 +5750,9 @@ export const ThreadTraceResources = defineMessages({
     modelDetails: { defaultMessage: 'Model details', id: 'OUJuir' },
     modelName: { defaultMessage: 'Name', id: 'HAlOn1' },
     modelTemperature: { defaultMessage: 'Temperature', id: 'cG0Q8M' },
+    error: { defaultMessage: 'Error', id: 'KN7zKn' },
+    errorType: { defaultMessage: 'Error type', id: 'if4+SK' },
+    errorMessage: { defaultMessage: 'Error message', id: 'vXkuOR' },
     noTraceDataFound: { defaultMessage: 'No trace data found for this thread.', id: 'E+jVAN' },
     couldNotParseTrace: { defaultMessage: 'Trace data found, but could not parse into spans.', id: 'lCsNuL' },
     traceParsedWithErrors: { defaultMessage: 'Trace data parsed with errors.', id: 'OPBqEN' },
@@ -6003,4 +6035,154 @@ export const AgentPermissionsResources = defineMessages({
     deletingPermissionDescription: { defaultMessage: 'Deleting {count} permissions', id: 'a4owu3' },
     permissionDeletedSuccess: { defaultMessage: 'Permission deleted successfully', id: 'dM9M1D' },
     permissionDeleteFailed: { defaultMessage: 'Failed to delete permission', id: 'pLFm2y' },
+});
+
+export const OnboardingWizardResources = defineMessages({
+    welcomeTitle: { defaultMessage: 'Welcome to SRE Agent', id: 'Iq+EHz' },
+    welcomeSubtitle: { defaultMessage: 'Get started by configuring your agent settings.', id: 'mcXRBx' },
+    setupProgress: { defaultMessage: 'Setup progress', id: 'JCOCUP' },
+    infrastructureScope: { defaultMessage: 'Infrastructure scope', id: 'akZ1Wp' },
+    incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
+    connectRepositories: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
+    grantPermissions: { defaultMessage: 'Grant permissions', id: 'u4WKBH' },
+    saveAndNext: { defaultMessage: 'Save + next', id: 't2c+xn' },
+    skip: { defaultMessage: 'Skip', id: '/4tOwT' },
+    finish: { defaultMessage: 'Finish', id: '2O2sfp' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    subscriptionScopeDescription: {
+        defaultMessage: 'Recommended. The agent will discover and monitor all resources within the selected subscription.',
+        id: '0K6PSP',
+    },
+    resourceGroupScopeDescription: {
+        defaultMessage: 'Scope the agent to a specific resource group within your subscription.',
+        id: 'n5u5kf',
+    },
+    subscriptionName: { defaultMessage: 'Subscription name', id: 'uE11tE' },
+    selectSubscription: { defaultMessage: 'Select a subscription', id: 'LrnSHG' },
+    subscriptionDetails: { defaultMessage: 'Subscription details', id: 'hcxiJk' },
+    subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
+    userRole: { defaultMessage: 'User role', id: 'CtICbM' },
+    resourceNumber: { defaultMessage: 'Resource number', id: 'pmh+bZ' },
+    resources: { defaultMessage: '{count} resources', id: 'BuxxAD' },
+    resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    selectResourceGroup: { defaultMessage: 'Select a resource group', id: 'XDl1KP' },
+    selectIncidentPlatform: { defaultMessage: 'Select your incident platform', id: 'lRFlqy' },
+    incidentPlatformDescription: {
+        defaultMessage: 'Connect your incident management system to enable automated incident response.',
+        id: 'qAwYMb',
+    },
+    noIncidentPlatform: { defaultMessage: 'None', id: '450Fty' },
+    skipForNow: { defaultMessage: 'Skip for now - configure later in Settings', id: 'EPzbZL' },
+    apiKey: { defaultMessage: 'API Key', id: '4dZi3Y' },
+    apiKeyPlaceholder: { defaultMessage: 'Enter your API key', id: 'V1YxyZ' },
+    endpoint: { defaultMessage: 'Endpoint', id: 'ljmS5P' },
+    endpointPlaceholder: { defaultMessage: 'Enter endpoint URL', id: 'Fo2z6U' },
+    username: { defaultMessage: 'Username', id: 'JCIgkj' },
+    usernamePlaceholder: { defaultMessage: 'Enter username', id: 'qiqDqt' },
+    password: { defaultMessage: 'Password', id: '5sg7KC' },
+    passwordPlaceholder: { defaultMessage: 'Enter password', id: '2LbrkB' },
+    repositoriesTitle: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
+    repositoriesDescription: {
+        defaultMessage:
+            'Repository connections allow the agent to access your code, issues, and pull requests for enhanced troubleshooting.',
+        id: 'lfjLjJ',
+    },
+    repositoriesComingSoon: {
+        defaultMessage:
+            'Repository auto-detection is coming soon. You can configure repository connections manually in Settings > Connectors after completing setup.',
+        id: 'lDR+6z',
+    },
+    goToConnectors: { defaultMessage: 'Go to Connectors', id: 'QK0vxq' },
+    permissionsTitle: { defaultMessage: 'Grant permissions', id: 'u4WKBH' },
+    permissionsSubscriptionDescription: {
+        defaultMessage: 'Grant read-only access to allow the agent to monitor your subscription.',
+        id: 'ObFiSB',
+    },
+    permissionsResourceGroupDescription: {
+        defaultMessage: 'Grant RBAC roles to allow the agent to monitor and manage your resources.',
+        id: 'Gg9DNP',
+    },
+    permissionsLevel: { defaultMessage: 'Permission level', id: 'n4BXaA' },
+    readerLevel: { defaultMessage: 'Reader', id: '3nhWFW' },
+    readerLevelDescription: {
+        defaultMessage: 'Read-only access. Agent can view resources and metrics but cannot make changes.',
+        id: 'sU1vvm',
+    },
+    privilegedLevel: { defaultMessage: 'Privileged', id: 'TDoBlx' },
+    privilegedLevelDescription: {
+        defaultMessage: 'Read and write access. Agent can diagnose and perform remediation actions.',
+        id: 'zc/Tq9',
+    },
+    scopeLabel: { defaultMessage: 'Scope', id: 'nso3Mj' },
+    subscriptionScopeLabel: { defaultMessage: 'Subscription ({name})', id: 'AEGhJx' },
+    resourceGroupScopeLabel: { defaultMessage: 'Resource Group ({name})', id: 'HaBgvj' },
+    rolesToBeGranted: { defaultMessage: 'Roles to be granted', id: 'FSD8p6' },
+    roleColumn: { defaultMessage: 'Role', id: '1ZgrhW' },
+    descriptionColumn: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    statusColumn: { defaultMessage: 'Status', id: 'tzMNF3' },
+    roleGranted: { defaultMessage: 'Granted', id: 'rKbDyw' },
+    roleNeeded: { defaultMessage: 'Needed', id: 'pipqmw' },
+    grantPermissionsButton: { defaultMessage: 'Grant {count} permission(s)', id: 'RshmO6' },
+    allPermissionsGranted: { defaultMessage: 'All permissions granted', id: 'Hj/+Ju' },
+    checkingPermissions: { defaultMessage: 'Checking permissions...', id: 'K1tTU1' },
+    grantingPermissions: { defaultMessage: 'Granting permissions...', id: 'Zv0EC2' },
+    permissionsGrantSuccess: { defaultMessage: 'Permissions granted successfully.', id: '8twA9l' },
+    permissionsGrantError: { defaultMessage: 'Failed to grant permissions: {error}', id: 'GV6fti' },
+    subscriptionScopeNote: {
+        defaultMessage: 'For more granular permissions, select a resource group scope in Step 1: Infrastructure Scope.',
+        id: 'Py20GA',
+    },
+    permissionsOptional: { defaultMessage: 'This step is optional. You can grant permissions later in Settings.', id: 'wjzNRu' },
+    insufficientPermissionsWarning: {
+        defaultMessage: "You need 'User Access Administrator' or 'Owner' role to grant permissions on this scope.",
+        id: 'cIk5uP',
+    },
+    alreadyGrantedCount: { defaultMessage: 'Already granted ({count})', id: 'rgGLPJ' },
+    needsAssignmentCount: { defaultMessage: 'Needs assignment ({count})', id: 'QAaaSB' },
+    learnMorePermissions: { defaultMessage: 'Learn more about agent permissions', id: 'IKIn72' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    saving: { defaultMessage: 'Saving...', id: 'TiR/Hq' },
+    saveFailed: { defaultMessage: 'Failed to save settings. Please try again.', id: 'RFRn1R' },
+    saveSuccess: { defaultMessage: 'Settings saved successfully.', id: 'vnlr4s' },
+    subscriptionRequired: { defaultMessage: 'Please select a subscription to continue.', id: 'sr8bXY' },
+    resourceGroupRequired: { defaultMessage: 'Please select a resource group to continue.', id: 'WUGr5F' },
+});
+
+/**
+ * Localized display names and descriptions for Azure RBAC roles
+ */
+export const RolesResources = defineMessages({
+    // Reader role
+    reader: { defaultMessage: 'Reader', id: '3nhWFW' },
+    readerDescription: { defaultMessage: 'View all resources, but cannot make changes.', id: 'RJT10W' },
+
+    // Monitoring Reader role
+    monitoringReader: { defaultMessage: 'Monitoring Reader', id: 'Sr4IbA' },
+    monitoringReaderDescription: { defaultMessage: 'Read access to monitoring data.', id: 'xpg0ni' },
+
+    // Log Analytics Reader role
+    logAnalyticsReader: { defaultMessage: 'Log Analytics Reader', id: 'sI+CCC' },
+    logAnalyticsReaderDescription: { defaultMessage: 'Read access to Log Analytics workspaces.', id: '7M8LSv' },
+
+    // Container Apps Contributor role
+    containerAppsContributor: { defaultMessage: 'Container Apps Contributor', id: 'i5OUQE' },
+    containerAppsContributorDescription: { defaultMessage: 'Can manage Container Apps resources.', id: '89HXVE' },
+
+    // Websites Contributor role
+    websitesContributor: { defaultMessage: 'Websites Contributor', id: 'A1cQXL' },
+    websitesContributorDescription: { defaultMessage: 'Can manage web apps and app service plans.', id: '8YAoVP' },
+
+    // Storage Blob Data Contributor role
+    storageBlobDataContributor: { defaultMessage: 'Storage Blob Data Contributor', id: 'ND2EUR' },
+    storageBlobDataContributorDescription: { defaultMessage: 'Read, write, and delete access to blob storage.', id: 'xB3x6m' },
+
+    // Container Apps Session Executor role
+    containerAppsOperator: { defaultMessage: 'Container Apps Session Executor', id: 'tvPkVJ' },
+    containerAppsOperatorDescription: { defaultMessage: 'Can execute sessions in Container Apps.', id: 'rR96NW' },
+});
+
+export const OverviewResources = defineMessages({
+    overview: { defaultMessage: 'Overview', id: '9uOFF3' },
 });
