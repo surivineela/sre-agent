@@ -1,6 +1,6 @@
-import { Shimmer } from '@fluentui/react';
 import {
     Button,
+    Caption1,
     Card,
     Dialog,
     DialogActions,
@@ -9,13 +9,21 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Dropdown,
+    Field,
     Link,
+    MessageBar,
+    MessageBarBody,
+    Option,
+    Skeleton,
+    SkeletonItem,
     Switch,
     Text,
     Tooltip,
 } from '@fluentui/react-components';
 import { Delete16Regular, Info16Regular, Play16Regular, RecordStop16Regular } from '@fluentui/react-icons';
 import { Label } from '@fluentui/react/lib/Label';
+import { Formik } from 'formik';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
@@ -25,15 +33,18 @@ import { AppInsightsClient } from '../../Common/Clients/AppInsightsClient';
 import { getErrorMessageOrStringify } from '../../Common/Clients/ArmClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import PermissionedButton from '../../Common/Components/PermissionedButton';
-import { UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
+import { SreAgentFwLinks } from '../../Common/Constants/FwLinks';
+import { Model, ModelProvider, UpgradeChannel } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentAccessLevelDisplayName, getLocalizedAgentMode } from '../../Common/Helpers/AgentMode';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
+import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { AgentModeResources, SettingsTabResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { ApplicationInsightsDialog } from './Components/ApplicationInsightsDialog';
 import { useSubscription } from './Hooks/useSubscription';
+import { useSupportedModels } from './Hooks/useSupportedModels';
 import { useDialogStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 const Basics: FC = () => {
@@ -46,6 +57,8 @@ const Basics: FC = () => {
     const { canDeleteAgent } = useUserPermissions();
     const region = useMemo(() => agent?.location, [agent?.location]);
 
+    const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
+
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [isUpdatingUpgradeChannel, setIsUpdatingUpgradeChannel] = useState(false);
 
@@ -56,6 +69,15 @@ const Basics: FC = () => {
     } = useMemo(() => new ArmResourceDescriptor(resourceId), [resourceId]);
 
     const { subscription, subscriptionLoading } = useSubscription(subscriptionGuid);
+
+    const {
+        supportedProviders,
+        isSupportedModelsLoading,
+        getSupportedModelsFailure,
+        updateDefaultModel,
+        isUpdatingDefaultModel,
+        refreshSupportedModels,
+    } = useSupportedModels(resourceId, region ?? '');
 
     const { identityId, identityName } = useMemo(() => {
         const identityId = Object.keys(agent?.identity?.userAssignedIdentities || {})[0];
@@ -309,6 +331,59 @@ const Basics: FC = () => {
         }
     }, [isUpdatingUpgradeChannel, isPreviewChannel, az, intl, resourceId, refresh]);
 
+    const subscriptionField = useMemo(() => {
+        if (subscriptionLoading && !subscription?.displayName) {
+            return (
+                <Skeleton>
+                    <SkeletonItem />
+                </Skeleton>
+            );
+        }
+        return subscription?.displayName ? <Link onClick={openSubscription}>{subscription?.displayName}</Link> : '-';
+    }, [subscriptionLoading, subscription, openSubscription]);
+
+    const managedIdentityField = useMemo(() => {
+        if (agentLoading && (!identityId || !identityName)) {
+            return (
+                <Skeleton>
+                    <SkeletonItem />
+                </Skeleton>
+            );
+        }
+        return identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-';
+    }, [agentLoading, identityId, identityName, openManagedIdentity]);
+
+    const applicationInsightsField = useMemo(() => {
+        if (agentLoading || appInsightsLoading) {
+            return (
+                <Skeleton>
+                    <SkeletonItem />
+                </Skeleton>
+            );
+        }
+
+        if (appInsightsResourceId && appInsightsName) {
+            return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Text>{appInsightsName}</Text>
+                    <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.edit)}</Link>
+                </div>
+            );
+        }
+        return <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.add)}</Link>;
+    }, [agentLoading, appInsightsLoading, appInsightsName, appInsightsResourceId, intl, openAppInsightsDialog]);
+
+    const agentSpaceField = useMemo(() => {
+        if (agentLoading && !agentSpaceId) {
+            return (
+                <Skeleton>
+                    <SkeletonItem />
+                </Skeleton>
+            );
+        }
+        return agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-';
+    }, [agentLoading, agentSpaceId, agentSpaceName, openAgentSpace]);
+
     return (
         <>
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.basics)}</div>
@@ -318,42 +393,49 @@ const Basics: FC = () => {
                     <Label>{intl.formatMessage(SreAgentResources.name)}</Label>
                     {resourceName}
                     <Label>{intl.formatMessage(SreAgentResources.subscription)}</Label>
-                    <Shimmer isDataLoaded={!subscriptionLoading || !!subscription?.displayName}>
-                        {subscription?.displayName ? <Link onClick={openSubscription}>{subscription?.displayName}</Link> : '-'}
-                    </Shimmer>
+                    {subscriptionField}
                     <Label>{intl.formatMessage(SreAgentResources.subscriptionId)}</Label>
                     {subscriptionGuid}
                     <Label>{intl.formatMessage(SreAgentResources.resourceGroup)}</Label>
                     <Link onClick={openResourceGroup}>{resourceGroup}</Link>
                     <Label>{intl.formatMessage(SreAgentResources.region)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || !!region}>{region ?? '-'}</Shimmer>
+                    {agentLoading && !region ? (
+                        <Skeleton>
+                            <SkeletonItem />
+                        </Skeleton>
+                    ) : (
+                        (region ?? '-')
+                    )}
                     <Label>{intl.formatMessage(SreAgentResources.agentEndpoint)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || !!agent?.properties?.agentEndpoint}>
-                        {agent?.properties?.agentEndpoint ?? '-'}
-                    </Shimmer>
+                    {agentLoading && !agent?.properties?.agentEndpoint ? (
+                        <Skeleton>
+                            <SkeletonItem />
+                        </Skeleton>
+                    ) : (
+                        (agent?.properties?.agentEndpoint ?? '-')
+                    )}
                     <Label>{intl.formatMessage(SreAgentResources.managedIdentity)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || (!!identityId && !!identityName)}>
-                        {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
-                    </Shimmer>
+                    {managedIdentityField}
                     <Label>{intl.formatMessage(SreAgentResources.applicationInsights)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading && !appInsightsLoading}>
-                        {appInsightsResourceId && appInsightsName ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Text>{appInsightsName}</Text>
-                                <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.edit)}</Link>
-                            </div>
-                        ) : (
-                            <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.add)}</Link>
-                        )}
-                    </Shimmer>
+                    {applicationInsightsField}
                     <Label>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || !!agentAccessLevelValue}>{agentAccessLevelValue}</Shimmer>
+                    {agentLoading && !agentAccessLevelValue ? (
+                        <Skeleton>
+                            <SkeletonItem />
+                        </Skeleton>
+                    ) : (
+                        agentAccessLevelValue
+                    )}
                     <Label>{intl.formatMessage(AgentModeResources.agentMode)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || !!agentActionModeValue}>{agentActionModeValue}</Shimmer>
+                    {agentLoading && !agentActionModeValue ? (
+                        <Skeleton>
+                            <SkeletonItem />
+                        </Skeleton>
+                    ) : (
+                        agentActionModeValue
+                    )}
                     <Label>{intl.formatMessage(SreAgentResources.agentSpace)}</Label>
-                    <Shimmer isDataLoaded={!agentLoading || !!agentSpaceId}>
-                        {agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-'}
-                    </Shimmer>
+                    {agentSpaceField}
                     <Label
                         id="upgrade-channel-switch-label"
                         style={{ display: 'flex', alignItems: 'center', gap: 6, margin: 0, whiteSpace: 'nowrap' }}
@@ -385,18 +467,119 @@ const Basics: FC = () => {
                             </button>
                         </Tooltip>
                     </Label>
-                    <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-5px' }}>
-                        <Shimmer isDataLoaded={!agentLoading}>
+                    <div style={{ marginLeft: '-5px' }}>
+                        {agentLoading ? (
+                            <Skeleton>
+                                <SkeletonItem />
+                            </Skeleton>
+                        ) : (
                             <Switch
                                 aria-label={intl.formatMessage(SettingsTabResources.upgradeChannel)}
                                 checked={isPreviewChannel}
                                 onChange={onUpgradeChannelToggle}
-                                disabled={agentLoading || isUpdatingUpgradeChannel}
+                                disabled={agentLoading || isUpdatingUpgradeChannel || isUpdatingDefaultModel}
                             />
-                        </Shimmer>
+                        )}
                     </div>
                 </div>
             </Card>
+
+            {showDefaultModelPicker && (
+                <Formik<Model>
+                    initialValues={{ provider: agent?.properties.defaultModel?.provider || '' }}
+                    enableReinitialize
+                    onSubmit={values => updateDefaultModel(values)}
+                >
+                    {({ dirty, values, setFieldValue, resetForm, submitForm }) => (
+                        <Card style={styles.basicsCardStyle}>
+                            <div style={styles.sectionTitleStyle}>{intl.formatMessage(SettingsTabResources.modelProviderLabel)}</div>
+
+                            {getSupportedModelsFailure && (
+                                <MessageBar intent="error" layout="multiline" style={{ alignItems: 'center' }}>
+                                    <MessageBarBody style={styles.failedToLoadMessageBarContentStyle}>
+                                        {getSupportedModelsFailure}
+                                        <Button appearance="outline" size="small" onClick={() => refreshSupportedModels()}>
+                                            {intl.formatMessage(SreAgentResources.refresh)}
+                                        </Button>
+                                    </MessageBarBody>
+                                </MessageBar>
+                            )}
+
+                            <Field id="providerField" label={intl.formatMessage(SettingsTabResources.providerLabel)} orientation="vertical">
+                                {agentLoading || isSupportedModelsLoading ? (
+                                    <Skeleton>
+                                        <SkeletonItem style={styles.dropdownSkeletonStyle} />
+                                    </Skeleton>
+                                ) : (
+                                    <Dropdown
+                                        id="provider"
+                                        style={styles.dropdownStyles}
+                                        value={supportedProviders?.find(option => option.key === values.provider)?.text || values.provider}
+                                        onOptionSelect={(_event, data) => {
+                                            az.logAmplitudeControlEvent({
+                                                targetType: 'dropdown',
+                                                targetAction: 'changed',
+                                                targetName: 'provider',
+                                                targetFriendlyName: 'provider',
+                                                valueObjectName: data?.optionValue ?? '',
+                                                valueObjectFriendlyName: data?.optionText ?? '',
+                                            });
+                                            setFieldValue('provider', data.optionValue);
+                                        }}
+                                        disabled={isUpdatingUpgradeChannel || !!getSupportedModelsFailure || isUpdatingDefaultModel}
+                                    >
+                                        {supportedProviders?.map(option => (
+                                            <Option value={option.key} checkIcon={null}>
+                                                {option.text}
+                                            </Option>
+                                        ))}
+                                    </Dropdown>
+                                )}
+                            </Field>
+
+                            {values.provider === ModelProvider.Anthropic && (
+                                <MessageBar layout="multiline" style={{ alignItems: 'center' }}>
+                                    <MessageBarBody>
+                                        <Caption1>{intl.formatMessage(SettingsTabResources.anthropicEuRegionInfoMessage)}</Caption1>{' '}
+                                        <Link href={SreAgentFwLinks.sreAgentDataHandling} target="_blank" rel="noopener noreferrer">
+                                            <Caption1>{intl.formatMessage(SettingsTabResources.anthropicEuRegionLearnMore)}</Caption1>
+                                        </Link>
+                                    </MessageBarBody>
+                                </MessageBar>
+                            )}
+
+                            <div style={styles.commandBarButtonContainerStyle}>
+                                <Button
+                                    appearance="primary"
+                                    onClick={() => submitForm()}
+                                    disabled={
+                                        !dirty ||
+                                        isUpdatingUpgradeChannel ||
+                                        isSupportedModelsLoading ||
+                                        !!getSupportedModelsFailure ||
+                                        isUpdatingDefaultModel
+                                    }
+                                >
+                                    {intl.formatMessage(SreAgentResources.save)}
+                                </Button>
+                                <Button
+                                    appearance="outline"
+                                    onClick={() => resetForm()}
+                                    disabled={
+                                        !dirty ||
+                                        isUpdatingUpgradeChannel ||
+                                        isSupportedModelsLoading ||
+                                        !!getSupportedModelsFailure ||
+                                        isUpdatingDefaultModel
+                                    }
+                                >
+                                    {intl.formatMessage(SreAgentResources.cancel)}
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
+                </Formik>
+            )}
 
             <Card style={styles.basicsCardStyle}>
                 <div style={styles.actionSectionStyle}>

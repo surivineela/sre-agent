@@ -9,4 +9,5 @@ export class SreAgentFwLinks {
     public static readonly connectors = 'https://go.microsoft.com/fwlink/?linkid=2341945';
     public static readonly learnMoreAboutScheduledTasks = 'https://go.microsoft.com/fwlink/?linkid=2342046';
     public static readonly learnMoreAboutSubagents = 'https://go.microsoft.com/fwlink/?linkid=2343307';
+    public static readonly sreAgentDataHandling = 'https://go.microsoft.com/fwlink/?linkid=2347418';
 }

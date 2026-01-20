@@ -31,6 +31,16 @@ export interface Permission {
     tenantId: string;
 }
 
+export enum ModelProvider {
+    Anthropic = 'Anthropic',
+    MicrosoftFoundry = 'MicrosoftFoundry',
+}
+
+export interface Model {
+    provider: string;
+    model?: string; // (NOTE (wangcynthia): optional for now, since for GA the user can only select provider.
+}
+
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;
@@ -48,6 +58,7 @@ export interface Agent {
     upgradeChannel?: UpgradeChannel;
     monthlyAgentUnitLimit?: number;
     permissions?: Permission[];
+    defaultModel?: Model;
 }
 
 export enum ProvisioningState {

@@ -895,6 +895,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Command completed with no output.',
         id: 'sY4rUA',
     },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
+    azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -2399,6 +2401,27 @@ export const SettingsTabResources = defineMessages({
     upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },
     upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully', id: 'VpsD7s' },
     upgradeChannelUpdateFailed: { defaultMessage: 'Failed to update upgrade channel', id: 'aRUGFu' },
+    defaultModelUpdatingTitle: { defaultMessage: 'Updating default model provider', id: 'R/9v0F' },
+    defaultModelUpdatingDescription: { defaultMessage: 'Updating default model provider to {model}', id: 'uXCK62' },
+    defaultModelUpdateSuccess: { defaultMessage: 'Default model provider updated to {model} successfully', id: 'vV2byS' },
+    defaultModelUpdateFailed: { defaultMessage: 'Failed to update default model provider', id: '0SK/TZ' },
+    modelProviderLabel: { defaultMessage: 'Model provider', id: 'DTJ2/l' },
+    providerLabel: { defaultMessage: 'Provider', id: 'xaj9Ba' },
+    modelLabel: { defaultMessage: 'Model', id: 'rhSI1/' },
+    getSupportedModelsFailedMessage: { defaultMessage: 'Unable to load available models.', id: 'K9K3Ms' },
+    anthropicEuRegionInfoMessage: {
+        defaultMessage:
+            'Anthropic processes data in the United States and is excluded from European Union Data Boundary (EUDB). This data includes prompts, responses, and resource analysis. If EUDB is required for your use case, select a different model.',
+        id: 'UwPEiY',
+    },
+    anthropicEuRegionLearnMore: {
+        defaultMessage: 'Learn more about SRE Agent data handling',
+        id: 'KOamvU',
+    },
+    anthropicNotAvailable: {
+        defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
+        id: 'x3nLRm',
+    },
 });
 
 export const GrafanaDashboardResources = defineMessages({

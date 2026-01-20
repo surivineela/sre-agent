@@ -18,6 +18,7 @@ export enum SettingNames {
     ShowIncidentTriggerWithLearnings = 'showIncidentTriggerWithLearnings',
     /** Use for onboarding experience testing. This will be removed when the feature is ready */
     Overview = 'overview',
+    ShowDefaultModelPicker = 'showDefaultModelPicker',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

@@ -124,6 +124,11 @@ const basicsCardStyle: CSSProperties = {
     overflowX: 'hidden',
 };
 
+const dropdownSkeletonStyle: CSSProperties = {
+    ...controlStyles,
+    height: '40px',
+};
+
 const sectionTitleStyle: CSSProperties = {
     fontSize: '18px',
     fontWeight: 600,
@@ -144,6 +149,20 @@ const actionSectionStyle: CSSProperties = {
 
 const actionTextContainerStyle: CSSProperties = {
     flex: 1,
+};
+
+const commandBarButtonContainerStyle: CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: tokens.spacingHorizontalXS,
+    marginLeft: 'auto',
+};
+
+const failedToLoadMessageBarContentStyle: CSSProperties = {
+    display: 'flex',
+    gap: tokens.spacingHorizontalMNudge,
+    flexDirection: 'row',
+    alignItems: 'center',
 };
 
 export const useSettingsStyles = () => {
@@ -183,6 +202,9 @@ export const useSettingsStyles = () => {
         sectionDescriptionStyle,
         actionSectionStyle,
         actionTextContainerStyle,
+        commandBarButtonContainerStyle,
+        failedToLoadMessageBarContentStyle,
+        dropdownSkeletonStyle,
     };
 };
 
