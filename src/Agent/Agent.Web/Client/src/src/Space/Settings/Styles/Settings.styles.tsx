@@ -47,7 +47,7 @@ const subscriptionDropdownStyles: CSSProperties = {
 const gridStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: '150px auto',
-    rowGap: '15px',
+    rowGap: '18px',
     columnGap: '100px',
     alignItems: 'center',
     maxWidth: '600px',
@@ -165,6 +165,13 @@ const failedToLoadMessageBarContentStyle: CSSProperties = {
     alignItems: 'center',
 };
 
+const copyFieldContainer: CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '4px',
+};
+
 export const useSettingsStyles = () => {
     return {
         noMcpServersContainer,
@@ -205,8 +212,16 @@ export const useSettingsStyles = () => {
         commandBarButtonContainerStyle,
         failedToLoadMessageBarContentStyle,
         dropdownSkeletonStyle,
+        copyFieldContainer,
     };
 };
+
+export const useLabelStyles = makeStyles({
+    small: {
+        fontSize: '13px',
+        fontWeight: 400,
+    },
+});
 
 export const useDialogStyles = makeStyles({
     dangerButton: {
