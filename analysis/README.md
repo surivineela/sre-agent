@@ -15,3 +15,6 @@ If Azure authentication isn't working for you, in Settings, set `microsoft-authe
 ### churn.kql
 
 Identifies agents and customers that have "churned" by analyzing agent deletion patterns.
+
+## Dashboards
+[Incident Metrics - SRE Agent Dashboard - Power BI](https://msit.powerbi.com/groups/4b1d49cf-e1b8-44d4-a9d0-c4ff48dab1b0/reports/e7ff65c1-472b-4fcc-afdb-085ce43b4b6e/d577d1c0c00e218b0705?experience=power-bi)
