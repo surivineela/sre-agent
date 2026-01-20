@@ -431,7 +431,7 @@ export const useExtendedAgentGraph = () => {
                 name: item.name,
                 description: item.properties?.description,
                 tools: item.properties?.tools,
-                skillMdContent: item.properties?.skillMdContent,
+                skillContent: item.properties?.skillContent,
                 additionalFiles: item.properties?.additionalFiles,
             }));
             setSkills(skills);

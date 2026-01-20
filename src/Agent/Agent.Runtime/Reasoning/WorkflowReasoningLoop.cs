@@ -56,6 +56,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
         CoreSettings coreSettings,
         bool modeSwitchEnabled,
         IToolOutputTruncationService toolOutputTruncationService,
+        IToolOutputStorage toolOutputStorage,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider)
         : base(
@@ -83,6 +84,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
             modeSwitchEnabled: modeSwitchEnabled,
             skillRegistry: skillRegistry,
             toolOutputTruncationService: toolOutputTruncationService,
+            toolOutputStorage: toolOutputStorage,
             hostEnvironment: hostEnvironment,
             ambientContextProvider: ambientContextProvider)
     {

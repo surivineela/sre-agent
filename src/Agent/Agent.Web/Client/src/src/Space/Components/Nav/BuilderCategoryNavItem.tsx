@@ -44,9 +44,10 @@ const BuilderCategoryNavItem: FC<IBuilderCategoryNavItemProps> = ({
             icon: bundleIcon(Toolbox20Filled, Toolbox20Regular),
             filledIcon: Toolbox20Filled,
             isCollapsed: !isNavOpen,
+            isVisible: incidentVisible || showScheduledTasksTab || showExtendedAgentsGraphTab,
             disabled: false,
         }),
-        [isNavOpen, intl]
+        [isNavOpen, incidentVisible, showScheduledTasksTab, showExtendedAgentsGraphTab, intl]
     );
 
     const subItems = useMemo((): SubNavItemInput[] => {

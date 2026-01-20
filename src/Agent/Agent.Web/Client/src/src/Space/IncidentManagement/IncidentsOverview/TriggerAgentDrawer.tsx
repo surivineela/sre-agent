@@ -26,7 +26,7 @@ import {
     SkeletonItem,
     TableCellLayout,
     TableColumnDefinition,
-    Text
+    Text,
 } from '@fluentui/react-components';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -393,7 +393,7 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                                     {incidentPlatformType === IncidentManagementType.Icm && (
                                         <IcmOwningTeamSearch
                                             defaultTeamId={queryIncidentsFilter?.owningTeamId}
-                                            onFieldTouched={() => { }}
+                                            onFieldTouched={() => {}}
                                             onUpdateOwningTeam={team =>
                                                 setQueryIncidentsFilter(prev => ({ ...prev, owningTeamId: `${team.id}` }))
                                             }
@@ -433,7 +433,9 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                                                     id="incident-impactedService"
                                                     placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
                                                     value={queryIncidentsFilter?.impactedService || ''}
-                                                    selectedOptions={queryIncidentsFilter?.impactedService ? [queryIncidentsFilter?.impactedService] : []}
+                                                    selectedOptions={
+                                                        queryIncidentsFilter?.impactedService ? [queryIncidentsFilter?.impactedService] : []
+                                                    }
                                                     onOptionSelect={(_, data) =>
                                                         setQueryIncidentsFilter(prev => ({ ...prev, impactedService: data.optionValue }))
                                                     }
@@ -508,10 +510,7 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                                             })}
                                         </Text>
                                     )}
-                                    <div
-                                        className={styles.tableContainer}
-                                        style={{ minHeight: 40 + Math.min(incidents.length, 2) * 32 }}
-                                    >
+                                    <div className={styles.tableContainer} style={{ minHeight: 40 + Math.min(incidents.length, 2) * 32 }}>
                                         <div className={styles.scrollableList}>
                                             <DataGrid
                                                 items={incidents}

@@ -22,7 +22,7 @@ import {
     useTableSort,
 } from '@fluentui/react-components';
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AgentSpaceClient } from '../../../Common/Clients/AgentSpaceClient';
 import { ResourceGroupPill } from '../../../Common/Components/ResourceGroupPill/ResourceGroupPill';
@@ -97,7 +97,7 @@ export const AgentSpacesGrid = () => {
     const { logEvent } = useTelemetry(TelemetrySource.HomeBrowseView, undefined);
     const { logControlEvent } = useAmplitudeTelemetry();
     const navigate = usePersistentNavigate();
-    const { selectedSubscriptions, subscriptions } = useSubscriptions();
+    const { selectedSubscriptions, subscriptions, isLoading: isSubscriptionsLoading } = useSubscriptions();
 
     const agentSpaceClient = useMemo(() => AgentSpaceClient.getInstance(TelemetrySource.HomeBrowseView), []);
 
@@ -109,8 +109,12 @@ export const AgentSpacesGrid = () => {
     const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState<boolean>(false);
     const [showCreateAgentSpaceDialog, setShowCreateAgentSpaceDialog] = useState<boolean>(false);
 
-    const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[]>([]);
+    // Initialize selected subscriptions from context. null = not yet initialized, [] = "All subscriptions"
+    const [selectedSubscriptionIds, setSelectedSubscriptionIds] = useState<string[] | null>(null);
     const [selectedResourceGroupNames, setSelectedResourceGroupNames] = useState<string[]>([]);
+
+    // Track fetch request ID to prevent stale responses from overwriting newer data
+    const fetchCallIdRef = useRef(0);
 
     const selectedSpaces = useMemo(() => {
         return agentSpaces.filter(space => selectedSpaceIds.has(space.id));
@@ -210,10 +214,13 @@ export const AgentSpacesGrid = () => {
     }, []);
 
     const fetchAgentSpaces = useCallback(async () => {
-        if (!isAuthenticated) {
-            setIsLoading(false);
+        // Don't fetch until filters are initialized from context
+        if (!isAuthenticated || isSubscriptionsLoading || selectedSubscriptionIds === null) {
             return;
         }
+
+        // Increment call ID to track this specific request
+        const currentCallId = ++fetchCallIdRef.current;
 
         setIsLoading(true);
         setError(null);
@@ -222,6 +229,11 @@ export const AgentSpacesGrid = () => {
         const rgNames = selectedResourceGroupNames.length > 0 ? selectedResourceGroupNames : undefined;
 
         const response = await agentSpaceClient.getAgentSpacesFromArg(subIds, rgNames);
+
+        // Ignore stale responses - a newer request has been initiated
+        if (currentCallId !== fetchCallIdRef.current) {
+            return;
+        }
 
         if (!response.isSuccessful) {
             const errorMessage = response.error instanceof Error ? response.error.message : 'Unknown error occurred';
@@ -239,7 +251,7 @@ export const AgentSpacesGrid = () => {
         }
 
         setIsLoading(false);
-    }, [agentSpaceClient, isAuthenticated, logEvent, selectedSubscriptionIds, selectedResourceGroupNames]);
+    }, [agentSpaceClient, isAuthenticated, isSubscriptionsLoading, logEvent, selectedSubscriptionIds, selectedResourceGroupNames]);
 
     const deleteAgentSpaces = useCallback(
         async (spacesToDelete: AgentSpaceArgItem[]) => {
@@ -371,12 +383,12 @@ export const AgentSpacesGrid = () => {
                             disabled={isLoading}
                         />
                         <SubscriptionPill
-                            selectedSubscriptionIds={selectedSubscriptionIds}
+                            selectedSubscriptionIds={selectedSubscriptionIds ?? []}
                             onSelectedSubscriptionIdsChange={setSelectedSubscriptionIds}
                             disabled={isLoading}
                         />
                         <ResourceGroupPill
-                            selectedSubscriptionIds={selectedSubscriptionIds}
+                            selectedSubscriptionIds={selectedSubscriptionIds ?? []}
                             selectedResourceGroupNames={selectedResourceGroupNames}
                             onSelectedResourceGroupNamesChange={setSelectedResourceGroupNames}
                             disabled={isLoading}

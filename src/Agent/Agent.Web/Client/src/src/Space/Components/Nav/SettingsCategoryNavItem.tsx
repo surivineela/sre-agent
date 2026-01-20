@@ -45,9 +45,21 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
             icon: bundleIcon(Settings20Filled, Settings20Regular),
             filledIcon: Settings20Filled,
             isCollapsed: !isNavOpen,
+            isVisible:
+                controlPlaneTabsVisible ||
+                (incidentVisible && showControlPlaneDependentFeatures) ||
+                (showPermissionsInSettings && !isCrossTenantPortalMode),
             disabled: false,
         }),
-        [intl, isNavOpen]
+        [
+            intl,
+            isNavOpen,
+            controlPlaneTabsVisible,
+            incidentVisible,
+            showControlPlaneDependentFeatures,
+            showPermissionsInSettings,
+            isCrossTenantPortalMode,
+        ]
     );
 
     const subItems = useMemo((): SubNavItemInput[] => {

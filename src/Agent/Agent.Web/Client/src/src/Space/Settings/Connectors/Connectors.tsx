@@ -8,6 +8,7 @@ import { TextWithLink } from '../../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
+import { FirstPartyHelper } from '../../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { AntUxStringComparison, equals } from '../../../Common/Helpers/Strings';
 import { ConnectorsResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -32,12 +33,27 @@ export enum McpConnectorStatus {
     Error = 'Error',
 }
 
+const isAuthorizationFailedError = (error: any): boolean => {
+    if (!error) return false;
+    const errorCode = error.code || error.error?.code;
+    return errorCode === 'AuthorizationFailed' || error.status === 403;
+};
+
+const isMethodNotAllowedError = (error: any): boolean => {
+    if (!error) return false;
+    return error.status === 405;
+};
+
 export const Connectors = () => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
 
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, userInfo } = useContext(EnvironmentContext);
     const { log, startNotification, stopNotification } = useContext(AzPortalContext);
+
+    const isAmePmeTenant = useMemo(() => {
+        return FirstPartyHelper.isAmePmeTenant(userInfo?.directoryId || '');
+    }, [userInfo?.directoryId]);
 
     const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceId);
 
@@ -131,28 +147,48 @@ export const Connectors = () => {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorCreated, { name: connector.name }));
             } else {
-                const errorMessage = getErrorMessage(putConnectorResponse.metadata.error);
+                const error = putConnectorResponse.metadata.error;
+                const isAuthError = isAuthorizationFailedError(error);
+                const isMethodNotAllowed = isMethodNotAllowedError(error);
+                let errorMessage: string;
+
+                if (isAuthError) {
+                    errorMessage = intl.formatMessage(
+                        isAmePmeTenant
+                            ? ConnectorsResources.connectorAuthorizationFailedAmePme
+                            : ConnectorsResources.connectorAuthorizationFailed
+                    );
+                } else if (isMethodNotAllowed) {
+                    errorMessage = intl.formatMessage(ConnectorsResources.connectorMethodNotAllowed);
+                } else {
+                    errorMessage = getErrorMessage(error);
+                }
+
                 log({
                     action: 'createDataConnector',
                     actionModifier: 'failed',
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        message: `Failed to create data connector: ${errorMessage}`,
+                        message: `Failed to create data connector: ${getErrorMessage(error)}`,
+                        isAuthorizationError: isAuthError,
+                        isMethodNotAllowedError: isMethodNotAllowed,
                     },
                 });
 
                 stopNotification(
                     notificationId,
                     false,
-                    errorMessage
-                        ? intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, { error: errorMessage })
-                        : intl.formatMessage(ConnectorsResources.createConnectorFailed)
+                    isAuthError || isMethodNotAllowed
+                        ? errorMessage
+                        : errorMessage
+                          ? intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, { error: errorMessage })
+                          : intl.formatMessage(ConnectorsResources.createConnectorFailed)
                 );
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId]
+        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId, isAmePmeTenant]
     );
 
     const updateDataConnection = useCallback(
@@ -171,7 +207,22 @@ export const Connectors = () => {
                 refresh();
                 stopNotification(notificationId, true, intl.formatMessage(ConnectorsResources.connectorUpdated, { name: connector.name }));
             } else {
-                const errorMessage = getErrorMessage(updateConnectorResponse.metadata.error);
+                const error = updateConnectorResponse.metadata.error;
+                const isAuthError = isAuthorizationFailedError(error);
+                const isMethodNotAllowed = isMethodNotAllowedError(error);
+                let errorMessage: string;
+
+                if (isAuthError) {
+                    errorMessage = intl.formatMessage(
+                        isAmePmeTenant
+                            ? ConnectorsResources.connectorAuthorizationFailedAmePme
+                            : ConnectorsResources.connectorAuthorizationFailed
+                    );
+                } else if (isMethodNotAllowed) {
+                    errorMessage = intl.formatMessage(ConnectorsResources.connectorMethodNotAllowed);
+                } else {
+                    errorMessage = getErrorMessage(error);
+                }
 
                 log({
                     action: 'updateConnector',
@@ -179,21 +230,25 @@ export const Connectors = () => {
                     resourceId,
                     logLevel: 'error',
                     data: {
-                        message: `Failed to update connector: ${errorMessage}`,
+                        message: `Failed to update connector: ${getErrorMessage(error)}`,
+                        isAuthorizationError: isAuthError,
+                        isMethodNotAllowedError: isMethodNotAllowed,
                     },
                 });
 
                 stopNotification(
                     notificationId,
                     false,
-                    errorMessage
-                        ? intl.formatMessage(ConnectorsResources.updateConnectorWithMessageFailed, { error: errorMessage })
-                        : intl.formatMessage(ConnectorsResources.updateConnectorFailed)
+                    isAuthError || isMethodNotAllowed
+                        ? errorMessage
+                        : errorMessage
+                          ? intl.formatMessage(ConnectorsResources.updateConnectorWithMessageFailed, { error: errorMessage })
+                          : intl.formatMessage(ConnectorsResources.updateConnectorFailed)
                 );
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId]
+        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId, isAmePmeTenant]
     );
 
     const bulkDeleteDataConnectors = useCallback(async () => {

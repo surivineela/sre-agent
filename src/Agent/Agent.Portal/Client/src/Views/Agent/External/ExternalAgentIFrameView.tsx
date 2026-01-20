@@ -4,10 +4,8 @@ import { AgentIFrame } from '../AgentIFrame';
 import { useExternalAgentView } from './useExternalAgentView';
 
 export const ExternalAgentIFrameView = () => {
-    const { agentName: encodedAgentName, agentUri: encodedAgentUri } = useParams<{ agentName: string; agentUri: string }>();
+    const { agentName, agentUri } = useParams<{ agentName: string; agentUri: string }>();
     const location = useLocation();
-
-    const agentUri = useMemo(() => decodeURIComponent(encodedAgentUri ?? ''), [encodedAgentUri]);
 
     /**
      * Deep link extraction for external Agent.Web iframe navigation
@@ -25,10 +23,13 @@ export const ExternalAgentIFrameView = () => {
      * is intentionally not implemented - users navigate within the iframe directly.
      */
     const sreLink = useMemo(() => {
-        if (!encodedAgentName || !encodedAgentUri) {
+        if (!agentName || !agentUri) {
             return undefined;
         }
 
+        // Re-encode params to match location.pathname format
+        const encodedAgentName = encodeURIComponent(agentName);
+        const encodedAgentUri = encodeURIComponent(agentUri);
         const baseSegment = `/externalagents/${encodedAgentName}/${encodedAgentUri}`;
 
         if (!location.pathname.startsWith(baseSegment)) {
@@ -40,10 +41,10 @@ export const ExternalAgentIFrameView = () => {
         const fullDeepLink = `${pathAfterAgent}${location.search}${location.hash}`;
 
         return fullDeepLink || undefined;
-    }, [encodedAgentName, encodedAgentUri, location.pathname, location.search, location.hash]);
+    }, [agentName, agentUri, location.pathname, location.search, location.hash]);
 
     const { agentUxUrl, agentUrl, isSiteRunning, iframeRef, iframeInitialized, errorBannerMessage, agentLoadError } = useExternalAgentView(
-        agentUri,
+        agentUri ?? '',
         sreLink
     );
 

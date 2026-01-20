@@ -47,7 +47,7 @@ export const SkillTable: FC<SkillTableProps> = ({ skills, openInfoPanel, refresh
             name: skill.name || EMPTY_DISPLAY,
             description: skill.description || EMPTY_DISPLAY,
             toolsCount: skill.tools?.length || 0,
-            hasContent: !!skill.skillMdContent,
+            hasContent: !!skill.skillContent,
             filesCount: skill.additionalFiles?.length || 0,
             data: skill,
         }));

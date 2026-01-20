@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import AzPortalProxy from '../../AzPortalProxy/AzPortalProxy';
-import { azurePortalUrl, standaloneReactEndpoint } from '../../Constants/Uri';
+import { azurePortalUrl, sreaPortalUrl, standaloneReactEndpoint } from '../../Constants/Uri';
 import { useThreadDeepLink } from '../useThreadDeepLink';
 
 describe('useThreadDeepLink', () => {
@@ -74,9 +74,7 @@ describe('useThreadDeepLink', () => {
         const resourceId = '/subscriptions/1111/resourceGroups/rg/providers/Microsoft.Sample/agents/sreaAgent';
 
         const link = useThreadDeepLink(threadId, resourceId, 'https://myagent.contoso.com');
-        const expected = `https://sre.azure.com#view/Microsoft_Azure_PaasServerless/AgentFrameBlade.ReactView/id/${encodeURIComponent(
-            resourceId
-        )}/sreLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
+        const expected = `${sreaPortalUrl}/agents/${encodeURIComponent(resourceId)}/views/thread/${threadId}`;
         expect(link).toBe(expected);
     });
 
@@ -91,9 +89,7 @@ describe('useThreadDeepLink', () => {
         const displayName = 'sreaagent';
 
         const link = useThreadDeepLink(threadId, '/rsc-id', agentEndpoint);
-        const expected = `https://sre.azure.com#view/Microsoft_Azure_PaasServerless/FirstPartyAgentFrameBlade.ReactView/agentDisplayName/${encodeURIComponent(
-            displayName
-        )}/agentUrl/${encodeURIComponent(agentEndpoint)}/sreDeepLink/${encodeURIComponent(`views/thread/${threadId}`)}`;
+        const expected = `${sreaPortalUrl}/externalagents/${encodeURIComponent(displayName)}/${encodeURIComponent(agentEndpoint)}/views/thread/${threadId}`;
         expect(link).toBe(expected);
     });
 });

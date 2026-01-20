@@ -122,6 +122,40 @@ Configured in `cloudConfig.ts`, automatically cloud-aware:
 - `'sreAgent'` - SRE Agent Backend
 - `'appInsights'` - Application Insights
 
+## Session Expiry Handling
+
+The portal proactively handles expired sessions to prevent users from appearing logged in while getting 401 errors:
+
+### On App Load
+
+When the app loads with cached accounts, it validates the session:
+
+1. Attempts `acquireTokenSilent()` to check if the refresh token is still valid
+2. If that fails, tries `ssoSilent()` to check for an active Entra session (hidden iframe)
+3. If both fail, shows a **Session Expired Dialog** prompting user to sign in again
+
+### During Session (Long-Running)
+
+If token acquisition fails mid-session (e.g., after hours of use):
+
+1. `acquireAccessToken()` in `Client.ts` dispatches a `SESSION_EXPIRED_EVENT`
+2. `AuthContext` listens for this event and sets `sessionExpired = true`
+3. The **Session Expired Dialog** appears, blocking interaction until user re-authenticates
+
+### Session Expired Dialog
+
+- **Sign in again** - Triggers `loginRedirect()` for seamless re-authentication
+- **Sign out** - Clears all cached tokens and returns to clean sign-in state
+
+### Context API
+
+```typescript
+const { isSessionExpired, setIsSessionExpired } = useAuth();
+```
+
+- `isSessionExpired: boolean` - Whether the session has expired
+- `setIsSessionExpired(expired: boolean)` - Manually trigger session expiry state
+
 ## Multi-Cloud Support
 
 Tokens automatically adapt to the detected cloud environment:

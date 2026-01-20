@@ -57,7 +57,7 @@ const getOrigin = (url: string): string | undefined => {
  *
  * @example
  * buildAgentUxUrl("https://agent.com", "views/settings")
- * // Returns: "https://agent.com/static/?trustedAuthority=https://portal.azure.com#/views/settings"
+ * // Returns: "https://agent.com/static/?trustedAuthority=https://portal.azure.com&shellUrl=...#/views/settings"
  */
 export const buildAgentUxUrl = (uxEndpoint: string, deepLink?: string): string => {
     const queryString = getQueryStringForIFrame();
@@ -65,7 +65,7 @@ export const buildAgentUxUrl = (uxEndpoint: string, deepLink?: string): string =
 
     const baseUxUrl = addPathToHostname(uxEndpoint, staticPath);
 
-    return `${baseUxUrl}?trustedAuthority=${window.location.origin}${queryString}${deepLinkHash}&shellUrl=${encodeURIComponent(window.location.origin)}`;
+    return `${baseUxUrl}?trustedAuthority=${window.location.origin}&shellUrl=${encodeURIComponent(window.location.origin)}${queryString}${deepLinkHash}`;
 };
 
 const parseFlagValue = (value: string): { isTruthy: boolean; uxPort?: number } => {

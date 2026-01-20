@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SearchBoxWithDebounce } from '../../../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Connector } from '../../../../Common/Contracts/Azure/SreAgent';
+import { Guid } from '../../../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../../../Common/Helpers/Strings';
 import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
 import { ConnectorType, ConnectorTypeOption, connectorTypeOptions } from './Common/ConnectorType';
@@ -45,7 +46,13 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                 setFieldValue('url', '');
                 setFieldValue('authType', '');
             }
-            setFieldValue('name', '');
+            if (connector.id === ConnectorType.OutlookSendEmail) {
+                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultOutlookConnectorName, { id: Guid.newTinyGuid() }));
+            } else if (connector.id === ConnectorType.TeamsSendNotification) {
+                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultTeamsConnectorName, { id: Guid.newTinyGuid() }));
+            } else {
+                setFieldValue('name', '');
+            }
             setFieldValue('identity', '');
             setFieldValue('email', '');
             setFieldValue('teamsChannelLink', '');
@@ -54,7 +61,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
             setTouched({});
             setErrors({});
         },
-        [setErrors, setFieldValue, setTouched]
+        [intl, setErrors, setFieldValue, setTouched]
     );
 
     return (

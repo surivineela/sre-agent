@@ -6,6 +6,8 @@ export const PortalResources = defineMessages({
         id: 'He4/qi',
     },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
+    azureSreAgentsPreview: { defaultMessage: 'Azure SRE Agents (Preview)', id: 'Q5mdr7' },
+    previewCapitalized: { defaultMessage: 'PREVIEW', id: 'Isedjj' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
     invalidUrl: { defaultMessage: 'Must be a valid URL', id: '48WMIb' },
@@ -27,6 +29,12 @@ export const PortalResources = defineMessages({
     signOut: { defaultMessage: 'Sign out', id: 'xXbJso' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     signIn: { defaultMessage: 'Sign in', id: 'SQJto2' },
+    signInAgain: { defaultMessage: 'Sign in again', id: 'scfgdM' },
+    sessionExpired: { defaultMessage: 'Session expired', id: '3OGyhq' },
+    sessionExpiredMessage: {
+        defaultMessage: 'Your session has expired. Please sign in again to continue.',
+        id: 'ZXiFgI',
+    },
     chatWithAgent: { defaultMessage: 'Chat with agent', id: 'arLfuy' },
     close: { defaultMessage: 'Close', id: 'rbrahO' },
     createYourFirstAgent: { defaultMessage: 'Create your first Azure SRE Agent', id: 'H/i1A+' },
@@ -40,7 +48,7 @@ export const PortalResources = defineMessages({
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
     portalFeedback: { defaultMessage: 'Portal feedback', id: '2GuZPR' },
     feedbackSubmitted: { defaultMessage: 'Thank you for your feedback!', id: 'Nrc9ba' },
-    feedbackPlaceholder: { defaultMessage: 'Share your thoughts about the portal...', id: 'tYoDsC' },
+    feedbackPlaceholder: { defaultMessage: 'Share any thoughts, issues, or other feedback about the portal...', id: 'DJ9GSQ' },
     positive: { defaultMessage: 'Positive', id: 'dHVUaP' },
     negative: { defaultMessage: 'Negative', id: 'kVQ1fo' },
     submit: { defaultMessage: 'Submit', id: 'wSZR47' },
@@ -60,6 +68,10 @@ export const PortalResources = defineMessages({
     reduceSiteReliabilityExpenses: {
         defaultMessage: 'Reduce site reliability expenses with Azure SRE Agents',
         id: 's7mQCK',
+    },
+    reduceSiteReliabilityExpensesPreview: {
+        defaultMessage: 'Reduce site reliability expenses with Azure SRE Agents (Preview)',
+        id: 'WBciDp',
     },
     reduceSiteReliabilityExpensesDescription: {
         defaultMessage:
@@ -292,10 +304,15 @@ export const PortalResources = defineMessages({
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
     resourceGroupPickerTitle: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
-    resourceGroupsMax: { defaultMessage: 'Select up to 100 resource groups to monitor', id: 'dKhdkO' },
+    resourceGroupsMax: { defaultMessage: 'Select up to {max} resource groups to manage.', id: '6EQs7U' },
     resourceGroupSelected: { defaultMessage: '{0} resource group selected', id: 'nlPgO8' },
     resourceGroupsSelected: { defaultMessage: '{0} resource groups selected', id: 'egr0Oj' },
-    showRecommended: { defaultMessage: 'Show only recommended', id: 'UoL653' },
+    showRecommended: { defaultMessage: 'Show recommended', id: 'PfwAB2' },
+    showRecommendedTooltip: {
+        defaultMessage:
+            'To get optimal agent performance for diagnostics, metrics, knowledge, and more, use resource groups that include one or more of these Azure compute services: Azure Kubernetes Service, Functions, Container Apps, or Web Apps.',
+        id: '0zGfOk',
+    },
     toggleShowRecommendedAriaLabel: { defaultMessage: 'Toggle to show only recommended resource groups', id: 'Kg6ebk' },
     searchResourceGroups: { defaultMessage: 'Search resource groups', id: 'pMlVvA' },
     resourceGroupPickerTableAriaLabel: { defaultMessage: 'Resource groups list', id: 'Ngsqgf' },

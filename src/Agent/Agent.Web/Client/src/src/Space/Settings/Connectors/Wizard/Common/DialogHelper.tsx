@@ -159,7 +159,7 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
 
     const dataConnector: Connector = {
         name: values.name,
-        dataConnectorType: values.connectorType?.toString() || '',
+        dataConnectorType: connectorType,
         dataSource: dataSource,
         extendedProperties: extendedProperties,
         identity: values.identity,

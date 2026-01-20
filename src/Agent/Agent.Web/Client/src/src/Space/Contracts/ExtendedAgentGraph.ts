@@ -5,7 +5,6 @@ import { EntityType } from '../Graph/ExtendedAgentCreationDialog/types';
 
 // Skill Types
 export type SkillFile = {
-    fileName: string;
     filePath: string;
     content: string;
 };
@@ -14,7 +13,7 @@ export type Skill = {
     name: string;
     description?: string;
     tools?: string[];
-    skillMdContent?: string;
+    skillContent?: string;
     additionalFiles?: SkillFile[];
 };
 
