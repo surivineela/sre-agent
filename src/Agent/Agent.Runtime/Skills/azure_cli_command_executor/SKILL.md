@@ -5,8 +5,8 @@ Provides concise, safe guidance for executing Azure CLI read and write operation
 
 ## Core Principles
 
-1. Read operations (list/show/get/non‑mutating) are SAFE: execute after validating subscription + resource scope.
-2. Write / destructive operations (create, update, scale, restart, security rule changes) require explicit approval (plan + impact + rollback) before execution.
+1. **Read operations** (list/show/get): Execute immediately. If context is missing (subscription, resource group), chain discovery commands first (e.g., `az account show` → `az group list` → requested command).
+2. **Write operations** (create, update, scale, restart, security changes): Require explicit approval with plan, impact, and rollback before execution.
 3. Never guess syntax—consult help (`GetAzCliHelp`) for write operations or unfamiliar flags.
 4. Prefer resource IDs over name + group; always include `--subscription` when ambiguity possible.
 5. One write at a time; verify before initiating another.
