@@ -1,6 +1,10 @@
 // Identifies agents and customers that have "churned", by deleting all their agents.
 // Database https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
 
+// Friday-based week calculation: get the Friday that starts the week containing a date
+// dayofweek returns: Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
+// Formula: subtract days to get back to Friday
+let GetFridayWeekStart = (d: datetime) { startofday(d) - (toint(dayofweek(d) / 1d) + 2) % 7 * 1d };
 // AgentDocumentDBState is updated every ~2 hours; determine the most recent update.
 let UpdateFrequency = 2h;
 // Determine the most recent snapshot
@@ -9,6 +13,12 @@ let LatestSnapshot =
     All('AgentDocumentDBState')
     | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
     | summarize max(snapshot)
+    );
+// Also the first snapshot available, to avoid counting a surplus of "births" in that period
+let EarliestSnapshot = toscalar(
+    All('AgentDocumentDBState')
+    | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
+    | summarize min(snapshot)
     );
 // Identify 3P customers
 let ThirdPartyCustomers = cluster("customerdomrptwus3prod.westus3.kusto.windows.net")
@@ -20,7 +30,7 @@ let ThirdPartyCustomers = cluster("customerdomrptwus3prod.westus3.kusto.windows.
         OfferType,
         CloudCustomerName,
         OfferName,
-        BillingType, // Note that we may want to filter out "External - Non Billable"
+        BillingType,
         TPName,
         TPNameTranslated,
         TPID,
@@ -31,7 +41,7 @@ let ThirdPartyCustomers = cluster("customerdomrptwus3prod.westus3.kusto.windows.
 let AgentCensus = All('AgentDocumentDBState')
     | extend snapshot = bin(PreciseTimeStamp, UpdateFrequency)
     | where isnotempty(agentEndpoint)
-    | join kind=inner ThirdPartyCustomers // filters out *most* 1P customers
+    | join kind=inner ThirdPartyCustomers
         on $left.subscriptionId == $right.SubscriptionId
     | summarize
         lastSnapshot = max(snapshot),
@@ -42,7 +52,9 @@ let AgentCensus = All('AgentDocumentDBState')
         subscriptionId
     // Agents can be created and deleted in the same snapshot.
     // Consider them deleted if they were not present in the *penultimate* snapshot.
-    | extend isDeleted = lastSnapshot < LatestSnapshot - UpdateFrequency;
+    | extend isDeleted = lastSnapshot < LatestSnapshot - UpdateFrequency
+    // Opposite problem at the start: some agents predate the data window, so we don't observe their birth.
+    | extend isNew = firstSnapshot > EarliestSnapshot + UpdateFrequency;
 // Summarize by all customers.
 let Customers = AgentCensus
     | join kind=leftouter ThirdPartyCustomers on $left.subscriptionId == $right.SubscriptionId
@@ -50,6 +62,8 @@ let Customers = AgentCensus
         numSubscriptions = dcount(subscriptionId),
         runningAgents = sum(tolong(not(isDeleted))),
         deletedAgents = sum(tolong(isDeleted)),
+        newAgents = sum(tolong(isNew)), // agents we observed the birth of
+        oldAgents = count() - sum(tolong(isNew)), // agents that predated our data window
         firstSeen = min(firstSnapshot),
         lastSeen = max(lastSnapshot),
         agentDays = sum(agentLifetime)
@@ -59,5 +73,16 @@ let Customers = AgentCensus
         BillingType,
         SegmentName,
         IndustryName,
-        CloudCustomerGuid;
+        CloudCustomerGuid
+    | extend
+        FirstWeek = GetFridayWeekStart(firstSeen),
+        LastWeek = GetFridayWeekStart(lastSeen),
+        isChurned = runningAgents == 0;
+let WeeklyCustomerGrowth = Customers
+    | summarize NewCustomers = countif(oldAgents == 0) by FirstWeek
+    | join kind=fullouter (
+        Customers | summarize ChurnedCustomers = countif(isChurned) by LastWeek
+        )
+        on $left.FirstWeek == $right.LastWeek
+    | extend NetGrowth = NewCustomers - ChurnedCustomers;
 
