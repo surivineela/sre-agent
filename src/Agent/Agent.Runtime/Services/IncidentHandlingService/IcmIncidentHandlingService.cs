@@ -200,9 +200,7 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
             RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
             IncidentPlatform = IncidentType.ToString(),
-            TimeTilMitigation = null,
-            ResolvedAt = null,
-            TimeTilResolution = null
+            TimeTilMitigation = null
         };
         return snapShot;
     }

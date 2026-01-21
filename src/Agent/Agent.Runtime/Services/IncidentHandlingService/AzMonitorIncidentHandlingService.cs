@@ -1031,18 +1031,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
         return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 
-    private double? GetTimeTilResolution(AzMonitorAlertDocument incidentDoc)
-    {
-        DateTime? resolvedAt = incidentDoc.ResolvedAt;
-        if (resolvedAt == null)
-        {
-            return null;
-        }
-
-        double totalMinutes = ((DateTime)resolvedAt).Subtract(incidentDoc.CreatedAt).TotalMinutes;
-        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
-    }
-
     protected override AzMonitorIncidentFilterDocument GetDefaultIncidentFilter(IncidentHandlingRequestModel<AzMonitorIncidentFilterDocumentPayload> request)
     {
         string filterId = $"IncidentFilter_AzMonitor";
@@ -1088,9 +1076,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             RunMode = !string.IsNullOrWhiteSpace(filter?.AgentMode) ? filter.AgentMode! : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
             IncidentPlatform = IncidentType.ToString(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDetails),
-            ResolvedAt = incidentDetails.ResolvedAt,
-            TimeTilResolution = GetTimeTilResolution(incidentDetails)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDetails)
         };
 
         return snapShot;

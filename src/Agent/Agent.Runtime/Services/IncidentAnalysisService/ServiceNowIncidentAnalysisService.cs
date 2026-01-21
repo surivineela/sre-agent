@@ -60,9 +60,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
-            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty },
-            { "IncidentResolvedOn", data.ResolvedAt?.ToString("O") ?? string.Empty },
-            { "MinutesUntilIncidentResolution", data.TimeTilResolution?.ToString() ?? string.Empty }
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty   }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -92,15 +90,6 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             mitigatedAt = serviceNowIncident.ResolvedAt;
         }
         return mitigatedAt;
-    }
-
-    protected override DateTime? IncidentResolvedAt(ServiceNowIncidentDocument serviceNowIncident)
-    {
-        if (serviceNowIncident.ResolvedAt > DateTime.MinValue.AddDays(1))
-        {
-            return serviceNowIncident.ResolvedAt;
-        }
-        return null;
     }
 
     protected override async Task<string> IncidentOverview(ServiceNowIncident incident)
@@ -201,9 +190,7 @@ public class ServiceNowIncidentAnalysisService : IncidentAnalysisServiceBase<Ser
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
             IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
             IncidentPlatform = GetIncidentPlatform(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDoc),
-            ResolvedAt = IncidentResolvedAt(incidentDoc),
-            TimeTilResolution = GetTimeTilResolution(incidentDoc)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;

@@ -54,11 +54,6 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         return mitigatedAt;
     }
 
-    protected override DateTime? IncidentResolvedAt(IcmIncidentDocument icmIncident)
-    {
-        return icmIncident.ResolvedAt;
-    }
-
     protected override async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, Incident incident, CancellationToken cancellationToken = default)
     {
         try
@@ -164,9 +159,7 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
             IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
             IncidentPlatform = GetIncidentPlatform(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDoc),
-            ResolvedAt = IncidentResolvedAt(incidentDoc),
-            TimeTilResolution = GetTimeTilResolution(incidentDoc)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;
@@ -181,18 +174,6 @@ public class IcmIncidentAnalysisService : IncidentAnalysisServiceBase<IcmInciden
         }
 
         double totalMinutes = ((DateTime)mitigatedAt).Subtract(incidentDoc.CreatedDate.UtcDateTime).TotalMinutes;
-        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
-    }
-
-    protected override double? GetTimeTilResolution(IcmIncidentDocument incidentDoc)
-    {
-        DateTime? resolvedAt = IncidentResolvedAt(incidentDoc);
-        if (resolvedAt == null)
-        {
-            return null;
-        }
-
-        double totalMinutes = ((DateTime)resolvedAt).Subtract(incidentDoc.CreatedDate.UtcDateTime).TotalMinutes;
         return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 

@@ -59,9 +59,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
-            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty },
-            { "IncidentResolvedOn", data.ResolvedAt?.ToString("O") ?? string.Empty },
-            { "MinutesUntilIncidentResolution", data.TimeTilResolution?.ToString() ?? string.Empty }
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty   }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -85,11 +83,6 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
         DateTime? mitigatedAt = null;
         mitigatedAt = azMonitorIncident.ResolvedAt;
         return mitigatedAt;
-    }
-
-    protected override DateTime? IncidentResolvedAt(AzMonitorAlertDocument azMonitorIncident)
-    {
-        return azMonitorIncident.ResolvedAt;
     }
 
     protected override async Task<string> IncidentOverview(AlertItem incident)
@@ -191,9 +184,7 @@ public class AzMonitorIncidentAnalysisService : IncidentAnalysisServiceBase<AzMo
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results["RunMode"].ToString()! : runMode,
             IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
             IncidentPlatform = GetIncidentPlatform(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDoc),
-            ResolvedAt = IncidentResolvedAt(incidentDoc),
-            TimeTilResolution = GetTimeTilResolution(incidentDoc)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
         };
 
         return snapshot;
