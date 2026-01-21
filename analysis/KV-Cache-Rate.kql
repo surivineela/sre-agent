@@ -1,0 +1,79 @@
+// KV Cache Rate Query
+// Description: Calculates the proportion of LLM's token requests that are served from the key–value (KV) cache rather than recomputed from scratch, indicating how effectively prior attention states are being reused by the agent.
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+let startTime = datetime(2025-09-05T00:00:00.000Z);
+let endTime = now();
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+All("AgentActionEvents")
+| where Action == "GenerateModelResponse"
+| where Status == "Success"
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| where isnotempty(ActionMetadata)
+| extend MetadataJson = parse_json(ActionMetadata)
+| extend InputTokenCount = toint(MetadataJson.inputTokenCount)
+| extend OutputTokenCount = toint(MetadataJson.outputTokenCount)
+| extend CachedTokenCount = toint(MetadataJson.cachedTokenCount)
+| where isnotnull(InputTokenCount) and isnotnull(CachedTokenCount)
+| extend TotalTokens = InputTokenCount + CachedTokenCount
+| where TotalTokens > 0
+| join kind = leftouter (
+    ExtendedAgentDocumentDBState()
+    | project SubscriptionId, ResourceGroup, ServiceGroupName, AgentName = AgentUniqueName, CustomerName, CustomerCategory
+) on AgentName
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+) on $left.SubscriptionId == $right.SubscriptionId
+| where isnotnull(CustomerCategory) and CustomerCategory != ""
+// Include AME, PME, and CORP/TORUS tenants for FirstParty, plus all ThirdParty
+| where CustomerCategory == "ThirdParty" or TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+// Exclude amandas and balam service groups ONLY for CORP tenant
+| where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+| summarize
+    // Overall metrics
+    TotalInputTokens = sum(InputTokenCount),
+    TotalCachedTokens = sum(CachedTokenCount),
+    TotalCombinedTokens = sum(TotalTokens),
+    RequestCount = count(),
+    // FirstParty metrics
+    FirstParty_TotalInputTokens = sumif(InputTokenCount, CustomerCategory == "FirstParty"),
+    FirstParty_TotalCachedTokens = sumif(CachedTokenCount, CustomerCategory == "FirstParty"),
+    FirstParty_TotalCombinedTokens = sumif(TotalTokens, CustomerCategory == "FirstParty"),
+    FirstParty_RequestCount = countif(CustomerCategory == "FirstParty"),
+    // ThirdParty metrics
+    ThirdParty_TotalInputTokens = sumif(InputTokenCount, CustomerCategory == "ThirdParty"),
+    ThirdParty_TotalCachedTokens = sumif(CachedTokenCount, CustomerCategory == "ThirdParty"),
+    ThirdParty_TotalCombinedTokens = sumif(TotalTokens, CustomerCategory == "ThirdParty"),
+    ThirdParty_RequestCount = countif(CustomerCategory == "ThirdParty"),
+    // Time range
+    EarliestEvent = min(PreciseTimeStamp),
+    LatestEvent = max(PreciseTimeStamp)
+    by CustomWeek
+| extend 
+    CacheHitRate = iff(TotalCombinedTokens > 0, round(TotalCachedTokens * 100.0 / TotalCombinedTokens, 1), 0.0),
+    FirstParty_CacheHitRate = iff(FirstParty_TotalCombinedTokens > 0, round(FirstParty_TotalCachedTokens * 100.0 / FirstParty_TotalCombinedTokens, 1), 0.0),
+    ThirdParty_CacheHitRate = iff(ThirdParty_TotalCombinedTokens > 0, round(ThirdParty_TotalCachedTokens * 100.0 / ThirdParty_TotalCombinedTokens, 1), 0.0)
+| order by CustomWeek desc
+| project
+    CustomWeek,
+    CacheHitRate,
+    RequestCount,
+    TotalInputTokens,
+    TotalCachedTokens,
+    FirstParty_CacheHitRate,
+    FirstParty_RequestCount,
+    FirstParty_TotalInputTokens,
+    FirstParty_TotalCachedTokens,
+    ThirdParty_CacheHitRate,
+    ThirdParty_RequestCount,
+    ThirdParty_TotalInputTokens,
+    ThirdParty_TotalCachedTokens,
+    EarliestEvent,
+    LatestEvent
