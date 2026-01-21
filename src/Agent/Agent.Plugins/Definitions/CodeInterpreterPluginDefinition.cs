@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Interface;
+using Anthropic.Models.Beta.Messages;
 
 namespace Agent.Plugins;
 
@@ -35,8 +36,8 @@ Examples:
 - Process datasets and export to Excel, JSON, or HDF5
 - Fetching web content
 Avoid: installing packages, spawning processes.")]
-    [AgentTool(ToolMode.Manual)]
-    public Task<string> ExecutePythonCodeAsync(
+    [AgentTool(ToolMode.Manual, KeepOriginalReturnType = true)]
+    public Task<CodeExecutionResponse> ExecutePythonCodeAsync(
         [Description("Python code to execute (<=20k chars)")] string pythonCode,
         [Description("Timeout in seconds (default 120, max 900)")] int timeoutSeconds = 120)
         => _plugin.ExecutePythonCodeAsync(pythonCode, Math.Clamp(timeoutSeconds, 5, 900));

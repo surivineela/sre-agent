@@ -125,11 +125,10 @@ public class ReasoningLoop : IDisposable
     // user-required action tracking
     private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
 
-    // tool output truncation
-    private readonly IToolOutputTruncationService _toolOutputTruncationService;
+    // tool output processing
+    private readonly IToolOutputProcessService _toolOutputProcessService;
 
-    // tool output storage for saving chat history during compaction
-    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IThreadFileStorageService _threadFileStorageService;
 
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
@@ -157,8 +156,8 @@ public class ReasoningLoop : IDisposable
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
-        IToolOutputTruncationService toolOutputTruncationService,
-        IToolOutputStorage toolOutputStorage,
+        IToolOutputProcessService toolOutputProcessService,
+        IThreadFileStorageService threadFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
         bool modeSwitchEnabled)
@@ -216,8 +215,8 @@ public class ReasoningLoop : IDisposable
         _logger.LogInternalInformation("[{ThreadId}] Active Experiment Variants: {experimentVariants}",
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
-        _toolOutputTruncationService = toolOutputTruncationService;
-        _toolOutputStorage = toolOutputStorage;
+        _toolOutputProcessService = toolOutputProcessService;
+        _threadFileStorageService = threadFileStorageService;
     }
 
     public virtual void CancelCurrentOperation()
@@ -625,7 +624,7 @@ public class ReasoningLoop : IDisposable
                                         var funcCallName = functionCall.Messages.Where(m => m.Role == ChatRole.Assistant)
                                             .SelectMany(m => m.Contents.OfType<FunctionCallContent>())
                                             .Where(m => m.CallId == functionResult.CallId).FirstOrDefault()?.Name ?? "";
-                                        var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                        var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                             _context.ThreadId,
                                             funcCallName,
                                             functionResult.Result?.ToString() ?? "",
@@ -951,7 +950,7 @@ public class ReasoningLoop : IDisposable
                 hooks: runHooks,
                 displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                 activeSkills: GetActiveSkills(_currentAgent),
-                toolOutputTruncationService: _toolOutputTruncationService,
+                toolOutputProcessService: _toolOutputProcessService,
                 cancellationToken: cancellationToken
             );
 
@@ -1012,6 +1011,12 @@ public class ReasoningLoop : IDisposable
                             Output = handoffOutput
                         });
                     }
+                    else if (toolCall.Tool.UnderlyingMethod?.Name == nameof(ViewImagePluginDefinition.ViewImage))
+                    {
+                        // Handle ViewImage tool - intercept and load image from thread storage
+                        var viewImageResult = await HandleViewImageToolAsync(toolCall, cancellationToken);
+                        toolResults.Add(viewImageResult);
+                    }
                     else
                     {
                         var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
@@ -1058,7 +1063,7 @@ public class ReasoningLoop : IDisposable
                                         {
                                             // Unwrap cli tool output for better truncation handling
                                             object? result = isValidCliToolResult ? cliToolExecutionResult!.CliExecutionResult.Output : functionResult;
-                                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                            var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
                                                 toolCall.Tool,
                                                 result,
@@ -1169,7 +1174,7 @@ public class ReasoningLoop : IDisposable
                             context: _context,
                             hooks: runHooks,
                             displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
-                            toolOutputTruncationService: _toolOutputTruncationService,
+                            toolOutputProcessService: _toolOutputProcessService,
                             cancellationToken: cancellationToken
                         );
 
@@ -1478,6 +1483,103 @@ public class ReasoningLoop : IDisposable
         }
 
         return Handoff<AgentContext>.GetTransferMessage(handoffReasoning);
+    }
+
+    /// <summary>
+    /// Handles the ViewImage tool by downloading the image from thread storage and creating
+    /// a ManualToolCallResult with the image injected as additional messages.
+    /// </summary>
+    private async Task<ManualToolCallResult> HandleViewImageToolAsync(ManualToolCall toolCall, CancellationToken cancellationToken)
+    {
+        string? fileName = null;
+
+        // Extract fileName from tool arguments
+        if (toolCall.FunctionCall.Arguments is not null
+            && toolCall.FunctionCall.Arguments.TryGetValue("fileName", out var fileNameObject))
+        {
+            if (fileNameObject is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.String)
+            {
+                fileName = jsonElement.GetString();
+            }
+            else if (fileNameObject is string fileNameStr)
+            {
+                fileName = fileNameStr;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = "Error: No fileName parameter provided to ViewImage tool."
+            };
+        }
+
+        try
+        {
+            // Download the image from thread storage
+            var filePath = await _threadFileStorageService.DownloadThreadFileAsync(
+                _context.ThreadId,
+                fileName,
+                cancellationToken);
+
+            if (filePath == null)
+            {
+                return new ManualToolCallResult()
+                {
+                    FunctionCall = toolCall.FunctionCall,
+                    Output = $"Error: File '{fileName}' not found in thread storage."
+                };
+            }
+
+            // Read the image bytes
+            var imageBytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            var mimeType = GetImageMimeType(fileName);
+
+            // Create a user message with the image content
+            var imageContent = new List<AIContent>
+            {
+                new TextContent($"Image '{fileName}':"),
+                new DataContent(imageBytes, mimeType)
+            };
+
+            var imageMessage = new ChatMessage(ChatRole.User, imageContent);
+
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = $"Image '{fileName}' loaded.",
+                AdditionalMessages = [imageMessage]
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to load image '{FileName}' for ViewImage tool", fileName);
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = $"Error: Failed to load image '{fileName}': {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Gets the MIME type for an image based on its file extension.
+    /// </summary>
+    private static string GetImageMimeType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+        return extension switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            ".svg" => "image/svg+xml",
+            _ => "application/octet-stream" // Default for unknown types
+        };
     }
 
     // private Task DisplayModelResponse(string t, ModelOutputType responseType)
@@ -2093,7 +2195,7 @@ public class ReasoningLoop : IDisposable
             FunctionResultContent result;
             if (_featureConfig.PartialOutputEnabled)
             {
-                var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
+                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
                 result = new FunctionResultContent(functionCall.CallId, processedOutput);
             }
             else
@@ -2834,11 +2936,11 @@ public class ReasoningLoop : IDisposable
             string? chatHistoryFileKey = null;
             try
             {
-                chatHistoryFileKey = await _toolOutputStorage.SaveAsync(
+                chatHistoryFileKey = await _threadFileStorageService.SaveToolOutputAsync(
                     threadId: _context.ThreadId,
                     toolName: "compaction_history",
                     content: fullChatTranscript,
-                    fileExtension: "txt",
+                    extension: "txt",
                     cancellationToken: cancellationToken);
 
                 _logger.LogInternalInformation(
@@ -3477,7 +3579,7 @@ The full conversation before this compaction has been stored.
 
                         if (_featureConfig.PartialOutputEnabled)
                         {
-                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                            var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                 _context.ThreadId,
                                 toolCall.Tool,
                                 functionResult?.ToString(),
@@ -3515,7 +3617,7 @@ The full conversation before this compaction has been stored.
                         context: _context,
                         hooks: runHooks,
                         displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
-                        toolOutputTruncationService: _toolOutputTruncationService,
+                        toolOutputProcessService: _toolOutputProcessService,
                         allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );

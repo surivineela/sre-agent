@@ -10,6 +10,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers.ExtendedAgents;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Core.Validation;
@@ -29,6 +30,7 @@ using Agent.Web.Services;
 using Agent.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
@@ -630,7 +632,9 @@ public class ExtendedAgentController : ControllerBase
             // Execute the tool
             var sessionPoolService = HttpContext.RequestServices.GetRequiredService<ISessionPoolService>();
             var hostEnvironment = HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
-            var pythonTool = new Agent.Plugins.Python.Tools.PythonFunctionTool(sessionPoolService, hostEnvironment, toolDefinition);
+            var threadFileStorageService = HttpContext.RequestServices.GetRequiredService<IThreadFileStorageService>();
+            var pythonToolLogger = HttpContext.RequestServices.GetRequiredService<ILogger<PythonFunctionTool>>();
+            var pythonTool = new PythonFunctionTool(sessionPoolService, hostEnvironment, threadFileStorageService, pythonToolLogger, toolDefinition, testMode: true);
 
             var startTime = DateTime.UtcNow;
             // Convert Dictionary<string, string> parameters to AIFunctionArguments
@@ -639,36 +643,62 @@ public class ExtendedAgentController : ControllerBase
             {
                 aiArgs[kvp.Key] = kvp.Value;
             }
-            var resultJson = await pythonTool.ExecuteAsync("test-thread", aiArgs);
+            var executeResult = await pythonTool.ExecuteAsync("test-thread", aiArgs);
             var executionTime = (long)(DateTime.UtcNow - startTime).TotalMilliseconds;
 
-            if (string.IsNullOrEmpty(resultJson))
+            if (executeResult == null)
             {
-                throw new InvalidOperationException("Python tool execution returned null or empty result.");
+                throw new InvalidOperationException("Python tool execution returned null result.");
             }
 
-            var runResult = JsonSerializer.Deserialize<PythonToolExecutionEnvelope>(
-                resultJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? throw new InvalidOperationException("Unable to parse python tool execution result.");
+            // Handle the result based on its type
+            CodeExecutionResponse codeResponse;
+            if (executeResult is CodeExecutionResponse execResponse)
+            {
+                codeResponse = execResponse;
+            }
+            else if (executeResult is string jsonString)
+            {
+                // Fallback: deserialize from JSON string if returned as string
+                codeResponse = JsonSerializer.Deserialize<CodeExecutionResponse>(
+                    jsonString,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                    ?? throw new InvalidOperationException("Unable to parse python tool execution result.");
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unexpected result type: {executeResult.GetType().Name}");
+            }
 
-            var success = runResult.Success ?? false;
+            // Apply FormatResultAsJson logic
+            var exitCode = codeResponse.Hresult ?? 0;
+            var success = codeResponse.Status == "Succeeded" && exitCode == 0;
+
+            // Serialize the result based on its type
+            object? resultValue = codeResponse.Result switch
+            {
+                ImageExecutionResult imageResult => new
+                {
+                    type = imageResult.Type,
+                    format = imageResult.Format,
+                    base64_data = imageResult.Base64Data
+                },
+                ObjectExecutionResult objectResult => objectResult.Value,
+                _ => null
+            };
+
             var response = new PythonToolTestResponse
             {
                 Success = success,
                 ExecutionTimeMs = executionTime,
-                ExitCode = runResult.ExitCode ?? (success ? 0 : -1),
-                Stdout = runResult.Stdout,
-                Stderr = runResult.Stderr,
-                Files = ParseFiles(runResult.Files),
-                ErrorMessage = success ? null : (runResult.Message ?? ParseError(runResult.Error)),
-                ErrorType = success ? null : (runResult.ErrorType ?? runResult.Type)
+                ExitCode = exitCode,
+                Stdout = codeResponse.Stdout,
+                Stderr = codeResponse.Stderr,
+                Files = null, // Files not available in CodeExecutionResponse
+                ErrorMessage = success ? null : codeResponse.ErrorMessage,
+                ErrorType = success ? null : codeResponse.ErrorName,
+                Result = resultValue
             };
-
-            if (runResult.Result.HasValue && runResult.Result.Value.ValueKind != JsonValueKind.Null)
-            {
-                response.Result = JsonSerializer.Deserialize<object>(runResult.Result.Value.GetRawText());
-            }
 
             return Ok(response);
         }
@@ -691,34 +721,6 @@ public class ExtendedAgentController : ControllerBase
                 ErrorMessage = ex.Message,
                 ErrorType = ex.GetType().Name
             });
-        }
-
-        static List<string>? ParseFiles(JsonElement? filesElement)
-        {
-            if (!filesElement.HasValue || filesElement.Value.ValueKind == JsonValueKind.Null)
-                return null;
-
-            return filesElement.Value.ValueKind switch
-            {
-                JsonValueKind.Array => JsonSerializer.Deserialize<List<string>>(filesElement.Value.GetRawText()),
-                JsonValueKind.String when !string.IsNullOrWhiteSpace(filesElement.Value.GetString()) =>
-                    new List<string> { filesElement.Value.GetString()! },
-                _ => null
-            };
-        }
-
-        static string? ParseError(JsonElement? errorElement)
-        {
-            if (!errorElement.HasValue)
-                return null;
-
-            return errorElement.Value.ValueKind switch
-            {
-                JsonValueKind.Null or JsonValueKind.Undefined or JsonValueKind.False => null,
-                JsonValueKind.String => errorElement.Value.GetString(),
-                JsonValueKind.True => "Python execution failed.",
-                _ => errorElement.Value.GetRawText()
-            };
         }
     }
 
@@ -2123,41 +2125,5 @@ If ANY diff fails validation, REWRITE it before returning the response. Do not s
     {
         var error = ErrorMap.InternalServerError.CreateErrorEntity();
         return StatusCode(StatusCodes.Status500InternalServerError, error);
-    }
-
-    private sealed class PythonToolExecutionEnvelope
-    {
-        [JsonPropertyName("success")]
-        public bool? Success { get; set; }
-
-        [JsonPropertyName("result")]
-        public JsonElement? Result { get; set; }
-
-        [JsonPropertyName("exit_code")]
-        public int? ExitCode { get; set; }
-
-        [JsonPropertyName("stdout")]
-        public string? Stdout { get; set; }
-
-        [JsonPropertyName("stderr")]
-        public string? Stderr { get; set; }
-
-        [JsonPropertyName("files")]
-        public JsonElement? Files { get; set; }
-
-        [JsonPropertyName("error")]
-        public JsonElement? Error { get; set; }
-
-        [JsonPropertyName("error_type")]
-        public string? ErrorType { get; set; }
-
-        [JsonPropertyName("message")]
-        public string? Message { get; set; }
-
-        [JsonPropertyName("type")]
-        public string? Type { get; set; }
-
-        [JsonPropertyName("raw_output")]
-        public bool? RawOutput { get; set; }
     }
 }

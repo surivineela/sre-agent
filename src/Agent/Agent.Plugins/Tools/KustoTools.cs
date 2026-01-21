@@ -51,7 +51,7 @@ namespace Agent.Plugins.Kusto.Tools
             _connectorResolver = connectorResolver;
         }
 
-        public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
+        public override async Task<object?> ExecuteAsync(string threadId, AIFunctionArguments parameters)
         {
             // Convert AIFunctionArguments to Dictionary<string, string> using base class helper
             var paramsDict = ConvertToStringDictionary(parameters);

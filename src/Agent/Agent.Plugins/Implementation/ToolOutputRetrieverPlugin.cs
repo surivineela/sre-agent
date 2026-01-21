@@ -27,18 +27,18 @@ namespace Agent.Plugins.Implementation;
 /// </summary>
 public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
 {
-    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IThreadFileStorageService _threadFileStorageService;
     private readonly IChatClientProvider _chatClientProvider;
     private readonly ILogger<ToolOutputRetrieverPlugin> _logger;
     private readonly int _maxOutputChars;
 
     public ToolOutputRetrieverPlugin(
-        IToolOutputStorage toolOutputStorage,
+        IThreadFileStorageService threadFileStorageService,
         IChatClientProvider chatClientProvider,
         ILogger<ToolOutputRetrieverPlugin> logger,
         IOptions<ToolOutputSettings> toolOutputSettings)
     {
-        _toolOutputStorage = toolOutputStorage;
+        _threadFileStorageService = threadFileStorageService;
         _chatClientProvider = chatClientProvider;
         _logger = logger;
         _maxOutputChars = toolOutputSettings.Value.MaxOutputChars;
@@ -56,7 +56,7 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
                 options.FileKey, options.Operation);
 
             // Validate and get file path
-            var filePath = _toolOutputStorage.EnsureFileExist(options.FileKey);
+            var filePath = await _threadFileStorageService.GetToolOutputAsync(options.FileKey);
             if (string.IsNullOrEmpty(filePath))
             {
                 return FormatError($"Invalid file key '{options.FileKey}': not found in storage. The file key MUST be obtained from the previous truncated tool output.");

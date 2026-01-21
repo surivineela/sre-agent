@@ -271,6 +271,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         // Add ToolOutputRetriever tool if enabled
         AugmentPartialOutputTool(agent);
 
+        // Add ViewImage tool for image viewing capability
+        AugmentViewImageTool(agent);
+
         // Add common tools to the agent
         if (agentDescriptor.CommonTools is not null
             && agentDescriptor.CommonTools.Count > 0)
@@ -446,6 +449,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             {
                 agent.FactoryTools.Add(ToolOutputRetrieverTool);
             }
+        }
+    }
+
+    private static void AugmentViewImageTool(Agent<TContext> agent)
+    {
+        const string ViewImageTool = "ViewImage";
+
+        // Add ViewImage tool to all agents for image viewing capability
+        if (!agent.FactoryTools.Contains(ViewImageTool))
+        {
+            agent.FactoryTools.Add(ViewImageTool);
         }
     }
 

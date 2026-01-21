@@ -77,4 +77,14 @@ public static class AIFunctionExtensions
     {
         return function.UnderlyingMethod?.GetCustomAttribute<AgentToolAttribute>()?.DisableOutputTruncation ?? false;
     }
+
+    public static bool ShouldKeepOriginalReturnType(this AIFunction function)
+    {
+        return function.UnderlyingMethod?.GetCustomAttribute<AgentToolAttribute>()?.KeepOriginalReturnType ?? false;
+    }
+
+    public static bool ShouldKeepOriginalReturnType(this MethodInfo methodInfo)
+    {
+        return methodInfo.GetCustomAttribute<AgentToolAttribute>()?.KeepOriginalReturnType ?? false;
+    }
 }

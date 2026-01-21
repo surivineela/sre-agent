@@ -9,10 +9,12 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.Tools;
 using Agent.Framework;
+using Agent.Plugins.Helpers;
 using Agent.Plugins.Tools;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Python.Tools
 {
@@ -26,11 +28,15 @@ namespace Agent.Plugins.Python.Tools
         {
             var sessionPool = serviceProvider.GetRequiredService<ISessionPoolService>();
             var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+            var threadFileStorageService = serviceProvider.GetRequiredService<IThreadFileStorageService>();
+            var logger = serviceProvider.GetRequiredService<ILogger<PythonFunctionTool>>();
             var pythonDefinition = (PythonFunctionToolDefinition)definition;
 
             return new PythonFunctionTool(
                 sessionPool,
                 hostEnvironment,
+                threadFileStorageService,
+                logger,
                 pythonDefinition);
         }
     }
@@ -43,17 +49,26 @@ namespace Agent.Plugins.Python.Tools
     {
         private readonly ISessionPoolService _sessionPool;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly IThreadFileStorageService _threadFileStorageService;
+        private readonly ILogger<PythonFunctionTool> _logger;
+        private readonly bool _testMode;
 
         public PythonFunctionTool(
             ISessionPoolService sessionPool,
             IHostEnvironment hostEnvironment,
-            PythonFunctionToolDefinition definition) : base(definition)
+            IThreadFileStorageService threadFileStorageService,
+            ILogger<PythonFunctionTool> logger,
+            PythonFunctionToolDefinition definition,
+            bool testMode = false) : base(definition)
         {
             _sessionPool = sessionPool;
             _hostEnvironment = hostEnvironment;
+            _threadFileStorageService = threadFileStorageService;
+            _logger = logger;
+            _testMode = testMode;
         }
 
-        public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
+        public override async Task<object?> ExecuteAsync(string threadId, AIFunctionArguments parameters)
         {
             // Convert AIFunctionArguments to Dictionary<string, string> using base class helper
             var paramsDict = ConvertToStringDictionary(parameters);
@@ -78,8 +93,21 @@ namespace Agent.Plugins.Python.Tools
                     identifier,
                     ToolDefinition.TimeoutSeconds
                 );
-                // 4. Parse and return result
-                return ParseExecutionResult(result);
+
+                // 4. Process image results and auto-retrieve session files (same as ExecutePythonCodeAsync)
+                if (!_testMode && !string.IsNullOrEmpty(threadId) && Guid.TryParse(threadId, out var parsedThreadId))
+                {
+                    await SessionFileHelper.ProcessExecutionFilesAsync(
+                        result,
+                        _sessionPool,
+                        identifier,
+                        parsedThreadId,
+                        _threadFileStorageService,
+                        _logger);
+                }
+
+                // 5. Return result
+                return result;
             }
             catch (Exception ex)
             {
@@ -160,36 +188,18 @@ namespace Agent.Plugins.Python.Tools
             script.AppendLine("    return converted");
             script.AppendLine();
 
+            script.AppendLine("def call_main_with_params(params):"); // Temp workaround for code interpreter bug: if the main returned result and generate image at the same time, the image is not returned
+            script.AppendLine("    result = main(**params)");
+            script.AppendLine("    if result is not None:");
+            script.AppendLine("        return json.dumps(result)"); // If directly return result, Jupyter server returns str() of it instead of a valid Json string 
+            script.AppendLine();
+
             // 4. Call main() with converted params
             script.AppendLine("# Execute main function with type conversion");
             script.AppendLine("params = convert_params(main, params_raw)");
-            script.AppendLine("main(**params)");
+            script.AppendLine("call_main_with_params(params)");
 
             return script.ToString();
-        }
-
-        /// <summary>
-        /// Parses the execution result from SessionPoolService
-        /// </summary>
-        private string ParseExecutionResult(CodeExecutionResponse response)
-        {
-            var exitCode = response.Hresult ?? 0;
-            var status = response.Status;
-
-            return JsonSerializer.Serialize(new
-            {
-                success = status == "Succeeded" && exitCode == 0,
-                error = !string.IsNullOrEmpty(response.ErrorName) ? new
-                {
-                    errorName = response.ErrorName,
-                    errorMessage = response.ErrorMessage ?? "Python execution failed",
-                    errorStackTrace = response.ErrorStackTrace,
-                } : null,
-                result = response.Result,
-                exit_code = exitCode,
-                stdout = response.Stdout,
-                stderr = response.Stderr,
-            });
         }
     }
 }

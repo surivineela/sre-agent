@@ -9,7 +9,6 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
-using Agent.Core.Implementations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -245,6 +244,7 @@ public class Program
         // Configure Tool Output Storage settings
         builder.Services.Configure<ToolOutputSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ToolOutputSettings"));
+
         // Configure Python Tool settings
         builder.Services.Configure<PythonToolSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:PythonTool"));
@@ -504,6 +504,7 @@ public class Program
             .AddTransient<FunctionsFlexConsumptionCRIPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<AgentReasoningControlFlowPluginDefinition>()
+            .AddTransient<ViewImagePluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
@@ -550,37 +551,44 @@ public class Program
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
             .AddTransient<IAzureActivityLogsPlugin, AzureActivityLogsPlugin>()
-            .AddSingleton<IToolOutputStorage>(sp =>
+            .AddSingleton<IRemoteFileStorage>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<ToolOutputSettings>>().Value;
 
-                // Use configured path if available, otherwise fall back to temp directory
-                var storagePath = !string.IsNullOrEmpty(settings.StoragePath)
-                    ? settings.StoragePath
-                    : Path.Combine(Path.GetTempPath(), "SREAgent");
-
-                // Validate configuration if storage account is enabled
+                // Only create remote storage if Azure Blob Storage is properly configured
                 if (settings.IsStorageAccountValid())
                 {
-                    // Use Azure Blob Storage
                     var authService = sp.GetRequiredService<IAuthenticationService>();
-                    var logger = sp.GetRequiredService<ILogger<AzureBlobToolOutputStorage>>();
-                    return new AzureBlobToolOutputStorage(settings, authService, logger, storagePath);
+                    var logger = sp.GetRequiredService<ILogger<AzureBlobRemoteFileStorage>>();
+                    return new AzureBlobRemoteFileStorage(
+                        sp.GetRequiredService<IOptions<ToolOutputSettings>>(),
+                        authService,
+                        logger);
                 }
                 else
                 {
-                    // Use local file system storage (either not enabled or invalid configuration)
-                    var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
+                    // Return no-op implementation for local-only mode
+                    var logger = sp.GetRequiredService<ILogger<Program>>();
                     if (settings.StorageAccountEnabled)
                     {
-                        logger.LogInternalWarning("Azure Blob Storage for tool outputs is enabled but configuration is invalid. Falling back to local storage.");
+                        logger.LogInternalWarning("Azure Blob Storage is enabled but configuration is invalid. Using local-only storage mode.");
                     }
-                    return new LocalToolOutputStorage(storagePath, logger);
+                    return new NullRemoteFileStorage();
                 }
             })
+            .AddSingleton<IThreadFileStorageService, ThreadFileStorageService>()
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
-            .AddSingleton<IToolOutputTruncationService, ToolOutputTruncationService>()
+            .AddSingleton<IToolOutputProcessService, ToolOutputProcessService>()
+            .AddSingleton<IToolOutputProcessorFactory>(sp =>
+            {
+                var factory = new ToolOutputProcessorFactory();
+                // Register CodeInterpreter output processor for CodeExecutionResponse type
+                factory.RegisterProcessorForType(
+                    typeof(Agent.Core.Models.CodeExecutionResponse),
+                    new CodeExecutionResponseProcessor());
+                return factory;
+            })
             .AddTransient<IAzureApplicationInsightsPlugin, AzureApplicationInsightsPlugin>()
             .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()

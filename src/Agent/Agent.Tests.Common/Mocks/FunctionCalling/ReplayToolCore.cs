@@ -122,6 +122,7 @@ public class ReplayToolCore
 
         var specialMethods = typeof(UserInteractionPluginDefinition).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Concat(typeof(AgentControlFlowPluginDefinition).GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            .Concat(typeof(ViewImagePluginDefinition).GetMethods(BindingFlags.Public | BindingFlags.Instance))
             .Where(x => x.GetCustomAttribute<DescriptionAttribute>() != null)
             .Select(x => x.Name)
             .ToList();

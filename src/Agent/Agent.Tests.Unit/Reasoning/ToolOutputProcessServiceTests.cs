@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Common;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Runtime.Reasoning;
@@ -15,25 +16,25 @@ using Xunit;
 namespace Agent.Tests.Unit.Reasoning;
 
 /// <summary>
-/// Unit tests for ToolOutputTruncationService
+/// Unit tests for ToolOutputProcessService
 /// </summary>
-public class ToolOutputTruncationServiceTests
+public class ToolOutputProcessServiceTests
 {
-    private readonly Mock<IToolOutputStorage> _mockStorage;
-    private readonly Mock<ILogger<ToolOutputTruncationService>> _mockLogger;
-    private readonly ToolOutputTruncationService _service;
+    private readonly Mock<IThreadFileStorageService> _mockStorage;
+    private readonly Mock<ILogger<ToolOutputProcessService>> _mockLogger;
+    private readonly ToolOutputProcessService _service;
 
-    public ToolOutputTruncationServiceTests()
+    public ToolOutputProcessServiceTests()
     {
-        _mockStorage = new Mock<IToolOutputStorage>();
-        _mockLogger = new Mock<ILogger<ToolOutputTruncationService>>();
+        _mockStorage = new Mock<IThreadFileStorageService>();
+        _mockLogger = new Mock<ILogger<ToolOutputProcessService>>();
 
         var settings = Options.Create(new ToolOutputSettings
         {
             MaxOutputChars = 1000,
         });
 
-        _service = new ToolOutputTruncationService(_mockStorage.Object, _mockLogger.Object, settings);
+        _service = new ToolOutputProcessService(_mockStorage.Object, _mockLogger.Object, settings);
     }
 
     #region DetectContentType Tests
@@ -45,7 +46,7 @@ public class ToolOutputTruncationServiceTests
         var jsonContent = "{\"key\": \"value\"}";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(jsonContent);
+        var result = ToolOutputHelper.DetectContentType(jsonContent);
 
         // Assert
         result.ShouldBe("json");
@@ -58,7 +59,7 @@ public class ToolOutputTruncationServiceTests
         var jsonContent = "[1, 2, 3]";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(jsonContent);
+        var result = ToolOutputHelper.DetectContentType(jsonContent);
 
         // Assert
         result.ShouldBe("json");
@@ -71,7 +72,7 @@ public class ToolOutputTruncationServiceTests
         var invalidJson = "{invalid json";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(invalidJson);
+        var result = ToolOutputHelper.DetectContentType(invalidJson);
 
         // Assert
         result.ShouldBe("txt");
@@ -86,7 +87,7 @@ nested:
   item: test";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(yamlContent);
+        var result = ToolOutputHelper.DetectContentType(yamlContent);
 
         // Assert
         result.ShouldBe("yaml");
@@ -99,7 +100,7 @@ nested:
         var plainText = "This is just plain text: @#$% without any structure!!!";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(plainText);
+        var result = ToolOutputHelper.DetectContentType(plainText);
 
         // Assert
         result.ShouldBe("txt");
@@ -112,7 +113,7 @@ nested:
         var jsonWithWhitespace = "  \n  {\"key\": \"value\"}";
 
         // Act
-        var result = ToolOutputTruncationService.DetectContentType(jsonWithWhitespace);
+        var result = ToolOutputHelper.DetectContentType(jsonWithWhitespace);
 
         // Assert
         result.ShouldBe("json");
@@ -129,7 +130,7 @@ nested:
         var content = "Line 1\nLine 2\nLine 3";
 
         // Act
-        var result = ToolOutputTruncationService.GetPreviewContent(content);
+        var result = ToolOutputHelper.GetPreviewContent(content);
 
         // Assert
         result.ShouldBe(content);
@@ -143,7 +144,7 @@ nested:
         var content = string.Join('\n', lines);
 
         // Act
-        var result = ToolOutputTruncationService.GetPreviewContent(content);
+        var result = ToolOutputHelper.GetPreviewContent(content);
 
         // Assert
         var resultLines = result.Split('\n');
@@ -159,7 +160,7 @@ nested:
         var content = $"Line 1\n{longLine}\nLine 3";
 
         // Act
-        var result = ToolOutputTruncationService.GetPreviewContent(content);
+        var result = ToolOutputHelper.GetPreviewContent(content);
 
         // Assert
         result.Length.ShouldBeLessThanOrEqualTo(4096 + 100); // Some buffer for line breaks
@@ -173,7 +174,7 @@ nested:
         var content = string.Empty;
 
         // Act
-        var result = ToolOutputTruncationService.GetPreviewContent(content);
+        var result = ToolOutputHelper.GetPreviewContent(content);
 
         // Assert
         result.ShouldBeEmpty();
@@ -187,7 +188,7 @@ nested:
         var content = $"{firstLine}\nLine 2\nLine 3";
 
         // Act
-        var result = ToolOutputTruncationService.GetPreviewContent(content);
+        var result = ToolOutputHelper.GetPreviewContent(content);
 
         // Assert
         result.Length.ShouldBe(4096); // Should truncate to exactly max chars
@@ -207,7 +208,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -222,7 +223,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -237,7 +238,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -252,7 +253,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -267,7 +268,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -283,7 +284,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -304,7 +305,7 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 0) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
@@ -323,114 +324,12 @@ nested:
         using var doc = JsonDocument.Parse(json);
 
         // Act - depth = 4 exceeds MaxSchemaDepth (3)
-        var result = ToolOutputTruncationService.InferSchemaFromElement(doc.RootElement, 4) as Dictionary<string, object>;
+        var result = ToolOutputHelper.InferSchemaFromElement(doc.RootElement, 4) as Dictionary<string, object>;
 
         // Assert
         result.ShouldNotBeNull();
         result["type"].ShouldBe("object");
         result.ShouldNotContainKey("properties"); // Generic object without properties
-    }
-
-    #endregion
-
-    #region FormatTruncationMessage Tests
-
-    [Fact]
-    public void FormatTruncationMessage_Json_IncludesSchema()
-    {
-        // Arrange
-        var fileKey = "test-file-123.json";
-        var contentType = "json";
-        var lineCount = 100;
-        var originalOutput = "{\"key\": \"value\", \"count\": 42}";
-
-        // Act
-        var result = _service.FormatTruncationMessage(fileKey, contentType, lineCount, originalOutput);
-
-        // Assert
-        result.ShouldContain("File Key:");
-        result.ShouldContain(fileKey);
-        result.ShouldContain("Content type: `json`");
-        result.ShouldContain("Total lines: `100`");
-        result.ShouldContain("JSON schema (inferred):");
-        result.ShouldContain("**Preview**");
-    }
-
-    [Fact]
-    public void FormatTruncationMessage_Yaml_NoSchema()
-    {
-        // Arrange
-        var fileKey = "test-file-456.yaml";
-        var contentType = "yaml";
-        var lineCount = 50;
-        var originalOutput = "key: value\ncount: 42";
-
-        // Act
-        var result = _service.FormatTruncationMessage(fileKey, contentType, lineCount, originalOutput);
-
-        // Assert
-        result.ShouldContain("File Key:");
-        result.ShouldContain(fileKey);
-        result.ShouldContain("Content type: `yaml`");
-        result.ShouldContain("Total lines: `50`");
-        result.ShouldNotContain("JSON schema");
-        result.ShouldContain("**Preview**");
-    }
-
-    [Fact]
-    public void FormatTruncationMessage_Text_NoSchema()
-    {
-        // Arrange
-        var fileKey = "test-file-789.txt";
-        var contentType = "txt";
-        var lineCount = 200;
-        var originalOutput = "This is plain text output";
-
-        // Act
-        var result = _service.FormatTruncationMessage(fileKey, contentType, lineCount, originalOutput);
-
-        // Assert
-        result.ShouldContain("File Key:");
-        result.ShouldContain(fileKey);
-        result.ShouldContain("Content type: `txt`");
-        result.ShouldContain("Total lines: `200`");
-        result.ShouldNotContain("JSON schema");
-        result.ShouldContain("**Preview**");
-    }
-
-    [Fact]
-    public void FormatTruncationMessage_LargeContent_ShowsFileSize()
-    {
-        // Arrange
-        var fileKey = "large-file.json";
-        var contentType = "json";
-        var lineCount = 10000;
-        var originalOutput = new string('x', 50000); // 50KB
-
-        // Act
-        var result = _service.FormatTruncationMessage(fileKey, contentType, lineCount, originalOutput);
-
-        // Assert
-        result.ShouldContain("Total size:");
-        result.ShouldContain("KB"); // Should show size in KB
-    }
-
-    [Fact]
-    public void FormatTruncationMessage_IncludesPreview()
-    {
-        // Arrange
-        var fileKey = "test-file.json";
-        var contentType = "json";
-        var lineCount = 10;
-        var originalOutput = "{\"test\": \"data\"}";
-
-        // Act
-        var result = _service.FormatTruncationMessage(fileKey, contentType, lineCount, originalOutput);
-
-        // Assert
-        result.ShouldContain("**Preview**");
-        result.ShouldContain("```json");
-        result.ShouldContain(originalOutput);
     }
 
     #endregion
@@ -450,7 +349,7 @@ nested:
 
         // Assert
         result.ShouldBe(output);
-        _mockStorage.Verify(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -463,7 +362,7 @@ nested:
         var expectedFileKey = "test-file.yaml";
 
         _mockStorage
-            .Setup(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFileKey);
 
         // Act
@@ -476,7 +375,7 @@ nested:
         resultString.ShouldContain("partial preview");
         resultString.ShouldContain("File Key:");
         // The file key should be in the output somewhere
-        _mockStorage.Verify(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -506,7 +405,7 @@ nested:
 
         // Assert
         result.ShouldBe(largeOutput);
-        _mockStorage.Verify(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -524,7 +423,7 @@ nested:
 
         // Assert
         result.ShouldBe(largeOutput);
-        _mockStorage.Verify(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -533,7 +432,7 @@ nested:
         // Arrange
         var threadId = Guid.NewGuid();
         var largeOutput = new string('x', 2000);
-        _mockStorage.Setup(s => s.SaveAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockStorage.Setup(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("test-file-key");
 
         // Create a mock tool without DisableOutputTruncation (defaults to false)
@@ -546,7 +445,7 @@ nested:
         result.ShouldNotBe(largeOutput);
         result.ShouldBeOfType<string>();
         ((string)result!).ShouldContain("test-file-key");
-        _mockStorage.Verify(s => s.SaveAsync(threadId, mockTool.Name, largeOutput, "txt", default), Times.Once);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, "txt", default), Times.Once);
     }
 
     #endregion

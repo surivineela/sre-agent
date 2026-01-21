@@ -7,9 +7,9 @@ using Microsoft.Extensions.AI;
 namespace Agent.Framework;
 
 /// <summary>
-/// Service for truncating large tool outputs and storing them in external storage
+/// Service for processing tool outputs, including truncation and storage of large outputs.
 /// </summary>
-public interface IToolOutputTruncationService
+public interface IToolOutputProcessService
 {
     /// <summary>
     /// Processes tool output, truncating and storing large outputs

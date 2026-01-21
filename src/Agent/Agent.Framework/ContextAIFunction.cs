@@ -20,7 +20,22 @@ public class ContextAIFunction<TContext> : AIFunction where TContext : class
         string? description = null)
     {
         _target = target;
-        _innerFunction = AIFunctionFactory.Create(method, target, name: name, description: description);
+
+        // Check if the method should keep original return type
+        if (method.ShouldKeepOriginalReturnType())
+        {
+            var options = new AIFunctionFactoryOptions
+            {
+                Name = name,
+                Description = description,
+                MarshalResult = (result, type, cancellationToken) => new ValueTask<object?>(result)
+            };
+            _innerFunction = AIFunctionFactory.Create(method, target, options);
+        }
+        else
+        {
+            _innerFunction = AIFunctionFactory.Create(method, target, name: name, description: description);
+        }
     }
 
     public static ContextAIFunction<TContext> Create(Delegate method, string? name = null, string? description = null)

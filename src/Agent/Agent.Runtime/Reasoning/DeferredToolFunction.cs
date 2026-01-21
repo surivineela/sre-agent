@@ -144,6 +144,17 @@ public sealed class DeferredToolFunction<TContext> : IDeferredToolFunction<TCont
             return wrapped;
         }
 
+        // Check if the method should keep original return type
+        if (_methodInfo!.ShouldKeepOriginalReturnType())
+        {
+            var options = new AIFunctionFactoryOptions
+            {
+                Name = _reflectionBasedName!,
+                MarshalResult = (result, type, cancellationToken) => new ValueTask<object?>(result)
+            };
+            return AIFunctionFactory.Create(_methodInfo!, instance, options);
+        }
+
         return AIFunctionFactory.Create(_methodInfo!, instance, name: _reflectionBasedName!);
     }
 
