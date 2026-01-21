@@ -4037,7 +4037,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     optional: { defaultMessage: 'Optional', id: 'InWqys' },
     agentSelectorLabel: { defaultMessage: 'Agent', id: 'QGVI63' },
     agentSelectorPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
-    noAgentsFound: { defaultMessage: 'No agents available yet', id: '3H77Ic' },
+    noAgentsOrTriggersFound: { defaultMessage: 'No agents or triggers found', id: 'agoR69' },
     searchLabel: { defaultMessage: 'Search', id: 'xmcVZ0' },
     refreshGraphButton: { defaultMessage: 'Refresh', id: 'rELDbB' },
     installMcp: { defaultMessage: 'Build Subagents in VS Code', id: 'LZPnC6' },

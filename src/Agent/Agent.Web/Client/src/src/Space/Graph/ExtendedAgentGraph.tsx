@@ -1586,15 +1586,9 @@ const ExtendedAgentGraphContent = memo(() => {
     const isLoading = useMemo(() => loading || isLayouting, [loading, isLayouting]);
     const hasSkills = useMemo(() => skills.length > 0, [skills.length]);
     const hasAgents = useMemo(() => agents.length > 0, [agents.length]);
+    const hasTriggers = useMemo(() => triggers.length > 0, [triggers.length]);
     // Check for subagents excluding the meta_agent override (for skill creation logic)
     const hasSubagents = useMemo(() => agents.some(agent => agent.name !== 'meta_agent'), [agents]);
-    const hasTools = useMemo(() => tools.length > 0, [tools.length]);
-    const hasConnectors = useMemo(() => connectors.length > 0, [connectors.length]);
-    const hasSystemTools = useMemo(() => systemTools.length > 0, [systemTools.length]);
-    const hasAnyResources = useMemo(
-        () => hasAgents || hasTools || hasConnectors || hasSystemTools || hasSkills,
-        [hasAgents, hasTools, hasConnectors, hasSystemTools, hasSkills]
-    );
     const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
     const infoPanelStyle: React.CSSProperties = useMemo(() => {
@@ -1637,17 +1631,17 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
-        if (!hasData) {
-            return (
-                <div style={{ padding: '20px' }}>
-                    <MessageBar intent="warning">
-                        <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.noResultsForFilters)}</MessageBarBody>
-                    </MessageBar>
-                </div>
-            );
-        }
-
         if (currentView === ExtendedAgentGraphView.Canvas) {
+            if (!hasData) {
+                return (
+                    <div style={{ padding: '20px' }}>
+                        <MessageBar intent="warning">
+                            <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.noResultsForFilters)}</MessageBarBody>
+                        </MessageBar>
+                    </div>
+                );
+            }
+
             return (
                 <ReactFlow
                     style={{ width: '100%', height: '100%' }}
@@ -1807,7 +1801,10 @@ const ExtendedAgentGraphContent = memo(() => {
         });
     }, [tools]);
 
-    const showEmptyState = useMemo(() => !isLoading && !hasAgents && !hasSkills, [isLoading, hasAgents, hasSkills]);
+    const showEmptyState = useMemo(
+        () =>  !isLoading && currentView === ExtendedAgentGraphView.Canvas && !hasAgents && !hasSkills && !hasTriggers,
+        [isLoading, currentView, hasAgents, hasSkills, hasTriggers]
+    );
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityTypeExt) => {
@@ -1939,8 +1936,6 @@ const ExtendedAgentGraphContent = memo(() => {
                         onRefresh={handleRefresh}
                         onCreateItem={handleCreateItemStandalone}
                         isLoading={isLoading}
-                        hasData={hasData}
-                        showEmptyState={showEmptyState}
                         disableCreateMetaAgent={hasMetaAgentOverride}
                         disableCreateSubagent={hasSkills}
                         disableCreateSkill={hasSubagents}
@@ -2000,7 +1995,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                         <div className={visualRoot} ref={visualRootRef}>
                             <div className={reactFlow}>
-                                {currentView === ExtendedAgentGraphView.Canvas && hasAnyResources && !showEmptyState && (
+                                {currentView === ExtendedAgentGraphView.Canvas && !showEmptyState && !loading && (
                                     <div className={selectorOverlay}>
                                         <ExtendedAgentSelector
                                             agents={agents}
@@ -2013,9 +2008,9 @@ const ExtendedAgentGraphContent = memo(() => {
                                             nodes={nodes}
                                             nodeCount={nodes.length}
                                             edgeCount={edges.length}
-                                            showAgentPicker={hasAgents}
+                                            showAgentPicker={hasAgents || hasTriggers}
                                             noAgentsMessage={
-                                                hasAgents ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsFound)
+                                                (hasAgents || hasTriggers) ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsOrTriggersFound)
                                             }
                                         />
                                     </div>

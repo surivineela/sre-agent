@@ -109,7 +109,7 @@ export const ExtendedAgentSelector = memo(
             return matchingNodes;
         }, [nodes, searchQuery]);
 
-        const shouldRenderAgentCombobox = useMemo(() => showAgentPicker && agents.length > 0, [showAgentPicker, agents.length]);
+        const shouldRenderAgentCombobox = useMemo(() => showAgentPicker && (agents.length > 0 || triggers.length > 0), [showAgentPicker, agents.length, triggers.length]);
 
         const entityFilterProps: FilterProps = useMemo(() => {
             const metaAgentOption = agentOptions.find(option => option.key === 'meta_agent');

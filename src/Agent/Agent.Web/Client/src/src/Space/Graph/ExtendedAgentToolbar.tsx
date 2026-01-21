@@ -8,7 +8,7 @@ import { ExtendedAgentsGraphResources, PlaygroundResources } from '../../Strings
 import { CopilotRadio as Radio } from '../Components/Common/CopilotRadio';
 import { DirtyStateContext } from '../Contracts/Context';
 import { ExtendedAgentGraphView } from '../Contracts/ExtendedAgentGraph';
-import { DirtyStateOnChangeConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
+import { DirtyStateOnChangeConfirmationWrapper, DirtyStateOnClickConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useCommonStyles } from '../Styles/Common.styles';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import CreateButton from './CreateButton';
@@ -21,8 +21,6 @@ interface ExtendedAgentToolbarProps {
     onRefresh: () => void;
     onCreateItem: (itemType: EntityTypeExt) => void;
     isLoading: boolean;
-    hasData: boolean;
-    showEmptyState: boolean;
     disableCreateMetaAgent: boolean;
     disableCreateSubagent: boolean;
     disableCreateSkill: boolean;
@@ -34,8 +32,6 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
     onRefresh,
     onCreateItem,
     isLoading,
-    hasData,
-    showEmptyState,
     disableCreateMetaAgent,
     disableCreateSubagent,
     disableCreateSkill,
@@ -58,7 +54,7 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                 disableCreateMetaAgent={disableCreateMetaAgent}
                 disableCreateSubagent={disableCreateSubagent}
                 disableCreateSkill={disableCreateSkill}
-                disabled={isLoading || !hasData || currentView === ExtendedAgentGraphView.Playground}
+                disabled={isLoading}
             />
             <DirtyStateOnChangeConfirmationWrapper isDirty={isDirty}>
                 <RadioGroup
@@ -67,25 +63,32 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                     layout="horizontal"
                     onChange={(_, data) => onViewChange(data.value as ExtendedAgentGraphView)}
                 >
-                    <Radio value={ExtendedAgentGraphView.Canvas} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
+                    <Radio
+                        value={ExtendedAgentGraphView.Canvas}
+                        label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)}
+                    />
                     <Radio
                         value={ExtendedAgentGraphView.Table}
                         label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)}
-                        disabled={showEmptyState}
                     />
-                    <Radio value={ExtendedAgentGraphView.Playground} label={intl.formatMessage(PlaygroundResources.testPlayground)} />
+                    <Radio
+                        value={ExtendedAgentGraphView.Playground}
+                        label={intl.formatMessage(PlaygroundResources.testPlayground)}
+                    />
                 </RadioGroup>
             </DirtyStateOnChangeConfirmationWrapper>
             <div className={toolbarRefreshButton}>
                 <DividerTall20Regular color={tokens.colorNeutralStroke2} />
-                <Button
-                    appearance="transparent"
-                    icon={<ArrowClockwise20Regular />}
-                    onClick={onRefresh}
-                    disabled={isLoading || currentView === ExtendedAgentGraphView.Playground}
-                >
-                    {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
-                </Button>
+                <DirtyStateOnClickConfirmationWrapper isDirty={isDirty}>
+                    <Button
+                        appearance="transparent"
+                        icon={<ArrowClockwise20Regular />}
+                        onClick={onRefresh}
+                        disabled={isLoading}
+                    >
+                        {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
+                    </Button>
+                </DirtyStateOnClickConfirmationWrapper>
             </div>
             {isFirstParty && (
                 <div className={toolbarInstallMcpButton}>
