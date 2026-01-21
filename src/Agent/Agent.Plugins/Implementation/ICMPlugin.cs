@@ -672,11 +672,9 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(AcknowledgeIncident)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        //if (!_icmApiClient.IsEnabled())
-        //{
-        //    return "Unable to acknowledge the incident as the ICM API client is not enabled.";
-        //}
         var result = await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
+        var discussionEntry = GenerateAgentDiscussionEntry($"SREAgent acknowledged incident: {incidentId}");
+        await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         await UpdateAgentStatus(incidentId, AgentStatus.Acknowledged);
         return result;
     }
@@ -685,18 +683,6 @@ Example structure:
     {
         var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetIncidentRepairItems)}][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
         _logger.LogInternalInformation(logMessage);
-        //if (!_icmApiClient.IsEnabled())
-        //{
-        //    return new List<IncidentRepairItem>()
-        //        {
-        //            new IncidentRepairItem
-        //            {
-        //               Id = -1,
-        //               Title = "ICM API not enabled. No repair items can be fetched.",
-        //            }
-        //        };
-        //}
-
         var repairItems = await _icmApiClient.GetIncidentRepairItemsAsync(incidentId);
         return repairItems;
     }

@@ -128,7 +128,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.67.1" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.67.1" />
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.55.0-preview" />
-    <PackageVersion Include="Microsoft.SREAgent.Incidents.IcM" Version="25.12.73" />
+    <PackageVersion Include="Microsoft.SREAgent.Incidents.IcM" Version="26.1.42" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageVersion Include="ModelContextProtocol" Version="0.4.1-preview.1" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />

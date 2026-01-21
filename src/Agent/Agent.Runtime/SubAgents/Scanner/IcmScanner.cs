@@ -73,9 +73,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
         if (lastScanTimeDoc != null)
         {
-            if (lastScanTimeDoc.LastScanTime == DateTime.MinValue)
+            if (lastScanTimeDoc.LastScanTime <= DateTime.UtcNow.AddDays(-30))
             {
-                logger.LogInternalWarning("[IcmScanner] Last scan time document has MinValue, ignoring and using default 30 days ago.");
+                logger.LogInternalWarning("[IcmScanner] Last scan time document is older than 30 days, ignoring and using default 30 days ago.");
             }
             else
             {
