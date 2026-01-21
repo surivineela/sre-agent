@@ -903,6 +903,7 @@ export const SreAgentResources = defineMessages({
     },
     anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
     azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
+    dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -6201,4 +6202,9 @@ export const RolesResources = defineMessages({
 
 export const OverviewResources = defineMessages({
     overview: { defaultMessage: 'Overview', id: '9uOFF3' },
+    suggestionActions: { defaultMessage: 'Suggested actions {value}', id: 'Efkzqy' },
+    goToQuickStart: { defaultMessage: 'Go to quick start', id: 'qZ6FID' },
+    intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
+    meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
+    incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
 });

@@ -17,6 +17,7 @@ import { ChatBoxSidePanelContext, ThreadAgentModeContext } from '../Contracts/Co
 import { useChatBox } from '../Hooks/useChatBox';
 import { useChatBoxSidePanel } from '../Hooks/useChatBoxSidePanel';
 import { useThreadAgentMode } from '../Hooks/useThreadAgentMode';
+import Overview from '../Overview/Overview';
 import { getChatBoxStyles } from '../Styles/Activities.styles';
 import AgentTask from './AgentTask/AgentTask';
 import AzureSREWelcome from './AzureSREWelcome';
@@ -261,7 +262,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                     centerChatBoxFooter={centerChatBoxFooter}
                                     isOverview={isOverview}
                                 >
-                                    {isOverview && <div style={{ padding: '20px' }}>{`Dashboard`}</div>}
+                                    {isOverview && <Overview />}
                                 </ChatBoxFooter>
                             </div>
                         </div>
