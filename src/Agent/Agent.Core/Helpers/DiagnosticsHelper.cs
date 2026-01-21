@@ -77,12 +77,12 @@ namespace Agent.Core.Helpers
         /// <param name="resourceId">The Azure resource ID for which to get detector data</param>
         /// <param name="detectorId">The ID of the detector to query</param>
         /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified, may be adjusted if range exceeds 3 days)</param>
-        /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
+        /// <param name="endTime">Optional end time parameter (defaults to 15 minutes ago if not specified)</param>
         /// <returns>The detector response as a JSON string</returns>
         public async Task<string> GetDetectorResponseWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
         {
             startTime ??= DateTime.UtcNow.AddHours(-1);
-            endTime = DateTime.UtcNow.AddMinutes(-15);
+            endTime ??= DateTime.UtcNow.AddMinutes(-15);
 
             if (startTime > endTime)
             {
@@ -139,12 +139,12 @@ namespace Agent.Core.Helpers
         /// <param name="resourceId">The Azure resource ID for which to get analysis data</param>
         /// <param name="analysisId">The ID of the analysis to query</param>
         /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified, may be adjusted if range exceeds 3 days)</param>
-        /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
+        /// <param name="endTime">Optional end time parameter (defaults to 15 minutes ago if not specified)</param>
         /// <returns>The analysis response as a JSON string</returns>
         public async Task<string> GetAnalysisWithTime(string resourceId, string analysisId, DateTime? startTime = null, DateTime? endTime = null)
         {
             startTime ??= DateTime.UtcNow.AddHours(-1);
-            endTime = DateTime.UtcNow.AddMinutes(-15);
+            endTime ??= DateTime.UtcNow.AddMinutes(-15);
 
             if (startTime > endTime)
             {

@@ -35,7 +35,10 @@ public class DGrepPluginDefinition
         [Description("Server-side query in MQL/KQL format (e.g., 'let events = StorageAccountAccess | where Timestamp > ago(1h)', 'StorageAccountAccess | where Status == \"Failed\"')")] string serverQuery,
         [Description("Optional client-side filter to refine results (e.g., 'AccountName contains \"prod\" and Status == \"Failed\"', 'ResourceGroup == \"myapp-prod\"')")] string clientQuery = "",
         [Description("The query language of the query parameter. Options are MQL or KQL")] QueryType queryLanguageMode = QueryType.MQL,
-        [Description("A semi-colon separated list of key value pairs used for further scoping eg., key1=value1;key2=value2;key3=value3")] string filters = "",
+        [Description("A semi-colon separated list of regions for the query (e.g., 'East US;West Europe;UK South'). If not specified, defaults to empty string.")] string region = "",
+        [Description("A semi-colon separated list of monikers for the query (e.g., 'dgrepprodlogwus1;wusmoniker;gcsprodweur0'). If not specified, defaults to empty string.")] string moniker = "",
+        [Description("A semi-colon separated list of versions for the query (e.g., 'Ver2v0;Ver3v0'). If not specified, defaults to empty string.")] string version = "",
+        [Description("A semi-colon separated list of key value pairs used for further scoping. If there are multiple values for a key, separate the values by commas eg., key1=value1;key2=value2,value4,value5;key3=value3,value6")] string filters = "",
         [Description("Start time for query (defaults to 1 hour ago: DateTime.UtcNow.AddHours(-1) if not specified)")] DateTime startTime = default,
         [Description("End time for query (defaults to now: DateTime.UtcNow if not specified)")] DateTime endTime = default,
         [Description("Maximum number of results to return (default: 10 to prevent context window overflow)")] int maxResults = 10,
@@ -64,7 +67,7 @@ public class DGrepPluginDefinition
         try
         {
             _logger.LogInternalInformation("DGrepPluginDefinition: Calling DGrepPluginClient.ExecuteDGrepQuery");
-            var result = await _dGrepPluginClient.ExecuteDGrepQuery(nameSpace, eventName, serverQuery, clientQuery, filters, queryLanguageMode, effectiveStartTime, effectiveEndTime, maxResults, cancellationToken);
+            var result = await _dGrepPluginClient.ExecuteDGrepQuery(nameSpace, eventName, serverQuery, clientQuery, region, moniker, version, filters, queryLanguageMode, effectiveStartTime, effectiveEndTime, maxResults, cancellationToken);
             _logger.LogInternalInformation("DGrepPluginDefinition: DGrep query completed successfully, result length={ResultLength}", result?.Length ?? 0);
             return result ?? string.Empty;
         }
