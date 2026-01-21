@@ -883,7 +883,9 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
             RunMode = !string.IsNullOrWhiteSpace(filter.AgentMode) ? filter.AgentMode : "review",
             IsHandlerCustom = !string.IsNullOrWhiteSpace(handler?.CustomInstructions) ? true : false,
             IncidentPlatform = IncidentType.ToString(),
-            TimeTilMitigation = null
+            TimeTilMitigation = null,
+            ResolvedAt = null,
+            TimeTilResolution = null
         };
 
         return snapShot;

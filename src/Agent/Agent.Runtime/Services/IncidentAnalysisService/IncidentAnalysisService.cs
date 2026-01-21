@@ -59,6 +59,8 @@ public class IncidentAIData
     public required bool IsHandlerCustom { get; set; }
     public required string IncidentPlatform { get; set; }
     public required double? TimeTilMitigation { get; set; }
+    public required DateTime? ResolvedAt { get; set; }
+    public required double? TimeTilResolution { get; set; }
 }
 
 public class AgentAssistanceResponse
@@ -157,7 +159,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
-            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty }
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty },
+            { "IncidentResolvedOn", data.ResolvedAt?.ToString("O") ?? string.Empty },
+            { "MinutesUntilIncidentResolution", data.TimeTilResolution?.ToString() ?? string.Empty }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -244,6 +248,8 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
     protected abstract bool IsMitigatedByAgent(TIncidentDocument doc);
 
     protected abstract DateTime? IncidentMitigatedAt(TIncidentDocument doc);
+
+    protected abstract DateTime? IncidentResolvedAt(TIncidentDocument doc);
 
     protected abstract Task<string> IncidentOverview(TIncident incident);
 
@@ -339,7 +345,9 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
             IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
             IncidentPlatform = GetIncidentPlatform(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc),
+            ResolvedAt = IncidentResolvedAt(incidentDoc),
+            TimeTilResolution = GetTimeTilResolution(incidentDoc)
         };
 
         return snapshot;
@@ -500,6 +508,18 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
         }
 
         double totalMinutes = ((DateTime)mitigatedAt).Subtract(incidentDoc.CreatedAt).TotalMinutes;
+        return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
+    }
+
+    protected virtual double? GetTimeTilResolution(TIncidentDocument incidentDoc)
+    {
+        DateTime? resolvedAt = IncidentResolvedAt(incidentDoc);
+        if (resolvedAt == null)
+        {
+            return null;
+        }
+
+        double totalMinutes = ((DateTime)resolvedAt).Subtract(incidentDoc.CreatedAt).TotalMinutes;
         return Math.Round(totalMinutes, 2, MidpointRounding.AwayFromZero);
     }
 

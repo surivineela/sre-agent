@@ -431,7 +431,8 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     Title = incident.Title,
                     // Well done PagerDuty. Took me hours to figure out where to find the real description.
                     Description = incident.FirstTriggerLogEntry.Channel?.Details.ToString() ?? incident.Description,
-                    UpdatedAt = incident.UpdatedAt
+                    UpdatedAt = incident.UpdatedAt,
+                    ResolvedAt = incident.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) ? incident.UpdatedAt : null
                 };
 
                 if (latestDetails is not null)
@@ -482,6 +483,11 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     if (incidentDocument.Status != incident.Status)
                     {
                         incidentDocument.Status = incident.Status;
+                        // Set ResolvedAt when status changes to resolved
+                        if (incident.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase))
+                        {
+                            incidentDocument.ResolvedAt = incident.UpdatedAt;
+                        }
                         needsUpsert = true;
                     }
                     if (incident.Priority != null && incidentDocument.Priority != incident.Priority.Summary)

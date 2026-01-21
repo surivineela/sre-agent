@@ -61,7 +61,9 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
-            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty   }
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty },
+            { "IncidentResolvedOn", data.ResolvedAt?.ToString("O") ?? string.Empty },
+            { "MinutesUntilIncidentResolution", data.TimeTilResolution?.ToString() ?? string.Empty }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }
@@ -88,6 +90,11 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
         DateTime? mitigatedAt = null;
         mitigatedAt = pdIncident.ResolvedAt;
         return mitigatedAt;
+    }
+
+    protected override DateTime? IncidentResolvedAt(PagerDutyIncidentDocument pdIncident)
+    {
+        return pdIncident.ResolvedAt;
     }
 
     protected override async Task<AIRootCauseResponse> GetRootCauseCategory(string filterId, PagerDutyIncident incident, CancellationToken cancellationToken = default)
@@ -189,7 +196,9 @@ public class PagerDutyIncidentAnalysisService : IncidentAnalysisServiceBase<Page
             RunMode = !string.IsNullOrWhiteSpace(results?["RunMode"]?.ToString()) ? results?["RunMode"]?.ToString()! : runMode,
             IsHandlerCustom = handlerDoc != null ? isHandlerCustom : bool.TryParse(results?["IsHandlerCustom"]?.ToString(), out bool isCustom) ? isCustom : false,
             IncidentPlatform = GetIncidentPlatform(),
-            TimeTilMitigation = GetTimeTilMitigation(incidentDoc)
+            TimeTilMitigation = GetTimeTilMitigation(incidentDoc),
+            ResolvedAt = IncidentResolvedAt(incidentDoc),
+            TimeTilResolution = GetTimeTilResolution(incidentDoc)
         };
 
         return snapshot;
