@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using System.Globalization;
-using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Implementation;
@@ -182,9 +181,7 @@ public class ICMPluginDefinition
        [Description("Incident ID")] long incidentId,
        [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
     {
-        // Convert any chart-data blocks to base64 images for ICM
-        var processedEntry = ChartHelper.ConvertChartDataBlocksToBase64Images(discussionEntry);
-        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), processedEntry);
+        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), discussionEntry);
     }
 
     [Description("Add a tag to an ICM incident")]

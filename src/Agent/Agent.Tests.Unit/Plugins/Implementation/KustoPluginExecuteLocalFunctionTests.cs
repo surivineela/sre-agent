@@ -84,9 +84,7 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
             });
 
         // Assert
-        // Result now contains the rich formatted message (tool name + query result message)
-        Assert.Contains("query-result", result);
-        Assert.Contains(functionName, result); // function name is included
+        Assert.Equal("QUERY_RESULT", result);
         Assert.Equal("print 42", plugin.CapturedQuery);
         Assert.Equal("testCluster", plugin.CapturedCluster);
         Assert.Equal("testDb", plugin.CapturedDatabase);
@@ -121,9 +119,7 @@ public class KustoPluginExecuteLocalFunctionTests : IDisposable
             toolDefinition: toolDefinition);
 
         // Assert
-        // Result now contains the rich formatted message (tool name + query result message)
-        Assert.Contains("query-result", result);
-        Assert.Contains(functionName, result); // function name is included
+        Assert.Equal("QUERY_RESULT", result);
         Assert.Equal("print inline 99", plugin.CapturedQuery);
         _outboundMock.Verify(o => o.UpdateThreadWithAgentMessageAsync(
             It.IsAny<Guid?>(),
