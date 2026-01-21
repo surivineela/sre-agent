@@ -1,0 +1,25 @@
+// UniqueAgents-ThirdParty Query
+// Description: Gives the number of unique agents and unique customers belonging to third party customers over the past week
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+// Define time range variables
+let startTime = datetime(2025-09-05T00:00:00.000Z);  // Start of analysis period
+let endTime = now();    // End of analysis period (exclusive)
+All('AgentDocumentDBState')
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project CloudCustomerName,FriendlySubscriptionName,TenantDisplayName, IsFraudIdentified, CurrentSubscriptionStatus, OfferName, OfferType, BillingType, SubscriptionId
+) on $left.subscriptionId == $right.SubscriptionId
+| where provisioningState == "Succeeded"
+| where OfferType !contains "Internal"
+| summarize 
+    UniqueAgents = dcount(agentName),
+    UniqueSubscriptions = dcount(subscriptionId),
+    UniqueCustomers = dcount(CloudCustomerName)
+by CustomWeek
+| order by CustomWeek asc
