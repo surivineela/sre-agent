@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -55,7 +56,7 @@ public static class TrajectoryExtractor
             new(ChatRole.User, "<chat>\n" + chatTranscript + "\n</chat>")
         };
 
-        (var extractedTrajectory, var _) = await ChatClientExtensions.GetResponseAsync(
+        var trajectoryResponse = await ChatClientExtensions.GetResponseAsync(
             client: chatClient,
             messages: modelInput,
             outputType: typeof(TrajectoryOutput_v3),
@@ -63,11 +64,15 @@ public static class TrajectoryExtractor
             {
                 ToolMode = ChatToolMode.None,
                 Temperature = 0.1f,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    [FrameworkConstants.ReasoningEffortKey] = ReasoningConstants.HighReasoningEffort
+                }
             },
             cancellationToken: cancellationToken);
 
-        // deserialize the raw trajectory
-        var rawTraj = JsonSerializer.Deserialize<TrajectoryOutput_v3>(extractedTrajectory.Text, _jsonSerializerOptions);
+        // Use the deserialized result directly
+        var rawTraj = trajectoryResponse.result as TrajectoryOutput_v3;
         if (rawTraj == null)
         {
             throw new Exception("Failed to deserialize the trajectory output.");

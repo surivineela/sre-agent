@@ -20,10 +20,12 @@ import {
     ThumbDislike20Regular,
     ThumbLike20Regular,
 } from '@fluentui/react-icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { FeedbackResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useStyles = makeStyles({
     card: {
@@ -119,17 +121,21 @@ const useStyles = makeStyles({
 
 interface SessionInsightCardProps {
     insightText: string;
-    onRequestRefinement?: (feedback: string) => Promise<void>;
+    threadId: string;
+    onFeedbackSaved?: () => Promise<void> | void;
 }
 
-const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsightCardProps) => {
+const SessionInsightCard = ({ insightText, threadId, onFeedbackSaved }: SessionInsightCardProps) => {
     const styles = useStyles();
     const intl = useIntl();
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const [isExpanded, setIsExpanded] = useState(false);
     const [feedbackText, setFeedbackText] = useState('');
     const [feedbackRating, setFeedbackRating] = useState<'positive' | 'negative' | null>(null);
     const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     const [feedbackExpanded, setFeedbackExpanded] = useState(false);
+    const [feedbackError, setFeedbackError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Remove emojis from text
     const removeEmojis = (text: string): string => {
@@ -161,21 +167,54 @@ const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsight
         setIsExpanded(!isExpanded);
     };
 
-    const handleFeedbackSubmit = useCallback(() => {
-        if (onRequestRefinement && feedbackText.trim()) {
-            const feedback = `Feedback on session insights:\n\n${feedbackText}`;
-            onRequestRefinement(feedback);
+    const handleFeedbackSubmit = useCallback(async () => {
+        if (!feedbackRating && !feedbackText.trim()) {
+            setFeedbackError('Please add a rating or a comment before submitting.');
+            return;
         }
 
-        setFeedbackSubmitted(true);
+        setFeedbackError(null);
+        setIsSubmitting(true);
 
-        // Reset feedback after 3 seconds
-        setTimeout(() => {
-            setFeedbackSubmitted(false);
-            setFeedbackText('');
-            setFeedbackRating(null);
-        }, 3000);
-    }, [feedbackText, onRequestRefinement]);
+        try {
+            const feedbackId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights/feedback`, {
+                method: 'POST',
+                headers: {
+                    ...getAgentHeaders(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    feedbackId,
+                    rating: feedbackRating,
+                    comment: feedbackText,
+                }),
+            });
+
+            if (response.ok) {
+                setFeedbackSubmitted(true);
+
+                setTimeout(() => {
+                    setFeedbackSubmitted(false);
+                    setFeedbackText('');
+                    setFeedbackRating(null);
+                    setFeedbackError(null);
+                }, 3000);
+
+                if (onFeedbackSaved) {
+                    await onFeedbackSaved();
+                }
+            } else {
+                const errorText = await response.text();
+                setFeedbackError(errorText || 'Failed to submit feedback.');
+            }
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+            setFeedbackError('Error submitting feedback.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [feedbackRating, feedbackText, onFeedbackSaved, sreAgentEndpoint, threadId]);
 
     const handleRatingClick = useCallback((rating: 'positive' | 'negative') => {
         setFeedbackRating(prevRating => (prevRating === rating ? null : rating));
@@ -295,12 +334,14 @@ const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsight
                                                 })}
                                             />
                                         </div>
+                                        {feedbackError && (
+                                            <Text className={styles.feedbackMessage} role="alert">
+                                                {feedbackError}
+                                            </Text>
+                                        )}
                                         <Textarea
                                             className={styles.feedbackInput}
-                                            placeholder={intl.formatMessage({
-                                                defaultMessage: 'Share your thoughts about this insight... (optional)',
-                                                id: '4CcHuj',
-                                            })}
+                                            placeholder={intl.formatMessage(FeedbackResources.sessionInsightsFeedbackPlaceholder)}
                                             value={feedbackText}
                                             onChange={(_, data) => setFeedbackText(data.value)}
                                             rows={3}
@@ -319,7 +360,7 @@ const SessionInsightCard = ({ insightText, onRequestRefinement }: SessionInsight
                                                 appearance="primary"
                                                 icon={<Send20Regular />}
                                                 onClick={handleFeedbackSubmit}
-                                                disabled={feedbackSubmitted || !feedbackText.trim()}
+                                                disabled={feedbackSubmitted || isSubmitting}
                                             >
                                                 {intl.formatMessage({ defaultMessage: 'Submit Feedback', id: '+ASm/B' })}
                                             </Button>

@@ -2,11 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
@@ -21,6 +23,7 @@ using Agent.Web.Authorization;
 using Agent.Web.Models.WelcomeMessage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.Extensions.AI;
 using Action = Agent.Core.Models.Api.v1.Action;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 using Thread = Agent.Core.Models.Api.v1.Thread;
@@ -53,6 +56,7 @@ public class ThreadsController(
     TrajectoryEvaluator trajectoryEvaluator,
     ISessionInsightRepository sessionInsightRepository,
     IStreamingMessageRepository streamingMessageRepository,
+    IChatClientProvider chatClientProvider,
     IThreadFileStorageService threadFileStorageService) : ControllerBase
 {
     // By default, returns threads ordered by timestamp in ascending order.
@@ -488,13 +492,8 @@ public class ThreadsController(
             await repository.DeleteThreadEvaluateResultAsync(threadEvaluation.Id);
         }
 
-        // Delete session insight if it exists
-        var hasSessionInsight = await sessionInsightRepository.SessionInsightExistsAsync(threadId.ToString());
-        if (hasSessionInsight)
-        {
-            logger.LogInternalInformation("Session insight found for thread {threadId}, deleting it", threadId);
-            await sessionInsightRepository.DeleteSessionInsightAsync(threadId.ToString());
-        }
+        // Delete all session insights for this thread
+        await sessionInsightRepository.DeleteSessionInsightsByThreadIdAsync(threadId.ToString());
 
         // Clean up all files (tool outputs and thread files) associated with this thread
         try
@@ -1224,7 +1223,8 @@ public class ThreadsController(
     }
 
     /// <summary>
-    /// Adds feedback to a session insight
+    /// Adds feedback to a session insight.
+    /// This updates the SessionInsight document in Cosmos DB with the new feedback.
     /// </summary>
     /// <param name="threadId">The ID of the thread</param>
     /// <param name="feedback">The feedback to add</param>
@@ -1233,25 +1233,186 @@ public class ThreadsController(
     [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
     public async Task<ActionResult> AddInsightFeedback(
         Guid threadId,
-        [FromBody] SessionInsightFeedback feedback)
+        [FromBody] SessionInsightFeedbackRequest request)
     {
         try
         {
+            ExtractedFeedbackKnowledge? extractedKnowledge = null;
+            bool flagForReview = false;
+
+            // Extract knowledge from feedback
+            if (!string.IsNullOrWhiteSpace(request.Comment))
+            {
+                var extractionResult = await ExtractFeedbackKnowledgeAsync(request.Comment);
+                (extractedKnowledge, flagForReview) = InsightPostingService.BuildExtractedKnowledge(extractionResult, request.Comment);
+
+                logger.LogInternalInformation(
+                    "Extracted feedback knowledge for thread {ThreadId}. Items: {ItemCount}, Flagged: {FlagForReview}",
+                    threadId,
+                    extractedKnowledge?.KnowledgeItems?.Count ?? 0,
+                    flagForReview);
+            }
+
+            // Get user ID from authentication context (using oid claim as primary identifier)
+            var userId = User.FindFirst("oid")?.Value
+                ?? User.FindFirst("puid")?.Value
+                ?? User.Identity?.Name
+                ?? "anonymous";
+
             var insightFeedback = new InsightFeedback(
                 FeedbackId: Guid.NewGuid().ToString(),
                 SubmittedAt: DateTime.UtcNow,
-                Rating: feedback.Rating,
-                Comment: feedback.Comment,
-                UserId: "current-user" // TODO: Get from authentication context
+                Rating: request.Rating,
+                Comment: request.Comment,
+                UserId: userId,
+                ExtractedKnowledge: extractedKnowledge,
+                FlaggedForReview: flagForReview
             );
 
-            await sessionInsightRepository.AddFeedbackToInsightAsync(threadId.ToString(), insightFeedback);
+            // Use insightId if provided, otherwise fall back to getting the most recent insight for the thread
+            string insightId;
+            if (!string.IsNullOrWhiteSpace(request.InsightId))
+            {
+                insightId = request.InsightId;
+            }
+            else
+            {
+                var insight = await sessionInsightRepository.GetSessionInsightAsync(threadId.ToString());
+                if (insight == null)
+                {
+                    logger.LogInternalWarning("Cannot add feedback - no session insight found for thread: {ThreadId}", threadId);
+                    return StatusCode(404, new { error = "Session insight not found for this thread" });
+                }
+                insightId = insight.Id;
+                logger.LogInternalInformation("Using most recent insight {InsightId} for thread {ThreadId}", insightId, threadId);
+            }
+
+            // Add feedback to the SessionInsight document in Cosmos DB using insight ID
+            var result = await sessionInsightRepository.AddFeedbackToInsightAsync(insightId, insightFeedback);
+
+            if (!result)
+            {
+                logger.LogInternalWarning("Failed to add feedback to session insight {InsightId} (thread: {ThreadId})", insightId, threadId);
+                return StatusCode(500, new { error = "Failed to add feedback to session insight" });
+            }
+
+            logger.LogInternalInformation("Successfully added feedback to session insight {InsightId} (thread: {ThreadId})", insightId, threadId);
+
+            // Log action for analytics
+            logger.LogAgentAction(
+                action: AgentActionEvents.SubmitSessionInsightFeedback,
+                parameter: request.Comment ?? string.Empty,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: threadId.ToString());
+
             return Ok();
         }
         catch (Exception ex)
         {
-            logger.LogInternalError(ex, "Error adding feedback to session insight for thread {ThreadId}", threadId);
-            return StatusCode(500);
+            logger.LogInternalError(ex, "Error adding feedback to session insight (thread: {ThreadId})", threadId);
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Classifies feedback content into categories: SystemDesignKnowledge, InvestigationPattern, or Other.
+    /// Can be combined with bad actor checking in the same LLM call.
+    /// </summary>
+    private async Task<Agent.Runtime.TrajectoryEvaluator.FeedbackExtractionResult> ExtractFeedbackKnowledgeAsync(string content)
+    {
+        try
+        {
+            var prompt = new List<ChatMessage>
+            {
+                new(ChatRole.System,
+                """
+                You are analyzing user feedback on investigation sessions to extract supplemental information and insights.
+                
+                Be SELECTIVE and CONSERVATIVE in extraction - only extract knowledge when it is clearly present and valuable.
+                Do not force extraction or make assumptions. It is perfectly acceptable to return empty strings for all categories
+                if the feedback doesn't contain extractable knowledge.
+                
+                The user's feedback may contain valuable learnings beyond their direct comments. Extract THREE types of 
+                supplemental information that can be inferred or learned from their feedback:
+
+                1. **InvestigationPattern**: Troubleshooting approaches, diagnostic techniques, investigation strategies, 
+                   or problem-solving methods that can be learned from their feedback.
+                   
+                   Examples of when to extract:
+                   - User mentions they found the issue in logs → "Check error logs early in investigation"
+                   - User says they wasted time on wrong path → "Verify network connectivity before assuming other issues"
+                   - User mentions a specific sequence helped → "Start with recent deployments when investigating incidents"
+                   - User corrects a common assumption → "Don't assume ImagePullBackOff is always an auth issue - check for timeouts"
+                   
+                   Examples of when NOT to extract:
+                   - Generic comments like "good job" or "this was helpful"
+                   - Vague feedback without specific investigation insights
+                   - Comments about UI/UX that don't relate to investigation methodology
+                   
+                   Extract the underlying investigation insight, not just what the user said.
+                   **Be selective: If no clear investigation pattern exists, return an empty string.**
+
+                2. **SystemDesignKnowledge**: Information about system architecture, design patterns, infrastructure setup, 
+                   service configurations, or component interactions that can be learned from their feedback.
+                   
+                   Examples of when to extract:
+                   - User mentions discovering Event Grid → "The service uses Event Grid for event routing"
+                   - User learned about failover → "This application has a multi-region failover setup"
+                   - User found connection settings → "The database uses connection pooling"
+                   - User discovered subnet setup → "We use separate subnets per node pool"
+                   
+                   Examples of when NOT to extract:
+                   - User doesn't mention any specific system components
+                   - Feedback is purely about investigation process, not system design
+                   - Comments are too vague to extract concrete system knowledge
+                   
+                   Extract the underlying system knowledge, not just what the user said.
+                   **Be selective: If no clear system design knowledge exists, return an empty string.**
+
+                3. **Other**: Any other supplemental information from the feedback that doesn't fit the above categories,
+                   such as process improvements, usability observations, or contextual details worth capturing.
+                   
+                   **Be selective: If no other supplemental information exists, return an empty string.**
+
+                IMPORTANT: Be discretionary. Most feedback may not contain extractable knowledge for all three categories.
+                It's better to return empty strings than to extract weak or irrelevant information.
+                
+                Focus on extracting SUPPLEMENTAL KNOWLEDGE and INSIGHTS from the feedback, not just repeating what was said.
+                """),
+                new(ChatRole.User, $"User Feedback:\n{content}")
+            };
+
+            var response = await Framework.ChatClientExtensions.GetResponseAsync(
+                client: chatClientProvider.EvalModel,
+                messages: prompt,
+                outputType: typeof(Agent.Runtime.TrajectoryEvaluator.FeedbackExtractionResult),
+                options: new ChatOptions
+                {
+                    ToolMode = ChatToolMode.None,
+                    Temperature = 0.1f,
+                    MaxOutputTokens = 500
+                },
+                cancellationToken: CancellationToken.None);
+
+            var result = response.result as Agent.Runtime.TrajectoryEvaluator.FeedbackExtractionResult;
+
+            return result ?? new Agent.Runtime.TrajectoryEvaluator.FeedbackExtractionResult
+            {
+                InvestigationPattern = string.Empty,
+                SystemDesignKnowledge = string.Empty,
+                Other = string.Empty
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "Error extracting feedback knowledge, returning empty");
+            return new Agent.Runtime.TrajectoryEvaluator.FeedbackExtractionResult
+            {
+                InvestigationPattern = string.Empty,
+                SystemDesignKnowledge = string.Empty,
+                Other = string.Empty
+            };
         }
     }
 
@@ -1325,6 +1486,7 @@ public class ThreadsController(
         // Only expose safe, non-sensitive fields to the frontend
         // Trajectory data (steps, resources, symptoms, etc.) stays in the backend
         return new SessionInsight(
+            Id: doc.Id,
             ThreadId: doc.ThreadId,
             Title: doc.Title,
             GeneratedTimestamp: doc.GeneratedTimestamp,
@@ -1333,22 +1495,12 @@ public class ThreadsController(
                 FeedbackId: f.FeedbackId,
                 SubmittedAt: f.SubmittedAt,
                 Rating: f.Rating,
-                Comment: f.Comment
+                Comment: f.Comment,
+                HasExtractedKnowledge: f.ExtractedKnowledge != null
             )).ToList(),
             FeedbackCount: doc.Feedback?.Count ?? 0,
             PositiveFeedbackCount: doc.Feedback?.Count(f => f.Rating == "positive") ?? 0,
             NegativeFeedbackCount: doc.Feedback?.Count(f => f.Rating == "negative") ?? 0
-        );
-    }
-
-    private SessionInsightSummary MapToSessionInsightSummary(SessionInsightDocument doc)
-    {
-        // Summary view with no sensitive trajectory data
-        return new SessionInsightSummary(
-            ThreadId: doc.ThreadId,
-            Title: doc.Title,
-            GeneratedTimestamp: doc.GeneratedTimestamp,
-            FeedbackCount: doc.Feedback?.Count ?? 0
         );
     }
 

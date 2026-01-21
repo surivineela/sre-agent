@@ -2618,6 +2618,11 @@ export const FeedbackResources = defineMessages({
         defaultMessage: 'Give as much detail as you can, but do not include any personal information.',
         id: 'csu0rb',
     },
+    sessionInsightsFeedbackPlaceholder: {
+        defaultMessage:
+            'Share insights about investigation approaches, system architecture, or what could be improved. Your feedback helps the agent learn and provide better assistance in future sessions.',
+        id: 'ywVQSK',
+    },
     threadFeedbackPlaceholder: {
         defaultMessage: `What didn't you like about the agent's response? Your feedback helps us make the agent even better.`,
         id: '61e5yQ',

@@ -8,6 +8,7 @@ namespace Agent.Core.Models.Api.v1;
 /// Session insight information exposed via API - filtered to exclude sensitive trajectory data
 /// </summary>
 public record SessionInsight(
+    string Id, // Insight ID - used to uniquely identify this specific insight
     string ThreadId,
     string Title,
     DateTime GeneratedTimestamp,
@@ -27,6 +28,16 @@ public record SessionInsight(
 public record SessionInsightFeedback(
     string FeedbackId,
     DateTime SubmittedAt,
+    string? Rating,
+    string? Comment,
+    bool? HasExtractedKnowledge = null // True if knowledge was extracted from feedback
+);
+
+/// <summary>
+/// Request model for submitting feedback to a session insight
+/// </summary>
+public record SessionInsightFeedbackRequest(
+    string? InsightId,
     string? Rating,
     string? Comment
 );

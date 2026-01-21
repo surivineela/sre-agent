@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 
 namespace Agent.Data.Repositories;
@@ -12,9 +13,14 @@ namespace Agent.Data.Repositories;
 public interface ISessionInsightRepository
 {
     /// <summary>
-    /// Gets a session insight by thread ID
+    /// Gets the most recent session insight by thread ID
     /// </summary>
     Task<SessionInsightDocument?> GetSessionInsightAsync(string threadId);
+
+    /// <summary>
+    /// Gets a session insight by document ID
+    /// </summary>
+    Task<SessionInsightDocument?> GetSessionInsightByIdAsync(string insightId);
 
     /// <summary>
     /// Gets all session insights with pagination
@@ -22,13 +28,9 @@ public interface ISessionInsightRepository
     Task<List<SessionInsightDocument>> GetSessionInsightsAsync(int skip = 0, int take = 50);
 
     /// <summary>
-    /// Gets session insights generated within a time range
+    /// Gets all session insights for a specific thread ID
     /// </summary>
-    Task<List<SessionInsightDocument>> GetSessionInsightsByTimeRangeAsync(
-        DateTime startTime,
-        DateTime endTime,
-        int skip = 0,
-        int take = 50);
+    Task<List<SessionInsightDocument>> GetSessionInsightsByThreadIdAsync(string threadId);
 
     /// <summary>
     /// Gets session insights that are investigation threads only
@@ -41,14 +43,19 @@ public interface ISessionInsightRepository
     Task<SessionInsightDocument> UpsertSessionInsightAsync(SessionInsightDocument insight);
 
     /// <summary>
-    /// Adds feedback to a session insight
+    /// Adds feedback to a session insight by insight ID
     /// </summary>
-    Task<bool> AddFeedbackToInsightAsync(string threadId, InsightFeedback feedback);
+    Task<bool> AddFeedbackToInsightAsync(string insightId, InsightFeedback feedback);
 
     /// <summary>
-    /// Deletes a session insight
+    /// Deletes a session insight by insight ID
     /// </summary>
-    Task<bool> DeleteSessionInsightAsync(string threadId);
+    Task<bool> DeleteSessionInsightAsync(string insightId);
+
+    /// <summary>
+    /// Deletes all session insights for a specific thread ID
+    /// </summary>
+    Task<int> DeleteSessionInsightsByThreadIdAsync(string threadId);
 
     /// <summary>
     /// Checks if a session insight exists for a thread

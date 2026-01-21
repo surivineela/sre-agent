@@ -26,7 +26,6 @@ const AgentMessage = ({
     timeStamp,
     isTyping,
     threadId,
-    sendMessage,
     updateApprovalOrCliMessageInStreamingMessage,
     onSubmitUserQuestionResponse,
 }: IAgentMessageProps) => {
@@ -51,7 +50,7 @@ const AgentMessage = ({
             ) : message.isDailyReport ? (
                 <DailyReportMessage text={message.text} timeStamp={timeStamp} />
             ) : isTrajectoryInsight && message.text ? (
-                <SessionInsightCard insightText={message.text} onRequestRefinement={sendMessage} />
+                <SessionInsightCard insightText={message.text} threadId={threadId} />
             ) : scheduledTaskData.isScheduledTaskCreationMessage && scheduledTaskData.task ? (
                 <ScheduledTaskCreationChatMessage task={scheduledTaskData.task} />
             ) : scheduledTaskData.isScheduledTaskMessage && scheduledTaskData.task ? (
