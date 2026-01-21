@@ -38,7 +38,6 @@ import { DirtyStateNavigationConfirmDialog } from './IncidentManagement/CreateIn
 import IncidentManagement from './IncidentManagement/IncidentManagement';
 import { useOnboardingVisibility } from './Onboarding/Hooks/useOnboardingVisibility';
 import { OnboardingWizard } from './Onboarding/OnboardingWizard';
-import Overview from './Overview/Overview';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
@@ -176,7 +175,7 @@ const TabsListWrapper: FC = () => {
         isNavBarHidden,
         openedCategoryNavItems,
         onClickCategoryNavItem,
-        onClickNonThreadNavItem,
+        selectOverview,
         onClickNonThreadSubNavItem,
         ...threadsNavProps
     } = useSreAgentSpace();
@@ -237,7 +236,7 @@ const TabsListWrapper: FC = () => {
                                     className={mergeClasses(scrollable, styles.navBody, isNavOpen ? undefined : styles.collapsedNavBody)}
                                 >
                                     {showOverview && (
-                                        <OverviewNavItem isNavOpen={isNavOpen} onClick={onClickNonThreadNavItem}>
+                                        <OverviewNavItem isNavOpen={isNavOpen} selectOverview={selectOverview}>
                                             {isNavOpen && (
                                                 <NavBarOpenCloseButton
                                                     isNavOpen={true}
@@ -338,7 +337,7 @@ const router = createHashRouter([
         errorElement: <RouteErrorBoundary />,
         children: [
             { index: true, element: <Thread /> },
-            { path: getPathName(false, PrimaryNavItemValues.Overview), element: <Overview /> },
+            { path: getPathName(false, PrimaryNavItemValues.Overview), element: <Thread isOverview={true} /> },
             {
                 path: getPathName(false, PrimaryNavItemValues.Activities),
                 element: <IncidentManagement menuItem={SecondaryNavItemValues.IncidentOverview} />,

@@ -225,6 +225,8 @@ export interface IChatBoxFooterProps {
     toggleIncidentRetroMode?: () => void;
     hasPendingUserQuestion?: boolean;
     isOverview?: boolean;
+    centerChatBoxFooter?: boolean;
+    children?: ReactNode;
 }
 
 export interface SendMessageOptions {

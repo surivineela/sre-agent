@@ -263,6 +263,10 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
             borderRadius: tokens.borderRadiusLarge,
             ...overrides?.chatContainer,
         },
+        hiddenChatContainer: {
+            height: 'unset',
+            padding: 'unset',
+        },
         chat: {
             height: '100%',
             maxWidth: '1000px',
@@ -299,25 +303,34 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         },
     });
 
-const textFieldMaxWidth = '1000px';
-
 export const useChatInputStyles = makeStyles({
     root: {
-        flex: '0 0 auto',
+        flex: '1 1 auto',
         margin: '5px 0px',
         padding: '0px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rootInCenter: {
+        padding: '20px',
+    },
+    rootWithOverview: {
+        justifyContent: 'flex-start',
+    },
+    chatBoxFooterInner: {
+        display: 'flex',
+        alignItems: 'stretch',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        maxWidth: '1000px',
+        height: 'auto',
+        width: '100%',
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
-        maxWidth: textFieldMaxWidth,
         margin: 'auto',
-    },
-    selectedCommandRow: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
-        margin: `${tokens.spacingVerticalXS} auto`,
-        maxWidth: textFieldMaxWidth,
     },
     promptMenuPopover: {
         width: '280px',
@@ -345,8 +358,6 @@ export const useChatInputStyles = makeStyles({
 
 export const chatInputTextStyles = {
     textFieldContainer: {
-        maxWidth: textFieldMaxWidth,
-        margin: 'auto',
         marginBottom: '8px',
         padding: '12px 8px 6px 8px',
         position: 'relative',

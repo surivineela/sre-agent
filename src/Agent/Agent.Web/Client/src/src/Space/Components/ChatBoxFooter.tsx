@@ -93,6 +93,7 @@ import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Sty
 import AgentModeSelector from './AgentModeSelector';
 import { $createResourceNode, ResourceNode } from './Chat/ResourceNode';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
+import { SreAgentBranding } from './Chat/SreAgentBranding';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
 const GenerateInsightsButton = memo(
@@ -261,6 +262,8 @@ const ChatBoxFooter = ({
     toggleIncidentRetroMode,
     hasPendingUserQuestion,
     isOverview,
+    centerChatBoxFooter,
+    children,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -282,7 +285,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { root, chatStatement } = useChatInputStyles();
+    const { root, rootInCenter, rootWithOverview, chatBoxFooterInner, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -1014,207 +1017,229 @@ const ChatBoxFooter = ({
     const popoverPositioningShorthand = useMemo<PositioningProps>(() => ({ position: 'above', align: 'start', offset: 8 }), []);
 
     return (
-        <div className={root}>
-            <KnowledgeGraphBuildStatus />
-            <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
-                <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
-                <Popover
-                    unstable_disableAutoFocus={true}
-                    open={showShortcutLists}
-                    positioning={{ positioningRef: shortcutMenuPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface style={{ padding: '5px' }}>
-                        <MenuList>
-                            {matchedShortcuts.map(shortcut => {
-                                return (
-                                    <MenuItem
-                                        id={shortcut}
-                                        key={shortcut}
-                                        onMouseDown={e => {
-                                            e.preventDefault();
-                                            onSelectShortcut(shortcut);
-                                        }}
-                                        aria-selected={shortcut === focusedShortcutRef.current}
-                                        subText={getShortcutDescription(shortcut)}
-                                        style={
-                                            shortcut === focusedShortcutRef.current
-                                                ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
-                                                : undefined
-                                        }
-                                    >
-                                        <Text weight={'semibold'}>{'/' + shortcut}</Text>
-                                    </MenuItem>
-                                );
-                            })}
-                        </MenuList>
-                    </PopoverSurface>
-                </Popover>
-                <Popover
-                    unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.Agent}
-                    positioning={{ positioningRef: extendedAgentMenuPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface style={{ padding: '5px' }}>
-                        {filteredExtendedAgents.length > 0 ? (
+        <div
+            className={mergeClasses(
+                centerChatBoxFooter ? scrollable : undefined,
+                root,
+                centerChatBoxFooter ? rootInCenter : undefined,
+                isOverview ? rootWithOverview : undefined
+            )}
+        >
+            <div className={chatBoxFooterInner}>
+                <KnowledgeGraphBuildStatus />
+                {centerChatBoxFooter && <SreAgentBranding />}
+                <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
+                    <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
+                    <Popover
+                        unstable_disableAutoFocus={true}
+                        open={showShortcutLists}
+                        positioning={{ positioningRef: shortcutMenuPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface style={{ padding: '5px' }}>
                             <MenuList>
-                                {filteredExtendedAgents.map(agent => {
+                                {matchedShortcuts.map(shortcut => {
                                     return (
-                                        <ExtendedAgentMenuItem
-                                            key={agent.name}
-                                            agent={agent}
-                                            onSelectExtendedAgent={onSelectExtendedAgent}
-                                            isFocused={agent.name === focusedExtendedAgent?.name}
-                                        />
+                                        <MenuItem
+                                            id={shortcut}
+                                            key={shortcut}
+                                            onMouseDown={e => {
+                                                e.preventDefault();
+                                                onSelectShortcut(shortcut);
+                                            }}
+                                            aria-selected={shortcut === focusedShortcutRef.current}
+                                            subText={getShortcutDescription(shortcut)}
+                                            style={
+                                                shortcut === focusedShortcutRef.current
+                                                    ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
+                                                    : undefined
+                                            }
+                                        >
+                                            <Text weight={'semibold'}>{'/' + shortcut}</Text>
+                                        </MenuItem>
                                     );
                                 })}
                             </MenuList>
-                        ) : (
-                            <NoSearchResultWarning searchText={searchText} isExtendedAgent={true} />
-                        )}
-                    </PopoverSurface>
-                </Popover>
-                <Popover
-                    inline={true}
-                    unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.Incident || selectedShortcut === Shortcut.Resource}
-                    positioning={{ positioningRef: incidentOrResourcePopoverPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface className={shortcutStyles.incidentOrResourcePopoverSurface}>
-                        {selectedShortcut === Shortcut.Incident ? (
-                            <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScrollThreadsList}>
-                                <Table className={shortcutStyles.incidentOrResourceContainer}>
-                                    <IncidentOrResourceTableHeader columns={incidentColumns} />
-                                    <TableBody>
-                                        {threads.map(thread => (
-                                            <IncidentOrResourceRow
-                                                key={thread.id}
-                                                id={thread.id}
-                                                cells={[thread.id, thread.title]}
-                                                onClick={() => onSelectIncident(thread)}
-                                                isFocused={focusedIncident?.id === thread.id}
+                        </PopoverSurface>
+                    </Popover>
+                    <Popover
+                        unstable_disableAutoFocus={true}
+                        open={selectedShortcut === Shortcut.Agent}
+                        positioning={{ positioningRef: extendedAgentMenuPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface style={{ padding: '5px' }}>
+                            {filteredExtendedAgents.length > 0 ? (
+                                <MenuList>
+                                    {filteredExtendedAgents.map(agent => {
+                                        return (
+                                            <ExtendedAgentMenuItem
+                                                key={agent.name}
+                                                agent={agent}
+                                                onSelectExtendedAgent={onSelectExtendedAgent}
+                                                isFocused={agent.name === focusedExtendedAgent?.name}
                                             />
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                                {moreThreadsToLoad && (
-                                    <div ref={threadsListIntersectionObserverRef}>
-                                        <IncidentOrResourcePopoverLoader />
-                                    </div>
-                                )}
-                                {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
-                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
-                                )}
-                            </div>
-                        ) : (
-                            <div
-                                className={mergeClasses(scrollable)}
-                                ref={resourcesSearchResultDivRef}
-                                onScroll={onScrollResourceSearchResultDiv}
-                            >
-                                <Table className={shortcutStyles.incidentOrResourceContainer}>
-                                    <IncidentOrResourceTableHeader columns={resourceColumns} />
-                                    <TableBody>
-                                        {resourcesSearchResult.map(resource => (
-                                            <IncidentOrResourceRow
-                                                key={resource.resource_id}
-                                                id={resource.resource_id}
-                                                cells={[
-                                                    resource.name || '-',
-                                                    getResourceTypeFriendlyName(resource.type) || '-',
-                                                    resource.resource_group || '-',
-                                                    resource.subscription_id || '-',
-                                                ]}
-                                                onClick={() => onSelectResource(resource)}
-                                                isFocused={focusedResource?.resource_id === resource.resource_id}
-                                            />
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                                {moreResourcesSearchResultToLoad && (
-                                    <div ref={resourceSearchResultPopoverIntersectionObserverRef}>
-                                        <IncidentOrResourcePopoverLoader />
-                                    </div>
-                                )}
-                                {!isLoadingInitialResults && !moreResourcesSearchResultToLoad && resourcesSearchResult.length === 0 && (
-                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
-                                )}
-                            </div>
-                        )}
-                    </PopoverSurface>
-                </Popover>
-                <Dialog
-                    modalType="alert"
-                    open={showInputDisabledDialog}
-                    onOpenChange={(_, data) => {
-                        if (!data.open) {
-                            setShowInputDisabledDialog(false);
+                                        );
+                                    })}
+                                </MenuList>
+                            ) : (
+                                <NoSearchResultWarning searchText={searchText} isExtendedAgent={true} />
+                            )}
+                        </PopoverSurface>
+                    </Popover>
+                    <Popover
+                        inline={true}
+                        unstable_disableAutoFocus={true}
+                        open={selectedShortcut === Shortcut.Incident || selectedShortcut === Shortcut.Resource}
+                        positioning={{ positioningRef: incidentOrResourcePopoverPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface className={shortcutStyles.incidentOrResourcePopoverSurface}>
+                            {selectedShortcut === Shortcut.Incident ? (
+                                <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScrollThreadsList}>
+                                    <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                        <IncidentOrResourceTableHeader columns={incidentColumns} />
+                                        <TableBody>
+                                            {threads.map(thread => (
+                                                <IncidentOrResourceRow
+                                                    key={thread.id}
+                                                    id={thread.id}
+                                                    cells={[thread.id, thread.title]}
+                                                    onClick={() => onSelectIncident(thread)}
+                                                    isFocused={focusedIncident?.id === thread.id}
+                                                />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {moreThreadsToLoad && (
+                                        <div ref={threadsListIntersectionObserverRef}>
+                                            <IncidentOrResourcePopoverLoader />
+                                        </div>
+                                    )}
+                                    {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
+                                        <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    className={mergeClasses(scrollable)}
+                                    ref={resourcesSearchResultDivRef}
+                                    onScroll={onScrollResourceSearchResultDiv}
+                                >
+                                    <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                        <IncidentOrResourceTableHeader columns={resourceColumns} />
+                                        <TableBody>
+                                            {resourcesSearchResult.map(resource => (
+                                                <IncidentOrResourceRow
+                                                    key={resource.resource_id}
+                                                    id={resource.resource_id}
+                                                    cells={[
+                                                        resource.name || '-',
+                                                        getResourceTypeFriendlyName(resource.type) || '-',
+                                                        resource.resource_group || '-',
+                                                        resource.subscription_id || '-',
+                                                    ]}
+                                                    onClick={() => onSelectResource(resource)}
+                                                    isFocused={focusedResource?.resource_id === resource.resource_id}
+                                                />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {moreResourcesSearchResultToLoad && (
+                                        <div ref={resourceSearchResultPopoverIntersectionObserverRef}>
+                                            <IncidentOrResourcePopoverLoader />
+                                        </div>
+                                    )}
+                                    {!isLoadingInitialResults && !moreResourcesSearchResultToLoad && resourcesSearchResult.length === 0 && (
+                                        <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                    )}
+                                </div>
+                            )}
+                        </PopoverSurface>
+                    </Popover>
+                    <Dialog
+                        modalType="alert"
+                        open={showInputDisabledDialog}
+                        onOpenChange={(_, data) => {
+                            if (!data.open) {
+                                setShowInputDisabledDialog(false);
+                            }
+                        }}
+                    >
+                        <DialogSurface>
+                            {inputDisabledMessage}
+                            <DialogActions>
+                                <Button
+                                    appearance="primary"
+                                    style={{ marginLeft: 'auto' }}
+                                    onClick={() => setShowInputDisabledDialog(false)}
+                                >
+                                    {intl.formatMessage(SreAgentResources.close)}
+                                </Button>
+                            </DialogActions>
+                        </DialogSurface>
+                    </Dialog>
+                    <ChatInput
+                        {...restoreFocusTargetAttribute}
+                        root={{ ref: chatInputRef }}
+                        aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
+                        placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
+                        customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
+                        contentBefore={
+                            <ContentBefore
+                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                showAgentModeSelector={showAgentModeSelector}
+                                threadId={threadId}
+                                isTyping={isTyping}
+                                disableInputInteraction={disableInputInteraction}
+                                messagePromptsUsed={messagePromptsUsed}
+                                sendMessage={sendMessage}
+                                prompts={prompts}
+                                threadSource={threadSource}
+                            />
                         }
-                    }}
-                >
-                    <DialogSurface>
-                        {inputDisabledMessage}
-                        <DialogActions>
-                            <Button appearance="primary" style={{ marginLeft: 'auto' }} onClick={() => setShowInputDisabledDialog(false)}>
-                                {intl.formatMessage(SreAgentResources.close)}
-                            </Button>
-                        </DialogActions>
-                    </DialogSurface>
-                </Dialog>
-                <ChatInput
-                    {...restoreFocusTargetAttribute}
-                    root={{ ref: chatInputRef }}
-                    aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
-                    placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
-                    customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
-                    contentBefore={
-                        <ContentBefore
-                            isOverview={isOverview}
-                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
-                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                            showAgentModeSelector={showAgentModeSelector}
-                            threadId={threadId}
-                            isTyping={isTyping}
-                            disableInputInteraction={disableInputInteraction}
-                            messagePromptsUsed={messagePromptsUsed}
-                            sendMessage={sendMessage}
-                            prompts={prompts}
-                            threadSource={threadSource}
-                        />
-                    }
-                    attachments={
-                        <Attachments
-                            selectedAgentName={selectedAgentName}
-                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                            isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
-                            isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
-                            handleClearSelectedAgent={handleClearSelectedAgent}
-                            handleDisableDeepInvestigation={onClickDeepInvestigationButton}
-                            handleToggleRetroMode={() => chatInputHandleSendClick('/incidentRetroMode')}
-                            lockAgentSelection={lockAgentSelection}
-                        />
-                    }
-                    maxLength={1000000000}
-                    charactersRemainingMessage={undefined}
-                    autoFocus={true}
-                    disableSend={!canWriteThreads || disableInputInteractionUnforced}
-                    isSending={isTyping}
-                    onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
-                    onStop={cancelStreaming}
-                    expandButtonLineVisibilityThreshold={3}
-                    onKeyDown={onKeyDown}
-                    aria-activedescendant={
-                        focusedShortcut ?? focusedIncident?.id ?? focusedResource?.resource_id ?? focusedExtendedAgent?.name ?? undefined
-                    }
-                >
-                    <ImperativeControlPlugin ref={imperativeControlPluginRef} />
-                    <LexicalEditorRefPlugin editorRef={editorRef} />
-                </ChatInput>
-            </div>
+                        attachments={
+                            <Attachments
+                                selectedAgentName={selectedAgentName}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
+                                isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
+                                handleClearSelectedAgent={handleClearSelectedAgent}
+                                handleDisableDeepInvestigation={onClickDeepInvestigationButton}
+                                handleToggleRetroMode={() => chatInputHandleSendClick('/incidentRetroMode')}
+                                lockAgentSelection={lockAgentSelection}
+                            />
+                        }
+                        maxLength={1000000000}
+                        charactersRemainingMessage={undefined}
+                        autoFocus={true}
+                        disableSend={!canWriteThreads || disableInputInteractionUnforced}
+                        isSending={isTyping}
+                        onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
+                        onStop={cancelStreaming}
+                        expandButtonLineVisibilityThreshold={3}
+                        onKeyDown={onKeyDown}
+                        aria-activedescendant={
+                            focusedShortcut ??
+                            focusedIncident?.id ??
+                            focusedResource?.resource_id ??
+                            focusedExtendedAgent?.name ??
+                            undefined
+                        }
+                    >
+                        <ImperativeControlPlugin ref={imperativeControlPluginRef} />
+                        <LexicalEditorRefPlugin editorRef={editorRef} />
+                    </ChatInput>
+                </div>
 
-            <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
-                {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
-            </Text>
+                {!centerChatBoxFooter && (
+                    <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
+                        {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
+                    </Text>
+                )}
+
+                {centerChatBoxFooter && <ChatSuggestions sendMessage={sendMessage} />}
+            </div>
+            {children}
         </div>
     );
 };
@@ -1425,7 +1450,6 @@ const Attachments = memo(
 );
 
 const ContentBefore = (props: {
-    isOverview?: boolean;
     isDeepInvestigationButtonEnabled: boolean;
     isDeepInvestigationTurnedOn: boolean;
     onClickDeepInvestigationButton: () => void;
@@ -1441,13 +1465,11 @@ const ContentBefore = (props: {
     const { container, trailingGroup } = useFooterButtonGroupStyles();
     return (
         <div className={container}>
-            {!props.isOverview && (
-                <DeepInvestigationButton
-                    isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
-                    isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
-                    onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
-                />
-            )}
+            <DeepInvestigationButton
+                isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
+                isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
+                onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
+            />
             {props.showAgentModeSelector && props.threadId && (
                 <AgentModeSelector
                     id={ChatBoxButtonIds.AgentMode}
@@ -1764,7 +1786,6 @@ const PromptLibraryButton = memo(
                                         sendMessage={sendAndClose}
                                         categories={filteredCategories}
                                         getQuestionsForCategory={filteredGetQuestionsForCategory}
-                                        showSreAgentLogo={false}
                                         alignLeft={true}
                                         getCategorySubcategories={getCategorySubcategories}
                                         initialExpandedCategory="Get started"

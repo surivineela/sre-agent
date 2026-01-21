@@ -94,9 +94,10 @@ export const useSreAgentSpace = () => {
         [navigate, onNavItemSelected]
     );
 
-    const onClickNonThreadNavItem = useCallback(
-        (primary: PrimaryNavItemValues) => {
-            onClickNavItem(primary, undefined, undefined);
+    const onClickThreadNavItem = useCallback(
+        (primary: PrimaryNavItemValues, threadId: string | null) => {
+            onClickNavItem(primary, undefined, threadId ? threadId : undefined);
+            setThreadsRenderKey(Guid.newGuid());
         },
         [onClickNavItem]
     );
@@ -110,11 +111,14 @@ export const useSreAgentSpace = () => {
 
     const selectThread = useCallback(
         (threadId: string | null) => {
-            onClickNavItem(PrimaryNavItemValues.Threads, undefined, threadId ? threadId : undefined);
-            setThreadsRenderKey(Guid.newGuid());
+            onClickThreadNavItem(PrimaryNavItemValues.Threads, threadId);
         },
-        [onClickNavItem]
+        [onClickThreadNavItem]
     );
+
+    const selectOverview = useCallback(() => {
+        onClickThreadNavItem(PrimaryNavItemValues.Overview, null);
+    }, [onClickThreadNavItem]);
 
     const addThread = useCallback(
         (threadId: string) => {
@@ -423,6 +427,7 @@ export const useSreAgentSpace = () => {
         showUnreadOnly,
         setShowUnreadOnly,
         selectThread,
+        selectOverview,
         addThread,
         threadListsState,
         unreadThreadIds,
@@ -440,7 +445,6 @@ export const useSreAgentSpace = () => {
         onExpandOrCollapseNavBar,
         openedCategoryNavItems,
         onClickCategoryNavItem,
-        onClickNonThreadNavItem,
         onClickNonThreadSubNavItem,
 
         isNavOpen: navBarState.isNavBarOpen,
