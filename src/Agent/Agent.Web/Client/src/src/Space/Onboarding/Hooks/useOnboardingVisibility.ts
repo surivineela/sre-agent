@@ -34,15 +34,15 @@ export const useOnboardingVisibility = (): UseOnboardingVisibilityResult => {
     const [showWizard, setShowWizard] = useState<boolean | null>(null);
 
     useEffect(() => {
-        if (!agentLoaded) return;
-
-        const showOnboardingWizardFlag = getConfigSetting(SettingNames.ShowOnboardingWizard);
-        if (!showOnboardingWizardFlag) {
+        if (inStandaloneMode || isCrossTenantPortalMode) {
             setShowWizard(false);
             return;
         }
 
-        if (inStandaloneMode || isCrossTenantPortalMode) {
+        if (!agentLoaded) return;
+
+        const showOnboardingWizardFlag = getConfigSetting(SettingNames.ShowOnboardingWizard);
+        if (!showOnboardingWizardFlag) {
             setShowWizard(false);
             return;
         }
