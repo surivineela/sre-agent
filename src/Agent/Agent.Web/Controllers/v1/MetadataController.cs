@@ -33,7 +33,7 @@ namespace Agent.Web.Controllers.v1
                 var isProd = environment.IsProduction();
 
                 var response = new AgentMetadataResponse(
-                    Name: AgentNameHelper.GetAgentName(isProd),
+                    Name: AgentNameHelper.GetCustomerAgentName(isProd),
                     SubscriptionId: AgentNameHelper.GetSubscriptionId(isProd),
                     ResourceGroup: AgentNameHelper.GetResourceGroupName(isProd)
                 );

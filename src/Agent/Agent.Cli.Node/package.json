@@ -1,0 +1,94 @@
+{
+  "name": "@microsoft/sre-cli",
+  "version": "1.0.0",
+  "description": "Interactive SRE Agent CLI - a terminal experience",
+  "type": "module",
+  "bin": {
+    "sre": "./dist/cli.mjs"
+  },
+  "main": "./dist/cli.mjs",
+  "scripts": {
+    "dev": "tsx watch src/cli.tsx",
+    "build": "tsup src/cli.tsx --format esm --outDir dist --dts --clean",
+    "start": "node dist/cli.mjs",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.4.1",
+    "@microsoft/signalr": "^8.0.7",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ansi-escapes": "^7.0.0",
+    "chalk": "^5.3.0",
+    "cli-highlight": "^2.1.11",
+    "cli-truncate": "^4.0.0",
+    "commander": "^12.1.0",
+    "cosmiconfig": "^9.0.0",
+    "eventsource": "^2.0.2",
+    "figures": "^6.1.0",
+    "glob": "^11.0.0",
+    "ink": "^6.6.0",
+    "ink-select-input": "^6.0.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "keytar": "^7.9.0",
+    "marked": "^12.0.2",
+    "marked-terminal": "^7.3.0",
+    "react": "^19.2.3",
+    "strip-ansi": "^7.1.0",
+    "terminal-link": "^3.0.0",
+    "undici": "^6.19.8",
+    "uuid": "^10.0.0",
+    "wrap-ansi": "^9.0.0",
+    "ws": "^8.18.0",
+    "yaml": "^2.5.1",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.1",
+    "@types/node": "^22.5.4",
+    "@types/react": "^19.0.0",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.12",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.35.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "ink-testing-library": "^4.0.0",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.2",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.17"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "cli",
+    "sre",
+    "agent",
+    "ink",
+    "react",
+    "terminal",
+    "interactive"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/serverless-paas-balam/sreagent-runtime.git",
+    "directory": "src/Agent/Agent.Cli.Node"
+  },
+  "license": "MIT"
+}
