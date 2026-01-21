@@ -121,7 +121,8 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
-            commonToolsYamlDirectory: null
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
         );
         await agentFactory.InitializeAsync();
 
@@ -397,7 +398,8 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            commonToolsYamlDirectory: null
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
         );
         await agentFactory.InitializeAsync();
 
@@ -433,6 +435,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -460,6 +463,7 @@ public class AgentFactoryTests
                 chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
                 commonToolsYamlDirectory: null
             );
             await agentFactory.InitializeAsync();
@@ -492,6 +496,7 @@ public class AgentFactoryTests
                 chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
                 commonToolsYamlDirectory: null
             );
             await agentFactory.InitializeAsync();
@@ -523,6 +528,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -552,6 +558,7 @@ public class AgentFactoryTests
                 chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
                 assembliesToScan: [Assembly.GetExecutingAssembly()],
                 modeConfigurator: _mockAgentModeConfigurator.Object,
+                commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
                 commonToolsYamlDirectory: null
             );
             await agentFactory.InitializeAsync();
@@ -586,6 +593,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -612,6 +620,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -638,6 +647,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -678,6 +688,7 @@ public class AgentFactoryTests
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             agentsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -752,6 +763,7 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             modeConfigurator: _mockAgentModeConfigurator.Object,
             assembliesToScan: [Assembly.GetExecutingAssembly()],
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             agentsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -797,6 +809,7 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [typeof(TestAgentWithSkillsEnabledDescriptor).Assembly],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -822,6 +835,7 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             commonToolsYamlDirectory: null
         );
         await agentFactory.InitializeAsync();
@@ -901,7 +915,8 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [typeof(TestAgentWithSkillsAndReadSkillFileToolDescriptor).Assembly],
             modeConfigurator: _mockAgentModeConfigurator.Object,
-            commonToolsYamlDirectory: null
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
         );
         await agentFactory.InitializeAsync();
 

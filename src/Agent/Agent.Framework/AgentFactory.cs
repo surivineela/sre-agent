@@ -261,6 +261,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             AugmentToDoWrite(agentDescriptor, agent);
         }
 
+        AugmentGuardRail(agentDescriptor, agent);
+
         // Automatically add read_skill_file tool if skills are enabled
         AugmentSkills(agentDescriptor, agent);
 
@@ -435,6 +437,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         // Check for {{prompt_name}} template syntax (case-insensitive)
         var templatePattern = $"{{{{{promptName}}}}}";
         return instructions.Contains(templatePattern, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void AugmentGuardRail(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        const string GuardRailCommonPrompt = "guard_rail";
+
+        // add guardrail common prompt to all agents
+        if (!AgentInstructionsContainsCommonPrompt(agentDescriptor, GuardRailCommonPrompt))
+        {
+            agentDescriptor.CommonPrompts.Add(GuardRailCommonPrompt);
+        }
     }
 
     private void AugmentPartialOutputTool(Agent<TContext> agent)

@@ -1026,6 +1026,7 @@ handoffs: []
             chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
             assembliesToScan: [Assembly.GetExecutingAssembly()],
             modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
             agentsYamlDirectory: null);
         await factory.InitializeAsync();
 
