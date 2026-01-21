@@ -23,12 +23,13 @@ export const useThreadDeepLink = (threadId: string, resourceId: string, agentEnd
         return `${standaloneReactEndpoint}#/${agentSiteDeepLink}`;
     }
 
-    // SREA Portal uses path-based routing
+    // SREA Portal uses path-based routing (resource ID is part of the URL path)
     if (isHostedInSreaPortal) {
         if (isCrossTenantMode) {
             return `${sreaPortalUrl}/externalagents/${encodeURIComponent(crossTenantDisplayName)}/${encodeURIComponent(agentEndpoint)}/${agentSiteDeepLink}`;
         }
-        return `${sreaPortalUrl}/agents/${encodeURIComponent(resourceId)}/${agentSiteDeepLink}`;
+        // Resource ID becomes part of the path directly (no encoding needed)
+        return `${sreaPortalUrl}/agents${resourceId}/${agentSiteDeepLink}`;
     }
 
     // Azure Portal uses blade-based routing with hash fragments

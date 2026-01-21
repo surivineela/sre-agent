@@ -140,7 +140,7 @@ export const AgentsGrid = () => {
                     <TableCellLayout
                         media={<Image src="SreAgent.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.azureSreAgent)} />}
                     >
-                        <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
+                        <Link onClick={() => navigate(`/agents${item.id}`)}>{item.name}</Link>
                     </TableCellLayout>
                 ),
             }),

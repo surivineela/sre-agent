@@ -162,7 +162,7 @@ const InnerCreateAgentSpaceDialog = ({
     const handleNext = useCallback(() => {
         if (isDeployStep) {
             onCreated?.();
-            navigate(`/spaces/${encodeURIComponent(agentSpaceResourceId)}`);
+            navigate(`/spaces${agentSpaceResourceId}`);
             setIsDialogOpen(false);
         } else if (isReviewStep) {
             submitForm();

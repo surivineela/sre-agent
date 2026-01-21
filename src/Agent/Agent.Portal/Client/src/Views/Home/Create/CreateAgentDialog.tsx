@@ -215,22 +215,13 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
                 targetName: 'sreAgentCreateChatWithAgentButton',
                 targetFriendlyName: 'SRE Agent Create - Chat with Agent',
             });
-            navigate(`/agents/${encodeURIComponent(agentResourceId)}`);
+            navigate(`/agents${agentResourceId}`);
         } else if (isReviewStep) {
             submitForm();
         } else {
             setCurrentStepIndex(currentStepIndex + 1);
         }
-    }, [
-        isDeployStep,
-        isReviewStep,
-        currentStepIndex,
-        navigate,
-        agentResourceId,
-        setCurrentStepIndex,
-        submitForm,
-        logNavigationEvent,
-    ]);
+    }, [isDeployStep, isReviewStep, currentStepIndex, navigate, agentResourceId, setCurrentStepIndex, submitForm, logNavigationEvent]);
 
     useEffect(() => {
         logNavigationEvent({

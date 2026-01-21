@@ -1,7 +1,8 @@
 import { FC, useMemo } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { AmplitudeContextProvider } from '../../Common/Contexts/AmplitudeContext';
+import { parseResourceRoute } from '../../Common/Utilities/ResourceRouting';
 import { AgentIFrame } from './AgentIFrame';
 import { useAgentView } from './useAgentView';
 
@@ -32,44 +33,43 @@ const AgentIFrameViewContent: FC<AgentIFrameViewContentProps> = ({ agentId, sreL
 };
 
 export const AgentIFrameView = () => {
-    // React Router automatically decodes URL params
-    const { agentId } = useParams<{ agentId: string }>();
     const location = useLocation();
 
     /**
-     * Deep link extraction for Agent.Web iframe navigation
+     * Resource ID and deep link extraction for Agent.Web iframe navigation
+     *
+     * With resource ID-based routing, the ARM resource ID is part of the URL path:
+     * /agents/subscriptions/{sub}/resourceGroups/{rg}/providers/{ns}/{type}/{name}/views/thread/t-1
+     *
+     * The parseResourceRoute utility extracts:
+     * - agentId: The full ARM resource ID
+     * - sreLink: Everything after the resource ID (deep link for iframe navigation)
      *
      * Agent.Web uses hash-based routing (e.g., #/views/thread/123)
-     * This extracts everything after /agents/{agentId} and passes it to the iframe
-     * as a URL hash parameter via buildAgentUxUrl()
-     *
-     * Example flow:
-     * - Portal URL: /agents/subscriptions%2F...%2Fagent/views/thread/t-1
-     * - Extracted sreLink: "views/thread/t-1"
-     * - Iframe URL: https://agent-site/static/?trustedAuthority=...#/views/thread/t-1
+     * The sreLink is passed to the iframe as a URL hash via buildAgentUxUrl()
      *
      * Note: This only handles initial page load. Dynamic navigation after iframe load
      * is intentionally not implemented - users navigate within the iframe directly.
      */
-    const sreLink = useMemo(() => {
-        if (!agentId) {
-            return undefined;
+    const { agentId, sreLink } = useMemo(() => {
+        const parsed = parseResourceRoute(location.pathname, '/agents');
+
+        if (!parsed) {
+            return { agentId: '', sreLink: undefined };
         }
 
-        // Re-encode the agentId to match location.pathname format
-        const encodedAgentId = encodeURIComponent(agentId);
-        const baseSegment = `/agents/${encodedAgentId}`;
+        // Combine deep link path with query string and hash
+        const fullDeepLink = parsed.deepLink
+            ? `${parsed.deepLink}${location.search}${location.hash}`
+            : location.search || location.hash
+              ? `${location.search}${location.hash}`.replace(/^\/+/, '')
+              : undefined;
 
-        if (!location.pathname.startsWith(baseSegment)) {
-            return undefined;
-        }
-
-        // Extract everything after /agents/{encodedAgentId}
-        const pathAfterAgent = location.pathname.slice(baseSegment.length).replace(/^\/+/, '');
-        const fullDeepLink = `${pathAfterAgent}${location.search}${location.hash}`;
-
-        return fullDeepLink || undefined;
-    }, [agentId, location.pathname, location.search, location.hash]);
+        return {
+            agentId: parsed.resourceId,
+            sreLink: fullDeepLink || undefined,
+        };
+    }, [location.pathname, location.search, location.hash]);
 
     return (
         <AmplitudeContextProvider resourceId={agentId ?? ''} telemetrySource={TelemetrySource.AgentIFrameView}>

@@ -10,7 +10,9 @@ The portal uses React Router v7 with browser-based routing. All routes are defin
 |-------|-----------|---------|---------------|
 | `/` | `HomeBrowseView` | Browse/list all agents, create new agents | Yes |
 | `/welcome` | `LandingPage` | Signed-out welcome page | No |
-| `/agents/:agentId` | `AgentIFrameView` | Embed agent UX in iframe | Yes |
+| `/agents/*` | `AgentIFrameView` | Embed agent UX in iframe | Yes |
+| `/spaces/*` | `AgentSpaceView` | Agent space management | Yes |
+| `/externalagents/:agentName/:agentUri/*` | `ExternalAgentIFrameView` | External agent iframe (cross-tenant) | Yes |
 | `*` (fallback) | `HomeBrowseView` | Catch-all redirects to home | Yes |
 
 ### Protected Routes
@@ -21,75 +23,94 @@ The `PortalLayout` component handles authentication-based redirects:
 - **Authenticated users** accessing `/welcome` → redirected to `/`
 - **Loading state** → no content shown until auth status determined
 
-## Deep Linking to Agents
+## Resource ID-Based Routing
 
-### Agent Resource ID Format
+Agent and Space routes use **path-based ARM resource IDs** where the ARM resource ID becomes part of the URL path itself (not URL-encoded).
 
-Agent routes use **encoded ARM resource IDs** as the `agentId` parameter:
+### URL Format
 
 ```plaintext
-/agents/{encodedResourceId}
+/agents/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{namespace}/{type}/{name}
+/spaces/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{namespace}/{type}/{name}
 ```
 
 **Example:**
 
 ```plaintext
-/agents/subscriptions%2F00000000-0000-0000-0000-000000000000%2FresourceGroups%2Fmy-rg%2Fproviders%2FMicrosoft.App%2FcontainerApps%2Fmy-agent
+/agents/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.App/agents/my-agent
 ```
 
-### Creating Agent Links
+### Creating Agent/Space Links
 
-Use `encodeURIComponent()` when constructing agent links:
+Since ARM resource IDs start with `/`, concatenate directly without encoding:
 
 ```typescript
 import { useNavigate } from 'react-router-dom';
 
 const navigate = useNavigate();
-const agentResourceId = '/subscriptions/.../resourceGroups/.../providers/Microsoft.App/containerApps/my-agent';
+const agentResourceId = '/subscriptions/.../resourceGroups/.../providers/Microsoft.App/agents/my-agent';
 
-// Navigate to agent
-navigate(`/agents/${encodeURIComponent(agentResourceId)}`);
+// Navigate to agent (resourceId already starts with /)
+navigate(`/agents${agentResourceId}`);
+
+// Navigate to space
+navigate(`/spaces${spaceResourceId}`);
 ```
 
-### Parsing Agent IDs
+### Parsing Resource IDs from URLs
 
-The `AgentIFrameView` component decodes the parameter:
+Use the `parseResourceRoute` utility to extract the resource ID and deep link from the URL:
 
 ```typescript
-const { agentId: encodedAgentId } = useParams<{ agentId: string }>();
-const agentId = decodeURIComponent(encodedAgentId ?? '');
+import { useLocation } from 'react-router-dom';
+import { parseResourceRoute } from '../Common/Utilities/ResourceRouting';
+
+const location = useLocation();
+
+const { resourceId, deepLink } = useMemo(() => {
+    const parsed = parseResourceRoute(location.pathname, '/agents');
+    return {
+        resourceId: parsed?.resourceId ?? '',
+        deepLink: parsed?.deepLink,
+    };
+}, [location.pathname]);
 
 // Parse ARM ID components
-const { resourceName } = parseArmId(agentId);
+const { resourceName } = parseArmId(resourceId);
 ```
 
 ## Deep Linking Within Agents
 
-Agent UX can be deep-linked using path segments after the agent ID:
+Agent UX can be deep-linked using path segments after the resource ID:
 
 ```plaintext
-/agents/{agentId}/conversations/123
-/agents/{agentId}/settings
+/agents/subscriptions/.../my-agent/views/thread/t-123
+/agents/subscriptions/.../my-agent/settings
 ```
 
 **Implementation:**
 
-The `AgentIFrameView` extracts the remaining path and passes it to the embedded iframe as the `sreLink` parameter:
+The `AgentIFrameView` uses `parseResourceRoute` to extract the resource ID and everything after as the deep link:
 
 ```typescript
-const sreLink = useMemo(() => {
-    const baseSegment = `/agents/${agentId}`;
-    let remainder = location.pathname.startsWith(baseSegment) 
-        ? location.pathname.slice(baseSegment.length) 
-        : '';
-    remainder = remainder.replace(/^\/+/, '');
-    
-    const suffix = `${remainder}${location.search}${location.hash}`;
-    return suffix.length > 0 ? suffix : undefined;
-}, [agentId, location]);
+const { agentId, sreLink } = useMemo(() => {
+    const parsed = parseResourceRoute(location.pathname, '/agents');
+    if (!parsed) {
+        return { agentId: '', sreLink: undefined };
+    }
+
+    const fullDeepLink = parsed.deepLink
+        ? `${parsed.deepLink}${location.search}${location.hash}`
+        : undefined;
+
+    return {
+        agentId: parsed.resourceId,
+        sreLink: fullDeepLink || undefined,
+    };
+}, [location.pathname, location.search, location.hash]);
 ```
 
-The iframe UX receives this as a query parameter and routes internally.
+The iframe UX receives the deep link as a URL hash and routes internally.
 
 ## Navigation Hooks
 
@@ -105,8 +126,11 @@ const navigate = useNavigate();
 // Navigate to home
 navigate('/');
 
-// Navigate to agent
-navigate(`/agents/${encodeURIComponent(resourceId)}`);
+// Navigate to agent (resourceId starts with /)
+navigate(`/agents${resourceId}`);
+
+// Navigate to space
+navigate(`/spaces${spaceId}`);
 
 // Go back
 navigate(-1);
@@ -120,19 +144,39 @@ Access current route information:
 import { useLocation } from 'react-router-dom';
 
 const location = useLocation();
-console.log(location.pathname);  // "/agents/..."
+console.log(location.pathname);  // "/agents/subscriptions/..."
 console.log(location.search);    // "?query=value"
 console.log(location.hash);      // "#section"
 ```
 
-### useParams
+## Resource Routing Utility
 
-Extract route parameters:
+The `parseResourceRoute` utility (`src/Common/Utilities/ResourceRouting.ts`) provides:
+
+### parseResourceRoute
+
+Extracts ARM resource ID and deep link from a URL path:
 
 ```typescript
-import { useParams } from 'react-router-dom';
+import { parseResourceRoute } from '../Common/Utilities/ResourceRouting';
 
-const { agentId } = useParams<{ agentId: string }>();
+const result = parseResourceRoute('/agents/subscriptions/000/resourceGroups/rg/providers/Microsoft.App/agents/my-agent/views/thread/t-1', '/agents');
+// Returns:
+// {
+//   resourceId: '/subscriptions/000/resourceGroups/rg/providers/Microsoft.App/agents/my-agent',
+//   deepLink: 'views/thread/t-1'
+// }
+```
+
+### buildResourcePath
+
+Constructs a URL path from route prefix, resource ID, and optional deep link:
+
+```typescript
+import { buildResourcePath } from '../Common/Utilities/ResourceRouting';
+
+const path = buildResourcePath('/agents', '/subscriptions/.../my-agent', 'views/thread/t-1');
+// Returns: '/agents/subscriptions/.../my-agent/views/thread/t-1'
 ```
 
 ## Base URL Configuration
@@ -148,9 +192,21 @@ Set via environment variable: `SRE_AGENT_PORTAL_VERSION=v1.2.3`
 
 ## Best Practices
 
-1. **Always encode agent IDs** - Use `encodeURIComponent()` when constructing URLs
-2. **Always decode in components** - Use `decodeURIComponent()` when reading from params
-3. **Use parseArmId utility** - Parse ARM resource IDs consistently (`src/Common/Utilities/ArmId.ts`)
+1. **Don't encode resource IDs** - Resource IDs are path-based, not URL-encoded parameters
+2. **Use parseResourceRoute** - Extract resource IDs from URL paths consistently
+3. **Use parseArmId utility** - Parse ARM resource ID components (`src/Common/Utilities/ArmId.ts`)
 4. **Check auth in layout** - Let `PortalLayout` handle auth redirects, don't duplicate logic
 5. **Prefer useNavigate** - Use hook instead of `<Link>` for conditional navigation
 6. **Log route changes** - `PortalLayout` logs all route navigation for telemetry
+
+## External Agents Route
+
+External agents (cross-tenant) still use URL-encoded parameters since they don't have ARM resource IDs:
+
+```plaintext
+/externalagents/{encodedAgentName}/{encodedAgentUri}/views/thread/t-1
+```
+
+```typescript
+navigate(`/externalagents/${encodeURIComponent(displayName)}/${encodeURIComponent(agentUri)}`);
+```

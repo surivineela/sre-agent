@@ -74,7 +74,8 @@ describe('useThreadDeepLink', () => {
         const resourceId = '/subscriptions/1111/resourceGroups/rg/providers/Microsoft.Sample/agents/sreaAgent';
 
         const link = useThreadDeepLink(threadId, resourceId, 'https://myagent.contoso.com');
-        const expected = `${sreaPortalUrl}/agents/${encodeURIComponent(resourceId)}/views/thread/${threadId}`;
+        // Resource ID is part of the path (no encoding)
+        const expected = `${sreaPortalUrl}/agents${resourceId}/views/thread/${threadId}`;
         expect(link).toBe(expected);
     });
 

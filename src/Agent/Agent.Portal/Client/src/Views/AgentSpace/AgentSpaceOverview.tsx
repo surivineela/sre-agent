@@ -198,7 +198,7 @@ export const AgentSpaceOverview = ({
                     <TableCellLayout
                         media={<Image src="/SreAgent.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.agent)} />}
                     >
-                        <Link onClick={() => navigate(`/agents/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
+                        <Link onClick={() => navigate(`/agents${item.id}`)}>{item.name}</Link>
                     </TableCellLayout>
                 ),
             }),

@@ -90,9 +90,9 @@ const router = createBrowserRouter(
             children: [
                 { index: true, element: <HomeBrowseView /> },
                 { path: 'welcome', element: <LandingPage /> },
-                { path: 'agents/:agentId/*', element: <AgentIFrameView /> },
+                { path: 'agents/*', element: <AgentIFrameView /> },
                 { path: 'externalagents/:agentName/:agentUri/*', element: <ExternalAgentIFrameView /> },
-                { path: 'spaces/:spaceId', element: <AgentSpaceView /> },
+                { path: 'spaces/*', element: <AgentSpaceView /> },
                 { path: '*', element: <HomeBrowseView /> },
             ],
         },

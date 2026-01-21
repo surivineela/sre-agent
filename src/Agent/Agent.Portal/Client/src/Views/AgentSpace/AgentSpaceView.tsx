@@ -1,7 +1,7 @@
 import { Card, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Spinner, Text, tokens } from '@fluentui/react-components';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AgentSpaceClient } from '../../Common/Clients/AgentSpaceClient';
 import { ViewResourceJsonDialog } from '../../Common/Components/ViewResourceJsonDialog/ViewResourceJsonDialog';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
@@ -11,6 +11,7 @@ import { ProductName } from '../../Common/Contracts/Amplitude';
 import { useIsInternal } from '../../Common/Hooks/useIsInternal';
 import { parseArmId } from '../../Common/Utilities/ArmId';
 import { getArmErrorMessage } from '../../Common/Utilities/Client';
+import { parseResourceRoute } from '../../Common/Utilities/ResourceRouting';
 import { PortalResources } from '../../Strings/Resources';
 import { AgentSpaceConfiguration } from './AgentSpaceConfiguration';
 import { AgentSpaceOverview } from './AgentSpaceOverview';
@@ -212,9 +213,12 @@ const AgentSpaceViewContent = ({ resourceId }: { resourceId: string }) => {
 };
 
 export const AgentSpaceView = () => {
-    const { spaceId: encodedSpaceId } = useParams<{ spaceId: string }>();
+    const location = useLocation();
 
-    const resourceId = useMemo(() => decodeURIComponent(encodedSpaceId ?? ''), [encodedSpaceId]);
+    const resourceId = useMemo(() => {
+        const parsed = parseResourceRoute(location.pathname, '/spaces');
+        return parsed?.resourceId ?? '';
+    }, [location.pathname]);
 
     return (
         <AmplitudeContextProvider
