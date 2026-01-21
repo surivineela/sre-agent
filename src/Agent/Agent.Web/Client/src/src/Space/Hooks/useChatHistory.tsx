@@ -28,6 +28,7 @@ export const useChatHistory = (
     const isFetchingPreviousPage = useRef<boolean>(false);
     const hasPreviousPage = useRef<boolean>(true);
     const timestampCutOffForFetchingOlderMessagesRef = useRef<string | undefined | null>(null);
+    const loadMessagesCallId = useRef<number>(0);
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const messageClient = MessageClient.getInstance(sreAgentEndpoint);
@@ -70,29 +71,40 @@ export const useChatHistory = (
             return;
         }
 
+        const callId = loadMessagesCallId.current;
+
         const interval = exponentialBackoffDepth.current < 0 ? 0 : getIntervalBetweenLoading(exponentialBackoffDepth.current);
 
         timeout.current = setTimeout(async () => {
             isFetchingPreviousPage.current = true;
             const newPage = await fetchPage(threadId, timestampCutOffForFetchingOlderMessagesRef.current);
-            if (!newPage) {
-                exponentialBackoffDepth.current += 1;
-            } else {
-                if (newPage.length > 0) {
-                    prepareForAddingChatHistory();
-                    setMessageGroups(prev => updateChatMessageGroups(newPage, prev));
+
+            if (callId === loadMessagesCallId.current) {
+                if (!newPage) {
+                    exponentialBackoffDepth.current += 1;
+                } else {
                     if (newPage.length > 0) {
-                        timestampCutOffForFetchingOlderMessagesRef.current = newPage[newPage.length - 1].timeStamp;
+                        prepareForAddingChatHistory();
+                        setMessageGroups(prev => updateChatMessageGroups(newPage, prev));
+                        if (newPage.length > 0) {
+                            timestampCutOffForFetchingOlderMessagesRef.current = newPage[newPage.length - 1].timeStamp;
+                        }
+                        setChatHistoryChangeTrigger(Guid.newGuid());
                     }
-                    setChatHistoryChangeTrigger(Guid.newGuid());
+                    exponentialBackoffDepth.current = -1; // Reset on successful fetch
                 }
-                exponentialBackoffDepth.current = -1; // Reset on successful fetch
             }
             isFetchingPreviousPage.current = false;
         }, interval);
     }, [threadId, isLoadingInitialChatHistory]);
 
     useEffect(() => {
+        loadMessagesCallId.current += 1;
+    }, [threadId, isLoadingInitialChatHistory]);
+
+    useEffect(() => {
+        let isSubscribed = true;
+
         // If it is a new thread which means the threadId is empty, then do not load chat history.
         // If the thread id is not null, but it is same as the one used for creating new thread, that means the thread is just created. In this case, do not load chat history either.
         const doNotLoadChatHistory = !threadId || threadId === threadIdUsedForCreatingNewThread;
@@ -104,35 +116,38 @@ export const useChatHistory = (
                 setChatHistoryChangeTrigger(null);
 
                 const initialPage = await fetchPage(threadId, undefined);
-                const initialChatMessageGroup = updateChatMessageGroups(initialPage || [], []);
 
-                if (initialChatMessageGroup.length > 0) {
-                    const lastMessageGroup = initialChatMessageGroup[initialChatMessageGroup.length - 1];
-                    const initialChatHistoryGroups = [];
-                    // If the last message in the last chat message group is incomplete,
-                    // set the last chat message group as a streaming message.
-                    if (
-                        (lastMessageGroup.agentMessages.length > 0 &&
-                            lastMessageGroup.agentMessages[lastMessageGroup.agentMessages.length - 1].isComplete === false) ||
-                        hasExistingStreamingMessage
-                    ) {
-                        setStreamingMessageGroup({ ...lastMessageGroup });
-                        setIsAgentTyping(true);
-                        setIsWaitingForStreamingMessages(true);
-                        initialChatHistoryGroups.push(...initialChatMessageGroup.slice(0, initialChatMessageGroup.length - 1));
-                    } else {
-                        initialChatHistoryGroups.push(...initialChatMessageGroup);
+                if (isSubscribed) {
+                    const initialChatMessageGroup = updateChatMessageGroups(initialPage || [], []);
+
+                    if (initialChatMessageGroup.length > 0) {
+                        const lastMessageGroup = initialChatMessageGroup[initialChatMessageGroup.length - 1];
+                        const initialChatHistoryGroups = [];
+                        // If the last message in the last chat message group is incomplete,
+                        // set the last chat message group as a streaming message.
+                        if (
+                            (lastMessageGroup.agentMessages.length > 0 &&
+                                lastMessageGroup.agentMessages[lastMessageGroup.agentMessages.length - 1].isComplete === false) ||
+                            hasExistingStreamingMessage
+                        ) {
+                            setStreamingMessageGroup({ ...lastMessageGroup });
+                            setIsAgentTyping(true);
+                            setIsWaitingForStreamingMessages(true);
+                            initialChatHistoryGroups.push(...initialChatMessageGroup.slice(0, initialChatMessageGroup.length - 1));
+                        } else {
+                            initialChatHistoryGroups.push(...initialChatMessageGroup);
+                        }
+
+                        prepareForAddingChatHistory();
+                        setMessageGroups(initialChatHistoryGroups);
+                        timestampCutOffForFetchingOlderMessagesRef.current = initialPage?.[initialPage.length - 1]?.timeStamp;
                     }
 
-                    prepareForAddingChatHistory();
-                    setMessageGroups(initialChatHistoryGroups);
-                    timestampCutOffForFetchingOlderMessagesRef.current = initialPage?.[initialPage.length - 1]?.timeStamp;
+                    setNewestMessageTimestampInOldMessages(initialPage?.[0]?.timeStamp || '');
+                    setIsLoadingInitialChatHistory(false);
+
+                    requestAnimationFrame(() => scrollToBottom(false));
                 }
-
-                setNewestMessageTimestampInOldMessages(initialPage?.[0]?.timeStamp || '');
-                setIsLoadingInitialChatHistory(false);
-
-                requestAnimationFrame(() => scrollToBottom(false));
             };
 
             loadInitialPage();
@@ -144,6 +159,10 @@ export const useChatHistory = (
             setChatHistoryChangeTrigger(null);
             hasPreviousPage.current = false;
         }
+
+        return () => {
+            isSubscribed = false;
+        };
     }, [threadId, hasExistingStreamingMessage, threadIdUsedForCreatingNewThread]);
 
     useEffect(() => {
