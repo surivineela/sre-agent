@@ -15,6 +15,7 @@ import IncidentManagementSettings from '../Settings/IncidentManagementSettings';
 import { useCommonStyles } from '../Styles/Common.styles';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import Analysis from './Analysis';
+import { IncidentManagementEmptyState } from './Common/IncidentManagementEmptyState';
 import IncidentsOverview from './IncidentsOverview/IncidentsOverview';
 import ResponsePlanOverview from './ReponsePlanOverview';
 
@@ -110,9 +111,20 @@ const IncidentManagement: FC<IIncidentManagementProps> = ({ menuItem }) => {
                         {selectedKey === SecondaryNavItemValues.ResponsePlans && (
                             <ResponsePlanOverview setNavigationHidden={setNavigationHidden} />
                         )}
-                        {agentAppInsightsAppId && selectedKey === SecondaryNavItemValues.Metrics && (
-                            <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
-                        )}
+                        {selectedKey === SecondaryNavItemValues.Metrics &&
+                            (agentAppInsightsAppId ? (
+                                <Analysis agentAppInsightsAppId={agentAppInsightsAppId} />
+                            ) : (
+                                <IncidentManagementEmptyState
+                                    type="noAppInsights"
+                                    onButtonClick={() =>
+                                        navigate({
+                                            primaryNavItemValue: PrimaryNavItemValues.Settings,
+                                            secondaryNavItemValue: SecondaryNavItemValues.Basics,
+                                        })
+                                    }
+                                />
+                            ))}
                         {selectedKey === SecondaryNavItemValues.IncidentPlatform && <IncidentManagementSettings />}
                     </>
                 )}

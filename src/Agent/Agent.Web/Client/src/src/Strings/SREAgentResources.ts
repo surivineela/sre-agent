@@ -2020,6 +2020,13 @@ export const IncidentManagementResources = defineMessages({
     },
     handlersEmptyStateLearnMore: { defaultMessage: 'Learn more about response plans', id: 'HQ4NJ3' },
     handlersEmptyStateButtonText: { defaultMessage: 'Add a response plan', id: 'GkKcbX' },
+    configureApplicationInsights: { defaultMessage: 'Configure Application Insights', id: 'UqbR2b' },
+    configureApplicationInsightsDescription: {
+        defaultMessage:
+            'Set up Application Insights to gain visibility into incident metrics, pending user actions, and performance data for your response plans.',
+        id: 'JdHbCZ',
+    },
+    goToSettings: { defaultMessage: 'Go to Settings', id: 'p7mA0U' },
     rcaCategory: { defaultMessage: 'RCA category', id: 'hqWr3L' },
     rcaCategoryLabel: { defaultMessage: 'Category', id: 'ccXLVi' },
     relatedIncidents: { defaultMessage: 'Related incidents', id: '+Kcoxv' },
@@ -2405,7 +2412,11 @@ export const SettingsTabResources = defineMessages({
     upgradeChannelCurrentStatus: { defaultMessage: 'Current status', id: 'pFm27r' },
     upgradeChannelUpdatingTitle: { defaultMessage: 'Updating upgrade channel', id: 'ppARxn' },
     upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },
-    upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully. This may take a couple minutes to take effect, and will require refreshing the page.', id: 'IJ3Jsu' },
+    upgradeChannelUpdateSuccess: {
+        defaultMessage:
+            'Upgrade channel updated to {channel} successfully. This may take a couple minutes to take effect, and will require refreshing the page.',
+        id: 'IJ3Jsu',
+    },
     upgradeChannelUpdateFailed: { defaultMessage: 'Failed to update upgrade channel', id: 'aRUGFu' },
     defaultModelUpdatingTitle: { defaultMessage: 'Updating default model provider', id: 'R/9v0F' },
     defaultModelUpdatingDescription: { defaultMessage: 'Updating default model provider to {model}', id: 'uXCK62' },

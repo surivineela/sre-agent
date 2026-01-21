@@ -11,7 +11,8 @@ const useStyles = makeStyles({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '485px',
+        height: '100%',
+        width: '100%',
     },
     emptyState: {
         display: 'flex',
@@ -48,7 +49,7 @@ const useStyles = makeStyles({
 });
 
 interface IncidentManagementEmptyStateProps {
-    type: 'noPlatform' | 'noHandlers';
+    type: 'noPlatform' | 'noHandlers' | 'noAppInsights';
     onButtonClick: () => void;
 }
 
@@ -60,27 +61,42 @@ export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps>
     } = useContext(SreAgentContext);
 
     const { imgSrc, imgAlt, title, description, learnMore, learnMoreLink, buttonText, disabled } = useMemo(() => {
-        return type === 'noPlatform'
-            ? {
-                  imgSrc: './PlatformConnection.svg',
-                  imgAlt: intl.formatMessage(IncidentManagementResources.incidentPlatform),
-                  title: intl.formatMessage(IncidentManagementResources.platformEmptyStateTitle),
-                  description: intl.formatMessage(IncidentManagementResources.platformEmptyStateMessage),
-                  learnMore: intl.formatMessage(IncidentManagementResources.platformEmptyStateLearnMore),
-                  learnMoreLink: SreAgentFwLinks.learnMoreAboutIncidentManagement,
-                  buttonText: intl.formatMessage(IncidentManagementResources.platformEmptyStateButtonText),
-                  disabled: false,
-              }
-            : {
-                  imgSrc: './ResponsePlan.svg',
-                  imgAlt: intl.formatMessage(IncidentManagementResources.handler),
-                  title: intl.formatMessage(IncidentManagementResources.handlersEmptyStateTitle),
-                  description: intl.formatMessage(IncidentManagementResources.handlersEmptyStateMessage),
-                  learnMore: intl.formatMessage(IncidentManagementResources.handlersEmptyStateLearnMore),
-                  learnMoreLink: SreAgentFwLinks.learnMoreAboutResponsePlans,
-                  buttonText: intl.formatMessage(IncidentManagementResources.handlersEmptyStateButtonText),
-                  disabled: incidentManagementConnectionState !== 'connected',
-              };
+        if (type === 'noPlatform') {
+            return {
+                imgSrc: './PlatformConnection.svg',
+                imgAlt: intl.formatMessage(IncidentManagementResources.incidentPlatform),
+                title: intl.formatMessage(IncidentManagementResources.platformEmptyStateTitle),
+                description: intl.formatMessage(IncidentManagementResources.platformEmptyStateMessage),
+                learnMore: intl.formatMessage(IncidentManagementResources.platformEmptyStateLearnMore),
+                learnMoreLink: SreAgentFwLinks.learnMoreAboutIncidentManagement,
+                buttonText: intl.formatMessage(IncidentManagementResources.platformEmptyStateButtonText),
+                disabled: false,
+            };
+        }
+
+        if (type === 'noAppInsights') {
+            return {
+                imgSrc: './ResponsePlan.svg',
+                imgAlt: intl.formatMessage(IncidentManagementResources.configureApplicationInsights),
+                title: intl.formatMessage(IncidentManagementResources.configureApplicationInsights),
+                description: intl.formatMessage(IncidentManagementResources.configureApplicationInsightsDescription),
+                learnMore: undefined,
+                learnMoreLink: undefined,
+                buttonText: intl.formatMessage(IncidentManagementResources.goToSettings),
+                disabled: false,
+            };
+        }
+
+        return {
+            imgSrc: './ResponsePlan.svg',
+            imgAlt: intl.formatMessage(IncidentManagementResources.handler),
+            title: intl.formatMessage(IncidentManagementResources.handlersEmptyStateTitle),
+            description: intl.formatMessage(IncidentManagementResources.handlersEmptyStateMessage),
+            learnMore: intl.formatMessage(IncidentManagementResources.handlersEmptyStateLearnMore),
+            learnMoreLink: SreAgentFwLinks.learnMoreAboutResponsePlans,
+            buttonText: intl.formatMessage(IncidentManagementResources.handlersEmptyStateButtonText),
+            disabled: incidentManagementConnectionState !== 'connected',
+        };
     }, [intl, type, incidentManagementConnectionState]);
 
     return (
@@ -92,9 +108,11 @@ export const IncidentManagementEmptyState: FC<IncidentManagementEmptyStateProps>
                         <div className={styles.messageTitle}>{title}</div>
                         <div className={styles.messageContent}>
                             {description}
-                            <Link href={learnMoreLink} target="_blank" className={styles.learnMoreLink}>
-                                {learnMore}
-                            </Link>
+                            {learnMore && learnMoreLink && (
+                                <Link href={learnMoreLink} target="_blank" className={styles.learnMoreLink}>
+                                    {learnMore}
+                                </Link>
+                            )}
                         </div>
                     </div>
                     <Button appearance="primary" onClick={onButtonClick} disabled={disabled}>
