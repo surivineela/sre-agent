@@ -97,7 +97,12 @@ export const useSreAgentSpace = () => {
     const onClickThreadNavItem = useCallback(
         (primary: PrimaryNavItemValues, threadId: string | null) => {
             onClickNavItem(primary, undefined, threadId ? threadId : undefined);
-            setThreadsRenderKey(Guid.newGuid());
+
+            // Reset threads render key after the navigation is done and the re-render is completed to make sure the render key is passed when the thread id returned from useParams is updated.
+            setTimeout(() => {
+                setThreadsRenderKey(Guid.newGuid());
+            }, 0)
+
         },
         [onClickNavItem]
     );
