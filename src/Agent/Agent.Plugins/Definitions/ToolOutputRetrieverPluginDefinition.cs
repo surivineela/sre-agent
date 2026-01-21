@@ -30,7 +30,6 @@ public class ToolOutputRetrieverPluginDefinition
         - Errors: <error>error message</error>
         - read_by_line: <content line_start="X" line_end="Y">content</content>
         - read_by_offset: <content offset_start="X" offset_end="Y">content</content>
-        - summarize: <summary>summarized text</summary>
         - filter_structured: <result>filtered data</result>
         - search_regex: <match line="X" column="Y" offset="Z">preview</match> (one per match)
 
@@ -48,12 +47,7 @@ public class ToolOutputRetrieverPluginDefinition
            Example: Read 1KB starting from byte 5000
             { "fileKey": "data-export-20251130-143025.json", "operation": "read_by_offset", "offsetStart": 5000, "offsetEnd": 6024 }
 
-        3. summarize - Leverages an LLM to interpret and extract relevant information from the file using natural language understanding when conventional data retrieval methods (such as regex patterns, JSON parsing, or structured queries) are unable to locate or extract the expected data
-           Required: fileKey, operation='summarize', summaryPrompt
-           Example: Summarize the entire log file
-             { "fileKey": "logs-20251130-143025.json", "operation": "summarize", "summaryPrompt": "Summarize the content" }
-
-        4. filter_structured - Filter JSON/YAML with JMESPath
+        3. filter_structured - Filter JSON/YAML with JMESPath
            Required: fileKey, operation='filter_structured', jmesPath
            Output format matches input (JSON→JSON, YAML→YAML)
            Example: Extract all error entries from logs
@@ -63,7 +57,7 @@ public class ToolOutputRetrieverPluginDefinition
            Example: Get specific fields
              { "fileKey": "data-20251130-143025.yaml", "operation": "filter_structured", "jmesPath": "foo[?age > `25`]" }
 
-        5. search_regex - Search with regular expressions
+        4. search_regex - Search with regular expressions
            Required: fileKey, operation='search_regex', regexPattern
            Optional: regexFlags (i=case-insensitive, m=multiline, s=dot-matches-newline), regexMaxMatches (default: 100)
            Example: Find all error messages (case-insensitive)
@@ -76,16 +70,14 @@ public class ToolOutputRetrieverPluginDefinition
         - Filter large JSON/YAML datasets
         - Search for specific patterns in large outputs
         - Read specific sections of large files
-        - Summarize or analyze file content
      """)]
     public async Task<string> ToolOutputRetrieverAsync(
         [Description("Unique ID for the stored file (fileKey). It MUST be obtained from the previous truncated tool output")] string fileKey,
-        [Description("Operation to perform: read_by_line, read_by_offset, summarize, filter_structured, search_regex")] string operation,
-        [Description("Starting line number (1-based, for read_by_line and summarize)")] int? lineStart = null,
-        [Description("Ending line number (1-based, optional, for read_by_line and summarize")] int? lineEnd = null,
-        [Description("Starting byte offset (0-based, for read_by_offset and summarize)")] long? offsetStart = null,
-        [Description("Ending byte offset (0-based, optional, for read_by_offset and summarize)")] long? offsetEnd = null,
-        [Description("Prompt for summarization (required for summarize operation)")] string? summaryPrompt = null,
+        [Description("Operation to perform: read_by_line, read_by_offset, filter_structured, search_regex")] string operation,
+        [Description("Starting line number (1-based, for read_by_line)")] int? lineStart = null,
+        [Description("Ending line number (1-based, optional, for read_by_line)")] int? lineEnd = null,
+        [Description("Starting byte offset (0-based, for read_by_offset)")] long? offsetStart = null,
+        [Description("Ending byte offset (0-based, optional, for read_by_offset)")] long? offsetEnd = null,
         [Description("JMESPath expression for filtering (required for filter_structured operation). Example: '[?level==`ERROR`]' or 'items[*].{name:name, status:status} *Don't use unicode in JMESPath expressions*'")] string? jmesPath = null,
         [Description("Regex pattern to search for (required for search_regex operation)")] string? regexPattern = null,
         [Description("Regex flags: i=case-insensitive, m=multiline, s=dot-matches-newline (optional for search_regex)")] string? regexFlags = null,
@@ -99,7 +91,6 @@ public class ToolOutputRetrieverPluginDefinition
             LineEnd = lineEnd,
             OffsetStart = offsetStart,
             OffsetEnd = offsetEnd,
-            SummaryPrompt = summaryPrompt,
             JmesPath = jmesPath,
             RegexPattern = regexPattern,
             RegexFlags = regexFlags,
