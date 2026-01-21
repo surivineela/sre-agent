@@ -31,7 +31,6 @@ module openaiModule 'openai.bicep' = {
   }
   dependsOn: [
     appConfig
-    keyVault
     identity
   ]
 }
@@ -43,7 +42,7 @@ module cosmosdbGraphModule 'cosmosdbGraph.bicep' = {
   }
   dependsOn: [
     appConfig
-    keyVault
+    identity
   ]
 }
 
