@@ -141,12 +141,12 @@ public static class SkillCommandOptions
     {
         public static readonly Option<string?> NameOption = new("--name")
         {
-            Description = "Name of the skill to migrate from V1 to V2"
+            Description = "Name of the skill to migrate to frontmatter format"
         };
 
         public static readonly Option<bool> AllOption = new("--all")
         {
-            Description = "Migrate all V1 skills to V2 format"
+            Description = "Migrate all skills to frontmatter format"
         };
 
         public static readonly Option<bool> DryRunOption = new("--dry-run")

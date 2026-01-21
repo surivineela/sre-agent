@@ -136,11 +136,26 @@ public class ApplyCommandTests : AgentCommandTestBase
         var initialApplyResult = await Runner.RunAsync("skill", "apply", "--name", skillName);
         Assert.True(initialApplyResult.Success, $"Initial apply failed: {initialApplyResult.Output}");
 
-        // Update the metadata.yaml with new description
+        // Update the skill description by modifying the SKILL.md frontmatter
+        // (or metadata.yaml if skill was created in old format)
+        var skillMdPath = $"skills/{skillName}/SKILL.md";
+        var currentSkillMd = Runner.ReadFile(skillMdPath);
+
+        // Check if skill uses frontmatter (new format) or metadata.yaml (old format)
         var metadataPath = $"skills/{skillName}/metadata.yaml";
-        var currentMetadata = Runner.ReadFile(metadataPath);
-        var updatedMetadata = currentMetadata.Replace(initialDescription, "Updated version");
-        Runner.CreateFile(metadataPath, updatedMetadata);
+        if (Runner.FileExists(metadataPath))
+        {
+            // Old format: update metadata.yaml
+            var currentMetadata = Runner.ReadFile(metadataPath);
+            var updatedMetadata = currentMetadata.Replace(initialDescription, "Updated version");
+            Runner.CreateFile(metadataPath, updatedMetadata);
+        }
+        else
+        {
+            // New format: update SKILL.md frontmatter
+            var updatedSkillMd = currentSkillMd.Replace(initialDescription, "Updated version");
+            Runner.CreateFile(skillMdPath, updatedSkillMd);
+        }
 
         // Act: Apply the updated skill
         var updateResult = await Runner.RunAsync("skill", "apply", "--name", skillName);
@@ -157,24 +172,16 @@ public class ApplyCommandTests : AgentCommandTestBase
     [Fact]
     [Trait("Category", "Skill")]
     [Trait("Command", "Apply")]
-    public async Task SkillApply_WithoutMetadataYaml_ReturnsError()
+    public async Task SkillApply_WithoutMetadata_ReturnsError()
     {
-        // Arrange: Create a skill with metadata.yaml but then delete it
+        // Arrange: Create a skill directory with only SKILL.md (no frontmatter, no metadata.yaml)
         var skillName = "incomplete-skill";
 
-        // First create the skill properly
-        var createResult = await Runner.RunAsync(
-            "skill", "create",
-            "--name", skillName,
-            "--description", "Test description"
-        );
-        Assert.True(createResult.Success);
+        // Create skill directory with plain SKILL.md (no frontmatter)
+        Runner.CreateDirectory($"skills/{skillName}");
+        Runner.CreateFile($"skills/{skillName}/SKILL.md", "# Just markdown\n\nNo metadata here.");
 
-        // Delete metadata.yaml to make it incomplete
-        var metadataPath = $"skills/{skillName}/metadata.yaml";
-        System.IO.File.Delete(Path.Combine(Runner.WorkingDirectory, metadataPath));
-
-        // Act: Try to apply
+        // Act: Try to apply - should fail because there's no valid metadata
         var result = await Runner.RunAsync("skill", "apply", "--name", skillName);
 
         // Assert
@@ -297,5 +304,38 @@ public class ApplyCommandTests : AgentCommandTestBase
 
         Assert.True(result.Success);
         Assert.Contains("applied successfully", result.Output, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    [Trait("Category", "Skill")]
+    [Trait("Command", "Apply")]
+    public async Task SkillApply_OldMetadataFormat_ShowsDeprecationWarning()
+    {
+        // Arrange: Create a skill using the old metadata.yaml format (no frontmatter)
+        var skillName = "old-format-skill";
+        var metadataYaml = TestYamlHelper.GetSkillMetadataV2(skillName, "Old format skill description");
+        var skillMd = "# Old Format Skill\n\nThis skill uses the deprecated metadata.yaml format.";
+
+        Runner.CreateDirectory($"skills/{skillName}");
+        Runner.CreateFile($"skills/{skillName}/metadata.yaml", metadataYaml);
+        Runner.CreateFile($"skills/{skillName}/SKILL.md", skillMd);
+
+        // Act: Apply the skill
+        var result = await Runner.RunAsync("skill", "apply", "--name", skillName);
+
+        // Assert
+        _output.WriteLine("=== Apply Command Output ===");
+        _output.WriteLine(result.Output);
+        _output.WriteLine("============================");
+
+        Assert.True(result.Success, $"Apply should succeed: {result.Output}");
+        Assert.Contains("applied successfully", result.Output, StringComparison.OrdinalIgnoreCase);
+
+        // Verify deprecation warning is shown
+        Assert.Contains("deprecated", result.Output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("metadata.yaml", result.Output, StringComparison.OrdinalIgnoreCase);
+
+        // Verify migrate suggestion is shown
+        Assert.Contains("srectl skill migrate", result.Output, StringComparison.OrdinalIgnoreCase);
     }
 }

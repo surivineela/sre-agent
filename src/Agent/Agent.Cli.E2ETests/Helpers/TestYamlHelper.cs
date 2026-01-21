@@ -416,6 +416,50 @@ spec:
         return GetSkillMetadataV2(name, "Test skill for E2E testing");
     }
 
+    /// <summary>
+    /// Generates a SKILL.md file with YAML frontmatter (new format).
+    /// </summary>
+    public static string GetSkillMdWithFrontmatter(
+        string name,
+        string description = "Test skill description",
+        string[]? tools = null,
+        string? markdownContent = null)
+    {
+        var yaml = $@"---
+name: {name}
+description: {description}";
+
+        if (tools != null && tools.Length > 0)
+        {
+            yaml += "\ntools:";
+            foreach (var tool in tools)
+            {
+                yaml += $"\n  - {tool}";
+            }
+        }
+
+        yaml += "\n---\n\n";
+
+        // Add markdown content
+        var content = markdownContent ?? $@"# {name}
+
+This is the skill content for {name}.
+
+## Instructions
+
+Follow these steps...";
+
+        return yaml + content;
+    }
+
+    /// <summary>
+    /// Generates a minimal SKILL.md file with frontmatter for testing.
+    /// </summary>
+    public static string GetMinimalSkillMdWithFrontmatter(string name)
+    {
+        return GetSkillMdWithFrontmatter(name, "Test skill for E2E testing");
+    }
+
     // ============================================================
     // V2 Incident Filter YAML Generators
     // ============================================================

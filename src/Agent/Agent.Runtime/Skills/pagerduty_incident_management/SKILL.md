@@ -1,3 +1,21 @@
+---
+name: pagerduty_incident_management
+description: |
+  Load this skill when the user wants to view, update, or analyze PagerDuty incident(s) related to Azure resources.
+  Typical triggers:
+  - List or filter incidents for a specific Azure resource (resource ID, name, service mapping)
+  - Retrieve an incident by ID for status, responders, or timeline
+  - Acknowledge, resolve, or add a diagnostic/update note
+  - Request runbook / troubleshooting / diagnostic guidance via PagerDuty AI assistant using incident context
+  Exclude loading if the request is only general Azure resource inventory or configuration (handled by core system prompt tools). Focus strictly on PagerDuty incident lifecycle and diagnostic enrichment.
+tools:
+  - ResolvePagerDutyIncident
+  - GetPagerDutyIncidentById
+  - AcknowledgePagerDutyIncident
+  - AddNoteToPagerDutyIncident
+  - QueryPagerDutyIncidentChat
+---
+
 # PagerDuty Incident Management for Azure Resources
 
 ## Purpose

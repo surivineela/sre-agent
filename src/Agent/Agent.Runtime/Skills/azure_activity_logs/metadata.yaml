@@ -1,8 +1,0 @@
-name: azure_activity_logs
-description: |
-  Use this skill when you need to understand "what changed" in Azure, based on Activity Logs, for one or more resources, resource groups, or subscriptions. It focuses on WRITE and DEPLOYMENT events, builds a clear timeline of important changes, highlights high-risk or failed operations, and explains who made the change and when. The skill is especially useful when an incident may be caused by a recent configuration or platform change, or when deployments are failing or behaving unexpectedly. It produces concise summaries, timelines, risk assessments, and suggested rollback or mitigation options (including draft az CLI commands and issue/work item drafts) while keeping noise low and calling out uncertainty when data is incomplete.
-tools:
-  - GetActivityLogsSummary
-  - AnalyzeDeploymentFailures
-  - GetChangeHistory
-  - ShowChangeDiffViewer

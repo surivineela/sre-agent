@@ -1,3 +1,33 @@
+---
+name: api_management
+description: This skill enables comprehensive orchestration and delegation of diagnostics and remediation tasks for Azure API Management services, ensuring the appropriate specialists are engaged while gathering context, supporting troubleshooting, and presenting actionable insights to users.
+tools:
+  - ListAPIManagement
+  - ListSubscriptions
+  - ListResourceGroups
+  - GetAPIMErrorLogs
+  - GetAPIMFailureRateByApiOperation
+  - GetAPIMRecentFailedRequests
+  - GetAPIMApis
+  - GetAPIDetailsByName
+  - GetAPIOperationsByApi
+  - GetAPIOperationDetailedInfo
+  - GetAPIMActivityLogs
+  - GetAPIManagementInfo
+  - GetVNetConfigurationForApiManagement
+  - GetNSGRulesForApiManagement
+  - GetNSGActivityLogs
+  - CheckForVirtualNetworkIssues
+  - GetPoliciesByApi
+  - GetPoliciesByOperation
+  - GetGlobalApimPolicy
+  - GetResourceDetailedProperties
+  - GetApplicationComponentsSummary
+  - APIMModifyNSGRule
+  - APIMRemoveNSGRule
+  - ScaleAPIMInstance
+---
+
 # Azure API Management (APIM) Operations Skill
 
 All markdown files in this folder collectively form a single APIM skill. This core file is the starting point; diagnosis and remediation are supplementary references you open progressively only when their triggers appear. Backend investigation (Function Apps, Container Apps) is triggered here—not inside the supplementary files.

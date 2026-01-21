@@ -225,21 +225,14 @@ public static class ApplyYamlCommandHandlers
                         return (false, "Failed to determine directory from YAML file path");
                     }
 
-                    // Determine the metadata.yaml path:
-                    // If the YAML file is named metadata.yaml, use it directly
-                    // Otherwise, assume it's in the current directory
-                    string metadataPath;
-                    if (Path.GetFileName(yamlFilePath).Equals("metadata.yaml", StringComparison.OrdinalIgnoreCase))
+                    // Only metadata.yaml files are supported for direct YAML apply
+                    if (!Path.GetFileName(yamlFilePath).Equals("metadata.yaml", StringComparison.OrdinalIgnoreCase))
                     {
-                        metadataPath = yamlFilePath;
-                    }
-                    else
-                    {
-                        // For multi-document YAML files, we cannot determine which skill directory to use
-                        return (false, "Skill resources in multi-document YAML files are not supported. Please use separate metadata.yaml files or use 'srectl skill apply' command.");
+                        return (false, "Skill resources in multi-document YAML files are not supported. Please use 'srectl skill apply' command.");
                     }
 
-                    var (skill, error) = await ExtendedSkillV2.LoadYamlAsync(metadataPath);
+                    // Load skill from directory (handles both frontmatter and metadata.yaml)
+                    var (skill, error) = await ExtendedSkillV2.LoadFromDirectoryAsync(yamlDirectory);
                     if (skill == null || !string.IsNullOrEmpty(error))
                     {
                         return (false, error ?? "Failed to load skill");

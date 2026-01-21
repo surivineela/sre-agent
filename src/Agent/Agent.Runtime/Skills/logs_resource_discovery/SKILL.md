@@ -1,3 +1,16 @@
+---
+name: logs_resource_discovery
+description: Load this skill when a user asks where logs/metrics/traces for an Azure resource are going, how to find its connected Application Insights / Log Analytics workspace / Data Explorer cluster, needs instrumentation keys or connection strings, wants to confirm diagnostic settings coverage, or reports missing / unclear logging configuration. Also use it to inventory monitoring infrastructure before suggesting query or analysis steps. After discovery, if the user shifts to deep performance or incident diagnosis, defer to the relevant domain skill; this skill focuses on discovering and enumerating logging & monitoring attachments, not root cause analysis.
+tools:
+  - GetResourceDetailedProperties
+  - SearchResource
+  - ListResourcesByType
+  - SearchResourceByName
+  - GetResourceIdForResourceName
+  - ListResourceGroups
+  - VisualizeApplicationComponents
+---
+
 # Logs Resource Discovery Skill
 
 ## Purpose

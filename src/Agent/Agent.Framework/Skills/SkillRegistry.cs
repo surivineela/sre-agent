@@ -120,16 +120,43 @@ public class SkillRegistry(
 
     private async Task LoadSystemSkillAsync(string skillDirectory)
     {
+        var skillMdPath = Path.Combine(skillDirectory, "SKILL.md");
         var metadataPath = Path.Combine(skillDirectory, "metadata.yaml");
 
-        if (!File.Exists(metadataPath))
+        YamlSkillDescriptor? descriptor = null;
+
+        // Try new format first: SKILL.md with frontmatter
+        if (File.Exists(skillMdPath))
         {
-            logger.LogInternalWarning("Skill directory '{SkillDirectory}' does not contain metadata.yaml. Skipping.", skillDirectory);
-            return;
+            var skillMdContent = await File.ReadAllTextAsync(skillMdPath);
+            var frontmatterResult = SkillFrontmatter.Parse(skillMdContent);
+
+            if (frontmatterResult.ParsingException != null)
+            {
+                logger.LogInternalWarning(frontmatterResult.ParsingException, "Skill directory '{SkillDirectory}' encountered an error while parsing SKILL.md frontmatter: {Error}. Skipping.", skillDirectory, frontmatterResult.ParsingException.Message);
+                return;
+            }
+
+            if (frontmatterResult.HasFrontmatter)
+            {
+                descriptor = frontmatterResult.Metadata;
+                logger.LogInternalInformation("Loaded skill metadata from SKILL.md frontmatter in '{SkillDirectory}'", skillDirectory);
+            }
         }
 
-        var yamlContent = await File.ReadAllTextAsync(metadataPath);
-        var descriptor = YamlSkillDescriptor.FromYaml(yamlContent);
+        // Fall back to old format: metadata.yaml (deprecated)
+        if (descriptor == null)
+        {
+            if (!File.Exists(metadataPath))
+            {
+                logger.LogInternalWarning("Skill directory '{SkillDirectory}' does not contain valid SKILL.md frontmatter or metadata.yaml. Skipping.", skillDirectory);
+                return;
+            }
+
+            var yamlContent = await File.ReadAllTextAsync(metadataPath);
+            descriptor = YamlSkillDescriptor.FromYaml(yamlContent);
+            logger.LogInternalWarning("Skill '{SkillDirectory}' uses deprecated metadata.yaml format. Consider migrating to SKILL.md frontmatter.", skillDirectory);
+        }
 
         if (string.IsNullOrEmpty(descriptor.Name))
         {

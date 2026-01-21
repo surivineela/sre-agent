@@ -1,3 +1,12 @@
+---
+name: cdb_general
+description: Provides diagnostics for Azure Cosmos DB SDK and service-side issues (throttling, latency, availability, configuration), leveraging Azure Support Center APIs. Specializes in product discovery, problem classification, and guided diagnostics. Does not handle infrastructure networking (NSG, VNet, DNS, firewall). Diagnosis only, no remediation.
+tools:
+  - GetSupportProductsFromArm
+  - GetSupportProblemClassificationsForProduct
+  - GetAzureSupportCenterDiagnosticResultsForQuestion
+---
+
 # Cosmos DB (CDB) General Diagnostic Skill
 
 ## Overview

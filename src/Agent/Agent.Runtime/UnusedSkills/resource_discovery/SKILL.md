@@ -1,3 +1,21 @@
+---
+name: resource_discovery
+description: The Resource Discovery Skill specializes in discovering Azure resources, validating identifiers, and gathering configuration and relationship details across subscriptions and resource groups. It enables precise resource identification essential for management, remediation, and investigative workflows.
+tools:
+  - DiscoverApplications
+  - GetApplicationComponentsSummary
+  - ListSubscriptions
+  - ListResourceGroups
+  - SearchResource
+  - SearchResourceByName
+  - VisualizeApplicationComponents
+  - GetResourceCount
+  - ListResourcesByType
+  - GetKnowledgeGraphResourceUsageDashboard
+  - GetResourceDetailedProperties
+  - GetResourceIdForResourceName
+---
+
 # Overview
 
 Provide precise discovery of Azure resources and Kubernetes (AKS) native resources using a comprehensive knowledge graph. Act as the starting point for any investigation that requires identifying resources, resolving ambiguity, collecting properties, understanding relationships, and verifying real-time state for health or configuration checks. Always return complete and accurate Resource IDs and present user-facing results clearly.

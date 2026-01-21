@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cli.Models;
+using Agent.Framework.Skills;
 
 namespace Agent.Cli.Helpers;
 
@@ -123,10 +124,11 @@ public static class ExtendedSkillHelper
     }
 
     /// <summary>
-    /// Validates if a directory contains the required skill files (metadata.yaml and SKILL.md).
+    /// Validates if a directory contains valid skill files.
+    /// Supports both new format (SKILL.md with frontmatter) and old format (metadata.yaml + SKILL.md).
     /// </summary>
     /// <param name="directoryPath">Path to the skill directory</param>
-    /// <returns>True if the directory contains required skill files, false otherwise</returns>
+    /// <returns>True if the directory contains valid skill files, false otherwise</returns>
     public static bool IsValidSkillDirectory(string directoryPath)
     {
         if (!Directory.Exists(directoryPath))
@@ -134,20 +136,81 @@ public static class ExtendedSkillHelper
             return false;
         }
 
-        var metadataPath = Path.Combine(directoryPath, MetadataFileName);
         var skillMdPath = Path.Combine(directoryPath, SkillContentFileName);
 
-        return File.Exists(metadataPath) && File.Exists(skillMdPath);
+        // SKILL.md must always exist
+        if (!File.Exists(skillMdPath))
+        {
+            return false;
+        }
+
+        // Check new format: SKILL.md with frontmatter
+        try
+        {
+            var skillMdContent = File.ReadAllText(skillMdPath);
+            if (SkillFrontmatter.HasValidFrontmatter(skillMdContent))
+            {
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            // If we can't read the file, fall through to old format check
+            DebugLogger.Debug("SkillValidation", $"Failed to read SKILL.md in {directoryPath}: {ex.Message}");
+        }
+
+        // Check old format: metadata.yaml + SKILL.md
+        var metadataPath = Path.Combine(directoryPath, MetadataFileName);
+        return File.Exists(metadataPath);
     }
 
     /// <summary>
-    /// Generates SKILL.md template content for a new skill.
+    /// Checks if a skill directory uses the new frontmatter format.
+    /// </summary>
+    /// <param name="directoryPath">Path to the skill directory</param>
+    /// <returns>True if SKILL.md has valid frontmatter, false otherwise</returns>
+    public static bool UsesFrontmatterFormat(string directoryPath)
+    {
+        var skillMdPath = Path.Combine(directoryPath, SkillContentFileName);
+        if (!File.Exists(skillMdPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var skillMdContent = File.ReadAllText(skillMdPath);
+            return SkillFrontmatter.HasValidFrontmatter(skillMdContent);
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("SkillValidation", $"Failed to read SKILL.md in {directoryPath}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Generates SKILL.md template content for a new skill with frontmatter.
     /// </summary>
     /// <param name="skillName">The name of the skill</param>
-    /// <returns>The SKILL.md content as a string</returns>
-    public static string CreateSkillContent(string skillName)
+    /// <param name="description">Optional description for the skill</param>
+    /// <returns>The SKILL.md content as a string with frontmatter</returns>
+    public static string CreateSkillContent(string skillName, string? description = null)
     {
-        return $@"# {skillName}
+        var defaultDescription = "Brief description of what this skill does and when to use it.";
+        var metadata = new Agent.Framework.Skills.YamlSkillDescriptor
+        {
+            Metadata = new Agent.Framework.Skills.YamlSkillMetadata
+            {
+                ApiVersion = YamlApiVersion.V2.Value,
+                Kind = Models.ResourceModel.ResourceKind.SkillV2
+            },
+            Name = skillName,
+            Description = description ?? defaultDescription,
+            Tools = []
+        };
+
+        var markdownBody = $@"# {skillName}
 
 ## Overview
 Provide a clear overview of what this skill does and when it should be used.
@@ -191,6 +254,72 @@ Provide detailed instructions for using this skill:
 - Related runbooks
 - Other helpful information
 ";
+
+        // Generate the SKILL.md with frontmatter (includeFirstPartyOnly: false for user skills)
+        return SkillFrontmatter.Generate(metadata, markdownBody, includeFirstPartyOnly: false);
+    }
+
+    /// <summary>
+    /// Represents the format used for skill metadata storage.
+    /// </summary>
+    public enum SkillMetadataFormat
+    {
+        /// <summary>
+        /// New format: metadata stored in SKILL.md YAML frontmatter.
+        /// </summary>
+        Frontmatter,
+
+        /// <summary>
+        /// Legacy format: metadata stored in separate metadata.yaml file.
+        /// </summary>
+        MetadataYaml,
+
+        /// <summary>
+        /// Unknown or invalid format.
+        /// </summary>
+        Unknown
+    }
+
+    /// <summary>
+    /// Detects the metadata format used by a skill directory.
+    /// </summary>
+    /// <param name="directoryPath">Path to the skill directory</param>
+    /// <returns>The detected SkillMetadataFormat</returns>
+    public static SkillMetadataFormat DetectSkillFormat(string directoryPath)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            return SkillMetadataFormat.Unknown;
+        }
+
+        var skillMdPath = Path.Combine(directoryPath, SkillContentFileName);
+
+        // Check new format first: SKILL.md with frontmatter
+        if (File.Exists(skillMdPath))
+        {
+            try
+            {
+                var skillMdContent = File.ReadAllText(skillMdPath);
+                if (SkillFrontmatter.HasValidFrontmatter(skillMdContent))
+                {
+                    return SkillMetadataFormat.Frontmatter;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Fall through to check old format
+                DebugLogger.Debug("SkillValidation", $"Failed to read SKILL.md in {directoryPath}: {ex.Message}");
+            }
+        }
+
+        // Check old format: metadata.yaml
+        var metadataPath = Path.Combine(directoryPath, MetadataFileName);
+        if (File.Exists(metadataPath))
+        {
+            return SkillMetadataFormat.MetadataYaml;
+        }
+
+        return SkillMetadataFormat.Unknown;
     }
 
     /// <summary>
@@ -253,8 +382,9 @@ Provide detailed instructions for using this skill:
 
             return null;
         }
-        catch
+        catch (Exception ex)
         {
+            DebugLogger.Debug("SkillValidation", $"Failed to detect version for {metadataFilePath}: {ex.Message}");
             return null;
         }
     }
