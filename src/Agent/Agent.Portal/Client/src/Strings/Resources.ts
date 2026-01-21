@@ -144,6 +144,10 @@ export const PortalResources = defineMessages({
         defaultMessage: 'URI must end with {value}',
         id: 'srMOPI',
     },
+    uriMustEndWithAllowedDomain: {
+        defaultMessage: 'URI must end with ".azuresre.ai" or ".sre.azure.com"',
+        id: 'nQUeKZ',
+    },
     uriNotUnique: {
         defaultMessage: 'This URI already exists',
         id: 'gicrFI',
@@ -182,6 +186,10 @@ export const PortalResources = defineMessages({
         defaultMessage:
             "We were unable to load the URL {agentUxUrl}. We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent.",
         id: 'GDEEBE',
+    },
+    externalAgentDomainNotAllowed: {
+        defaultMessage: 'The URI must end with ".azuresre.ai" or ".sre.azure.com".',
+        id: 'zX8SaB',
     },
     operationCancelled: { defaultMessage: 'Operation cancelled', id: 'g82HU6' },
     directory: { defaultMessage: 'Directory', id: 'RDwKyy' },

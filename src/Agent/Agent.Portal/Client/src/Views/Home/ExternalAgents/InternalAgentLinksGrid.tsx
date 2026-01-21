@@ -30,6 +30,7 @@ import { Add16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CopyButton } from '../../../Common/Components/CopyButton';
+import { ALLOWED_AGENT_DOMAIN_SUFFIXES } from '../../../Common/Constants/AllowedAgentDomains';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { useLocalStorage } from '../../../Common/Hooks/useLocalStorage';
 import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
@@ -201,9 +202,8 @@ export const InternalAgentLinksGrid = () => {
             return intl.formatMessage(PortalResources.uriMustStartWith, { value: httpsString });
         }
 
-        const azureSreAiString = 'azuresre.ai';
-        if (!trimmedUri.endsWith(azureSreAiString)) {
-            return intl.formatMessage(PortalResources.uriMustEndWith, { value: azureSreAiString });
+        if (!ALLOWED_AGENT_DOMAIN_SUFFIXES.some(suffix => trimmedUri.endsWith(suffix))) {
+            return intl.formatMessage(PortalResources.uriMustEndWithAllowedDomain);
         }
 
         if (internalAgentLinks.some(agent => agent.uri === trimmedUri)) {

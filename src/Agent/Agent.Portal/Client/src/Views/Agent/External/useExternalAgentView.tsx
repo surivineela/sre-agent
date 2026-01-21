@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { isAllowedAgentDomain } from '../../../Common/Constants/AllowedAgentDomains';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { useAuth } from '../../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../../Common/Contexts/NotificationContext';
@@ -41,14 +42,36 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
     const [iframeInitialized, setIframeInitialized] = useState(false);
     const [agentLoadError, setAgentLoadError] = useState<AgentLoadError>();
 
-    const agentUxUrl = useMemo(() => buildAgentUxUrl(agentUrl, sreDeepLink), [agentUrl, sreDeepLink]);
+    // Validate agent URL against domain allowlist before loading iframe (security)
+    const isDomainAllowed = useMemo(() => isAllowedAgentDomain(agentUrl), [agentUrl]);
+
+    const agentUxUrl = useMemo(
+        () => (isDomainAllowed ? buildAgentUxUrl(agentUrl, sreDeepLink) : ''),
+        [isDomainAllowed, agentUrl, sreDeepLink]
+    );
     const uxOrigin = useMemo(() => {
         try {
-            return new URL(agentUxUrl).origin;
+            return agentUxUrl ? new URL(agentUxUrl).origin : undefined;
         } catch {
             return undefined;
         }
     }, [agentUxUrl]);
+
+    // Log security event and set error for blocked domains
+    useEffect(() => {
+        if (!isDomainAllowed && agentUrl) {
+            logEvent({
+                action: 'external-agent-domain-blocked',
+                actionModifier: 'security',
+                logLevel: LogLevel.Warning,
+                additionalData: {
+                    message: 'Blocked external agent URL from untrusted domain',
+                    attemptedUrl: agentUrl,
+                },
+            });
+            setErrorBannerMessage(intl.formatMessage(PortalResources.externalAgentDomainNotAllowed));
+        }
+    }, [isDomainAllowed, agentUrl, logEvent, intl]);
 
     const postMessage = useCallback(
         (verb: string, data: object) => {
