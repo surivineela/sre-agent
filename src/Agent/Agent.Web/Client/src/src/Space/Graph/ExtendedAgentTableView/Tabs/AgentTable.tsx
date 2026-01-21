@@ -350,7 +350,7 @@ const AgentTableToolbar = memo<AgentTableToolbarProps>(({ selectedAgents = [], s
             })
         );
 
-        const responses = await Promise.all(selectedAgents.map(agent => agentClient.deleteExtendedAgent(agent.name + '/testerror')));
+        const responses = await Promise.all(selectedAgents.map(agent => agentClient.deleteExtendedAgent(agent.name)));
         if (responses.some(response => response.isSuccessful)) {
             azPortalContext.log({
                 action: 'delete-agents',
