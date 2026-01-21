@@ -1,5 +1,5 @@
-// Sync-Async-Threads Query
-// Description: Calculates the percentage of human initiated and agent initiated threads for both first party and third party SRE Agents
+// Total-Sync-Async-Threads Query
+// Description: Calculates total number of threads, percentage of human initiated and agent initiated threads for both first party and third party SRE Agents over past week
 // Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
 
 // Friday-based week calculation: get the Friday that starts the week containing a date
