@@ -1,0 +1,62 @@
+// Sync-Async-Threads Query
+// Description: Calculates the percentage of human initiated and agent initiated threads for both first party and third party SRE Agents
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+let startTime = datetime(2025-09-05T00:00:00.000Z);
+let endTime = now();
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT (they share the same tenant)
+All('AgentActionEvents')
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| where AgentName !startswith "crudagent" and AgentName !startswith "e2e"
+| where isnotempty(ThreadSource)
+| join kind = leftouter (
+    ExtendedAgentDocumentDBState()
+    | project SubscriptionId, ResourceGroup, ServiceGroupName, AgentName = AgentUniqueName, CustomerName, CustomerCategory
+) on AgentName
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+) on $left.SubscriptionId == $right.SubscriptionId
+| where isnotnull(CustomerCategory) and CustomerCategory != ""
+// Include AME, PME, and CORP/TORUS tenants, plus all ThirdParty
+| where CustomerCategory == "ThirdParty" or TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+// Exclude amandas and balam service groups ONLY for CORP tenant (which includes TORUS)
+| where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+| extend ThreadType = case(ThreadSource == "Conversation", "Synchronous", "Asynchronous")
+| summarize 
+    FirstParty = dcountif(ThreadId, CustomerCategory == "FirstParty"),
+    ThirdParty = dcountif(ThreadId, CustomerCategory == "ThirdParty"),
+    FirstParty_Sync = dcountif(ThreadId, CustomerCategory == "FirstParty" and ThreadType == "Synchronous"),
+    FirstParty_Async = dcountif(ThreadId, CustomerCategory == "FirstParty" and ThreadType == "Asynchronous"),
+    ThirdParty_Sync = dcountif(ThreadId, CustomerCategory == "ThirdParty" and ThreadType == "Synchronous"),
+    ThirdParty_Async = dcountif(ThreadId, CustomerCategory == "ThirdParty" and ThreadType == "Asynchronous")
+    by CustomWeek
+| extend 
+    Total = FirstParty + ThirdParty,
+    Total_Sync = FirstParty_Sync + ThirdParty_Sync,
+    Total_Async = FirstParty_Async + ThirdParty_Async,
+    Total_Sync_Pct = iff(FirstParty + ThirdParty > 0, 
+        round(todouble(FirstParty_Sync + ThirdParty_Sync) / todouble(FirstParty + ThirdParty) * 100, 2), 
+        0.0),
+    Total_Async_Pct = iff(FirstParty + ThirdParty > 0, 
+        round(todouble(FirstParty_Async + ThirdParty_Async) / todouble(FirstParty + ThirdParty) * 100, 2), 
+        0.0),
+    FirstParty_Sync_Pct = iff(FirstParty > 0, 
+        round(todouble(FirstParty_Sync) / todouble(FirstParty) * 100, 2), 
+        0.0),
+    FirstParty_Async_Pct = iff(FirstParty > 0, 
+        round(todouble(FirstParty_Async) / todouble(FirstParty) * 100, 2), 
+        0.0),
+    ThirdParty_Sync_Pct = iff(ThirdParty > 0, 
+        round(todouble(ThirdParty_Sync) / todouble(ThirdParty) * 100, 2), 
+        0.0),
+    ThirdParty_Async_Pct = iff(ThirdParty > 0, 
+        round(todouble(ThirdParty_Async) / todouble(ThirdParty) * 100, 2), 
+        0.0)
+| order by CustomWeek asc
