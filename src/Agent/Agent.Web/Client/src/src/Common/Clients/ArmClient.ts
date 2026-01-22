@@ -145,11 +145,12 @@ const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promis
     const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint, commandName } = armObj;
     const sessionId = env?.sessionId;
     let url: string;
+    const sanitizedResourceId = resourceId.startsWith('/') ? resourceId : `/${resourceId}`;
     if (useManagementEndpoint) {
         const armEndpoint = env?.armEndpoint;
-        url = `${armEndpoint}${resourceId}${queryString || ''}`;
+        url = `${armEndpoint}${sanitizedResourceId}${queryString || ''}`;
     } else {
-        url = `${resourceId}${queryString || ''}`;
+        url = `${sanitizedResourceId}${queryString || ''}`;
     }
     if (apiVersion !== null) {
         url = Url.appendQueryString(url, `api-version=${apiVersion}`);
@@ -321,12 +322,8 @@ const pollForCompletion = <T, U = T>(response: CommonResponse, request: ArmReque
 };
 
 const getPollingTelemetryHeader = (commandName: string | undefined): string => {
-    return !commandName
-        ? 'PollingAsyncResponse'
-        : commandName.endsWith('-polling')
-            ? commandName
-            : commandName + '-polling';
-}
+    return !commandName ? 'PollingAsyncResponse' : commandName.endsWith('-polling') ? commandName : commandName + '-polling';
+};
 
 const pollLocationForCompletion = <T, U = T>(response: CommonResponse, previousLocation: string, request: ArmRequestObject<U>) => {
     const location = getStringHeader('location', response.headers) || previousLocation;

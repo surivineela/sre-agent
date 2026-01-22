@@ -204,10 +204,11 @@ export class ArmClient extends Client {
         const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
         const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint, commandName } = armObj;
         let url: string;
+        const sanitizedResourceId = resourceId.startsWith('/') ? resourceId : `/${resourceId}`;
         if (useManagementEndpoint) {
-            url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
+            url = `${this.armEndpoint}${sanitizedResourceId}${queryString || ''}`;
         } else {
-            url = `${resourceId}${queryString || ''}`;
+            url = `${sanitizedResourceId}${queryString || ''}`;
         }
         if (apiVersion !== null) {
             url = appendQueryString(url, `api-version=${apiVersion}`);
