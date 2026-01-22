@@ -16,6 +16,8 @@ export enum SettingNames {
     SreUxLocal = 'sre_ux_local',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
+    /** Show default model picker */
+    ShowDefaultModelPicker = 'showDefaultModelPicker',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

@@ -401,6 +401,26 @@ export const PortalResources = defineMessages({
     deleteConnectors: { defaultMessage: 'Delete {count} connectors', id: 'kWfaS8' },
     editConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
     updateConnector: { defaultMessage: 'Update connector', id: 'GeSTZm' },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
+    azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
+    getSupportedModelsFailedMessage: { defaultMessage: 'Unable to load available models. Please try again later.', id: 'rhW41X' },
+    modelProviderLabel: { defaultMessage: 'Model provider', id: 'DTJ2/l' },
+    providerLabel: { defaultMessage: 'Provider', id: 'xaj9Ba' },
+    modelLabel: { defaultMessage: 'Model', id: 'rhSI1/' },
+    anthropicEuRegionInfoMessage: {
+        defaultMessage:
+            'Anthropic processes data in the United States and is excluded from European Union Data Boundary (EUDB). This data includes prompts, responses, and resource analysis. If EUDB is required for your use case, select a different model.',
+        id: 'UwPEiY',
+    },
+    anthropicEuRegionLearnMore: {
+        defaultMessage: 'Learn more about SRE Agent data handling',
+        id: 'KOamvU',
+    },
+    anthropicNotAvailable: {
+        defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
+        id: 'x3nLRm',
+    },
+    providerPlaceholder: { defaultMessage: 'Select region first', id: 'zUmqxZ' },
     // Connector CRUD operations
     creatingConnector: { defaultMessage: 'Creating connector...', id: 'jE1HXt' },
     createConnectorSuccess: { defaultMessage: 'Connector "{name}" created successfully', id: 'ZqOouB' },

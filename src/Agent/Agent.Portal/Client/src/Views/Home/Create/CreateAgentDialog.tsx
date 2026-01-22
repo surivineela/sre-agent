@@ -9,6 +9,7 @@ import { ProductName } from '../../../Common/Contracts/Amplitude';
 import { ResourceGroup } from '../../../Common/Contracts/Arm';
 import { AgentAccessLevel, AgentMode } from '../../../Common/Contracts/SreAgent';
 import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
+import { SettingNames, useConfigSetting } from '../../../Common/Hooks/useConfigSettings';
 import { useDeployment } from '../../../Common/Hooks/useDeployment';
 import { usePersistentNavigate } from '../../../Common/Hooks/usePersistentNavigate';
 import { DeployResources, PortalResources } from '../../../Strings/Resources';
@@ -42,6 +43,7 @@ export interface SreAgentCreateFormProps {
     createNewAppInsights: ApplicationInsightsSetup;
     existingAppInsightsId: string;
     appInsightsSubscriptionId: string;
+    defaultModelProvider: string;
 }
 
 interface CreateAgentDialogProps {
@@ -119,6 +121,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
     const navigate = usePersistentNavigate();
     const { values, errors, submitForm } = useFormikContext<SreAgentCreateFormProps>();
     const { logNavigationEvent } = useAmplitudeTelemetry();
+    const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
 
     const { deploymentSucceeded } = useDeployment(deploymentResourceId, currentStepIndex === 4, TelemetrySource.SreAgentCreate);
 
@@ -192,7 +195,12 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
             const basicsFieldErrors = ['subscriptionId', 'resourceGroupId', 'name', 'location'].some(
                 field => errors[field as keyof typeof errors]
             );
-            const basicsRequiredFieldsMissing = !values.subscriptionId || !values.resourceGroupId || !values.name || !values.location;
+            const basicsRequiredFieldsMissing =
+                !values.subscriptionId ||
+                !values.resourceGroupId ||
+                !values.name ||
+                !values.location ||
+                (showDefaultModelPicker && !values.defaultModelProvider);
             return basicsFieldErrors || basicsRequiredFieldsMissing;
         }
 
@@ -205,7 +213,7 @@ const InnerCreateAgentDialog = (props: InnerCreateAgentDialogProps) => {
         }
 
         return false;
-    }, [isBasicsStep, isDeployStep, isReviewStep, deploymentSucceeded, createButtonDisabled, errors, values]);
+    }, [isBasicsStep, isDeployStep, isReviewStep, deploymentSucceeded, createButtonDisabled, errors, values, showDefaultModelPicker]);
 
     const handleNext = useCallback(() => {
         if (isDeployStep) {
