@@ -66,7 +66,7 @@ public partial class HttpClientTool : YamlToolExecutor<HttpClientToolDefinition>
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public override async Task<string> ExecuteAsync(string threadId, AIFunctionArguments parameters)
+    public override async Task<object?> ExecuteAsync(string threadId, AIFunctionArguments parameters)
     {
         if (string.IsNullOrWhiteSpace(ToolDefinition.Url))
         {
