@@ -1,0 +1,46 @@
+// Intent Met Query
+// Description: Query to calculate the average intent met score based on the threads resolution score.
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+let startTime = datetime(2025-09-05T00:00:00.000Z);
+let endTime = now();
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+All('AgentActionEvents') 
+| join kind = leftouter (
+    ExtendedAgentDocumentDBState() 
+    | project SubscriptionId, ServiceGroupName, ResourceGroup, AgentName = AgentUniqueName, CustomerName, CustomerCategory 
+    | join kind = leftouter (
+        cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").Product360CustomerSubscriptions
+        | project SubscriptionId, OfferType, TenantId
+    ) on SubscriptionId
+) on AgentName 
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| where Action == "evaluate.thread"
+| where AgentName !startswith "e2e" and AgentName !startswith "crud"
+| extend result = parse_json(Parameter)
+| extend Resolved = toint(result.Resolved)
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+// FirstParty filtering: Include only AME, PME, and CORP/TORUS tenants; Exclude balam/amandas only from CORP
+| extend IsFirstPartyFiltered = case(
+    CustomerCategory == "FirstParty" and TenantId in (ameTenantId, pmeTenantId, corpTenantId) and not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam")),
+    true,   // Include this FirstParty record
+    CustomerCategory == "FirstParty",
+    false,  // Exclude this FirstParty record (not in allowed tenants or in excluded service groups)
+    false   // Not FirstParty
+)
+// ThirdParty filtering: Exclude daily reports and internal offers
+| extend IsThirdPartyFiltered = case(
+    CustomerCategory == "ThirdParty" and (OfferType contains "Internal" or ThreadSource in ('DailyReport') or isnull(CustomerCategory) or CustomerCategory == "" or isempty(ThreadSource)), 
+    false,  // Exclude this record from ThirdParty calculations
+    true    // Include this record
+)
+| summarize 
+    AvgResolved_Total = round(avgif(Resolved, IsFirstPartyFiltered == true or (CustomerCategory == "ThirdParty" and IsThirdPartyFiltered == true)), 2),
+    AvgResolved_FirstParty = round(avgif(Resolved, CustomerCategory == "FirstParty" and IsFirstPartyFiltered == true), 2),
+    AvgResolved_ThirdParty = round(avgif(Resolved, CustomerCategory == "ThirdParty" and IsThirdPartyFiltered == true), 2)  // Fixed typo
+    by CustomWeek
+| order by CustomWeek asc

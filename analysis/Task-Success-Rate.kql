@@ -1,0 +1,65 @@
+// Task Success Rate Query
+// Description: Calculates the task success rate for SRE Agent's thread evaluations - split by first party and third party
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+let startTime = datetime(2025-09-05T00:00:00.000Z);
+let endTime = now();
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+All("AgentActionEvents")
+| where AgentName !startswith "e2e" and AgentName !startswith "crud"
+| where Action == "evaluate.thread"
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| extend result = parse_json(Parameter)
+| extend Resolved = toint(result.Resolved)
+| where isnotnull(Resolved)
+| join kind = leftouter (
+    ExtendedAgentDocumentDBState()
+    | project SubscriptionId, ResourceGroup, ServiceGroupName, AgentName = AgentUniqueName, CustomerName, CustomerCategory
+) on AgentName
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+) on $left.SubscriptionId == $right.SubscriptionId
+| where isnotnull(CustomerCategory) and CustomerCategory != ""
+// Include AME, PME, and CORP/TORUS tenants for FirstParty, plus all ThirdParty
+| where CustomerCategory == "ThirdParty" or TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+// Exclude amandas and balam service groups ONLY for CORP tenant
+| where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+| summarize
+    // Overall metrics
+    TotalThreads = count(),
+    SuccessfulThreads = countif(Resolved == 5),
+    // FirstParty metrics
+    FirstParty_TotalThreads = countif(CustomerCategory == "FirstParty"),
+    FirstParty_SuccessfulThreads = countif(CustomerCategory == "FirstParty" and Resolved == 5),
+    // ThirdParty metrics
+    ThirdParty_TotalThreads = countif(CustomerCategory == "ThirdParty"),
+    ThirdParty_SuccessfulThreads = countif(CustomerCategory == "ThirdParty" and Resolved == 5),
+    // Time range
+    EarliestEvent = min(PreciseTimeStamp),
+    LatestEvent = max(PreciseTimeStamp)
+    by CustomWeek
+| extend 
+    SuccessRate = iff(TotalThreads > 0, round(SuccessfulThreads * 100.0 / TotalThreads, 1), 0.0),
+    FirstParty_SuccessRate = iff(FirstParty_TotalThreads > 0, round(FirstParty_SuccessfulThreads * 100.0 / FirstParty_TotalThreads, 1), 0.0),
+    ThirdParty_SuccessRate = iff(ThirdParty_TotalThreads > 0, round(ThirdParty_SuccessfulThreads * 100.0 / ThirdParty_TotalThreads, 1), 0.0)
+| order by CustomWeek asc
+| project
+    CustomWeek,
+    SuccessRate,
+    TotalThreads,
+    SuccessfulThreads,
+    FirstParty_SuccessRate,
+    FirstParty_TotalThreads,
+    FirstParty_SuccessfulThreads,
+    ThirdParty_SuccessRate,
+    ThirdParty_TotalThreads,
+    ThirdParty_SuccessfulThreads,
+    EarliestEvent,
+    LatestEvent

@@ -1,0 +1,71 @@
+// TotalTokens Query
+// Description: Calculates the total tokens (in billions) consumes by first party and third party SRE Agents
+// Database: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+
+// Friday-based week calculation: get the Friday that starts the week containing a date
+
+let startTime = datetime(2025-09-19T00:00:00.000Z);
+let endTime = now();
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+All("AgentActionEvents")
+| where AgentName !startswith "crudagent" and AgentName !startswith "e2e"  // Fixed: changed 'or' to 'and'
+| where Action == "GenerateModelResponse"
+| where Status == "Success"
+| where PreciseTimeStamp >= startTime and PreciseTimeStamp < endTime
+| where isnotempty(ActionMetadata)
+| extend MetadataJson = parse_json(ActionMetadata)
+| extend InputTokenCount = toint(MetadataJson.inputTokenCount)
+| extend OutputTokenCount = toint(MetadataJson.outputTokenCount)
+| extend CachedTokenCount = toint(MetadataJson.cachedTokenCount)
+| extend TotalTokens = InputTokenCount + OutputTokenCount
+| where TotalTokens > 0
+| join kind = leftouter (
+    ExtendedAgentDocumentDBState()
+    | project SubscriptionId, ResourceGroup, ServiceGroupName, AgentName = AgentUniqueName, CustomerName, CustomerCategory
+) on AgentName
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+) on $left.SubscriptionId == $right.SubscriptionId
+| where isnotnull(CustomerCategory) and CustomerCategory != ""
+// Include AME, PME, and CORP/TORUS tenants for FirstParty, plus all ThirdParty
+| where CustomerCategory == "ThirdParty" or TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+// Exclude amandas and balam service groups ONLY for CORP tenant
+| where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+| extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+| summarize
+    // Overall metrics
+    TotalInputTokens = sum(InputTokenCount),
+    TotalCachedTokens = sum(CachedTokenCount),
+    TotalCombinedTokens = sum(TotalTokens),
+    TotalOutputTokens = sum(OutputTokenCount),
+    RequestCount = count(),
+    // FirstParty TotalCombinedTokens only (as requested)
+    FirstParty_TotalCombinedTokens = sumif(TotalTokens, CustomerCategory == "FirstParty"),
+    // ThirdParty TotalCombinedTokens only (as requested)
+    ThirdParty_TotalCombinedTokens = sumif(TotalTokens, CustomerCategory == "ThirdParty"),
+    // Time range
+    EarliestEvent = min(PreciseTimeStamp),
+    LatestEvent = max(PreciseTimeStamp)
+    by CustomWeek
+| extend 
+    TotalCostPerToken = round(((((TotalInputTokens - TotalCachedTokens) * 1.25 / 1000000) + (TotalOutputTokens * 10.0 / 1000000) + (TotalCachedTokens * 0.125 / 1000000)) / TotalCombinedTokens), 8),
+    TotalCombinedTokens = round(TotalCombinedTokens / 1e9, 2),
+    FirstParty_TotalCombinedTokens = round(FirstParty_TotalCombinedTokens / 1e9, 2),
+    ThirdParty_TotalCombinedTokens = round(ThirdParty_TotalCombinedTokens / 1e9, 2)
+| order by CustomWeek asc
+| project
+    CustomWeek,
+    TotalCombinedTokens,
+    FirstParty_TotalCombinedTokens,
+    ThirdParty_TotalCombinedTokens,
+    TotalCostPerToken,
+    RequestCount,
+    TotalInputTokens,
+    TotalCachedTokens,
+    TotalOutputTokens,
+    EarliestEvent,
+    LatestEvent

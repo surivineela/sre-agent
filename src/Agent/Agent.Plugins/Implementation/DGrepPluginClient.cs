@@ -94,7 +94,7 @@ public class DGrepPluginClient : IDGrepPluginClient
     // Production mode: Agent Space Proxy workflow
     private async Task<string> ExecuteViaAgentSpaceProxy(
         string nameSpace, string eventName, string serverQuery, string clientQuery,
-        string filters, QueryType queryType, DateTime startTime, DateTime endTime,
+        string region, string moniker, string version, string filters, QueryType queryType, DateTime startTime, DateTime endTime,
         int maxResults, CancellationToken ct = default)
     {
         var payload = new Dictionary<string, object>
@@ -103,6 +103,9 @@ public class DGrepPluginClient : IDGrepPluginClient
             ["eventName"] = eventName,
             ["serverQuery"] = serverQuery ?? string.Empty,
             ["clientQuery"] = clientQuery ?? string.Empty,
+            ["regions"] = region ?? string.Empty,
+            ["monikers"] = moniker ?? string.Empty,
+            ["versions"] = version ?? string.Empty,
             ["filters"] = filters ?? string.Empty,
             ["queryType"] = queryType.ToString(),
             ["startTime"] = startTime.ToString("o"),
@@ -144,7 +147,7 @@ public class DGrepPluginClient : IDGrepPluginClient
         }
     }
 
-    public async Task<string> ExecuteDGrepQuery(string nameSpace, string eventName, string serverQuery, string clientQuery, string filters, QueryType queryType, DateTime startTime, DateTime endTime, int maxResults = 10, CancellationToken ct = default)
+    public async Task<string> ExecuteDGrepQuery(string nameSpace, string eventName, string serverQuery, string clientQuery, string region, string moniker, string version, string filters, QueryType queryType, DateTime startTime, DateTime endTime, int maxResults = 10, CancellationToken ct = default)
     {
         // Validation
         if (string.IsNullOrWhiteSpace(nameSpace) || string.IsNullOrWhiteSpace(eventName) || string.IsNullOrWhiteSpace(serverQuery))
@@ -161,7 +164,7 @@ public class DGrepPluginClient : IDGrepPluginClient
             _agentSpaceProxySettings.Endpoint, _agentResourceId);
 
         return await ExecuteViaAgentSpaceProxy(
-            nameSpace, eventName, serverQuery, clientQuery,
+            nameSpace, eventName, serverQuery, clientQuery, region, moniker, version,
             filters, queryType, startTime, endTime, maxResults, ct);
     }
 
