@@ -204,7 +204,6 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
         try
         {
             var content = await File.ReadAllTextAsync(filePath);
-
             // Use LLM to summarize
             var messages = new List<ChatMessage>
             {
@@ -289,13 +288,12 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
         {
             var content = await File.ReadAllTextAsync(filePath);
 
-            // Parse regex flags
-            var options = RegexOptions.None;
+            // Parse regex flags (Singleline is default)
+            var options = RegexOptions.Singleline;
             if (!string.IsNullOrEmpty(regexFlags))
             {
                 if (regexFlags.Contains('i')) options |= RegexOptions.IgnoreCase;
                 if (regexFlags.Contains('m')) options |= RegexOptions.Multiline;
-                if (regexFlags.Contains('s')) options |= RegexOptions.Singleline;
             }
 
             var regex = new Regex(regexPattern, options);
@@ -371,12 +369,17 @@ public class ToolOutputRetrieverPlugin : IToolOutputRetrieverPlugin
 
     private string GetPreviewContext(string content, int matchIndex, int matchLength, int contextChars)
     {
-        var start = Math.Max(0, matchIndex - contextChars);
-        var end = Math.Min(content.Length, matchIndex + matchLength + contextChars);
+        const int MaxPreviewLength = 180;
 
-        var prefix = start > 0 ? "..." : string.Empty;
-        var suffix = end < content.Length ? "..." : string.Empty;
+        // Get only the matched content (group[0])
+        var matchContent = content.Substring(matchIndex, matchLength);
 
-        return $"{prefix}{content.Substring(start, end - start)}{suffix}";
+        // Truncate if exceeds 180 characters
+        if (matchContent.Length > MaxPreviewLength)
+        {
+            return matchContent.Substring(0, MaxPreviewLength) + "...";
+        }
+
+        return matchContent;
     }
 }

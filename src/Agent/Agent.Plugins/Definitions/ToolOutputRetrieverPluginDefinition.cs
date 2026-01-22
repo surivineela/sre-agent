@@ -57,12 +57,17 @@ public class ToolOutputRetrieverPluginDefinition
            Example: Get specific fields
              { "fileKey": "data-20251130-143025.yaml", "operation": "filter_structured", "jmesPath": "foo[?age > `25`]" }
 
-        4. search_regex - Search with regular expressions
+        4. search_regex - Search for patterns using regular expressions. Returns line number, column, byte offset, and a content preview for each match.
            Required: fileKey, operation='search_regex', regexPattern
-           Optional: regexFlags (i=case-insensitive, m=multiline, s=dot-matches-newline), regexMaxMatches (default: 100)
+           Optional: regexFlags (i=case-insensitive, m=multiline, s=dot-matches-newline [default]), regexMaxMatches (default: 100)
+           Behavior:
+           - Returns only the full match (group[0]), not capture groups
+           - Preview is truncated to 180 characters max with "..." appended
+           - Singleline mode (s flag) is enabled by default, meaning '.' matches newlines
+           - Returns up to regexMaxMatches matches (default 100)
            Example: Find all error messages (case-insensitive)
              { "fileKey": "app-logs-20251130-143025.txt", "operation": "search_regex", "regexPattern": "error.*failed", "regexFlags": "i" }
-           Example: Find email addresses
+           Example: Find email addresses (no flags needed, singleline is default)
              { "fileKey": "output-20251130-143025.txt", "operation": "search_regex", "regexPattern": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}" }
 
         Use this tool when you need to:
