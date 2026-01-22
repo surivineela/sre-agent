@@ -6,7 +6,7 @@ import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/S
 import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedTool } from '../../../Contracts/ExtendedAgentGraph';
-import { ENTITY_NAME_MAX_LENGTH } from '../../ExtendedAgentCreationDialog/utils/nameValidation';
+import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid } from '../../ExtendedAgentCreationDialog/utils/nameValidation';
 import { KustoToolDialogMode } from '../KustoToolDialog';
 import { KustoToolFormProps } from '../KustoToolUtilities';
 
@@ -39,8 +39,7 @@ export const useKustoToolSettings = (mode: KustoToolDialogMode, tool?: ExtendedT
                             maxLength: ENTITY_NAME_MAX_LENGTH,
                         }),
                         function (name: string) {
-                            // Name can only contain letters, numbers, or hyphens and must be MAX_LENGTH characters or fewer.
-                            return new RegExp(`^[a-zA-Z0-9-]{1,${ENTITY_NAME_MAX_LENGTH}}$`).test(name);
+                            return isEntityNameValid(name);
                         }
                     ),
                 description: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),

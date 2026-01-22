@@ -7,6 +7,8 @@ import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentCli
 import { Guid } from '../../../../Common/Helpers/Guid';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgent, Skill } from '../../../Contracts/ExtendedAgentGraph';
+import { HANDOFF_INSTRUCTION_MAX_LENGTH, INSTRUCTION_MAX_LENGTH, INSTRUCTION_MIN_LENGTH } from '../../AgentValidationUtilities';
+import { ENTITY_NAME_MAX_LENGTH, isEntityNameValid } from '../../ExtendedAgentCreationDialog/utils/nameValidation';
 import { AgentCreateFormValues, AgentCreateOrEditInfo } from '../Contracts';
 
 export const useAgentCreateDialog = (
@@ -42,8 +44,47 @@ export const useAgentCreateDialog = (
 
     const validationSchema = useMemo(() => {
         return object({
-            agentName: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
-            instructions: string().required(intl.formatMessage(SreAgentResources.fieldRequired)),
+            agentName: string()
+                .required(intl.formatMessage(SreAgentResources.fieldRequired))
+                .test(
+                    'validateNameFormat',
+                    intl.formatMessage(ExtendedAgentsGraphResources.entityNameValidationMessage, {
+                        maxLength: ENTITY_NAME_MAX_LENGTH,
+                    }),
+                    function (name: string) {
+                        return isEntityNameValid(name);
+                    }
+                ),
+            instructions: string()
+                .required(intl.formatMessage(SreAgentResources.fieldRequired))
+                .test('validateInstructionLength', '', function (value: string) {
+                    if (value?.length < INSTRUCTION_MIN_LENGTH) {
+                        return this.createError({
+                            message: intl.formatMessage(ExtendedAgentsGraphResources.instructionMinLengthValidationMessage, {
+                                minLength: INSTRUCTION_MIN_LENGTH,
+                            }),
+                        });
+                    } else if (value?.length > INSTRUCTION_MAX_LENGTH) {
+                        return this.createError({
+                            message: intl.formatMessage(ExtendedAgentsGraphResources.instructionMaxLengthValidationMessage, {
+                                maxLength: INSTRUCTION_MAX_LENGTH,
+                            }),
+                        });
+                    } else {
+                        return true;
+                    }
+                }),
+            handoffInstructions: string().test('validateHandoffInstructionLength', '', function (value: string | undefined) {
+                if (value && value.length > HANDOFF_INSTRUCTION_MAX_LENGTH) {
+                    return this.createError({
+                        message: intl.formatMessage(ExtendedAgentsGraphResources.instructionMaxLengthValidationMessage, {
+                            maxLength: HANDOFF_INSTRUCTION_MAX_LENGTH,
+                        }),
+                    });
+                } else {
+                    return true;
+                }
+            }),
         });
     }, [intl]);
 

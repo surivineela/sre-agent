@@ -3808,6 +3808,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     instructions: { defaultMessage: 'Instructions', id: 'sV2v5L' },
     instructionsPlaceholder: { defaultMessage: 'Describe what this agent does and how it should behave...', id: 'o0pkiK' },
     instructionsHelp: { defaultMessage: "System prompt that defines the agent's behavior", id: 'FkvYGq' },
+    instructionMinLengthValidationMessage: { defaultMessage: 'Instructions must be longer than {minLength} characters.', id: 'qaj8pr' },
+    instructionMaxLengthValidationMessage: { defaultMessage: 'Instructions must be under {maxLength} characters.', id: 'jfJxX5' },
 
     handoffDescriptionLabel: { defaultMessage: 'Handoff Description', id: 'QY3CEK' },
     handoffDescriptionPlaceholder: {
