@@ -320,7 +320,7 @@ export const useChatInputStyles = makeStyles({
         justifyContent: 'flex-start',
     },
     chatBoxFooterInner: {
-        maxWidth: '1000px',
+        maxWidth: '800px',
         width: '100%',
         minHeight: '0px',
         flexShrink: 1,

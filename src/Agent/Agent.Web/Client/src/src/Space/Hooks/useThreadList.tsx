@@ -10,7 +10,13 @@ import { ThreadLoadingCounts } from '../Contracts/Activities';
 export const useThreadList = (
     isThreadListHidden: boolean | undefined,
     initialThreads: Thread[] | undefined,
+    /**
+     * Memoized the input to avoid unnecessary re-fetching when used in dependencies of useEffect or useCallback
+     */
     includedSources: ThreadSource[] | undefined,
+    /**
+     * Memoized the input to avoid unnecessary re-fetching when used in dependencies of useEffect or useCallback
+     */
     excludedSources: ThreadSource[] | undefined,
     unreadOnly: boolean | undefined,
     searchText: string | undefined,

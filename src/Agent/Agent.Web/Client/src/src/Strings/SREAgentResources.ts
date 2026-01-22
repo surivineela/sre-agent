@@ -6209,4 +6209,5 @@ export const OverviewResources = defineMessages({
     intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
     meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
     incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
+    incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
 });

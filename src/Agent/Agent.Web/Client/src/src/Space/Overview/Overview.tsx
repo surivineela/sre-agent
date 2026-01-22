@@ -2,6 +2,7 @@ import { tokens } from '@fluentui-copilot/react-copilot';
 import { makeStyles } from '@fluentui/react-components';
 import { FC, memo } from 'react';
 import AnalyzedIncidentsCard from './AnalyzedIncidentsCard.tsx';
+import IncidentManagementCard from './IncidentManagementCard.tsx';
 import IntentMetScoreCard from './IntentMetScoreCard.tsx';
 import MitigationMeanTimeCard from './MitigationMeanTimeCard.tsx';
 import SuggestedActions from './SuggestedActions.tsx';
@@ -18,7 +19,7 @@ const useStyles = makeStyles({
     overviewInner: {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'auto',
+        gridTemplateRows: 'auto auto auto 250px 250px',
         gap: '12px',
         backgroundColor: tokens.colorNeutralBackground2,
     },
@@ -37,6 +38,12 @@ const useStyles = makeStyles({
     analyzedIncidentsCard: {
         gridColumn: '2',
         gridRow: '3',
+    },
+    incidentManagementCard: {
+        gridColumn: '1 / span 2',
+        gridRow: '4 / span 2',
+        minHeight: 0,
+        overflow: 'auto',
     },
 });
 
@@ -57,6 +64,9 @@ const Overview: FC = () => {
                 </div>
                 <div className={styles.analyzedIncidentsCard}>
                     <AnalyzedIncidentsCard />
+                </div>
+                <div className={styles.incidentManagementCard}>
+                    <IncidentManagementCard />
                 </div>
             </div>
         </div>
