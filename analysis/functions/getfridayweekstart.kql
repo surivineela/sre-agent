@@ -1,0 +1,2 @@
+.create-or-alter function with (docstring="Returns the Friday that starts the week containing a date.", folder="Helper Functions")
+    GetFridayWeekStart (d: datetime) { startofday(d) - (toint(dayofweek(d) / 1d) + 2) % 7 * 1d }

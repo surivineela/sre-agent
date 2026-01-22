@@ -1,10 +1,5 @@
-// Identifies agents and customers that have "churned", by deleting all their agents.
-// Database https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+// Defines a table to identify 3P customers
 
-// Friday-based week calculation: get the Friday that starts the week containing a date
-// dayofweek returns: Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
-// Formula: subtract days to get back to Friday
-let GetFridayWeekStart = (d: datetime) { startofday(d) - (toint(dayofweek(d) / 1d) + 2) % 7 * 1d };
 // AgentDocumentDBState is updated every ~2 hours; determine the most recent update.
 let UpdateFrequency = 2h;
 // Determine the most recent snapshot
@@ -24,9 +19,7 @@ let EarliestSnapshot = toscalar(
 let ThirdPartyCustomers = cluster("customerdomrptwus3prod.westus3.kusto.windows.net")
     .database("customerdomdata")
     .Product360CustomerSubscriptions
-    | where OfferType !contains "Internal"
-        and BillingType != "External Non - Billable"
-        and isnotempty(CloudCustomerGuid) // Used as a key later
+    | where OfferType !contains "Internal" and isnotempty(CloudCustomerGuid)
     | project
         SubscriptionId,
         OfferType,
@@ -79,14 +72,5 @@ let Customers = AgentCensus
     | extend
         FirstWeek = GetFridayWeekStart(firstSeen),
         LastWeek = GetFridayWeekStart(lastSeen),
-        isChurned = runningAgents == 0,
-        tenure = lastSeen - firstSeen; // note: this will be capped at 90 days
-let WeeklyCustomerGrowth = Customers
-    | summarize NewCustomers = countif(oldAgents == 0) by FirstWeek
-    | join kind=fullouter (
-        Customers | summarize ChurnedCustomers = countif(isChurned) by LastWeek
-        )
-        on $left.FirstWeek == $right.LastWeek
-    | extend NetGrowth = coalesce(NewCustomers, 0) - coalesce(ChurnedCustomers, 0);
-WeeklyCustomerGrowth;
+        isChurned = runningAgents == 0;
 
