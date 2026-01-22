@@ -1,3 +1,0 @@
-// Identifies churned 3P subscriptions for targeting in Customer Outreach.
-
-#load analysis/churn.kql
