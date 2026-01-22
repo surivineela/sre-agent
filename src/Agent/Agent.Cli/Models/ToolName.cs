@@ -26,6 +26,7 @@ public sealed class ToolName : IEquatable<ToolName>, IEquatable<string>
     public static ToolName KustoTool => new("KustoTool");
     public static ToolName LinkTool => new("LinkTool");
     public static ToolName PythonTool => new("PythonTool");
+    public static ToolName HttpClientTool => new("HttpClientTool");
     public static ToolName KustoQuery => new("KustoQuery");
 
     // Implicit conversion from string to ToolName

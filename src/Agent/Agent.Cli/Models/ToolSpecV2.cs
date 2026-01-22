@@ -16,6 +16,7 @@ namespace Agent.Cli.Models
     [JsonDerivedType(typeof(KustoToolSpecV2), ToolDocumentModel.KustoToolType)]
     [JsonDerivedType(typeof(LinkToolSpecV2), ToolDocumentModel.LinkToolType)]
     [JsonDerivedType(typeof(PythonToolSpecV2), ToolDocumentModel.PythonToolType)]
+    [JsonDerivedType(typeof(HttpClientToolSpecV2), ToolDocumentModel.HttpClientToolType)]
     public class ToolSpecV2
     {
         private string? _type;
@@ -34,6 +35,7 @@ namespace Agent.Cli.Models
                 KustoToolSpecV2 => ToolDocumentModel.KustoToolType,  // "KustoTool"
                 LinkToolSpecV2 => ToolDocumentModel.LinkToolType,    // "LinkTool"
                 PythonToolSpecV2 => ToolDocumentModel.PythonToolType, // "PythonTool"
+                HttpClientToolSpecV2 => ToolDocumentModel.HttpClientToolType, // "HttpClientTool"
                 _ => _type
             });
             set => _type = value;

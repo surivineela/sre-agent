@@ -37,6 +37,13 @@ public static class ToolCommandHandlers
         var timeoutSeconds = parseResult.GetValue(ToolCommandOptions.Create.TimeoutSecondsOption);
         var dependencies = parseResult.GetValue(ToolCommandOptions.Create.DependenciesOption);
         var parameters = parseResult.GetValue(ToolCommandOptions.Create.ParameterOption);
+        // HttpClientTool-specific options
+        var url = parseResult.GetValue(ToolCommandOptions.Create.UrlOption);
+        var method = parseResult.GetValue(ToolCommandOptions.Create.MethodOption);
+        var body = parseResult.GetValue(ToolCommandOptions.Create.BodyOption);
+        var headers = parseResult.GetValue(ToolCommandOptions.Create.HeaderOption);
+        var authConnector = parseResult.GetValue(ToolCommandOptions.Create.AuthConnectorOption);
+        var authScope = parseResult.GetValue(ToolCommandOptions.Create.AuthScopeOption);
 
         DebugLogger.Debug("Parameters", $"Name: {name}, Type: {type}, Path: {customPath ?? "default"}");
 
@@ -49,7 +56,7 @@ public static class ToolCommandHandlers
 
         // Always use V2 structured creation with ExtendedToolV2
         string toolYaml = CreateToolV2(name!, type!, connector, database, description, query, template,
-            functionCode, timeoutSeconds, dependencies, parameters);
+            functionCode, timeoutSeconds, dependencies, parameters, url, method, body, headers, authConnector, authScope);
 
         // For KustoTool, prepend a helpful header with modification + permissions guidance
         if (ToolName.KustoTool == type)
@@ -599,7 +606,8 @@ public static class ToolCommandHandlers
     /// </summary>
     private static string CreateToolV2(string name, string type, string? connector, string? database,
         string? description, string? query, string? template, string? functionCode, int? timeoutSeconds,
-        string[]? dependencies, string[]? parameters)
+        string[]? dependencies, string[]? parameters, string? url = null, string? method = null,
+        string? body = null, string[]? headers = null, string? authConnector = null, string? authScope = null)
     {
         ExtendedToolV2 tool;
 
@@ -615,9 +623,13 @@ public static class ToolCommandHandlers
         {
             tool = ExtendedToolHelper.CreatePythonTool(name, description, functionCode, timeoutSeconds, dependencies, parameters);
         }
+        else if (ToolName.HttpClientTool == type)
+        {
+            tool = ExtendedToolHelper.CreateHttpClientTool(name, description, url, method, body, headers, authConnector, authScope, timeoutSeconds, parameters);
+        }
         else
         {
-            throw new InvalidOperationException($"Unsupported tool type '{type}'. Supported types: KustoTool, LinkTool, PythonTool.");
+            throw new InvalidOperationException($"Unsupported tool type '{type}'. Supported types: KustoTool, LinkTool, PythonTool, HttpClientTool.");
         }
 
         // Serialize to YAML

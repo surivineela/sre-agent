@@ -39,6 +39,11 @@ public static class ExtendedToolHelper
             {
                 Name = ToolName.PythonTool,
                 Description = "Execute custom Python code with configurable dependencies"
+            },
+            new ToolTypeInfo
+            {
+                Name = ToolName.HttpClientTool,
+                Description = "Make HTTP requests to REST APIs with authentication support"
             }
         ];
     }
@@ -216,6 +221,79 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
                 TimeoutSeconds = timeoutSeconds ?? Constants.PythonToolDefaultTimeoutSeconds,
                 Dependencies = dependencies?.ToList(),
                 Parameters = CreateParameterSpecs(effectiveParameters, isKustoTool: false)
+            }
+        };
+
+        return tool;
+    }
+
+    /// <summary>
+    /// Creates an HttpClientTool ExtendedToolV2 instance with the provided parameters.
+    /// </summary>
+    public static ExtendedToolV2 CreateHttpClientTool(
+        string name,
+        string? description = null,
+        string? url = null,
+        string? method = null,
+        string? body = null,
+        string[]? headers = null,
+        string? authConnector = null,
+        string? authScope = null,
+        int? timeoutSeconds = null,
+        string[]? parameters = null)
+    {
+        // Apply defaults when not provided
+        var effectiveUrl = url ?? "https://api.example.com/endpoint";
+        var effectiveMethod = method ?? "GET";
+        var effectiveDescription = description ?? "HTTP API tool - update URL, method, and parameters as needed";
+
+        // Parse headers from "key:value" format
+        List<HttpHeaderV2>? parsedHeaders = null;
+        if (headers != null && headers.Length > 0)
+        {
+            parsedHeaders = new List<HttpHeaderV2>();
+            foreach (var header in headers)
+            {
+                var parts = header.Split(':', 2);
+                if (parts.Length == 2)
+                {
+                    parsedHeaders.Add(new HttpHeaderV2
+                    {
+                        Key = parts[0].Trim(),
+                        Value = parts[1].Trim()
+                    });
+                }
+            }
+        }
+
+        // Build auth settings if provided
+        HttpClientToolAuthV2? auth = null;
+        if (!string.IsNullOrWhiteSpace(authConnector) || !string.IsNullOrWhiteSpace(authScope))
+        {
+            auth = new HttpClientToolAuthV2
+            {
+                DataConnector = authConnector,
+                Scope = authScope
+            };
+        }
+
+        var tool = new ExtendedToolV2
+        {
+            Metadata = new ResourceMetadataModel
+            {
+                Name = name
+            },
+            Spec = new HttpClientToolSpecV2
+            {
+                Type = ToolName.HttpClientTool,
+                Description = effectiveDescription,
+                Url = effectiveUrl,
+                Method = effectiveMethod,
+                Body = body,
+                Headers = parsedHeaders,
+                Auth = auth,
+                TimeoutSeconds = timeoutSeconds ?? 30,
+                Parameters = CreateParameterSpecs(parameters, isKustoTool: false)
             }
         };
 

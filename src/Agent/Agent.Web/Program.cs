@@ -699,6 +699,7 @@ public class Program
         builder.Services.AddSingleton<IYamlToolExecutorFactory, KustoToolExecutorFactory>();
         builder.Services.AddSingleton<IYamlToolExecutorFactory, LinkToolExecutorFactory>();
         builder.Services.AddSingleton<IYamlToolExecutorFactory, PythonToolExecutorFactory>();
+        builder.Services.AddSingleton<IYamlToolExecutorFactory, HttpClientToolExecutorFactory>();
 
         builder.Services.AddSingleton<ISkillRegistry>(sp =>
         {
