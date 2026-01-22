@@ -16,6 +16,7 @@ export const useAgentCreateDialog = (
 ) => {
     const intl = useIntl();
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [submissionError, setSubmissionError] = useState<string | undefined>();
     const [existingAgentGuid, setExistingAgentGuid] = useState<string | undefined>(
         agentCreateOrEditInfo?.mode === 'edit' ? Guid.newGuid() : undefined
     );
@@ -49,6 +50,7 @@ export const useAgentCreateDialog = (
     const onCreate = useCallback(
         async (values: AgentCreateFormValues, sourceAgent: ExtendedAgent | undefined, selectCreatedAgent: boolean | undefined) => {
             setIsSubmitting(true);
+            setSubmissionError(undefined);
 
             const agentCreateBody: ExtendedAgent = {
                 name: values.agentName,
@@ -92,6 +94,7 @@ export const useAgentCreateDialog = (
                     errorMessage: createResponse.error,
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
+                setSubmissionError(createResponse.error);
                 setIsSubmitting(false);
                 return;
             }
@@ -144,6 +147,7 @@ export const useAgentCreateDialog = (
     const onUpdate = useCallback(
         async (values: AgentCreateFormValues) => {
             setIsSubmitting(true);
+            setSubmissionError(undefined);
 
             const agentUpdateBody: ExtendedAgent = {
                 name: values.agentName,
@@ -182,6 +186,7 @@ export const useAgentCreateDialog = (
                     errorMessage: response.error,
                 });
                 azPortalContext.stopNotification(agentCreateNotificationId, false, message);
+                setSubmissionError(response.error);
                 setIsSubmitting(false);
                 return;
             }
@@ -244,6 +249,8 @@ export const useAgentCreateDialog = (
         additionalHandoffAgents,
         onSubmit,
         isSubmitting,
+        submissionError,
+        setSubmissionError,
     };
 };
 

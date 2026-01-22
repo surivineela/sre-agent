@@ -18,6 +18,8 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
         onSubmit,
         excludedHandoffAgent,
         additionalHandoffAgents,
+        submissionError,
+        setSubmissionError,
     } = useAgentCreateDialog(refresh, agentCreateOrEditInfo, skills);
 
     return (
@@ -48,6 +50,8 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
                     isEditScenario={isEditScenario}
                     existingAgentGuid={existingAgentGuid}
                     isOverrideScenario={isOverrideScenario}
+                    submissionError={submissionError}
+                    setSubmissionError={setSubmissionError}
                 />
             </Formik>
         </Dialog>

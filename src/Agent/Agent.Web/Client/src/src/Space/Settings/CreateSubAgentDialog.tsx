@@ -10,6 +10,7 @@ import {
     Input,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
+import { MessageBar, MessageBarBody } from '@fluentui/react-message-bar';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
 import { Dispatch, FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -29,6 +30,8 @@ interface CreateSubAgentFormProps {
     setIsDialogOpen: Dispatch<React.SetStateAction<boolean>>;
     isOperationInProgress?: boolean;
     existingSubAgents?: SubAgent[];
+    submissionError?: string;
+    setSubmissionError: Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 export interface SubAgentFormProps {
@@ -42,11 +45,18 @@ export const CreateSubAgentDialog: FC<CreateSubAgentProps> = ({
     isOperationInProgress = false,
     existingSubAgents,
 }) => {
+    const [submissionError, setSubmissionError] = useState<string | undefined>();
+
     const handleSubmit = useCallback(
         async (values: SubAgentFormProps, formikHelpers: FormikHelpers<SubAgentFormProps>) => {
-            await createSubAgent(values);
-
-            formikHelpers.resetForm();
+            setSubmissionError(undefined);
+            try {
+                await createSubAgent(values);
+                formikHelpers.resetForm();
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                setSubmissionError(errorMessage);
+            }
         },
         [createSubAgent]
     );
@@ -58,6 +68,8 @@ export const CreateSubAgentDialog: FC<CreateSubAgentProps> = ({
                 setIsDialogOpen={setIsDialogOpen}
                 isOperationInProgress={isOperationInProgress}
                 existingSubAgents={existingSubAgents}
+                submissionError={submissionError}
+                setSubmissionError={setSubmissionError}
             />
         </Formik>
     );
@@ -68,6 +80,8 @@ const CreateSubAgentForm = ({
     setIsDialogOpen,
     isOperationInProgress = false,
     existingSubAgents,
+    submissionError,
+    setSubmissionError,
 }: CreateSubAgentFormProps) => {
     const intl = useIntl();
     const [nameError, setNameError] = useState<string | undefined>();
@@ -82,7 +96,12 @@ const CreateSubAgentForm = ({
 
         const isDuplicate = existingSubAgents?.some(subAgent => subAgent.agentName.toLowerCase() === values.name.toLowerCase());
         setNameError(isDuplicate ? intl.formatMessage(SubAgentsResources.duplicateNameError) : undefined);
-    }, [values.name, existingSubAgents, intl]);
+
+        // Clear submission error when user starts typing
+        if (submissionError) {
+            setSubmissionError(undefined);
+        }
+    }, [values.name, existingSubAgents, intl, submissionError, setSubmissionError]);
 
     const isSaveDisabled = useMemo((): boolean => {
         return !values.name || isOperationInProgress || !!nameError;
@@ -93,11 +112,25 @@ const CreateSubAgentForm = ({
             <DialogSurface>
                 <DialogBody>
                     <DialogTitle
-                        action={<Button appearance="transparent" icon={<Dismiss24Regular />} onClick={() => setIsDialogOpen(false)} />}
+                        action={
+                            <Button
+                                appearance="transparent"
+                                icon={<Dismiss24Regular />}
+                                onClick={() => {
+                                    setIsDialogOpen(false);
+                                    setSubmissionError(undefined);
+                                }}
+                            />
+                        }
                     >
                         {intl.formatMessage(SubAgentsResources.createSubAgent)}
                     </DialogTitle>
                     <DialogContent>
+                        {submissionError && (
+                            <MessageBar intent="error" style={{ marginBottom: 16 }}>
+                                <MessageBarBody>{submissionError}</MessageBarBody>
+                            </MessageBar>
+                        )}
                         <form style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 16 }}>
                             <Field
                                 label={intl.formatMessage(SreAgentResources.name)}
@@ -124,6 +157,7 @@ const CreateSubAgentForm = ({
                             onClick={() => {
                                 setIsDialogOpen(false);
                                 resetForm();
+                                setSubmissionError(undefined);
                             }}
                             disabled={isOperationInProgress}
                         >

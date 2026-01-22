@@ -11,9 +11,22 @@ export const getDataPlaneErrorMessage = (error: any): string => {
         }
 
         if (typeof error.response.data === 'object') {
-            const parsedError =
-                error.response.data.message || error.response.data.error?.message || error.response.data.error || error.response.data.title;
-            return typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError);
+            const data = error.response.data;
+            let errorMessage = data.message || data.error?.message || data.error || data.title;
+            errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+            // Include validation error details if available
+            if (data.details?.errors && Array.isArray(data.details.errors)) {
+                const validationErrors = data.details.errors
+                    .map((e: { field?: string; message?: string }) => e.message || e.field)
+                    .filter(Boolean)
+                    .join('; ');
+                if (validationErrors) {
+                    errorMessage = `${errorMessage}: ${validationErrors}`;
+                }
+            }
+
+            return errorMessage;
         }
     }
 

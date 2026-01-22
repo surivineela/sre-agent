@@ -57,6 +57,8 @@ export interface AgentCreateDialogFormikProps {
     isEditScenario?: boolean;
     existingAgentGuid?: string;
     isOverrideScenario?: boolean;
+    submissionError?: string;
+    setSubmissionError?: (error: string | undefined) => void;
 }
 
 export interface FormViewProps {
