@@ -320,13 +320,13 @@ export const useChatInputStyles = makeStyles({
         justifyContent: 'flex-start',
     },
     chatBoxFooterInner: {
-        display: 'flex',
-        alignItems: 'stretch',
-        flexDirection: 'column',
-        justifyContent: 'center',
         maxWidth: '1000px',
-        height: 'auto',
         width: '100%',
+        minHeight: '0px',
+        flexShrink: 1,
+    },
+    chatBoxFooterInnerOverview: {
+        flexShrink: 0,
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,

@@ -285,7 +285,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { root, rootInCenter, rootWithOverview, chatBoxFooterInner, chatStatement } = useChatInputStyles();
+    const { root, rootInCenter, rootWithOverview, chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -1025,9 +1025,9 @@ const ChatBoxFooter = ({
                 isOverview ? rootWithOverview : undefined
             )}
         >
-            <div className={chatBoxFooterInner}>
-                <KnowledgeGraphBuildStatus />
+            <div className={mergeClasses(chatBoxFooterInner, isOverview ? chatBoxFooterInnerOverview : undefined)} onKeyDown={onKeyDown}>
                 {centerChatBoxFooter && <SreAgentBranding />}
+                <KnowledgeGraphBuildStatus />
                 <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
                     <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
                     <Popover

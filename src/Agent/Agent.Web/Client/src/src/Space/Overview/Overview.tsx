@@ -20,6 +20,7 @@ const useStyles = makeStyles({
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: 'auto',
         gap: '12px',
+        backgroundColor: tokens.colorNeutralBackground2,
     },
     suggestionActions: {
         gridColumn: '1 / -1',

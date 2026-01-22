@@ -13,6 +13,7 @@ const useKnowledgeGraphBuildStatusStyles = makeStyles({
         gap: '5px',
         maxWidth: '1000px',
         margin: 'auto',
+        paddng: '0px 10px',
     },
 });
 
