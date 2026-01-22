@@ -28,11 +28,15 @@ export const useAgentSiteNavigate = () => {
             );
             const pathname = `/views/${navItemId}`;
 
+            const navCategory = input.secondaryNavItemValue
+                ? `${input.primaryNavItemValue}/${input.secondaryNavItemValue}`
+                : input.primaryNavItemValue;
+
             logAmplitudeNavigationEvent({
                 targetType: 'tab',
                 targetAction: 'tabItem',
-                targetName: pathname,
-                targetFriendlyName: pathname,
+                targetName: navCategory,
+                targetFriendlyName: navCategory,
             });
 
             reactRouterNavigate({ ...location, pathname }, input.options);
