@@ -1,5 +1,5 @@
 import { DrawerProps } from '@fluentui/react-components';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -96,13 +96,11 @@ export const useSreAgentSpace = () => {
 
     const onClickThreadNavItem = useCallback(
         (primary: PrimaryNavItemValues, threadId: string | null) => {
-            onClickNavItem(primary, undefined, threadId ? threadId : undefined);
-
-            // Reset threads render key after the navigation is done and the re-render is completed to make sure the render key is passed when the thread id returned from useParams is updated.
-            setTimeout(() => {
+            // Since navigate() is in transition, we need to wrap setState in startTransition to put it in the same priority level
+            startTransition(() => {
+                onClickNavItem(primary, undefined, threadId ? threadId : undefined);
                 setThreadsRenderKey(Guid.newGuid());
-            }, 0)
-
+            });
         },
         [onClickNavItem]
     );
