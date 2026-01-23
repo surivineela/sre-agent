@@ -130,6 +130,16 @@ export interface HttpResponseObject<T> {
     };
     data: T;
 }
+export interface AzureAsyncOperationResult {
+    status: string;
+    id?: string;
+    name?: string;
+    startTime?: Date;
+    endTime?: Date;
+    percentComplete?: number;
+    properties?: any;
+    error?: ArmError;
+}
 
 export interface Tenant {
     id: string;
