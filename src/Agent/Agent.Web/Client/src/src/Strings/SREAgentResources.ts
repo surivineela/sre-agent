@@ -2466,6 +2466,7 @@ export const SettingsTabResources = defineMessages({
     azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
     configureAzureSettings: { defaultMessage: 'Configure Azure settings', id: 'Q9DSD7' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
     sessionInsights: { defaultMessage: 'Session insights', id: 'CQ0CLu' },
@@ -3277,6 +3278,38 @@ export const KnowledgeBaseResources = defineMessages({
         defaultMessage: 'Maximum file size: 100MB',
         id: '0sA1BF',
     },
+    fileSizeLimit: {
+        defaultMessage: 'Each file can be up to 16 MB, with a maximum of 100 MB per upload.',
+        id: 'o2yyB5',
+    },
+    createFile: {
+        defaultMessage: 'Create file',
+        id: '29C9Pb',
+    },
+    createTextFile: {
+        defaultMessage: 'Create text file',
+        id: 'Cn7C35',
+    },
+    createTextFileDescription: {
+        defaultMessage: 'Create a knowledge file with a brief description for the agent.',
+        id: 'jurctS',
+    },
+    fileNameLabel: {
+        defaultMessage: 'File name',
+        id: 'ppAn7O',
+    },
+    fileNamePlaceholder: {
+        defaultMessage: 'Enter the file name',
+        id: 'kY5D4x',
+    },
+    textLabel: {
+        defaultMessage: 'Text',
+        id: 'aA8bDw',
+    },
+    textPlaceholder: {
+        defaultMessage: 'Enter text',
+        id: 'SikZWx',
+    },
     knowledgeBase: {
         defaultMessage: 'Knowledge Base',
         id: 'EbNaDn',
@@ -3284,6 +3317,140 @@ export const KnowledgeBaseResources = defineMessages({
     searchResultsFound: {
         defaultMessage: '{count, plural, one {{count} file found} other {{count} files found}} out of {total}',
         id: 'G7EU2S',
+    },
+});
+
+export const KnowledgeSettingsResources = defineMessages({
+    knowledgeBaseTitle: {
+        defaultMessage: 'Knowledge base',
+        id: 'tLYOnZ',
+    },
+    knowledgeBaseDescription: {
+        defaultMessage:
+            'Add knowledge sources to build a knowledge base that the agent uses to generate accurate, context-aware responses and insights.',
+        id: 'GBLNmn',
+    },
+    learnMoreAboutKnowledgeSources: {
+        defaultMessage: 'Learn more about knowledge sources',
+        id: 's00xPm',
+    },
+    addFile: {
+        defaultMessage: 'Add file',
+        id: 'sXiGbo',
+    },
+    addWebPage: {
+        defaultMessage: 'Add web page',
+        id: 'ww0sud',
+    },
+    addRepository: {
+        defaultMessage: 'Add repository',
+        id: 'FvUsYi',
+    },
+    searchKnowledgeSources: {
+        defaultMessage: 'Search knowledge sources',
+        id: 'HM7d3p',
+    },
+    typeColumn: {
+        defaultMessage: 'Type',
+        id: '+U6ozc',
+    },
+    lastModifiedColumn: {
+        defaultMessage: 'Last modified',
+        id: '1Jufsz',
+    },
+    typeAll: {
+        defaultMessage: 'All',
+        id: 'zQvVDJ',
+    },
+    typeFile: {
+        defaultMessage: 'File',
+        id: 'gyrIEl',
+    },
+    typeWebPage: {
+        defaultMessage: 'Web page',
+        id: 'uM1S1h',
+    },
+    typeRepository: {
+        defaultMessage: 'Repository',
+        id: 'UxeJFE',
+    },
+    lastIndexed: {
+        defaultMessage: 'Last indexed {time}',
+        id: 'ngNj+t',
+    },
+    groundResponsesTitle: {
+        defaultMessage: 'Ground responses and insights with knowledge',
+        id: '7vJSlo',
+    },
+    groundResponsesDescription: {
+        defaultMessage: 'Add sources that the agent will reference for accuracy.',
+        id: 'UwHF//',
+    },
+    addKnowledgeSource: {
+        defaultMessage: 'Add knowledge source',
+        id: 'vazhxm',
+    },
+    // Add web page dialog
+    addWebPageDescription: {
+        defaultMessage: 'Add a web page URL to your knowledge base.',
+        id: '3BBefX',
+    },
+    webPageUrlLabel: {
+        defaultMessage: 'Web page URL',
+        id: 'n7N5Wd',
+    },
+    webPageUrlPlaceholder: {
+        defaultMessage: 'Enter the web page URL',
+        id: 'UFq/BQ',
+    },
+    webPageNamePlaceholder: {
+        defaultMessage: 'Enter a name for the web page',
+        id: 'WfHZfp',
+    },
+    webPageDescriptionPlaceholder: {
+        defaultMessage: 'Enter a description (optional)',
+        id: 'CplVHD',
+    },
+    // Add repository dialog
+    addRepositoryDialogDescription: {
+        defaultMessage: 'Add a repository as a knowledge source. The agent will index information from the repository.',
+        id: 'EblExr',
+    },
+    repositoryUrlLabel: {
+        defaultMessage: 'Repository URL',
+        id: 'AA/tRJ',
+    },
+    repositoryUrlPlaceholder: {
+        defaultMessage: 'https://github.com/owner/repo',
+        id: 'Gzx+AT',
+    },
+    supportedRepositoriesHint: {
+        defaultMessage: 'Supported repositories: Azure DevOps, GitHub',
+        id: 'K/5jyc',
+    },
+    displayNameLabel: {
+        defaultMessage: 'Display name',
+        id: 'dOQCL8',
+    },
+    displayNamePlaceholder: {
+        defaultMessage: 'Enter the display name',
+        id: '5/rrw+',
+    },
+    repositoryDescriptionPlaceholder: {
+        defaultMessage: 'The agent indexes information from a GitHub repository.',
+        id: '+4GsbF',
+    },
+    gitHubAccountLabel: {
+        defaultMessage: 'GitHub account',
+        id: 'lrwOUh',
+    },
+    signInToGitHub: {
+        defaultMessage: 'Sign in to GitHub',
+        id: 'w0rIv0',
+    },
+    addRepositoryButton: {
+        defaultMessage: 'Add repository',
+        id: 'FvUsYi',
     },
 });
 

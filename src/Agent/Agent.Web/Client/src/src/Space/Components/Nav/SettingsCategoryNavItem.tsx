@@ -37,6 +37,7 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
     const showPermissionsInSettings = useConfigSetting(SettingNames.ShowPermissionsInSettings);
+    const showKnowledgeSettings = useConfigSetting(SettingNames.KnowledgeSettings);
 
     const categoryItem = useMemo(
         (): CategoryNavItemInput => ({
@@ -102,6 +103,12 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
                 label: intl.formatMessage(SettingsTabResources.knowledgeBase),
             },
             {
+                value: SecondaryNavItemValues.KnowledgeSettings,
+                isVisible: showKnowledgeSettings && controlPlaneTabsVisible,
+                disabled: false,
+                label: intl.formatMessage(SettingsTabResources.knowledgeSettings),
+            },
+            {
                 value: SecondaryNavItemValues.AzureSettings,
                 isVisible: controlPlaneTabsVisible,
                 disabled: false,
@@ -144,6 +151,7 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
         showSubAgents,
         showMcpServer,
         showPermissionsInSettings,
+        showKnowledgeSettings,
         isCrossTenantPortalMode,
     ]);
 

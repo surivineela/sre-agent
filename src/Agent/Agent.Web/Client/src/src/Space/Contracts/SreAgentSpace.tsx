@@ -34,6 +34,7 @@ export enum SecondaryNavItemValues {
     ManagedResources = 'managedResourcesGroups',
     Connectors = 'connectors',
     KnowledgeBase = 'knowledgeBase',
+    KnowledgeSettings = 'knowledgeSettings',
     Permissions = 'permissions',
     SubAgents = 'subAgents',
     McpServers = 'mcpServers',

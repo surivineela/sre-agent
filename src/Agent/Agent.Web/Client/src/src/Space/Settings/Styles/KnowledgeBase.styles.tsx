@@ -61,17 +61,34 @@ export const useKnowledgeBaseStyles = makeStyles({
         paddingTop: '0px',
     },
     dialogSurface: {
-        maxWidth: '800px',
-        minWidth: '500px',
+        maxWidth: '650px',
+        minHeight: '450px',
+        maxHeight: '80vh',
         padding: '0px',
+        display: 'flex',
+        flexDirection: 'column',
     },
     dialogContent: {
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
+        flex: 1,
+        overflowY: 'auto',
     },
     dialogBody: {
         padding: '24px',
+        flex: 1,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    dialogTitleContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    createFileButton: {
+        alignSelf: 'flex-start',
     },
     dropZone: {
         borderRadius: '8px',
@@ -85,11 +102,11 @@ export const useKnowledgeBaseStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground2,
     },
     dropZoneIdle: {
-        border: `2px dashed ${tokens.colorNeutralStroke2}`,
-        backgroundColor: 'transparent',
+        border: `2px dashed ${tokens.colorNeutralStroke1Pressed}`,
+        backgroundColor: tokens.colorNeutralBackground2,
     },
     dropZoneDragOver: {
-        border: `2px dashed ${tokens.colorBrandStroke1}`,
+        border: `2px dashed ${tokens.colorNeutralStroke1Pressed}`,
         backgroundColor: tokens.colorNeutralBackground2,
     },
     emptyDropZone: {
@@ -139,11 +156,12 @@ export const useKnowledgeBaseStyles = makeStyles({
         display: 'none',
     },
     dialogFooter: {
-        borderTop: '1px solid ' + tokens.colorNeutralStroke1Pressed,
+        borderTop: '1px solid ' + tokens.colorNeutralStroke1,
         width: '100%',
         padding: '16px',
         justifyContent: 'flex-end',
         gap: '8px',
+        marginTop: 'auto',
     },
     fileTableHeaderCell35: {
         width: '35%',
@@ -182,5 +200,18 @@ export const useKnowledgeBaseStyles = makeStyles({
     dialogSurfaceOrg: {
         maxWidth: '800px',
         minWidth: '500px',
+    },
+    formField: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+    },
+    createFileTextarea: {
+        minHeight: '120px',
+    },
+    dialogFooterRightButtons: {
+        display: 'flex',
+        gap: '8px',
+        marginLeft: 'auto',
     },
 });

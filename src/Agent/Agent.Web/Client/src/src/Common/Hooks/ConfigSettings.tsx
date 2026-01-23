@@ -20,6 +20,7 @@ export enum SettingNames {
     /** Use for onboarding experience testing. This will be removed when the feature is ready */
     Overview = 'overview',
     ShowDefaultModelPicker = 'showDefaultModelPicker',
+    KnowledgeSettings = 'knowledgeSettings',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
@@ -49,6 +50,7 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
         [SettingNames.ShowIncidentTriggerWithLearnings]: true,
         [SettingNames.ShowOnboardingWizard]: true,
         [SettingNames.Overview]: true,
+        [SettingNames.KnowledgeSettings]: true,
     },
 };
 
