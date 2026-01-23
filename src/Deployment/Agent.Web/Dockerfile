@@ -13,7 +13,10 @@ RUN apt-get update && \
     # Install kubectl
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
-    rm kubectl
+    rm kubectl && \
+    # Install Node.js 20 (required for @playwright/mcp)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
 
 WORKDIR /app
 COPY . .
