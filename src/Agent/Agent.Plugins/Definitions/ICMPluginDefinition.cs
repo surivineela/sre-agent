@@ -176,7 +176,7 @@ public class ICMPluginDefinition
         return await _icmPlugin.ResolveIncident(incidentId.ToString(), discussionEntry);
     }
 
-    [Description("Post an ICM discussion entry. IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
+    [Description("Post a discussion entry, comment, or update to an ICM incident (also known as 'post to ICM', 'write to the incident', 'share findings on the ticket'). IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
     public async Task<string> PostDiscussionEntry(
        [Description("Incident ID")] long incidentId,
        [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
