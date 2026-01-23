@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Location, useLocation } from 'react-router-dom';
+import { Location, useLocation } from 'react-router';
 import Url from '../Helpers/Url';
 
 export enum SettingNames {

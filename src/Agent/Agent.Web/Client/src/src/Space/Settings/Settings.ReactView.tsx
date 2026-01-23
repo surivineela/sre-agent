@@ -1,6 +1,6 @@
 import { initializeIcons } from '@fluentui/react';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SecondaryNavItemValues } from '../Contracts/SreAgentSpace';

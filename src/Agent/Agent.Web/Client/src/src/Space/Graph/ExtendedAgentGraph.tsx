@@ -4,7 +4,7 @@ import { BeakerRegular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -1802,7 +1802,7 @@ const ExtendedAgentGraphContent = memo(() => {
     }, [tools]);
 
     const showEmptyState = useMemo(
-        () =>  !isLoading && currentView === ExtendedAgentGraphView.Canvas && !hasAgents && !hasSkills && !hasTriggers,
+        () => !isLoading && currentView === ExtendedAgentGraphView.Canvas && !hasAgents && !hasSkills && !hasTriggers,
         [isLoading, currentView, hasAgents, hasSkills, hasTriggers]
     );
 
@@ -2010,7 +2010,9 @@ const ExtendedAgentGraphContent = memo(() => {
                                             edgeCount={edges.length}
                                             showAgentPicker={hasAgents || hasTriggers}
                                             noAgentsMessage={
-                                                (hasAgents || hasTriggers) ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsOrTriggersFound)
+                                                hasAgents || hasTriggers
+                                                    ? undefined
+                                                    : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsOrTriggersFound)
                                             }
                                         />
                                     </div>

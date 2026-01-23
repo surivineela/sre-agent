@@ -11,7 +11,7 @@ import { WarningFilled } from '@fluentui/react-icons';
 import { Formik } from 'formik';
 import { FC, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { ExtendedConnector, ExtendedTool } from '../../Contracts/ExtendedAgentGraph';
 import { SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';

@@ -14,7 +14,7 @@ import {
 import { tokens } from '@fluentui/react-theme';
 import { FC, memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';

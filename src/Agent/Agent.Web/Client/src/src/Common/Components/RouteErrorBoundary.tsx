@@ -2,7 +2,7 @@ import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
 import { ArrowClockwiseRegular, ChatHelpRegular, WarningRegular } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router';
 import GithubIssueDialog from '../../Space/Components/GithubIssueDialog';
 import { GithubIssueIcon } from '../../Space/Components/Nav/FeedbackMenu';
 import { GithubIssueResources, SreAgentResources } from '../../Strings/SREAgentResources';

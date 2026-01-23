@@ -1,5 +1,5 @@
 import { useCallback, useContext } from 'react';
-import { NavigateOptions, useLocation, useNavigate } from 'react-router-dom';
+import { NavigateOptions, useLocation, useNavigate } from 'react-router';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { PrimaryNavItemValues, SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
 import { constructNavItemId } from '../Utilities';

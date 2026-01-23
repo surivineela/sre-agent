@@ -3,7 +3,7 @@ import { Button, Tooltip } from '@fluentui/react-components';
 import { Branch16Regular, TaskListLtr20Regular } from '@fluentui/react-icons';
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';

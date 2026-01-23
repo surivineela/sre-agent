@@ -2,7 +2,7 @@ import { CopilotNavDrawer, CopilotNavDrawerBody, tokens as copilotTokens } from 
 import { Body1, Button, mergeClasses, Subtitle1 } from '@fluentui/react-components';
 import { FC, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { createHashRouter, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { createHashRouter, Outlet, RouterProvider, useLocation } from 'react-router';
 import { HttpResponseObject } from '../Common/ArmHelper.types';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
