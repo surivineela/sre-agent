@@ -157,8 +157,8 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
         incidentPlatformType === IncidentManagementType.AzMonitor
             ? TimeDuration.Last15Days
             : handlerMode === 'create'
-              ? TimeDuration.Last60Days
-              : TimeDuration.Last90Days
+                ? TimeDuration.Last60Days
+                : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setSelectedTimespan(value);
@@ -171,8 +171,8 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
     const [loadingIncidents, setLoadingIncidents] = useState<boolean>(true);
     const [selectedIncidents, setSelectedIncidents] = useState<IncidentDocument[]>();
 
-    const incidentsInitialized = useRef(false);
     const [initialSelectedIncidentIds, setInitialSelectedIncidentIds] = useState<string[]>();
+    const queryFilterCacheKey = useRef<string>();
 
     const onSelectedIncidentsChange = useCallback(
         (newSelectedIncidentIds: string[]) => {
@@ -427,17 +427,17 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
             const [notificationTitle, notificationDescription, notificationErrorMessage, notificationSuccessMessage] =
                 saveOrUpdateFilterAction === 'create-incidentFilter'
                     ? [
-                          IncidentManagementNotificationResources.createFilterTitle,
-                          IncidentManagementNotificationResources.createFilterInProgress,
-                          IncidentManagementNotificationResources.createFilterError,
-                          IncidentManagementNotificationResources.createFilterSuccess,
-                      ]
+                        IncidentManagementNotificationResources.createFilterTitle,
+                        IncidentManagementNotificationResources.createFilterInProgress,
+                        IncidentManagementNotificationResources.createFilterError,
+                        IncidentManagementNotificationResources.createFilterSuccess,
+                    ]
                     : [
-                          IncidentManagementNotificationResources.updateFilterTitle,
-                          IncidentManagementNotificationResources.updateFilterInProgress,
-                          IncidentManagementNotificationResources.updateFilterError,
-                          IncidentManagementNotificationResources.updateFilterSuccess,
-                      ];
+                        IncidentManagementNotificationResources.updateFilterTitle,
+                        IncidentManagementNotificationResources.updateFilterInProgress,
+                        IncidentManagementNotificationResources.updateFilterError,
+                        IncidentManagementNotificationResources.updateFilterSuccess,
+                    ];
 
             const notificationId = azPortalContext.startNotification(
                 intl.formatMessage(notificationTitle),
@@ -537,8 +537,8 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
                 saveUpdateOrDeleteHandlerAction === 'delete-incidentHandler'
                     ? async () => await incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId || '')
                     : saveUpdateOrDeleteHandlerAction === 'create-incidentHandler'
-                      ? async () => await incidentHandlerClient.createHandler(handlerPayload)
-                      : async () => await incidentHandlerClient.updateHandler(handlerPayload);
+                        ? async () => await incidentHandlerClient.createHandler(handlerPayload)
+                        : async () => await incidentHandlerClient.updateHandler(handlerPayload);
 
             const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
             if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
@@ -688,6 +688,33 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
     const incidentsPreviewMetadata = usePreviewIncidents();
 
+    const queryFilterValues = useMemo(
+        () => getFilterValues(
+            {
+                impactedService: values.impactedService,
+                priority: values.priority,
+                incidentType: values.incidentType,
+                titleContains: values.titleContains,
+                owningTeamId: values.owningTeamId,
+                createdBy: values.createdBy,
+                monitorId: values.monitorId,
+            },
+            incidentPlatformType,
+            true,
+            '',
+        ),
+        [
+            values.impactedService,
+            values.priority,
+            values.incidentType,
+            values.titleContains,
+            values.owningTeamId,
+            values.createdBy,
+            values.monitorId,
+            incidentPlatformType,
+        ]
+    );
+
     useEffect(() => {
         let subscribed = true;
 
@@ -707,26 +734,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
         };
     }, [incidentHandlerClient, incidentHandlerClient.listTools]);
 
-    // This useEffect MUST come before the useEffect below that loads the incidents.
-    useEffect(() => {
-        incidentsInitialized.current = false;
-    }, [
-        // This MUST exactly match the dependencies of the useEffect below that loads the incidents, but with selectedTimespan removed.
-        setFieldValue,
-        incidentHandlerClient,
-        handlerMode,
-        initialSelectedIncidentIds,
-        incidentPlatformType,
-        values.impactedService,
-        values.priority,
-        values.incidentType,
-        values.titleContains,
-        values.owningTeamId,
-        values.createdBy,
-        values.monitorId,
-    ]);
-
-    // This useEffect MUST come after the useEffect above that resets incidentsInitialized.
+    // Load incidents when filter changes or timespan changes
     useEffect(() => {
         let subscribed = true;
 
@@ -737,9 +745,8 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
             setLoadingIncidents(true);
             incidentsPageNumber.current = 0;
 
-            const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
             const queryPayload: IncidentQueryRequest = {
-                filter: filterValues,
+                filter: queryFilterValues,
                 durationInDays: selectedTimespan,
                 pageSize: pageSize,
                 pageNumber: ++incidentsPageNumber.current,
@@ -748,7 +755,10 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
 
             const filteredIncidentsPromise = incidentHandlerClient.queryIncidents(queryPayload);
 
-            const shouldPrefetchIncidents = handlerMode !== 'create' && !!initialSelectedIncidentIds && !incidentsInitialized.current;
+            const currentFilterCacheKey = JSON.stringify(queryFilterValues);
+            const filterChanged = queryFilterCacheKey.current !== currentFilterCacheKey;
+
+            const shouldPrefetchIncidents = handlerMode !== 'create' && !!initialSelectedIncidentIds && filterChanged;
 
             const initialSelectionsPromises = shouldPrefetchIncidents
                 ? Promise.all(initialSelectedIncidentIds.map(id => incidentHandlerClient.getIncident(id)))
@@ -781,7 +791,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
                             'incidentIds',
                             prefetchedIncidents.map(incident => incident.id)
                         );
-                    } else if (!incidentsInitialized.current) {
+                    } else if (filterChanged) {
                         const latestThreeIncidents = filteredIncidents.slice(0, 3);
                         setSelectedIncidents(latestThreeIncidents);
                         setFieldValue(
@@ -795,7 +805,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
 
                 setIsLoadingInitialIncidents(false);
                 setLoadingIncidents(false);
-                incidentsInitialized.current = true;
+                queryFilterCacheKey.current = currentFilterCacheKey;
             });
         }
 
@@ -803,20 +813,13 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
             subscribed = false;
         };
     }, [
-        // This MUST exactly match the dependencies of the useEffect above that resets incidentsInitialized, but with selectedTimespan added.
+        selectedTimespan,
         setFieldValue,
         incidentHandlerClient,
-        selectedTimespan,
         handlerMode,
         initialSelectedIncidentIds,
         incidentPlatformType,
-        values.impactedService,
-        values.priority,
-        values.incidentType,
-        values.titleContains,
-        values.owningTeamId,
-        values.createdBy,
-        values.monitorId,
+        queryFilterValues,
     ]);
 
     useEffect(() => {

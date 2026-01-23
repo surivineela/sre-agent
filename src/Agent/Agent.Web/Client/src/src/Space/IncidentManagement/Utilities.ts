@@ -11,9 +11,10 @@ import {
     SreAgentResources,
 } from '../../Strings/SREAgentResources';
 import { IncidentsListColumnKey } from './CreateIncidentHandler/Contracts';
+import { IncidentHandlerCreateFormValues } from './CreateIncidentHandler/IncidentHandlerCreateFormValues';
 
 export const getFilterValues = (
-    values: any,
+    values: IncidentHandlerCreateFormValues,
     incidentPlatform?: IncidentManagementType,
     replaceAllKey?: boolean,
     allKeyReplacement?: string
