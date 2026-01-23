@@ -1,0 +1,61 @@
+name: Build SRE Agent Extension
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # allows OIDC
+
+jobs:
+  build-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/Agent/Agent.Extension
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Azure OIDC Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ vars.CFS_CLIENT_ID }}
+          tenant-id: ${{ vars.CFS_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Setup CFS
+        uses: 1es-actions/setup-cfs@v1
+        with:
+          feed-url: https://msazure.pkgs.visualstudio.com/_packaging/AzurePortal
+          npm-config: true
+
+      - name: Get version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Create distribution zip
+        run: |
+          cd dist
+          zip -r ../sre-agent-extension-${{ steps.version.outputs.VERSION }}.zip .
+
+      - name: Upload extension zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: sre-agent-browser-extension-${{ steps.version.outputs.VERSION }}
+          path: src/Agent/Agent.Extension/sre-agent-extension-${{ steps.version.outputs.VERSION }}.zip
+          retention-days: 90

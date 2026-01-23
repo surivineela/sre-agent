@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "SRE Agent Browser Extension",
-  "version": "1.0.0",
+  "name": "Azure SRE Agent",
+  "version": "0.1.0",
   "description": "Connect your browser to SRE Agent for web automation",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvNg513N5oltVGfOcBGM3ns7nXxSvnx/CsZ7a1gw3/hE9+e2f6dQo5CAGVWaBqw8YqwcxrLgqbzkMZxxEwixI4Z7K7tE+ZmcGyJnox0vgez2WPRZ/lCVRlJHA4V0Hze/baMjZCkcTS7f8ajlls8OGo7R0ZtYBbkmtync3wv9c2rqVkBJBpyIusHB7AI8mQyrvNGJHuuPf7C4z/y9MfKHf/Y/8BfKK5OumxcNin5s9qHdt4veZEfB7HEHCpI0Lmo2Tu34BJEcW+s3oNmqg8G9m2b+uTczx5ujIWRLRrMZoodWIgfJSxt7/a7eozaT8nJZrEURXxbyrQ3iV9LXB4IYsrwIDAQAB",
   "permissions": [
