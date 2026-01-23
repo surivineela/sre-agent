@@ -1,31 +1,14 @@
-import {
-    Button,
-    InputOnChangeData,
-    SearchBox,
-    Skeleton,
-    SkeletonItem,
-    TableCell,
-    TableHeaderCell,
-    Text,
-    Toolbar,
-    ToolbarButton,
-    ToolbarDivider,
-} from '@fluentui/react-components';
-import { ArrowClockwise20Regular, Delete16Regular } from '@fluentui/react-icons';
-import { SearchBoxChangeEvent } from '@fluentui/react-search';
-import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
+import { Button, Skeleton, SkeletonItem, TableCell, TableHeaderCell, Text } from '@fluentui/react-components';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
 import { PillFilter } from '../../../../Common/Components/PillFilter/PillFilter';
-import { ExtendedAgentsGraphResources, ScheduledTasksResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { ExtendedAgentNodeType, ExtendedConnector, ExtendedTool, ExtendedTrigger } from '../../../Contracts/ExtendedAgentGraph';
 import { McpConnectorStatus } from '../../../Settings/Connectors/Connectors';
 import { getStatusIcon } from '../../../Settings/Connectors/ConnectorStatusUtils';
-import { EntityDeleteConfirmDialog } from '../Common/EntityDeleteConfirmDialog';
 import { EntityTable } from '../Common/EntityTable';
-import { ALL_FILTER_KEY, BaseTableItem, EntityTableProps, EntityToolbarProps, KustoToolItem } from '../ExtendedAgentTableView.Contracts';
+import { ToolTableToolbar } from '../Common/ToolTableToolbar';
+import { ALL_FILTER_KEY, BaseTableItem, EntityTableProps, KustoToolItem } from '../ExtendedAgentTableView.Contracts';
 import { useListViewStyles } from '../ExtendedAgentTableView.Styles';
 import { useKustoToolConnectorStatus } from '../Hooks/useKustoToolConnectorStatus';
 
@@ -165,19 +148,70 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, openInfoPa
         [styles, openInfoPanel, renderStatusCell]
     );
 
+    const connectorFilterOptions = useMemo(() => {
+        const uniqueConnectorNames = Array.from(new Set(kustoTools.map(tool => tool.connector)));
+
+        return [
+            {
+                key: ALL_FILTER_KEY,
+                label: intl.formatMessage(SreAgentResources.all),
+            },
+            ...uniqueConnectorNames.map(connector => ({
+                key: connector ?? '',
+                label: connector ?? '',
+            })),
+        ];
+    }, [kustoTools, intl]);
+
+    const connectorStatusFilterOptions = useMemo(
+        () => [
+            { key: ALL_FILTER_KEY, label: intl.formatMessage(SreAgentResources.all) },
+            { key: McpConnectorStatus.Connected, label: McpConnectorStatus.Connected },
+            { key: McpConnectorStatus.Disconnected, label: McpConnectorStatus.Disconnected },
+            { key: McpConnectorStatus.Error, label: McpConnectorStatus.Error },
+            { key: McpConnectorStatus.Failed, label: McpConnectorStatus.Failed },
+            { key: McpConnectorStatus.Initializing, label: McpConnectorStatus.Initializing },
+        ],
+        [intl]
+    );
+
+    const connectorFilters = useMemo(
+        () => (
+            <>
+                <PillFilter
+                    label={`${intl.formatMessage(ExtendedAgentsGraphResources.connector)}`}
+                    filterType="combobox"
+                    options={connectorFilterOptions}
+                    selectedKeys={[connectorFilter]}
+                    onApply={keys => {
+                        setConnectorFilter(keys[0]);
+                    }}
+                />
+                <PillFilter
+                    label={`${intl.formatMessage(ExtendedAgentsGraphResources.connectorStatus)}`}
+                    filterType="combobox"
+                    options={connectorStatusFilterOptions}
+                    selectedKeys={[connectorStatusFilter]}
+                    onApply={keys => {
+                        setConnectorStatusFilter(keys[0]);
+                    }}
+                />
+            </>
+        ),
+        [intl, connectorFilterOptions, connectorStatusFilterOptions, connectorFilter, connectorStatusFilter]
+    );
+
     return (
         <div className={styles.entityTable}>
-            <KustoToolTableToolbar
+            <ToolTableToolbar
+                toolType="kusto"
+                selectedTools={selectedTools}
                 searchText={searchText}
                 setSearchText={setSearchText}
-                connectorFilter={connectorFilter}
-                setConnectorFilter={setConnectorFilter}
-                connectorStatusFilter={connectorStatusFilter}
-                setConnectorStatusFilter={setConnectorStatusFilter}
-                tools={kustoTools}
-                selectedTools={selectedTools}
+                searchPlaceholder={ExtendedAgentsGraphResources.searchByTool}
                 refresh={refresh}
                 lastUpdated={lastUpdated}
+                additionalFilters={connectorFilters}
             />
             <EntityTable
                 activeTab="scheduledTasks"
@@ -191,182 +225,3 @@ export const KustoToolTable: FC<KustoToolTableProps> = ({ kustoTools, openInfoPa
         </div>
     );
 };
-
-interface KustoToolTableToolbarProps extends EntityToolbarProps {
-    tools: ExtendedTool[];
-    selectedTools: ExtendedTool[];
-    connectorFilter: string;
-    setConnectorFilter: (filter: string) => void;
-    connectorStatusFilter: string;
-    setConnectorStatusFilter: (statusFilter: string) => void;
-}
-
-const KustoToolTableToolbar = memo<KustoToolTableToolbarProps>(
-    ({
-        tools = [],
-        selectedTools = [],
-        searchText,
-        setSearchText,
-        connectorFilter,
-        setConnectorFilter,
-        connectorStatusFilter,
-        setConnectorStatusFilter,
-        refresh,
-        lastUpdated,
-    }) => {
-        const intl = useIntl();
-        const styles = useListViewStyles();
-        const { sreAgentEndpoint } = useContext(EnvironmentContext);
-        const azPortalContext = useContext(AzPortalContext);
-        const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
-        const [isDeleting, setIsDeleting] = useState(false);
-        const agentClient = useMemo(() => ExtendedAgentClient.getInstance(sreAgentEndpoint), [sreAgentEndpoint]);
-
-        const connectorFilterOptions = useMemo(() => {
-            const uniqueConnectorNames = Array.from(new Set(tools.map(tool => tool.connector)));
-
-            return [
-                {
-                    key: ALL_FILTER_KEY,
-                    label: intl.formatMessage(SreAgentResources.all),
-                },
-                ...uniqueConnectorNames.map(connector => ({
-                    key: connector ?? '',
-                    label: connector ?? '',
-                })),
-            ];
-        }, [tools, intl]);
-
-        const connectorStatusFilterOptions = useMemo(
-            () => [
-                { key: ALL_FILTER_KEY, label: intl.formatMessage(SreAgentResources.all) },
-                { key: McpConnectorStatus.Connected, label: McpConnectorStatus.Connected },
-                { key: McpConnectorStatus.Disconnected, label: McpConnectorStatus.Disconnected },
-                { key: McpConnectorStatus.Error, label: McpConnectorStatus.Error },
-                { key: McpConnectorStatus.Failed, label: McpConnectorStatus.Failed },
-                { key: McpConnectorStatus.Initializing, label: McpConnectorStatus.Initializing },
-            ],
-            [intl]
-        );
-
-        const isDeleteDisabled = useMemo(() => selectedTools.length === 0 || isDeleting, [isDeleting, selectedTools.length]);
-
-        const handleDelete = useCallback(async () => {
-            setIsDeleting(true);
-            setShowDeleteConfirmationDialog(false);
-            const toolNames = selectedTools.map(tool => tool.name);
-
-            azPortalContext.log({
-                action: 'delete-tools',
-                actionModifier: 'start',
-                logLevel: 'info',
-                data: { toolNames },
-            });
-
-            const notificationId = azPortalContext.startNotification(
-                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationTitle, { count: selectedTools.length }),
-                intl.formatMessage(SreAgentResources.deleteKustoToolNotificationInProgress, {
-                    count: selectedTools.length,
-                    name: toolNames[0],
-                })
-            );
-
-            const responses = await Promise.all(selectedTools.map(tool => agentClient.deleteKustoTool(tool.name)));
-            if (responses.some(response => response.isSuccessful)) {
-                azPortalContext.log({
-                    action: 'delete-tools',
-                    actionModifier: 'success',
-                    logLevel: 'info',
-                    data: { toolNames },
-                });
-
-                await refresh();
-                azPortalContext.stopNotification(
-                    notificationId,
-                    true,
-                    intl.formatMessage(SreAgentResources.deleteKustoToolNotificationSuccess, {
-                        count: selectedTools.length,
-                        name: toolNames[0],
-                    })
-                );
-            } else {
-                const errorMessage = responses.find(r => !r.isSuccessful)?.error;
-                azPortalContext.log({
-                    action: 'delete-tools',
-                    actionModifier: 'failure',
-                    logLevel: 'error',
-                    data: { toolNames, errorMessage },
-                });
-
-                azPortalContext.stopNotification(
-                    notificationId,
-                    false,
-                    intl.formatMessage(SreAgentResources.deleteKustoToolNotificationFailure, {
-                        count: selectedTools.length,
-                        name: toolNames[0],
-                        errorMessage,
-                    })
-                );
-            }
-            setIsDeleting(false);
-        }, [agentClient, azPortalContext, intl, refresh, selectedTools]);
-
-        return (
-            <div className={styles.toolbar}>
-                <div className={styles.searchAndToolbar}>
-                    <Toolbar className={styles.toolbarButtons}>
-                        <ToolbarButton
-                            appearance="subtle"
-                            className={styles.toolbarButton}
-                            icon={<Delete16Regular />}
-                            onClick={() => setShowDeleteConfirmationDialog(true)}
-                            disabled={isDeleteDisabled}
-                        >
-                            {intl.formatMessage(SreAgentResources.delete)}
-                        </ToolbarButton>
-                        <ToolbarDivider />
-                    </Toolbar>
-                    <div className={styles.searchBoxAndFilters}>
-                        <SearchBox
-                            className={styles.searchBox}
-                            placeholder={intl.formatMessage(ExtendedAgentsGraphResources.searchByTool)}
-                            value={searchText}
-                            onChange={(_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchText(data.value ?? '')}
-                            size={'small'}
-                        />
-                        <PillFilter
-                            label={`${intl.formatMessage(ExtendedAgentsGraphResources.connector)}`}
-                            filterType="combobox"
-                            options={connectorFilterOptions}
-                            selectedKeys={[connectorFilter]}
-                            onApply={keys => {
-                                setConnectorFilter(keys[0]);
-                            }}
-                        />
-                        <PillFilter
-                            label={`${intl.formatMessage(ExtendedAgentsGraphResources.connectorStatus)}`}
-                            filterType="combobox"
-                            options={connectorStatusFilterOptions}
-                            selectedKeys={[connectorStatusFilter]}
-                            onApply={keys => {
-                                setConnectorStatusFilter(keys[0]);
-                            }}
-                        />
-                    </div>
-                    <EntityDeleteConfirmDialog
-                        showDialog={showDeleteConfirmationDialog}
-                        setShowDialog={setShowDeleteConfirmationDialog}
-                        handleDelete={handleDelete}
-                        numItems={selectedTools.length}
-                    />
-                </div>
-                {lastUpdated && (
-                    <div className={styles.lastUpdated}>
-                        <ArrowClockwise20Regular />
-                        <Text>{`${intl.formatMessage(ScheduledTasksResources.lastUpdated)}: ${lastUpdated}`}</Text>
-                    </div>
-                )}
-            </div>
-        );
-    }
-);

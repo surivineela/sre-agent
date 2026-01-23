@@ -100,7 +100,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
-    public deleteKustoTool = async (toolName: string) => {
+    public deleteTool = async (toolName: string) => {
         const encodedToolName = encodeURIComponent(toolName);
         try {
             const { data } = await axios.delete(this.getRequestUrl(`/api/v1/extendedAgent/tools/${encodedToolName}`), {

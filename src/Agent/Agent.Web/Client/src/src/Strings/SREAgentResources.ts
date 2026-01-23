@@ -52,6 +52,24 @@ export const SreAgentResources = defineMessages({
         id: 'uvxuDW',
     },
 
+    deletePythonToolNotificationTitle: {
+        defaultMessage: '{count, plural, one {Delete Python tool} other {Delete Python tools}}',
+        id: 'biN4w4',
+    },
+    deletePythonToolNotificationInProgress: {
+        defaultMessage: '{count, plural, one {Deleting Python tool {name}} other {Deleting Python tools}}',
+        id: 'ZKb+EH',
+    },
+    deletePythonToolNotificationSuccess: {
+        defaultMessage: '{count, plural, one {Python tool {name} deleted successfully} other {Python tools deleted successfully}}',
+        id: 'pusu9A',
+    },
+    deletePythonToolNotificationFailure: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete Python tool {name}} other {Failed to delete Python tools}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'QnoGM7',
+    },
+
     deleteIncidentTriggerNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete incident trigger} other {Delete incident triggers}}',
         id: 'TGc4Lh',
@@ -4300,7 +4318,9 @@ export const ExtendedAgentsGraphResources = defineMessages({
     scheduledTaskNameTitle: { id: 'C6Jt4c', defaultMessage: 'Scheduled task name' },
     scheduleTitle: { id: 'hGQqkW', defaultMessage: 'Schedule' },
     kustoToolName: { id: 'cg54iX', defaultMessage: 'Kusto tool name' },
+    pythonToolName: { id: 'm07K06', defaultMessage: 'Python tool name' },
     connectorStatus: { id: 'cLHCHE', defaultMessage: 'Connector status' },
+    timeout: { id: 'Mtd9LO', defaultMessage: 'Timeout' },
     onLabel: { id: 'Zh+5A6', defaultMessage: 'On' },
     offLabel: { id: 'OvzONl', defaultMessage: 'Off' },
     completedLabel: { id: '95stPq', defaultMessage: 'Completed' },
@@ -4308,6 +4328,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     disconnectedStatus: { id: 'FZeQlc', defaultMessage: 'Disconnected' },
     incidentTriggers: { id: 'vS6Lmt', defaultMessage: 'Incident triggers' },
     kustoTools: { id: 'Y47Dwm', defaultMessage: 'Kusto tools' },
+    pythonTools: { id: 'LFV4rP', defaultMessage: 'Python tools' },
+    searchByPythonTool: { id: 'hawbNS', defaultMessage: 'Search by Python tool' },
     agentDatagrid: { id: 'kxokJj', defaultMessage: 'Agent datagrid' },
     noEntityFound: { defaultMessage: 'No {entity} found', id: 'EVA81S' },
     service: { defaultMessage: 'Service', id: 'n7yYXG' },
