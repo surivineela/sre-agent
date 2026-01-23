@@ -431,8 +431,9 @@ public static class SkillCommandHandlers
 
         var skillName = parseResult.GetValue(SkillCommandOptions.Delete.NameOption);
         var dryRun = parseResult.GetValue(SkillCommandOptions.Delete.DryRunOption);
+        var deleteLocalFiles = parseResult.GetValue(SkillCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, DryRun: {dryRun}");
+        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, DryRun: {dryRun}, DeleteLocalFiles: {deleteLocalFiles}");
 
         // Null check (validation should have caught this, but be defensive)
         if (string.IsNullOrWhiteSpace(skillName))
@@ -460,7 +461,7 @@ public static class SkillCommandHandlers
             // After successful server deletion (not dry-run), offer to clean up local files
             if (!dryRun)
             {
-                OfferLocalSkillCleanup(skillName);
+                OfferLocalSkillCleanup(skillName, deleteLocalFiles);
             }
 
             return 0;
@@ -528,7 +529,9 @@ public static class SkillCommandHandlers
     /// <summary>
     /// Offers to clean up local skill files after successful server deletion.
     /// </summary>
-    private static void OfferLocalSkillCleanup(string skillName)
+    /// <param name="skillName">The name of the skill to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalSkillCleanup(string skillName, bool? deleteLocalFiles = null)
     {
         var skillDirectory = ExtendedSkillHelper.FindSkillDirectory(skillName);
 
@@ -543,7 +546,10 @@ public static class SkillCommandHandlers
         ConsoleUI.WriteBullet(skillDirectory, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             try
             {

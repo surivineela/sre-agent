@@ -444,6 +444,117 @@ public class ThreadManagerService
     }
 
     /// <summary>
+    /// Sends a message and waits for agent response, then exits (non-interactive).
+    /// </summary>
+    /// <param name="threadId">The thread ID to send message to, or null to create a new thread</param>
+    /// <param name="agentName">The agent name for new threads</param>
+    /// <param name="message">The message to send</param>
+    /// <returns>Error message string if failed, null if successful</returns>
+    public async Task<string?> SendMessageAndWaitForResponseAsync(string? threadId, string? agentName, string message)
+    {
+        try
+        {
+            var apiService = new ApiService();
+            var (userId, displayName) = await GetUserInfoAsync();
+            var session = new ChatSession(threadId, userId, displayName, agentName);
+
+            // Prefix message with agent name if specified
+            var messageToSend = message;
+            if (!string.IsNullOrEmpty(agentName))
+            {
+                messageToSend = $"@{agentName}: {message}";
+            }
+
+            // Set up console cancellation handling
+            var cancellationTokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, e) =>
+            {
+                e.Cancel = true;
+                cancellationTokenSource.Cancel();
+            };
+
+            try
+            {
+                // Create new thread or send to existing thread
+                if (string.IsNullOrEmpty(threadId))
+                {
+                    DebugLogger.Debug("Thread", "Creating new thread with message");
+                    var (thread, error) = await apiService.CreateThreadAsync(messageToSend, userId, displayName, agentName);
+                    if (thread == null || !string.IsNullOrEmpty(error))
+                    {
+                        return $"Failed to create thread: {error}";
+                    }
+                    session.ThreadId = thread.Id;
+                    await SetCurrentThreadIdAsync(thread.Id);
+                }
+                else
+                {
+                    DebugLogger.Debug("Thread", $"Sending message to thread {threadId}");
+                    var (threadMessage, error) = await apiService.SendThreadMessageAsync(threadId, messageToSend, userId, displayName, agentName);
+                    if (threadMessage == null || error != null)
+                    {
+                        return $"Failed to send message: {error}";
+                    }
+                    session.ThreadId = threadId;
+                    await SetCurrentThreadIdAsync(threadId);
+                }
+
+                // Display header after thread is created/confirmed
+                session.DisplayHeader();
+
+                // Poll for messages until state becomes Idle
+                const int maxPollingSeconds = 300; // 5 minutes max
+                var pollingStarted = DateTime.UtcNow;
+
+                while (!cancellationTokenSource.Token.IsCancellationRequested &&
+                       (DateTime.UtcNow - pollingStarted).TotalSeconds < maxPollingSeconds)
+                {
+                    var (collection, error) = await apiService.ListThreadMessagesAsync(session.ThreadId!);
+
+                    if (error != null)
+                    {
+                        session.ClearStateLine();
+                        return $"Failed to get messages: {error}";
+                    }
+
+                    var state = collection?.State ?? "Connecting";
+
+                    if (collection?.Value != null)
+                    {
+                        session.ClearStateLine();
+                        session.UpdateMessages(collection.Value, state);
+
+                        if (state != "Idle")
+                        {
+                            session.ShowState(state);
+                        }
+                    }
+
+                    if (state == "Idle")
+                    {
+                        session.ClearStateLine();
+                        break;
+                    }
+
+                    await Task.Delay(500, cancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                session.ClearStateLine();
+                Console.WriteLine();
+                Console.WriteLine("Operation cancelled.");
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return $"Failed to send message: {ex.Message}";
+        }
+    }
+
+    /// <summary>
     /// Manages the state of a chat session including messages and cursor positions.
     /// </summary>
     private class ChatSession

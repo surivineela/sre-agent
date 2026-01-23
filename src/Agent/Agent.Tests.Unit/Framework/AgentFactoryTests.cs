@@ -931,6 +931,155 @@ handoffs: []
         Assert.Equal(1, readSkillFileCount);
     }
 
+    #region AllowedSkills Auto-Enable Tests
+
+    [Fact]
+    public async Task AllowedSkills_WhenSpecified_AutoEnablesSkills()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
+        );
+        await agentFactory.InitializeAsync();
+
+        var descriptor = new YamlAgentDescriptor
+        {
+            Name = "TestAgentWithAllowedSkills",
+            Instructions = "Test instructions for agent with allowed skills",
+            EnableSkills = false, // Explicitly disabled
+            AddSystemSkills = true,
+            AllowedSkills = ["skill1", "skill2"] // Non-null list should auto-enable
+        };
+
+        // Act
+        var agent = agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: false);
+
+        // Assert - AllowedSkills being non-null should auto-enable skills
+        Assert.True(agent.EnableSkills, "EnableSkills should be auto-enabled when AllowedSkills is specified");
+        Assert.NotNull(agent.AllowedSkills);
+        Assert.Equal(2, agent.AllowedSkills.Count);
+        Assert.Contains("skill1", agent.AllowedSkills);
+        Assert.Contains("skill2", agent.AllowedSkills);
+        Assert.Contains(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AllowedSkills_WhenEmptyList_AutoEnablesSkillsButNoSkillsAvailable()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
+        );
+        await agentFactory.InitializeAsync();
+
+        var descriptor = new YamlAgentDescriptor
+        {
+            Name = "TestAgentWithEmptyAllowedSkills",
+            Instructions = "Test instructions for agent with empty allowed skills",
+            EnableSkills = false, // Explicitly disabled
+            AddSystemSkills = true,
+            AllowedSkills = [] // Empty list - non-null, should auto-enable but no skills available
+        };
+
+        // Act
+        var agent = agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: false);
+
+        // Assert - Empty list is non-null, so skills should be auto-enabled
+        Assert.True(agent.EnableSkills, "EnableSkills should be auto-enabled when AllowedSkills is an empty list");
+        Assert.NotNull(agent.AllowedSkills);
+        Assert.Empty(agent.AllowedSkills);
+        Assert.Contains(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AllowedSkills_WhenNull_DoesNotAutoEnableSkills()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
+        );
+        await agentFactory.InitializeAsync();
+
+        var descriptor = new YamlAgentDescriptor
+        {
+            Name = "TestAgentWithNullAllowedSkills",
+            Instructions = "Test instructions for agent with null allowed skills",
+            EnableSkills = false, // Explicitly disabled
+            AddSystemSkills = true,
+            AllowedSkills = null // Null should NOT auto-enable
+        };
+
+        // Act
+        var agent = agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: false);
+
+        // Assert - Null AllowedSkills should NOT auto-enable skills
+        Assert.False(agent.EnableSkills, "EnableSkills should NOT be auto-enabled when AllowedSkills is null");
+        Assert.Null(agent.AllowedSkills);
+        Assert.DoesNotContain(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    [Fact]
+    public async Task AllowedSkills_WhenAlreadyEnabled_PreservesEnabledState()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+
+        var agentFactory = new AgentFactory<AgentContext>(
+            logger: _mockLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            commonToolsYamlDirectory: null,
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts")
+        );
+        await agentFactory.InitializeAsync();
+
+        var descriptor = new YamlAgentDescriptor
+        {
+            Name = "TestAgentWithBothSkillsSettings",
+            Instructions = "Test instructions for agent with both skills settings",
+            EnableSkills = true, // Already enabled
+            AddSystemSkills = true,
+            AllowedSkills = ["skill1"] // Also has allowed skills
+        };
+
+        // Act
+        var agent = agentFactory.LoadAgentFromDescriptor(descriptor, isCustomAgent: false);
+
+        // Assert - Both settings should work together
+        Assert.True(agent.EnableSkills);
+        Assert.NotNull(agent.AllowedSkills);
+        Assert.Single(agent.AllowedSkills);
+        Assert.Contains(ReadSkillFileTool<AgentContext>.ToolName, agent.FactoryTools);
+    }
+
+    #endregion
+
     private ToolFactory<AgentContext> CreateToolFactory()
     {
         var yamlToolFunctionFactory = new YamlToolFunctionFactory<AgentContext>(
@@ -1058,6 +1207,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -1092,6 +1242,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
@@ -1125,6 +1276,7 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
@@ -1158,6 +1310,7 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
@@ -1191,6 +1344,7 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
@@ -1224,6 +1378,7 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
@@ -1257,6 +1412,7 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
@@ -1290,6 +1446,7 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
+    public List<string>? AllowedSkills { get; set; } = null;
 }
 
 public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
@@ -1317,6 +1474,7 @@ public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool EnableSkills { get; set; } = true; // Skills enabled
     public bool AddSystemSkills { get; set; } = true;
+    public List<string>? AllowedSkills { get; set; } = null;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];
@@ -1350,6 +1508,7 @@ public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescripto
     public bool EnableHandoffPromptOverride { get; set; } = false;
     public bool EnableSkills { get; set; } = true; // Skills enabled, and tool already in list
     public bool AddSystemSkills { get; set; } = true;
+    public List<string>? AllowedSkills { get; set; } = null;
     public AgentType AgentType { get; set; } = AgentType.Autonomous;
     public string? ParameterExtractionAgent { get; set; } = string.Empty;
     public List<string> OrchestrationStartAgents { get; set; } = [];

@@ -244,6 +244,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             IsExtended = isCustomAgent,
             EnableSkills = agentDescriptor.EnableSkills,
             AddSystemSkills = agentDescriptor.AddSystemSkills,
+            AllowedSkills = agentDescriptor.AllowedSkills?.ToList(),
             EnableVanillaMode = agentDescriptor.EnableVanillaMode,
 
             // === Workflow Agent Properties ===
@@ -388,6 +389,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private static void AugmentSkills(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
     {
+        // Auto-enable skills if AllowedSkills is specified (non-null)
+        if (agent.AllowedSkills is not null && !agent.EnableSkills)
+        {
+            agent.EnableSkills = true;
+        }
+
         if (!agent.EnableSkills)
         {
             return;
@@ -1406,6 +1413,15 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         if (overlay.AddSystemSkills.HasValue)
         {
             agent.AddSystemSkills = overlay.AddSystemSkills.Value;
+        }
+        if (overlay.AllowedSkills is not null)
+        {
+            agent.AllowedSkills = overlay.AllowedSkills.ToList();
+
+            // Per IAgentDescriptor documentation, specifying AllowedSkills automatically
+            // enables skills. This behavior is consistent whether AllowedSkills is set
+            // in the base descriptor or via a ParamOverlay.
+            agent.EnableSkills = true;
         }
         if (overlay.AllowParallelToolCalls.HasValue)
         {

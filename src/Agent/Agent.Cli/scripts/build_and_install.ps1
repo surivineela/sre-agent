@@ -39,17 +39,33 @@ if (-not $packagePath) {
 
 Write-Host "Found package: $($packagePath.Name)"
 
+# Extract package ID from the nupkg filename (format: PackageId.Version.nupkg)
+# SREAgent.CLI.0.0.0-dev.nupkg -> SREAgent.CLI
+$packageFileName = $packagePath.BaseName
+if ($packageFileName -match '^(.+?)\.\d+\.\d+\.\d+') {
+    $packageId = $Matches[1]
+} else {
+    $packageId = "SREAgent.CLI"
+}
+
 # Uninstall existing tool and install the new one
 Write-Host "Uninstalling existing tool (if any)..."
-dotnet tool uninstall sreagent.cli --global 2>$null
+dotnet tool uninstall --global $packageId 2>$null
 
 Write-Host "Installing tool from local package..."
-dotnet tool install sreagent.cli --global --add-source $fullPackageDir
+# Use --ignore-failed-sources to prevent failures when other NuGet feeds don't have the package
+# Use explicit version to ensure we get the local package
+$packageVersion = $packageFileName -replace "^$([regex]::Escape($packageId))\.", ""
+dotnet tool install --global --add-source $fullPackageDir $packageId --version $packageVersion --ignore-failed-sources
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ SREAgent CLI tool installed successfully!"
     Write-Host "You can now use 'srectl' command globally."
 } else {
     Write-Error "Failed to install the tool. Exit code: $LASTEXITCODE"
+    Write-Host ""
+    Write-Host "Troubleshooting tips:"
+    Write-Host "  1. Try clearing NuGet cache: dotnet nuget locals all --clear"
+    Write-Host "  2. Install manually: dotnet tool install --global --add-source `"$fullPackageDir`" $packageId --version $packageVersion"
     exit $LASTEXITCODE
 }

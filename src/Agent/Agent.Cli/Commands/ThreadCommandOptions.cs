@@ -39,8 +39,7 @@ public static class ThreadCommandOptions
 
         public static readonly Option<bool> WaitOption = new("--wait")
         {
-            Description = "[DEPRECATED] Always starts interactive session",
-            Arity = ArgumentArity.ZeroOrOne
+            Description = "Wait for agent response then exit (non-interactive, requires --message)"
         };
 
         public static readonly Option<bool> NoWaitOption = new("--no-wait")
@@ -77,8 +76,7 @@ public static class ThreadCommandOptions
 
         public static readonly Option<bool> WaitOption = new("--wait")
         {
-            Description = "[DEPRECATED] Always starts interactive session",
-            Arity = ArgumentArity.ZeroOrOne
+            Description = "Wait for agent response then exit (non-interactive, requires --message)"
         };
 
         public static readonly Option<bool> NoWaitOption = new("--no-wait")

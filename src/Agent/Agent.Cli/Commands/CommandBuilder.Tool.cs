@@ -356,7 +356,8 @@ public static partial class CommandBuilder
             var cmd = new Command("delete", CommandExamples.Tool.DeleteDescription)
             {
                 ToolCommandOptions.Delete.NameOption,
-                ToolCommandOptions.Delete.DryRunOption
+                ToolCommandOptions.Delete.DryRunOption,
+                ToolCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             // Add validator for name

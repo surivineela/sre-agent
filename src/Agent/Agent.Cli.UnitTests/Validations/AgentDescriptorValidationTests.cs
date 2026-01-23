@@ -503,6 +503,110 @@ public class AgentDescriptorValidationTests
 
     #endregion
 
+    #region Allowed Skills Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptySkillNameInAllowedSkills_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string> { "validSkill", "", "anotherValidSkill" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Skill name in allowed_skills cannot be empty"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithSkillNameContainingWhitespace_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string> { "valid skill", "another skill" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("'valid skill' in allowed_skills must not contain whitespace"));
+        Assert.Contains(errors, e => e.Contains("'another skill' in allowed_skills must not contain whitespace"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithDuplicateSkillsInAllowedSkills_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string> { "skill1", "skill2", "skill1", "skill3" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Contains(errors, e => e.Contains("Duplicate skill name 'skill1' found in allowed_skills"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithDuplicateSkillsCaseInsensitive_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string> { "Skill1", "SKILL1" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        // Should detect duplicate even with different casing
+        Assert.Contains(errors, e => e.Contains("Duplicate skill name") && e.Contains("allowed_skills"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidAllowedSkills_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string> { "kubernetes_skill", "postgresql_skill", "metrics_skill" };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("allowed_skills"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyAllowedSkillsList_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = new List<string>();
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("allowed_skills"));
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithNullAllowedSkills_ShouldNotAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.AllowedSkills = null;
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.DoesNotContain(errors, e => e.Contains("allowed_skills"));
+    }
+
+    #endregion
+
     #region Valid Agent Tests
 
     [Fact]
@@ -516,6 +620,73 @@ public class AgentDescriptorValidationTests
 
         // Assert
         Assert.Empty(errors);
+    }
+
+    #endregion
+
+    #region YAML Parsing Tests for AllowedSkills
+
+    [Fact]
+    public void YamlAgentDescriptor_FromYaml_WithAllowedSkills_ShouldParseCorrectly()
+    {
+        // Arrange
+        var yaml = @"
+name: test_agent
+system_prompt: This is a valid instruction that is longer than 50 characters to meet the minimum requirement.
+enable_skills: true
+add_system_skills: true
+allowed_skills:
+  - kubernetes_skill
+  - postgresql_skill
+  - metrics_skill
+";
+
+        // Act
+        var descriptor = YamlAgentDescriptor.FromYaml(yaml);
+
+        // Assert
+        Assert.NotNull(descriptor.AllowedSkills);
+        Assert.Equal(3, descriptor.AllowedSkills.Count);
+        Assert.Contains("kubernetes_skill", descriptor.AllowedSkills);
+        Assert.Contains("postgresql_skill", descriptor.AllowedSkills);
+        Assert.Contains("metrics_skill", descriptor.AllowedSkills);
+    }
+
+    [Fact]
+    public void YamlAgentDescriptor_FromYaml_WithEmptyAllowedSkills_ShouldParseAsEmptyList()
+    {
+        // Arrange
+        var yaml = @"
+name: test_agent
+system_prompt: This is a valid instruction that is longer than 50 characters to meet the minimum requirement.
+enable_skills: true
+allowed_skills: []
+";
+
+        // Act
+        var descriptor = YamlAgentDescriptor.FromYaml(yaml);
+
+        // Assert
+        Assert.NotNull(descriptor.AllowedSkills);
+        Assert.Empty(descriptor.AllowedSkills);
+    }
+
+    [Fact]
+    public void YamlAgentDescriptor_FromYaml_WithoutAllowedSkills_ShouldBeNull()
+    {
+        // Arrange
+        var yaml = @"
+name: test_agent
+system_prompt: This is a valid instruction that is longer than 50 characters to meet the minimum requirement.
+enable_skills: true
+add_system_skills: true
+";
+
+        // Act
+        var descriptor = YamlAgentDescriptor.FromYaml(yaml);
+
+        // Assert
+        Assert.Null(descriptor.AllowedSkills);
     }
 
     #endregion

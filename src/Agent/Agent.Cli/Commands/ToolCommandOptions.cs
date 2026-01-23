@@ -169,6 +169,12 @@ public static class ToolCommandOptions
         {
             Description = "Show what would be deleted without making changes"
         };
+
+        public static readonly Option<bool?> DeleteLocalFilesOption = new("--delete-local-files")
+        {
+            Description = "Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)",
+            Arity = ArgumentArity.ZeroOrOne
+        };
     }
 
     // ============================================================

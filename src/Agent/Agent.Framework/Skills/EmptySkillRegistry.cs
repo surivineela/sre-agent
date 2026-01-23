@@ -15,17 +15,17 @@ public class EmptySkillRegistry : ISkillRegistry
         return Task.CompletedTask;
     }
 
-    public string GetSkillsMetadataForPrompt(bool includeSystemSkills)
+    public string GetSkillsMetadataForPrompt(bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
         return string.Empty;
     }
 
-    public string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills)
+    public string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
         return string.Empty;
     }
 
-    public ISkill? GetSkillByName(string name, bool includeSystemSkills)
+    public ISkill? GetSkillByName(string name, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
         return null;
     }

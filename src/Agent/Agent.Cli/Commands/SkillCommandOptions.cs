@@ -127,9 +127,16 @@ public static class SkillCommandOptions
             Required = true,
             Description = "Name of the skill to delete"
         };
+
         public static readonly Option<bool> DryRunOption = new("--dry-run")
         {
             Description = "Preview deletion without actually removing the skill"
+        };
+
+        public static readonly Option<bool?> DeleteLocalFilesOption = new("--delete-local-files")
+        {
+            Description = "Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)",
+            Arity = ArgumentArity.ZeroOrOne
         };
     }
 

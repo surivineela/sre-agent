@@ -992,7 +992,7 @@ public static class Runner
                         && filePath.Contains("SKILL.md") // reading top level skill file
                         && activeSkills.GetSkillByName(skillName) is null) // skill not already active
                     {
-                        var skill = runConfig.SkillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+                        var skill = runConfig.SkillRegistry.GetSkillByName(skillName, agent.AddSystemSkills, agent.AllowedSkills);
                         if (skill is not null)
                         {
                             newActivatedSkills.Enqueue(skill);

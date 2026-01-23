@@ -96,7 +96,8 @@ public static partial class CommandBuilder
             var cmd = new Command("delete", CommandExamples.CommonPrompt.DeleteDescription)
             {
                 CommonPromptCommandOptions.Delete.NameOption,
-                CommonPromptCommandOptions.Delete.DryRunOption
+                CommonPromptCommandOptions.Delete.DryRunOption,
+                CommonPromptCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             cmd.SetAction(CommonPromptCommandHandlers.HandleDeleteCommand);

@@ -253,6 +253,9 @@ public sealed record ParamOverlay
     [YamlMember(Alias = "add_system_skills")]
     public bool? AddSystemSkills { get; init; }
 
+    [YamlMember(Alias = "allowed_skills")]
+    public List<string>? AllowedSkills { get; init; }
+
     [YamlMember(Alias = "allow_parallel_tool_calls")]
     public bool? AllowParallelToolCalls { get; init; }
 

@@ -37,6 +37,15 @@ public interface IAgentDescriptor
     /// </summary>
     public bool AddSystemSkills { get; set; }
 
+    /// <summary>
+    /// Optional whitelist of skill names that this agent is allowed to access.
+    /// When null/omitted, all skills are available (based on AddSystemSkills).
+    /// When empty list, no skills are available.
+    /// When populated, only the listed skills are accessible.
+    /// Specifying this property automatically enables skills (EnableSkills = true).
+    /// </summary>
+    public List<string>? AllowedSkills { get; set; }
+
     // === Workflow Agent Support ===
     public AgentType AgentType { get; set; }
     public string? ParameterExtractionAgent { get; set; }

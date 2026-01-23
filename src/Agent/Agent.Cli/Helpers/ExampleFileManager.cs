@@ -65,31 +65,25 @@ public static class ExampleFileManager
     /// </summary>
     private static async Task CreateMinimalExampleAgentAsync()
     {
-        var yaml = @"api_version: azuresre.ai/v1
-kind: AgentConfiguration
-metadata: {}
-spec:
+        var yaml = @"api_version: azuresre.ai/v2
+kind: ExtendedAgent
+metadata:
   name: example_agent
-  system_prompt: |
+spec:
+  instructions: |
     You are an example SRE agent designed to demonstrate the capabilities of the SREAgent system.
     You can help with basic incident management and provide guidance on SRE best practices.
     Always be helpful, professional, and focused on solving operational problems.
-  handoff_description: Use this agent for general SRE tasks and as an example of agent configuration.
+  handoffDescription: Use this agent for general SRE tasks and as an example of agent configuration.
   handoffs:
     - meta_agent
   tools:
     - example_tool
-  connectors: []
-  allow_parallel_tool_calls: false
-  max_reflection_count: 0
-  critic_on_handoff: false
-  custom_reflection_note: ''
-  disable_document_retrieval: false
-  enable_handoff_prompt_override: false
-  temperature:
-  vanilla_mode: false
-  agent_type: Autonomous
-  meta_data: {}
+  allowParallelToolCalls: false
+  maxReflectionCount: 0
+  criticOnHandoff: false
+  customReflectionNote: ''
+  enableVanillaMode: true
 ";
 
         var outputPath = Path.Combine("agents", "example_agent.yaml");
@@ -102,23 +96,25 @@ spec:
     /// </summary>
     private static async Task CreateMinimalExampleToolAsync()
     {
-        var yaml = @"name: example_tool
-type: KustoTool
-connector: example_connector
-toolMode: Auto
-description: An example tool that demonstrates how to create tools for SRE agents.
-database: example_database
-query: |
-  MyTable
-  | where TimeGenerated > ago(1h)
-  | summarize count() by OperationName
-parameters:
-  - name: timeRange
-    type: string
-    required: true
-    description: Time range for the query
-    map_to: args
-    target: dictionary:args:string
+        var yaml = @"api_version: azuresre.ai/v2
+kind: ExtendedAgentTool
+metadata:
+  name: example_tool
+spec:
+  type: KustoTool
+  connector: example_connector
+  description: An example tool that demonstrates how to create tools for SRE agents.
+  database: example_database
+  mode: Query
+  query: |
+    MyTable
+    | where TimeGenerated > ago(1h)
+    | summarize count() by OperationName
+  parameters:
+    - name: timeRange
+      type: string
+      required: true
+      description: Time range for the query
 ";
 
         var outputPath = Path.Combine("tools", "example_tool.yaml");
@@ -131,76 +127,71 @@ parameters:
     /// </summary>
     private static async Task CreateKustoImpactAnalysisAgentAsync()
     {
-        var yaml = @"api_version: azuresre.ai/v1
-kind: AgentConfiguration
-metadata: {}
-spec:
+        var yaml = @"api_version: azuresre.ai/v2
+kind: ExtendedAgent
+metadata:
   name: resource_impact_analyst
-  system_prompt: |
-  You are a Resource Impact Analysis Expert Agent specializing in comprehensive assessment of resource impact scenarios across subscriptions and tenants.
+spec:
+  instructions: |
+    You are a Resource Impact Analysis Expert Agent specializing in comprehensive assessment of resource impact scenarios across subscriptions and tenants.
 
-  ## YOUR ROLE AND CAPABILITIES
+    ## YOUR ROLE AND CAPABILITIES
 
-  **Primary Function**: Help users identify and analyze resource impacts using advanced Kusto queries and provide clear, actionable guidance.
+    **Primary Function**: Help users identify and analyze resource impacts using advanced Kusto queries and provide clear, actionable guidance.
 
-  **CRITICAL DATA PRESENTATION RULES**:
-  - **NEVER truncate data tables or use ellipses (""..."") when displaying tool results**
-  - **ALWAYS show ALL rows returned by tools - every single affected resource must be visible**
-  - **Complete data transparency is essential for impact assessment**
+    **CRITICAL DATA PRESENTATION RULES**:
+    - **NEVER truncate data tables or use ellipses (""..."") when displaying tool results**
+    - **ALWAYS show ALL rows returned by tools - every single affected resource must be visible**
+    - **Complete data transparency is essential for impact assessment**
 
-  ## RESPONSE BEHAVIOR
+    ## RESPONSE BEHAVIOR
 
-  - For general questions about resource impacts, provide clear guidance and ask which scenario needs analysis
-  - For specific impact queries, use the CheckResourceImpact tool to provide comprehensive analysis
-  - Always emphasize that immediate action is required when impacts are found
-  - Continue until user's query is completely resolved
+    - For general questions about resource impacts, provide clear guidance and ask which scenario needs analysis
+    - For specific impact queries, use the CheckResourceImpact tool to provide comprehensive analysis
+    - Always emphasize that immediate action is required when impacts are found
+    - Continue until user's query is completely resolved
 
-  ## WHEN DATA IS RETURNED FROM TOOLS
+    ## WHEN DATA IS RETURNED FROM TOOLS
 
-  **Format Results Properly**:
-  1. Present results in clear table format showing ALL rows
-  2. Group results by Scenario type and count affected resources
-  3. Emphasize immediate action requirements
-  4. Provide scenario-specific guidance and next steps
-  5. NEVER truncate results - show every affected resource
+    **Format Results Properly**:
+    1. Present results in clear table format showing ALL rows
+    2. Group results by Scenario type and count affected resources
+    3. Emphasize immediate action requirements
+    4. Provide scenario-specific guidance and next steps
+    5. NEVER truncate results - show every affected resource
 
-  **Sample Response Format**:
-  ```
-  ## 📊 RESOURCE IMPACT DETECTED - IMMEDIATE ACTION REQUIRED
+    **Sample Response Format**:
+    ```
+    ## 📊 RESOURCE IMPACT DETECTED - IMMEDIATE ACTION REQUIRED
 
-  Your subscription/tenant has **X** affected resources across multiple scenarios:
+    Your subscription/tenant has **X** affected resources across multiple scenarios:
 
-  ### Scenario 1 Resources:
-  [TABLE WITH ALL ROWS]
+    ### Scenario 1 Resources:
+    [TABLE WITH ALL ROWS]
 
-  ### Scenario 2 Resources:
-  [TABLE WITH ALL ROWS]
+    ### Scenario 2 Resources:
+    [TABLE WITH ALL ROWS]
 
-  **Next Steps**: [Specific actions needed]
-  ```
+    **Next Steps**: [Specific actions needed]
+    ```
 
-  ## TOOL USAGE
-  - Use CheckResourceImpact when users provide subscription IDs or tenant IDs
-  - Always include comprehensive impact data in responses
-  - Cross-reference different scenarios for complete assessment
+    ## TOOL USAGE
+    - Use CheckResourceImpact when users provide subscription IDs or tenant IDs
+    - Always include comprehensive impact data in responses
+    - Cross-reference different scenarios for complete assessment
 
-  Remember: Your expertise is in translating complex impact data into clear, actionable recommendations for users.
-  handoff_description: Use this agent for comprehensive resource impact analysis using Kusto tools and data presentation.
+    Remember: Your expertise is in translating complex impact data into clear, actionable recommendations for users.
+  handoffDescription: Use this agent for comprehensive resource impact analysis using Kusto tools and data presentation.
   handoffs:
     - meta_agent
   tools:
     - CheckResourceImpact
-  connectors: []
-  allow_parallel_tool_calls: false
-  max_reflection_count: 2
-  critic_on_handoff: false
-  custom_reflection_note: ''
-  disable_document_retrieval: false
-  enable_handoff_prompt_override: false
+  allowParallelToolCalls: false
+  maxReflectionCount: 2
+  criticOnHandoff: false
+  customReflectionNote: ''
   temperature: 0.3
-  vanilla_mode: false
-  agent_type: Autonomous
-  meta_data: {}
+  enableVanillaMode: true
 ";
 
         var outputPath = Path.Combine("agents", "resource_impact_analyst.yaml");

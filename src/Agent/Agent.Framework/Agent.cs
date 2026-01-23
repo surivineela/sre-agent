@@ -73,6 +73,15 @@ public class Agent<TContext>(string name) where TContext : class
     /// </summary>
     public bool AddSystemSkills { get; set; } = true;
 
+    /// <summary>
+    /// Optional whitelist of skill names that this agent is allowed to access.
+    /// When null, all skills are available (based on AddSystemSkills).
+    /// When empty list, no skills are available.
+    /// When populated, only the listed skills are accessible.
+    /// Specifying this property automatically enables skills (EnableSkills = true).
+    /// </summary>
+    public List<string>? AllowedSkills { get; set; } = null;
+
     public virtual ChatToolMode ChatToolMode { get; set; } = ChatToolMode.Auto;
 
     public virtual float Temperature { get; set; } = 0.3f;
@@ -167,6 +176,7 @@ public class Agent<TContext>(string name) where TContext : class
 
             EnableSkills = EnableSkills,
             AddSystemSkills = AddSystemSkills,
+            AllowedSkills = AllowedSkills is not null ? [.. AllowedSkills] : null,
             EnableVanillaMode = EnableVanillaMode
         };
     }

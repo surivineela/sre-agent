@@ -398,8 +398,9 @@ public static class ToolCommandHandlers
 
         var toolName = parseResult.GetValue(ToolCommandOptions.Delete.NameOption);
         var dryRun = parseResult.GetValue(ToolCommandOptions.Delete.DryRunOption);
+        var deleteLocalFiles = parseResult.GetValue(ToolCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"ToolName: {toolName}, DryRun: {dryRun}");
+        DebugLogger.Debug("Parameters", $"ToolName: {toolName}, DryRun: {dryRun}, DeleteLocalFiles: {deleteLocalFiles}");
 
         // Null check (validation should have caught this, but be defensive)
         if (string.IsNullOrWhiteSpace(toolName))
@@ -427,7 +428,7 @@ public static class ToolCommandHandlers
             // After successful server deletion (not dry-run), offer to clean up local files
             if (!dryRun)
             {
-                OfferLocalToolCleanup(toolName);
+                OfferLocalToolCleanup(toolName, deleteLocalFiles);
             }
 
             return 0;
@@ -841,7 +842,9 @@ public static class ToolCommandHandlers
     /// <summary>
     /// Offers to clean up local tool files after successful server deletion.
     /// </summary>
-    private static void OfferLocalToolCleanup(string toolName)
+    /// <param name="toolName">The name of the tool to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalToolCleanup(string toolName, bool? deleteLocalFiles = null)
     {
         var toolFile = ExtendedToolHelper.FindToolFile(toolName);
 
@@ -858,7 +861,10 @@ public static class ToolCommandHandlers
         ConsoleUI.WriteBullet(toolFile, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             try
             {

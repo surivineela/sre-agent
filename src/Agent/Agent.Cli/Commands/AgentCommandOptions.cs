@@ -190,6 +190,12 @@ public static class AgentCommandOptions
             Description = "Name of the agent to delete",
             Required = true
         };
+
+        public static readonly Option<bool?> DeleteLocalFilesOption = new("--delete-local-files")
+        {
+            Description = "Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)",
+            Arity = ArgumentArity.ZeroOrOne
+        };
     }
 
     // ============================================================

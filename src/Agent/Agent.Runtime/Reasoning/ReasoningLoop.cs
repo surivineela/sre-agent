@@ -3843,7 +3843,7 @@ The full conversation before this compaction has been stored.
 
         foreach (var skillName in _context.ActiveSkills ?? [])
         {
-            var skill = _skillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+            var skill = _skillRegistry.GetSkillByName(skillName, agent.AddSystemSkills, agent.AllowedSkills);
             if (skill != null)
             {
                 skillList.Enqueue(skill);

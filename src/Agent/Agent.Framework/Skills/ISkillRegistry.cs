@@ -14,8 +14,9 @@ public interface ISkillRegistry : IAsyncInitializer
     /// Gets formatted skill metadata for injection into agent system prompt
     /// </summary>
     /// <param name="includeSystemSkills">Whether to include system skills in the listing</param>
+    /// <param name="allowedSkills">Optional whitelist of allowed skill names. When null, all skills are included. When empty, no skills are included.</param>
     /// <returns>Formatted text listing all available skills</returns>
-    string GetSkillsMetadataForPrompt(bool includeSystemSkills);
+    string GetSkillsMetadataForPrompt(bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null);
 
     /// <summary>
     /// Reads a file from a skill directory (exposed as a tool to the agent)
@@ -23,13 +24,15 @@ public interface ISkillRegistry : IAsyncInitializer
     /// <param name="skillName">Name of the skill</param>
     /// <param name="filePath">Relative path to the file within the skill directory</param>
     /// <param name="includeSystemSkills">Whether to include system skills in the search</param>
+    /// <param name="allowedSkills">Optional whitelist of allowed skill names. When null, all skills are included. When empty, no skills are included.</param>
     /// <returns>File contents or error message</returns>
-    string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills);
+    string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null);
 
     /// <summary>
     /// Gets a skill by its name
     /// </summary>
     /// <param name="name">Name of the skill</param>
     /// <param name="includeSystemSkills">Whether to include system skills in the search</param>
-    ISkill? GetSkillByName(string name, bool includeSystemSkills);
+    /// <param name="allowedSkills">Optional whitelist of allowed skill names. When null, all skills are included. When empty, no skills are included.</param>
+    ISkill? GetSkillByName(string name, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null);
 }

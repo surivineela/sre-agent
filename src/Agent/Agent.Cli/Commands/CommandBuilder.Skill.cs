@@ -151,7 +151,8 @@ public static partial class CommandBuilder
             var cmd = new Command("delete", CommandExamples.Skill.DeleteDescription)
             {
                 SkillCommandOptions.Delete.NameOption,
-                SkillCommandOptions.Delete.DryRunOption
+                SkillCommandOptions.Delete.DryRunOption,
+                SkillCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             // Add name validation

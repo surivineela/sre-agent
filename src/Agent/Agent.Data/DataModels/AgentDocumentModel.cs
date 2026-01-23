@@ -79,7 +79,8 @@ public record AgentDocumentModel(
         ResultSummarizationPrompt = Spec.ResultSummarizationPrompt,
         NextAgentMappings = Spec.NextAgentMappings ?? [],
         EnableSkills = Spec.EnableSkills ?? false,
-        AddSystemSkills = Spec.AddSystemSkills ?? false
+        AddSystemSkills = Spec.AddSystemSkills ?? false,
+        AllowedSkills = Spec.AllowedSkills
     };
     # endregion
 }
@@ -242,4 +243,7 @@ public class AgentSpec
 
     [YamlMember(Alias = "add_system_skills")]
     public bool? AddSystemSkills { get; set; } = null;
+
+    [YamlMember(Alias = "allowed_skills")]
+    public List<string>? AllowedSkills { get; set; } = null;
 }

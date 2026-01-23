@@ -1099,4 +1099,83 @@ handoffs: []
         Assert.Equal("dynamic_cross_thread_agent", dynamicAgentThread1.Name);
         Assert.Equal("dynamic_cross_thread_agent", dynamicAgentThread2.Name);
     }
+
+    [Fact]
+    public async Task ParamOverlayWithAllowedSkills_AutoEnablesSkills()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
+        await factory.InitializeAsync();
+
+        // Verify base agent does NOT have skills enabled
+        var baseAgent = factory.GetAgent("agent1");
+        Assert.False(baseAgent.EnableSkills, "Base agent should not have skills enabled");
+        Assert.Null(baseAgent.AllowedSkills);
+
+        // Force the allowed_skills_variant which sets allowed_skills in ParamOverlay
+        var experimentLoader = new ExperimentLoader(
+            _serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(),
+            new HashVariantAssigner(),
+            "test-instance",
+            experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("param_experiment=allowed_skills_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Act
+        var agent = provider.GetAgent("agent1");
+
+        // Assert - AllowedSkills should auto-enable skills
+        Assert.True(agent.EnableSkills, "EnableSkills should be auto-enabled when AllowedSkills is set via ParamOverlay");
+        Assert.NotNull(agent.AllowedSkills);
+        Assert.Equal(2, agent.AllowedSkills.Count);
+        Assert.Contains("test_skill_1", agent.AllowedSkills);
+        Assert.Contains("test_skill_2", agent.AllowedSkills);
+    }
+
+    [Fact]
+    public async Task ParamOverlayWithAllowedSkills_OverridesExplicitEnableSkillsFalse()
+    {
+        // Arrange
+        var toolFactory = CreateToolFactory();
+        var experimentsDir = Path.Combine(AppContext.BaseDirectory, "Framework", "TestExperiments");
+        var factory = new AgentFactory<AgentContext>(
+            logger: _mockFactoryLogger.Object,
+            toolFactory: toolFactory,
+            chatClientProvider: _serviceProvider.GetRequiredService<IChatClientProvider>(),
+            assembliesToScan: [Assembly.GetExecutingAssembly()],
+            modeConfigurator: _mockAgentModeConfigurator.Object,
+            agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestAgents"),
+            commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestPrompts"),
+            commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "Framework", "TestCommonTools"));
+        await factory.InitializeAsync();
+
+        // Force the variant that has enable_skills: false AND allowed_skills set
+        var experimentLoader = new ExperimentLoader(
+            _serviceProvider.GetRequiredService<ILogger<ExperimentLoader>>(),
+            new HashVariantAssigner(),
+            "test-instance",
+            experimentsDir);
+        experimentLoader.ParseAndAddForcedVariants("param_experiment=allowed_skills_override_disabled_variant");
+        var provider = new AgentProvider<AgentContext>(factory, experimentLoader, new HashVariantAssigner(), _mockProviderLogger.Object, "test-instance");
+
+        // Act
+        var agent = provider.GetAgent("agent1");
+
+        // Assert - AllowedSkills should override the explicit enable_skills: false
+        // This ensures consistent behavior: AllowedSkills always enables skills
+        Assert.True(agent.EnableSkills, "AllowedSkills should override explicit EnableSkills: false in ParamOverlay");
+        Assert.NotNull(agent.AllowedSkills);
+        Assert.Single(agent.AllowedSkills);
+        Assert.Contains("test_skill_1", agent.AllowedSkills);
+    }
 }

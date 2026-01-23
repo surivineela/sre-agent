@@ -168,6 +168,32 @@ public static class AgentDescriptorValidation
             }
         }
 
+        // Validate allowed_skills if provided
+        if (agentDescriptor.AllowedSkills != null && agentDescriptor.AllowedSkills.Count > 0)
+        {
+            foreach (var skillName in agentDescriptor.AllowedSkills)
+            {
+                if (string.IsNullOrWhiteSpace(skillName))
+                {
+                    errors.Add("Skill name in allowed_skills cannot be empty.");
+                }
+                else if (skillName.Any(char.IsWhiteSpace))
+                {
+                    errors.Add($"Skill name '{skillName}' in allowed_skills must not contain whitespace.");
+                }
+            }
+
+            // Check for duplicates
+            var duplicateSkills = agentDescriptor.AllowedSkills
+                .GroupBy(s => s, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+            foreach (var duplicate in duplicateSkills)
+            {
+                errors.Add($"Duplicate skill name '{duplicate}' found in allowed_skills.");
+            }
+        }
+
         // Validate agents as tools
         if (agentDescriptor.AgentsAsTools != null)
         {

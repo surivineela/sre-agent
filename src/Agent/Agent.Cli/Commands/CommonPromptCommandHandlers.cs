@@ -197,8 +197,9 @@ public static class CommonPromptCommandHandlers
 
         var promptName = parseResult.GetValue(CommonPromptCommandOptions.Delete.NameOption);
         var dryRun = parseResult.GetValue(CommonPromptCommandOptions.Delete.DryRunOption);
+        var deleteLocalFiles = parseResult.GetValue(CommonPromptCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"PromptName: {promptName}, DryRun: {dryRun}");
+        DebugLogger.Debug("Parameters", $"PromptName: {promptName}, DryRun: {dryRun}, DeleteLocalFiles: {deleteLocalFiles}");
 
         if (string.IsNullOrWhiteSpace(promptName))
         {
@@ -228,7 +229,7 @@ public static class CommonPromptCommandHandlers
                 // After successful server deletion (not dry-run), offer to clean up local files
                 if (!dryRun)
                 {
-                    OfferLocalPromptCleanup(promptName);
+                    OfferLocalPromptCleanup(promptName, deleteLocalFiles);
                 }
 
                 return 0;
@@ -250,7 +251,9 @@ public static class CommonPromptCommandHandlers
     /// <summary>
     /// Offers to clean up local common prompt files after successful server deletion.
     /// </summary>
-    private static void OfferLocalPromptCleanup(string promptName)
+    /// <param name="promptName">The name of the common prompt to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalPromptCleanup(string promptName, bool? deleteLocalFiles = null)
     {
         var promptFile = CommonPromptHelper.FindCommonPrompt(promptName);
 
@@ -267,7 +270,10 @@ public static class CommonPromptCommandHandlers
         ConsoleUI.WriteBullet(promptFile, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             try
             {
