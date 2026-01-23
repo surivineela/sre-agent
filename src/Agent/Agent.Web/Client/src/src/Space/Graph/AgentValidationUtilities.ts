@@ -1,7 +1,7 @@
 export const ENTITY_NAME_MAX_LENGTH = 36;
 
-const INVALID_CHARACTERS_REGEX = /[^A-Za-z0-9-]/g;
-const VALID_NAME_REGEX = /^[A-Za-z0-9-]+$/;
+const INVALID_CHARACTERS_REGEX = /[^A-Za-z0-9-_]/g;
+const VALID_NAME_REGEX = /^[A-Za-z0-9-_]+$/;
 
 export const sanitizeEntityName = (value: string): string => {
     if (!value) {
