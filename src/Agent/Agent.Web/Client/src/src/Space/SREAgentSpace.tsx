@@ -579,12 +579,6 @@ const SREAgentSpace: FC = () => {
 const OnboardingGate: FC<{ router: ReturnType<typeof createHashRouter> }> = ({ router }) => {
     const { showWizard, onComplete } = useOnboardingVisibility();
 
-    // Wait for visibility to be determined
-    if (showWizard === null) {
-        return null;
-    }
-
-    // Show full-page wizard if needed
     if (showWizard) {
         return <OnboardingWizard onComplete={onComplete} />;
     }

@@ -6167,6 +6167,64 @@ export const OnboardingWizardResources = defineMessages({
     saveSuccess: { defaultMessage: 'Settings saved successfully.', id: 'vnlr4s' },
     subscriptionRequired: { defaultMessage: 'Please select a subscription to continue.', id: 'sr8bXY' },
     resourceGroupRequired: { defaultMessage: 'Please select a resource group to continue.', id: 'WUGr5F' },
+    addSubscriptions: { defaultMessage: 'Add subscriptions', id: 'twgtSB' },
+    addSubscription: { defaultMessage: 'Add subscription', id: '16BslC' },
+    change: { defaultMessage: 'Change', id: 'BY343C' },
+    searchSubscriptions: { defaultMessage: 'Search subscriptions', id: '8Bnc32' },
+    showRecommended: { defaultMessage: 'Show recommended', id: 'PfwAB2' },
+    showRecommendedTooltip: {
+        defaultMessage: 'Show only subscriptions with SRE Agent compatible resources',
+        id: '+1hQ1k',
+    },
+    agentSubscriptionReaderAccess: {
+        defaultMessage: 'Agent will have subscription reader access to selected subscriptions.',
+        id: '1Vy3gO',
+    },
+    noRoleAssignmentPermission: {
+        defaultMessage: 'You need Owner or User Access Administrator role to select:',
+        id: 'Y6++4k',
+    },
+    openInAzurePortal: { defaultMessage: 'Open in Azure Portal', id: '5NZIbS' },
+    recommendedTooltip: {
+        defaultMessage: 'Recommended - has SRE Agent compatible resources',
+        id: 'vq4C5b',
+    },
+    selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
+    myRole: { defaultMessage: 'My role', id: 'HjcJf/' },
+    region: { defaultMessage: 'Region', id: 'lnaWo/' },
+    noRole: { defaultMessage: 'No role', id: 'VQB58n' },
+    countSelected: { defaultMessage: '{count} selected', id: 'NKPfmm' },
+    // Resource Group Picker Dialog
+    addResourceGroups: { defaultMessage: 'Add resource groups', id: '3r/fkq' },
+    addResourceGroup: { defaultMessage: 'Add resource group', id: 'HWMrXF' },
+    searchResourceGroups: { defaultMessage: 'Search resource groups', id: 'pMlVvA' },
+    resourceGroupNames: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    allResourceGroups: { defaultMessage: 'All resource groups', id: 'jEU2gk' },
+    noResourceGroupSelected: { defaultMessage: 'No resource group selected', id: 'wnc+L5' },
+    resourceGroupsSelected: { defaultMessage: '{count} resource groups selected', id: 'oWUS25' },
+    showRecommendedResourceGroupsTooltip: {
+        defaultMessage: 'Show only resource groups with SRE Agent compatible resources',
+        id: 'D16PMT',
+    },
+    agentResourceGroupReaderAccess: {
+        defaultMessage: 'Agent will have reader access to selected resource groups.',
+        id: 'yYnPLi',
+    },
+    noRoleAssignmentPermissionResourceGroups: {
+        defaultMessage: 'You need Owner or User Access Administrator role to select:',
+        id: 'Y6++4k',
+    },
+    // Agent scope step
+    agentScope: { defaultMessage: 'Agent scope', id: 'm4xAhL' },
+    agentScopeDescription: {
+        defaultMessage: 'Select the Azure subscriptions and resource groups the agent will monitor and manage.',
+        id: 'btOLRC',
+    },
+    subscriptionScope: { defaultMessage: 'Subscription scope', id: 'at/ilQ' },
+    resourceGroupScope: { defaultMessage: 'Resource group scope', id: 'mxzrxC' },
+    delete: { defaultMessage: 'Delete', id: 'K3r6DQ' },
+    noSubscriptionsSelected: { defaultMessage: 'No subscriptions selected', id: 'AszVMO' },
+    noResourceGroupsSelected: { defaultMessage: 'No resource groups selected', id: 'VLS2HJ' },
 });
 
 /**

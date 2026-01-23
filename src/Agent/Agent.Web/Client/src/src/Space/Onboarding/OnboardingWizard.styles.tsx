@@ -79,6 +79,12 @@ export const useOnboardingWizardStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalL,
     },
+    stepVisible: {
+        display: 'contents',
+    },
+    stepHidden: {
+        display: 'none',
+    },
     footer: {
         display: 'flex',
         justifyContent: 'flex-end',
@@ -98,44 +104,27 @@ export const useInfrastructureScopeStepStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalL,
     },
-    scopeTypeContainer: {
+    headerSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    headerTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    headerDescription: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    addButtonsContainer: {
         display: 'flex',
         gap: tokens.spacingHorizontalM,
     },
-    scopeCard: {
-        minWidth: '140px',
-        padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusLarge,
-        cursor: 'pointer',
+    scopeTypeContainer: {
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: tokens.spacingVerticalS,
-        transitionProperty: 'all',
-        transitionDuration: '0.2s',
-        transitionTimingFunction: 'ease',
-        backgroundColor: tokens.colorNeutralBackground1,
-        '&:hover': {
-            borderTopColor: tokens.colorBrandStroke1,
-            borderRightColor: tokens.colorBrandStroke1,
-            borderBottomColor: tokens.colorBrandStroke1,
-            borderLeftColor: tokens.colorBrandStroke1,
-            backgroundColor: tokens.colorNeutralBackground1Hover,
-        },
-    },
-    scopeCardSelected: {
-        border: `2px solid ${tokens.colorBrandStroke1}`,
-        backgroundColor: tokens.colorBrandBackground2,
-    },
-    scopeCardIcon: {
-        width: '32px',
-        height: '32px',
-    },
-    scopeCardTitle: {
-        fontSize: tokens.fontSizeBase300,
-        fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground1,
+        gap: tokens.spacingHorizontalM,
     },
     recommendedText: {
         fontSize: tokens.fontSizeBase200,
@@ -182,6 +171,11 @@ export const useInfrastructureScopeStepStyles = makeStyles({
     detailsValue: {
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground1,
+    },
+    selectedValueContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
     },
 });
 

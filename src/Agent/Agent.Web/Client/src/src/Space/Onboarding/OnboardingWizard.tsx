@@ -1,5 +1,6 @@
 import { Button, Text } from '@fluentui/react-components';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
+import isEqual from 'lodash/isEqual';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import RocketImage from '../../../assets/Rocket.svg';
@@ -15,15 +16,14 @@ import { useOnboardingWizardStyles } from './OnboardingWizard.styles';
 import { ConnectRepositoriesStep } from './Steps/ConnectRepositoriesStep';
 import { GrantPermissionsStep } from './Steps/GrantPermissionsStep';
 import { IncidentPlatformStep } from './Steps/IncidentPlatformStep';
-import { InfrastructureScopeStep, ScopeType } from './Steps/InfrastructureScopeStep';
+import { InfrastructureScopeStep } from './Steps/InfrastructureScopeStep';
 
 const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialValues: WizardFormValues): boolean => {
     switch (step) {
         case WizardStep.InfrastructureScope:
             return (
-                currentValues.scopeType !== initialValues.scopeType ||
-                currentValues.selectedSubscriptionId !== initialValues.selectedSubscriptionId ||
-                currentValues.selectedResourceGroupId !== initialValues.selectedResourceGroupId
+                !isEqual([...currentValues.selectedSubscriptionIds].sort(), [...initialValues.selectedSubscriptionIds].sort()) ||
+                !isEqual([...currentValues.selectedResourceGroupIds].sort(), [...initialValues.selectedResourceGroupIds].sort())
             );
         case WizardStep.IncidentPlatform:
             return (
@@ -43,9 +43,9 @@ const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialV
 };
 
 export interface WizardFormValues {
-    scopeType: ScopeType;
-    selectedSubscriptionId: string;
-    selectedResourceGroupId: string;
+    selectedSubscriptionIds: string[];
+    selectedResourceGroupIds: string[];
+    resourceGroupLocations: Record<string, string>;
     incidentPlatformType: IncidentManagementType | undefined;
     pagerDutyApiKey: string;
     serviceNowEndpoint: string;
@@ -68,16 +68,23 @@ export const OnboardingWizard: FC<OnboardingWizardProps> = ({ onComplete }) => {
         const existingIncidentConfig = agent?.incidentManagementConfiguration;
         const existingAccessLevel = agent?.actionConfiguration?.accessLevel ?? AgentAccessLevel.low;
 
-        const hasSubscriptionScope =
-            existingManagedResources.length === 0 || existingManagedResources.some((r: string) => !r.includes('/resourceGroups/'));
+        const existingSubscriptionIds = existingManagedResources
+            .filter((r: string) => !r.includes('/resourceGroups/'))
+            .map((r: string) => {
+                const match = r.match(/\/subscriptions\/([^/]+)/i);
+                return match ? match[1] : '';
+            })
+            .filter((id: string) => id.length > 0);
+
+        const existingResourceGroupIds = existingManagedResources.filter((r: string) => r.includes('/resourceGroups/'));
 
         const descriptor = new ArmResourceDescriptor(resourceId);
         const currentSubscriptionId = descriptor.subscription;
 
         return {
-            scopeType: hasSubscriptionScope ? 'subscription' : 'resourceGroup',
-            selectedSubscriptionId: currentSubscriptionId,
-            selectedResourceGroupId: existingManagedResources.find((r: string) => r.includes('/resourceGroups/')) ?? '',
+            selectedSubscriptionIds: existingSubscriptionIds.length > 0 ? existingSubscriptionIds : [currentSubscriptionId],
+            selectedResourceGroupIds: existingResourceGroupIds,
+            resourceGroupLocations: {},
             incidentPlatformType: existingIncidentConfig?.type,
             pagerDutyApiKey: '',
             serviceNowEndpoint: existingIncidentConfig?.connectionUrl ?? '',
@@ -90,7 +97,7 @@ export const OnboardingWizard: FC<OnboardingWizardProps> = ({ onComplete }) => {
     const handleSubmit = useCallback((_values: WizardFormValues, _helpers: FormikHelpers<WizardFormValues>) => {}, []);
 
     return (
-        <Formik<WizardFormValues> initialValues={initialValues} onSubmit={handleSubmit} enableReinitialize={true}>
+        <Formik<WizardFormValues> initialValues={initialValues} onSubmit={handleSubmit}>
             <OnboardingWizardContent onComplete={onComplete} />
         </Formik>
     );
@@ -111,8 +118,9 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
     const { currentStep, steps, isLastStep, isFirstStep, goToNextStep, goToPreviousStep, skipWizard, finishWizard } = useOnboardingWizard();
 
     const saveInfrastructureScope = useCallback(async (): Promise<boolean> => {
-        const managedResources =
-            values.scopeType === 'subscription' ? [`/subscriptions/${values.selectedSubscriptionId}`] : [values.selectedResourceGroupId];
+        // Build managedResources from both subscription IDs and resource group IDs
+        const subscriptionResources = values.selectedSubscriptionIds.map(id => `/subscriptions/${id}`);
+        const managedResources = [...subscriptionResources, ...values.selectedResourceGroupIds];
 
         const response = await patchAgent({
             properties: {
@@ -124,7 +132,7 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
         });
 
         return response.metadata.success;
-    }, [values.scopeType, values.selectedSubscriptionId, values.selectedResourceGroupId, patchAgent, agentObj]);
+    }, [values.selectedSubscriptionIds, values.selectedResourceGroupIds, patchAgent, agentObj]);
 
     const saveIncidentPlatform = useCallback(async (): Promise<boolean> => {
         if (!values.incidentPlatformType) return false;
@@ -174,7 +182,8 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
     const isCurrentStepValid = useMemo(() => {
         switch (currentStep) {
             case WizardStep.InfrastructureScope:
-                return values.scopeType === 'subscription' ? !!values.selectedSubscriptionId : !!values.selectedResourceGroupId;
+                // At least one subscription or resource group must be selected
+                return values.selectedSubscriptionIds.length > 0 || values.selectedResourceGroupIds.length > 0;
             case WizardStep.IncidentPlatform:
                 if (!values.incidentPlatformType) return false;
                 switch (values.incidentPlatformType) {
@@ -282,20 +291,10 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
         goToPreviousStep();
     }, [goToPreviousStep]);
 
-    const renderStepContent = () => {
-        switch (currentStep) {
-            case WizardStep.InfrastructureScope:
-                return <InfrastructureScopeStep />;
-            case WizardStep.IncidentPlatform:
-                return <IncidentPlatformStep />;
-            case WizardStep.ConnectRepositories:
-                return <ConnectRepositoriesStep />;
-            case WizardStep.GrantPermissions:
-                return <GrantPermissionsStep />;
-            default:
-                return null;
-        }
-    };
+    const getStepClassName = useCallback(
+        (step: WizardStep) => (currentStep === step ? styles.stepVisible : styles.stepHidden),
+        [currentStep, styles.stepVisible, styles.stepHidden]
+    );
 
     return (
         <div className={styles.fullPageContainer}>
@@ -312,7 +311,20 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                             <WizardStepper steps={steps} />
                         </div>
 
-                        <div className={styles.mainContent}>{renderStepContent()}</div>
+                        <div className={styles.mainContent}>
+                            <div className={getStepClassName(WizardStep.InfrastructureScope)}>
+                                <InfrastructureScopeStep />
+                            </div>
+                            <div className={getStepClassName(WizardStep.IncidentPlatform)}>
+                                <IncidentPlatformStep />
+                            </div>
+                            <div className={getStepClassName(WizardStep.ConnectRepositories)}>
+                                <ConnectRepositoriesStep />
+                            </div>
+                            <div className={getStepClassName(WizardStep.GrantPermissions)}>
+                                <GrantPermissionsStep />
+                            </div>
+                        </div>
                     </div>
 
                     <div className={styles.footer}>

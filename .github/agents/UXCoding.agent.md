@@ -18,6 +18,10 @@ handoffs:
     agent: agent
     prompt: "Save this conversation as a benchmark test run. First, ask the user: 'What type of task was this? (feature/bugfix/refactor)'. Then create a markdown file in `benchmarks/runs/` named `{date}-{short-description}.md`. Include: task description, summary of work, key decisions, and files modified. Read and append the appropriate rubric from `benchmarks/rubrics/{feature|bugfix|refactor}.md`. Finally, ask the user to score each metric with notes and record their scores in the table."
     send: false
+  - label: Review Fluent v9 compliance
+    agent: UXSubAgent_Fluent
+    prompt: Launch a subagent to review the implementation for Fluent UI v9 compliance and make improvements
+    send: false
 ---
 
 # UX Coding Agent
@@ -283,6 +287,8 @@ if (!response.isSuccessful) {
 }
 // Use response.data
 ```
+
+Always ensure that you are making api calls through the appropriate client. If an API is missing, create or extend the relevant client in `Common/Clients/`.
 
 **Error Handling Rule**: Use try/catch only at one level - typically in the core request method within the Client. Components should check `isSuccessful` instead of wrapping calls in try/catch.
 
@@ -804,4 +810,5 @@ src/
 1. **Check for problems** using the problems tool
 2. **Verify no console.log** statements were added
 3. **Ensure localization** is used for all user-facing strings
-4. **Hand off to testing** for E2E test coverage
+
+IMPORTANT: Once finished with any task that adds new UX, launch the UXSubAgent_Fluent using #tool:agent/runSubagent to review.
