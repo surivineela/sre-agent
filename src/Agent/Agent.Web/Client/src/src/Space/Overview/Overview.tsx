@@ -5,6 +5,7 @@ import AnalyzedIncidentsCard from './AnalyzedIncidentsCard.tsx';
 import IncidentManagementCard from './IncidentManagementCard.tsx';
 import IntentMetScoreCard from './IntentMetScoreCard.tsx';
 import MitigationMeanTimeCard from './MitigationMeanTimeCard.tsx';
+import RecentInsightsCard from './RecentInsightsCard.tsx';
 import SuggestedActions from './SuggestedActions.tsx';
 
 const useStyles = makeStyles({
@@ -19,7 +20,7 @@ const useStyles = makeStyles({
     overviewInner: {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'auto auto auto 250px 250px',
+        gridTemplateRows: 'auto 150px 150px 150px 250px',
         gap: '12px',
         backgroundColor: tokens.colorNeutralBackground2,
     },
@@ -45,6 +46,11 @@ const useStyles = makeStyles({
         minHeight: 0,
         overflow: 'auto',
     },
+    recentInsightsCard: {
+        gridColumn: '3 / span 2',
+        gridRow: '2 / -1',
+        minHeight: 0,
+    },
 });
 
 const Overview: FC = () => {
@@ -67,6 +73,9 @@ const Overview: FC = () => {
                 </div>
                 <div className={styles.incidentManagementCard}>
                     <IncidentManagementCard />
+                </div>
+                <div className={styles.recentInsightsCard}>
+                    <RecentInsightsCard />
                 </div>
             </div>
         </div>

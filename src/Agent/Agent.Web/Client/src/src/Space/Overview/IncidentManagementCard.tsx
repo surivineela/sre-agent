@@ -1,4 +1,4 @@
-import { Body1, Body1Strong, Body2Strong, Caption1, Caption1Strong, tokens } from '@fluentui-copilot/react-copilot';
+import { Body1Strong, Body2Strong, Caption1, Caption1Strong, tokens } from '@fluentui-copilot/react-copilot';
 import {
     Card,
     CardHeader,
@@ -20,9 +20,10 @@ import { FC, memo, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { InvestigationStatus, Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
-import { ActivitiesResources, IncidentManagementResources, OverviewResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, IncidentManagementResources, OverviewResources } from '../../Strings/SREAgentResources';
 import { useThreadList } from '../Hooks/useThreadList';
 import { StatusLabel } from '../IncidentManagement/IncidentsOverview/StatusLabel';
+import EmptyBody from './EmptyBody';
 
 const useStyles = makeStyles({
     card: {
@@ -61,17 +62,6 @@ const useStyles = makeStyles({
     },
     tableRowLoader: {
         padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
-    },
-    emptyBodyContainer: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-    },
-    emptyBodyImage: {
-        width: '150px',
-        height: '150px',
-        display: 'block',
     },
 });
 
@@ -130,7 +120,7 @@ const IncidentManagementCard: FC = () => {
                         ))}
                     </TableBody>
                 </Table>
-                {noIncidents && <EmptyBody />}
+                {noIncidents && <EmptyBody message={intl.formatMessage(IncidentManagementResources.noIncidentsFound)} />}
                 {moreThreadsToLoad && (
                     <div ref={intersectionObserverRef}>
                         <TableRowLoader />
@@ -189,24 +179,6 @@ const TableRowLoader = memo(() => {
                 </TableBody>
             </Table>
         </Skeleton>
-    );
-});
-
-const EmptyBody = memo(() => {
-    const intl = useIntl();
-    const styles = useStyles();
-
-    return (
-        <div className={styles.emptyBodyContainer}>
-            <img
-                src={'AiSearchWarningSpotIllustration.svg'}
-                alt={intl.formatMessage(SreAgentResources.warning)}
-                className={styles.emptyBodyImage}
-            />
-            <Body1 block={true} align={'center'}>
-                {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
-            </Body1>
-        </div>
     );
 });
 

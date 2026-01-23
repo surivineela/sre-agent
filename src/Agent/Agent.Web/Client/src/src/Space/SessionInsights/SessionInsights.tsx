@@ -3,7 +3,7 @@ import { ArrowSyncRegular } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { SessionInsight, SessionInsightClient } from '../../Common/Clients/SessionInsightClient';
 import { SreAgentResources, SreAgentTabResources } from '../../Strings/SREAgentResources';
 import { useCommonStyles } from '../Styles/Common.styles';
 import InsightsDetailPanel from './InsightsDetailPanel';
@@ -78,24 +78,14 @@ const useStyles = makeStyles({
     },
 });
 
-interface SessionInsightData {
-    threadId: string;
-    title: string;
-    generatedTimestamp: string;
-    insightMarkdown?: string;
-    feedback?: any[];
-    feedbackCount: number;
-    positiveFeedbackCount: number;
-    negativeFeedbackCount: number;
-}
-
 const SessionInsights: FC = () => {
     const styles = useStyles();
     const commonStyles = useCommonStyles();
 
     const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
+    const sessionInsightClient = SessionInsightClient.getInstance(sreAgentEndpoint);
 
-    const [insights, setInsights] = useState<SessionInsightData[]>([]);
+    const [insights, setInsights] = useState<SessionInsight[]>([]);
     const [selectedInsightId, setSelectedInsightId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -110,35 +100,14 @@ const SessionInsights: FC = () => {
                 }
 
                 // Fetch insights from Cosmos DB - now returning full SessionInsight objects
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/insights?skip=0&take=1000`, {
-                    headers: getAgentHeaders(),
-                });
+                const response = await sessionInsightClient.getInsights();
 
-                if (!response.ok) {
-                    console.error('Failed to fetch session insights:', response.status, response.statusText);
+                if (!response.isSuccessful) {
                     setInsights([]);
                     return;
                 }
 
-                const insightsList = await response.json();
-                const insightsArray = (insightsList?.insights ?? insightsList?.Insights ?? []) as any[];
-
-                if (!Array.isArray(insightsArray) || insightsArray.length === 0) {
-                    setInsights([]);
-                    return;
-                }
-
-                // Map to SessionInsightData interface
-                const mappedInsights: SessionInsightData[] = insightsArray.map((item: any) => ({
-                    threadId: item.threadId ?? item.ThreadId,
-                    title: item.title ?? item.Title,
-                    generatedTimestamp: item.generatedTimestamp ?? item.GeneratedTimestamp,
-                    insightMarkdown: item.insightMarkdown ?? item.InsightMarkdown,
-                    feedback: item.feedback ?? item.Feedback,
-                    feedbackCount: item.feedbackCount ?? item.FeedbackCount ?? 0,
-                    positiveFeedbackCount: item.positiveFeedbackCount ?? item.PositiveFeedbackCount ?? 0,
-                    negativeFeedbackCount: item.negativeFeedbackCount ?? item.NegativeFeedbackCount ?? 0,
-                }));
+                const mappedInsights = response.content || [];
 
                 // Sort by generated timestamp
                 mappedInsights.sort((a, b) => {

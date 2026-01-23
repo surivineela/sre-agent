@@ -6290,4 +6290,10 @@ export const OverviewResources = defineMessages({
     meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
     incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
+    recentInsights: { defaultMessage: 'Recent insights', id: 'G4Dpsw' },
+    noRecentInsights: { defaultMessage: 'No recent insights available', id: 'E4ETPQ' },
+    failedToLoadInsights: { defaultMessage: 'Failed to get recent insights', id: 'W1FdP1' },
+    viewLogs: { defaultMessage: 'View logs', id: 't/FntL' },
+    rootCause: { defaultMessage: 'Root cause', id: '18rcDe' },
+    talkToAgent: { defaultMessage: 'Talk to agent', id: '3kxCAE' },
 });
