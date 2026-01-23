@@ -15,6 +15,7 @@ using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.Scanner;
 using Azure.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,6 +80,10 @@ public static class IncidentServiceCollectionExtensions
             case IncidentManagementType.Icm:
                 services.AddICMClientRelatedServices();
                 services.AddSingleton<IIncidentScanner, IcmScanner>();
+
+                // Register ICM-specific trigger detection services
+                services.AddSingleton<IIncidentEventDetector, IncidentEventDetector>();
+                services.AddSingleton<IIncidentThreadLookupService, IncidentThreadLookupService>();
 
                 services.AddSingleton<IIncidentHandlingService<IcmIncidentFilterDocumentPayload>, IcmIncidentHandlingService>();
                 services.AddSingleton<IIncidentManagementService<IcmIncidentDocument, IcmIncidentFilterDocumentPayload>, IcmIncidentManagementService>();

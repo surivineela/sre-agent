@@ -4,6 +4,7 @@ using Agent.Core.Services;
 using Agent.Data.DataModels;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Services;
+using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.Scanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,9 @@ public class IcmScannerTest
     private readonly Mock<IAgentInboundCommunicationService> _mockAgentInboundCommunicationService;
     private readonly Mock<IAgentOutboundCommunicationService> _mockAgentOutboundCommunicationService;
     private readonly Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>> _mockIncidentAnalysisService;
+    private readonly Mock<IIncidentEventDetector> _mockIncidentEventDetector;
+    private readonly Mock<IIncidentThreadLookupService> _mockIncidentThreadLookupService;
+    private readonly Mock<IThreadRepository> _mockThreadRepository;
     private readonly Mock<IICMPlugin> _mockIcmPlugin;
     private readonly Mock<Container> _mockContainer;
     private readonly IncidentManagementSettings _incidentManagementSettings;
@@ -40,6 +44,9 @@ public class IcmScannerTest
         _mockAgentInboundCommunicationService = new Mock<IAgentInboundCommunicationService>();
         _mockAgentOutboundCommunicationService = new Mock<IAgentOutboundCommunicationService>();
         _mockIncidentAnalysisService = new Mock<IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, Incident>>();
+        _mockIncidentEventDetector = new Mock<IIncidentEventDetector>();
+        _mockIncidentThreadLookupService = new Mock<IIncidentThreadLookupService>();
+        _mockThreadRepository = new Mock<IThreadRepository>();
         _mockIcmPlugin = new Mock<IICMPlugin>();
         _incidentManagementSettings = new IncidentManagementSettings
         {
@@ -76,7 +83,10 @@ public class IcmScannerTest
             _mockIncidentFilterManagementService.Object,
             _mockAgentInboundCommunicationService.Object,
             _incidentManagementSettings,
-            _mockIncidentAnalysisService.Object
+            _mockIncidentAnalysisService.Object,
+            _mockIncidentEventDetector.Object,
+            _mockIncidentThreadLookupService.Object,
+            _mockThreadRepository.Object
         );
     }
 
@@ -209,7 +219,7 @@ public class IcmScannerTest
         _mockContainer.Setup(c => c.ReadItemAsync<IcmIncidentDocument>(incident.Id.ToString(), new PartitionKey(incident.Id.ToString()), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new CosmosException("Not Found", System.Net.HttpStatusCode.NotFound, 0, "", 0));
 
-        _mockContainer.Setup(c => c.CreateItemAsync(It.IsAny<IcmIncidentDocument>(), It.IsAny<PartitionKey>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
+        _mockContainer.Setup(c => c.UpsertItemAsync(It.IsAny<IcmIncidentDocument>(), It.IsAny<PartitionKey?>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(mockItemResponse.Object);
 
         _mockIncidentAnalysisService.Setup(c => c.AnalyzeIncident(It.IsAny<IcmIncidentDocument>(), It.IsAny<Incident>(), It.IsAny<IcmIncidentFilterDocument?>())).ReturnsAsync(mockItemResponse.Object);
@@ -238,7 +248,7 @@ public class IcmScannerTest
         }
 
         // Assert
-        _mockContainer.Verify(c => c.CreateItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == incident.Id.ToString()), It.IsAny<PartitionKey?>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _mockContainer.Verify(c => c.UpsertItemAsync(It.Is<IcmIncidentDocument>(d => d.Id == incident.Id.ToString()), It.IsAny<PartitionKey?>(), It.IsAny<ItemRequestOptions>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]

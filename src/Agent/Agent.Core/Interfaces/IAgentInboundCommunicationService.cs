@@ -62,7 +62,6 @@ public interface IAgentInboundCommunicationService
         Guid incidentThreadId,
         List<IncidentDiscussion> discussions);
 
-
     /// <summary>
     /// Processes a thread that has been created for an alert, and starts the orchestration
     /// </summary>

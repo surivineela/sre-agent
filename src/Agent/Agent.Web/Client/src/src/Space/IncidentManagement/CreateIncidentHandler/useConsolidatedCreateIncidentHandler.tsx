@@ -547,6 +547,8 @@ export const useConsolidatedCreateIncidentHandler = (
         values.createdBy,
         values.monitorId,
         values.handlingAgent,
+        values.handlingAgents,
+        values.triggers,
 
         values.incidentIds,
         values.customInstructions,

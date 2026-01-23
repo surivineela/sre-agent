@@ -13,7 +13,7 @@ public class IcmPostTemplates
     private const string DiscussionEntryTemplate = $"<div style='border: 1px solid #C9CACB80;padding: 15px;padding-top: 0px;font-family: Arial, sans-serif;'><div style='background-color: rgba(0, 120, 212, 1);color: rgba(255, 255, 255, 1);font-weight: bold;padding: 4px 12px;font-size: 14px;display: inline-flex;margin;margin: 0px -15px 10px;'><img src='{LogoBase64}' alt='Azure SRE Agent Logo' style='height: 16px; width: auto; margin-right: 6px'>Azure SRE Agent</div><br><br>POST_CONTENT_HERE</div>";
     private const string PortalBase = "https://aka.ms/sreagent-portal-base";
 
-    public static string GenerateDiscussionEntryByTemplate(AgentResourceInfo? agentInfo, string threadId, string postContent)
+    public static string GenerateDiscussionEntryByTemplate(AgentResourceInfo? agentInfo, string threadId, string postContent, string? handlerId = null)
     {
         var builder = new StringBuilder(postContent);
 
@@ -26,6 +26,11 @@ public class IcmPostTemplates
             var encodedThreadPath = BuildEncodedThreadPath(threadId);
             AppendLinkIfAvailable(builder, BuildAgentDirectLink(agentInfo, encodedThreadPath), "[Open thread on Saw]");
             AppendLinkIfAvailable(builder, BuildAgentCrossTenantLink(agentInfo, encodedThreadPath), "[Open thread on MSFT]");
+
+            // Append handler ID (use MetaAgent as fallback)
+            builder
+                .Append("<br /> Handler ID: ")
+                .Append(string.IsNullOrWhiteSpace(handlerId) ? "MetaAgent" : handlerId);
         }
 
         return DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", builder.ToString());

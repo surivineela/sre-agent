@@ -2053,6 +2053,61 @@ export const IncidentManagementResources = defineMessages({
     whatHappened: { defaultMessage: 'What happened', id: 'Xup5P8' },
     incidentTeamSearchAssignableOnly: { defaultMessage: 'Only teams that allow incident assignment', id: 'Q0B/Lb' },
     incidentTeamSearchWithOncallRotation: { defaultMessage: 'Only teams with an on-call rotation', id: 'dLWrbO' },
+    // Filter conflict warnings
+    filterConflictWarningTitle: { defaultMessage: 'Potential trigger overlap detected', id: '46U3n7' },
+    filterConflictWarningDescription: {
+        defaultMessage:
+            'Another response plan may trigger on similar incidents. Review your trigger configurations to avoid duplicate processing.',
+        id: '+0n0LF',
+    },
+    conflictingFilters: { defaultMessage: 'Overlapping response plans:', id: 'x+eWfz' },
+    // Multi-agent selector
+    multiAgentLabel: { defaultMessage: 'Handling agents', id: 'eE+6n3' },
+    multiAgentDescription: {
+        defaultMessage: 'Select one or more agents that will process incidents matching this filter.',
+        id: 'eMrrxz',
+    },
+    multiAgentPlaceholder: { defaultMessage: 'Select agents...', id: 'LZJme9' },
+    selectedAgents: { defaultMessage: 'Selected agents:', id: 'F/Dvm7' },
+    selectedAgentsAriaLabel: { defaultMessage: 'Selected handling agents', id: 'fF4ppo' },
+    minAgentWarning: { defaultMessage: 'At least one agent must be selected', id: '85eQp2' },
+    // Trigger types
+    triggerEvents: { defaultMessage: 'Trigger events', id: 'P3uGTY' },
+    triggerEventsDescription: {
+        defaultMessage: 'Choose which events will trigger agent processing for incidents matching this filter.',
+        id: 'Q4WNky',
+    },
+    triggerIncidentCreatedOrTransferred: { defaultMessage: 'Incident created or transferred', id: 'jH0r1M' },
+    triggerIncidentCreatedOrTransferredDescription: {
+        defaultMessage: 'Trigger when a new incident is created or an existing incident is transferred to this team.',
+        id: '1BoLsw',
+    },
+    triggerDiscussionEntry: { defaultMessage: 'Discussion entry with @sreagent', id: '3m87Hu' },
+    triggerDiscussionEntryDescription: {
+        defaultMessage:
+            'Trigger when the current on-call engineer adds a discussion entry mentioning @sreagent. Requires owning team to be set.',
+        id: 'u0CP5N',
+    },
+    triggerIncidentMitigated: { defaultMessage: 'Incident mitigated', id: 'wC7+Zm' },
+    triggerIncidentMitigatedDescription: {
+        defaultMessage: 'Trigger when the incident state changes to Mitigated.',
+        id: 'aAiES8',
+    },
+    triggerIncidentReactivated: { defaultMessage: 'Incident reactivated', id: 'AghUcY' },
+    triggerIncidentReactivatedDescription: {
+        defaultMessage: 'Trigger when the incident state changes from Mitigated or Resolved back to Active.',
+        id: 'oh/E0l',
+    },
+    triggerIncidentResolved: { defaultMessage: 'Incident resolved', id: 'lyG6Lg' },
+    triggerIncidentResolvedDescription: {
+        defaultMessage: 'Trigger when the incident state changes to Resolved.',
+        id: 'hCwKXB',
+    },
+    discussionEntryRequiresOwningTeam: {
+        defaultMessage: 'Discussion entry trigger requires an owning team to be selected.',
+        id: 'XfQMoL',
+    },
+    atLeastOneTriggerRequired: { defaultMessage: 'At least one trigger event must be selected.', id: '/Nn0fO' },
 });
 
 export const TriggerIncidentManagementResources = defineMessages({
@@ -2060,12 +2115,12 @@ export const TriggerIncidentManagementResources = defineMessages({
     search: { defaultMessage: 'Search', id: 'xmcVZ0' },
     submit: { defaultMessage: 'Submit', id: 'wSZR47' },
     incidentProcessSuccess: {
-        defaultMessage: 'Incident {incidentId} successfully processed.',
-        id: '7e84yC',
+        defaultMessage: 'Incident {incidentId} successfully processed. {message}',
+        id: 'DIJjVa',
     },
     incidentProcessSuccessWithThread: {
-        defaultMessage: 'Incident {incidentId} successfully processed. (Thread ID: {threadId})',
-        id: 'LZXqGi',
+        defaultMessage: 'Incident {incidentId}: {message} (Thread ID: {threadId})',
+        id: 'kSFfvM',
     },
     incidentProcessFailure: {
         defaultMessage: 'Incident {incidentId} cannot be processed. {message}',

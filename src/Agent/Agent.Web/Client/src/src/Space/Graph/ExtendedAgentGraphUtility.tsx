@@ -369,14 +369,16 @@ export const buildExtendedAgentGraph = (
             triggerNodesCreated.add(trigger.name);
         }
 
-        // Create edge from trigger to agent if agent name is specified
-        if (trigger.agentName) {
-            const targetAgent = agentMap.get(trigger.agentName);
+        // Create edges from trigger to ALL handling agents
+        // Use agentNames array if available, otherwise fall back to agentName for backward compatibility
+        const agentNames = trigger.agentNames?.length ? trigger.agentNames : trigger.agentName ? [trigger.agentName] : [];
+        agentNames.forEach(agentName => {
+            const targetAgent = agentMap.get(agentName);
             if (targetAgent) {
-                const edge = createExtendedAgentEdge(`trigger_${trigger.name}`, `agent_${trigger.agentName}`, 'trigger', 'agent');
+                const edge = createExtendedAgentEdge(`trigger_${trigger.name}`, `agent_${agentName}`, 'trigger', 'agent');
                 edges.push(edge);
             }
-        }
+        });
     });
 
     // Create skill nodes based on expanded state

@@ -1,7 +1,8 @@
 import { Button, Dropdown, Field, Input, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useContext, useMemo } from 'react';
+import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { IncidentTriggerEvent } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import {
     ExtendedAgentsGraphResources,
@@ -11,6 +12,8 @@ import {
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';
+import { MultiAgentSelector } from '../Common/MultiAgentSelector';
+import { TriggerTypeSelector } from '../Common/TriggerTypeSelector';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
@@ -77,9 +80,47 @@ export const IncidentTriggerStep: FC = () => {
         [incidentPlatformType]
     );
 
+    // Get current triggers or default to IncidentCreatedOrTransferred
+    const currentTriggers = useMemo(() => {
+        return values.triggers || [IncidentTriggerEvent.IncidentCreatedOrTransferred];
+    }, [values.triggers]);
+
+    const handleTriggersChange = useCallback(
+        (triggers: IncidentTriggerEvent[]) => {
+            setFieldValue('triggers', triggers);
+        },
+        [setFieldValue]
+    );
+
+    // Phase 2: Multi-agent support - get current handling agents (backward compatible)
+    const currentHandlingAgents = useMemo(() => {
+        // Prefer handlingAgents array if set, fall back to single handlingAgent
+        if (values.handlingAgents && values.handlingAgents.length > 0) {
+            return values.handlingAgents;
+        }
+        if (values.handlingAgent) {
+            return [values.handlingAgent];
+        }
+        return [];
+    }, [values.handlingAgents, values.handlingAgent]);
+
+    const handleAgentsChange = useCallback(
+        (agents: string[]) => {
+            setFieldValue('handlingAgents', agents);
+            // Also update single handlingAgent for backward compatibility
+            setFieldValue('handlingAgent', agents[0] || '');
+        },
+        [setFieldValue]
+    );
+
     const isNextDisabled = useMemo((): boolean => {
         if (filterMode === 'create') {
-            const handlingAgentRequired = !values.isIncidentTriggerWithLearnings && !values.handlingAgent;
+            // Phase 2: For ICM, check handlingAgents array; for others, check single handlingAgent
+            const hasHandlingAgent =
+                incidentPlatformType === IncidentManagementType.Icm
+                    ? (values.handlingAgents && values.handlingAgents.length > 0) || !!values.handlingAgent
+                    : !!values.handlingAgent;
+            const handlingAgentRequired = !values.isIncidentTriggerWithLearnings && !hasHandlingAgent;
             return (
                 !values.filterName ||
                 !values.priority ||
@@ -245,6 +286,13 @@ export const IncidentTriggerStep: FC = () => {
                                     className={styles.inputField}
                                 />
                             </Field>
+
+                            <TriggerTypeSelector
+                                selectedTriggers={currentTriggers}
+                                onTriggersChange={handleTriggersChange}
+                                owningTeamId={values.owningTeamId}
+                                disabled={disableAllFields}
+                            />
                         </div>
                     )}
                 </div>
@@ -253,26 +301,38 @@ export const IncidentTriggerStep: FC = () => {
                         <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                             {intl.formatMessage(ExtendedAgentsGraphResources.subagent)}
                         </Text>
-                        <Field label={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagent)} required>
-                            <Dropdown
-                                name="handlingAgent"
-                                selectedOptions={values.handlingAgent ? [values.handlingAgent] : []}
-                                value={values.handlingAgent || ''}
-                                onOptionSelect={(_, data) => {
-                                    setFieldValue('handlingAgent', data.optionValue);
-                                }}
-                                onBlur={() => setFieldTouched('handlingAgent', true)}
-                                placeholder={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagentPlaceholder)}
+                        {/* Phase 2: Use MultiAgentSelector for ICM, single dropdown for others */}
+                        {incidentPlatformType === IncidentManagementType.Icm ? (
+                            <MultiAgentSelector
+                                selectedAgents={currentHandlingAgents}
+                                onAgentsChange={handleAgentsChange}
+                                availableAgents={subAgentNames || []}
                                 disabled={disableAllFields}
-                                className={styles.inputField}
-                            >
-                                {subAgentNames?.map(name => (
-                                    <Option value={name} key={name}>
-                                        {name}
-                                    </Option>
-                                ))}
-                            </Dropdown>
-                        </Field>
+                                required
+                            />
+                        ) : (
+                            <Field label={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagent)} required>
+                                <Dropdown
+                                    name="handlingAgent"
+                                    selectedOptions={values.handlingAgent ? [values.handlingAgent] : []}
+                                    value={values.handlingAgent || ''}
+                                    onOptionSelect={(_, data) => {
+                                        setFieldValue('handlingAgent', data.optionValue);
+                                    }}
+                                    onBlur={() => setFieldTouched('handlingAgent', true)}
+                                    placeholder={intl.formatMessage(ExtendedAgentsGraphResources.responseSubagentPlaceholder)}
+                                    disabled={disableAllFields}
+                                    className={styles.inputField}
+                                >
+                                    {subAgentNames?.map(name => (
+                                        <Option value={name} key={name}>
+                                            {name}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                            </Field>
+                        )}
+
                         <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
                             <RadioGroup
                                 name="agentMode"

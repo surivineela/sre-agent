@@ -47,6 +47,14 @@ public interface IICMAPIClient
     Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true);
     Task<IcmTeamResult> GetTeamAsync(string teamId);
     Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null);
+
+    /// <summary>
+    /// Gets the list of aliases currently on-call for the specified team.
+    /// Returns aliases from all active on-call rotations for the team.
+    /// </summary>
+    /// <param name="teamId">The ICM team ID to lookup on-call for.</param>
+    /// <returns>List of on-call aliases, or empty list if none found.</returns>
+    Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId);
 }
 
 public class ICMAPIClient : IICMAPIClient
@@ -402,6 +410,21 @@ public class ICMAPIClient : IICMAPIClient
         }
         return res.Message;
     }
+
+    /// <inheritdoc />
+    public async Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId)
+    {
+        try
+        {
+            var aliases = await _icmApiClientSDKService.GetAliasForCurrentOnCallRotationsAsync(teamId);
+            return aliases ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to get on-call aliases for team {teamId}. Returning empty list.");
+            return new List<string>();
+        }
+    }
 }
 
 public class NullableICMAPIClient : IICMAPIClient
@@ -547,6 +570,11 @@ public class NullableICMAPIClient : IICMAPIClient
     }
 
     public Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId)
     {
         throw new NotImplementedException();
     }

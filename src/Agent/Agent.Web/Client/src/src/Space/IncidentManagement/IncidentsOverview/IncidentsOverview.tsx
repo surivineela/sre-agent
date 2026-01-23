@@ -636,9 +636,37 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 },
                 renderHeaderCell: () => <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.handler)}</span>,
                 renderCell: item => {
+                    // Priority 1: Use thread's handlerId if set (from incidentDetails)
+                    const handlerId = item.incidentDetails?.handlerId;
+                    if (handlerId) {
+                        const anchorEntity: ExtendedAgentAnchorEntity = {
+                            entityType: 'Agent',
+                            entityName: handlerId,
+                        };
+                        return (
+                            <ResponsePlanLinkWithIcon
+                                type="handlingAgent"
+                                value={handlerId}
+                                onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    navigate({
+                                        primaryNavItemValue: PrimaryNavItemValues.Builder,
+                                        secondaryNavItemValue: SecondaryNavItemValues.ExtendedAgentsGraph,
+                                        options: {
+                                            state: { anchorEntity },
+                                        },
+                                    });
+                                }}
+                            />
+                        );
+                    }
+
+                    // Move variable declarations closer to where they're used
                     const filterId = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item) as string;
                     const filterMatch = !filterId || filterId === '-' ? undefined : filtersMap.get(filterId);
 
+                    // Priority 2: Use filter's handlingAgent (legacy behavior)
                     if (filterMatch?.handlingAgent) {
                         const anchorEntity: ExtendedAgentAnchorEntity = {
                             entityType: 'Trigger',
@@ -663,6 +691,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                         );
                     }
 
+                    // Priority 3: Show response plan link (filter-based)
                     if (filterMatch) {
                         return (
                             <ResponsePlanLinkWithIcon

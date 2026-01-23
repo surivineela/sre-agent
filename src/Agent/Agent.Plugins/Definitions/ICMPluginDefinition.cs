@@ -372,4 +372,12 @@ public class ICMPluginDefinition
     {
         return await _icmPlugin.GetIncidentAlertDetails(incidentId.ToString());
     }
+
+    [Description("Get the aliases of people currently on-call for a given ICM team")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<List<string>> GetCurrentOnCallAliases(
+        [Description("The ICM Team ID to get on-call aliases for")] string teamId)
+    {
+        return await _icmPlugin.GetCurrentOnCallAliases(teamId);
+    }
 }

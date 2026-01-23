@@ -37,6 +37,9 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         createdBy: handlerCreateOrEditInfo?.filter?.createdBy || undefined,
         monitorId: handlerCreateOrEditInfo?.filter?.monitorId || undefined,
         handlingAgent: handlerCreateOrEditInfo?.filter?.handlingAgent || handlerCreateOrEditInfo?.subAgentTriggerInfo?.preSelectedAgent,
+        // Phase 2: Initialize handlingAgents and triggers from filter
+        handlingAgents: handlerCreateOrEditInfo?.filter?.handlingAgents || undefined,
+        triggers: handlerCreateOrEditInfo?.filter?.triggers || undefined,
 
         incidentIds: undefined,
         customInstructions: undefined,

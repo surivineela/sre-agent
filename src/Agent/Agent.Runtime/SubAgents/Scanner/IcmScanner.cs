@@ -13,7 +13,9 @@ using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -36,6 +38,7 @@ public record IncidentResolveActionData
     public string AgentMode { get; init; } = string.Empty;
 }
 
+#pragma warning disable CS9113 // Parameter is unread - kept for future use when NotifyUserAsync is restored
 public class IcmScanner(ILogger<IcmScanner> logger,
     IICMAPIClient icmApiClient,
     CosmosClient cosmosClient,
@@ -45,10 +48,15 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     IIncidentFilterManagementService<IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload> incidentFilterManagementService,
     IAgentInboundCommunicationService agentInboundCommunicationService,
     IncidentManagementSettings incidentManagementSettings,
-    IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService) : IIncidentScanner
+    IIncidentAnalysisService<IcmIncidentDocument, IcmIncidentFilterDocument, IcmIncidentFilterDocumentPayload, ICMIncident> incidentAnalysisService,
+    IIncidentEventDetector incidentEventDetector,
+    IIncidentThreadLookupService incidentThreadLookupService,
+    IThreadRepository threadRepository) : IIncidentScanner
+#pragma warning restore CS9113
 {
 
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
+    private readonly IncidentCentricScannerHelper _scannerHelper = new(incidentEventDetector, logger);
     private const uint PageSize = 50;
     private static readonly TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
     private bool isScanSucceeded = true;
@@ -140,126 +148,1067 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
     private async Task ScanAllIncidentsAsync(List<IcmIncidentFilterDocument> filters, CancellationToken cancellationToken)
     {
+        // Use incident-centric 4-phase architecture for proper state change detection
+        await ScanAllIncidentsIncidentCentricAsync(filters, cancellationToken);
+    }
+
+    /// <summary>
+    /// Incident-centric scanning with 4-phase architecture:
+    /// Phase 1: Collection - Gather incidents across all filters with state snapshot
+    /// Phase 2: Detection - Detect all events and assign filters
+    /// Phase 3: Persistence - Update Cosmos with current state and checkpoints
+    /// Phase 3.5: Status Sync - Sync thread status on ANY status change (decoupled from triggers)
+    /// Phase 4: Processing - Execute handlers for persisted events
+    /// </summary>
+    private async Task ScanAllIncidentsIncidentCentricAsync(List<IcmIncidentFilterDocument> filters, CancellationToken cancellationToken)
+    {
+        var metrics = new ScanCycleMetrics();
+        logger.LogInternalInformation("[IcmScanner] Starting incident-centric scan with {filterCount} filters", filters.Count);
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PHASE 1: COLLECTION - Gather incidents with state snapshots
+        // ════════════════════════════════════════════════════════════════════════
+        var collectedIncidents = await Phase1_CollectIncidentsAsync(filters, metrics, cancellationToken);
+
+        if (collectedIncidents.Count == 0)
+        {
+            logger.LogInternalInformation("[IcmScanner] No incidents collected, scan complete");
+            LogScanMetrics(metrics);
+            return;
+        }
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PHASE 2: DETECTION - Detect events and assign filters
+        // ════════════════════════════════════════════════════════════════════════
+        var eventMappings = await Phase2_DetectEventsAsync(collectedIncidents, metrics, cancellationToken);
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PHASE 3: PERSISTENCE - Update state for ALL collected incidents
+        // This runs even if no events were detected to capture state changes
+        // ════════════════════════════════════════════════════════════════════════
+        var persistedIncidents = await Phase3_PersistStateAsync(eventMappings, collectedIncidents, metrics, cancellationToken);
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PHASE 3.5: STATUS SYNC - Sync thread status on ANY status change
+        // CRITICAL: This is DECOUPLED from triggers - runs even without events
+        // ════════════════════════════════════════════════════════════════════════
+        await SyncAllThreadStatusesAsync(collectedIncidents, persistedIncidents, metrics, cancellationToken);
+
+        // ════════════════════════════════════════════════════════════════════════
+        // PHASE 4: PROCESSING - Execute handlers for persisted events
+        // ════════════════════════════════════════════════════════════════════════
+        if (eventMappings.Count > 0)
+        {
+            await Phase4_ProcessEventsAsync(eventMappings, persistedIncidents, metrics, cancellationToken);
+        }
+        else
+        {
+            logger.LogInternalInformation("[IcmScanner] No events to process, skipping Phase 4");
+        }
+
+        LogScanMetrics(metrics);
+    }
+
+    /// <summary>
+    /// Phase 1: Collect incidents across all filters with fault tolerance.
+    /// Each filter and incident is processed independently - failures don't affect others.
+    /// CRITICAL: BeforeState is captured ONCE here and never modified until Phase 3.
+    /// </summary>
+    private async Task<Dictionary<string, IncidentScanContext>> Phase1_CollectIncidentsAsync(
+        List<IcmIncidentFilterDocument> filters,
+        ScanCycleMetrics metrics,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInternalInformation("[IcmScanner] Phase 1: Collecting incidents across {filterCount} filters", filters.Count);
+        var collectedIncidents = new Dictionary<string, IncidentScanContext>();
+
         foreach (var filter in filters)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
-                return;
+                logger.LogInternalInformation("[IcmScanner] Phase 1: Cancellation requested");
+                break;
             }
-            if (filter is IcmIncidentFilterDocument filterDocument && filterDocument.DocumentType == "IncidentFilterIcm")
-            {
-                try
-                {
-                    await ScanIncidentsForFilter(filterDocument, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInternalError(ex, "[IcmScanner] Error scanning incidents for filter: {filterId}", filterDocument.Id);
-                }
-            }
-        }
-    }
 
-    private async Task ScanIncidentsForFilter(IcmIncidentFilterDocument filterDocument, CancellationToken cancellationToken)
-    {
-        logger.LogInternalInformation("[IcmScanner] Scanning incidents for filter: {filterId}", filterDocument.Id);
-        uint page = 0;
-        isScanSucceeded = true;
-        while (true)
-        {
-            if (cancellationToken.IsCancellationRequested)
+            if (filter is not IcmIncidentFilterDocument filterDocument || filterDocument.DocumentType != "IncidentFilterIcm")
             {
-                isScanSucceeded = false;
-                logger.LogInternalInformation("[IcmScanner] Cancellation requested, stopping the IcM scanner.");
-                return;
-            }
-            var offset = page * PageSize;
-
-            if (offset > maxOffset)
-            {
-                logger.LogInternalInformation("[IcmScanner] Stop scanning ICMs over {offset}", offset);
-                return;
+                continue;
             }
 
             try
             {
-                logger.LogInternalInformation("[IcmScanner] Scanning IcM incidents, page {page}, lastScanTime {lastScanTime}, filter: {filterId}", page, lastScanTime, filterDocument.Id);
+                await CollectIncidentsForFilterIntoContextAsync(filterDocument, collectedIncidents, cancellationToken);
+                metrics.FiltersProcessed++;
+            }
+            catch (Exception ex)
+            {
+                metrics.FiltersFailed++;
+                logger.LogInternalError(ex, "[IcmScanner] Phase 1: Filter {filterId} failed, continuing with other filters", filterDocument.Id);
+            }
+        }
 
-                // Use OwningTeamId and IncidentType filtering if available
-                var incidents = await icmApiClient.GetIncidentsAsync(
-                    PageSize,
-                    offset,
-                    lastScanTime,
-                    null,
-                    filterDocument.TitleContains,
-                    string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) ? null : filterDocument.OwningTeamId,
-                    string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
-                    string.IsNullOrWhiteSpace(filterDocument.CreatedBy) ? null : filterDocument.CreatedBy,
-                    string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
-                    string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
-                );
+        metrics.IncidentsCollected = collectedIncidents.Count;
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 1 complete: {incidentCount} incidents collected from {filterCount} filters ({failedCount} filters failed)",
+            collectedIncidents.Count,
+            metrics.FiltersProcessed,
+            metrics.FiltersFailed);
 
-                if (incidents is null || incidents.Count == 0)
+        return collectedIncidents;
+    }
+
+    /// <summary>
+    /// Collects incidents for a single filter into the shared context dictionary.
+    /// Does NOT update Cosmos - just captures the before state snapshot.
+    /// </summary>
+    private async Task CollectIncidentsForFilterIntoContextAsync(
+        IcmIncidentFilterDocument filterDocument,
+        Dictionary<string, IncidentScanContext> collectedIncidents,
+        CancellationToken cancellationToken)
+    {
+        uint page = 0;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var offset = page * PageSize;
+            if (offset > maxOffset)
+            {
+                break;
+            }
+
+            var incidents = await icmApiClient.GetIncidentsAsync(
+                PageSize,
+                offset,
+                lastScanTime,
+                null,
+                filterDocument.TitleContains,
+                string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) ? null : filterDocument.OwningTeamId,
+                string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
+                string.IsNullOrWhiteSpace(filterDocument.CreatedBy) ? null : filterDocument.CreatedBy,
+                string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
+                string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
+            );
+
+            if (incidents is null || incidents.Count == 0)
+            {
+                break;
+            }
+
+            foreach (var incident in incidents)
+            {
+                try
                 {
-                    logger.LogInternalInformation("[IcmScanner] No incidents found for filter: {filterId}", filterDocument.Id);
-                    return;
-                }
-
-                // Track the latest ModifiedDate from this batch of incidents
-                foreach (var incident in incidents)
-                {
-                    // Update the latest ModifiedDate seen in this scan
-                    // Convert DateTimeOffset to UTC DateTime for consistent checkpoint tracking
+                    // Track the latest ModifiedDate for checkpoint
                     var incidentModifiedDate = incident.LastModifiedDate.UtcDateTime;
                     if (!latestModifiedDateInScan.HasValue || incidentModifiedDate > latestModifiedDateInScan.Value)
                     {
                         latestModifiedDateInScan = incidentModifiedDate;
                     }
 
-                    var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incident.Id.ToString(), incident.Id.ToString());
-                    var existingLastModifiedTime = incidentDocument != null ? incidentDocument.UpdatedAt : DateTime.MinValue;
-                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, filterDocument);
+                    var incidentId = incident.Id.ToString();
 
-                    // ingest incident data into App Insights if handled already. First ingestion should be upon handling, as executed in NotifyUser
-                    var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
-                    if (threadDocument != null && incidentDocument.UpdatedAt > existingLastModifiedTime)
+                    if (collectedIncidents.TryGetValue(incidentId, out var existingContext))
                     {
-                        try
+                        // Incident already collected - just add this filter
+                        if (!existingContext.MatchingFilters.Any(f => f.Id == filterDocument.Id))
                         {
-                            await incidentAnalysisService.Ingest(incidentDocument, filterDocument);
+                            existingContext.MatchingFilters.Add(filterDocument);
                         }
-                        catch (Exception ex)
-                        {
-                            logger.LogInternalError(ex, "[IcmScanner] Failed to ingest incident with {incidentId} data into App Insights", incidentDocument.Id);
-                        }
-                    }
-
-                    if (!await isIncidentNeedToHandle(incident))
-                    {
-                        logger.LogInternalInformation("[IcmScanner] Incident {incidentId} does not need to be handled.", incident.Id);
-                        continue;
-                    }
-
-                    // Process team-specific incidents for automated RCA when OwningTeamId is set
-                    if (!string.IsNullOrWhiteSpace(filterDocument.OwningTeamId) && IsAutomatedRCAEnabled)
-                    {
-                        await ProcessTeamSpecificIncident(incidentDocument, filterDocument);
                     }
                     else
                     {
-                        // Traditional incident handling for regular filters
-                        await NotifyUserAsync(incidentDocument, new List<string>(), filterDocument);
+                        // New incident - load before state from Cosmos (can be null for new incidents)
+                        var beforeState = await GetDocumentAsync<IcmIncidentDocument>(incidentId, incidentId);
+
+                        collectedIncidents[incidentId] = new IncidentScanContext
+                        {
+                            IncidentId = incidentId,
+                            BeforeState = beforeState,
+                            CurrentState = incident,
+                            MatchingFilters = new List<IcmIncidentFilterDocument> { filterDocument }
+                        };
                     }
                 }
+                catch (Exception ex)
+                {
+                    logger.LogInternalWarning(ex, "[IcmScanner] Phase 1: Failed to collect incident {incidentId}, skipping", incident.Id);
+                }
+            }
+
+            page++;
+        }
+    }
+
+    /// <summary>
+    /// Phase 2: Detect all events with fault tolerance.
+    /// BeforeState is compared to CurrentState to detect state transitions.
+    /// </summary>
+    private async Task<List<DetectedEventMapping>> Phase2_DetectEventsAsync(
+        Dictionary<string, IncidentScanContext> collectedIncidents,
+        ScanCycleMetrics metrics,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInternalInformation("[IcmScanner] Phase 2: Detecting events for {incidentCount} incidents", collectedIncidents.Count);
+        var allMappings = new List<DetectedEventMapping>();
+
+        foreach (var (incidentId, context) in collectedIncidents)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("[IcmScanner] Phase 2: Cancellation requested");
+                break;
+            }
+
+            try
+            {
+                // Fetch discussion entries for event detection
+                try
+                {
+                    var discussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId);
+                    context.DiscussionEntries = discussionEntries?
+                        .Select(e => new DiscussionEntryInfo(
+                            e.DescriptionEntryId.ToString(),
+                            e.ChangedBy,
+                            e.Date,
+                            e.Text))
+                        .ToList() ?? new List<DiscussionEntryInfo>();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInternalWarning(ex, "[IcmScanner] Phase 2: Failed to get discussion entries for {incidentId}, detecting without them", incidentId);
+                }
+
+                // Lazy fetch on-call aliases: only if we have @sreagent mentions and don't have aliases yet
+                if (context.OnCallAliases == null && context.DiscussionEntries.Any(d => d.Text?.Contains("@sreagent", StringComparison.OrdinalIgnoreCase) == true))
+                {
+                    var owningTeamId = context.MatchingFilters
+                        .Where(f => !string.IsNullOrWhiteSpace(f.OwningTeamId))
+                        .Select(f => f.OwningTeamId)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrWhiteSpace(owningTeamId))
+                    {
+                        try
+                        {
+                            context.OnCallAliases = await icmApiClient.GetCurrentOnCallAliasesAsync(owningTeamId);
+                            logger.LogInternalInformation("[IcmScanner] Phase 2: Fetched {count} on-call aliases for incident {incidentId} (lazy fetch due to @sreagent mention)",
+                                context.OnCallAliases?.Count ?? 0, incidentId);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogInternalWarning(ex, "[IcmScanner] Phase 2: Failed to fetch on-call aliases for incident {incidentId}", incidentId);
+                        }
+                    }
+                }
+
+                // Detect all events and assign to filters
+                var mappings = _scannerHelper.DetectAllEventsAndAssignFilters(context);
+                allMappings.AddRange(mappings);
+                metrics.EventsDetected += mappings.Count;
             }
             catch (Exception ex)
             {
-                logger.LogInternalError(ex, "[IcmScanner] Error scanning IcM incidents");
-                isScanSucceeded = false;
+                metrics.DetectionsFailed++;
+                logger.LogInternalError(ex, "[IcmScanner] Phase 2: Detection failed for incident {incidentId}, skipping", incidentId);
             }
-            page++;
         }
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 2 complete: {eventCount} events detected ({failedCount} incidents failed)",
+            allMappings.Count,
+            metrics.DetectionsFailed);
+
+        return allMappings;
+    }
+
+    /// <summary>
+    /// Phase 3: Persist state updates and event checkpoints with fault tolerance.
+    /// Persists ALL collected incidents (to capture state changes) and sets checkpoints for detected events.
+    /// Returns the set of incident IDs that were successfully persisted.
+    /// </summary>
+    private async Task<HashSet<string>> Phase3_PersistStateAsync(
+        List<DetectedEventMapping> eventMappings,
+        Dictionary<string, IncidentScanContext> collectedIncidents,
+        ScanCycleMetrics metrics,
+        CancellationToken cancellationToken)
+    {
+        // Group events by incident for checkpoint setting
+        var eventsByIncident = eventMappings.GroupBy(e => e.IncidentId).ToDictionary(g => g.Key, g => g.ToList());
+        var persistedIncidents = new HashSet<string>();
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 3: Persisting state for {totalCount} incidents ({withEventsCount} with events)",
+            collectedIncidents.Count,
+            eventsByIncident.Count);
+
+        // Persist ALL collected incidents (not just ones with events)
+        // This ensures state changes are captured even when no trigger events fire
+        foreach (var (incidentId, context) in collectedIncidents)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("[IcmScanner] Phase 3: Cancellation requested");
+                break;
+            }
+
+            try
+            {
+                // Create or update the incident document with current state
+                var updatedDoc = await CreateUpdatedIncidentDocumentAsync(context);
+
+                // Set checkpoints for detected events (if any)
+                if (eventsByIncident.TryGetValue(incidentId, out var incidentEvents))
+                {
+                    updatedDoc.ProcessedDiscussionEntryIds ??= new HashSet<string>();
+
+                    foreach (var eventMapping in incidentEvents)
+                    {
+                        // Track processed discussion entry IDs for deduplication
+                        if (eventMapping.Event == IcmIncidentTriggerEvent.DiscussionEntry)
+                        {
+                            foreach (var entry in eventMapping.TriggeredDiscussionEntries)
+                            {
+                                updatedDoc.ProcessedDiscussionEntryIds.Add(entry.EntryId);
+                            }
+                        }
+                    }
+
+                    // Cleanup old entries (older than 30 days) to prevent unbounded growth
+                    // Note: ProcessedDiscussionEntryIds doesn't have timestamps, so we can't do time-based cleanup
+                    // Just limit the size
+                    if (updatedDoc.ProcessedDiscussionEntryIds.Count > 100)
+                    {
+                        var toRemove = updatedDoc.ProcessedDiscussionEntryIds.Take(updatedDoc.ProcessedDiscussionEntryIds.Count - 100).ToList();
+                        foreach (var entryId in toRemove)
+                        {
+                            updatedDoc.ProcessedDiscussionEntryIds.Remove(entryId);
+                        }
+                    }
+                }
+
+                // Persist to Cosmos
+                await container.UpsertItemAsync(updatedDoc, new PartitionKey(updatedDoc.PartitionKey), cancellationToken: cancellationToken);
+
+                persistedIncidents.Add(incidentId);
+                metrics.PersistenceSucceeded++;
+
+                var eventCount = eventsByIncident.TryGetValue(incidentId, out var events) ? events.Count : 0;
+                logger.LogInternalDebug(
+                    "[IcmScanner] Phase 3: Persisted incident {incidentId} with {eventCount} event checkpoints",
+                    incidentId,
+                    eventCount);
+            }
+            catch (Exception ex)
+            {
+                metrics.PersistenceFailed++;
+                logger.LogInternalError(ex,
+                    "[IcmScanner] Phase 3: Persistence failed for incident {incidentId}, events will NOT be processed",
+                    incidentId);
+                // Do NOT add to persistedIncidents - events won't be processed
+            }
+        }
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 3 complete: {successCount} incidents persisted ({failedCount} failed)",
+            metrics.PersistenceSucceeded,
+            metrics.PersistenceFailed);
+
+        return persistedIncidents;
+    }
+
+    /// <summary>
+    /// Creates an updated incident document from the scan context.
+    /// </summary>
+    private async Task<IcmIncidentDocument> CreateUpdatedIncidentDocumentAsync(IncidentScanContext context)
+    {
+        var incident = context.CurrentState;
+        var existingDoc = context.BeforeState;
+
+        if (existingDoc == null)
+        {
+            // New incident
+            return new IcmIncidentDocument(incident);
+        }
+
+        // Update existing document with current state while preserving important fields
+        var updatedDoc = new IcmIncidentDocument(incident)
+        {
+            AIRootCause = existingDoc.AIRootCause,
+            RootCauseDescription = existingDoc.RootCauseDescription,
+            GeneralSummary = existingDoc.GeneralSummary,
+            IsAssistedByAgent = existingDoc.IsAssistedByAgent,
+            DiscussionEntries = existingDoc.DiscussionEntries,
+            ProcessedDiscussionEntryIds = existingDoc.ProcessedDiscussionEntryIds,
+            PreviousState = existingDoc.PreviousState
+        };
+
+        // Update discussion entries from API
+        try
+        {
+            var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incident.Id.ToString());
+            updatedDoc.DiscussionEntries = latestDiscussionEntries;
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalWarning(ex, "[IcmScanner] Failed to update discussion entries for incident {incidentId}", incident.Id);
+        }
+
+        // Do AI analysis if incident is mitigated/resolved
+        var incidentStatus = incident.State.ToString();
+        if ((string.Equals(incidentStatus, IncidentStatus.Mitigated.ToString(), StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(incidentStatus, IncidentStatus.Resolved.ToString(), StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(updatedDoc.AIRootCause) || string.IsNullOrWhiteSpace(updatedDoc.RootCauseDescription) || string.IsNullOrWhiteSpace(updatedDoc.GeneralSummary)))
+        {
+            try
+            {
+                // Find a matching filter for analysis
+                var filterDocument = context.MatchingFilters.FirstOrDefault();
+                updatedDoc = await incidentAnalysisService.AnalyzeIncident(updatedDoc, incident, filterDocument);
+            }
+            catch (Exception ex)
+            {
+                logger.LogInternalError($"[IcmScanner] Error generating AI-generated insights for incident; {ex.Message}");
+            }
+        }
+
+        return updatedDoc;
+    }
+
+    /// <summary>
+    /// Phase 4: Process events for incidents that were successfully persisted.
+    /// </summary>
+    private async Task Phase4_ProcessEventsAsync(
+        List<DetectedEventMapping> eventMappings,
+        HashSet<string> persistedIncidents,
+        ScanCycleMetrics metrics,
+        CancellationToken cancellationToken)
+    {
+        // Only process events for incidents that were successfully persisted
+        var eventsToProcess = eventMappings
+            .Where(e => persistedIncidents.Contains(e.IncidentId))
+            .ToList();
+
+        logger.LogInternalInformation("[IcmScanner] Phase 4: Processing {eventCount} events", eventsToProcess.Count);
+
+        foreach (var eventMapping in eventsToProcess)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("[IcmScanner] Phase 4: Cancellation requested");
+                break;
+            }
+
+            try
+            {
+                await ProcessSingleEventAsync(eventMapping, cancellationToken);
+                metrics.EventsProcessed++;
+            }
+            catch (Exception ex)
+            {
+                metrics.ProcessingFailed++;
+                logger.LogInternalError(ex,
+                    "[IcmScanner] Phase 4: Processing failed for event {eventType} on incident {incidentId}. Event was checkpointed and will NOT retry.",
+                    eventMapping.Event,
+                    eventMapping.IncidentId);
+            }
+        }
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 4 complete: {successCount} events processed ({failedCount} failed)",
+            metrics.EventsProcessed,
+            metrics.ProcessingFailed);
+    }
+
+    /// <summary>
+    /// Processes a single event mapping. Handles thread creation and event dispatching
+    /// for all trigger types: IncidentCreatedOrTransferred, DiscussionEntry, IncidentMitigated,
+    /// IncidentResolved, and IncidentReactivated.
+    /// </summary>
+    private async Task ProcessSingleEventAsync(DetectedEventMapping eventMapping, CancellationToken cancellationToken)
+    {
+        var incidentId = eventMapping.IncidentId;
+        var filter = eventMapping.SelectedFilter;
+        var triggerEvent = eventMapping.Event;
+        var triggeredDiscussionEntries = eventMapping.TriggeredDiscussionEntries;
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Processing event {eventType} for incident {incidentId} with filter {filterId}",
+            triggerEvent,
+            incidentId,
+            filter.Id);
+
+        // Load the updated incident document (now has current state after Phase 3)
+        var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incidentId, incidentId);
+        if (incidentDocument == null)
+        {
+            throw new InvalidOperationException($"Incident document {incidentId} not found after persistence");
+        }
+
+        // Verify trigger is still enabled (defense in depth - Phase 2 already checks this)
+        if (!filter.IsTriggerEnabled(triggerEvent))
+        {
+            logger.LogInternalWarning(
+                "[IcmScanner] Trigger {triggerEvent} is not enabled for filter {filterId}, skipping",
+                triggerEvent, filter.Id);
+            return;
+        }
+
+        // Get all handling agents for this filter
+        var handlingAgents = filter.GetEffectiveHandlingAgents();
+        if (handlingAgents.Count == 0)
+        {
+            // Backward compatibility: If no agents configured, use empty string (meta_agent fallback)
+            handlingAgents = new List<string> { string.Empty };
+        }
+
+        // Find all existing threads for this incident
+        var existingThreads = await incidentThreadLookupService.FindAllThreadsForIncidentAsync(incidentId);
+        var existingHandlerIds = existingThreads
+            .Where(t => t.IncidentDetails?.HandlerId != null)
+            .Select(t => t.IncidentDetails!.HandlerId!)
+            .ToHashSet();
+
+        // Create threads for handling agents that don't have threads yet
+        var agentsNeedingThreads = handlingAgents
+            .Where(agent => !existingHandlerIds.Contains(agent))
+            .ToList();
+
+        if (agentsNeedingThreads.Count > 0)
+        {
+            logger.LogInternalInformation(
+                "[IcmScanner] Creating threads for {count} handling agents for incident {incidentId}",
+                agentsNeedingThreads.Count, incidentId);
+
+            foreach (var handlingAgent in agentsNeedingThreads)
+            {
+                await CreateThreadForHandlerAsync(incidentDocument, filter, handlingAgent, triggerEvent);
+            }
+
+            // Refresh existing threads list after creation
+            existingThreads = await incidentThreadLookupService.FindAllThreadsForIncidentAsync(incidentId);
+        }
+
+        // Filter threads to only those whose handler is in the current trigger's handling agents list
+        // This ensures we only send events to threads that belong to handlers for this trigger
+        var threadsToProcess = existingThreads
+            .Where(t =>
+                // Include threads with null/empty HandlerId for backward compatibility
+                string.IsNullOrEmpty(t.IncidentDetails?.HandlerId) ||
+                // Include threads whose handler is in current trigger's handling agents
+                handlingAgents.Contains(t.IncidentDetails.HandlerId))
+            .ToList();
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Processing {processCount} threads for incident {incidentId} (handlers: {agents})",
+            threadsToProcess.Count, incidentId, string.Join(", ", handlingAgents));
+
+        // Process event for each applicable thread
+        foreach (var thread in threadsToProcess)
+        {
+            var threadHandlerId = thread.IncidentDetails?.HandlerId ?? filter.HandlingAgent;
+            await ProcessEventForThreadAsync(thread, incidentDocument, triggerEvent, triggeredDiscussionEntries, threadHandlerId);
+        }
+    }
+
+    /// <summary>
+    /// Creates a thread for a specific handling agent.
+    /// </summary>
+    private async Task CreateThreadForHandlerAsync(
+        IcmIncidentDocument incidentDocument,
+        IcmIncidentFilterDocument filter,
+        string handlingAgent,
+        IcmIncidentTriggerEvent triggerEvent)
+    {
+        logger.LogInternalInformation(
+            "[IcmScanner] Creating thread for incident {incidentId} with handling agent {handlingAgent}",
+            incidentDocument.Id, handlingAgent);
+
+        // Temporarily set the single HandlingAgent for thread creation
+        var originalHandlingAgent = filter.HandlingAgent;
+        filter.HandlingAgent = handlingAgent;
+
+        try
+        {
+            var response = await incidentHandlingService.HandleIncidentAsync(
+                new IncidentHandlingRequestModelWithFilterOnly<IcmIncidentFilterDocumentPayload>()
+                {
+                    IncidentId = incidentDocument.Id.ToString(),
+                    Title = incidentDocument.Title,
+                    Description = incidentDocument.Description,
+                    Severity = incidentDocument.Priority,
+                    CreatedTime = incidentDocument.CreatedAt,
+                    ImpactedService = incidentDocument.ImpactedServiceName,
+                    IncidentFilter = filter,
+                    TriggerEvent = triggerEvent
+                });
+
+            logger.LogInternalInformation(
+                "[IcmScanner] Created thread {threadId} for incident {incidentId} with handling agent {handlingAgent}",
+                response.ThreadId, incidentDocument.Id, handlingAgent);
+        }
+        finally
+        {
+            // Restore original HandlingAgent
+            filter.HandlingAgent = originalHandlingAgent;
+        }
+    }
+
+    /// <summary>
+    /// Processes a specific event type for a thread. Routes to appropriate handler method
+    /// based on trigger type.
+    /// </summary>
+    private async Task ProcessEventForThreadAsync(
+        ThreadDocument thread,
+        IcmIncidentDocument incidentDocument,
+        IcmIncidentTriggerEvent triggerEvent,
+        List<DiscussionEntryInfo>? triggeredDiscussionEntries,
+        string? handlerId)
+    {
+        switch (triggerEvent)
+        {
+            case IcmIncidentTriggerEvent.IncidentCreatedOrTransferred:
+                // Thread was just created, no additional action needed
+                // The thread creation already triggers agent processing
+                logger.LogInternalInformation(
+                    "[IcmScanner] IncidentCreatedOrTransferred: Thread {threadId} created for incident {incidentId}",
+                    thread.Id, incidentDocument.Id);
+                break;
+
+            case IcmIncidentTriggerEvent.DiscussionEntry:
+                if (triggeredDiscussionEntries?.Count > 0)
+                {
+                    var notes = triggeredDiscussionEntries
+                        .Select(e => new IncidentDiscussion(
+                            incidentDocument.Id,
+                            e.Text,
+                            e.ChangedBy,
+                            e.ChangedBy,
+                            e.Date))
+                        .ToList();
+
+                    logger.LogInternalInformation(
+                        "[IcmScanner] DiscussionEntry: Processing {count} entries for thread {threadId}",
+                        notes.Count, thread.Id);
+                    await AddAndProcessDiscussionsInternalAsync(Guid.Parse(thread.Id), notes, handlerId);
+                }
+                break;
+
+            case IcmIncidentTriggerEvent.IncidentMitigated:
+                logger.LogInternalInformation(
+                    "[IcmScanner] IncidentMitigated: Triggering event for thread {threadId}",
+                    thread.Id);
+                await TriggerIncidentEventInternalAsync(
+                    Guid.Parse(thread.Id),
+                    "The incident has been mitigated.",
+                    handlerId);
+                break;
+
+            case IcmIncidentTriggerEvent.IncidentResolved:
+                logger.LogInternalInformation(
+                    "[IcmScanner] IncidentResolved: Triggering event for thread {threadId}",
+                    thread.Id);
+                await TriggerIncidentEventInternalAsync(
+                    Guid.Parse(thread.Id),
+                    "The incident has been resolved.",
+                    handlerId);
+                break;
+
+            case IcmIncidentTriggerEvent.IncidentReactivated:
+                logger.LogInternalInformation(
+                    "[IcmScanner] IncidentReactivated: Triggering event for thread {threadId}",
+                    thread.Id);
+                await TriggerIncidentEventInternalAsync(
+                    Guid.Parse(thread.Id),
+                    "The incident has been reactivated.",
+                    handlerId);
+                break;
+
+            default:
+                logger.LogInternalWarning(
+                    "[IcmScanner] Unknown trigger event {triggerEvent} for thread {threadId}",
+                    triggerEvent, thread.Id);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Logs the scan cycle metrics.
+    /// </summary>
+    private void LogScanMetrics(ScanCycleMetrics metrics)
+    {
+        logger.LogInternalInformation(
+            "[IcmScanner] Scan cycle complete - Filters: {processed}/{failed}, Incidents: {collected}, Events: {detected}/{detectionFailed}, Persisted: {persisted}/{persistFailed}, StatusSync: {syncSuccess}/{syncFailed}, Processed: {processedEvents}/{processFailed}",
+            metrics.FiltersProcessed, metrics.FiltersFailed,
+            metrics.IncidentsCollected,
+            metrics.EventsDetected, metrics.DetectionsFailed,
+            metrics.PersistenceSucceeded, metrics.PersistenceFailed,
+            metrics.ThreadStatusSyncSucceeded, metrics.ThreadStatusSyncFailed,
+            metrics.EventsProcessed, metrics.ProcessingFailed);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════════════
+    // Phase 3.5: Status Sync Methods - Sync thread status on ANY status change
+    // ════════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Syncs thread statuses for all incidents that had status changes.
+    /// CRITICAL: This is DECOUPLED from triggers - runs for ANY status change regardless of trigger configuration.
+    /// Must be called AFTER Phase 3 (persistence) but BEFORE Phase 4 (event processing).
+    /// </summary>
+    private async Task SyncAllThreadStatusesAsync(
+        Dictionary<string, IncidentScanContext> collectedIncidents,
+        HashSet<string> persistedIncidents,
+        ScanCycleMetrics metrics,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInternalInformation("[IcmScanner] Phase 3.5: Syncing thread statuses for incidents with status changes");
+
+        foreach (var (incidentId, context) in collectedIncidents)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInternalInformation("[IcmScanner] Phase 3.5: Cancellation requested");
+                break;
+            }
+
+            // Only process incidents that were successfully persisted
+            if (!persistedIncidents.Contains(incidentId))
+            {
+                continue;
+            }
+
+            // DETECT STATUS CHANGE: Compare previous state to current state
+            var previousStatus = context.BeforeState?.State?.ToString();
+            var currentStatus = context.CurrentState.State.ToString();
+
+            // Skip if no status change OR if this is a new incident (no previous state)
+            if (previousStatus == null ||
+                string.Equals(previousStatus, currentStatus, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            logger.LogInternalInformation(
+                "[IcmScanner] SyncAllThreadStatuses: Status changed for incident {incidentId}: {previous} → {current}",
+                incidentId, previousStatus, currentStatus);
+
+            // Get ALL threads for this incident (multi-agent support)
+            var allThreads = await incidentThreadLookupService.FindAllThreadsForIncidentAsync(incidentId);
+
+            if (allThreads.Count == 0)
+            {
+                logger.LogInternalDebug(
+                    "[IcmScanner] SyncAllThreadStatuses: No threads found for incident {incidentId}, skipping",
+                    incidentId);
+                continue;
+            }
+
+            // Load incident document for additional details
+            var incidentDocument = await GetDocumentAsync<IcmIncidentDocument>(incidentId, incidentId);
+            if (incidentDocument == null)
+            {
+                logger.LogInternalWarning(
+                    "[IcmScanner] SyncAllThreadStatuses: Incident document {incidentId} not found, skipping",
+                    incidentId);
+                continue;
+            }
+
+            // Sync status to ALL threads
+            foreach (var thread in allThreads)
+            {
+                try
+                {
+                    await SyncThreadStatusFromIncidentAsync(thread, incidentDocument, previousStatus, currentStatus);
+                    metrics.ThreadStatusSyncSucceeded++;
+                }
+                catch (Exception ex)
+                {
+                    metrics.ThreadStatusSyncFailed++;
+                    logger.LogInternalError(ex,
+                        "[IcmScanner] SyncAllThreadStatuses: Failed to sync thread {threadId} for incident {incidentId}",
+                        thread.Id, incidentId);
+                }
+            }
+        }
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Phase 3.5 complete: {succeeded} threads synced ({failed} failed)",
+            metrics.ThreadStatusSyncSucceeded,
+            metrics.ThreadStatusSyncFailed);
+    }
+
+    /// <summary>
+    /// Syncs thread status and details from incident state.
+    /// Called for ANY status change (Active→Mitigated, Mitigated→Resolved, Resolved→Active, etc.)
+    /// </summary>
+    private async Task SyncThreadStatusFromIncidentAsync(
+        ThreadDocument thread,
+        IcmIncidentDocument incident,
+        string previousStatus,
+        string currentStatus)
+    {
+        var needsUpsert = false;
+
+        // 1. Sync IncidentStatus field
+        var normalizedStatus = NormalizeIncidentStatus(currentStatus);
+        if (thread.IncidentStatus != normalizedStatus)
+        {
+            logger.LogInternalInformation(
+                "[IcmScanner] Syncing thread {threadId} status: {old} → {new}",
+                thread.Id, thread.IncidentStatus ?? "null", normalizedStatus);
+
+            thread.IncidentStatus = normalizedStatus;
+            needsUpsert = true;
+
+            // Log ResolveIncident action only for transitions TO mitigated/resolved
+            if (normalizedStatus == "mitigated" || normalizedStatus == "resolved")
+            {
+                await LogResolveIncidentActionAsync(thread, incident, normalizedStatus);
+            }
+        }
+
+        // 2. Sync IncidentDetails (title, priority, investigation status)
+        if (thread.IncidentDetails != null)
+        {
+            var detailsChanged = false;
+
+            if (thread.IncidentDetails.IncidentTitle != incident.Title)
+            {
+                detailsChanged = true;
+            }
+            if (thread.IncidentDetails.IncidentPriority != incident.Priority)
+            {
+                detailsChanged = true;
+            }
+
+            // Set InvestigationStatus to Complete for mitigated/resolved
+            var newInvestigationStatus = (normalizedStatus == "mitigated" || normalizedStatus == "resolved")
+                ? InvestigationStatus.Complete
+                : thread.IncidentDetails.InvestigationStatus;
+
+            if (thread.IncidentDetails.InvestigationStatus != newInvestigationStatus)
+            {
+                detailsChanged = true;
+            }
+
+            if (detailsChanged)
+            {
+                thread.IncidentDetails = new IncidentDetails(
+                    incident.Title,
+                    thread.IncidentDetails.IncidentCreatedTime,
+                    incident.Priority,
+                    thread.IncidentDetails.ImpactedService,
+                    thread.IncidentDetails.FilterId,
+                    thread.IncidentDetails.HandlerId,
+                    newInvestigationStatus,
+                    thread.IncidentDetails.TriggerEvent);
+                needsUpsert = true;
+            }
+        }
+
+        // 3. Persist if changed
+        if (needsUpsert)
+        {
+            await container.UpsertItemAsync(thread, new PartitionKey(thread.Id));
+            logger.LogInternalInformation(
+                "[IcmScanner] Updated thread {threadId} for incident {incidentId}: status={status}",
+                thread.Id, incident.Id, normalizedStatus);
+        }
+
+        // 4. Sync discussion entries to thread messages (for record-keeping, no agent processing)
+        // DISABLED: This logic has issues:
+        // - Phase 3 already updates DiscussionEntries, so delta is always empty
+        // - Risk of duplicates with @mention entries processed in Phase 4
+        // - First-time incidents would dump entire history
+        // NOTE: Previous implementation for syncing discussion entries to thread messages was removed
+        // because it produced duplicate notes and incorrect deltas. Reintroduce only with a correct
+        // BeforeState comparison strategy and explicit @mention filtering.
+    }
+
+    /// <summary>
+    /// Normalizes ICM status string to lowercase thread status.
+    /// </summary>
+    private static string NormalizeIncidentStatus(string status)
+    {
+        if (string.Equals(status, "Mitigated", StringComparison.OrdinalIgnoreCase))
+            return "mitigated";
+        if (string.Equals(status, "Resolved", StringComparison.OrdinalIgnoreCase))
+            return "resolved";
+        return "active"; // Default for Active, Investigating, etc.
+    }
+
+    /// <summary>
+    /// Logs the ResolveIncident action for telemetry when an incident is mitigated/resolved.
+    /// </summary>
+    private async Task LogResolveIncidentActionAsync(
+        ThreadDocument thread,
+        IcmIncidentDocument incident,
+        string status)
+    {
+        try
+        {
+            var resolvedBy = "User"; // Default
+            if (incident.Tags?.Any(tag =>
+                tag.Equals("SREAgent_Processed", StringComparison.OrdinalIgnoreCase) ||
+                tag.Equals("SREAgent_Mitigated", StringComparison.OrdinalIgnoreCase)) == true)
+            {
+                resolvedBy = "Agent";
+            }
+
+            var resolveActionData = new IncidentResolveActionData
+            {
+                IncidentSource = "Icm",
+                IncidentId = incident.Id,
+                Status = status,
+                ResolvedBy = resolvedBy
+            };
+
+            logger.LogAgentAction(
+                action: AgentActionEvents.ResolveIncident,
+                parameter: JsonSerializer.Serialize(resolveActionData),
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: thread.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInternalError(ex,
+                "[IcmScanner] Failed to log ResolveIncident action for thread {threadId}",
+                thread.Id);
+        }
+
+        await Task.CompletedTask; // Async placeholder for future telemetry calls
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════════════
+    // Internal Helper Methods for ICM-specific event processing
+    // ════════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Triggers agent processing for an incident event.
+    /// This is ICM-specific logic, moved from InboundCommunicationService.
+    /// </summary>
+    private async Task TriggerIncidentEventInternalAsync(
+        Guid threadId,
+        string eventMessage,
+        string? agentName)
+    {
+        logger.LogInternalInformation(
+            "[IcmScanner] TriggerIncidentEventInternalAsync: Triggering event for thread {ThreadId}: {EventMessage} (AgentName: {AgentName})",
+            threadId, eventMessage, agentName ?? "none");
+
+        // 1. Get thread
+        var thread = await threadRepository.GetThreadAsync(threadId);
+        if (thread == null)
+        {
+            logger.LogInternalWarning("[IcmScanner] Thread {threadId} not found, cannot trigger event", threadId);
+            return;
+        }
+
+        // 2. Get agent context
+        var agentContexts = await threadRepository.GetAgentContextsForThreadAsync(threadId);
+        var agentContext = agentContexts.FirstOrDefault(c => c.HandoffFromAgentContextId == null);
+        if (agentContext == null)
+        {
+            logger.LogInternalWarning("[IcmScanner] No agent context for thread {threadId}", threadId);
+            return;
+        }
+
+        // 3. Create and add event message
+        var messageId = Guid.NewGuid();
+        var eventMessageRecord = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.User, "system", "System Event"),
+            Text: eventMessage);
+
+        await threadRepository.AddMessageAsync(threadId, eventMessageRecord);
+
+        // 4. Create ThreadMessage and trigger processing
+        var threadMessage = new ThreadMessage(
+            ThreadId: threadId,
+            AgentContextId: agentContext.Id,
+            MessageId: messageId,
+            Message: eventMessage,
+            UserId: "system",
+            DisplayName: "System Event",
+            Timestamp: DateTime.UtcNow,
+            Posted: new Posted(true),
+            AgentName: agentName);
+
+        await agentInboundCommunicationService.ProcessIncidentMessageAsync(threadMessage, defaultHandler: true);
+
+        logger.LogInternalInformation(
+            "[IcmScanner] TriggerIncidentEventInternalAsync: Successfully processed event message {MessageId} for thread {ThreadId}",
+            messageId, threadId);
+    }
+
+    /// <summary>
+    /// Adds discussion entries and triggers agent processing.
+    /// This is ICM-specific logic, moved from InboundCommunicationService.
+    /// </summary>
+    private async Task AddAndProcessDiscussionsInternalAsync(
+        Guid threadId,
+        List<IncidentDiscussion> discussions,
+        string? agentName)
+    {
+        if (discussions == null || discussions.Count == 0)
+        {
+            logger.LogInternalInformation("[IcmScanner] No discussions to add to thread {ThreadId}", threadId);
+            return;
+        }
+
+        // 1. Get thread
+        var thread = await threadRepository.GetThreadAsync(threadId);
+        if (thread == null)
+        {
+            logger.LogInternalWarning("[IcmScanner] Thread {threadId} not found", threadId);
+            return;
+        }
+
+        // 2. Get agent context
+        var agentContexts = await threadRepository.GetAgentContextsForThreadAsync(threadId);
+        var agentContext = agentContexts.FirstOrDefault();
+        if (agentContext == null)
+        {
+            logger.LogInternalWarning("[IcmScanner] No agent context for thread {threadId}", threadId);
+            return;
+        }
+
+        // 3. Add discussion messages
+        Guid lastMessageId = Guid.Empty;
+        foreach (var discussion in discussions)
+        {
+            var message = new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.User, discussion.UserId, discussion.UserDisplayName),
+                Text: $"{discussion.UserDisplayName} commented at {discussion.CreatedTimestamp}: {discussion.Message}",
+                IncidentDiscussionId: discussion.Id);
+            await threadRepository.AddMessageAsync(threadId, message);
+            lastMessageId = message.Id;
+        }
+
+        // 4. Build combined message and trigger processing
+        var combinedMessage = string.Join("\n\n",
+            discussions.Select(d => $"{d.UserDisplayName} mentioned @sreagent: {d.Message}"));
+
+        logger.LogInternalInformation(
+            "[IcmScanner] Processing {Count} discussion entries with @sreagent mentions for thread {ThreadId} (AgentName: {AgentName})",
+            discussions.Count, threadId, agentName ?? "none");
+
+        var threadMessage = new ThreadMessage(
+            ThreadId: threadId,
+            AgentContextId: agentContext.Id,
+            MessageId: lastMessageId,
+            Message: combinedMessage,
+            UserId: discussions.First().UserId,
+            DisplayName: discussions.First().UserDisplayName,
+            Timestamp: DateTime.UtcNow,
+            Posted: new Posted(true),
+            AgentName: agentName);
+
+        await agentInboundCommunicationService.ProcessIncidentMessageAsync(threadMessage, defaultHandler: true);
     }
 
     /// <summary>
@@ -379,7 +1328,10 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     RootCauseDescription = incidentDocument.RootCauseDescription,
                     GeneralSummary = incidentDocument.GeneralSummary,
                     IsAssistedByAgent = incidentDocument.IsAssistedByAgent,
-                    DiscussionEntries = incidentDocument.DiscussionEntries
+                    DiscussionEntries = incidentDocument.DiscussionEntries,
+                    // CRITICAL: Preserve these fields for event detection and deduplication
+                    ProcessedDiscussionEntryIds = incidentDocument.ProcessedDiscussionEntryIds,
+                    PreviousState = incidentDocument.PreviousState
                 };
 
                 // Once incident is mitigated or resolved, do AI analysis
@@ -444,230 +1396,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             logger.LogInternalError(ex, "[IcmScanner] Error upserting incident document for IcM incident {incidentId}", incident.Id);
             throw;
         }
-    }
-
-    private async Task NotifyUserAsync(IcmIncidentDocument incidentDocument, List<string> relatedResourceIds, IcmIncidentFilterDocument? filterDocument)
-    {
-        try
-        {
-            if (incidentDocument is null)
-            {
-                logger.LogInternalWarning("[IcmScanner] Incident document is null, skipping notification.");
-                return;
-            }
-
-            logger.LogInternalInformation("[IcmScanner] Notifying user about incident {incidentId}", incidentDocument.Id);
-
-            if (incidentDocument.State.ToString().Equals("resolved", StringComparison.OrdinalIgnoreCase) || incidentDocument.State.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is mitigated/resolved, updating thread status if exists.", incidentDocument.Id);
-
-                // Update thread status if exists
-                try
-                {
-                    var needsUpsertForDetailsChange = false;
-                    var needsUpsertForResolvedStatus = false;
-                    var existingThreadDocument = await GetIncidentThread(incidentDocument.Id);
-                    if (existingThreadDocument is not null)
-                    {
-                        if (existingThreadDocument.IncidentDetails != null)
-                        {
-                            if (existingThreadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || existingThreadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
-                            {
-                                var updatedIncidentDetails = new IncidentDetails(
-                                    incidentDocument.Title,
-                                    existingThreadDocument.IncidentDetails.IncidentCreatedTime,
-                                    incidentDocument.Priority,
-                                    existingThreadDocument.IncidentDetails.ImpactedService,
-                                    existingThreadDocument.IncidentDetails.FilterId,
-                                    existingThreadDocument.IncidentDetails.HandlerId,
-                                    InvestigationStatus.Complete);
-                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
-                                needsUpsertForDetailsChange = true;
-                            }
-                        }
-
-                        var newStatus = incidentDocument.Status.ToString().Equals("mitigated", StringComparison.OrdinalIgnoreCase) ? "mitigated" : "resolved";
-                        if (existingThreadDocument.IncidentStatus != newStatus)
-                        {
-                            // Log agent action event for incident resolution/mitigation only when status changes
-                            try
-                            {
-                                // Determine if the incident was resolved by Agent or User based on tags
-                                var resolvedBy = "User"; // Default to User
-                                if (incidentDocument.Tags?.Any(tag => tag.Equals("SREAgent_Processed", StringComparison.OrdinalIgnoreCase) ||
-                                                                     tag.Equals("SREAgent_Mitigated", StringComparison.OrdinalIgnoreCase)) == true)
-                                {
-                                    resolvedBy = "Agent";
-                                }
-
-                                var resolveActionData = new IncidentResolveActionData
-                                {
-                                    IncidentSource = "Icm",
-                                    IncidentId = incidentDocument.Id,
-                                    Status = incidentDocument.State,
-                                    ResolvedBy = resolvedBy
-                                };
-
-                                logger.LogAgentAction(
-                                    action: AgentActionEvents.ResolveIncident,
-                                    parameter: JsonSerializer.Serialize(resolveActionData),
-                                    status: AgentActionStatus.Success,
-                                    duration: 0,
-                                    threadId: existingThreadDocument.Id);
-
-                                logger.LogInternalInformation("[IcmScanner] Logged ResolveIncident action for incident {incidentId} with status {status} resolved by {resolvedBy}",
-                                                            incidentDocument.Id, incidentDocument.State, resolvedBy);
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogInternalError(ex, "[IcmScanner] Failed to log ResolveIncident action for incident {incidentId}", incidentDocument.Id);
-                            }
-
-                            existingThreadDocument.IncidentStatus = newStatus;
-                            if (existingThreadDocument.IncidentDetails != null)
-                            {
-                                var updatedIncidentDetails = new IncidentDetails(
-                                existingThreadDocument.IncidentDetails.IncidentTitle,
-                                existingThreadDocument.IncidentDetails.IncidentCreatedTime,
-                                existingThreadDocument.IncidentDetails.IncidentPriority,
-                                existingThreadDocument.IncidentDetails.ImpactedService,
-                                existingThreadDocument.IncidentDetails.FilterId,
-                                existingThreadDocument.IncidentDetails.HandlerId,
-                                InvestigationStatus.Complete);
-                                existingThreadDocument.IncidentDetails = updatedIncidentDetails;
-                            }
-                            needsUpsertForResolvedStatus = true;
-                        }
-
-                        if (needsUpsertForDetailsChange || needsUpsertForResolvedStatus)
-                        {
-                            if (needsUpsertForDetailsChange)
-                            {
-                                logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, existingThreadDocument.Id);
-                            }
-                            if (needsUpsertForResolvedStatus)
-                            {
-                                logger.LogInternalInformation("[IcmScanner] Updating thread status to {status} for ICM incident {incidentId}, thread {threadId}", newStatus, incidentDocument.Id, existingThreadDocument.Id);
-                            }
-
-                            await container.UpsertItemAsync(existingThreadDocument, new PartitionKey(existingThreadDocument.Id));
-
-                            if (needsUpsertForDetailsChange)
-                            {
-                                logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, existingThreadDocument.Id);
-                            }
-                            if (needsUpsertForResolvedStatus)
-                            {
-                                logger.LogInternalInformation("[IcmScanner] Updated thread status to {status} for ICM incident {incidentId}, thread {threadId}", newStatus, incidentDocument.Id, existingThreadDocument.Id);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogInternalError(ex, "[IcmScanner] Error updating thread status for ICM incident {incidentId}", incidentDocument.Id);
-                }
-                return;
-            }
-
-            var threadDocument = await GetIncidentThread(incidentDocument.Id.ToString());
-            if (threadDocument is null)
-            {
-                if (filterDocument is null)
-                {
-                    logger.LogInternalWarning("[IcmScanner] Filter document is null, cannot create thread for incident {incidentId}", incidentDocument.Id);
-                    return;
-                }
-                logger.LogInternalInformation("[IcmScanner] Thread doesn't exist for incident {incidentId} by filter {filterId}, creating new thread", incidentDocument.Id, filterDocument.Id);
-
-                var response = await incidentHandlingService.HandleIncidentAsync(new IncidentHandlingRequestModelWithFilterOnly<IcmIncidentFilterDocumentPayload>()
-                {
-                    IncidentId = incidentDocument.Id.ToString(),
-                    Title = incidentDocument.Title,
-                    Description = incidentDocument.Description,
-                    Severity = incidentDocument.Priority,
-                    CreatedTime = incidentDocument.CreatedAt,
-                    ImpactedService = incidentDocument.ImpactedServiceName,
-                    IncidentFilter = filterDocument
-                });
-            }
-            else
-            {
-                logger.LogInternalInformation("[IcmScanner] Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
-
-                if (threadDocument.IncidentDetails != null)
-                {
-                    if (threadDocument.IncidentDetails.IncidentTitle != incidentDocument.Title || threadDocument.IncidentDetails.IncidentPriority != incidentDocument.Priority)
-                    {
-                        var updatedIncidentDetails = new IncidentDetails(
-                            incidentDocument.Title,
-                            threadDocument.IncidentDetails.IncidentCreatedTime,
-                            incidentDocument.Priority,
-                            threadDocument.IncidentDetails.ImpactedService,
-                            threadDocument.IncidentDetails.FilterId,
-                            threadDocument.IncidentDetails.HandlerId,
-                            threadDocument.IncidentDetails.InvestigationStatus);
-                        threadDocument.IncidentDetails = updatedIncidentDetails;
-                        logger.LogInternalInformation("[IcmScanner] Updating incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, threadDocument.Id);
-                        await container.UpsertItemAsync(threadDocument, new PartitionKey(threadDocument.Id));
-                        logger.LogInternalInformation("[IcmScanner] Updated incident title or priority on ICM incident {incidentId}, thread {threadId}", incidentDocument.Id, threadDocument.Id);
-                    }
-                }
-
-                var existingIncidentDocument = await incidentManagementService.GetIncidentAsync(incidentDocument.Id.ToString(), false);
-                var existingDiscussionEntries = existingIncidentDocument != null ? existingIncidentDocument.DiscussionEntries : new List<DescriptionEntry>();
-                var latestDiscussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incidentDocument.Id.ToString());
-
-                var newNotes = latestDiscussionEntries
-                        .Skip(existingDiscussionEntries.Count)
-                        .Where(entry => entry.Date > lastScanTime)
-                        .Select(entry => new IncidentDiscussion(incidentDocument.Id, entry.Text, entry.ChangedBy, entry.ChangedBy, entry.Date))
-                        .ToList();
-
-                if (newNotes.Count > 0)
-                {
-                    logger.LogInternalInformation("[IcmScanner] Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
-                    await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
-                    logger.LogInternalInformation("[IcmScanner] Added {newNotesCount} new notes to incident {incidentId}, thread {threadId}", newNotes.Count, incidentDocument.Id, threadDocument.Id);
-                }
-                else
-                {
-                    logger.LogInternalInformation("[IcmScanner] No new notes found for incident {incidentId}", incidentDocument.Id);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogInternalError(ex, "[IcmScanner] Error notifying user about incident {incidentId}", incidentDocument.Id);
-        }
-    }
-
-    private async Task<ThreadDocument?> GetIncidentThread(string incidentId)
-    {
-        logger.LogInternalInformation("[IcmScanner] Retrieving thread for incident {incidentId}", incidentId);
-        var threads = container.GetItemLinqQueryable<ThreadDocument>()
-            .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
-            .Where(doc => (doc.IncidentSource != null && doc.IncidentSource.IncidentType == Agent.Core.Models.Api.v1.IncidentType.Icm && doc.IncidentSource.IncidentId == incidentId) || doc.IncidentId == incidentId)
-            .OrderBy(doc => doc.CreatedTimestamp)
-            .ToFeedIterator();
-
-        if (threads.HasMoreResults)
-        {
-            var response = await threads.ReadNextAsync();
-            if (response.Count == 1)
-            {
-                logger.LogInternalInformation("[IcmScanner] Found thread {threadId} for incident {incidentId}", response.FirstOrDefault()?.Id, incidentId);
-                return response.FirstOrDefault();
-            }
-            else if (response.Count > 1)
-            {
-                var thread = response.OrderByDescending(p => p.CreatedTimestamp).FirstOrDefault();
-                logger.LogInternalWarning("[IcmScanner] Multiple threads({threadIds}) found for incident {incidentId}, returning the lastest created thread {threadId}.", string.Join(',', response.Select(t => t.Id)), incidentId, thread?.Id);
-                return thread;
-            }
-        }
-        return null;
     }
 
     /// <summary>
@@ -829,31 +1557,6 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         }
     }
 
-    /// <summary>
-    /// If is newly created or newly transferred, agent need to handle it.
-    /// </summary>
-    /// <param name="incident"></param>
-    /// <returns></returns>
-    private async Task<bool> isIncidentNeedToHandle(ICMIncident incident)
-    {
-        //check if is newly created
-        if (incident.CreatedDate > DateTime.UtcNow.AddMinutes(-5))
-        {
-            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly created, need to be handled", incident.Id);
-            return true;
-        }
-        //check if is newly transferred
-        var discussionEntries = await icmApiClient.GetIncidentDiscussionEntriesAsync(incident.Id.ToString());
-        var hasTransferDiscussionEntry = discussionEntries.Any(entry => entry.Date > DateTime.UtcNow.AddMinutes(-5) && entry.Text.StartsWith("<div>Transferred from", StringComparison.OrdinalIgnoreCase));
-        if (hasTransferDiscussionEntry)
-        {
-            logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is newly transferred, need to be handled", incident.Id);
-            return true;
-        }
-        logger.LogInternalInformation("[IcmScanner] Incident {incidentId} is not newly created or transferred, no need to be handled. Incident created at {createdDate}, current UTC time is {currentUtcTime}, Allowed window is 5 minutes. Incident hasTransferDiscussionEntry: {hasTransferDiscussionEntry}", incident.Id, incident.CreatedDate, DateTime.UtcNow, hasTransferDiscussionEntry);
-        return false;
-    }
-
     // ------------------------------------------------------------
     // Local test queue processing
     // ------------------------------------------------------------
@@ -898,7 +1601,37 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 }
                 else
                 {
-                    await NotifyUserAsync(incidentDoc, new List<string>(), null);
+                    // Test queue without filter: Create thread using incident handling service directly
+                    // with a minimal synthetic filter for IncidentCreatedOrTransferred trigger
+                    var syntheticFilter = new IcmIncidentFilterDocument
+                    {
+                        Id = "TestQueue",
+                        Name = "TestQueue",
+                        AlertId = "TestQueue",
+                        AgentMode = AgentModes.Autonomous.ToLowerInvariant(),
+                        ImpactedService = incidentDoc.ImpactedServiceName ?? string.Empty,
+                        Priority = incidentDoc.Priority ?? string.Empty,
+                        IncidentType = incidentDoc.IncidentType ?? string.Empty,
+                        TitleContains = string.Empty,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        Triggers = new List<IcmIncidentTriggerEvent> { IcmIncidentTriggerEvent.IncidentCreatedOrTransferred }
+                    };
+
+                    await incidentHandlingService.HandleIncidentAsync(
+                        new IncidentHandlingRequestModelWithFilterOnly<IcmIncidentFilterDocumentPayload>()
+                        {
+                            IncidentId = incidentDoc.Id.ToString(),
+                            Title = incidentDoc.Title,
+                            Description = incidentDoc.Description,
+                            Severity = incidentDoc.Priority,
+                            CreatedTime = incidentDoc.CreatedAt,
+                            ImpactedService = incidentDoc.ImpactedServiceName,
+                            IncidentFilter = syntheticFilter,
+                            TriggerEvent = IcmIncidentTriggerEvent.IncidentCreatedOrTransferred
+                        });
+
+                    logger.LogInternalInformation("[IcmScanner] Test queue: Created thread for incident {incidentId}", item.IncidentId);
                 }
             }
             catch (Exception ex)

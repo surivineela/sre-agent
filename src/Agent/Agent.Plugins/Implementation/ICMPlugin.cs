@@ -423,6 +423,15 @@ Example structure:
         return JsonConvert.SerializeObject(incidents);
     }
 
+    public async Task<List<string>> GetCurrentOnCallAliases(string teamId)
+    {
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(GetCurrentOnCallAliases)}][{DateTime.UtcNow}] Invoked with teamId {teamId}";
+        _logger.LogInternalInformation(logMessage);
+
+        var aliases = await _icmApiClient.GetCurrentOnCallAliasesAsync(teamId);
+        return aliases;
+    }
+
     //[KernelFunction("get_queryable_columns_for_incidents")]
     //[Description("Get queryable columns for advanced incident search")]
     //public async Task<Dictionary<string, List<string>>> GetQueryableColumnsForIncidentLookup(Kernel kernel)
@@ -726,14 +735,18 @@ Example structure:
 
     private Guid? ResolveThreadContextId() => ThreadId ?? ThreadContextAccessor.CurrentThreadId;
 
+    private string? ResolveHandlerId() => ThreadContextAccessor.CurrentHandlerId;
+
     private string GenerateAgentDiscussionEntry(string postContent)
     {
         var effectiveThreadId = ResolveThreadContextId();
+        var handlerId = ResolveHandlerId();
 
         return IcmPostTemplates.GenerateDiscussionEntryByTemplate(
             _agentInfo,
             effectiveThreadId?.ToString() ?? string.Empty,
-            postContent);
+            postContent,
+            handlerId);
     }
 
     /// <summary>

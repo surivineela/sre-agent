@@ -90,6 +90,13 @@ public class SinkService
         bool? isVisibleInUserChatHistory = true,
         DateTime? recordedMessageTime = null)
     {
+        // Skip if message was already posted to the repository (Teams=true means already added)
+        if (message.Posted?.Teams == true)
+        {
+            _logger.LogInternalInformation("Message {MessageId} already posted, skipping sink", message.MessageId);
+            return;
+        }
+
         var role = string.Equals(message.UserId, "agent-default", StringComparison.OrdinalIgnoreCase) ? Role.SREAgent : Role.User;
         var userMessage = new Message(
             Id: message.MessageId,

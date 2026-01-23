@@ -132,6 +132,8 @@ export type ExtendedTrigger = {
     description?: string;
     type: 'incident' | 'scheduled';
     agentName?: string;
+    /** Multiple handling agents for parallel processing */
+    agentNames?: string[];
     subAgent?: string;
     status?: 'Active' | 'Paused' | 'Disabled';
     priority?: string;

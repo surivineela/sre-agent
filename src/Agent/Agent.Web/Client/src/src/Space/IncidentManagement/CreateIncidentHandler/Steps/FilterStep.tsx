@@ -14,9 +14,10 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useContext, useMemo } from 'react';
+import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { LearnMoreLinks } from '../../../../Common/Constants/Links';
+import { IncidentTriggerEvent } from '../../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
 import { AgentTaskResources, IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { CopilotCheckbox as Checkbox } from '../../../Components/Common/CopilotCheckbox';
@@ -24,6 +25,7 @@ import { CopilotRadio as Radio } from '../../../Components/Common/CopilotRadio';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';
+import { TriggerTypeSelector } from '../Common/TriggerTypeSelector';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
@@ -75,6 +77,18 @@ export const FilterStep: FC = () => {
         const selectedOption = priorityOptionsExtended.find(option => option.key === key);
         return selectedOption ? selectedOption.display : '';
     }, [priorityOptionsExtended, values.priority, filterMode]);
+
+    // Get current triggers or default to IncidentCreatedOrTransferred
+    const currentTriggers = useMemo(() => {
+        return values.triggers || [IncidentTriggerEvent.IncidentCreatedOrTransferred];
+    }, [values.triggers]);
+
+    const handleTriggersChange = useCallback(
+        (triggers: IncidentTriggerEvent[]) => {
+            setFieldValue('triggers', triggers);
+        },
+        [setFieldValue]
+    );
 
     const isNextDisabled = useMemo((): boolean => {
         if (filterMode === 'create') {
@@ -166,6 +180,12 @@ export const FilterStep: FC = () => {
                                     className={styles.inputField}
                                 />
                             </Field>
+
+                            <TriggerTypeSelector
+                                selectedTriggers={currentTriggers}
+                                onTriggersChange={handleTriggersChange}
+                                owningTeamId={values.owningTeamId}
+                            />
                         </div>
                     )}
 

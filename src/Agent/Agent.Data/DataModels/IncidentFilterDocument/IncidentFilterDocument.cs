@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.DataModels;
 

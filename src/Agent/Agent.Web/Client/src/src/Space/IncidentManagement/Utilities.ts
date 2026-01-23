@@ -18,7 +18,7 @@ export const getFilterValues = (
     replaceAllKey?: boolean,
     allKeyReplacement?: string
 ) => {
-    const result = {
+    const result: any = {
         incidentType: values.incidentType,
         impactedService: values.impactedService,
         priority: values.priority,
@@ -29,6 +29,9 @@ export const getFilterValues = (
         createdBy: values.createdBy,
         monitorId: values.monitorId,
         handlingAgent: values.handlingAgent,
+        // Phase 2: Include triggers and handlingAgents for ICM
+        triggers: values.triggers,
+        handlingAgents: values.handlingAgents,
     };
 
     if (replaceAllKey) {
@@ -46,6 +49,9 @@ export const getFilterValues = (
         result.owningTeamId = undefined;
         result.createdBy = undefined;
         result.monitorId = undefined;
+        // Phase 2: triggers and handlingAgents are ICM-only
+        result.triggers = undefined;
+        result.handlingAgents = undefined;
     }
 
     return result;
