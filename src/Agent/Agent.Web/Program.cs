@@ -203,6 +203,13 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(options);
 
+        // Increase max header size to accommodate multiple OBO tokens from infra proxy
+        // Default is 32KB, observed ~60KB with 7 OBO tokens - using 128KB for headroom
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            serverOptions.Limits.MaxRequestHeadersTotalSize = 131072; // 128KB
+        });
+
         var isAcaFirstPartyAgent = IsAcaFirstParty(options.Args ?? []);
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
