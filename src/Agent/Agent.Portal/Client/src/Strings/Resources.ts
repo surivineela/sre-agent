@@ -7,6 +7,10 @@ export const PortalResources = defineMessages({
     },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     azureSreAgentsPreview: { defaultMessage: 'Azure SRE Agents (Preview)', id: 'Q5mdr7' },
+    agentLoadSlowWarning: {
+        defaultMessage: 'Taking longer than usual... Your agent may be cold-starting, or there may be network issues.',
+        id: 'M9sohy',
+    },
     previewCapitalized: { defaultMessage: 'PREVIEW', id: 'Isedjj' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },

@@ -8,6 +8,7 @@ export class AgentSiteToAzPortalVerbs {
     public static readonly updateNotification = 'update-notification';
     public static readonly openBlade = 'open-blade';
     public static readonly requestToken = 'request-token';
+    public static readonly userActivity = 'user-activity';
 }
 
 export class AzPortalToAgentSiteVerbs {
@@ -66,4 +67,11 @@ export interface INotificationInfo {
     state: 'start' | 'success' | 'fail';
     title?: string;
     description?: string;
+}
+
+export interface IUserActivityInfo {
+    /** Activity type identifier, e.g., "click:#submitButton", "keydown:input.search" */
+    type: string;
+    /** Unix timestamp from Date.now() */
+    timestamp: number;
 }

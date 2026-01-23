@@ -18,9 +18,11 @@ import {
     IFrameTelemetryInfo,
     IFrameUserInfo,
     INotificationInfo,
+    IUserActivityInfo,
     TokenTypes,
 } from '../AgentIFrameContracts';
 import { AgentLoadError, buildAgentUxUrl } from '../Utilities';
+import { AGENT_LOAD_TIMEOUT_MS } from '../useAgentView';
 
 /**
  * Hook for external agent iframe management (cross-tenant scenarios)
@@ -281,6 +283,21 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
         [authTokenManager]
     );
 
+    const userActivityCallback = useCallback(
+        (data: IUserActivityInfo) => {
+            logEvent({
+                action: 'user-activity',
+                actionModifier: 'received',
+                logLevel: LogLevel.Debug,
+                additionalData: {
+                    activityType: data.type,
+                    timestamp: data.timestamp,
+                },
+            });
+        },
+        [logEvent]
+    );
+
     const receiveMessage = useCallback(
         (event: MessageEvent) => {
             const messageCallbackMap: Record<string, (data: any) => void> = {
@@ -292,6 +309,7 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                 [AgentSiteToAzPortalVerbs.openBlade]: openBladeCallback,
                 [AgentSiteToAzPortalVerbs.updateNotification]: updateNotificationCallback,
                 [AgentSiteToAzPortalVerbs.requestToken]: requestTokenCallback,
+                [AgentSiteToAzPortalVerbs.userActivity]: userActivityCallback,
             };
 
             // Validate the origin and signature of the incoming message
@@ -336,10 +354,21 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                 });
             }
         },
-        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback]
+        [
+            uxOrigin,
+            logEvent,
+            readyForDataCallback,
+            logCallback,
+            openBladeCallback,
+            updateNotificationCallback,
+            requestTokenCallback,
+            userActivityCallback,
+        ]
     );
 
     useEffect(() => {
+        let isMounted = true;
+
         // We need to ping the site because if the site is cold-starting and fails for some reason then the iframe will hang
         const pingSite = async () => {
             if (!agentUxUrl) {
@@ -415,11 +444,12 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                     console.log(error);
                 }
 
+                if (!isMounted) return;
                 await new Promise(r => setTimeout(r, agentSitePingSleep));
             }
 
             const totalTime = Date.now() - startTime;
-            if (pingIndex >= agentSitePingLimit || totalTime >= 60000) {
+            if (pingIndex >= agentSitePingLimit || totalTime >= AGENT_LOAD_TIMEOUT_MS) {
                 const errorMessage =
                     pingIndex >= agentSitePingLimit
                         ? `Agent site failed to respond within ${agentSitePingLimit} pings. Blade timeout.`
@@ -439,6 +469,10 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
         };
 
         pingSite();
+
+        return () => {
+            isMounted = false;
+        };
     }, [intl, agentUxUrl, logEvent]);
 
     useEffect(() => {
