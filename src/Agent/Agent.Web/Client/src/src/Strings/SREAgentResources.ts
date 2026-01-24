@@ -6058,8 +6058,6 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'Add a connector to give the agent additional tools for automating incident handling.',
         id: 'REOGTJ',
     },
-    defaultOutlookConnectorName: { defaultMessage: 'Outlook connector {id}', id: 'PB0ecx' },
-    defaultTeamsConnectorName: { defaultMessage: 'Teams connector {id}', id: 'BXFezC' },
     addConnector: { defaultMessage: 'Add connector', id: 'QDa8Q+' },
     connector: { defaultMessage: 'connector', id: '44QmgP' },
     connectorCapital: { defaultMessage: 'Connector', id: 'r8XsCU' },

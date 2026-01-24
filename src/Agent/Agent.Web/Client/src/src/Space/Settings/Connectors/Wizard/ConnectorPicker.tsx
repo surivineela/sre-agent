@@ -46,10 +46,9 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                 setFieldValue('url', '');
                 setFieldValue('authType', '');
             }
-            if (connector.id === ConnectorType.OutlookSendEmail) {
-                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultOutlookConnectorName, { id: Guid.newTinyGuid() }));
-            } else if (connector.id === ConnectorType.TeamsSendNotification) {
-                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultTeamsConnectorName, { id: Guid.newTinyGuid() }));
+
+            if (connector.id === ConnectorType.OutlookSendEmail || connector.id === ConnectorType.TeamsSendNotification) {
+                setFieldValue('name', `connector-${Guid.newTinyGuid()}`); // default connector name
             } else {
                 setFieldValue('name', '');
             }
@@ -61,7 +60,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
             setTouched({});
             setErrors({});
         },
-        [intl, setErrors, setFieldValue, setTouched]
+        [setErrors, setFieldValue, setTouched]
     );
 
     return (
