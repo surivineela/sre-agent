@@ -614,6 +614,7 @@ public class Program
             .AddTransient<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>()
             .AddTransient<CannotConnectToVmPluginDefinition>()
 
+            .AddSingleton<IThreadEvaluationSnapshotService, ThreadEvaluationSnapshotService>()
             .AddSingleton<ThreadEvaluator>();
 
         // Conditionally register InsightPostingService based on Session Insights enablement

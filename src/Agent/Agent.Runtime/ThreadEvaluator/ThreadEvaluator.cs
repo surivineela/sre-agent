@@ -14,6 +14,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -35,6 +36,7 @@ public partial class ThreadEvaluator
     private readonly Tracer _tracer;
     private readonly IRagEvaluator _ragEvaluator;
     private readonly IAgentProvider<AgentContext> _agentProvider;
+    private readonly IThreadEvaluationSnapshotService _threadEvaluationSnapshotService;
 
     // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
@@ -47,6 +49,7 @@ public partial class ThreadEvaluator
       Tracer tracer,
       IRagEvaluator ragEvaluator,
       IAgentProvider<AgentContext> agentProvider,
+      IThreadEvaluationSnapshotService threadEvaluationSnapshotService,
       TimeSpan? evaluationHistoryRange = null,
       TimeSpan? coolDownPeriod = null)
     {
@@ -56,10 +59,11 @@ public partial class ThreadEvaluator
         _tracer = tracer;
         _ragEvaluator = ragEvaluator;
         _agentProvider = agentProvider;
+        _threadEvaluationSnapshotService = threadEvaluationSnapshotService;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
-        _coolDownPeriod = coolDownPeriod ?? TimeSpan.FromMinutes(5);
+        _coolDownPeriod = coolDownPeriod ?? TimeSpan.FromMinutes(10);
     }
 
     /// <summary>
@@ -299,6 +303,28 @@ public partial class ThreadEvaluator
 
             // Update thread with evaluation timestamp
             await _threadRepository.UpdateThreadEvaluatedTimestampAsync(thread.Id, DateTime.UtcNow);
+
+            // Ingest IntentMet snapshot for incident threads
+            if (thread.Source == ThreadSource.Incident && thread.IncidentSource != null)
+            {
+                try
+                {
+                    await _threadEvaluationSnapshotService.IngestIntentMetSnapshotAsync(
+                        thread.Id,
+                        thread.IncidentSource.IncidentId,
+                        evaluationResult.Resolved,
+                        evaluationResult.EvaluationSummary,
+                        cancellationToken);
+
+                    _logger.LogInternalInformation(
+                        $"[ThreadEvaluator] Ingested IntentMet snapshot for incident thread {thread.Id}, incident {thread.IncidentSource.IncidentId}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex,
+                        $"[ThreadEvaluator] Failed to ingest IntentMet snapshot for thread {thread.Id}: {ex.Message}");
+                }
+            }
 
             return evaluationResult;
         }

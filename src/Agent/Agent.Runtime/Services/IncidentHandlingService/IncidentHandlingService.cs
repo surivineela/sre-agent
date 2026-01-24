@@ -428,6 +428,21 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
     protected abstract IncidentManagementType IncidentType { get; }
 
+    /// <summary>
+    /// Converts the IncidentManagementType to the corresponding IncidentType for thread creation.
+    /// </summary>
+    protected Core.Models.Api.v1.IncidentType GetIncidentSourceType()
+    {
+        return IncidentType switch
+        {
+            IncidentManagementType.Icm => Core.Models.Api.v1.IncidentType.Icm,
+            IncidentManagementType.PagerDuty => Core.Models.Api.v1.IncidentType.PagerDuty,
+            IncidentManagementType.ServiceNow => Core.Models.Api.v1.IncidentType.ServiceNow,
+            IncidentManagementType.AzMonitor => Core.Models.Api.v1.IncidentType.AzMonitor,
+            _ => throw new ArgumentOutOfRangeException(nameof(IncidentType), IncidentType, "Unknown incident management type")
+        };
+    }
+
     protected abstract Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         TIncidentDocument incidentDetails,
         IncidentHandlerDocumentPayload incidentHandler,
@@ -635,6 +650,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident,
                 incidentId: request.IncidentId ?? string.Empty,
+                incidentSource: new IncidentSource(GetIncidentSourceType(), request.IncidentId ?? string.Empty),
                 threadType: isTest ? ThreadType.Test : ThreadType.Prod,
                 overrideAgentMode: incidentFilter.AgentMode,
                 incidentDetails: new IncidentDetails(
@@ -781,6 +797,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                     agentTypeEnum: _experimentalSettings.UseYamlForIncidentHandling ? AgentTypeEnum.Meta : AgentTypeEnum.Incident, // Use Meta to trigger YAML agent framework
                     source: ThreadSource.Incident,
                     incidentId: incidentDetails.Id ?? string.Empty,
+                    incidentSource: new IncidentSource(GetIncidentSourceType(), incidentDetails.Id ?? string.Empty),
                     AllowedTools: incidentHandler.Tools,
                     threadType: request.IsTest ? ThreadType.Test : ThreadType.Prod,
                     overrideAgentMode: incidentFilterPayload.AgentMode,
