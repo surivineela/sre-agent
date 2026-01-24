@@ -74,3 +74,14 @@ az rest -m PATCH --url /subscriptions/[sub-id]/resourceGroups/[rg]/providers/Mic
 4. Monitor the update operation
 
    GET the agent resource until the provisioning state is in a terminal state (Succeeded/Failed)
+
+## 4. Testing with Playwright (If Asked)
+
+If the user asks to test a feature with Playwright:
+
+1. Navigate to https://sre.azure.com using `browser_navigate`
+2. Click "Sign in" and select the appropriate Microsoft account
+3. Find your agent in the list (you can use the search box or filter by subscription/resource group)
+4. Click on the agent name to open it
+
+**Note:** Do not access the agent directly via its endpoint URL (e.g., `https://[agent-name]--[hash].azuresre.ai`) as this will return an unauthorized error. Always access through sre.azure.com which handles authentication properly.
