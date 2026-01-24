@@ -26,7 +26,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
-import { memo, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
@@ -193,6 +193,7 @@ const ResourceInfo = () => {
 
 const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
+    const { refreshCurrentAppGroup } = useContext(GraphContext);
     const { canWriteGraph } = useUserPermissions();
     const { infoContent, spinner, content, dashboard, repoButton } = useStyles();
     const intl = useIntl();
@@ -200,6 +201,27 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
     const properties = resource?.properties;
 
     const isPaasResource = useMemo<boolean>(() => isPaasResourceType(resource?.type), [resource]);
+
+    const handleAuthorizeClick = useCallback(() => {
+        if (!canWriteGraph) return;
+
+        const status = resource?.sourceCodeLinkageStatus;
+        if (status?.loginCallbackUrl) {
+            const popup = window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+            if (popup) {
+                // Poll for popup close and then refresh data
+                const pollInterval = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(pollInterval);
+                        // Add delay to allow API to process the authorization before refreshing
+                        setTimeout(() => {
+                            refreshCurrentAppGroup?.();
+                        }, 1000);
+                    }
+                }, 500);
+            }
+        }
+    }, [canWriteGraph, resource?.sourceCodeLinkageStatus, refreshCurrentAppGroup]);
 
     return selectedNode ? (
         <div className={infoContent}>
@@ -284,31 +306,14 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                                                 noPermissionTooltip={intl.formatMessage(
                                                     ResourceInfoResources.noPermissionAuthorizeRepositoryAccess
                                                 )}
-                                                onClick={() => {
-                                                    if (!canWriteGraph) return;
-                                                    const status = resource?.sourceCodeLinkageStatus;
-                                                    if (status?.loginCallbackUrl) {
-                                                        const w = window.open(
-                                                            status.loginCallbackUrl,
-                                                            'githubAuth',
-                                                            'width=600,height=700'
-                                                        );
-                                                        if (w) {
-                                                            const onLoad = () => {
-                                                                w.removeEventListener('load', onLoad);
-                                                                window.location.reload();
-                                                            };
-                                                            w.addEventListener('load', onLoad);
-                                                        }
-                                                    }
-                                                }}
+                                                onClick={handleAuthorizeClick}
                                             >
                                                 <FormattedMessage {...ResourceInfoResources.authorizeRepositoryAccess} />
                                             </PermissionedButton>
                                         </div>
                                     )
                                 ) : canWriteGraph ? (
-                                    <ConnectRepositoryLink resourceId={selectedNode?.id} />
+                                    <ConnectRepositoryLink resourceId={selectedNode?.id} onSuccess={refreshCurrentAppGroup} />
                                 ) : (
                                     <PermissionedActionLink
                                         canPerform={false}
@@ -384,7 +389,7 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
         return () => {
             unsubscribe();
         };
-    }, [subscribeThreadUpdateEvent, navigate, location]);
+    }, [subscribeThreadUpdateEvent, navigate]);
 
     return (
         appHealthInfo && (

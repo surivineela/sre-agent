@@ -2785,6 +2785,7 @@ export const GraphResources = defineMessages({
     },
     canvasView: { defaultMessage: 'Canvas view', id: 'uKwm6S' },
     tableView: { defaultMessage: 'Table view', id: 'ufzv1A' },
+    noSubscriptionsFound: { defaultMessage: 'No subscriptions found', id: 'TJ5+Fb' },
     tableHeaderName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
     tableHeaderResourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     tableHeaderRepositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },

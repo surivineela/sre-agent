@@ -18,6 +18,7 @@ import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPorta
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GenericErrorResources, ResourceInfoResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { GraphContext } from '../Contracts/Graph';
 
 export const githubRepoRegex = /^https:\/\/(?:github\.com|github\.[\w.-]+\.[\w.-]+)\/[\w.-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
@@ -49,6 +50,7 @@ export const RepositoryConnectionDialog = ({
 }: RepositoryConnectionDialogProps) => {
     const { logAmplitudeOperationEvent } = useAzPortalContext();
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { refreshCurrentAppGroup } = useContext(GraphContext);
     const intl = useIntl();
 
     const [repoUrl, setRepoUrl] = useState('');
@@ -125,8 +127,7 @@ export const RepositoryConnectionDialog = ({
             if (onSuccess) {
                 onSuccess();
             } else {
-                // Default behavior: reload page
-                window.location.reload();
+                await refreshCurrentAppGroup?.();
             }
         } catch (err) {
             console.error(intl.formatMessage(GenericErrorResources.failedToLinkRepository), err);
