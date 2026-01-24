@@ -935,7 +935,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                         onEnterFullScreen={openThreadFullScreen}
                         size="large"
                         titleActions={
-                            showThreadTraceUI ? (
+                            showThreadTraceUI && showControlPlaneDependentFeatures ? (
                                 <Button
                                     ref={traceFocusRestorationRef}
                                     icon={<Branch16Regular />}
@@ -947,6 +947,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                         margin: 'auto',
                                     }}
                                     onClick={openThreadTrace}
+                                    disabled={!agentAppInsightsAppId}
                                 >
                                     {intl.formatMessage(IncidentManagementResources.viewTrace)}
                                 </Button>
