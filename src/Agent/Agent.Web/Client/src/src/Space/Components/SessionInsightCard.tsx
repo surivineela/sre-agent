@@ -29,11 +29,18 @@ import { FeedbackResources, SreAgentResources } from '../../Strings/SREAgentReso
 
 const useStyles = makeStyles({
     card: {
-        border: `1px solid ${tokens.colorBrandStroke1}`,
-        borderRadius: tokens.borderRadiusXLarge,
-        padding: '16px',
-        backgroundColor: tokens.colorNeutralBackground2,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: '12px',
+        padding: '12px',
+        backgroundColor: tokens.colorNeutralBackground3,
         marginBottom: '8px',
+        transitionProperty: 'background-color, border-color',
+        transitionDuration: '0.15s',
+        transitionTimingFunction: 'ease',
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground3Hover,
+            border: `1px solid ${tokens.colorNeutralStroke1Hover}`,
+        },
     },
     headerRow: {
         display: 'flex',
@@ -45,13 +52,33 @@ const useStyles = makeStyles({
     headerRowExpanded: {
         marginBottom: '12px',
     },
+    iconContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '48px',
+        height: '48px',
+        backgroundColor: tokens.colorNeutralBackground4,
+        borderRadius: '8px',
+        flexShrink: 0,
+    },
     icon: {
-        color: tokens.colorBrandForeground1,
+        color: tokens.colorNeutralForeground2,
+    },
+    titleContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        flex: 1,
+        minWidth: 0,
     },
     title: {
         fontWeight: tokens.fontWeightSemibold,
-        fontSize: tokens.fontSizeBase400,
+        fontSize: tokens.fontSizeBase300,
         color: tokens.colorNeutralForeground1,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     },
     badge: {
         marginLeft: 'auto',
@@ -70,8 +97,9 @@ const useStyles = makeStyles({
     collapsedPreview: {
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
-        fontStyle: 'italic',
-        marginTop: '4px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     },
     feedbackSection: {
         marginTop: '16px',
@@ -227,10 +255,19 @@ const SessionInsightCard = ({ insightText, threadId, onFeedbackSaved }: SessionI
     return (
         <Card className={styles.card}>
             <div className={mergeClasses(styles.headerRow, isExpanded && styles.headerRowExpanded)} onClick={toggleExpanded}>
-                <Lightbulb24Regular className={styles.icon} />
-                <Text className={styles.title}>
-                    <FormattedMessage {...SreAgentResources.sessionInsight} />
-                </Text>
+                <div className={styles.iconContainer}>
+                    <Lightbulb24Regular className={styles.icon} />
+                </div>
+                <div className={styles.titleContainer}>
+                    <Text className={styles.title}>
+                        <FormattedMessage {...SreAgentResources.sessionInsight} />
+                    </Text>
+                    {!isExpanded && (
+                        <Text className={styles.collapsedPreview}>
+                            <FormattedMessage {...SreAgentResources.clickToViewSessionAnalysis} />
+                        </Text>
+                    )}
+                </div>
                 <Badge appearance="tint" color="brand" className={styles.badge}>
                     <FormattedMessage {...SreAgentResources.insights} />
                 </Badge>
@@ -244,12 +281,6 @@ const SessionInsightCard = ({ insightText, threadId, onFeedbackSaved }: SessionI
                     }}
                 />
             </div>
-
-            {!isExpanded && (
-                <div className={styles.collapsedPreview}>
-                    <FormattedMessage {...SreAgentResources.clickToViewSessionAnalysis} />
-                </div>
-            )}
 
             {isExpanded && (
                 <div className={styles.content}>

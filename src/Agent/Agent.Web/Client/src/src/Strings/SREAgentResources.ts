@@ -839,7 +839,11 @@ export const SreAgentResources = defineMessages({
     removeItemWithName: { defaultMessage: 'Remove {name}', id: 'T0e6Lh' },
     // Session Insights
     sessionInsight: { defaultMessage: 'Session Insight', id: 'DYp/nK' },
-    clickToViewSessionAnalysis: { defaultMessage: 'Click to view session analysis and insights', id: 'ttWUo6' },
+    clickToViewSessionAnalysis: {
+        defaultMessage:
+            "Agent's self-reflection on learnings, issues, and key points for this thread. Your feedback helps improve performance.",
+        id: 'sYET0j',
+    },
     timeline: { defaultMessage: 'Timeline', id: 'zWkvNO' },
     agentPerformance: { defaultMessage: 'Agent Performance', id: 'urxxsP' },
     noInsightContentAvailable: { defaultMessage: 'No insight content available', id: 'cHKA8f' },
