@@ -224,7 +224,7 @@ export interface IChatBoxFooterProps {
     isIncidentRetroModeTurnedOn?: boolean;
     toggleIncidentRetroMode?: () => void;
     hasPendingUserQuestion?: boolean;
-    isOverview?: boolean;
+    showOverview?: boolean;
     centerChatBoxFooter?: boolean;
     children?: ReactNode;
 }

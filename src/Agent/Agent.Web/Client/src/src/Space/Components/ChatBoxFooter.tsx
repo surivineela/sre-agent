@@ -94,6 +94,7 @@ import AgentModeSelector from './AgentModeSelector';
 import { $createResourceNode, ResourceNode } from './Chat/ResourceNode';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
 import { SreAgentBranding } from './Chat/SreAgentBranding';
+import Fade from './Fade';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
 const GenerateInsightsButton = memo(
@@ -261,7 +262,7 @@ const ChatBoxFooter = ({
     isIncidentRetroModeTurnedOn,
     toggleIncidentRetroMode,
     hasPendingUserQuestion,
-    isOverview,
+    showOverview,
     centerChatBoxFooter,
     children,
 }: IChatBoxFooterProps) => {
@@ -285,7 +286,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { root, rootInCenter, rootWithOverview, chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
+    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -495,8 +496,8 @@ const ChatBoxFooter = ({
                     const shortcutNode = $isElementNode(node)
                         ? node.getChildAtIndex(anchor.offset - 1)
                         : $isTextNode(node) && offset !== -1
-                            ? node.getPreviousSibling()
-                            : null;
+                          ? node.getPreviousSibling()
+                          : null;
 
                     if ($isShortcutNode(shortcutNode)) {
                         removeShortcutNode();
@@ -1018,15 +1019,25 @@ const ChatBoxFooter = ({
 
     return (
         <div
-            className={mergeClasses(
-                centerChatBoxFooter ? scrollable : undefined,
-                root,
-                centerChatBoxFooter ? rootInCenter : undefined,
-                isOverview ? rootWithOverview : undefined
-            )}
+            className={centerChatBoxFooter ? scrollable : undefined}
+            style={{
+                flex: '1 1 auto',
+                margin: '5px 0px',
+                padding: `${showOverview ? '20px' : '0px'} 20px`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: centerChatBoxFooter || showOverview ? 'flex-start' : 'center',
+                paddingTop: centerChatBoxFooter && !showOverview ? 'calc(38.2vh - 100px)' : undefined, // Golden ratio positioning
+            }}
         >
-            <div className={mergeClasses(chatBoxFooterInner, isOverview ? chatBoxFooterInnerOverview : undefined)}>
-                {centerChatBoxFooter && <SreAgentBranding />}
+            <div className={mergeClasses(chatBoxFooterInner, showOverview ? chatBoxFooterInnerOverview : undefined)}>
+                <Fade visible={centerChatBoxFooter} unmountOnExit appear>
+                    <div>
+                        <SreAgentBranding />
+                    </div>
+                </Fade>
+
                 <KnowledgeGraphBuildStatus />
                 <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
                     <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
@@ -1237,8 +1248,13 @@ const ChatBoxFooter = ({
                     </Text>
                 )}
 
-                {centerChatBoxFooter && <ChatSuggestions sendMessage={sendMessage} />}
+                <Fade visible={centerChatBoxFooter} unmountOnExit appear>
+                    <div>
+                        <ChatSuggestions sendMessage={sendMessage} />
+                    </div>
+                </Fade>
             </div>
+
             {children}
         </div>
     );
@@ -1381,11 +1397,11 @@ const Attachments = memo(
                             props.lockAgentSelection
                                 ? undefined
                                 : {
-                                    'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                                        agentName: props.selectedAgentName,
-                                    }),
-                                    onClick: () => props.handleClearSelectedAgent(),
-                                }
+                                      'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                          agentName: props.selectedAgentName,
+                                      }),
+                                      onClick: () => props.handleClearSelectedAgent(),
+                                  }
                         }
                     >
                         <Tooltip

@@ -304,21 +304,6 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
     });
 
 export const useChatInputStyles = makeStyles({
-    root: {
-        flex: '1 1 auto',
-        margin: '5px 0px',
-        padding: '0px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rootInCenter: {
-        padding: '20px',
-    },
-    rootWithOverview: {
-        justifyContent: 'flex-start',
-    },
     chatBoxFooterInner: {
         maxWidth: '800px',
         width: '100%',

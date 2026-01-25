@@ -139,7 +139,7 @@ const TerminalTypingText: FC<TerminalTypingTextProps> = memo(
                     {isComplete ? text : ''}
                 </span>
                 {/* Visual typing animation - hidden from screen readers */}
-                <Text aria-hidden="true" weight="semibold" style={{ fontSize: '20px' }}>
+                <Text aria-hidden="true" weight="bold" style={{ fontSize: tokens.fontSizeBase600 }} >
                     {displayedText}
                     <span
                         style={{
@@ -196,9 +196,10 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         flexGrow: 1,
         gap: tokens.spacingVerticalM,
+        paddingTop: 'calc(38.2vh - 90px)'
     },
     logoAndText: {
         display: 'flex',
@@ -277,6 +278,8 @@ export const MockShimmeredUx = () => {
                             <Skeleton aria-label={intl.formatMessage(PortalResources.loading)}>
                                 <SkeletonItem
                                     style={{
+                                        maxWidth: '800px',
+                                        margin: 'auto',
                                         height: '108px',
                                         borderRadius: '32px',
                                     }}
