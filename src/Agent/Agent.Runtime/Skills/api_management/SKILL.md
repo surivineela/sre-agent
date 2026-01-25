@@ -3,8 +3,7 @@ name: api_management
 description: This skill enables comprehensive orchestration and delegation of diagnostics and remediation tasks for Azure API Management services, ensuring the appropriate specialists are engaged while gathering context, supporting troubleshooting, and presenting actionable insights to users.
 tools:
   - ListAPIManagement
-  - ListSubscriptions
-  - ListResourceGroups
+  - SearchResource
   - GetAPIMErrorLogs
   - GetAPIMFailureRateByApiOperation
   - GetAPIMRecentFailedRequests

@@ -1171,7 +1171,7 @@ Please consolidate the findings, identify key insights, and provide actionable r
                 tools.Add(tool);
             }
 
-            return Task.FromResult(tools);
+            return Task.FromResult(tools.DistinctBy(t => t.Name).ToList());
         };
 
         hooks.AgentStart += (context, agent) =>

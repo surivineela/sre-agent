@@ -203,7 +203,7 @@ public static class IncidentInvestigationAgents
             webapp URL https://mysite-abcdpoiumnbvcc2.eastus-01.azurewebsites.net
             site name: mysite
 
-            You can use ListResourcesByType to get the list of all app service resources if you cannot determine the resource name.
+            You can use SearchResource(resourceTypes: ["microsoft.web/sites"]) to get the list of all app service resources if you cannot determine the resource name.
 
             Azure Activity Logs are different from Application Logs. Activity Logs give information about control plane operations,
             application logs are runtime logs from the application itself.
@@ -294,7 +294,7 @@ public static class IncidentInvestigationAgents
             webapp URL https://mysite-abcdpoiumnbvcc2.eastus-01.azurewebsites.net
             site name: mysite
 
-            You can use ListResourcesByType to get the list of all app service resources if you cannot determine the resource name.
+            You can use SearchResource(resourceTypes: ["microsoft.web/sites"]) to get the list of all app service resources if you cannot determine the resource name.
 
             Azure Activity Logs are different from Application Logs. Activity Logs give information about control plane operations,
             application logs are runtime logs from the application itself.
@@ -681,14 +681,14 @@ public static class IncidentInvestigationAgents
             webapp URL https://mysite-abcdpoiumnbvcc2.eastus-01.azurewebsites.net
             site name: mysite
 
-            You can use ListResourcesByType to get the list of all app service resources if you cannot determine the resource name.
+            You can use SearchResource(resourceTypes: ["microsoft.web/sites"]) to get the list of all app service resources if you cannot determine the resource name.
 
             Azure Activity Logs are different from Application Logs. Activity Logs give information about control plane operations,
             application logs are runtime logs from the application itself.
 
             Application logs may come from Azure Monitor, Application Insights, or from tools that fetch logs directly from the application.
 
-            If you cannot find a resource, *make sure* that you call ListResourcesByType to make sure you didn't miss anything.
+            If you cannot find a resource, *make sure* that you call SearchResource with the appropriate type filter to make sure you didn't miss anything.
             </tips>
             """;
 
@@ -805,14 +805,14 @@ public static class IncidentInvestigationAgents
             webapp URL https://mysite-abcdpoiumnbvcc2.eastus-01.azurewebsites.net
             site name: mysite
 
-            You can use ListResourcesByType to get the list of all app service resources if you cannot determine the resource name.
+            You can use SearchResource(resourceTypes: ["microsoft.web/sites"]) to get the list of all app service resources if you cannot determine the resource name.
 
             Azure Activity Logs are different from Application Logs. Activity Logs give information about control plane operations,
             application logs are runtime logs from the application itself.
 
             Application logs may come from Azure Monitor, Application Insights, or from tools that fetch logs directly from the application.
 
-            If you cannot find a resource, *make sure* that you call ListResourcesByType to make sure you didn't miss anything.
+            If you cannot find a resource, *make sure* that you call SearchResource with the appropriate type filter to make sure you didn't miss anything.
 
             # Incident Information
 

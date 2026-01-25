@@ -565,8 +565,8 @@ public static class TrajectoryExtractor
     Parameters: {}
 
     Role: resource_discovery_agent
-    Function Call: ListResourcesByType
-    Parameters: {"resourceType":"Microsoft.Web/sites","propertyName":"kind","propertyValue":"functionapp"}
+    Function Call: SearchResource
+    Parameters: {"resourceTypes":["microsoft.web/sites"]}
 
     Function Call Result: [List of 5 function apps with their details]
 

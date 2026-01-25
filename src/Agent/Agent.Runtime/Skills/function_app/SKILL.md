@@ -26,7 +26,7 @@ tools:
   - AddRoleAssignment
   - CheckRoleAssignment
   - GetRoleDetailsFromName
-  - GetResourceIdForResourceName
+  - SearchResource
   - GetFailedFunctionInvocations
   - GetTop3ExceptionsPerFunction
   - GetTop3ExceptionsWithStackTraces

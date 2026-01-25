@@ -3,15 +3,12 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using System.Text.Json;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
-using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
@@ -27,14 +24,12 @@ namespace Agent.Plugins
         /// <summary>
         /// When implementing this in prod, we need to give this agent a read-only user
         /// </summary>
-        [KernelFunction("query")]
         [Description("Run a generic query against the graph database. Do NOT perform any write operations.")]
         public async Task<ResultSet<dynamic>> Query(string query)
         {
             return await _plugin.Query(query);
         }
 
-        [KernelFunction("FindAllNetworkConnectedResources")]
         [Description("Finds all resources that a particular Azure Container App connects to through network connections, such as Redis caches, databases, and other services. Useful for networking connectivity debug")]
         public async Task<string> FindAllNetworkConnectedResources(
             [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")] string resourceId = "")
@@ -42,7 +37,6 @@ namespace Agent.Plugins
             return await _plugin.FindAllNetworkConnectedResources(resourceId);
         }
 
-        [KernelFunction("GetApplicationComponentsSummary")]
         [Description("Returns a structured list of Azure resources connected to a specified resource. " +
             "This function is best used when you need to: 1) Get overview of what resources are part of an application, " +
             "2) See resource names, types, and IDs as a list, " +
@@ -58,7 +52,6 @@ namespace Agent.Plugins
             return await _plugin.GetApplicationComponentsSummary(resourceId, hops);
         }
 
-        [KernelFunction("VisualizeApplicationComponents")]
         [Description("Creates an interactive visual diagram showing how Azure resources are connected. " +
     "Use this to: 1) Show the topology/relationships between resources, " +
     "2) Help users understand the architecture visually, 3) Debug connectivity issues, or " +
@@ -77,7 +70,6 @@ namespace Agent.Plugins
         }
 
         // TODO(jianbo): this not working for AKS, need to fix.
-        [KernelFunction("DiscoverApplications")]
         [Description("Analyzes an Azure subscription and returns a List<ApplicationGraph>, where each ApplicationGraph represents a distinct application. " +
     "Each ApplicationGraph contains: id, name, entryPoint (main resource Node), nodes (List<Node> of related resources), and edges (List<Edge> showing relationships). " +
     "Entry points are identified from Container Apps, App Services. " +
@@ -90,7 +82,6 @@ namespace Agent.Plugins
             return await _plugin.DiscoverApplications(subscriptionId);
         }
 
-        [KernelFunction("AddSourceCodeNodeToContainerAppNode")]
         [Description("Adds the GitHub repo url node and an edge from the container app node to it")]
         public async Task AddSourceCodeNodeToContainerAppNode(
             [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")] string resourceId = "",
@@ -99,7 +90,6 @@ namespace Agent.Plugins
             await _plugin.AddSourceCodeNodeToContainerAppNodeAsync(resourceId: resourceId, repoUrl: repoUrl);
         }
 
-        [KernelFunction("AddIgnoreTagToResource")]
         [Description("Adds a tag to a resource to prevent it from being flagged in a scan for a specified period of time.")]
         public async Task<string> AddIgnoreTagToResource(
             [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")]
@@ -113,21 +103,18 @@ namespace Agent.Plugins
             return await _plugin.AddIgnoreInfoToResource(resourceId, ignoreTagDuration, actionTaken);
         }
 
-        [KernelFunction("GetContainerAppsWithNodesWithoutSourceCodeNodes")]
         [Description("Gets a list of container apps with nodes in the graph that don't have edges connecting them to source code nodes")]
         public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodes()
         {
             return await _plugin.GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
         }
 
-        [KernelFunction("UpdateRepoNodeWithLastScanTime")]
         [Description("Updates the source code node's lastScanTime property with the updated scan time.")]
         public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
         {
             await _plugin.UpdateRepoNodeWithLastScanTime(repoUrl);
         }
 
-        [KernelFunction("GetManagedResourcesInfo")]
         [Description("Retrieves information about all managed resources by yourself in your Knowledge Graph. " +
             "This function is useful when you need to: 1) Get an inventory of all Azure resources, " +
             "2) Count resources by type for reporting or monitoring, " +
@@ -139,43 +126,26 @@ namespace Agent.Plugins
             return await _plugin.GetManagedResourcesInfoAsync();
         }
 
-        [KernelFunction("SearchResource")]
-        [Description("Searches for Azure resources by name pattern and resource type in the knowledge graph. " +
-            "This function is useful when you need to: 1) Find specific resources without knowing the exact resource ID, " +
-            "2) Locate resources of a particular type across your Azure environment, " +
-            "3) Find resources matching a naming pattern, or " +
-            "4) Verify if resources exist before performing operations on them. " +
-            "Returns a list of matching resources with their details.")]
+        [Description("Searches for Azure resources using flexible filters: name, types, subscription, and/or location. " +
+            "At least one filter parameter must be provided. When multiple filters are provided, AND logic is applied. " +
+            "Usage examples: " +
+            "1) Find subscriptions: SearchResource(resourceTypes: ['microsoft.resources/subscriptions']) " +
+            "2) Find resource groups: SearchResource(resourceTypes: ['microsoft.resources/subscriptions/resourcegroups'], subscriptionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890') " +
+            "3) Find by name: SearchResource(resourceName: 'my-app') " +
+            "4) Find by type: SearchResource(resourceTypes: ['microsoft.web/sites']) " +
+            "5) Find a CATEGORY spanning multiple types (e.g., 'databases'): SearchResource(resourceTypes: ['microsoft.sql/servers', 'microsoft.documentdb/databaseaccounts', 'microsoft.dbforpostgresql/servers']) - pass all types in ONE call " +
+            "6) Filter by location: SearchResource(location: 'eastus', resourceTypes: ['microsoft.storage/storageaccounts']) " +
+            "7) Combined filters: SearchResource(resourceName: 'api', resourceTypes: ['microsoft.web/sites'], subscriptionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', location: 'eastus') " +
+            "Returns matching resources with essential fields: resourceId, resourceName, location (plus clusterResourceId and namespace for Kubernetes resources).")]
         [AgentTool(ToolMode.Auto)]
-        public async Task<List<ArmResourceNode>> SearchResource(
-            [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName,
-            [Description("Type of the Azure resource to search for (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts')")] string resourceType)
+        public async Task<List<object>> SearchResource(
+            [Description("Optional. Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string? resourceName = null,
+            [Description("Optional. List of Azure resource types to filter by. Always use full Azure resource type format (e.g., ['microsoft.resources/subscriptions'], ['microsoft.resources/subscriptions/resourcegroups'], ['microsoft.app/containerapps'], ['microsoft.web/sites']).")] List<string>? resourceTypes = null,
+            [Description("Optional. Azure subscription ID to filter by. Only resources in this subscription will be returned. If not available, first call SearchResource(resourceTypes: ['microsoft.resources/subscriptions']) to get the list.")] string? subscriptionId = null,
+            [Description("Optional. Azure region/location to filter by (e.g., 'eastus', 'westus2'). Only resources in this location will be returned.")] string? location = null,
+            [Description("Optional. Maximum number of results to return. Default is 50.")] int limit = 50)
         {
-            return await _plugin.SearchResourceAsync(resourceName, resourceType);
-        }
-
-        [KernelFunction("SearchResourceByName")]
-        [Description("Searches for Azure resources by name pattern only in the knowledge graph. " +
-            "This function is useful when you need to: 1) Find specific resources without knowing the exact resource ID, " +
-            "2) Find resources matching a naming pattern, or " +
-            "3) Verify if resources exist before performing operations on them. " +
-            "Returns a list of matching resources with their details.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<string> SearchResourceByName(
-        [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName)
-        {
-            var result = await _plugin.SearchResourceByNameAsync(resourceName);
-
-            // Check if the result is an array/list
-            if (result is System.Collections.IEnumerable enumerable && !(result is string))
-            {
-                var items = enumerable.Cast<object>().ToList();
-                var jsonString = JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true });
-                return $"{jsonString}\n\nTotal number of matching resources found: {items.Count}";
-            }
-
-            // If it's not a list, serialize as-is
-            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            return await _plugin.SearchResourceAsync(resourceName, resourceTypes, subscriptionId, location, limit);
         }
 
         [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
@@ -192,67 +162,6 @@ namespace Agent.Plugins
             return await _plugin.GetResourceCountAsync(resourceType, groupBy);
         }
 
-        [KernelFunction("ListSubscriptions")]
-        [Description("Returns a list of all Azure subscription IDs present in the knowledge graph. " +
-            "This function is useful when you need to: 1) Discover available subscriptions, " +
-            "2) Verify subscription visibility to the agent, " +
-            "3) Get subscription IDs for use with other commands, or " +
-            "4) Perform an inventory of monitored subscriptions. " +
-            "The output is a list of subscription IDs without additional details.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<List<dynamic>> ListSubscriptions()
-        {
-            return await _plugin.ListSubscriptionsAsync();
-        }
-
-        [KernelFunction("ListResourceGroups")]
-        [Description("Returns a list of all Azure resource groups present in the knowledge graph. " +
-            "This function is useful when you need to: 1) Discover available resource groups, " +
-            "2) Verify resource group visibility to the agent, " +
-            "3) Get resource group names for use with other commands, or " +
-            "4) Perform an inventory of monitored resource groups. " +
-            "The output is a list of resource group names without additional details.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<List<Dictionary<string, object>>> ListResourceGroups(
-             [Description("The subscription ID for which to list resource groups. This should be the GUID identifier from the subscription.")] string subscriptionId)
-        {
-            return await _plugin.ListResourceGroupsAsync(subscriptionId);
-        }
-
-
-        [KernelFunction("ListResourcesByType")]
-        [Description("Returns a list of Azure resources OR Kubernetes-native resources of a specified type/kind, with their property details as recorded in the knowledge graph. Supports filtering by properties like AKS cluster ID (for Kubernetes), or resource group (for ARM). " +
-            "This function is useful when you need to: " +
-            "1) Get an inventory of resources of a specific type and any additional filter on property, " +
-            "2) Examine tracked configuration properties of resources, " +
-            "3) Gather metadata for resources across your Azure environment, or " +
-            "The output is a list of resource objects with all their properties. " +
-            "Each resource includes details like name, location, resource group, and type-specific configuration." +
-            "Use pagination with 'skip' and 'take'. If user asked for listing all resources, set 'take' to a negative number like -1 to return all resources without pagination." +
-            "If the total number of matching resources is large, only the first 50 will be returned." +
-            "The agent should inform the user that the list is partial if more resources exist, and offer to retrieve more if needed.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<List<Dictionary<string, object>>> ListResourcesByType(
-            [Description(
-                "The type or kind of resource to list. " +
-                "For Azure ARM resources, use the full ARM type (e.g., 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters'). " +
-                "For Kubernetes resources, use the common K8s kind (e.g., 'Deployment', 'Service', 'Node', 'Namespace', 'StatefulSet', 'ConfigMap', 'Secret', 'PersistentVolumeClaim'). The system will map K8s kinds to their graph representation." +
-                "To list all resources, use 'all' as the resource type."
-            )] string resourceType,
-             [Description(
-                "Optional. For Kubernetes resources, this is the property name to filter on (e.g., 'clusterResourceId'). " +
-                "For Azure ARM resources, this can be a property name to filter on (e.g., 'resourceGroupName'). "
-            )] string propertyName = "",
-            [Description(
-                "Optional. For Kubernetes resources, this should be Azure Resource Id of the AKS cluster, should begin with /subscriptions/..., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.containerservice/managedclusters/iot-dashboard" +
-                "For Azure ARM resources, this is the value of the property to filter on."
-            )] string propertyValue = "",
-            [Description("Number of results to skip for pagination. Default is 0.")] int skip = 0,
-            [Description("Number of results to return. Use 0 or negative to return all. Default is 50.")] int take = 50)
-        {
-            return await _plugin.ListResourcesByTypeAsync(resourceType, propertyName, propertyValue, skip, take);
-        }
-
         [Description("Returns a general dashboard provided as daily reports for Resource Counts recorded in the knowledge graph. " +
             "This function is useful when you need to: 1) Need to provide a URL to the daily dashboard " +
             "2) Provide a very generic dashboard for the knowledge graph overview at a very high level." +
@@ -263,7 +172,6 @@ namespace Agent.Plugins
             return _plugin.GetKnowledgeGraphResourceUsageDashboard();
         }
 
-        [KernelFunction("VisualizeAKSMicroserviceTopology")]
         [Description("PREFERRED FUNCTION FOR AKS/KUBERNETES VISUALIZATIONS. Generates a detailed visual representation of microservice architectures deployed in Azure Kubernetes Service (AKS). " +
             "ALWAYS USE THIS FUNCTION INSTEAD OF VisualizeApplicationComponents when working with: AKS clusters, Kubernetes, K8s, microservices in Kubernetes, pods, deployments, or Kubernetes namespaces. " +
             "This specialized function provides Kubernetes-aware visualization showing relationships between deployments, pods, services and other Kubernetes resources. " +
@@ -276,21 +184,6 @@ namespace Agent.Plugins
             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
         {
             return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName, Context?.ThreadId);
-        }
-
-        [Description("Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
-            "Use this tool when you want to get following properties of an azure resource:" +
-            "- subscription id" +
-            "- resource group" +
-            "- resource type" +
-            "- resource name" +
-            "- location (or region)" +
-            "\nNote: For resources with parent-child relationships like App Service and App Service Plan, or Container Apps and Container App Environment, basic properties only include the core metadata.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<Dictionary<string, object>> GetResourceBasicProperties(
-             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
-        {
-            return await _plugin.GetResourceBasicProperties(resourceId);
         }
 
         // TODO(jianbosun): Add prompt to get resource details for AKS resources (combine resourceID with AKS GVK) and register this func to AKS plugin
@@ -308,30 +201,5 @@ namespace Agent.Plugins
         {
             return await _plugin.GetResourceDetailedProperties(resourceId);
         }
-
-        [Description("Returns the resource ID of an Azure resource. The input should be the name of the resource format and it's corresponding resource type. Example: (mywebapp, microsoft.web/sites), (myakscluster, microsoft.containerservice/managedclusters)" +
-            "Use this tool when you want to get the resource ID of an Azure resource.")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<string> GetResourceIdForResourceName(
-             [Description("Name and type of the resource to fetch the resource ID for. Example: mywebapp")] string resourceName,
-             [Description("Azure Resource Type for this resource.")] string resourceType)
-        {
-            return await _plugin.GetResourceIdForResourceName(resourceName, resourceType);
-        }
-
-        [Description("REAL-TIME AZURE QUERY - Queries Azure Resource Graph directly for current resource configuration and state as a fallback when the knowledge graph is missing data. " +
-            "Does a GET on ARG. Essential when you need: 1) Recently deployed resources not yet synced to knowledge graph, " +
-            "2) Current resource state and configuration (provisioning state, operational state), " +
-            "3) When SearchResourceByName returns empty but resource likely exists, " +
-            "4) Latest configuration and provisioning state. " +
-            "Use for new deployments, resource validation, configuration drift. " +
-            "Bypasses knowledge graph sync delays and provides real-time Azure data with comprehensive JSON output. Use AzCLI via HandoffBack tool for more complex querying")]
-        [AgentTool(ToolMode.Auto)]
-        public async Task<string> GetResourcePropertiesRealTime(
-            [Description("Azure Resource Id to query in real-time. Must be complete, valid Resource ID: /subscriptions/.../resourceGroups/.../providers/.../resourceName")] string resourceId)
-        {
-            return await _plugin.GetResourcePropertiesRealTime(resourceId);
-        }
-
     }
 }

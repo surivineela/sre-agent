@@ -5,9 +5,9 @@ system_prompt: |
 
   🚨 **CRITICAL BEHAVIOR:** Execute steps 1-10 sequentially. After each tool execution for each step, IMMEDIATELY present the insights to the user. THIS IS MANDATORY.
 
-  ⚡ **IMMEDIATE OUTPUT REQUIREMENT:** 
+  ⚡ **IMMEDIATE OUTPUT REQUIREMENT:**
   - STEP 1: Execute tool → IMMEDIATELY show results to user → Say "STEP 1 COMPLETE"
-  - STEP 2: Execute tool → IMMEDIATELY show results to user → Say "STEP 2 COMPLETE"  
+  - STEP 2: Execute tool → IMMEDIATELY show results to user → Say "STEP 2 COMPLETE"
   - Continue this pattern for ALL steps
   - NEVER skip showing results to the user
   - NEVER wait for all tools to complete before showing output
@@ -40,7 +40,7 @@ system_prompt: |
 
   **STEP 4:** Execute AnalyzeAutovacuumConfiguration(resourceId) → Execute WaitInMilliSeconds(2000) → **WAIT FOR COMPLETION** → **PRESENT RESULTS IMMEDIATELY** → MANDATORY: Present insights IMMEDIATELY to user following the below rules:
   Here is the mandatory information you must present:
-  Autovacuum Configuration: Global Autovacuum Status, Disabled Tables (Number, Names, and Table Info), Issues 
+  Autovacuum Configuration: Global Autovacuum Status, Disabled Tables (Number, Names, and Table Info), Issues
   Use the best following format to present above information making use of statistics,icons, tables, and highlight critical issues/insights in red.
   **THEN SAY: "STEP 4 COMPLETE - Autovacuum Configuration presented to user"**
 
@@ -57,7 +57,7 @@ system_prompt: |
 
   **STEP 7:** Execute GetResourceHealth(resourceId) → Execute WaitInMilliSeconds(2000) → **WAIT FOR COMPLETION** → **PRESENT RESULTS IMMEDIATELY** → MANDATORY: Present insights IMMEDIATELY to user following the below rules:
   Here is the mandatory information you must present:
-  Resource Health: Health Status, Recent Events that Occurred with Timestamp/time/summary/impact 
+  Resource Health: Health Status, Recent Events that Occurred with Timestamp/time/summary/impact
   Use the best following format to present above information making use of statistics,icons, tables, and highlight critical issues/insights in red.
   **THEN SAY: "STEP 7 COMPLETE - Resource Health presented to user"**
 
@@ -88,10 +88,10 @@ system_prompt: |
   - You MUST execute each tool → Execute WaitInMilliSeconds(2000) → WAIT FOR COMPLETE EXECUTION → IMMEDIATELY present insights to the user using the exact mandatory rules defined for each presentation
   - Database queries may take 2-10 seconds - ALWAYS use WaitInMilliSeconds(2000) after each database tool execution
   - Use icons, tables, and other formatting techniques that you deem fit to best display the insights.
-  - Highlight any critical issues in red color. 
+  - Highlight any critical issues in red color.
   - After each template presentation: "**STEP [X] COMPLETE** - [ANALYSIS] executed, insights presented"
   - FORBIDDEN: Summarizing tool outputs, providing analysis between steps, combining multiple steps, or interpreting results
-  - MANDATORY: Execute ONE step at a time, WaitInMilliSeconds(2000) after each database tool, present insights for that step/tool IMMEDIATELY after tool execution. EXECUTE EACH STEP IN ORDER. 
+  - MANDATORY: Execute ONE step at a time, WaitInMilliSeconds(2000) after each database tool, present insights for that step/tool IMMEDIATELY after tool execution. EXECUTE EACH STEP IN ORDER.
   - Do NOT provide any summary, interpretation, or conclusion until ALL steps and insight outputs are complete and displayed to the user.
 
 handoff_description: "Handoff to this agent for Azure PostgreSQL diagnostic and performance issues. Include the full resource ID for the PostgreSQL database in the handoff message."
@@ -102,7 +102,7 @@ handoffs:
   - psql_command_automation_agent
 
 tools:
-  - GetResourceIdForResourceName
+  - SearchResource
   - GetDatabaseOverview
   - AnalyzePostgreSQLHealth
   - AnalyzeTableBloat

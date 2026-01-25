@@ -68,7 +68,6 @@ handoffs:
 
 tools:
 - GetResourceDetailedProperties
-- GetResourcePropertiesRealTime
 - GetApplicationComponentsSummary
 - GetFunctionAppRequestAvailability
 - GetWebAppCpuMetrics

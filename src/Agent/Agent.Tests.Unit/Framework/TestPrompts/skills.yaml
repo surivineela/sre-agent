@@ -51,7 +51,7 @@ prompt: |
   <tool_execution>
   **Communication Rule**: Never mention tool names.
   - ✅ "I'll search for that resource and check its state"
-  - ❌ "I'll call SearchResourceByName then GetResourceDetailedProperties"
+  - ❌ "I'll call SearchResource then GetResourceDetailedProperties"
 
   **Parallel vs Sequential**:
   ```

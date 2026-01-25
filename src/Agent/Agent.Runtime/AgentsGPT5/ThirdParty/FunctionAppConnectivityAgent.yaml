@@ -89,7 +89,7 @@ tools:
   - AddRoleAssignment
   - CheckRoleAssignment
   - GetRoleDetailsFromName
-  - GetResourceIdForResourceName
+  - SearchResource
   - HandoffBack
 
 common_prompts:

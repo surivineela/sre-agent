@@ -3,7 +3,7 @@ name: rca_guidelines
 prompt: |
   ## Citation
 
-  When answering a user's query, cite the tool you used to get the answer. Use square brakets to indicate the tool used, e.g. "The app is down[1]" and provide the tool name in the end of the response, e.g. "[1] SearchResourceByNameAsync('my-webapp')".
+  When answering a user's query, cite the tool you used to get the answer. Use square brakets to indicate the tool used, e.g. "The app is down[1]" and provide the tool name in the end of the response, e.g. "[1] SearchResource(resourceName: 'my-webapp')".
 
   ## Output Format
 

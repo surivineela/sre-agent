@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
 using Gremlin.Net.Driver;
@@ -143,37 +142,17 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<dynamic> SearchResourceByNameAsync(string resourceName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<dynamic>> ListSubscriptionsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string> FetchAndSummarizeActivityLogs(string resourceId, int hoursBack = 30, Guid? threadId = null)
+        public Task<List<object>> SearchResourceAsync(
+            string? resourceName,
+            List<string>? resourceTypes = null,
+            string? subscriptionId = null,
+            string? location = null,
+            int limit = 50)
         {
             throw new NotImplementedException();
         }
 
         public Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
         {
             throw new NotImplementedException();
         }
@@ -200,11 +179,6 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult("No dependency information available");
         }
 
-        public Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
             throw new NotImplementedException();
@@ -221,10 +195,24 @@ namespace Agent.Plugins.Mocks
             return _reposScanned;
         }
 
-        public Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
+        #region Internal Methods (not exposed to LLM)
+
+        public Task<List<dynamic>> ListSubscriptionsAsync()
         {
-            return Task.FromResult<string>("/subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp");
+            throw new NotImplementedException();
         }
+
+        public Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
 
         public Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null)
         {
@@ -239,11 +227,6 @@ namespace Agent.Plugins.Mocks
         public Task<string> GetChangeHistory(string correlationId, string resourceId, Guid? threadId = null)
         {
             return Task.FromResult($"Mock change history for correlation ID: {correlationId} and resource: {resourceId}");
-        }
-
-        public Task<string> GetResourcePropertiesRealTime(string resourceId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

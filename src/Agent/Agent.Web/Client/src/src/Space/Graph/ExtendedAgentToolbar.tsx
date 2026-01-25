@@ -8,7 +8,10 @@ import { ExtendedAgentsGraphResources, PlaygroundResources } from '../../Strings
 import { CopilotRadio as Radio } from '../Components/Common/CopilotRadio';
 import { DirtyStateContext } from '../Contracts/Context';
 import { ExtendedAgentGraphView } from '../Contracts/ExtendedAgentGraph';
-import { DirtyStateOnChangeConfirmationWrapper, DirtyStateOnClickConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
+import {
+    DirtyStateOnChangeConfirmationWrapper,
+    DirtyStateOnClickConfirmationWrapper,
+} from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
 import { useCommonStyles } from '../Styles/Common.styles';
 import { useExtendedAgentGraphStyles } from '../Styles/ExtendedAgentGraph.styles';
 import CreateButton from './CreateButton';
@@ -63,29 +66,15 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
                     layout="horizontal"
                     onChange={(_, data) => onViewChange(data.value as ExtendedAgentGraphView)}
                 >
-                    <Radio
-                        value={ExtendedAgentGraphView.Canvas}
-                        label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)}
-                    />
-                    <Radio
-                        value={ExtendedAgentGraphView.Table}
-                        label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)}
-                    />
-                    <Radio
-                        value={ExtendedAgentGraphView.Playground}
-                        label={intl.formatMessage(PlaygroundResources.testPlayground)}
-                    />
+                    <Radio value={ExtendedAgentGraphView.Canvas} label={intl.formatMessage(ExtendedAgentsGraphResources.canvasView)} />
+                    <Radio value={ExtendedAgentGraphView.Table} label={intl.formatMessage(ExtendedAgentsGraphResources.tableView)} />
+                    <Radio value={ExtendedAgentGraphView.Playground} label={intl.formatMessage(PlaygroundResources.testPlayground)} />
                 </RadioGroup>
             </DirtyStateOnChangeConfirmationWrapper>
             <div className={toolbarRefreshButton}>
                 <DividerTall20Regular color={tokens.colorNeutralStroke2} />
                 <DirtyStateOnClickConfirmationWrapper isDirty={isDirty}>
-                    <Button
-                        appearance="transparent"
-                        icon={<ArrowClockwise20Regular />}
-                        onClick={onRefresh}
-                        disabled={isLoading}
-                    >
+                    <Button appearance="transparent" icon={<ArrowClockwise20Regular />} onClick={onRefresh} disabled={isLoading}>
                         {intl.formatMessage(ExtendedAgentsGraphResources.refreshGraphButton)}
                     </Button>
                 </DirtyStateOnClickConfirmationWrapper>

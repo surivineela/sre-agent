@@ -2,7 +2,7 @@
 name: postgresql
 description: Load this skill when the user asks about Azure Database for PostgreSQL performance (CPU, memory, connections, storage), autovacuum status, table bloat or dead tuples, configuration validation, connectivity failures, slow / blocking queries, index usage, or how to remediate issues.
 tools:
-  - GetResourceIdForResourceName
+  - SearchResource
   - GetDatabaseOverview
   - AnalyzePostgreSQLHealth
   - AnalyzeTableBloat

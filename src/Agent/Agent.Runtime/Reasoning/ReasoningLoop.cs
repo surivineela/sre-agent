@@ -1677,7 +1677,7 @@ public class ReasoningLoop : IDisposable
                 }
             }
 
-            return tools;
+            return [.. tools.DistinctBy(t => t.Name)];
         };
 
         hooks.AgentStart += (context, agent) =>
@@ -2807,7 +2807,7 @@ public class ReasoningLoop : IDisposable
                 return;
             }
 
-            var deleted = await _searchIndexService.DeleteContentsAsync(memories.Select(m => new AgentMemory() { Id = m.Id }).ToList());
+            var deleted = await _searchIndexService.DeleteContentsAsync([.. memories.Select(m => new AgentMemory() { Id = m.Id })]);
 
             var responseText = deleted ? "✅ Agent Memory forgotten: " + memories.First().Chunk : "Failed to forget memory. Please try again.";
 

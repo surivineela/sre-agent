@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
@@ -42,6 +43,21 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
     private readonly IYamlToolFunctionFactory<TContext> _yamlToolFunctionFactory;
     private readonly bool _handoffReasoningEnabled;
     private readonly bool _enableAggregateToolFunction;
+
+    /// <summary>
+    /// Maps deprecated tool names to their replacement tool names for backwards compatibility.
+    /// Custom agents referencing old tool names will automatically use the new tool.
+    /// </summary>
+    private static readonly ImmutableDictionary<string, string> _deprecatedToolAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["GetResourcePropertiesRealTime"] = "SearchResource",
+        ["SearchResourceByName"] = "SearchResource",
+        ["GetResourceIdForResourceName"] = "SearchResource",
+        ["ListSubscriptions"] = "SearchResource",
+        ["ListResourceGroups"] = "SearchResource",
+        ["ListResourcesByType"] = "SearchResource",
+        ["GetResourceBasicProperties"] = "GetResourceDetailedProperties"
+    }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 
     public int RegisteredToolCount => _tools.Count;
 
@@ -535,6 +551,11 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
     public bool HasTool(string name)
     {
+        if (_deprecatedToolAliases.TryGetValue(name, out var newToolName))
+        {
+            name = newToolName;
+        }
+
         return _tools.ContainsKey(name);
     }
 
@@ -622,6 +643,13 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
 
     private AIFunction DoFindAIFunction(string name, Guid? threadId = null, string? agentMode = null, Agent<TContext>? agent = null)
     {
+        var originalName = name;
+        if (_deprecatedToolAliases.TryGetValue(name, out var newToolName))
+        {
+            _logger.LogInternalWarning("Tool '{deprecatedName}' is deprecated. Using '{newToolName}' instead.", name, newToolName);
+            name = newToolName;
+        }
+
         if (_tools.TryGetValue(name, out var function))
         {
             try
@@ -635,7 +663,7 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
             }
         }
 
-        _logger.LogInternalError("Function '{functionName}' not found.", name);
-        throw new KeyNotFoundException($"Function '{name}' not found.");
+        _logger.LogInternalError("Function '{functionName}' not found.", originalName);
+        throw new KeyNotFoundException($"Function '{originalName}' not found.");
     }
 }

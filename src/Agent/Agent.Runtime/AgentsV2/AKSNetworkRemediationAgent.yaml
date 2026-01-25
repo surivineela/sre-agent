@@ -22,8 +22,7 @@ system_prompt: |
 handoff_description: "Handoff to this agent when dealing with AKS network connectivity issues, DNS problems, ingress/egress failures, network policies, or any networking-related troubleshooting in Kubernetes clusters."
 
 tools:
-  - SearchResourceByName
-  - ListResourcesByType
+  - SearchResource
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
   - GetKubeResourceMetricsRange

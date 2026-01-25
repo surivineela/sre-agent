@@ -14,8 +14,7 @@ tools:
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
   - RunKubectlCommandHelp
-  - SearchResourceByName
-  - ListResourcesByType
+  - SearchResource
   - GetKubeResourceMetricsRange
   - RunAzCliReadCommands
   - RemoveNSGRule

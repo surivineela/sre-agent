@@ -593,13 +593,6 @@ The available tools go below:
     ]
   },
   {
-    "Name": "SearchResourceByName",
-    "Description": "Searches for Azure resources by name pattern only in the knowledge graph. This function is useful when you need to: 1) Find specific resources without knowing the exact resource ID, 2) Find resources matching a naming pattern, or 3) Verify if resources exist before performing operations on them. Returns a list of matching resources with their details.",
-    "Parameters": [
-      "resourceName"
-    ]
-  },
-  {
     "Name": "GetResourceCount",
     "Description": "Gets the count of Azure resources of a specified type in the knowledge graph. This function is useful when you need to: 1) Get an inventory of resources by type, 2) Validate quantity of deployed resources against expected counts, 3) Monitor resource proliferation over time, or 4) Get statistics about your Azure environment composition. Returns a count of matching resources and can group by specific properties.",
     "Parameters": [
@@ -608,15 +601,15 @@ The available tools go below:
     ]
   },
   {
-    "Name": "ListSubscriptions",
-    "Description": "Returns a list of all Azure subscription IDs present in the knowledge graph. This function is useful when you need to: 1) Discover available subscriptions, 2) Verify subscription visibility to the agent, 3) Get subscription IDs for use with other commands, or 4) Perform an inventory of monitored subscriptions. The output is a list of subscription IDs without additional details.",
-    "Parameters": []
-  },
-  {
-    "Name": "ListResourceGroups",
-    "Description": "Returns a list of all Azure resource groups present in the knowledge graph. This function is useful when you need to: 1) Discover available resource groups, 2) Verify resource group visibility to the agent, 3) Get resource group names for use with other commands, or 4) Perform an inventory of monitored resource groups. The output is a list of resource group names without additional details.",
+    "Name": "SearchResource",
+    "Description": "Searches for resources by partial name, resource types, and/or other filters. At least one filter parameter must be provided. When multiple filters are provided, AND logic is applied. Use resourceTypes: ['subscription'] to list subscriptions, resourceTypes: ['resourcegroups'] with optional subscriptionId to list resource groups, or resourceTypes: ['microsoft.web/sites'] etc. for other resource types. Results include resourceId, resourceName, location (plus clusterResourceId/namespace for K8s).",
     "Parameters": [
-      "subscriptionId"
+      "resourceName",
+      "resourceTypes",
+      "subscriptionId",
+      "resourceGroupName",
+      "location",
+      "limit"
     ]
   },
   {
@@ -626,17 +619,6 @@ The available tools go below:
       "resourceId",
       "hoursBack",
       "threadId"
-    ]
-  },
-  {
-    "Name": "ListResourcesByType",
-    "Description": "Returns a list of Azure resources OR Kubernetes-native resources of a specified type/kind, with their property details as recorded in the knowledge graph. Supports filtering by properties like AKS cluster ID (for Kubernetes), or resource group (for ARM). This function is useful when you need to: 1) Get an inventory of resources of a specific type and any additional filter on property, 2) Examine tracked configuration properties of resources, 3) Gather metadata for resources across your Azure environment, or The output is a list of resource objects with all their properties. Each resource includes details like name, location, resource group, and type-specific configuration.Use pagination with \u0027skip\u0027 and \u0027take\u0027. If user asked for listing all resources, set \u0027take\u0027 to a negative number like -1 to return all resources without pagination.If the total number of matching resources is large, only the first 50 will be returned.The agent should inform the user that the list is partial if more resources exist, and offer to retrieve more if needed.",
-    "Parameters": [
-      "resourceType",
-      "propertyName",
-      "propertyValue",
-      "skip",
-      "take"
     ]
   },
   {
@@ -655,25 +637,10 @@ The available tools go below:
     ]
   },
   {
-    "Name": "GetResourceBasicProperties",
-    "Description": "Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebappUse this tool when you want to get following properties of an azure resource:- subscription id- resource group- resource type- resource name- location (or region)\nNote: For resources with parent-child relationships like App Service and App Service Plan, or Container Apps and Container App Environment, basic properties only include the core metadata.",
-    "Parameters": [
-      "resourceId"
-    ]
-  },
-  {
     "Name": "GetResourceDetailedProperties",
     "Description": "Returns resource-specific properties along with basic metadata for an Azure resource identified by its ResourceId. Input must be in Azure ResourceId format (e.g., /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp). \nResource-specific properties include:\n- For App Service/Web/Function Apps: hosting plan, VNET, TLS, workers, auto-heal, health checks, runtime stack, App Insights. \n- For App Service Plans: workers, status, zone redundancy, region, kind. \n- For Container Apps: state, profile, access, containers, scaling. Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries (example zone redundancy, sku etc).This function will return all properties directly attached to the requested resource. Also retuns Health Scorecard for the resource if available",
     "Parameters": [
       "resourceId"
-    ]
-  },
-  {
-    "Name": "GetResourceIdForResourceName",
-    "Description": "Returns the resource ID of an Azure resource. The input should be the name of the resource format and it\u0027s corresponding resource type. Example: (mywebapp, microsoft.web/sites), (myakscluster, microsoft.containerservice/managedclusters)Use this tool when you want to get the resource ID of an Azure resource.",
-    "Parameters": [
-      "resourceName",
-      "resourceType"
     ]
   },
   {

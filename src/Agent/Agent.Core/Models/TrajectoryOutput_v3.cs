@@ -107,7 +107,7 @@ public sealed class TrajectoryOutput_v3
     Separate multiple pitfalls with newlines.
     Example:
     - Did: Checked application logs first. Should: Call `transfer_to_network_diagnostics_agent` to verify connectivity before application layer
-    - Did: Used generic `SearchResourceByName` without filters. Should: Use `ListResourcesByType` with subscription/resource group parameters
+    - Did: Used generic `SearchResource` without filters. Should: Use `SearchResource` with resourceTypes/subscriptionId/resourceGroupName filters
     """)]
     public required string Pitfalls { get; set; }
 
