@@ -87,7 +87,7 @@ const AgentMessage = ({
                 <TodoPlanChatMessage todoPlan={message.todoInfo} />
             ) : message.error ? (
                 <ErrorChatMessage error={message.error} />
-            ) : message.memorySearchResult ? (
+            ) : message.memorySearchResult && message.memorySearchResult.totalResults > 0 ? (
                 <MemoryChatMessage memorySearchResult={message.memorySearchResult} />
             ) : message.knowledgeGraphSearchResult ? (
                 <KnowledgeGraphChatMessage knowledgeGraphSearchResult={message.knowledgeGraphSearchResult} />
