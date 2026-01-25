@@ -8,11 +8,12 @@ import {
     makeStyles,
     mergeClasses,
 } from '@fluentui/react-components';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { Reasoning } from '../Contracts/Activities';
@@ -116,7 +117,7 @@ const useStyles = makeStyles({
     panelContent: {
         padding: '16px 20px',
         overflowY: 'auto',
-        maxHeight: '450px',
+        maxHeight: '350px',
     },
     headerWithTime: {
         display: 'flex',
@@ -253,36 +254,73 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
 
     // Track if accordion should be open - default to open only if currently active
     const [openItems, setOpenItems] = useState<string[]>(reasoning.active ? [THINK_MODE] : []);
-    const [startTime, setStartTime] = useState<number | null>(reasoning.active ? Date.now() : null);
-    const [elapsedTime, setElapsedTime] = useState<string | null>(null);
     const itemCountRef = useRef(reasoning.items.length);
+    const wasActiveRef = useRef(reasoning.active);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
-    // Track time and collapse when new messages appear
-    useEffect(() => {
-        if (reasoning.active) {
-            // Thinking is active - ensure accordion is open and track start time
-            if (!startTime) {
-                setStartTime(Date.now());
-            }
-            setOpenItems([THINK_MODE]);
-        } else if (startTime && !elapsedTime) {
-            // Thinking just completed - calculate elapsed time and keep open
-            const elapsed = Date.now() - startTime;
-            const seconds = Math.round(elapsed / 1000);
-            setElapsedTime(seconds > 0 ? `${seconds}s` : '<1s');
-            setOpenItems([THINK_MODE]);
+    // Extract timestamps as stable dependencies to ensure recalculation when items are updated
+    const firstTimestamp = reasoning.items.length > 0 ? reasoning.items[0].timestamp : null;
+    const lastTimestamp = reasoning.items.length > 0 ? reasoning.items[reasoning.items.length - 1].timestamp : null;
+
+    // Calculate elapsed time from min/max of all reasoning item timestamps
+    const elapsedTime = useMemo(() => {
+        if (reasoning.active || reasoning.items.length === 0) {
+            return null;
         }
 
-        // Detect if new items appeared after this reasoning (indicating a new message)
-        // This happens when reasoning is done and the items array grows with new content
-        if (!reasoning.active && reasoning.items.length > itemCountRef.current) {
-            // New message appeared - collapse the accordion
+        // Get all valid timestamps
+        const timestamps = reasoning.items
+            .map(item => (item.timestamp ? getSafeDateTime(item.timestamp).getTime() : null))
+            .filter((t): t is number => t !== null);
+
+        // Show <1s when there's only 1 timestamp or no valid timestamps
+        if (timestamps.length < 2) {
+            return '<1s';
+        }
+
+        const startTime = Math.min(...timestamps);
+        const endTime = Math.max(...timestamps);
+        const elapsed = endTime - startTime;
+        const seconds = Math.round(elapsed / 1000);
+        return seconds > 0 ? `${seconds}s` : '<1s';
+    }, [reasoning.active, reasoning.items.length, firstTimestamp, lastTimestamp]);
+
+    // Check if scroll is at bottom (within threshold)
+    const isScrolledToBottom = useCallback(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return true;
+        const threshold = 50;
+        return container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    }, []);
+
+    // Handle scroll events to detect if user scrolled away from bottom
+    const handleScroll = useCallback(() => {
+        const atBottom = isScrolledToBottom();
+        setAutoScrollEnabled(atBottom);
+    }, [isScrolledToBottom]);
+
+    // Auto-scroll to bottom when new items are added (if auto-scroll is enabled)
+    useEffect(() => {
+        if (autoScrollEnabled && scrollContainerRef.current && reasoning.active) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+        }
+    }, [reasoning.items.length, autoScrollEnabled, reasoning.active]);
+
+    // Track state changes for accordion behavior
+    useEffect(() => {
+        if (reasoning.active) {
+            // Thinking is active - ensure accordion is open
+            setOpenItems([THINK_MODE]);
+        } else {
+            // Thinking is not active - always collapse
             setOpenItems([]);
         }
 
-        // Update item count reference
+        // Update refs
+        wasActiveRef.current = reasoning.active;
         itemCountRef.current = reasoning.items.length;
-    }, [reasoning.active, reasoning.items.length, startTime, elapsedTime]);
+    }, [reasoning.active, reasoning.items.length]);
 
     const items = useMemo(() => {
         const getHeaderAndContent = (content: string) => {
@@ -309,15 +347,27 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
     }, [reasoning]);
 
     const reasoningHeader = useMemo(() => {
-        const lastMessage = items.length > 0 ? items[items.length - 1].header : items[items.length - 1].details;
+        // Get the first item's header as the summary
+        const firstItemHeader = items.length > 0 ? items[0].header : '';
+        const lastItemHeader = items.length > 0 ? items[items.length - 1].header : '';
+
         if (!reasoning.active) {
+            // When completed: show dynamic summary (first item's header)
+            if (firstItemHeader) {
+                return {
+                    content: firstItemHeader,
+                    isMarkdown: true,
+                };
+            }
+            // Fallback to "Thought process" if no header available
             return {
                 content: intl.formatMessage(ActivitiesResources.thoughtProcess),
                 isMarkdown: false,
             };
-        } else if (lastMessage) {
+        } else if (lastItemHeader) {
+            // During active thinking: show last item's header (streaming progress)
             return {
-                content: lastMessage,
+                content: lastItemHeader,
                 isMarkdown: true,
             };
         } else {
@@ -352,7 +402,7 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
                     </div>
                 </AccordionHeader>
                 <AccordionPanel>
-                    <div className={mergeClasses(styles.panelContent, scrollable)}>
+                    <div ref={scrollContainerRef} onScroll={handleScroll} className={mergeClasses(styles.panelContent, scrollable)}>
                         {items.map((item, index) => (
                             <div key={item.messageId} className={styles.reasoningStep}>
                                 {index === items.length - 1 && reasoning.active ? (

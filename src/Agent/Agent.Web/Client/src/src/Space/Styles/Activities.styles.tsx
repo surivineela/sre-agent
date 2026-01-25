@@ -506,7 +506,7 @@ export const useThreadActionsStyles = makeStyles({
         wordBreak: 'break-word',
     },
     pendingIcon: {
-        backgroundColor: tokens.colorPaletteBlueBorderActive,
+        backgroundColor: tokens.colorNeutralStroke1,
         borderRadius: tokens.borderRadiusCircular,
         display: 'flex',
         justifyContent: 'center',

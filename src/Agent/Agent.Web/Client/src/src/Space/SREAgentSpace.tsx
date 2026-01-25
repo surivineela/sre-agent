@@ -220,7 +220,7 @@ const TabsListWrapper: FC = () => {
                                 selectedValue={getNavItemIdFromPathName(location.pathname)}
                                 selectedCategoryValue={getCategoryNavItemIdFromPathName(location.pathname)}
                                 style={{
-                                    width: isNavOpen ? '240px' : '48px',
+                                    width: isNavOpen ? '280px' : '48px',
                                     transition: 'width 0.25s ease',
                                     height: '100%',
                                     padding: `${copilotTokens.spacingVerticalS} 0px 0px 0px`,

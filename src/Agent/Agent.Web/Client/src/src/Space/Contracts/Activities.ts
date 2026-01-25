@@ -166,6 +166,7 @@ export interface IChatMessageGroupProps {
 export interface ReasoningItem {
     messageId: string;
     content: string;
+    timestamp?: string;
 }
 
 export interface Reasoning {

@@ -71,6 +71,9 @@ const ICON_LOOKUP: Record<string, string> = {
     //mcp
     customconnector: 'MCP server.svg',
 
+    // Incident Management
+    icm: 'IcM.svg',
+
     // Others Azure Resource Types
     'microsoft.documentdb/databaseaccounts': 'CosmosDB.svg',
     'microsoft.eventgrid/topics': 'EventGridTopic.svg',

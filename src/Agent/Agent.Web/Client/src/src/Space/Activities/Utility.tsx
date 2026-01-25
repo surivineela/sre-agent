@@ -555,6 +555,7 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
                   {
                       messageId,
                       content: messageContent?.text || '',
+                      timestamp: streamingMessage.createdAt || '',
                   },
               ],
           }
@@ -801,6 +802,7 @@ export const convertMessageToChatMessage = (message: Message): ChatMessage => {
                       {
                           messageId: message.id,
                           content: message.text,
+                          timestamp: message.timeStamp,
                       },
                   ],
               }

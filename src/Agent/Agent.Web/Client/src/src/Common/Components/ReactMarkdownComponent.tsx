@@ -28,6 +28,7 @@ import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { getAgentHeaders } from '../Helpers/headers';
+import CopyButton from './CopyButton';
 
 const useStyles = makeStyles({
     chatRoot: {
@@ -36,25 +37,47 @@ const useStyles = makeStyles({
         borderRadius: tokens.borderRadiusXLarge,
     },
     codeInline: {
-        backgroundColor: tokens.colorNeutralBackground6,
+        backgroundColor: tokens.colorNeutralBackground4,
         fontFamily: tokens.fontFamilyMonospace,
         fontSize: tokens.fontSizeBase200,
         display: 'inline-block',
-        padding: '2px 4px',
-        borderRadius: tokens.borderRadiusSmall,
+        padding: '2px 6px',
+        borderRadius: tokens.borderRadiusMedium,
+    },
+    codeBlockWrapper: {
+        position: 'relative' as const,
+        backgroundColor: tokens.colorNeutralBackground4,
+        borderRadius: tokens.borderRadiusLarge,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        marginTop: tokens.spacingVerticalS,
+        marginBottom: tokens.spacingVerticalS,
+    },
+    codeBlockCopyButton: {
+        position: 'absolute' as const,
+        top: '8px',
+        right: '8px',
+        opacity: 0.7,
+        ':hover': {
+            opacity: 1,
+        },
     },
     codeBlockInPre: {
         backgroundColor: tokens.colorTransparentBackground,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: tokens.fontSizeBase200,
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, monospace',
+        fontSize: '14px',
         display: 'block',
+        whiteSpace: 'pre',
+        color: tokens.colorNeutralForeground1,
+        lineHeight: '1.6',
     },
     pre: {
         overflowX: 'auto',
-        overflowY: 'hidden',
-        backgroundColor: tokens.colorNeutralBackground6,
-        borderRadius: tokens.borderRadiusSmall,
-        padding: '15px',
+        overflowY: 'auto',
+        maxHeight: '400px',
+        backgroundColor: tokens.colorTransparentBackground,
+        borderRadius: tokens.borderRadiusLarge,
+        padding: '14px',
+        margin: 0,
     },
     h3: { fontWeight: '600', fontSize: '14px', lineHeight: '20px' },
     h2: { fontWeight: '600', fontSize: '16px', lineHeight: '22px' },
@@ -72,6 +95,12 @@ const useStyles = makeStyles({
     },
     ul: {
         lineHeight: '26px',
+    },
+    tableWrapper: {
+        overflowX: 'auto',
+        maxWidth: '100%',
+        marginTop: tokens.spacingVerticalM,
+        marginBottom: tokens.spacingVerticalM,
     },
 });
 
@@ -144,7 +173,7 @@ const extractText = (children: MarkdownNode[] | undefined): string => {
         .join('');
 };
 
-const SortableTable = memo(({ tableData }: SortableTableProps) => {
+const SortableTable = memo(({ tableData, className }: SortableTableProps & { className?: string }) => {
     const items: TableItem[] = useMemo(() => {
         return tableData.rows.map((row, index) => {
             const item: TableItem = { id: index.toString() };
@@ -219,16 +248,8 @@ const SortableTable = memo(({ tableData }: SortableTableProps) => {
     const rows = sort(getRows());
 
     return (
-        <div style={{ overflowX: 'auto' }}>
-            <Table
-                sortable
-                ref={tableRef}
-                {...columnSizing_unstable.getTableProps()}
-                style={{
-                    marginTop: tokens.spacingVerticalM,
-                    marginBottom: tokens.spacingVerticalM,
-                }}
-            >
+        <div className={className}>
+            <Table sortable ref={tableRef} {...columnSizing_unstable.getTableProps()}>
                 <TableHeader>
                     <TableRow>
                         {columns.map(column => (
@@ -247,7 +268,7 @@ const SortableTable = memo(({ tableData }: SortableTableProps) => {
                         <TableRow key={item.id}>
                             {tableData.headers.map(header => (
                                 <TableCell key={header} {...columnSizing_unstable.getTableCellProps(header)}>
-                                    <TableCellLayout truncate>{item[header] || '-'}</TableCellLayout>
+                                    <TableCellLayout>{item[header] || '-'}</TableCellLayout>
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -258,7 +279,7 @@ const SortableTable = memo(({ tableData }: SortableTableProps) => {
     );
 });
 
-const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any): JSX.Element | null => {
+const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any, tableWrapperClass: string): JSX.Element | null => {
     const { node } = props;
 
     try {
@@ -292,7 +313,7 @@ const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any): JSX.El
             }
         }
 
-        return <SortableTable tableData={{ headers, rows }} />;
+        return <SortableTable tableData={{ headers, rows }} className={tableWrapperClass} />;
     } catch (error) {
         proxy.log({
             action: 'MarkdownTableParsing',
@@ -305,15 +326,15 @@ const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any): JSX.El
             },
         });
         return (
-            <Table
-                style={{
-                    tableLayout: 'auto',
-                    marginTop: tokens.spacingVerticalM,
-                    marginBottom: tokens.spacingVerticalM,
-                }}
-            >
-                {props.children}
-            </Table>
+            <div className={tableWrapperClass}>
+                <Table
+                    style={{
+                        tableLayout: 'auto',
+                    }}
+                >
+                    {props.children}
+                </Table>
+            </div>
         );
     }
 };
@@ -428,11 +449,29 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default', isUse
                         const cls = isInPre ? styles.codeBlockInPre : styles.codeInline;
                         return <code className={cls}>{props.children}</code>;
                     },
-                    pre: (props: any) => <pre className={styles.pre}>{props.children}</pre>,
+                    pre: (props: any) => {
+                        // Extract text content for copy button
+                        const getTextContent = (node: any): string => {
+                            if (typeof node === 'string') return node;
+                            if (Array.isArray(node)) return node.map(getTextContent).join('');
+                            if (node?.props?.children) return getTextContent(node.props.children);
+                            return '';
+                        };
+                        const codeText = getTextContent(props.children);
+
+                        return (
+                            <div className={styles.codeBlockWrapper}>
+                                <div className={styles.codeBlockCopyButton}>
+                                    <CopyButton textToCopy={codeText} buttonAppearance="transparent" />
+                                </div>
+                                <pre className={styles.pre}>{props.children}</pre>
+                            </div>
+                        );
+                    },
                     ul: (props: any) => <ul className={styles.ul}>{props.children}</ul>,
                     ol: (props: any) => <ol className={styles.ol}>{props.children}</ol>,
                     li: (props: any) => <li>{props.children}</li>,
-                    table: (props: any) => renderMarkdownTable(props, proxy),
+                    table: (props: any) => renderMarkdownTable(props, proxy, styles.tableWrapper),
                     // Simple fallback table components
                     thead: ({ children }: any) => <TableHeader>{children}</TableHeader>,
                     tbody: ({ children }: any) => <TableBody>{children}</TableBody>,
