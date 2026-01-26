@@ -2,7 +2,6 @@ import {
     createTableColumn,
     Link,
     makeStyles,
-    mergeClasses,
     Subtitle1,
     Subtitle2,
     Table,
@@ -121,8 +120,6 @@ interface ReactMarkdownComponentProps {
     content?: string | null;
     className?: string;
     variant?: 'chat' | 'panel' | 'default';
-    /** When variant === 'chat', controls bubble styling like user vs assistant */
-    isUserMessage?: boolean;
 }
 
 interface MarkdownNode {
@@ -339,10 +336,11 @@ const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any, tableWr
     }
 };
 
-const ReactMarkdownComponent = ({ content, className, variant = 'default', isUserMessage }: ReactMarkdownComponentProps) => {
+const ReactMarkdownComponent = ({ content, className, variant = 'default' }: ReactMarkdownComponentProps) => {
     const styles = useStyles();
     const proxy = useContext(AzPortalContext);
-    const rootClass = mergeClasses(className, variant === 'chat' && !isUserMessage ? styles.chatRoot : undefined);
+    // Note: chatRoot styling removed for chat variant to make agent text appear as plain text (no bubble)
+    const rootClass = className;
 
     return (
         <div className={rootClass}>

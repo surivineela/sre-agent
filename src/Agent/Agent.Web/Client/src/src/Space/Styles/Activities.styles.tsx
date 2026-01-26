@@ -259,7 +259,7 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         },
         chatContainer: {
             height: '100%',
-            padding: '20px 10px 0px 20px',
+            padding: '20px 24px 0px 24px',
             borderRadius: tokens.borderRadiusLarge,
             ...overrides?.chatContainer,
         },
@@ -269,8 +269,9 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         },
         chat: {
             height: '100%',
-            maxWidth: '1000px',
-            margin: 'auto',
+            maxWidth: '48rem',
+            width: '100%',
+            margin: '0 auto',
             ...overrides?.chat,
         },
         userMessage: {
@@ -287,10 +288,10 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         agentMessage: {
             fontSize: '14px',
             lineHeight: '20px',
-            '.fai-CopilotMessage__content': {
-                width: '90%',
-                gap: tokens.spacingVerticalM,
-            },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: tokens.spacingVerticalM,
+            paddingLeft: tokens.spacingHorizontalS,
             ...overrides?.agentMessage,
         },
         toolCallText: {

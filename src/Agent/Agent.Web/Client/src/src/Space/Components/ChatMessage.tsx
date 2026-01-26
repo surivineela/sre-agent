@@ -1,16 +1,14 @@
-import { CopilotMessage, CopilotMessageProps, UserMessage } from '@fluentui-copilot/react-copilot-chat';
-import { Badge, Image, Text, Tooltip, tokens } from '@fluentui/react-components';
+import { UserMessage } from '@fluentui-copilot/react-copilot-chat';
+import { Badge, Text, Tooltip, tokens } from '@fluentui/react-components';
 import { Bookmark16Regular, Search16Regular } from '@fluentui/react-icons';
 import mermaid from 'mermaid';
-import { memo, useContext, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
-import { getAgentModeDisplayName } from '../../Common/Helpers/AgentMode';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
-import { ThreadAgentModeContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
 import { getChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
@@ -52,32 +50,6 @@ const ChatMessage = ({
     const id = useMemo(() => componentId || Guid.newGuid(), [componentId]);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
-
-    const { threadAgentModeToDisplay } = useContext(ThreadAgentModeContext);
-
-    const agentMessageProps = useMemo(() => {
-        const messageProps: CopilotMessageProps = {
-            avatar: <Image src="./SreAgent.svg" width={28} height={28} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />,
-            loadingState: 'none',
-            mode: 'canvas',
-            name: (
-                <div style={nameAndTimestampContainerStyle}>
-                    <span>{intl.formatMessage(SreAgentResources.azureSreAgent)}</span>
-                    {threadAgentModeToDisplay && (
-                        <span className={chatStyles.modePill}>{getAgentModeDisplayName(threadAgentModeToDisplay, intl)}</span>
-                    )}
-                    {!isTyping && messages[0]?.timeStamp && (
-                        <Text size={200} color={tokens.colorNeutralForeground3}>
-                            {formatDateTimeWithShortYear(getSafeDateTime(messages[0].timeStamp))}
-                        </Text>
-                    )}
-                </div>
-            ),
-            disclaimer: null,
-        };
-
-        return messageProps;
-    }, [intl, threadAgentModeToDisplay, chatStyles.modePill, isTyping, messages[0]?.timeStamp]);
 
     const Loading = () => {
         return (
@@ -121,48 +93,36 @@ const ChatMessage = ({
     switch (role) {
         case 'SREAgent':
             return (
-                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined}>
-                    <CopilotMessage
-                        {...agentMessageProps}
-                        key={componentId}
-                        style={{
-                            font: 'Segoe UI',
-                            lineHeight: '20px',
-                            wordBreak: 'unset',
-                            maxWidth: '90%',
-                        }}
-                        className={chatBoxStyles.agentMessage}
-                    >
-                        {messages.map(message => {
-                            return (
-                                <AgentMessage
-                                    key={message.id}
-                                    message={message}
-                                    messageId={message.id}
-                                    timeStamp={message.timeStamp}
-                                    isTyping={isTyping}
-                                    threadId={threadId}
-                                    sendMessage={sendMessage}
-                                    updateApprovalOrCliMessageInStreamingMessage={
-                                        isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
-                                    }
-                                    onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
-                                />
-                            );
-                        })}
+                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined} className={chatBoxStyles.agentMessage}>
+                    {messages.map(message => {
+                        return (
+                            <AgentMessage
+                                key={message.id}
+                                message={message}
+                                messageId={message.id}
+                                timeStamp={message.timeStamp}
+                                isTyping={isTyping}
+                                threadId={threadId}
+                                sendMessage={sendMessage}
+                                updateApprovalOrCliMessageInStreamingMessage={
+                                    isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
+                                }
+                                onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
+                            />
+                        );
+                    })}
 
-                        <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
-                        <ToolCallTextComponent key={`${id}-tool-call-text`} />
-                        <Loading key={`${id}-loading`} />
+                    <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
+                    <ToolCallTextComponent key={`${id}-tool-call-text`} />
+                    <Loading key={`${id}-loading`} />
 
-                        <ChatMessageFooter
-                            key={`${id}-message-footer`}
-                            messageContent={messagesToCopy || ''}
-                            threadId={threadId}
-                            threadSource={threadSource}
-                            isTyping={isTyping}
-                        />
-                    </CopilotMessage>
+                    <ChatMessageFooter
+                        key={`${id}-message-footer`}
+                        messageContent={messagesToCopy || ''}
+                        threadId={threadId}
+                        threadSource={threadSource}
+                        isTyping={isTyping}
+                    />
                 </div>
             );
         default:
@@ -218,7 +178,7 @@ const ChatMessage = ({
                                 message={{ className: chatStyles.userBubbleMessage }}
                                 key={message.id}
                             >
-                                <ReactMarkdownComponent key={message.id} content={message.text || ''} variant="chat" isUserMessage />
+                                <ReactMarkdownComponent key={message.id} content={message.text || ''} variant="chat" />
                             </UserMessage>
                         )}
                     </div>
