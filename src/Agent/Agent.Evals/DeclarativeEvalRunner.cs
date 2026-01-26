@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Reflection;
 using Agent.Core;
@@ -37,7 +41,7 @@ public class DeclarativeEvalRunner
 
     // MS Test does not support per class concurrency limits.
     // Running all the declarative tests in parallel at max concurrency will just cause timeouts due to LLM throttling
-    private static SemaphoreSlim _testSemaphore = new SemaphoreSlim(4, 4);
+    private static readonly SemaphoreSlim _testSemaphore = new SemaphoreSlim(4, 4);
 
     [TestInitialize]
     public async Task TestInitialize()

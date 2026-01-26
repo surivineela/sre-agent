@@ -544,7 +544,7 @@ public class GeneralAgentEvals
 
         TestContext.WriteLine($"Active skills detected from chat input: {string.Join(", ", activeSkillNames)}");
 
-        chatOptions.Tools ??= new List<AITool>();
+        chatOptions.Tools ??= [];
 
         var existingToolNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var tool in chatOptions.Tools)

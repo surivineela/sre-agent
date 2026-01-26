@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ClientModel;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -12,7 +16,7 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
 
     public IReadOnlyCollection<string> EvaluationMetricNames => [GetMetricName()];
 
-    public async ValueTask<Microsoft.Extensions.AI.Evaluation.EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration = null, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
+    public async ValueTask<EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration = null, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
     {
         string evaluationPrompt = GetEvaluationPrompt(modelResponse.Text);
         ChatMessage[] evaluationMessages = [
@@ -64,7 +68,7 @@ public abstract class CustomRatingEvaluatorWithReasoning : IEvaluator
 
         Interpret(metric);
 
-        return new Microsoft.Extensions.AI.Evaluation.EvaluationResult(metric);
+        return new EvaluationResult(metric);
     }
 
     private static void Interpret(StringMetric metric)

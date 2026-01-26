@@ -204,7 +204,7 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<ITimePlugin>());
 
         // Also provide a mock for the Agent.Core IICMAPIClient used by first-party plugins
-        builder.Services.AddSingleton(Mock.Of<Agent.Core.Services.IICMAPIClient>());
+        builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
@@ -237,7 +237,7 @@ public static class TestHelpers
 
         // Add mock Prometheus service
         builder.Services.AddSingleton(Mock.Of<IPrometheusQueryService>());
-        builder.Services.AddSingleton(Mock.Of<Agent.Graph.Services.IPrometheusEndpointService>());
+        builder.Services.AddSingleton(Mock.Of<Graph.Services.IPrometheusEndpointService>());
 
         builder.Services.AddSingleton(Mock.Of<IAzureMetricsClient>());
 
@@ -260,7 +260,7 @@ public static class TestHelpers
         });
 
         // Add AzureResourceGraphClient
-        builder.Services.AddSingleton<Agent.Graph.Crawler.ARM.AzureResourceGraphClient>();
+        builder.Services.AddSingleton<Graph.Crawler.ARM.AzureResourceGraphClient>();
 
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
@@ -333,7 +333,7 @@ public static class TestHelpers
             var factory = new ToolOutputProcessorFactory();
             // Register CodeInterpreter output processor for CodeExecutionResponse type
             factory.RegisterProcessorForType(
-                typeof(Agent.Core.Models.CodeExecutionResponse),
+                typeof(Core.Models.CodeExecutionResponse),
                 new CodeExecutionResponseProcessor());
             return factory;
         });
@@ -341,7 +341,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
 
         // Configure IConnectorResolver with TeamsApiHubConnector
-        builder.Services.AddSingleton<IConnectorResolver>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var mockResolver = new Mock<IConnectorResolver>();
 
@@ -484,7 +484,7 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
 
-        builder.Services.AddSingleton<JavaProfilerSettings>(new JavaProfilerSettings
+        builder.Services.AddSingleton(new JavaProfilerSettings
         {
             DebugProfileContainer = string.Empty,
             ProfileTimeoutMinutes = 5,
@@ -591,7 +591,7 @@ public static class TestHelpers
         // Provide a minimal mock to satisfy DI during test host initialization.
         builder.Services.AddSingleton(sp => Mock.Of<IAgentTasksRepository>());
         // Register AgentTaskToolResultHelper used by runtime services
-        builder.Services.AddSingleton<Agent.Runtime.Helpers.AgentTaskToolResultHelper>();
+        builder.Services.AddSingleton<Runtime.Helpers.AgentTaskToolResultHelper>();
         var host = builder.Build();
         await host.StartAsync();
         return TestHost.Create(host);

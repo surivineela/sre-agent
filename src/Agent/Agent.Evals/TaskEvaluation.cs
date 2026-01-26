@@ -23,7 +23,7 @@ public class TaskEvaluation
 
     public TestContext TestContext { get; set; } = null!;
 
-    private static TaskExpectation[] TaskExpectations = [
+    private static readonly TaskExpectation[] TaskExpectations = [
         new(
             TraceFileName: "traces-create-networkpolicy.json",
             ExpectedTaskCount: 1), // Expected number of user message evaluations

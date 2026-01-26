@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
@@ -26,7 +30,7 @@ public sealed class CVEEvals
     private ChatConfiguration? _chatConfiguration;
     private string? _llmDeploymentName;
 
-    private static int _iterationCount = 10; // Default value
+    private static readonly int _iterationCount = 10; // Default value
 
     // Static constructor to initialize _iterationCount
     static CVEEvals()
@@ -112,24 +116,24 @@ public sealed class CVEEvals
 
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin();
-        var mockGithubIssuePlugin = new MockGithubIssuePlugin(new List<GithubIssuePluginDependabotVulnerability>
-        {
+        var mockGithubIssuePlugin = new MockGithubIssuePlugin(
+        [
             testGitHubIssuePluginVulnerability
-        });
+        ]);
 
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         services.AddSingleton<IGithubIssuePlugin>(mockGithubIssuePlugin);
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration!.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<CVEAgent>();
 
         var repoUrlStatusList = new List<RepoUrlStatus>
@@ -218,11 +222,11 @@ public sealed class CVEEvals
 
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin();
-        var mockGithubIssuePlugin = new MockGithubIssuePlugin(new List<GithubIssuePluginDependabotVulnerability>());
+        var mockGithubIssuePlugin = new MockGithubIssuePlugin([]);
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         services.AddSingleton<IGithubIssuePlugin>(mockGithubIssuePlugin);
@@ -232,7 +236,7 @@ public sealed class CVEEvals
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<CVEAgent>();
 
         var repoUrlStatusList = new List<RepoUrlStatus>

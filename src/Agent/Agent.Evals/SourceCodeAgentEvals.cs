@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.Repositories;
@@ -22,7 +26,7 @@ public sealed class SourceCodeAgentEvals
     private ChatConfiguration _chatConfiguration = null!;
     private string? _llmDeploymentName;
 
-    private static int _iterationCount = 10; // Default value
+    private static readonly int _iterationCount = 10; // Default value
 
     // Static constructor to initialize _iterationCount
     static SourceCodeAgentEvals()
@@ -113,20 +117,20 @@ public sealed class SourceCodeAgentEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
+        var mockGraphDBPlugin = new MockGraphDBPlugin([containerAppResourceId]);
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
 
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<SourceCodeAgent>();
 
         var sourceCodeStatusList = new List<SourceCodeStatus>
@@ -145,10 +149,10 @@ public sealed class SourceCodeAgentEvals
         {
             new ChatMessage(ChatRole.System, sourceCodeAgent.SystemPrompt)
         };
-        messages.AddRange(SourceCodeAgent.GetMessagesToInformAgentAboutAppsWithoutSourceCode(new List<Core.Models.SourceCodeStatus>
-        {
+        messages.AddRange(SourceCodeAgent.GetMessagesToInformAgentAboutAppsWithoutSourceCode(
+        [
             sourceCodeStatus
-        }));
+        ]));
 
         var chatOptions = new ChatOptions
         {
@@ -184,9 +188,9 @@ public sealed class SourceCodeAgentEvals
 
             We are linking the following:
 
-            - **Azure Container App**:  
+            - **Azure Container App**:
               `{containerAppResourceId}`
-            - **GitHub Repository**:  
+            - **GitHub Repository**:
               [{gitHubRepo}]({gitHubRepo})
 
             Let me link this repository to the container app!
@@ -194,9 +198,9 @@ public sealed class SourceCodeAgentEvals
 
             The following connection has been established:
 
-            - **Azure Container App**:  
+            - **Azure Container App**:
               `{containerAppResourceId}`
-            - **GitHub Repository**:  
+            - **GitHub Repository**:
               [{gitHubRepo}]({gitHubRepo})
 
             Now, let me recheck if any container apps are still pending a source code node.
@@ -210,19 +214,19 @@ public sealed class SourceCodeAgentEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string>());
+        var mockGraphDBPlugin = new MockGraphDBPlugin([]);
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<SourceCodeAgent>();
 
         var sourceCodeStatusList = new List<SourceCodeStatus>
@@ -280,19 +284,19 @@ public sealed class SourceCodeAgentEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
+        var mockGraphDBPlugin = new MockGraphDBPlugin([containerAppResourceId]);
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<SourceCodeAgent>();
 
         var sourceCodeStatusList = new List<SourceCodeStatus>

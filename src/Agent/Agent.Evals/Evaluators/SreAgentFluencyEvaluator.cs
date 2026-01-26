@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Evals.Evaluators;
 
 public class SreAgentFluencyEvaluator : CustomRatingEvaluatorWithReasoning

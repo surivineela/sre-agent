@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -22,7 +26,7 @@ public sealed class FeedbackRCAEvals
     private ChatConfiguration? _chatConfiguration;
     private string? _llmDeploymentName;
 
-    private static int _iterationCount = 10; // Default value
+    private static readonly int _iterationCount = 10; // Default value
 
     // Static constructor to initialize _iterationCount
     static FeedbackRCAEvals()
@@ -77,26 +81,26 @@ public sealed class FeedbackRCAEvals
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration!.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<FeedbackRCAAgent>();
 
         var messageFeedback = new MessageFeedback(
             Id: Guid.NewGuid(),
             ThreadId: Guid.NewGuid(),
             TimeStamp: DateTime.UtcNow,
-            Messages: new List<Message>
-            {
+            Messages:
+            [
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, testRunGuid, "User"), "Hi"),
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, testRunGuid, "User"), "Hi"),
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, testRunGuid, "Assistant"), "Hello! How can I assist you with your Microsoft Azure-related needs today?"),
-            },
+            ],
             IsPositiveFeedback: true,
             FeedbackText: "",
             RootCause: null);
@@ -138,26 +142,26 @@ public sealed class FeedbackRCAEvals
         var threadRepository = new InMemoryThreadRepository(new NullLogger<InMemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
         services.AddSingleton<IThreadRepository>(threadRepository);
-        services.AddSingleton<SinkService>(sinkService);
+        services.AddSingleton(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration!.ChatClient
             .AsBuilder()
             .UseFunctionInvocation()
             .Build();
-        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped(_ => chatClient);
         services.AddScoped<FeedbackRCAAgent>();
 
         var messageFeedback = new MessageFeedback(
             Id: Guid.NewGuid(),
             ThreadId: Guid.NewGuid(),
             TimeStamp: DateTime.UtcNow,
-            Messages: new List<Message>
-            {
+            Messages:
+            [
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, testRunGuid, "User"), "Hi"),
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, testRunGuid, "User"), "Hi"),
                 new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, testRunGuid, "Assistant"), "Hello! How can I assist you with your Microsoft Azure-related needs today?"),
-            },
+            ],
             IsPositiveFeedback: false,
             FeedbackText: "",
             RootCause: null);

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Data.AgentMemory;
 using Agent.Evals.Evaluators;
@@ -17,7 +21,7 @@ public partial class TrajectoryEval
     public TestContext TestContext { get; set; }
 
     private static IHost? _host;
-    private static int _iterationCount = 1; // Default value
+    private static readonly int _iterationCount = 1; // Default value
 
     // Static constructor to initialize _iterationCount
     static TrajectoryEval()

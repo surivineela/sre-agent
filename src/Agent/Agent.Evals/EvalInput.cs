@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Evals.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
@@ -38,12 +42,12 @@ public class EvalInput
             if (response != null)
             {
                 var result = await response.EvaluateAsync(
-                    this.TestContext,
-                    this.ChatConfiguration,
+                    TestContext,
+                    ChatConfiguration,
                     messagesSoFar,
-                    this.GroundedContext,
-                    this.ExampleResponse,
-                    this.LlmDeploymentName);
+                    GroundedContext,
+                    ExampleResponse,
+                    LlmDeploymentName);
 
                 if (result != null)
                 {

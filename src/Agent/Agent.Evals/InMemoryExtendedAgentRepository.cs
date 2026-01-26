@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 
@@ -5,14 +9,14 @@ namespace Agent.Evals;
 
 internal class InMemoryExtendedAgentRepository : IExtendedAgentRepository
 {
-    List<AgentDocumentModel> agents = new();
+    readonly List<AgentDocumentModel> agents = [];
 
-    List<ToolDocumentModel> tools = new();
+    readonly List<ToolDocumentModel> tools = [];
 
-    List<ConnectorDocumentModel> connectors = new();
+    readonly List<ConnectorDocumentModel> connectors = [];
 
-    List<CommonPromptDocumentModel> commonPrompts = new();
-    List<CommonToolsListDocumentModel> commonToolsLists = new();
+    readonly List<CommonPromptDocumentModel> commonPrompts = [];
+    readonly List<CommonToolsListDocumentModel> commonToolsLists = [];
 
     public Task<bool> DeleteAgentAsync(string name)
     {

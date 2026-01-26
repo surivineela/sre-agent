@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Evals.Common;
 using Agent.Evals.Evaluators;
 using Evaluation.Evaluators;

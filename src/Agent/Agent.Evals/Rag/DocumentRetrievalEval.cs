@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Data.AgentMemory;
 using Microsoft.Extensions.AI;
@@ -13,7 +17,7 @@ public partial class DocumentRetrievalEval
     public TestContext TestContext { get; set; }
 
     private IHost? _host;
-    private static int _iterationCount = 1; // Default value
+    private static readonly int _iterationCount = 1; // Default value
 
     // Static constructor to initialize _iterationCount
     static DocumentRetrievalEval()
@@ -249,7 +253,7 @@ public partial class DocumentRetrievalEval
     public class TsgIncidentScenario
     {
         public string FileName { get; set; } = string.Empty;
-        public List<string> Incidents { get; set; } = new();
+        public List<string> Incidents { get; set; } = [];
     }
 
     public class DocumentRetrievalResult
