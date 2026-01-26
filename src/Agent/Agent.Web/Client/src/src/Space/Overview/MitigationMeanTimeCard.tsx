@@ -18,6 +18,7 @@ const MitigationMeanTimeCard: FC = () => {
                 text: 'Projected savings',
                 result: '40 hrs',
             }}
+            refresh={() => Promise.resolve()}
         />
     );
 };

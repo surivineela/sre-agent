@@ -18,6 +18,7 @@ const IntentMetScoreCard: FC = () => {
                 text: 'Estimated time saved',
                 result: '15 hrs',
             }}
+            refresh={() => Promise.resolve()}
         />
     );
 };

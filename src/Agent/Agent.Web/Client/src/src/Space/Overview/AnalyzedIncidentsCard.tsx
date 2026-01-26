@@ -18,6 +18,7 @@ const AnalyzedIncidentsCard: FC = () => {
                 text: 'Estimated time saved',
                 result: '100 hrs',
             }}
+            refresh={() => Promise.resolve()}
         />
     );
 };

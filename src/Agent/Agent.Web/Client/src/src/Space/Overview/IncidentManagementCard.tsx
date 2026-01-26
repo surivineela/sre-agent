@@ -92,7 +92,7 @@ const IncidentManagementCard: FC = () => {
         [threads]
     );
 
-    const noIncidents = !isLoadingInitialThreads && threads.length === 0;
+    const noIncidents = !isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0;
 
     return (
         <Card size={'small'} className={styles.card}>

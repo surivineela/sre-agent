@@ -8,6 +8,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { OverviewResources } from '../../Strings/SREAgentResources';
 import EmptyBody from './EmptyBody';
+import MetricsCardHeader from './MetricsCardHeader';
 
 const useStyles = makeStyles({
     root: {
@@ -64,13 +65,7 @@ const RecentInsightsCard: FC = () => {
 
     return (
         <Card size={'small'} className={styles.root}>
-            <CardHeader
-                header={
-                    <>
-                        <Body1Strong>{intl.formatMessage(OverviewResources.recentInsights)}</Body1Strong>
-                    </>
-                }
-            />
+            <MetricsCardHeader title={intl.formatMessage(OverviewResources.recentInsights)} refresh={async () => { }} />
             <div className={scrollable} style={{ overflow: 'auto' }}>
                 {loading ? (
                     <Skeleton>
