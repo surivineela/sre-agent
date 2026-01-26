@@ -6232,8 +6232,8 @@ export const ConnectorsResources = defineMessages({
     mcpServerDescription: { defaultMessage: 'Add a custom MCP server for the agent to reference.', id: 'DJydCh' },
     needConnectionWritePermission: {
         defaultMessage:
-            'You need contributor or Microsoft.Web/connections/write role on the resource group in order to sign in. Click {link} to go to access control or contact your subscription administrator to update your permissions.',
-        id: 'y/usAC',
+            'You need owner or Microsoft.Web/connections/write and Microsoft.Authorization/roleAssignments/write roles on the resource group in order to sign in and create a connector. Click {link} to go to access control or contact your subscription administrator to update your permissions.',
+        id: 'LsYvIM',
     },
     here: { defaultMessage: 'here', id: 'hniz8Z' },
     checkingPermissions: { defaultMessage: 'Checking permissions...', id: 'K1tTU1' },
