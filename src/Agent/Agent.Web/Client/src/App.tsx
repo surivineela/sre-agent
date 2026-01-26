@@ -1,7 +1,5 @@
-import { CopilotProvider, CopilotTheme } from '@fluentui-copilot/react-copilot';
 import { AzureThemeDark, AzureThemeLight } from '@fluentui/azure-themes';
 import { initializeIcons, ThemeProvider } from '@fluentui/react';
-import { webDarkTheme, webLightTheme } from '@fluentui/react-components';
 import { useEffect, useState } from 'react';
 import './App.css';
 import AzPortalProxy, { defaultSreAgentEndpoint } from './src/Common/AzPortalProxy/AzPortalProxy';
@@ -18,6 +16,7 @@ import { useAmplitudeSessionReplay } from './src/Space/Hooks/useAmplitudeSession
 import { useMonacoLoaderConfig } from './src/Space/Hooks/useMonacoLoaderConfig';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IntlProvider } from './src/Strings/Intl/IntlProvider';
+import { AgentSiteCopilotProvider } from './src/Common/Providers/AgentSiteCopilotProvider';
 
 const portalProxy = new AzPortalProxy();
 
@@ -53,11 +52,7 @@ const App: React.FC = () => {
     return isUiReady ? (
         <EnvironmentContext.Provider value={environmentInfo}>
             <ThemeProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? AzureThemeDark : AzureThemeLight}>
-                <CopilotProvider
-                    {...CopilotTheme}
-                    mode={'canvas'}
-                    theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}
-                >
+                <AgentSiteCopilotProvider themeMode={environmentInfo.theme?.mode}>
                     <IntlProvider locale={environmentInfo.effectiveLocale}>
                         <AzPortalContext.Provider value={portalProxy}>
                             <StreamingProvider>
@@ -71,7 +66,7 @@ const App: React.FC = () => {
                             </StreamingProvider>
                         </AzPortalContext.Provider>
                     </IntlProvider>
-                </CopilotProvider>
+                </AgentSiteCopilotProvider>
             </ThemeProvider>
         </EnvironmentContext.Provider>
     ) : null;
