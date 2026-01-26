@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Interfaces;
 
@@ -29,7 +28,7 @@ public interface IAgentInboundCommunicationService
         string title,
         string message,
         AgentTypeEnum agentTypeEnum,
-        ThreadSource source = ThreadSource.Conversation,
+        ThreadSource source,
         string incidentId = "",
         IncidentSource? incidentSource = null,
         bool isDailyReport = false,

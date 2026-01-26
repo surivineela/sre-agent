@@ -19,7 +19,6 @@ using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.IcmScanner;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using Microsoft.AzureAd.Icm.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using IncidentStatus = Microsoft.AzureAd.Icm.Types.IncidentStatus;
@@ -1484,7 +1483,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     title: $"🤖 Automated RCA for ICM {incidentDocument.Id}: {incidentDocument.Title}",
                     message: $"Please analyze and route IncidentId {incidentDocument.Id} for RCA analysis.",
                     agentTypeEnum: AgentTypeEnum.Incident,
-                    source: ThreadSource.Agent,
+                    source: ThreadSource.Incident,
                     incidentId: incidentDocument.Id,
                     incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.Icm, incidentDocument.Id.ToString())
                 );
