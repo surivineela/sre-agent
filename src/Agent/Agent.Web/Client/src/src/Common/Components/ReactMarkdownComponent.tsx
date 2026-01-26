@@ -21,13 +21,88 @@ import {
     useTableFeatures,
     useTableSort,
 } from '@fluentui/react-components';
-import React, { memo, useContext, useMemo, useState } from 'react';
+import React, { memo, useContext, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { AzPortalContext } from '../AzPortalProxy/Providers/AzPortalProxyContext';
 import { getAgentHeaders } from '../Helpers/headers';
 import CopyButton from './CopyButton';
+
+/**
+ * Image component that fetches images with authentication headers for API URLs.
+ * Falls back to standard <img> for external URLs or data URIs.
+ */
+const AuthenticatedImage = ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    const intl = useIntl();
+    const [blobUrl, setBlobUrl] = useState<string | undefined>();
+    const [error, setError] = useState(false);
+
+    // Determine if this URL requires authentication (API file paths)
+    const requiresAuth = src?.startsWith('/api/files/') || src?.startsWith('api/files/');
+
+    useEffect(() => {
+        if (!src || !requiresAuth) {
+            return;
+        }
+
+        let isMounted = true;
+        const controller = new AbortController();
+
+        const fetchImage = async () => {
+            try {
+                const response = await fetch(src, {
+                    headers: getAgentHeaders(),
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image: ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                if (isMounted) {
+                    const url = URL.createObjectURL(blob);
+                    setBlobUrl(url);
+                }
+            } catch (err) {
+                if (isMounted && err instanceof Error && err.name !== 'AbortError') {
+                    console.error('Error fetching authenticated image:', err);
+                    setError(true);
+                }
+            }
+        };
+
+        fetchImage();
+
+        return () => {
+            isMounted = false;
+            controller.abort();
+            if (blobUrl) {
+                URL.revokeObjectURL(blobUrl);
+            }
+        };
+    }, [src, requiresAuth]);
+
+    // For non-authenticated URLs, render directly
+    if (!requiresAuth) {
+        return <img src={src} alt={alt} {...props} style={{ maxWidth: '100%', height: 'auto', ...props.style }} />;
+    }
+
+    // Show error state
+    if (error) {
+        return <span title={`Failed to load image: ${src}`}>{intl.formatMessage(SreAgentResources.imageFailedToLoad)}</span>;
+    }
+
+    // Show loading or render authenticated image
+    if (!blobUrl) {
+        return <span>{intl.formatMessage(SreAgentResources.loadingImage)}</span>;
+    }
+
+    return <img src={blobUrl} alt={alt} {...props} style={{ maxWidth: '100%', height: 'auto', ...props.style }} />;
+};
 
 const useStyles = makeStyles({
     chatRoot: {
@@ -480,6 +555,7 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default' }: Rea
                         </TableHeaderCell>
                     ),
                     td: ({ children }: any) => <TableCell>{children ?? '-'}</TableCell>,
+                    img: ({ src, alt, ...props }: any) => <AuthenticatedImage src={src} alt={alt} {...props} />,
                 }}
             >
                 {content}
