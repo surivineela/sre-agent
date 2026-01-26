@@ -117,7 +117,7 @@ const useStyles = makeStyles({
     panelContent: {
         padding: '16px 20px',
         overflowY: 'auto',
-        maxHeight: '350px',
+        maxHeight: '230px',
     },
     headerWithTime: {
         display: 'flex',
