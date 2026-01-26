@@ -334,7 +334,7 @@ export class ExtendedAgentNodeSize {
 }
 
 export type ExtendedAgentAnchorEntity = {
-    entityType: 'Agent' | 'Trigger';
+    entityType: 'Agent' | 'IncidentTrigger' | 'ScheduledTrigger';
     entityName: string;
 };
 

@@ -4278,6 +4278,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     uploadFolder: { defaultMessage: 'Upload folder', id: '5X7NpJ' },
     skill: { defaultMessage: 'Skill', id: 'GFhSwY' },
     subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
+    subagentOrTool: { defaultMessage: 'Subagent/Tool', id: 'I6/8Cp' },
+    subagentOrTrigger: { defaultMessage: 'Subagent/Trigger', id: 'P1IYZz' },
     aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
     aiAgentsFeature: { defaultMessage: 'Define autonomous agents with custom instructions and capabilities', id: '7smbCB' },
     toolsFeature: { defaultMessage: 'Create reusable functions and actions for your agents', id: 'AqVLXi' },

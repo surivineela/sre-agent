@@ -59,7 +59,8 @@ export const ExtendedAgentSelector = memo(
                         : undefined;
 
                     return {
-                        key: agent.name,
+                        key: getEntityOptionKey({ entityType: 'Agent', entityName: agent.name }),
+                        name: agent.name,
                         label: agent.name,
                         icon: <EntityIcon type={agent.name === 'meta_agent' ? 'metaAgent' : 'agent'} shorthandStyle={iconShorthandStyle} />,
                         sublabel: agentTypeText,
@@ -76,12 +77,13 @@ export const ExtendedAgentSelector = memo(
                     .filter(trigger => trigger.type === 'incident')
                     .map(trigger => {
                         return {
-                            key: trigger.name,
+                            key: getEntityOptionKey({ entityType: 'IncidentTrigger', entityName: trigger.name }),
+                            name: trigger.name,
                             label: trigger.name,
                             icon: <EntityIcon type="incidentTrigger" shorthandStyle={iconShorthandStyle} />,
                             sublabel: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeIncident),
                             type: trigger.type,
-                            entityType: 'Trigger' as const,
+                            entityType: 'IncidentTrigger' as const,
                         };
                     }),
             [triggers, intl]
@@ -93,12 +95,13 @@ export const ExtendedAgentSelector = memo(
                     .filter(trigger => trigger.type === 'scheduled')
                     .map(trigger => {
                         return {
-                            key: trigger.name,
+                            key: getEntityOptionKey({ entityType: 'ScheduledTrigger', entityName: trigger.name }),
+                            name: trigger.name,
                             label: trigger.name,
                             icon: <EntityIcon type="scheduledTask" shorthandStyle={iconShorthandStyle} />,
                             sublabel: intl.formatMessage(ExtendedAgentsGraphResources.triggerBadgeScheduled),
                             type: trigger.type,
-                            entityType: 'Trigger' as const,
+                            entityType: 'ScheduledTrigger' as const,
                         };
                     }),
             [triggers, intl]
@@ -119,9 +122,7 @@ export const ExtendedAgentSelector = memo(
             const subagentOptions = agentOptions.filter(option => option.key !== 'meta_agent');
             const allAgentOptions = metaAgentOption ? [metaAgentOption, ...subagentOptions] : subagentOptions;
             return {
-                label: intl.formatMessage(
-                    selectedEntity?.entityType === 'Agent' ? ExtendedAgentsGraphResources.subagent : ExtendedAgentsGraphResources.trigger
-                ),
+                label: getPillFilterLabel(selectedEntity, intl),
                 disabled: isLoading,
                 labelDelimiter: ':',
                 filterType: 'combobox' as const,
@@ -136,12 +137,12 @@ export const ExtendedAgentSelector = memo(
                         option => option.key === keys[0]
                     );
                     if (selectedOption) {
-                        onEntitySelect({ entityType: selectedOption.entityType, entityName: selectedOption.key });
+                        onEntitySelect({ entityType: selectedOption.entityType, entityName: selectedOption.name });
                     } else {
                         onEntitySelect(undefined);
                     }
                 },
-                selectedKeys: selectedEntity ? [selectedEntity.entityName] : [],
+                selectedKeys: selectedEntity ? [getEntityOptionKey(selectedEntity)] : [],
                 multiSelect: false,
                 addAllOption: false,
             };
@@ -232,5 +233,25 @@ export const ExtendedAgentSelector = memo(
         );
     }
 );
+
+const getEntityOptionKey = (playgroundEntity: ExtendedAgentAnchorEntity) => {
+    return `${playgroundEntity.entityType}_${playgroundEntity.entityName}`;
+};
+
+const getPillFilterLabel = (entityOption: ExtendedAgentAnchorEntity | undefined, intl: ReturnType<typeof useIntl>) => {
+    if (!entityOption) {
+        return intl.formatMessage(ExtendedAgentsGraphResources.subagentOrTrigger);
+    }
+
+    if (entityOption.entityType === 'Agent') {
+        return intl.formatMessage(ExtendedAgentsGraphResources.subagent);
+    }
+
+    if (entityOption.entityType === 'ScheduledTrigger' || entityOption.entityType === 'IncidentTrigger') {
+        return intl.formatMessage(ExtendedAgentsGraphResources.trigger);
+    }
+
+    return '';
+};
 
 ExtendedAgentSelector.displayName = 'ExtendedAgentSelector';

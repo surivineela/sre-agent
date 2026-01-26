@@ -669,8 +669,8 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     // Priority 2: Use filter's handlingAgent (legacy behavior)
                     if (filterMatch?.handlingAgent) {
                         const anchorEntity: ExtendedAgentAnchorEntity = {
-                            entityType: 'Trigger',
-                            entityName: filterMatch.id,
+                            entityType: 'IncidentTrigger',
+                            entityName: filterMatch.id
                         };
                         return (
                             <ResponsePlanLinkWithIcon

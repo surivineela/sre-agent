@@ -475,7 +475,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 }
                 if (triggers.length > 0) {
                     return {
-                        entityType: 'Trigger',
+                        entityType: triggers[0].type === 'incident' ? 'IncidentTrigger' : 'ScheduledTrigger',
                         entityName: triggers[0].name,
                     };
                 }
@@ -504,7 +504,7 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         const hasAgent = anchorEntity.entityType === 'Agent' && agents.some(agent => agent.name === anchorEntity.entityName);
-        const hasTrigger = anchorEntity.entityType === 'Trigger' && triggers.some(trigger => trigger.name === anchorEntity.entityName);
+        const hasTrigger = (anchorEntity.entityType === 'IncidentTrigger' || anchorEntity.entityType === 'ScheduledTrigger') && triggers.some(trigger => trigger.name === anchorEntity.entityName);
 
         if (hasAgent || hasTrigger) {
             return;
@@ -532,7 +532,7 @@ const ExtendedAgentGraphContent = memo(() => {
         }
         if (triggers.length > 0) {
             setAnchorEntity({
-                entityType: 'Trigger',
+                entityType: triggers[0].type === 'incident' ? 'IncidentTrigger' : 'ScheduledTrigger',
                 entityName: triggers[0].name,
             });
             return;
@@ -544,9 +544,9 @@ const ExtendedAgentGraphContent = memo(() => {
             return;
         }
 
-        if (pendingEntitySelection.entityType === 'Trigger') {
+        if (pendingEntitySelection.entityType === 'IncidentTrigger' || pendingEntitySelection.entityType === 'ScheduledTrigger') {
             if (triggers.some(trigger => trigger.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({ entityType: 'Trigger', entityName: pendingEntitySelection.entityName });
+                setAnchorEntity({...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
             return;
@@ -554,7 +554,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
         if (pendingEntitySelection.entityType === 'Agent') {
             if (agents.some(agent => agent.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({ entityType: 'Agent', entityName: pendingEntitySelection.entityName });
+                setAnchorEntity({...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
         }
@@ -893,7 +893,10 @@ const ExtendedAgentGraphContent = memo(() => {
                     setAnchorEntity({ entityType: 'Agent', entityName: agentName });
 
                     if (!agents.some(agent => agent.name === agentName)) {
-                        setPendingEntitySelection({ entityType: 'Agent', entityName: agentName });
+                        setPendingEntitySelection({
+                            entityType: 'Agent',
+                            entityName: agentName,
+                        });
                     } else {
                         setPendingEntitySelection(undefined);
                     }
@@ -2103,7 +2106,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                 handleRefresh().then(() => {
                                     if (isNew) {
                                         if (filterName) {
-                                            setPendingEntitySelection({ entityType: 'Trigger', entityName: filterName });
+                                            setPendingEntitySelection({ entityType: 'IncidentTrigger', entityName: filterName });
                                         }
                                         return;
                                     }
@@ -2114,7 +2117,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                             t.name?.toLowerCase() === handlerId?.toLowerCase()
                                     );
                                     if (trigger) {
-                                        setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
+                                        setPendingEntitySelection({ entityType: 'IncidentTrigger', entityName: trigger.name });
                                     }
                                 });
                             }
@@ -2178,7 +2181,9 @@ const ExtendedAgentGraphContent = memo(() => {
                         onDismiss={() => setAgentCreateOrEditInfo(undefined)}
                         refresh={(selectedAgent?: string) => {
                             handleRefresh().then(() => {
-                                setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
+                                setPendingEntitySelection(
+                                    selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined
+                                );
                             });
                         }}
                         agents={agents}
