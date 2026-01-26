@@ -85,7 +85,7 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
         sidePanelProps: { isSidePanelOpen, selectedSidePanelType, sidePanelWidth, setSidePanelWidth },
         agentTaskProps: { openAgentTask, closeAgentTask, ...restAgentTaskProps },
         todoPlanProps: { openTodoPlan, closeTodoPlan, ...restTodoPlanProps },
-        memorySearchResultProps: { openMemorySearchResult, closeMemorySearchResult, memorySearchResult },
+        memorySearchResultProps: { openMemorySearchResult, closeMemorySearchResult, memorySearchResult, focusOptions, clearFocusOptions },
         knowledgeGraphSearchResultProps: { openKnowledgeGraphSearchResult, closeKnowledgeGraphSearchResult, knowledgeGraphSearchResult },
     } = useChatBoxSidePanel(
         threadId,
@@ -277,7 +277,12 @@ export const ChatBox = forwardRef<ChatBoxHandleRef, IChatBoxProps>((props, ref) 
                                 <TodoPlan {...restTodoPlanProps} closeTodoPlan={closeTodoPlan} />
                             )}
                             {selectedSidePanelType === ChatBoxSidePanelType.MemorySearchResult && (
-                                <MemorySidePanel memoryResult={memorySearchResult} onClose={closeMemorySearchResult} />
+                                <MemorySidePanel
+                                    memoryResult={memorySearchResult}
+                                    onClose={closeMemorySearchResult}
+                                    focusOptions={focusOptions}
+                                    onFocusHandled={clearFocusOptions}
+                                />
                             )}
                             {selectedSidePanelType === ChatBoxSidePanelType.KnowledgeGraphSearchResult && (
                                 <KnowledgeGraphSidePanel

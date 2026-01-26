@@ -3801,6 +3801,9 @@ export const MemorySearchCardResources = defineMessages({
     viewFullDocument: { defaultMessage: 'View Full Document', id: 'LsxQP2' },
     hideFullDocument: { defaultMessage: 'Hide Full Document', id: 'ZAshJw' },
     documentAriaLabel: { defaultMessage: 'Document', id: 'wmirkP' },
+    sourcesHeader: { defaultMessage: 'Sources:', id: 'U59/R/' },
+    showMore: { defaultMessage: 'Show {count} more', id: 'Z184O6' },
+    showFewer: { defaultMessage: 'Show fewer', id: '/OvJVm' },
 });
 
 export const KnowledgeGraphCardResources = defineMessages({
