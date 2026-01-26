@@ -278,7 +278,7 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
     if ((response.metadata.status === 201 || response.metadata.status === 202) && !skipPolling) {
         return pollForCompletion(response, requestObject);
     } else {
-        return response;;
+        return response;
     }
 };
 
@@ -360,7 +360,7 @@ const pollAzureAsyncOperationForCompletion = <T, U = T>(
                     headers: r.metadata.headers,
                     error: r.data?.error || { code: null, message: operationStatus },
                 },
-            }
+            };
         }
 
         if (pollingFailed && retriesRemaining < 1) {
@@ -370,7 +370,12 @@ const pollAzureAsyncOperationForCompletion = <T, U = T>(
             };
         }
 
-        return pollAzureAsyncOperationForCompletion<T, U>(originalResponse, azureAsyncOperation, request, pollingFailed ? retriesRemaining - 1 : undefined);
+        return pollAzureAsyncOperationForCompletion<T, U>(
+            originalResponse,
+            azureAsyncOperation,
+            request,
+            pollingFailed ? retriesRemaining - 1 : undefined
+        );
     });
 };
 
@@ -508,9 +513,10 @@ export const MakePagedArmCall = async <T, U = T>(
 
 type ResponseExt<T> = (AxiosResponse<T> & { type: 'axios' }) | (ArmBatchObject & { type: 'batch' });
 const _convertResponseToHttpResponseObject = <T>(response: ResponseExt<T>): HttpResponseObject<T> => {
-    const { status, data } = response.type === 'axios'
-        ? { status: response.status, data: response.data }
-        : { status: response.httpStatusCode, data: response.content };
+    const { status, data } =
+        response.type === 'axios'
+            ? { status: response.status, data: response.data }
+            : { status: response.httpStatusCode, data: response.content };
 
     const responseSuccess = status < 300;
     return {
