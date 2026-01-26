@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router';
 import { AgentIFrame } from '../AgentIFrame';
 import { useExternalAgentView } from './useExternalAgentView';
 

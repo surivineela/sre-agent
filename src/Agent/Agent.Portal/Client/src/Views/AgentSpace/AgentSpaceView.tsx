@@ -1,7 +1,7 @@
 import { Card, makeStyles, MessageBar, MessageBarBody, MessageBarTitle, Spinner, Text, tokens } from '@fluentui/react-components';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { AgentSpaceClient } from '../../Common/Clients/AgentSpaceClient';
 import { ViewResourceJsonDialog } from '../../Common/Components/ViewResourceJsonDialog/ViewResourceJsonDialog';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';

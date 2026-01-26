@@ -2,7 +2,7 @@ import { tokens } from '@fluentui/react-components';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
-import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router';
 import { RouteErrorBoundary } from './Common/Components/RouteErrorBoundary';
 import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';

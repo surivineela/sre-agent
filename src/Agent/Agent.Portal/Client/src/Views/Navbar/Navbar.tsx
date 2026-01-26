@@ -1,7 +1,7 @@
 import { Button, Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router';
 import { PreviewBadge } from '../../Common/Components/PreviewBadge';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { useAuth } from '../../Common/Contexts/AuthContext';

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Location, useLocation } from 'react-router-dom';
+import { Location, useLocation } from 'react-router';
 
 export enum SettingNames {
     /** 1 Error -> 5 Verbose */

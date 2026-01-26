@@ -45,7 +45,7 @@ Agent and Space routes use **path-based ARM resource IDs** where the ARM resourc
 Since ARM resource IDs start with `/`, concatenate directly without encoding:
 
 ```typescript
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 const navigate = useNavigate();
 const agentResourceId = '/subscriptions/.../resourceGroups/.../providers/Microsoft.App/agents/my-agent';
@@ -62,7 +62,7 @@ navigate(`/spaces${spaceResourceId}`);
 Use the `parseResourceRoute` utility to extract the resource ID and deep link from the URL:
 
 ```typescript
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { parseResourceRoute } from '../Common/Utilities/ResourceRouting';
 
 const location = useLocation();
@@ -119,7 +119,7 @@ The iframe UX receives the deep link as a URL hash and routes internally.
 React Router's `useNavigate` hook for programmatic navigation:
 
 ```typescript
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 const navigate = useNavigate();
 
@@ -141,7 +141,7 @@ navigate(-1);
 Access current route information:
 
 ```typescript
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 const location = useLocation();
 console.log(location.pathname);  // "/agents/subscriptions/..."

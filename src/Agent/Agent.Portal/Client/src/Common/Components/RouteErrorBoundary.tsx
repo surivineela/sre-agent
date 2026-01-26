@@ -2,7 +2,7 @@ import { Button, makeStyles, Text, tokens } from '@fluentui/react-components';
 import { ChatHelpRegular, HomeRegular, WarningRegular } from '@fluentui/react-icons';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router';
 import { PortalResources } from '../../Strings/Resources';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { LogLevel } from '../Contracts/Telemetry';

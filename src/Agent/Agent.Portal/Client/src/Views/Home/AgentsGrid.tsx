@@ -24,7 +24,7 @@ import {
 import { Add16Regular, ArrowClockwise16Regular, Delete16Regular } from '@fluentui/react-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { SreAgentClient } from '../../Common/Clients/SreAgentClient';
 import { ResourceGroupPill } from '../../Common/Components/ResourceGroupPill/ResourceGroupPill';
 import { SubscriptionPill } from '../../Common/Components/SubscriptionPill/SubscriptionPill';

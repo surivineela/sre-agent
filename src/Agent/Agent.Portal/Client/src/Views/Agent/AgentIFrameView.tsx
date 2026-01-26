@@ -1,5 +1,5 @@
 import { FC, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
 import { AmplitudeContextProvider } from '../../Common/Contexts/AmplitudeContext';
 import { parseResourceRoute } from '../../Common/Utilities/ResourceRouting';
