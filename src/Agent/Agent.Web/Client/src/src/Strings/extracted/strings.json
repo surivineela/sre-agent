@@ -2628,6 +2628,7 @@
   "uvxuDW": "{count, plural, one {Failed to delete Kusto tool {name}} other {Failed to delete Kusto tools}}.{errorMessage, select, undefined {} other { {errorMessage}}}",
   "uwY8Nf": "Refine with AI",
   "uyO1AJ": "Sev2",
+  "uzQLqw": "Refresh traces",
   "v/3x6O": "Improving instructions...",
   "v0fBOU": "Collapse all",
   "v1LtqB": "Select authentication method",

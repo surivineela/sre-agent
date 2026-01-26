@@ -6042,6 +6042,7 @@ export const ThreadTraceResources = defineMessages({
             '• Agent start/end events with timing\n• Model generation calls with token usage (prompt, completion, total)\n• Model thinking (internal reasoning from o1/Claude reasoning models)\n• Agent reasoning (from reasoningScratchPad)\n• Agent responses (from notifyUserMessage)\n• Tool executions with inputs and outputs\n• Agent handoffs between meta_agent and specialized agents\n• Azure CLI command status (PendingAuthorization, Failed, Success)\n• User messages that triggered agent actions',
         id: 'RPuopt',
     },
+    refreshTraces: { defaultMessage: 'Refresh traces', id: 'uzQLqw' },
 });
 
 export const DeleteConfirmationDialogResources = defineMessages({
