@@ -175,6 +175,14 @@ const useStyles = makeStyles({
         maxWidth: '100%',
         marginTop: tokens.spacingVerticalM,
         marginBottom: tokens.spacingVerticalM,
+        '& table': {
+            tableLayout: 'auto',
+            minWidth: 'max-content',
+        },
+        '& th, & td': {
+            whiteSpace: 'nowrap',
+            paddingRight: tokens.spacingHorizontalM,
+        },
     },
 });
 
@@ -284,8 +292,8 @@ const SortableTable = memo(({ tableData, className }: SortableTableProps & { cla
         const options: TableColumnSizingOptions = {};
         tableData.headers.forEach(header => {
             options[header] = {
-                idealWidth: 200,
-                minWidth: 100,
+                idealWidth: 150,
+                minWidth: 80,
             };
         });
         return options;
@@ -320,8 +328,13 @@ const SortableTable = memo(({ tableData, className }: SortableTableProps & { cla
     const rows = sort(getRows());
 
     return (
-        <div className={className}>
-            <Table sortable ref={tableRef} {...columnSizing_unstable.getTableProps()}>
+        <div className={className} style={{ overflowX: 'auto' }}>
+            <Table
+                sortable
+                ref={tableRef}
+                {...columnSizing_unstable.getTableProps()}
+                style={{ tableLayout: 'auto', minWidth: 'max-content' }}
+            >
                 <TableHeader>
                     <TableRow>
                         {columns.map(column => (
@@ -329,6 +342,7 @@ const SortableTable = memo(({ tableData, className }: SortableTableProps & { cla
                                 key={column.columnId}
                                 {...headerSortProps(column.columnId)}
                                 {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
+                                style={{ whiteSpace: 'nowrap', paddingRight: '16px' }}
                             >
                                 {column.renderHeaderCell()}
                             </TableHeaderCell>
@@ -339,7 +353,11 @@ const SortableTable = memo(({ tableData, className }: SortableTableProps & { cla
                     {rows.map(({ item }) => (
                         <TableRow key={item.id}>
                             {tableData.headers.map(header => (
-                                <TableCell key={header} {...columnSizing_unstable.getTableCellProps(header)}>
+                                <TableCell
+                                    key={header}
+                                    {...columnSizing_unstable.getTableCellProps(header)}
+                                    style={{ whiteSpace: 'nowrap', paddingRight: '16px' }}
+                                >
                                     <TableCellLayout>{item[header] || '-'}</TableCellLayout>
                                 </TableCell>
                             ))}

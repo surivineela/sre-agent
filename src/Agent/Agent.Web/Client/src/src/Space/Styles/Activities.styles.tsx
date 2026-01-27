@@ -291,7 +291,7 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
             display: 'flex',
             flexDirection: 'column',
             gap: tokens.spacingVerticalM,
-            paddingLeft: tokens.spacingHorizontalS,
+            paddingLeft: tokens.spacingHorizontalM,
             ...overrides?.agentMessage,
         },
         toolCallText: {

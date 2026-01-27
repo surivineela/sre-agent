@@ -1,4 +1,4 @@
-import { Caption1, Subtitle2 } from '@fluentui-copilot/react-copilot';
+import { Body1Strong, Caption1 } from '@fluentui-copilot/react-copilot';
 import { Button, DrawerBody, DrawerHeader, Text } from '@fluentui/react-components';
 import { ChatWarningRegular, Dismiss24Regular, TaskListLtrRegular } from '@fluentui/react-icons';
 import { memo, useMemo } from 'react';
@@ -43,12 +43,12 @@ const TodoPlan = (props: ITodoPlanProps) => {
             <DrawerHeader>
                 <div className={styles.header}>
                     <div className={styles.headerIconContainer}>
-                        <TaskListLtrRegular style={{ height: '100%' }} fontSize={'32px'} />
+                        <TaskListLtrRegular style={{ height: '100%' }} fontSize={'28px'} />
                     </div>
                     <div className={styles.headerTextContainer}>
-                        <Subtitle2 block={true} className={styles.headerText}>
+                        <Body1Strong block={true} className={styles.headerText}>
                             {selectedPlan?.title || intl.formatMessage(ToDoPlanResources.todoPlanText)}
-                        </Subtitle2>
+                        </Body1Strong>
                         <Caption1 block={true} wrap={false} className={styles.headerText}>
                             {(() => {
                                 const total = selectedPlan?.items?.length ?? 0;

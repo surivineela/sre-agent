@@ -8,6 +8,7 @@ import {
     makeStyles,
     mergeClasses,
 } from '@fluentui/react-components';
+import { ClockRegular } from '@fluentui/react-icons';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
 import ReactMarkdown from 'react-markdown';
@@ -50,6 +51,13 @@ const useStyles = makeStyles({
         borderRadius: tokens.borderRadius2XL,
         padding: '5px',
     },
+    rootCollapsed: {
+        cursor: 'pointer',
+        transition: 'background-color 0.15s ease',
+        ':hover': {
+            backgroundColor: tokens.colorNeutralBackground1,
+        },
+    },
     thinking: {
         background: `linear-gradient(90deg, ${tokens.colorNeutralForeground3}, ${tokens.colorNeutralBackground6}, ${tokens.colorNeutralForeground1})`,
         backgroundSize: '200% 100%',
@@ -71,7 +79,7 @@ const useStyles = makeStyles({
     reasoningStep: {
         display: 'flex',
         alignItems: 'flex-start',
-        marginBottom: '20px',
+        marginBottom: '14px',
         position: 'relative',
         '&:last-child': {
             marginBottom: '0px',
@@ -83,20 +91,20 @@ const useStyles = makeStyles({
         '&:not(:last-child)::after': {
             content: '""',
             position: 'absolute',
-            left: '6px', // Center of the 12px dot
-            top: '20px', // Start below the dot
-            bottom: '-20px', // Connect to next item
+            left: '5px', // Center of the 10px dot
+            top: '18px', // Start below the dot
+            bottom: '-16px', // Connect to next item
             width: '1px',
             backgroundColor: tokens.colorNeutralStroke2,
             zIndex: 0,
         },
     },
     bulletPoint: {
-        width: '12px',
-        height: '12px',
+        width: '10px',
+        height: '10px',
         borderRadius: '50%',
         backgroundColor: tokens.colorNeutralForeground1, // Fluent UI token for primary foreground
-        margin: '3px 12px 3px 0px',
+        margin: '5px 10px 5px 0px',
         flexShrink: 0,
         zIndex: 1,
         position: 'relative',
@@ -115,9 +123,9 @@ const useStyles = makeStyles({
         marginLeft: '0px',
     },
     panelContent: {
-        padding: '16px 20px',
+        padding: '12px 16px',
         overflowY: 'auto',
-        maxHeight: '230px',
+        maxHeight: '200px',
     },
     headerWithTime: {
         display: 'flex',
@@ -130,9 +138,11 @@ const useStyles = makeStyles({
         minWidth: 0,
     },
     timeCaption: {
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground1,
         fontSize: tokens.fontSizeBase200,
         flexShrink: 0,
+        display: 'inline-flex',
+        alignItems: 'center',
     },
 });
 
@@ -313,8 +323,11 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
             // Thinking is active - ensure accordion is open
             setOpenItems([THINK_MODE]);
         } else {
-            // Thinking is not active - always collapse
-            setOpenItems([]);
+            // Thinking is not active - collapse after a short delay for smooth transition
+            const timer = setTimeout(() => {
+                setOpenItems([]);
+            }, 500);
+            return () => clearTimeout(timer);
         }
 
         // Update refs
@@ -378,13 +391,15 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
         }
     }, [items, reasoning.active, intl]);
 
+    const isCollapsed = !openItems.includes(THINK_MODE);
+
     return (
         <Accordion
             multiple
             collapsible
             openItems={openItems}
             onToggle={(_, data) => setOpenItems(data.openItems as string[])}
-            className={styles.root}
+            className={mergeClasses(styles.root, isCollapsed && styles.rootCollapsed)}
         >
             <AccordionItem value={THINK_MODE} key={THINK_MODE}>
                 <AccordionHeader expandIconPosition={'end'} size={'small'}>
@@ -398,7 +413,12 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
                                 ellipsis={true}
                             />
                         </div>
-                        {elapsedTime && !reasoning.active && <Caption1 className={styles.timeCaption}>{elapsedTime}</Caption1>}
+                        {elapsedTime && !reasoning.active && (
+                            <Caption1 className={styles.timeCaption}>
+                                <ClockRegular style={{ marginRight: '4px', color: tokens.colorNeutralForeground3 }} />
+                                {elapsedTime}
+                            </Caption1>
+                        )}
                     </div>
                 </AccordionHeader>
                 <AccordionPanel>
