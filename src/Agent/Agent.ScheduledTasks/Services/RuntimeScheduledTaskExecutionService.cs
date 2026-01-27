@@ -6,7 +6,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 

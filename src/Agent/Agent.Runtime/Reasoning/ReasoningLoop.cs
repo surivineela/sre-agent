@@ -517,7 +517,7 @@ public class ReasoningLoop : IDisposable
                             // process /compact command
                             if (chatMessage.Message.Text.StartsWith(CompactMarker, StringComparison.OrdinalIgnoreCase))
                             {
-                                await HandleCompactCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                await HandleCompactCommandAsync(chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
@@ -716,6 +716,16 @@ public class ReasoningLoop : IDisposable
                     await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                     // only end the root span if we didn't continue the loop
                     TracerExtensions.EndAndClear(ref _rootSpan);
+                }
+
+                var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+                if (thread != null && thread.Source == ThreadSource.ScheduledTask)
+                {
+                    await CompactChatAsync(
+                        compactInstructions: "",
+                        compactReason: CompactReason.ScheduledTaskAutoCompact,
+                        notifyUser: false,
+                        cancellationToken);
                 }
 
                 if (_context.ContextState == ContextStateEnum.Processing)
@@ -2911,15 +2921,42 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private async Task HandleCompactCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    private async Task HandleCompactCommandAsync(string userMessage, CancellationToken cancellationToken)
     {
+        // Extract any additional instructions from the user message
+        var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
+        var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
+        await CompactChatAsync(
+            compactInstructions: compactAdditionalInstructions,
+            compactReason: CompactReason.UserCommand,
+            notifyUser: true,
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Compacts the chat history by summarizing the conversation.
+    /// This updates both the database and the in-memory cache.
+    /// </summary>
+    /// <param name="compactInstructions">Optional additional instructions for the compaction summarizer.</param>
+    /// <param name="notifyUser">Whether to send a notification message to the user. Default is true.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private async Task CompactChatAsync(
+        string compactInstructions,
+        CompactReason compactReason,
+        bool notifyUser = false,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalWarning($"[{_context.ThreadId}] Initiating chat compaction. Reason: {compactReason}.");
+        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+        if (agentChatHistory == null)
+        {
+            _logger.LogInternalError("[{threadId}] No chat history found for agent context {agentContextId}", _context.ThreadId, _context.Id);
+            return;
+        }
+
         try
         {
-            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {CompactMarker} command.");
-
-            // parse any contextual additional instructions
-            var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
-            var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
+            _logger.LogInternalInformation("[{ThreadId}] Processing compaction. Reason: {CompactReason}", _context.ThreadId, compactReason);
 
             // Build full chat trajectory BEFORE compaction and save to file for later reference
             var chatTrajectory = new AgentTrajectory(_defaultStartingAgent.Name, _autoHandOffEnabled, _logger);
@@ -2952,7 +2989,7 @@ public class ReasoningLoop : IDisposable
 
             // call LLM to get the compacted chat
             var compactedChat = await Summarizer.CompactChatHistoryAsync(
-                additionalInstructions: compactAdditionalInstructions,
+                additionalInstructions: compactInstructions,
                 chatHistory: _chatHistory!,
                 startingAgent: _defaultStartingAgent.Name,
                 autoHandOffEnabled: _autoHandOffEnabled,
@@ -2964,26 +3001,26 @@ public class ReasoningLoop : IDisposable
             {
                 var fileReferenceSection = $$"""
 
----
-**Previous Conversation Archive**
-The full conversation before this compaction has been stored.
-> Use the `ToolOutputRetriever` tool to access the previous conversation if you need to reference specific details not captured in this summary.
+                    ---
+                    **Previous Conversation Archive**
+                    The full conversation before this compaction has been stored.
+                    > Use the `ToolOutputRetriever` tool to access the previous conversation if you need to reference specific details not captured in this summary.
 
-```json
-{
-  "fileKey": "{{chatHistoryFileKey}}",
-  "contentLength": {{fullChatTranscript.Length}},
-  "format": "text",
-  "structure": {
-    "userMessage": "Role: user\n<message_text>",
-    "agentResponse": "Role: <agent_name>\n<response_text>",
-    "functionCall": "Role: <agent_name>\nFunction Call: <name>\nParameters: <json>",
-    "toolResult": "CallId: <id>\nResult: <output>",
-    "internalReasoning": "Role: <agent_name>\nInternal Reasoning: <text>"
-  }
-}
-```
-""";
+                    ```json
+                    {
+                      "fileKey": "{{chatHistoryFileKey}}",
+                      "contentLength": {{fullChatTranscript.Length}},
+                      "format": "text",
+                      "structure": {
+                        "userMessage": "Role: user\n<message_text>",
+                        "agentResponse": "Role: <agent_name>\n<response_text>",
+                        "functionCall": "Role: <agent_name>\nFunction Call: <name>\nParameters: <json>",
+                        "toolResult": "CallId: <id>\nResult: <output>",
+                        "internalReasoning": "Role: <agent_name>\nInternal Reasoning: <text>"
+                      }
+                    }
+                    ```
+                    """;
                 compactedChat += fileReferenceSection;
             }
 
@@ -2991,20 +3028,26 @@ The full conversation before this compaction has been stored.
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
             await PersistReasoningMessageAsync(agentChatHistory, compactedChatMessage);
 
-            // Send response to user
             _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully compacted chat history");
-            var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ This conversation is now in compact mode.");
-            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+
+            if (notifyUser)
+            {
+                // Send response to user
+                var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ This conversation is now in compact mode.");
+                await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {CompactMarker} command");
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing compaction");
 
-            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
-
-            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+            if (notifyUser)
+            {
+                var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
+                await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+            }
         }
     }
 

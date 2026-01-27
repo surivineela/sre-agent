@@ -19,12 +19,12 @@ import {
 import MonacoEditor from '@monaco-editor/react';
 import { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { ThemeMode } from '../AzPortalProxy/Models/ITheme';
 import { EnvironmentContext } from '../AzPortalProxy/Providers/StartupInfoContext';
 import MakeArmCall from '../Clients/ArmClient';
 import ResourceProviderClient from '../Clients/ResourceProviderClient';
 import { ArmResourceDescriptor } from '../Helpers/ResourceDescriptors';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
 import CopyButton from './CopyButton';
 
 const useStyles = makeStyles({
