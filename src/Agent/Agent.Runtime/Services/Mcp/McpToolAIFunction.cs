@@ -69,30 +69,22 @@ public class McpToolAIFunction : AIFunction
         // The tool knows its actual MCP name (without prefix)
         var rawResult = await toolToInvoke.InvokeAsync(arguments, cancellationToken);
 
-        // The result type of the MCP client is handled poorly by the SDK (0.4.0), which is just a JsonElement
-        // So we need to deserialize it into CallToolResult and extract the Content
-        if (rawResult is JsonElement jsonElement)
-        {
-            var callToolResult = jsonElement.Deserialize<CallToolResult>();
-            if (callToolResult is null)
-            {
-                return rawResult;
-            }
-            else if (callToolResult.Content.Count > 1)
-            {
-                // Combine multiple content items into a single response
-                // TODO: Handle if the content is an image or not.
-                rawResult = string.Join("\n", callToolResult.Content.Select(c => c.ToAIContent()).OfType<TextContent>().Select(tc => tc.Text));
-            }
-            else
-            {
-                rawResult = callToolResult.Content.First().ToAIContent();
-            }
-        }
+        // According to MCP SDK (0.4.1), the result could be either:
+        // - a AIContent (TextContent, ImageContent, etc)
+        // - list of AIContent
+        // - a JsonElement representing a raw CallToolResult
+        // Here we will extract the text if it has only text contents. Otherwise, return as is.
         if (rawResult is TextContent textContent)
         {
             return textContent.Text;
         }
-        return rawResult;
+        else if (rawResult is IEnumerable<AIContent> aiContents)
+        {
+            return string.Join("\n------\n", aiContents.Select(c => c is TextContent t ? t.Text : $"<Unsupported {c.GetType().Name}>"));
+        }
+        else
+        {
+            return rawResult;
+        }
     }
 }
