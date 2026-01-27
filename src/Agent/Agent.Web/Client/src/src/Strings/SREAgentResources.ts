@@ -6261,6 +6261,10 @@ export const ConnectorsResources = defineMessages({
         id: 'yit592',
     },
 
+    // Connector Limits
+    onlyOneTeamsConnector: { defaultMessage: 'Your agent can only have one Teams connector', id: 'qmYsUB' },
+    onlyOneOutlookConnector: { defaultMessage: 'Your agent can only have one Outlook connector', id: 'Iw8con' },
+
     // MCP Tool Execution Messages
     mcpQueryKql: { defaultMessage: 'Query (KQL):', id: 'Dn1EZZ' },
     mcpSampleSize: { defaultMessage: 'Sample Size:', id: 'N3KMc+' },

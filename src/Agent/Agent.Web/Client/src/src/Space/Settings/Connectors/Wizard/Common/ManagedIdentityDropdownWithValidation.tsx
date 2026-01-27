@@ -76,7 +76,7 @@ export const ManagedIdentityDropdownWithValidation: React.FC<ManagedIdentityDrop
         }
 
         if (allSelectableOptions.length >= 1 && !values.identity) {
-            setFieldValue('identity', allSelectableOptions[0].id);
+            setFieldValue('identity', allSelectableOptions[0].id, true);
         }
     }, [isSystemAssignedIdentityEnabled, userAssignedIdentities, values.identity, setFieldValue]);
 
