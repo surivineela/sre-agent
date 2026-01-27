@@ -1,4 +1,12 @@
-import { AuthError, InteractionRequiredAuthError, InteractionStatus, RedirectRequest } from '@azure/msal-browser';
+import {
+    AuthenticationResult,
+    AuthError,
+    EventMessage,
+    EventType,
+    InteractionRequiredAuthError,
+    InteractionStatus,
+    RedirectRequest,
+} from '@azure/msal-browser';
 import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loginRequest, msalInstance } from '../Auth/msalConfig';
@@ -82,6 +90,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
         [instance]
     );
+
+    // Handle login success events (including tenant switches) to set the correct active account
+    // This ensures that after a redirect login, the newly authenticated account is set as active
+    useEffect(() => {
+        const callbackId = instance.addEventCallback((event: EventMessage) => {
+            if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
+                const authResult = event.payload as AuthenticationResult;
+                if (authResult.account) {
+                    instance.setActiveAccount(authResult.account);
+                }
+            }
+        });
+
+        return () => {
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
+    }, [instance]);
 
     // If there are accounts but no active account, set one
     useEffect(() => {
