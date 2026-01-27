@@ -345,5 +345,201 @@ namespace Agent.Tests.Unit.Core.Services
         }
 
         #endregion
+
+        #region UserSpecifiedDefaultModel Tests
+
+        [Fact]
+        public void Constructor_OverridesGeneralPurposeModelWithUserSpecified()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = "custom-model",
+                Provider = "custom-provider"
+            };
+            _agentModelSettings.AvailableModels = "custom-model, gpt-4o";
+
+            var mockCustomClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "custom-model"))
+                .Returns(mockCustomClient.Object);
+
+            // Act
+            var provider = CreateProvider();
+
+            // Assert - Should use custom-model, not gpt-4o (default priority)
+            var generalPurposeModel = provider.GeneralPurposeModel;
+            Assert.NotNull(generalPurposeModel);
+            mockKeyedServiceProvider.Verify(
+                sp => sp.GetRequiredKeyedService(typeof(IChatClient), "custom-model"),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Constructor_UserSpecifiedModelBypassesPriorityList()
+        {
+            // Arrange - Even though gpt-4o is higher priority, user-specified should win
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = "gpt-4o-mini",
+                Provider = "openai"
+            };
+            _chatClientProviderSettings.ScenarioConfiguration[ModelScenarioType.GeneralPurpose] =
+                new ModelScenarioPriority
+                {
+                    PriorityModels = new List<string> { "gpt-5", "gpt-4o", "gpt-4o-mini" },
+                    DefaultModel = "gpt-4o"
+                };
+            _agentModelSettings.AvailableModels = "gpt-5, gpt-4o, gpt-4o-mini";
+
+            var mockMiniClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "gpt-4o-mini"))
+                .Returns(mockMiniClient.Object);
+
+            // Act
+            var provider = CreateProvider();
+
+            // Assert - Should use gpt-4o-mini (user-specified), not gpt-5 (top priority)
+            var generalPurposeModel = provider.GeneralPurposeModel;
+            Assert.NotNull(generalPurposeModel);
+            mockKeyedServiceProvider.Verify(
+                sp => sp.GetRequiredKeyedService(typeof(IChatClient), "gpt-4o-mini"),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Constructor_DoesNotOverrideNonGeneralPurposeScenarios()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = "custom-model",
+                Provider = "custom-provider"
+            };
+            _agentModelSettings.AvailableModels = "custom-model, o1, gpt-4o";
+
+            var mockO1Client = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "o1"))
+                .Returns(mockO1Client.Object);
+
+            // Act
+            var provider = CreateProvider();
+
+            // Assert - ReasoningHeavy should still use o1, not custom-model
+            var reasoningHeavyModel = provider.ReasoningHeavyModel;
+            Assert.NotNull(reasoningHeavyModel);
+            mockKeyedServiceProvider.Verify(
+                sp => sp.GetRequiredKeyedService(typeof(IChatClient), "o1"),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Constructor_HandlesNullUserSpecifiedModelGracefully()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = null;
+
+            var mockGpt4oClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "gpt-4o"))
+                .Returns(mockGpt4oClient.Object);
+
+            // Act & Assert - Should not throw, uses default logic
+            var provider = CreateProvider();
+            var generalPurposeModel = provider.GeneralPurposeModel;
+            Assert.NotNull(generalPurposeModel);
+        }
+
+        [Fact]
+        public void Constructor_HandlesEmptyUserSpecifiedModelNameGracefully()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = string.Empty,
+                Provider = "custom-provider"
+            };
+
+            var mockGpt4oClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "gpt-4o"))
+                .Returns(mockGpt4oClient.Object);
+
+            // Act & Assert - Should fall back to default logic
+            var provider = CreateProvider();
+            var generalPurposeModel = provider.GeneralPurposeModel;
+            Assert.NotNull(generalPurposeModel);
+        }
+
+        [Fact]
+        public void Constructor_LogsWarningForEmptyUserSpecifiedModel()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = string.Empty,
+                Provider = "custom-provider"
+            };
+
+            var mockGpt4oClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "gpt-4o"))
+                .Returns(mockGpt4oClient.Object);
+
+            // Act
+            var provider = CreateProvider();
+            var generalPurposeModel = provider.GeneralPurposeModel;
+
+            // Assert - Verify warning was logged
+            _mockLogger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("UserSpecifiedDefaultModel.Name is configured but empty")),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Constructor_LogsInformationForSuccessfulOverride()
+        {
+            // Arrange
+            _chatClientProviderSettings.UserSpecifiedDefaultModel = new DefaultModel
+            {
+                Name = "custom-model",
+                Provider = "custom-provider"
+            };
+
+            var mockCustomClient = new Mock<IChatClient>();
+            var mockKeyedServiceProvider = _mockServiceProvider.As<IKeyedServiceProvider>();
+            mockKeyedServiceProvider
+                .Setup(sp => sp.GetRequiredKeyedService(typeof(IChatClient), "custom-model"))
+                .Returns(mockCustomClient.Object);
+
+            // Act
+            var provider = CreateProvider();
+            var generalPurposeModel = provider.GeneralPurposeModel;
+
+            // Assert - Verify information log was created
+            _mockLogger.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Overriding GeneralPurpose model")),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
+        #endregion
     }
 }

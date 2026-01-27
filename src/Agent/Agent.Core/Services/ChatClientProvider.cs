@@ -115,7 +115,7 @@ namespace Agent.Core.Services
 
             // Resolve model names at construction time (cheap operation)
             _embeddingModelName = string.IsNullOrWhiteSpace(_chatClientProviderSettings.EmbeddingModelName) ? openAISettings.Value.EmbeddingGeneratorDeploymentName : _chatClientProviderSettings.EmbeddingModelName;
-            _generalPurposeModelName = GetBestModelNameByScenario(ModelScenarioType.GeneralPurpose);
+            _generalPurposeModelName = ResolveModelWithUserOverride(ModelScenarioType.GeneralPurpose);
             _reasoningHeavyModelName = GetBestModelNameByScenario(ModelScenarioType.ReasoningHeavy);
             _reasoningFastModelName = GetBestModelNameByScenario(ModelScenarioType.ReasoningFast);
             _largeContextModelName = GetBestModelNameByScenario(ModelScenarioType.LongContext);
@@ -176,6 +176,43 @@ namespace Agent.Core.Services
 
             _logger.LogInternalInformation($"No priority model available in AvailableModelList, using scenario default model {scenarioPriority.DefaultModel} for scenario {scenarioType}");
             return scenarioPriority.DefaultModel;
+        }
+
+        /// <summary>
+        /// Resolves the model name with user-specified override if configured.
+        /// Only applies to GeneralPurpose scenario.
+        /// </summary>
+        /// <param name="scenarioType">The scenario type being configured</param>
+        /// <returns>The overridden model name if applicable, otherwise the current model name</returns>
+        private string ResolveModelWithUserOverride(ModelScenarioType scenarioType)
+        {
+            var currentModelName = GetBestModelNameByScenario(scenarioType);
+
+            // Only override GeneralPurpose scenario and if UserSpecifiedDefaultModel is configured
+            if (scenarioType != ModelScenarioType.GeneralPurpose ||
+                _chatClientProviderSettings.UserSpecifiedDefaultModel == null)
+            {
+                return currentModelName;
+            }
+
+            string userSpecifiedModelName = _chatClientProviderSettings.UserSpecifiedDefaultModel.Name;
+
+            // Validate model name is not empty
+            if (string.IsNullOrWhiteSpace(userSpecifiedModelName))
+            {
+                _logger.LogInternalWarning(
+                    "UserSpecifiedDefaultModel.Name is configured but empty. Using scenario-based model: {ModelName}",
+                    currentModelName);
+                return currentModelName;
+            }
+
+            // Override successful - use user-specified model without validation
+            _logger.LogInternalInformation(
+                "Overriding GeneralPurpose model from '{CurrentModel}' to user-specified model '{UserModel}'",
+                currentModelName,
+                userSpecifiedModelName);
+
+            return userSpecifiedModelName;
         }
 
         public bool IsModelSupported(string modelName)
