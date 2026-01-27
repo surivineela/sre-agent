@@ -30,15 +30,21 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
     }
     public async override Task<bool> CheckConnectivity()
     {
+        var result = await GetConnectivityStatus();
+        return result.Success;
+    }
+
+    public async override Task<ConnectivityResult> GetConnectivityStatus()
+    {
         try
         {
-            var response = await _pagerDutyService.GetIncidentsAsync(1, 0);
-            return true;
+            await _pagerDutyService.GetIncidentsAsync(1, 0);
+            return new ConnectivityResult(true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "CheckConnectivity: Exception occurred while checking PagerDuty connectivity.");
-            return false;
+            _logger.LogInternalError(ex, "GetConnectivityStatus: Exception occurred while checking PagerDuty connectivity.");
+            return new ConnectivityResult(false, $"PagerDuty API call failed: {ex.Message}");
         }
     }
 

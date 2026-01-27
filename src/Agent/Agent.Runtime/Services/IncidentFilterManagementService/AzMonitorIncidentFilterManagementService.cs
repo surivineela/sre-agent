@@ -33,15 +33,21 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
 
     public async override Task<bool> CheckConnectivity()
     {
+        var result = await GetConnectivityStatus();
+        return result.Success;
+    }
+
+    public async override Task<ConnectivityResult> GetConnectivityStatus()
+    {
         try
         {
             await _azMonitorAlertService.GetIncidentsAsync(1, 0);
-            return true;
+            return new ConnectivityResult(true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Connectivity check failed for AzMonitorIncidentFilterManagementService");
-            return false;
+            _logger.LogInternalError(ex, "GetConnectivityStatus: Connectivity check failed for AzMonitorIncidentFilterManagementService");
+            return new ConnectivityResult(false, $"Azure Monitor API call failed: {ex.Message}");
         }
     }
 

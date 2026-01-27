@@ -13,6 +13,11 @@ public class NullableIncidentFilterManagementService : IIncidentFilterManagement
         return Task.FromResult(false);
     }
 
+    public Task<ConnectivityResult> GetConnectivityStatus()
+    {
+        return Task.FromResult(new ConnectivityResult(false, "Incident management is not configured."));
+    }
+
     public Task<bool> DeleteIncidentFilter(string filterId)
     {
         return Task.FromResult(true);

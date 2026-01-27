@@ -105,15 +105,36 @@ public class IncidentPlaygroundController : ControllerBase
         {
             string incidentType = _incidentManagementSettings.Type?.ToString() ?? string.Empty;
             _logger.LogInternalInformation($"CheckConnectivity: Checking connectivity with incident type: {incidentType}");
-            bool result = false;
-            result = await _incidentFilterManagementServiceFactory.GetServiceDynamic().CheckConnectivity();
-            _logger.LogInternalInformation("CheckConnectivity: Connectivity check succeeded with result {Result}", result);
-            return Ok(result);
+            bool success = await _incidentFilterManagementServiceFactory.GetServiceDynamic().CheckConnectivity();
+            _logger.LogInternalInformation("CheckConnectivity: Connectivity check {Result}", success ? "succeeded" : "failed");
+            return Ok(success);
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "CheckConnectivity: Error during connectivity check");
             return Ok(false);
+        }
+    }
+
+    [HttpGet("checkConnectivityDetailed")]
+    [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
+    public async Task<IActionResult> CheckConnectivityDetailed()
+    {
+        _logger.LogInternalInformation("CheckConnectivityDetailed: Invoked");
+        try
+        {
+            string incidentType = _incidentManagementSettings.Type?.ToString() ?? string.Empty;
+            _logger.LogInternalInformation($"CheckConnectivityDetailed: Checking connectivity with incident type: {incidentType}");
+            var result = await _incidentFilterManagementServiceFactory.GetServiceDynamic().GetConnectivityStatus();
+            bool success = result.Success;
+            string? errorMessage = result.ErrorMessage;
+            _logger.LogInternalInformation("CheckConnectivityDetailed: Connectivity check completed with result {Result}", success);
+            return Ok(new { Success = success, ErrorMessage = errorMessage });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "CheckConnectivityDetailed: Error during connectivity check");
+            return Ok(new { Success = false, ErrorMessage = ex.Message });
         }
     }
 

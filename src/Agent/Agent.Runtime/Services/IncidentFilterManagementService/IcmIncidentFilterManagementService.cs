@@ -32,15 +32,21 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
 
     public async override Task<bool> CheckConnectivity()
     {
+        var result = await GetConnectivityStatus();
+        return result.Success;
+    }
+
+    public async override Task<ConnectivityResult> GetConnectivityStatus()
+    {
         try
         {
             await _icmApiClient.GetIncidentsAsync(1, 0, null, null, null);
-            return true;
+            return new ConnectivityResult(true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "CheckConnectivity: Exception occurred while checking ICM connectivity.");
-            return false;
+            _logger.LogInternalError(ex, "GetConnectivityStatus: Exception occurred while checking ICM connectivity.");
+            return new ConnectivityResult(false, $"ICM API call failed: {ex.Message}");
         }
     }
 

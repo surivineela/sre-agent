@@ -16,6 +16,12 @@ namespace Agent.Runtime.Services
         Dropdown,
         TextField
     }
+
+    /// <summary>
+    /// Result of a connectivity check operation.
+    /// </summary>
+    public record ConnectivityResult(bool Success, string? ErrorMessage);
+
     public class IncidentFilterFieldOption
     {
         public string FieldName { get; set; } = string.Empty;
@@ -30,6 +36,7 @@ namespace Agent.Runtime.Services
         where TIncidentFilterPayload : IncidentFilterDocumentPayload
     {
         Task<bool> CheckConnectivity();
+        Task<ConnectivityResult> GetConnectivityStatus();
         Task<List<IncidentFilterFieldOption>> ListIncidentFilterFieldOptions();
         Task<List<TIncidentFilterDocument>> ListIncidentFilters(bool includeDisabled = true);
         Task<TIncidentFilterDocument?> GetIncidentFilter(string filterId);
@@ -59,6 +66,8 @@ namespace Agent.Runtime.Services
         }
 
         public abstract Task<bool> CheckConnectivity();
+
+        public abstract Task<ConnectivityResult> GetConnectivityStatus();
 
         /// <summary>
         /// Add extra filter field options specific to the incident type.
