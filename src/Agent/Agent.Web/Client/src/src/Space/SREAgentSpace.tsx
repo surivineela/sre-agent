@@ -223,7 +223,7 @@ const TabsListWrapper: FC = () => {
                                     width: isNavOpen ? '280px' : '48px',
                                     transition: 'width 0.25s ease',
                                     height: '100%',
-                                    padding: `${copilotTokens.spacingVerticalS} 0px 0px 0px`,
+                                    padding: '0px',
                                 }}
                                 openCategories={openedCategoryNavItems}
                                 tabbable={true}
