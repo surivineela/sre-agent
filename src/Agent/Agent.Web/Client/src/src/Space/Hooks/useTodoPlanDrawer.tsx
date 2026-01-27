@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { TodoInfo, TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
+import { TodoInfo } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
 import { useTodoPlans } from './useTodoPlans';
 
@@ -9,11 +9,10 @@ export const useTodoPlanDrawer = (
     setHasToDoPlans: ((val: boolean) => void) | undefined,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
-    setExistingLatestToDoPlan: (plan: TodoPlan | null) => void
 ) => {
     const [todoInfo, setToDoInfo] = useState<TodoInfo | null>(null);
 
-    const { todoPlans, isLoading, error } = useTodoPlans(threadId || threadIdUsedForCreatingNewThread || null, setExistingLatestToDoPlan);
+    const { todoPlans, isLoading, error } = useTodoPlans(threadId || threadIdUsedForCreatingNewThread || null);
 
     const openTodoPlan = useCallback(
         (todoInfo: TodoInfo) => {

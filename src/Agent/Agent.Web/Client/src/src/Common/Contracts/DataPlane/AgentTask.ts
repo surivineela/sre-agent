@@ -85,6 +85,7 @@ export interface HypothesisTreeItem {
 }
 
 export enum AgentTaskStatus {
+    PendingUserApproval = 'pendinguserapproval',
     InProgress = 'inprogress',
     Complete = 'complete',
     Failed = 'failed',

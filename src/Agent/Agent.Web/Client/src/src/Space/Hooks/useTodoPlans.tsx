@@ -12,7 +12,7 @@ interface UseTodoPlansResult {
     error: string | null;
 }
 
-export const useTodoPlans = (threadId: string | null, setExistingLatestToDoPlan: (plan: TodoPlan | null) => void): UseTodoPlansResult => {
+export const useTodoPlans = (threadId: string | null): UseTodoPlansResult => {
     const [todoPlans, setTodoPlans] = useState<TodoPlan[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -35,21 +35,18 @@ export const useTodoPlans = (threadId: string | null, setExistingLatestToDoPlan:
             if (response.isSuccessful && response.content) {
                 const sortedPlans = response.content.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setTodoPlans(sortedPlans);
-                setExistingLatestToDoPlan(sortedPlans.length > 0 ? sortedPlans[sortedPlans.length - 1] : null);
             } else {
                 setError(response.error?.message || 'Failed to fetch todo plans');
                 setTodoPlans([]);
-                setExistingLatestToDoPlan(null);
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
             setError(errorMessage);
             setTodoPlans([]);
-            setExistingLatestToDoPlan(null);
         } finally {
             setIsLoading(false);
         }
-    }, [threadId, sreAgentEndpoint, setExistingLatestToDoPlan]);
+    }, [threadId, sreAgentEndpoint]);
 
     useEffect(() => {
         fetchTodoPlans();

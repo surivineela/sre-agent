@@ -44,5 +44,6 @@ export const useMemorySearchResultDrawer = (
         clearFocusOptions,
         openMemorySearchResult,
         closeMemorySearchResult,
+        setMemorySearchResult,
     };
 };

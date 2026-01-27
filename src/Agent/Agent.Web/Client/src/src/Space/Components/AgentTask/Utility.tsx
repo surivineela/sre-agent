@@ -37,9 +37,9 @@ export const getStatusPillComponentStyleProperties = (
     status?: string | null
 ):
     | {
-          icon: FluentIcon;
-          color?: 'brand' | 'success' | 'severe' | 'warning' | 'important' | 'informative' | 'subtle';
-      }
+        icon: FluentIcon;
+        color?: 'brand' | 'success' | 'severe' | 'warning' | 'important' | 'informative' | 'subtle';
+    }
     | undefined => {
     switch (status?.toLowerCase()) {
         case InvestigationStatusCommon.NotStarted:
@@ -47,6 +47,7 @@ export const getStatusPillComponentStyleProperties = (
                 icon: SubtractCircleRegular,
                 color: 'subtle',
             };
+        case AgentTaskStatus.PendingUserApproval:
         case AgentTaskStatus.InProgress:
         case InvestigationStatusCommon.InProgress:
         case TaskProgressStatus.Started:
@@ -93,6 +94,8 @@ export const getStatusPillComponentText = (status?: string | null) => {
     switch (status?.toLowerCase()) {
         case InvestigationStatusCommon.NotStarted:
             return 'Not started';
+        case AgentTaskStatus.PendingUserApproval:
+            return 'Pending approval';
         case AgentTaskStatus.InProgress:
         case InvestigationStatusCommon.InProgress:
         case TaskProgressStatus.InProgress:
