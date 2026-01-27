@@ -6,6 +6,7 @@ using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
@@ -13,6 +14,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Framework;
 using Anthropic;
+using Anthropic.Foundry;
 using Anthropic.Services;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
@@ -513,9 +515,9 @@ public static class AgentsConfigurationExtensions
 
         var client = serviceProvider.GetRequiredService<OpenAIClient>();
 
-        // Pick OpenAIResponseClient or ChatClient based on responses api config
+        // Pick ResponsesClient or ChatClient based on responses api config
         var chatClient = useResponsesApi
-            ? client.GetOpenAIResponseClient(openAiDeploymentName).AsIChatClient()
+            ? client.GetResponsesClient(openAiDeploymentName).AsIChatClient()
             : client.GetChatClient(openAiDeploymentName).AsIChatClient();
 
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -575,20 +577,25 @@ public static class AgentsConfigurationExtensions
 
                     var options = new Anthropic.Core.ClientOptions
                     {
-                        BaseUrl = new Uri(anthropicSettings.BaseUrl),
+                        BaseUrl = anthropicSettings.BaseUrl,
                         MaxRetries = anthropicSettings.MaxRetries,
                         HttpClient = httpClient,
                     };
 
-                    var client = string.IsNullOrEmpty(anthropicSettings.ApiKey) switch
+                    Anthropic.IAnthropicClient anthropicClient;
+                    if (!string.IsNullOrEmpty(anthropicSettings.ApiKey))
                     {
-                        false => new BetaService(new AnthropicClient(options)).WithOptions(o =>
-                        {
-                            o.APIKey = anthropicSettings.ApiKey;
-                            return o;
-                        }),
-                        true => new BetaService(new AnthropicTokenCredentialClient(authService.GetAzureAnthropicCredential(), options)),
-                    };
+                        anthropicClient = new AnthropicClient(options) { ApiKey = anthropicSettings.ApiKey };
+                    }
+                    else
+                    {
+                        // Extract resource name from BaseUrl (e.g., "https://myresource.services.ai.azure.com/anthropic/" -> "myresource")
+                        var resourceName = ExtractResourceNameFromUrl(anthropicSettings.BaseUrl);
+                        var credentials = new AnthropicFoundryTokenCredentials(authService.GetAzureAnthropicCredential(), resourceName);
+                        anthropicClient = new AnthropicFoundryClient(credentials) { MaxRetries = options.MaxRetries, HttpClient = options.HttpClient };
+                    }
+
+                    var client = new BetaService(anthropicClient);
 
                     return new ChatClientBuilder(client.AsIChatClient(defaultModelId: modelName, defaultMaxOutputTokens: anthropicSettings.MaxOutputTokens))
                         .Use(next => new ReasoningChatClient(next, new AnthropicReasoningChatClientOptions(
@@ -603,5 +610,23 @@ public static class AgentsConfigurationExtensions
             }
 
         }
+    }
+
+    /// <summary>
+    /// Extracts the Azure AI resource name from a Foundry URL.
+    /// </summary>
+    /// <param name="baseUrl">The base URL in the format https://{resource-name}.services.ai.azure.com/anthropic/</param>
+    /// <returns>The resource name portion of the URL.</returns>
+    /// <exception cref="ArgumentException">Thrown when the URL format is invalid.</exception>
+    private static string ExtractResourceNameFromUrl(string baseUrl)
+    {
+        // Match URLs like https://myresource.services.ai.azure.com/anthropic/
+        var match = Regex.Match(baseUrl, @"https://([^.]+)\.services\.ai\.azure\.com", RegexOptions.IgnoreCase);
+        if (match.Success)
+        {
+            return match.Groups[1].Value;
+        }
+
+        throw new ArgumentException($"Unable to extract resource name from URL: {baseUrl}. Expected format: https://{{resource-name}}.services.ai.azure.com/anthropic/", nameof(baseUrl));
     }
 }

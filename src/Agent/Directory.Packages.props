@@ -4,15 +4,15 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Anthropic" Version="11.0.0" />
-    <!-- <PackageVersion Include="Anthropic.Foundry" Version="0.0.2" /> -->
+    <PackageVersion Include="Anthropic" Version="12.2.0" />
+    <PackageVersion Include="Anthropic.Foundry" Version="0.4.0" />
     <PackageVersion Include="Antares.Azure.ResourceManager.AppContainers" Version="2024.10.2.4" />
     <PackageVersion Include="antares.kubectl" Version="1.20.10" />
-    <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
-    <PackageVersion Include="Azure.Core" Version="1.49.0" />
+    <PackageVersion Include="Azure.AI.OpenAI" Version="2.8.0-beta.1" />
+    <PackageVersion Include="Azure.Core" Version="1.50.0" />
     <PackageVersion Include="Azure.Data.AppConfiguration" Version="1.4.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
+    <PackageVersion Include="Azure.Identity" Version="1.17.0" />
     <PackageVersion Include="Azure.Messaging.EventHubs" Version="5.12.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.3.0" />
     <PackageVersion Include="Azure.Monitor.Query" Version="1.6.0" />
@@ -71,14 +71,14 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Csharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Diagnostics.Runtime" Version="3.1.512801" />
     <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.20" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="10.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="10.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="10.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageVersion Include="Microsoft.Graph" Version="5.75.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.3.0" />
     <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.3.0" />
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.67.2" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.76.0" />
     <PackageVersion Include="Microsoft.Identity.ServiceEssentials.Extensions.AspNetCoreMiddleware.S2S" Version="1.37.0" />
     <PackageVersion Include="Microsoft.IdentityModel" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IdentityModel.S2S" Version="4.19.1" />
@@ -103,9 +103,9 @@
     <PackageVersion Include="Microsoft.DurableTask.Worker.AzureManaged" Version="1.10.0-preview.1" />
     <!-- Override transitive dependency from Microsoft.VisualStudio.Services.Client to use 4.8.6 instead of 4.8.5 -->
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
-    <PackageVersion Include="Microsoft.Extensions.AI" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.0.0-preview.1.25560.10" />
+    <PackageVersion Include="Microsoft.Extensions.AI" Version="10.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.2.0-preview.1.26063.2" />
     <PackageVersion Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
@@ -115,7 +115,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
@@ -132,7 +132,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
     <PackageVersion Include="ModelContextProtocol" Version="0.4.1-preview.1" />
     <PackageVersion Include="Npgsql" Version="9.0.3" />
-    <PackageVersion Include="OpenAI" Version="2.6.0" />
+    <!-- A workaround for not resolving to 8.20.1, which exists in antares nuget feed -->
+    <PackageVersion Include="OpenAI" Version="[2.8.0,2.9.0]" />
     <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />

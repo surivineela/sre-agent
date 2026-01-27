@@ -601,7 +601,6 @@ public class AuthenticationService : IAuthenticationService
             ExcludeAzureCliCredential = false,
             ExcludeEnvironmentCredential = false,
             ExcludeManagedIdentityCredential = true,
-            ExcludeSharedTokenCacheCredential = true,
             ExcludeVisualStudioCodeCredential = true,
             ExcludeVisualStudioCredential = true, // visual stuido credential cannot retireve non-ARM token
         };

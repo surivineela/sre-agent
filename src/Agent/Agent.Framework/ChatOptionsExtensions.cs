@@ -297,9 +297,9 @@ public static class ChatOptionsExtensions
         return completionOptions;
     }
 
-    private static ResponseCreationOptions CreateResponseCreationOptions(AdditionalPropertiesDictionary optionProperties, bool isReasoningModel)
+    private static CreateResponseOptions CreateResponseCreationOptions(AdditionalPropertiesDictionary optionProperties, bool isReasoningModel)
     {
-        var responseOptions = new ResponseCreationOptions()
+        var responseOptions = new CreateResponseOptions()
         {
             TextOptions = new()
         };

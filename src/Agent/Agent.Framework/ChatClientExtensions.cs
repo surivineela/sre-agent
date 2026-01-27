@@ -218,7 +218,7 @@ public static partial class ChatClientExtensions
                 var modelId = string.Empty;
 
                 // responses api state properties
-                var lastResponse = default(OpenAI.Responses.OpenAIResponse);
+                var lastResponse = default(OpenAI.Responses.ResponseResult);
 
                 // handle streaming updates
                 await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
@@ -372,27 +372,6 @@ public static partial class ChatClientExtensions
                 if (outputTextStreamHandler is not null)
                 {
                     await outputTextStreamHandler.CompleteAsync();
-                }
-
-                if (isAnthropicModel)
-                {
-                    // Deduplicate tool call messages by tool call id for each response.Messages.Contents
-                    // because there's a bug in Anthropic SDK that may cause duplicate tool calls in streaming mode with parallel tool call enabled
-                    // https://github.com/anthropics/anthropic-sdk-csharp/issues/53
-                    foreach (var message in response.Messages)
-                    {
-                        var seenToolCallIds = new HashSet<string>();
-                        message.Contents = message.Contents
-                            .Where(content =>
-                            {
-                                if (content is FunctionCallContent toolCall)
-                                {
-                                    return seenToolCallIds.Add(toolCall.CallId);
-                                }
-                                return true;
-                            })
-                            .ToList();
-                    }
                 }
 
                 return response;
