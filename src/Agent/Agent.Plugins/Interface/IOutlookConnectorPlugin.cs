@@ -18,6 +18,7 @@ public interface IOutlookConnectorPlugin
         string importance,
         string? cc,
         string? bcc,
+        IReadOnlyList<EmailAttachment>? attachments = null,
         CancellationToken cancellationToken = default);
 
     Task<EmailMessageResult> GetEmailAsync(

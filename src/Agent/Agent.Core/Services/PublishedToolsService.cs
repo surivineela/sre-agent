@@ -50,7 +50,15 @@ namespace Agent.Core.Services
         {
             _logger = logger;
             _hostEnvironment = hostEnvironment;
-            _isFirstPartyTenant = firstPartyTenantProvider.IsFirstPartyTenant();
+            var isFirstPartyTenant = firstPartyTenantProvider.IsFirstPartyTenant();
+
+            if (_hostEnvironment.IsDevelopment())
+            {
+                _logger.LogInternalInformation("PublishedToolsService: Running in Development, treating tenant as first-party for tool availability.");
+                isFirstPartyTenant = true;
+            }
+
+            _isFirstPartyTenant = isFirstPartyTenant;
             _publishedTools = new List<PublishedTool>();
             _ = Task.Run(LoadConfigurationAsync);
         }

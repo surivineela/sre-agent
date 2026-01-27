@@ -533,7 +533,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                _outlookConnectorPlugin.SendEmailAsync(to, subject, body, "HTML", "Normal", null, null, cts.Token));
+                _outlookConnectorPlugin.SendEmailAsync(to, subject, body, "HTML", "Normal", null, null, null, cts.Token));
         }
 
         [Fact]
