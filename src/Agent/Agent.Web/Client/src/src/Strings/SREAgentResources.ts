@@ -928,6 +928,7 @@ export const SreAgentResources = defineMessages({
     anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
     azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
     dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
+    openMenu: { defaultMessage: 'Agent configuration and more', id: 'qTuUKM' },
 });
 
 export const SreAgentTabResources = defineMessages({
