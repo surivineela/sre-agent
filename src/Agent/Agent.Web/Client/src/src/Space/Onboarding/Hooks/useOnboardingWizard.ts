@@ -14,14 +14,14 @@ import { SreAgentContext } from '../../Contracts/Context';
 export enum WizardStep {
     InfrastructureScope = 1,
     IncidentPlatform = 2,
-    ConnectRepositories = 3,
+    KnowledgeBase = 3,
     GrantPermissions = 4,
 }
 
 const WIZARD_STEPS = [
     WizardStep.InfrastructureScope,
     WizardStep.IncidentPlatform,
-    WizardStep.ConnectRepositories,
+    WizardStep.KnowledgeBase,
     WizardStep.GrantPermissions,
 ] as const;
 
@@ -103,7 +103,8 @@ const isStepComplete = (step: WizardStep, agent: Agent | undefined): boolean => 
                 agent.incidentManagementConfiguration?.type !== undefined &&
                 agent.incidentManagementConfiguration?.type !== IncidentManagementType.None
             );
-        case WizardStep.ConnectRepositories:
+        case WizardStep.KnowledgeBase:
+            // Knowledge base step is optional - considered complete if any knowledge sources exist
             return false;
         case WizardStep.GrantPermissions:
             return (agent.permissions?.length ?? 0) > 0;
@@ -163,9 +164,9 @@ export const useOnboardingWizard = (): UseOnboardingWizardResult => {
                 status: getStepStatus(WizardStep.IncidentPlatform),
             },
             {
-                id: WizardStep.ConnectRepositories,
-                title: intl.formatMessage(OnboardingWizardResources.connectRepositories),
-                status: getStepStatus(WizardStep.ConnectRepositories),
+                id: WizardStep.KnowledgeBase,
+                title: intl.formatMessage(OnboardingWizardResources.knowledgeBase),
+                status: getStepStatus(WizardStep.KnowledgeBase),
             },
             {
                 id: WizardStep.GrantPermissions,

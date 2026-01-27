@@ -13,10 +13,10 @@ import { OnboardingWizardResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useOnboardingWizard, WizardStep } from './Hooks/useOnboardingWizard';
 import { useOnboardingWizardStyles } from './OnboardingWizard.styles';
-import { ConnectRepositoriesStep } from './Steps/ConnectRepositoriesStep';
 import { GrantPermissionsStep } from './Steps/GrantPermissionsStep';
 import { IncidentPlatformStep } from './Steps/IncidentPlatformStep';
 import { InfrastructureScopeStep } from './Steps/InfrastructureScopeStep';
+import { KnowledgeBaseStep } from './Steps/KnowledgeBaseStep';
 
 const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialValues: WizardFormValues): boolean => {
     switch (step) {
@@ -33,14 +33,24 @@ const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialV
                 currentValues.serviceNowUsername !== initialValues.serviceNowUsername ||
                 currentValues.serviceNowPassword !== initialValues.serviceNowPassword
             );
-        case WizardStep.ConnectRepositories:
-            return false;
+        case WizardStep.KnowledgeBase:
+            return !isEqual(currentValues.knowledgeSources, initialValues.knowledgeSources);
         case WizardStep.GrantPermissions:
             return false;
         default:
             return false;
     }
 };
+
+export type KnowledgeSourceType = 'repository' | 'file' | 'webpage';
+
+export interface KnowledgeSource {
+    id: string;
+    type: KnowledgeSourceType;
+    name: string;
+    url?: string;
+    lastModified?: string;
+}
 
 export interface WizardFormValues {
     selectedSubscriptionIds: string[];
@@ -52,6 +62,7 @@ export interface WizardFormValues {
     serviceNowUsername: string;
     serviceNowPassword: string;
     permissionsLevel: AgentAccessLevel;
+    knowledgeSources: KnowledgeSource[];
 }
 
 export interface OnboardingWizardProps {
@@ -91,6 +102,7 @@ export const OnboardingWizard: FC<OnboardingWizardProps> = ({ onComplete }) => {
             serviceNowUsername: '',
             serviceNowPassword: '',
             permissionsLevel: existingAccessLevel,
+            knowledgeSources: [],
         };
     }, [agentObj, resourceId]);
 
@@ -171,7 +183,9 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
         patchAgent,
     ]);
 
-    const saveRepositories = useCallback(async (): Promise<boolean> => {
+    const saveKnowledgeBase = useCallback(async (): Promise<boolean> => {
+        // Knowledge sources are saved individually via their dialogs
+        // This function serves as a placeholder for any batch save logic
         return true;
     }, []);
 
@@ -202,7 +216,8 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                     default:
                         return false;
                 }
-            case WizardStep.ConnectRepositories:
+            case WizardStep.KnowledgeBase:
+                // Knowledge base step is always valid (optional step)
                 return true;
             case WizardStep.GrantPermissions:
                 return true;
@@ -224,8 +239,8 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                     case WizardStep.IncidentPlatform:
                         saveSuccess = await saveIncidentPlatform();
                         break;
-                    case WizardStep.ConnectRepositories:
-                        saveSuccess = await saveRepositories();
+                    case WizardStep.KnowledgeBase:
+                        saveSuccess = await saveKnowledgeBase();
                         break;
                     case WizardStep.GrantPermissions:
                         saveSuccess = await savePermissions();
@@ -276,7 +291,7 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
         azPortalContext,
         saveInfrastructureScope,
         saveIncidentPlatform,
-        saveRepositories,
+        saveKnowledgeBase,
         savePermissions,
         values,
         initialValues,
@@ -318,8 +333,8 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                             <div className={getStepClassName(WizardStep.IncidentPlatform)}>
                                 <IncidentPlatformStep />
                             </div>
-                            <div className={getStepClassName(WizardStep.ConnectRepositories)}>
-                                <ConnectRepositoriesStep />
+                            <div className={getStepClassName(WizardStep.KnowledgeBase)}>
+                                <KnowledgeBaseStep />
                             </div>
                             <div className={getStepClassName(WizardStep.GrantPermissions)}>
                                 <GrantPermissionsStep />

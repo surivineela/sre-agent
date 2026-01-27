@@ -283,6 +283,33 @@ export const useRepositoriesStepStyles = makeStyles({
     },
 });
 
+export const useKnowledgeBaseStepStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+    },
+    headerSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    description: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    addButtonsContainer: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalM,
+        flexWrap: 'wrap',
+    },
+    nameCell: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
+});
+
 export const usePermissionsStepStyles = makeStyles({
     container: {
         display: 'flex',
