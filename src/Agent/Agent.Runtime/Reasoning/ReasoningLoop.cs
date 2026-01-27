@@ -1391,10 +1391,7 @@ public class ReasoningLoop : IDisposable
             );
         }
         catch (System.ClientModel.ClientResultException ex)
-            when (ex.Status == 429
-                || (ex.Message?.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (ex.Message?.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (ex.Message?.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ?? false))
+            when (RateLimitChatClient.IsRateLimit(ex))
         {
             _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;

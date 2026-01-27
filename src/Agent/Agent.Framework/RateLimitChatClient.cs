@@ -1,17 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 using System.ClientModel;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.RateLimiting;
-using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
-using Microsoft.Shared.Diagnostics;
 
 namespace Agent.Framework;
 
@@ -192,7 +186,7 @@ public sealed class RateLimitChatClient : DelegatingChatClient
         return TimeSpan.FromSeconds(20);
     }
 
-    private static bool IsRateLimit(System.ClientModel.ClientResultException ex)
+    public static bool IsRateLimit(System.ClientModel.ClientResultException ex)
     {
         try
         {
@@ -209,7 +203,8 @@ public sealed class RateLimitChatClient : DelegatingChatClient
         var msg = ex.Message ?? string.Empty;
         return msg.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase)
             || msg.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase)
-            || msg.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
+            || msg.Contains("rate limit", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("too_many_requests", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryParseRetryAfterSeconds(System.ClientModel.ClientResultException ex, out int seconds)

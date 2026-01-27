@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
-using Anthropic;
 using Microsoft.Extensions.AI;
 using OpenAI.Responses;
 
@@ -424,7 +423,7 @@ public static partial class ChatClientExtensions
                 if (rateLimitRetried <= maxRateLimitRetries)
                 {
                     rateLimitRetried++;
-                    await Task.Delay(TimeSpan.FromMilliseconds(1000), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                     continue;
                 }
                 throw;
