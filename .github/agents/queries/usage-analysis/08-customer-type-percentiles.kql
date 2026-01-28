@@ -1,0 +1,19 @@
+// Internal vs External Customer Type Percentiles by Day
+// Uses: ModelResponseEvents()
+//
+// Same as 06-1p-3p-percentiles but with Internal/External labels
+
+let StartDate = ago(21d);
+let EndDate = now();
+
+ModelResponseEvents(StartDate, EndDate)
+| extend Day = startofday(PreciseTimeStamp)
+| extend CustomerType = iff(CustomerCategory == "FirstParty", "Internal", "External")
+| summarize TotalDurationMinutes = sum(Duration) / 60000.0 by AgentName, CustomerType, Day
+| summarize 
+    P50_Minutes = round(percentile(TotalDurationMinutes, 50), 2),
+    P90_Minutes = round(percentile(TotalDurationMinutes, 90), 2),
+    TotalMinutes = round(sum(TotalDurationMinutes), 2),
+    AgentCount = dcount(AgentName)
+    by CustomerType, Day
+| order by Day asc, CustomerType asc

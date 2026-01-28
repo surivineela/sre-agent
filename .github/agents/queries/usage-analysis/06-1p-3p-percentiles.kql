@@ -1,0 +1,32 @@
+// 1P vs 3P Agent Percentiles by Day
+// Uses: ModelResponseEvents() - INLINED until deployed
+//
+// Calculates P50/P90 per agent daily usage by customer type
+
+let StartDate = ago(21d);
+let EndDate = now();
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Inline ModelResponseEvents() logic
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| where not(CustomerCategory == "FirstParty" and AgentUniqueName in (ExcludedAgents))
+| project AgentName = AgentUniqueName, CustomerCategory, ServiceGroupName, CustomerName;
+
+// Daily usage per agent
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| extend Day = startofday(PreciseTimeStamp)
+| summarize TotalDurationMinutes = sum(Duration) / 60000.0 by AgentName, CustomerCategory, Day
+| summarize 
+    P50_Minutes = round(percentile(TotalDurationMinutes, 50), 2),
+    P90_Minutes = round(percentile(TotalDurationMinutes, 90), 2),
+    TotalMinutes = round(sum(TotalDurationMinutes), 2),
+    AgentCount = dcount(AgentName)
+    by CustomerCategory, Day
+| order by Day asc, CustomerCategory asc

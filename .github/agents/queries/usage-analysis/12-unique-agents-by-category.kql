@@ -1,0 +1,58 @@
+// Unique Agents by Category (1P/3P)
+// Uses: UniqueFirstPartyAgents(), UniqueThirdPartyAgents() from SREAgentStoredFunctions
+//
+// Returns unique registered agents with provisioningState == "Succeeded"
+// Uses cross-cluster join to Product360CustomerSubscriptions for accurate 1P/3P classification
+//
+// BASELINE REFERENCE: 
+//   - analysis/UniqueAgents-FirstParty.kql
+//   - analysis/UniqueAgents-ThirdParty.kql
+// These queries match the churn-analysis branch baseline logic.
+
+let StartDate = ago(21d);
+let EndDate = now();
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// ============================================================
+// 1P Unique Agents (inline UniqueFirstPartyAgents logic)
+// ============================================================
+let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+
+let FirstPartyAgents = All('AgentDocumentDBState')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where not(agentName in (ExcludedAgents))
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+) on $left.subscriptionId == $right.SubscriptionId
+| where provisioningState == "Succeeded"
+| where TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+| where OfferType contains "Internal"
+| where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+| summarize UniqueAgents = dcount(agentName), UniqueSubscriptions = dcount(subscriptionId), UniqueServiceGroups = dcount(ServiceGroupName)
+| extend CustomerCategory = "FirstParty";
+
+// ============================================================
+// 3P Unique Agents (inline UniqueThirdPartyAgents logic)
+// ============================================================
+let ThirdPartyAgents = All('AgentDocumentDBState')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| join kind=leftouter (
+    cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+    Product360CustomerSubscriptions
+    | project CloudCustomerName, OfferType, SubscriptionId
+) on $left.subscriptionId == $right.SubscriptionId
+| where provisioningState == "Succeeded"
+| where OfferType !contains "Internal"
+| summarize UniqueAgents = dcount(agentName), UniqueSubscriptions = dcount(subscriptionId), UniqueCustomers = dcount(CloudCustomerName)
+| extend CustomerCategory = "ThirdParty";
+
+// Union results
+union
+    (FirstPartyAgents | project CustomerCategory, UniqueAgents, UniqueSubscriptions, UniqueGroups = UniqueServiceGroups),
+    (ThirdPartyAgents | project CustomerCategory, UniqueAgents, UniqueSubscriptions, UniqueGroups = UniqueCustomers)

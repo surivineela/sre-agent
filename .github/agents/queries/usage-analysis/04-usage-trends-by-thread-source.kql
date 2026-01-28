@@ -1,0 +1,34 @@
+// Usage Trends by Thread Source Over Time (Weekly)
+// Uses: ModelResponseEvents(), ThreadEvents()
+//
+// Shows week-over-week changes by thread source
+
+let StartDate = ago(30d);
+let EndDate = now();
+
+// Get threads from base function
+let Threads = ThreadEvents(StartDate, EndDate)
+| project AgentName, ThreadId, ThreadSource;
+
+// Get weekly usage
+let WeeklyUsage = ModelResponseEvents(StartDate, EndDate)
+| extend Week = startofweek(PreciseTimeStamp)
+| summarize TotalDurationMinutes = sum(Duration) / 60000.0, CallCount = count()
+    by AgentName, ThreadId, Week
+| join kind=inner (Threads) on AgentName, ThreadId
+| summarize 
+    TotalDurationMinutes = sum(TotalDurationMinutes),
+    CallCount = sum(CallCount),
+    AgentCount = dcount(AgentName)
+    by ThreadSource, Week;
+
+// Calculate week-over-week changes
+WeeklyUsage
+| order by ThreadSource asc, Week asc
+| extend PrevWeek = prev(TotalDurationMinutes, 1), PrevSource = prev(ThreadSource, 1)
+| extend WoWChange = iff(PrevSource == ThreadSource and PrevWeek > 0,
+    round((TotalDurationMinutes - PrevWeek) / PrevWeek * 100, 2), real(null))
+| project Week, ThreadSource, 
+    TotalDurationMinutes = round(TotalDurationMinutes, 2), 
+    CallCount, AgentCount, WoWChange
+| order by Week desc, TotalDurationMinutes desc

@@ -1,0 +1,17 @@
+// Token Usage Metrics Analysis (Daily)
+// Uses: TokenMetrics()
+//
+// Returns daily token consumption with cache hit rates
+// For period totals, use TokenMetrics(StartDate, EndDate, "FirstParty", false)
+
+let StartDate = ago(30d);
+let EndDate = now();
+
+// 1P daily token metrics
+TokenMetrics(StartDate, EndDate, "FirstParty", true)
+
+// Or for 3P:
+// TokenMetrics(StartDate, EndDate, "ThirdParty", true)
+
+// Or for period totals (no daily breakdown):
+// TokenMetrics(StartDate, EndDate, "FirstParty", false)

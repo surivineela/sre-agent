@@ -1,0 +1,37 @@
+// Usage Analysis by Thread Source
+// Uses: ThreadSourceUsageTrend() from SREAgentStoredFunctions
+//
+// Thread sources: Incident, Conversation, ScheduledTask, DailyReport
+// CRITICAL: ThreadSource is ONLY on CreateThread events, NOT GenerateModelResponse.
+
+let StartDate = ago(30d);
+let EndDate = now();
+
+// Until functions are deployed, inline the logic:
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| project AgentName = AgentUniqueName, CustomerCategory;
+
+// Get ThreadSource from thread creation events
+let ThreadSourceMap = All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action in ("CreateThread", "CreateUserInitiatedThread")
+| where isnotempty(ThreadSource)
+| project ThreadId, ThreadSource;
+
+// Join model responses with thread source
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| join kind=leftouter (ThreadSourceMap) on ThreadId
+| extend ThreadSourceFinal = coalesce(ThreadSource1, "Unknown")
+| extend Day = startofday(PreciseTimeStamp)
+| summarize 
+    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+    CallCount = count(),
+    AgentCount = dcount(AgentName),
+    ThreadCount = dcount(ThreadId)
+    by ThreadSource = ThreadSourceFinal, Day
+| order by Day desc, TotalDurationMinutes desc
