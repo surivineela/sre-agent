@@ -93,36 +93,38 @@ const ChatMessage = ({
     switch (role) {
         case 'SREAgent':
             return (
-                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined} className={chatBoxStyles.agentMessage}>
-                    {messages.map(message => {
-                        return (
-                            <AgentMessage
-                                key={message.id}
-                                message={message}
-                                messageId={message.id}
-                                timeStamp={message.timeStamp}
-                                isTyping={isTyping}
-                                threadId={threadId}
-                                sendMessage={sendMessage}
-                                updateApprovalOrCliMessageInStreamingMessage={
-                                    isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
-                                }
-                                onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
-                            />
-                        );
-                    })}
+                <div style={isStreamingMessage ? { minHeight: 'calc(100% - 120px)' } : undefined}>
+                    <div className={chatBoxStyles.agentMessage}>
+                        {messages.map(message => {
+                            return (
+                                <AgentMessage
+                                    key={message.id}
+                                    message={message}
+                                    messageId={message.id}
+                                    timeStamp={message.timeStamp}
+                                    isTyping={isTyping}
+                                    threadId={threadId}
+                                    sendMessage={sendMessage}
+                                    updateApprovalOrCliMessageInStreamingMessage={
+                                        isStreamingMessage ? updateApprovalOrCliMessageInStreamingMessage : undefined
+                                    }
+                                    onSubmitUserQuestionResponse={onSubmitUserQuestionResponse}
+                                />
+                            );
+                        })}
 
-                    <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
-                    <ToolCallTextComponent key={`${id}-tool-call-text`} />
-                    <Loading key={`${id}-loading`} />
+                        <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
+                        <ToolCallTextComponent key={`${id}-tool-call-text`} />
+                        <Loading key={`${id}-loading`} />
 
-                    <ChatMessageFooter
-                        key={`${id}-message-footer`}
-                        messageContent={messagesToCopy || ''}
-                        threadId={threadId}
-                        threadSource={threadSource}
-                        isTyping={isTyping}
-                    />
+                        <ChatMessageFooter
+                            key={`${id}-message-footer`}
+                            messageContent={messagesToCopy || ''}
+                            threadId={threadId}
+                            threadSource={threadSource}
+                            isTyping={isTyping}
+                        />
+                    </div>
                 </div>
             );
         default:
