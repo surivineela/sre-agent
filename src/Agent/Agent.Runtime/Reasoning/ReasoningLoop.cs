@@ -1607,14 +1607,18 @@ public class ReasoningLoop : IDisposable
     {
         var hooks = new RunHooks<AgentContext>();
 
-        hooks.CompactionStart += (context, agent) =>
+        hooks.CompactionStart += async (context, agent) =>
         {
             _logger.LogInternalInformation("Trace starting Compaction for agent: {subAgentName}.", agent.Name);
             _currentCompactionSpan = _tracer.StartSpan($"compaction", SpanKind.Internal, _currentAgentSpan);
             _currentCompactionSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentCompactionSpan.SetAttribute(TraceAttribute.OperationName, "Compaction");
-            return Task.CompletedTask;
+
+            // Stream compaction feedback to the frontend
+            await _outboundCommunicationService.NotifyIntermediateUpdate(
+                _context.ThreadId,
+                "Compacting conversation...");
         };
 
         hooks.CompactionEnd += (context, agent) =>
