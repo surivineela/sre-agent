@@ -162,7 +162,7 @@ namespace Agent.Runtime
                     {
                         if (usage.Details.InputTokenCount.HasValue)
                         {
-                            inputTokens += usage.Details.InputTokenCount.Value;
+                            inputTokens = Math.Max(inputTokens, usage.Details.InputTokenCount.Value);
                         }
 
                         if (usage.Details.OutputTokenCount.HasValue)
@@ -209,6 +209,15 @@ namespace Agent.Runtime
                 }
 
                 var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
+
+                // This is a workaround for Claude models which report double token usage in streaming mode as of Anthropic SDK v12.2.0
+                // This bug has been fixed in
+                // https://github.com/anthropics/anthropic-sdk-csharp/pull/99/changes#diff-dcc8ae7a379bf0e30728ddfac2154a44dd543e968d60acbc45fddcdea650e67c
+                // but not released yet. Remove this workaround when upgrading to Anthropic SDK version.
+                if (modelId.StartsWith("claude"))
+                {
+                    inputTokens /= 2;
+                }
 
                 // Log token consumption (structured record with model and modelVersion)
                 _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);

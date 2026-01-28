@@ -4,6 +4,8 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Note: Anthropic SDK version 12.2.0 has a known issue with double token usage reporting in streaming mode.
+     there's a workaround in GetStreamingResponseAsync method of TokenLoggingChatClientExtensions.cs, which should be removed when upgrading to a new version. -->
     <PackageVersion Include="Anthropic" Version="12.2.0" />
     <PackageVersion Include="Anthropic.Foundry" Version="0.4.0" />
     <PackageVersion Include="Antares.Azure.ResourceManager.AppContainers" Version="2024.10.2.4" />
