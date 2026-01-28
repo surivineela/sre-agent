@@ -3,6 +3,7 @@ import { getCurrentUserPreferences } from '../Contexts/UserPreferencesContext';
 import { LogLevel, TelemetryEvent } from '../Contracts/Telemetry';
 import { acquireAccessToken } from '../Utilities/Client';
 import { getSessionId } from '../Utilities/SessionManager';
+import { getPuidFromIdTokenClaims, IdTokenClaimsWithPuid } from '../Utilities/UserPuid';
 
 enum ApiLogLevel {
     Trace = 0,
@@ -47,12 +48,18 @@ export class TelemetryClient {
         const activeAccount = msalInstance.getActiveAccount();
         const { theme, systemTheme, locale } = getCurrentUserPreferences();
 
+        // Extract PUID from ID token claims using Azure Portal's algorithm\
+        // This can also be found on the ARM access token data (altsecid for cross-tenant - prefix is `5::` though)
+        const puid = getPuidFromIdTokenClaims(activeAccount?.idTokenClaims as IdTokenClaimsWithPuid);
+
         const eventWithBaselineData = {
             version: import.meta.env.SRE_AGENT_PORTAL_VERSION,
             hostname: window.location.hostname,
             pathname: window.location.pathname,
             sessionId: getSessionId(),
-            // Portal uses the legacy hexadecimal cross-tenant PUID, but this is a potential privacy concern due to cross-tenant user tracking
+            // Azure Portal uses the legacy hexadecimal cross-tenant PUID for `userId`, but this is a potential privacy concern due to
+            // cross-tenant user tracking. As long as log retention is max 30d, it's acceptable to use.
+            puid: puid || 'anonymous',
             userId: activeAccount?.homeAccountId || 'anonymous',
             tenantId: activeAccount?.tenantId || 'anonymous',
             userAgent: navigator.userAgent,
