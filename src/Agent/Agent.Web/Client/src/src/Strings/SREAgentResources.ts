@@ -1986,6 +1986,10 @@ export const IncidentManagementResources = defineMessages({
     viewTrace: { defaultMessage: 'View trace', id: 'Hgs+WM' },
     closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
+    noIncidentsFoundDescription: {
+        defaultMessage: 'Try updating your filters or review your incident triggers to make sure they are configured properly.',
+        id: 'xErbrt',
+    },
     expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
     collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },

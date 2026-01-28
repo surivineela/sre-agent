@@ -19,6 +19,7 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     TableColumnId,
+    Text,
     tokens,
     Tooltip,
     useRestoreFocusSource,
@@ -670,7 +671,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                     if (filterMatch?.handlingAgent) {
                         const anchorEntity: ExtendedAgentAnchorEntity = {
                             entityType: 'IncidentTrigger',
-                            entityName: filterMatch.id
+                            entityName: filterMatch.id,
                         };
                         return (
                             <ResponsePlanLinkWithIcon
@@ -845,8 +846,31 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             );
         }
 
-        return <div style={{ textAlign: 'center' }}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</div>;
-    }, [incidentThreads.length, incidentThreadsLoading, hasAnyIncidents, incidentManagementConfigured, hasFilters, intl, navigate]);
+        return (
+            <div className={localStyles.noItemsContainer}>
+                <img
+                    src={'AiSearchWarningSpotIllustration.svg'}
+                    alt={intl.formatMessage(SreAgentResources.warning)}
+                    style={{ height: 180, width: 180 }}
+                />
+                <div className={localStyles.textContainer}>
+                    <Text className={localStyles.primaryTitle}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</Text>
+                    <Text className={localStyles.description}>
+                        {intl.formatMessage(IncidentManagementResources.noIncidentsFoundDescription)}
+                    </Text>
+                </div>
+            </div>
+        );
+    }, [
+        incidentThreads.length,
+        incidentThreadsLoading,
+        hasAnyIncidents,
+        incidentManagementConfigured,
+        hasFilters,
+        localStyles,
+        intl,
+        navigate,
+    ]);
 
     const columnSizingOptions = useMemo(
         () => ({
@@ -1180,6 +1204,33 @@ const useIncidentsOverviewStyles = makeStyles({
     },
     dataGridRow: {
         width: '100%',
+    },
+    noItemsContainer: {
+        marginTop: '40px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: tokens.spacingVerticalXXL,
+    },
+    textContainer: {
+        maxWidth: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: tokens.spacingVerticalS,
+    },
+    primaryTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: tokens.colorNeutralForeground1,
+        whiteSpace: 'nowrap',
+    },
+    description: {
+        fontSize: '14px',
+        color: tokens.colorNeutralForeground2,
+        lineHeight: '20px',
+        whiteSpace: 'nowrap',
     },
 });
 
