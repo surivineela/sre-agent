@@ -15,9 +15,7 @@ configuration:
       dismissStaleReviews: true
       allowsForcePushes: true
       isAdminEnforced: false
-      whoCanPush:
-      - k4appscore
-      - srea-devs
+      whoCanPush: []
       requiredStatusChecks:
       - GitOps/AdvancedSecurity
       - build-dotnet
