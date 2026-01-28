@@ -1899,32 +1899,10 @@ public class ReasoningLoop : IDisposable
             _currentGenerationStopwatch = null;
 
             // Build token usage JSON including cached token count if available
-            var cachedTokenCount = 0L;
-            try
-            {
-                if (response?.Usage?.AdditionalCounts is not null)
-                {
-                    response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out cachedTokenCount);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
-            }
+            var cachedTokenCount = response?.Usage?.CachedInputTokenCount ?? 0L;
 
             // Build token usage JSON including cached token count if available
-            var reasoningTokenCount = 0L;
-            try
-            {
-                if (response?.Usage?.AdditionalCounts is not null)
-                {
-                    response.Usage.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out reasoningTokenCount);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalWarning(ex, "Failed to parse output reasoning token count from AdditionalCounts");
-            }
+            var reasoningTokenCount = response?.Usage?.ReasoningTokenCount ?? 0L;
 
             // get the effective reasoning effort for the request
             var effectiveReasoningEffort = ReasoningConstants.NonReasoningModel;
