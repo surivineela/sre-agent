@@ -16,7 +16,8 @@ RUN apt-get update && \
     rm kubectl && \
     # Install Node.js 20 (required for @playwright/mcp)
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+    apt-get install -y nodejs && \
+    npm install -g @playwright/mcp@0.0.61
 
 WORKDIR /app
 COPY . .
