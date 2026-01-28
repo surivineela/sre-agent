@@ -1,4 +1,5 @@
 import { Button, Text } from '@fluentui/react-components';
+import { ChevronLeftRegular, ChevronRightRegular } from '@fluentui/react-icons';
 import { Formik, FormikHelpers, useFormikContext } from 'formik';
 import isEqual from 'lodash/isEqual';
 import { FC, useCallback, useContext, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { useIntl } from 'react-intl';
 import RocketImage from '../../../assets/Rocket.svg';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { WizardStepper } from '../../Common/Components/Wizard/WizardStepper';
+import { WizardStepperHorizontal } from '../../Common/Components/Wizard/WizardStepperHorizontal';
 import { AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { OnboardingWizardResources } from '../../Strings/SREAgentResources';
@@ -127,7 +128,7 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
 
     const { values, initialValues } = useFormikContext<WizardFormValues>();
 
-    const { currentStep, steps, isLastStep, isFirstStep, goToNextStep, goToPreviousStep, skipWizard, finishWizard } = useOnboardingWizard();
+    const { currentStep, steps, isLastStep, isFirstStep, goToNextStep, goToPreviousStep, finishWizard } = useOnboardingWizard();
 
     const saveInfrastructureScope = useCallback(async (): Promise<boolean> => {
         // Build managedResources from both subscription IDs and resource group IDs
@@ -297,15 +298,6 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
         initialValues,
     ]);
 
-    const handleSkip = useCallback(() => {
-        skipWizard();
-        onComplete?.();
-    }, [skipWizard, onComplete]);
-
-    const handleBack = useCallback(() => {
-        goToPreviousStep();
-    }, [goToPreviousStep]);
-
     const getStepClassName = useCallback(
         (step: WizardStep) => (currentStep === step ? styles.stepVisible : styles.stepHidden),
         [currentStep, styles.stepVisible, styles.stepHidden]
@@ -319,45 +311,38 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                 <Text className={styles.welcomeSubtitle}>{intl.formatMessage(OnboardingWizardResources.welcomeSubtitle)}</Text>
             </div>
 
+            <div className={styles.stepperContainer}>
+                <WizardStepperHorizontal steps={steps} />
+            </div>
+
             <div className={styles.cardContainer}>
                 <div className={styles.wizardCard}>
-                    <div className={styles.contentContainer}>
-                        <div className={styles.stepperPanel}>
-                            <WizardStepper steps={steps} />
+                    <div className={styles.mainContent}>
+                        <div className={getStepClassName(WizardStep.InfrastructureScope)}>
+                            <InfrastructureScopeStep />
                         </div>
-
-                        <div className={styles.mainContent}>
-                            <div className={getStepClassName(WizardStep.InfrastructureScope)}>
-                                <InfrastructureScopeStep />
-                            </div>
-                            <div className={getStepClassName(WizardStep.IncidentPlatform)}>
-                                <IncidentPlatformStep />
-                            </div>
-                            <div className={getStepClassName(WizardStep.KnowledgeBase)}>
-                                <KnowledgeBaseStep />
-                            </div>
-                            <div className={getStepClassName(WizardStep.GrantPermissions)}>
-                                <GrantPermissionsStep />
-                            </div>
+                        <div className={getStepClassName(WizardStep.IncidentPlatform)}>
+                            <IncidentPlatformStep />
+                        </div>
+                        <div className={getStepClassName(WizardStep.KnowledgeBase)}>
+                            <KnowledgeBaseStep />
+                        </div>
+                        <div className={getStepClassName(WizardStep.GrantPermissions)}>
+                            <GrantPermissionsStep />
                         </div>
                     </div>
-
-                    <div className={styles.footer}>
-                        {!isFirstStep && (
-                            <Button appearance="secondary" onClick={handleBack}>
-                                {intl.formatMessage(OnboardingWizardResources.back)}
-                            </Button>
-                        )}
-                        <div className={styles.footerSpacer} />
-                        <Button appearance="primary" onClick={handleSaveAndNext} disabled={!isCurrentStepValid}>
-                            {isLastStep
-                                ? intl.formatMessage(OnboardingWizardResources.finish)
-                                : intl.formatMessage(OnboardingWizardResources.saveAndNext)}
+                </div>
+                <div className={styles.buttonFooter}>
+                    {!isFirstStep && (
+                        <Button appearance="subtle" onClick={goToPreviousStep} icon={<ChevronLeftRegular />}>
+                            {intl.formatMessage(OnboardingWizardResources.back)}
                         </Button>
-                        <Button appearance="secondary" onClick={handleSkip}>
-                            {intl.formatMessage(OnboardingWizardResources.skip)}
-                        </Button>
-                    </div>
+                    )}
+                    <Button appearance="primary" onClick={handleSaveAndNext} disabled={!isCurrentStepValid} icon={<ChevronRightRegular />} iconPosition="after">
+                        {isLastStep
+                            ? intl.formatMessage(OnboardingWizardResources.launchPortal)
+                            : intl.formatMessage(OnboardingWizardResources.next)}
+                    </Button>
                 </div>
             </div>
         </div>

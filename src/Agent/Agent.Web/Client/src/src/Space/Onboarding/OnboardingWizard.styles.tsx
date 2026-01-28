@@ -18,7 +18,7 @@ export const useOnboardingWizardStyles = makeStyles({
         flexDirection: 'column',
         alignItems: 'center',
         paddingTop: '2px',
-        paddingBottom: '8px',
+        paddingBottom: tokens.spacingVerticalS,
         backgroundColor: tokens.colorNeutralBackground1,
     },
     rocketIcon: {
@@ -35,45 +35,48 @@ export const useOnboardingWizardStyles = makeStyles({
     welcomeSubtitle: {
         fontSize: tokens.fontSizeBase300,
         color: tokens.colorNeutralForeground2,
+        marginBottom: tokens.spacingVerticalL,
     },
-    cardContainer: {
-        display: 'flex',
-        flex: 1,
-        justifyContent: 'center',
+    stepperContainer: {
+        maxWidth: '1100px',
+        width: '100%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
         paddingLeft: tokens.spacingHorizontalXXXL,
         paddingRight: tokens.spacingHorizontalXXXL,
-        paddingBottom: tokens.spacingVerticalXXXL,
-        marginTop: tokens.spacingVerticalS,
+        marginBottom: tokens.spacingVerticalL,
     },
-    wizardCard: {
+    cardContainer: {
         display: 'flex',
         flexDirection: 'column',
         maxWidth: '1100px',
         width: '100%',
-        minHeight: '500px',
-        maxHeight: '580px',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        paddingLeft: tokens.spacingHorizontalXXXL,
+        paddingRight: tokens.spacingHorizontalXXXL,
+        paddingBottom: tokens.spacingVerticalXXL,
+    },
+    wizardCard: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        minHeight: '400px',
         backgroundColor: tokens.colorNeutralBackground1,
         borderRadius: '16px',
         boxShadow: tokens.shadow28,
         overflow: 'hidden',
         border: `1px solid ${tokens.colorNeutralStroke2}`,
     },
-    contentContainer: {
+    buttonFooter: {
         display: 'flex',
-        flex: 1,
-        overflow: 'hidden',
-    },
-    stepperPanel: {
-        width: '260px',
-        minWidth: '260px',
-        padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXL}`,
-        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground2,
-        overflowY: 'auto',
+        justifyContent: 'flex-end',
+        gap: tokens.spacingHorizontalM,
+        marginTop: tokens.spacingVerticalL,
     },
     mainContent: {
         flex: 1,
-        padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXXXL}`,
+        padding: tokens.spacingHorizontalXXL,
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
@@ -84,17 +87,6 @@ export const useOnboardingWizardStyles = makeStyles({
     },
     stepHidden: {
         display: 'none',
-    },
-    footer: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: tokens.spacingHorizontalM,
-        padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalXXL}`,
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground1,
-    },
-    footerSpacer: {
-        flex: 1,
     },
 });
 
