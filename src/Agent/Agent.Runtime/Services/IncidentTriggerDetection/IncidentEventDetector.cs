@@ -14,7 +14,7 @@ namespace Agent.Runtime.Services.IncidentTriggerDetection;
 /// </summary>
 public class IncidentEventDetector : IIncidentEventDetector
 {
-    private static readonly TimeSpan NewIncidentThreshold = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan NewIncidentThreshold = TimeSpan.FromMinutes(30);
     private const string AgentMentionPattern = "@sreagent";
     private const string AgentSystemUserAlias = "Azure SRE Agent";
 
