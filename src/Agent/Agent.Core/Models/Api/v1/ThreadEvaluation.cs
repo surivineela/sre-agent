@@ -34,5 +34,6 @@ public record ThreadEvaluateResult(
     AgentTypeEnum AgentType,
     string StartingAgentName,
     bool SkillsEnabled,
-    bool IsExtendedAgent
+    bool IsExtendedAgent,
+    string BlockedReason = "None"
 );
