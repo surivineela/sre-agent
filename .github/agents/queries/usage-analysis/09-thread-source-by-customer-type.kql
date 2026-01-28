@@ -1,0 +1,44 @@
+// Thread Source Usage by Customer Type (1P/3P)
+// Uses: ThreadSourceUsageTrend() from SREAgentStoredFunctions
+//
+// Breaks down thread sources by 1P vs 3P
+// CRITICAL: ThreadSource is ONLY on CreateThread events, NOT GenerateModelResponse.
+// This query joins with CreateThread to get the correct ThreadSource.
+// IMPORTANT: Only include Incident, Conversation, ScheduledTask (the 3 sources we care about)
+
+let StartDate = ago(21d);
+let EndDate = now();
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Until functions are deployed, inline the logic:
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| where not(CustomerCategory == "FirstParty" and AgentUniqueName in (ExcludedAgents))
+| project AgentName = AgentUniqueName, CustomerCategory;
+
+// Get ThreadSource from thread creation events (NOT model responses)
+// Filter to only the 3 sources we care about
+let ThreadSourceMap = All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where isnotempty(ThreadSource)
+| where ThreadSource in ("Incident", "Conversation", "ScheduledTask")
+| project ThreadId, ThreadSource;
+
+// Join model response durations with thread source (INNER join - only threads with known source)
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| join kind=inner (ThreadSourceMap) on ThreadId
+| extend Day = startofday(PreciseTimeStamp)
+| summarize 
+    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+    CallCount = count(),
+    AgentCount = dcount(AgentName),
+    ThreadCount = dcount(ThreadId)
+    by CustomerCategory, ThreadSource, Day
+| order by CustomerCategory asc, ThreadSource asc, Day asc
+

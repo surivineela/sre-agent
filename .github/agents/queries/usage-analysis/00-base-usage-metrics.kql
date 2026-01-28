@@ -1,0 +1,24 @@
+// Base Usage Metrics - Total Duration by Agent per Day
+// Uses: ModelResponseEvents()
+//
+// Parameters:
+//   StartDate: Start of analysis period
+//   EndDate: End of analysis period
+
+let StartDate = ago(30d);
+let EndDate = now();
+
+// Daily duration per agent with percentiles
+ModelResponseEvents(StartDate, EndDate)
+| extend Day = startofday(PreciseTimeStamp)
+| summarize TotalDurationMinutes = sum(Duration) / 60000.0, TotalCalls = count()
+    by AgentName, Day
+| summarize 
+    AgentCount = dcount(AgentName),
+    P10_Minutes = round(percentile(TotalDurationMinutes, 10), 2),
+    P50_Minutes = round(percentile(TotalDurationMinutes, 50), 2),
+    P90_Minutes = round(percentile(TotalDurationMinutes, 90), 2),
+    P100_Minutes = round(percentile(TotalDurationMinutes, 100), 2),
+    TotalFleetMinutes = round(sum(TotalDurationMinutes), 2)
+    by Day
+| order by Day desc

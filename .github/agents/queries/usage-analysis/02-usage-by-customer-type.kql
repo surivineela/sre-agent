@@ -1,0 +1,29 @@
+// Usage Analysis by Customer Type (1P vs 3P)
+// Uses: ModelResponseEvents() - INLINED until deployed
+//
+// CustomerCategory: FirstParty (1P) or ThirdParty (3P)
+
+let StartDate = ago(30d);
+let EndDate = now();
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Inline ModelResponseEvents() logic
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| where not(CustomerCategory == "FirstParty" and AgentUniqueName in (ExcludedAgents))
+| project AgentName = AgentUniqueName, CustomerCategory, ServiceGroupName, CustomerName;
+
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| extend Day = startofday(PreciseTimeStamp)
+| summarize 
+    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+    CallCount = count(),
+    AgentCount = dcount(AgentName)
+    by CustomerCategory, Day
+| order by Day desc, CustomerCategory asc

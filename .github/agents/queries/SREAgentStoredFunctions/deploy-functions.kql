@@ -1,0 +1,357 @@
+// ============================================================
+// SRE AGENT STORED FUNCTIONS - GLOBAL REUSABLE FUNCTIONS
+// ============================================================
+// Deploy to: https://sreagent-sec.swedencentral.kusto.windows.net/sreagent
+//
+// These are GLOBAL building blocks used across all reports.
+// All functions in one place for reuse.
+//
+// HIERARCHY:
+//   Level 0: All(), ExtendedAgentDocumentDBState() (existing)
+//   Level 1: This file - all reusable functions
+//
+// All('AgentActionEvents') schema includes these direct columns:
+//   InputToken, OutputToken, CachedToken, ThreadSource (all native columns)
+// ============================================================
+
+
+// ============================================================
+// SECTION 1: BASE FUNCTIONS
+// ============================================================
+
+// ============================================================
+// FUNCTION: AgentMetadata
+// ============================================================
+// Base metadata for agents - CustomerCategory, ServiceGroupName, CustomerName.
+// Use this to join with event tables.
+// EXCLUDES: saziz-115--59688f2c (SRE Agent team testing)
+// ============================================================
+.create-or-alter function with (folder = "SREAgentCore", docstring = "Agent metadata for joins - category, service group, customer") 
+AgentMetadata() {
+    let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+    ExtendedAgentDocumentDBState()
+    | where CustomerCategory in ("FirstParty", "ThirdParty")
+    | where not(CustomerCategory == "FirstParty" and AgentUniqueName in (ExcludedAgents))
+    | project AgentName = AgentUniqueName, CustomerCategory, OfferType, ServiceGroupName, CustomerName, SubscriptionId
+}
+
+
+// ============================================================
+// FUNCTION: ModelResponseEvents
+// ============================================================
+// Enriched GenerateModelResponse events with agent metadata.
+// Includes ThreadSource for slicing by Incident/Conversation/ScheduledTask.
+// Contains ServiceGroupName (1P) and CustomerName (3P) for aggregation.
+//
+// NOTE: InputToken, OutputToken, CachedToken, ThreadSource are DIRECT columns
+// on All('AgentActionEvents') - no need to parse or join.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentCore", docstring = "Enriched model response events with agent metadata and ThreadSource") 
+ModelResponseEvents(StartDate:datetime, EndDate:datetime) {
+    let Metadata = AgentMetadata();
+    
+    All('AgentActionEvents')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where Action == "GenerateModelResponse"
+    | where Duration > 0
+    | join kind=inner (Metadata) on AgentName
+    | project 
+        PreciseTimeStamp, 
+        AgentName, 
+        ThreadId,
+        ThreadSource,
+        Duration, 
+        CustomerCategory, 
+        OfferType, 
+        ServiceGroupName, 
+        CustomerName, 
+        InputToken = tolong(InputToken), 
+        OutputToken = tolong(OutputToken), 
+        CachedToken = tolong(CachedToken)
+}
+
+
+// ============================================================
+// SECTION 2: USAGE METRICS FUNCTIONS
+// ============================================================
+
+// ============================================================
+// FUNCTION: ThreadSourcePercentiles
+// ============================================================
+// P50/P90 duration percentiles by ThreadSource per day.
+// CRITICAL: Only includes Incident, Conversation, ScheduledTask.
+// Uses INNER join to exclude threads with unknown source.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentUsage", docstring = "P50/P90 duration by thread source per day") 
+ThreadSourcePercentiles(StartDate:datetime, EndDate:datetime, Category:string) {
+    let Metadata = AgentMetadata();
+    // Get ThreadSource from any event that has it - filter to only 3 sources
+    let ThreadSourceMap = All('AgentActionEvents')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where isnotempty(ThreadSource)
+    | where ThreadSource in ("Incident", "Conversation", "ScheduledTask")
+    | summarize by ThreadId, ThreadSource;
+    // Join model responses with thread source and metadata (INNER join)
+    All('AgentActionEvents')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where Action == "GenerateModelResponse"
+    | where Duration > 0
+    | join kind=inner (Metadata) on AgentName
+    | where CustomerCategory == Category
+    | join kind=inner (ThreadSourceMap) on ThreadId
+    | extend Day = startofday(PreciseTimeStamp)
+    | summarize ThreadDurationMinutes = sum(Duration) / 60000.0 by ThreadId, ThreadSource, Day
+    | summarize 
+        P50 = round(percentile(ThreadDurationMinutes, 50), 2),
+        P90 = round(percentile(ThreadDurationMinutes, 90), 2),
+        ThreadCount = dcount(ThreadId)
+        by Day, ThreadSource
+    | order by Day asc, ThreadSource asc
+}
+
+
+// ============================================================
+// FUNCTION: TokenMetrics
+// ============================================================
+// Token consumption by customer category.
+// ByDay=true: returns daily breakdown
+// ByDay=false: returns period totals
+// ============================================================
+.create-or-alter function with (folder = "SREAgentUsage", docstring = "Token metrics by customer category. ByDay=true for daily trend.") 
+TokenMetrics(StartDate:datetime, EndDate:datetime, Category:string, ByDay:bool) {
+    ModelResponseEvents(StartDate, EndDate)
+    | where CustomerCategory == Category
+    | extend Day = startofday(PreciseTimeStamp)
+    | summarize 
+        TotalInputTokens = sum(InputToken),
+        TotalOutputTokens = sum(OutputToken),
+        TotalCachedTokens = sum(CachedToken),
+        TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+        CallCount = count(),
+        AgentCount = dcount(AgentName)
+        by Day = iff(ByDay, Day, StartDate)
+    | extend 
+        TotalTokens = TotalInputTokens + TotalOutputTokens,
+        CacheRate = round(100.0 * TotalCachedTokens / (TotalInputTokens + 0.001), 2),
+        AvgTokensPerCall = round(1.0 * (TotalInputTokens + TotalOutputTokens) / CallCount, 0)
+    | order by Day asc
+}
+
+
+// ============================================================
+// FUNCTION: TokenTrend
+// ============================================================
+// Daily input/output token trend by customer category.
+// Returns values in billions for easier chart display.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentUsage", docstring = "Daily input/output token trend in billions") 
+TokenTrend(StartDate:datetime, EndDate:datetime, Category:string) {
+    ModelResponseEvents(StartDate, EndDate)
+    | where CustomerCategory == Category
+    | extend Day = startofday(PreciseTimeStamp)
+    | summarize 
+        InputTokens = sum(InputToken),
+        OutputTokens = sum(OutputToken),
+        CachedTokens = sum(CachedToken),
+        CallCount = count()
+        by Day
+    | extend 
+        InputTokensBillions = round(InputTokens / 1e9, 3),
+        OutputTokensBillions = round(OutputTokens / 1e9, 3),
+        CachedTokensBillions = round(CachedTokens / 1e9, 3),
+        TotalTokensBillions = round((InputTokens + OutputTokens) / 1e9, 3)
+    | order by Day asc
+}
+
+
+// ============================================================
+// FUNCTION: ThreadSourceUsageTrend
+// ============================================================
+// Total minutes per ThreadSource per day for usage trend chart.
+// Only includes: Incident, Conversation, ScheduledTask.
+// Uses INNER join to exclude threads with unknown source.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentUsage", docstring = "Total minutes by thread source per day") 
+ThreadSourceUsageTrend(StartDate:datetime, EndDate:datetime, Category:string) {
+    let Metadata = AgentMetadata();
+    let ThreadSourceMap = All('AgentActionEvents')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where isnotempty(ThreadSource)
+    | where ThreadSource in ("Incident", "Conversation", "ScheduledTask")
+    | summarize by ThreadId, ThreadSource;
+    All('AgentActionEvents')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where Action == "GenerateModelResponse"
+    | where Duration > 0
+    | join kind=inner (Metadata) on AgentName
+    | where CustomerCategory == Category
+    | join kind=inner (ThreadSourceMap) on ThreadId
+    | extend Day = startofday(PreciseTimeStamp)
+    | summarize 
+        TotalMinutes = round(sum(Duration) / 60000.0, 2),
+        ThreadCount = dcount(ThreadId),
+        AgentCount = dcount(AgentName)
+        by Day, ThreadSource
+    | order by Day asc, ThreadSource asc
+}
+
+
+// ============================================================
+// FUNCTION: PercentileSummary
+// ============================================================
+// P50/P90 aggregated for period and by day for summary cards.
+// Returns period-level P50/P90 based on per-agent-per-day minutes.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentUsage", docstring = "P50/P90 summary for period and daily") 
+PercentileSummary(StartDate:datetime, EndDate:datetime, Category:string) {
+    ModelResponseEvents(StartDate, EndDate)
+    | where CustomerCategory == Category
+    | extend Day = startofday(PreciseTimeStamp)
+    | summarize AgentDailyMinutes = sum(Duration) / 60000.0 by Day, AgentName
+    | summarize 
+        P50 = round(percentile(AgentDailyMinutes, 50), 2),
+        P90 = round(percentile(AgentDailyMinutes, 90), 2)
+}
+
+
+// ============================================================
+// SECTION 3: UNIQUE AGENTS FUNCTIONS
+// ============================================================
+
+// ============================================================
+// FUNCTION: UniqueFirstPartyAgents
+// ============================================================
+// Counts unique first-party agents, subscriptions, service groups by week.
+// Uses Friday-based weeks. Excludes amandas/balam for CORP tenant.
+// EXCLUDES: saziz-115--59688f2c (SRE Agent team testing)
+// ============================================================
+.create-or-alter function with (folder = "SREAgentCounts", docstring = "Unique 1P agents, subscriptions, service groups by week") 
+UniqueFirstPartyAgents(StartDate:datetime, EndDate:datetime) {
+    let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+    let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";      // AME: MS AZURE CLOUD
+    let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";      // PME: MSPMECLOUD
+    let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";     // CORP & TORUS: MICROSOFT
+    
+    All('AgentDocumentDBState')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where not(agentName in (ExcludedAgents))
+    | extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+    | join kind=leftouter (
+        cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+        Product360CustomerSubscriptions
+        | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+    ) on $left.subscriptionId == $right.SubscriptionId
+    | where provisioningState == "Succeeded"
+    | where TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+    | where OfferType contains "Internal"
+    | where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+    | summarize 
+        UniqueAgents = dcount(agentName),
+        UniqueSubscriptions = dcount(subscriptionId),
+        UniqueServiceGroups = dcount(ServiceGroupName)
+        by CustomWeek
+    | order by CustomWeek asc
+}
+
+
+// ============================================================
+// FUNCTION: UniqueThirdPartyAgents
+// ============================================================
+// Counts unique third-party agents, subscriptions, customers by week.
+// Uses Friday-based weeks.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentCounts", docstring = "Unique 3P agents, subscriptions, customers by week") 
+UniqueThirdPartyAgents(StartDate:datetime, EndDate:datetime) {
+    All('AgentDocumentDBState')
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+    | join kind=leftouter (
+        cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+        Product360CustomerSubscriptions
+        | project CloudCustomerName, OfferType, SubscriptionId
+    ) on $left.subscriptionId == $right.SubscriptionId
+    | where provisioningState == "Succeeded"
+    | where OfferType !contains "Internal"
+    | summarize 
+        UniqueAgents = dcount(agentName),
+        UniqueSubscriptions = dcount(subscriptionId),
+        UniqueCustomers = dcount(CloudCustomerName)
+        by CustomWeek
+    | order by CustomWeek asc
+}
+
+
+// ============================================================
+// SECTION 4: TOKEN BY WEEK FUNCTIONS
+// ============================================================
+
+// ============================================================
+// FUNCTION: TotalTokensByWeek
+// ============================================================
+// Total tokens by week with 1P/3P breakdown.
+// Uses Friday-based weeks. Computes cost per token.
+// ============================================================
+.create-or-alter function with (folder = "SREAgentCounts", docstring = "Total tokens by week with 1P/3P breakdown and cost") 
+TotalTokensByWeek(StartDate:datetime, EndDate:datetime) {
+    let ameTenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d";
+    let pmeTenantId = "975f013f-7f24-47e8-a7d3-abc4752bf346";
+    let corpTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+    
+    All("AgentActionEvents")
+    | where AgentName !startswith "crudagent" and AgentName !startswith "e2e"
+    | where Action == "GenerateModelResponse"
+    | where Status == "Success"
+    | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+    | where isnotempty(ActionMetadata)
+    | extend MetadataJson = parse_json(ActionMetadata)
+    | extend InputTokenCount = toint(MetadataJson.inputTokenCount)
+    | extend OutputTokenCount = toint(MetadataJson.outputTokenCount)
+    | extend CachedTokenCount = toint(MetadataJson.cachedTokenCount)
+    | extend TotalTokens = InputTokenCount + OutputTokenCount
+    | where TotalTokens > 0
+    | join kind=leftouter (
+        ExtendedAgentDocumentDBState()
+        | project SubscriptionId, ResourceGroup, ServiceGroupName, AgentName = AgentUniqueName, CustomerName, CustomerCategory
+    ) on AgentName
+    | join kind=leftouter (
+        cluster("customerdomrptwus3prod.westus3.kusto.windows.net").database("customerdomdata").
+        Product360CustomerSubscriptions
+        | project ServiceGroupName, TenantId, OfferType, SubscriptionId
+    ) on $left.SubscriptionId == $right.SubscriptionId
+    | where isnotnull(CustomerCategory) and CustomerCategory != ""
+    | where CustomerCategory == "ThirdParty" or TenantId in (ameTenantId, pmeTenantId, corpTenantId)
+    | where not (TenantId == corpTenantId and (ServiceGroupName contains "amandas" or ServiceGroupName contains "balam"))
+    | extend CustomWeek = bin(PreciseTimeStamp + 3d, 7d) - 3d
+    | summarize
+        TotalInputTokens = sum(InputTokenCount),
+        TotalOutputTokens = sum(OutputTokenCount),
+        TotalCachedTokens = sum(CachedTokenCount),
+        TotalCombinedTokens = sum(TotalTokens),
+        RequestCount = count(),
+        FirstParty_TotalTokens = sumif(TotalTokens, CustomerCategory == "FirstParty"),
+        ThirdParty_TotalTokens = sumif(TotalTokens, CustomerCategory == "ThirdParty"),
+        EarliestEvent = min(PreciseTimeStamp),
+        LatestEvent = max(PreciseTimeStamp)
+        by CustomWeek
+    | extend 
+        TotalCostPerToken = round(((((TotalInputTokens - TotalCachedTokens) * 1.25 / 1000000) + (TotalOutputTokens * 10.0 / 1000000) + (TotalCachedTokens * 0.125 / 1000000)) / TotalCombinedTokens), 8),
+        TotalCombinedTokensBillions = round(TotalCombinedTokens / 1e9, 2),
+        FirstPartyTokensBillions = round(FirstParty_TotalTokens / 1e9, 2),
+        ThirdPartyTokensBillions = round(ThirdParty_TotalTokens / 1e9, 2),
+        CacheHitRate = round(100.0 * TotalCachedTokens / (TotalInputTokens + 0.001), 2)
+    | order by CustomWeek asc
+    | project
+        CustomWeek,
+        TotalCombinedTokensBillions,
+        FirstPartyTokensBillions,
+        ThirdPartyTokensBillions,
+        CacheHitRate,
+        TotalCostPerToken,
+        RequestCount,
+        TotalInputTokens,
+        TotalOutputTokens,
+        TotalCachedTokens,
+        EarliestEvent,
+        LatestEvent
+}
+

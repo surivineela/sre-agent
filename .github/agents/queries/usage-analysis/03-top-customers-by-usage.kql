@@ -1,0 +1,34 @@
+// Top Customers by Usage (3P only)
+// Uses: ModelResponseEvents() - INLINED until deployed
+//
+// Parameters:
+//   TopN: Number of top customers to return
+
+let StartDate = ago(30d);
+let EndDate = now();
+let TopN = 25;
+
+// Inline ModelResponseEvents() logic
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| project AgentName = AgentUniqueName, CustomerCategory, ServiceGroupName, CustomerName;
+
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| where CustomerCategory == "ThirdParty"
+| where isnotempty(CustomerName)
+| summarize 
+    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+    CallCount = count(),
+    AgentCount = dcount(AgentName),
+    Agents = make_set(AgentName, 10),
+    FirstSeen = min(PreciseTimeStamp),
+    LastSeen = max(PreciseTimeStamp)
+    by CustomerName
+| extend ActiveDays = datetime_diff('day', LastSeen, FirstSeen) + 1
+| extend AvgDailyMinutes = round(TotalDurationMinutes / ActiveDays, 2)
+| order by TotalDurationMinutes desc
+| take TopN

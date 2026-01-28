@@ -1,0 +1,37 @@
+// Top 1P Service Groups by Usage
+// Uses: ModelResponseEvents() - INLINED until deployed
+//
+// For 1P agents, groups by ServiceGroupName from Product360
+// Excludes dev service groups (amandas, balam)
+
+let StartDate = ago(21d);
+let EndDate = now();
+let TopN = 20;
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Inline ModelResponseEvents() logic
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory in ("FirstParty", "ThirdParty")
+| where not(CustomerCategory == "FirstParty" and AgentUniqueName in (ExcludedAgents))
+| project AgentName = AgentUniqueName, CustomerCategory, ServiceGroupName, CustomerName;
+
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| where CustomerCategory == "FirstParty"
+| where isnotempty(ServiceGroupName)
+| where ServiceGroupName !contains "amandas" and ServiceGroupName !contains "balam"
+| summarize 
+    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
+    TotalCalls = count(),
+    AgentCount = dcount(AgentName),
+    Agents = make_set(AgentName, 10),
+    ActiveDays = dcount(startofday(PreciseTimeStamp))
+    by ServiceGroupName
+| extend AvgDailyMinutes = round(TotalDurationMinutes / ActiveDays, 2)
+| order by TotalDurationMinutes desc
+| take TopN
