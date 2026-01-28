@@ -23,6 +23,7 @@ const useStyles = makeStyles({
         gridTemplateRows: 'auto 150px 150px 150px 250px',
         gap: '12px',
         backgroundColor: tokens.colorNeutralBackground2,
+        minWidth: '500px',
     },
     suggestionActions: {
         gridColumn: '1 / -1',
