@@ -82,7 +82,7 @@ namespace Agent.Runtime
                 var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
 
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, 0L, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {
@@ -136,6 +136,7 @@ namespace Agent.Runtime
             long outputTokens = 0L;
             long cachedTokens = 0L;
             long reasoningTokens = 0L;
+            long cacheCreationInputTokens = 0L;
 
             await foreach (var update in _inner.GetStreamingResponseAsync(chatMessages, options, cancellationToken))
             {
@@ -152,6 +153,13 @@ namespace Agent.Runtime
                         modelId = openAIUpdate.Model;
                     }
 
+                }
+
+                // Capture cache creation input tokens from Anthropic streaming updates
+                if (update.RawRepresentation is Anthropic.Models.Beta.Messages.BetaRawMessageDeltaEvent anthropicDeltaEvent
+                    && anthropicDeltaEvent.Usage?.CacheCreationInputTokens != null)
+                {
+                    cacheCreationInputTokens = Math.Max(cacheCreationInputTokens, anthropicDeltaEvent.Usage.CacheCreationInputTokens.Value);
                 }
 
                 // Extract usage information from UsageContent in the update contents
@@ -172,12 +180,19 @@ namespace Agent.Runtime
 
                         if (usage.Details.CachedInputTokenCount.HasValue)
                         {
-                            cachedTokens += usage.Details.CachedInputTokenCount.Value;
+                            cachedTokens = Math.Max(cachedTokens, usage.Details.CachedInputTokenCount.Value);
                         }
 
                         if (usage.Details.ReasoningTokenCount.HasValue)
                         {
                             reasoningTokens += usage.Details.ReasoningTokenCount.Value;
+                        }
+
+                        // Also check AdditionalCounts for CacheCreationInputTokens (used by some SDK versions)
+                        if (usage.Details.AdditionalCounts != null
+                            && usage.Details.AdditionalCounts.TryGetValue("CacheCreationInputTokens", out var additionalCacheCreation))
+                        {
+                            cacheCreationInputTokens = Math.Max(cacheCreationInputTokens, additionalCacheCreation);
                         }
                     }
                 }
@@ -217,10 +232,12 @@ namespace Agent.Runtime
                 if (modelId.StartsWith("claude"))
                 {
                     inputTokens /= 2;
+                    cachedTokens /= 2;
+                    cacheCreationInputTokens /= 2;
                 }
 
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, cacheCreationInputTokens, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {
