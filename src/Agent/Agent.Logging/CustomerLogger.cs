@@ -192,7 +192,7 @@ public class CustomerLogger : ApplicationInsightsLogger, IDisposable
             Duration = TimeSpan.Zero,
             Success = true
         };
-        enrichedProperties.Add("gen_ai.operation.name", "invoke_agent");
+        enrichedProperties.Add("gen_ai.operation.name", "agent_response");
         enrichedProperties.Add("gen_ai.output.messages", formattedResponse);
         foreach (var kvp in enrichedProperties)
         {

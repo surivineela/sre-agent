@@ -154,6 +154,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             // Add request-level metadata to the trace scope
             //traceScope.AddMetadata("request_type", "user_message");
             traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());
+            traceScope.AddMetadata("gen_ai.conversation.id", threadMessage.ThreadId.ToString());
             //traceScope.AddMetadata("user_name", threadMessage.DisplayName ?? "unknown");
             traceScope.AddMetadata("gen_ai.provider.name", "Microsoft.SREAgent");
         }
