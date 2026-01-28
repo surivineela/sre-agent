@@ -8,6 +8,7 @@ import { Model } from '../../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
 import { SettingsTabResources } from '../../../Strings/SREAgentResources';
+import { SreAgentContext } from '../../Contracts/Context';
 
 /** @note (wangcynthia): Hardcoded for now until the ARM supported API is finished. */
 const supportedModelsResponse = {
@@ -94,6 +95,7 @@ const supportedModelsResponse = {
 export const useSupportedModels = (agentResourceId: string, location: string) => {
     const intl = useIntl();
     const az = useContext(AzPortalContext);
+    const { refresh: refreshAgent } = useContext(SreAgentContext);
     const [supportedProviders, setSupportedProviders] = useState<
         {
             key: string;
@@ -180,6 +182,7 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
                         },
                     },
                 });
+                refreshAgent();
             } else {
                 az.stopNotification(notificationId, false, intl.formatMessage(SettingsTabResources.defaultModelUpdateFailed));
                 az.log({
@@ -194,7 +197,7 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
             }
             setIsUpdatingDefaultModel(false);
         },
-        [agentResourceId, az, intl]
+        [agentResourceId, az, intl, refreshAgent]
     );
 
     useEffect(() => {
