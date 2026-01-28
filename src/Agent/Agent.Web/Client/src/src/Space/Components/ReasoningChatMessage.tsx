@@ -269,12 +269,54 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
-    // Extract timestamps as stable dependencies to ensure recalculation when items are updated
-    const firstTimestamp = reasoning.items.length > 0 ? reasoning.items[0].timestamp : null;
-    const lastTimestamp = reasoning.items.length > 0 ? reasoning.items[reasoning.items.length - 1].timestamp : null;
+    // State for live ticking elapsed time during streaming
+    const [liveElapsedSeconds, setLiveElapsedSeconds] = useState(0);
+    const [finalElapsedSeconds, setFinalElapsedSeconds] = useState<number | null>(null);
+    const streamingStartTimeRef = useRef<number | null>(null);
+    const wasActiveRef2 = useRef(reasoning.active);
 
-    // Calculate elapsed time from min/max of all reasoning item timestamps
-    const elapsedTime = useMemo(() => {
+    // Live ticking timer effect - runs while streaming is active
+    useEffect(() => {
+        // Detect transition from active to inactive - capture final time
+        if (wasActiveRef2.current && !reasoning.active && streamingStartTimeRef.current) {
+            const finalSecs = Math.floor((Date.now() - streamingStartTimeRef.current) / 1000);
+            setFinalElapsedSeconds(finalSecs);
+        }
+
+        // Detect transition from inactive to active - reset for new session
+        if (!wasActiveRef2.current && reasoning.active) {
+            setFinalElapsedSeconds(null);
+            setLiveElapsedSeconds(0);
+        }
+
+        wasActiveRef2.current = reasoning.active;
+
+        if (!reasoning.active) {
+            // Keep streamingStartTimeRef until we capture the final time
+            streamingStartTimeRef.current = null;
+            return;
+        }
+
+        // Initialize streaming start time immediately when streaming becomes active
+        if (!streamingStartTimeRef.current) {
+            streamingStartTimeRef.current = Date.now();
+        }
+
+        // Update immediately
+        const elapsed = Math.floor((Date.now() - streamingStartTimeRef.current) / 1000);
+        setLiveElapsedSeconds(elapsed);
+
+        // Set up interval to tick every second
+        const intervalId = setInterval(() => {
+            const elapsedSecs = Math.floor((Date.now() - streamingStartTimeRef.current!) / 1000);
+            setLiveElapsedSeconds(elapsedSecs);
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [reasoning.active]);
+
+    // Calculate elapsed time from timestamps (fallback for loading existing threads)
+    const timestampElapsedTime = useMemo(() => {
         if (reasoning.active || reasoning.items.length === 0) {
             return null;
         }
@@ -289,12 +331,23 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
             return '<1s';
         }
 
-        const startTime = Math.min(...timestamps);
-        const endTime = Math.max(...timestamps);
-        const elapsed = endTime - startTime;
+        const minTime = Math.min(...timestamps);
+        const maxTime = Math.max(...timestamps);
+        const elapsed = maxTime - minTime;
         const seconds = Math.round(elapsed / 1000);
         return seconds > 0 ? `${seconds}s` : '<1s';
-    }, [reasoning.active, reasoning.items.length, firstTimestamp, lastTimestamp]);
+    }, [reasoning.active, reasoning.items]);
+
+    // Display time: live during streaming, captured final time when complete, fallback to timestamps
+    const elapsedTime = reasoning.active
+        ? liveElapsedSeconds > 0
+            ? `${liveElapsedSeconds}s`
+            : '<1s'
+        : finalElapsedSeconds !== null
+          ? finalElapsedSeconds > 0
+              ? `${finalElapsedSeconds}s`
+              : '<1s'
+          : timestampElapsedTime;
 
     // Check if scroll is at bottom (within threshold)
     const isScrolledToBottom = useCallback(() => {
@@ -413,7 +466,7 @@ const ReasoningChatMessage = ({ reasoning }: IReasoningChatMessageProps) => {
                                 ellipsis={true}
                             />
                         </div>
-                        {elapsedTime && !reasoning.active && (
+                        {elapsedTime && (
                             <Caption1 className={styles.timeCaption}>
                                 <ClockRegular style={{ marginRight: '4px', color: tokens.colorNeutralForeground3 }} />
                                 {elapsedTime}
