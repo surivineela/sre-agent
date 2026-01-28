@@ -306,15 +306,15 @@ const pollLocationForCompletion = <T, U = T>(
     request: ArmRequestObject<U>
 ): Promise<HttpResponseObject<T>> => {
     const location = getStringHeader('location', response.metadata.headers) || previousLocation;
+    const url = Url.getPathAndQuery(location);
     const retryAfter = Math.max(getNumericHeader('Retry-After', response.metadata.headers) ?? 0, 2000);
     const setTelemetryHeader = getPollingTelemetryHeader(request.commandName);
 
     return delay(() => {
         return MakeArmCall<T>({
             method: 'GET',
-            url: location,
+            url: url,
             commandName: setTelemetryHeader,
-            useManagementEndpoint: false,
         });
     }, retryAfter);
 };
@@ -325,15 +325,15 @@ const pollAzureAsyncOperationForCompletion = <T, U = T>(
     request: ArmRequestObject<U>,
     retriesRemaining: number = 5
 ): Promise<HttpResponseObject<T>> => {
+    const url = Url.getPathAndQuery(azureAsyncOperation);
     const retryAfter = Math.max(getNumericHeader('Retry-After', originalResponse.metadata.headers) ?? 0, 2000);
     const setTelemetryHeader = getPollingTelemetryHeader(request.commandName);
 
     return delay(() => {
         return MakeArmCall<AzureAsyncOperationResult>({
             method: 'GET',
-            url: azureAsyncOperation,
+            url: url,
             commandName: setTelemetryHeader,
-            useManagementEndpoint: false,
         });
     }, retryAfter).then(r => {
         const operationStatus = r && r.metadata.success && r.data?.status;

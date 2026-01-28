@@ -43,6 +43,12 @@ export const getParameterByName = (url: string | null, name: string): string | n
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
+export const getPathAndQuery = (url: string) => {
+    const l = document.createElement('a');
+    l.href = url;
+    return `${l.pathname}${l.search}`;
+}
+
 export interface IOpenBladeInfo {
     detailBlade: string;
     detailBladeInputs: any;

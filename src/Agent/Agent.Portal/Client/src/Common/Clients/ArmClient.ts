@@ -25,7 +25,7 @@ import {
 } from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
 import { getSessionId } from '../Utilities/SessionManager';
-import { appendQueryString } from '../Utilities/Url';
+import { appendQueryString, getPathAndQuery } from '../Utilities/Url';
 import { Client } from './Client';
 
 const bufferTimeInterval = 100; // ms
@@ -248,15 +248,15 @@ export class ArmClient extends Client {
         request: ArmRequestObject<U>
     ): Promise<Response<T>> {
         const location = getHeader('location', response.metadata?.headers || {}) || previousLocation;
+        const url = getPathAndQuery(location);
         const retryAfter = Math.max(Number(getHeader('Retry-After', response.metadata?.headers || {})), 2000);
         const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<T>({
                 method: 'GET',
-                url: location,
+                url: url,
                 commandName: setTelemetryHeader,
-                useManagementEndpoint: false,
             });
         }, retryAfter);
     }
@@ -267,15 +267,15 @@ export class ArmClient extends Client {
         request: ArmRequestObject<U>,
         retriesRemaining: number = 5
     ): Promise<Response<T>> {
+        const url = getPathAndQuery(azureAsyncOperation);
         const retryAfter = Math.max(Number(getHeader('Retry-After', originalResponse.metadata?.headers || {})), 2000);
         const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<AzureAsyncOperationResult>({
                 method: 'GET',
-                url: azureAsyncOperation,
+                url: url,
                 commandName: setTelemetryHeader,
-                useManagementEndpoint: false,
             });
         }, retryAfter).then(r => {
             const operationStatus = r && r.isSuccessful && r.content?.status;
