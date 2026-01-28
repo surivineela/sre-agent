@@ -2,7 +2,11 @@
 Copyright (c) Microsoft Corporation. All rights reserved.
 */
 
-import { RelayConnection, debugLog } from './relayConnection';
+import { debugLog } from './utils/debug';
+import { parseExtensionEndpoint } from './utils/endpoint';
+import { getGroupColor } from './utils/colors';
+import { withTimeout } from './utils/timeout';
+import { SignalRRelayConnection } from './signalRRelayConnection';
 
 type PageMessage = {
   type: 'connectToMCPRelay';
@@ -58,22 +62,20 @@ function isLoopbackUrl(url: string): boolean {
   }
 }
 
-// Generate a color for tab group based on thread ID (consistent color per thread)
-function getGroupColor(threadId: string): chrome.tabGroups.ColorEnum {
-  const colors: chrome.tabGroups.ColorEnum[] = ['blue', 'cyan', 'green', 'yellow', 'orange', 'pink', 'purple', 'red', 'grey'];
-  let hash = 0;
-  for (let i = 0; i < threadId.length; i++) {
-    hash = ((hash << 5) - hash) + threadId.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return colors[Math.abs(hash) % colors.length];
+// Pending connection config for manual tab selection flow
+interface PendingConnectionConfig {
+  hubUrl: string;
+  sessionId: string;
+  accessToken?: string;
+  timerId?: number;
 }
 
 class TabShareExtension {
-  private _activeConnection: RelayConnection | undefined;
+  private _activeConnection: SignalRRelayConnection | undefined;
+  private _activeSessionId: string | null = null;  // Session ID for SignalR reconnections
   private _connectedTabId: number | null = null;
   private _currentThreadId: string | null = null;
-  private _pendingTabSelection = new Map<number, { connection: RelayConnection, timerId?: number }>();
+  private _pendingTabSelection = new Map<number, PendingConnectionConfig>();
   private _threadTabMappings: Map<string, ThreadTabMapping> = new Map();
 
   constructor() {
@@ -133,6 +135,52 @@ class TabShareExtension {
       debugLog(`Cleaned up ${cleaned} stale thread-tab mappings`);
       await this._saveThreadTabMappings();
     }
+  }
+
+  /**
+   * Creates a SignalR connection and attaches to a tab.
+   * This consolidates the repeated connection setup pattern.
+   */
+  private async _createAndConnectToTab(
+    config: { hubUrl: string; sessionId: string; accessToken?: string },
+    tabId: number
+  ): Promise<SignalRRelayConnection> {
+    const connection = new SignalRRelayConnection(config);
+
+    connection.onclose = () => {
+      debugLog('SignalR connection closed');
+      this._activeConnection = undefined;
+      this._activeSessionId = null;
+      void this._setConnectedTabId(null);
+    };
+
+    await connection.connect();
+    await connection.attachToTab(tabId);
+
+    return connection;
+  }
+
+  /**
+   * Clears the active connection state without closing the connection.
+   */
+  private async _clearConnectionState(): Promise<void> {
+    this._activeConnection = undefined;
+    this._activeSessionId = null;
+    this._currentThreadId = null;
+    await this._setConnectedTabId(null);
+  }
+
+  /**
+   * Safely closes the active connection with error handling.
+   */
+  private async _safelyCloseConnection(reason: string): Promise<void> {
+    if (!this._activeConnection) return;
+    try {
+      await this._activeConnection.close(reason);
+    } catch (error) {
+      debugLog('Failed to close connection gracefully:', error);
+    }
+    await this._clearConnectionState();
   }
 
   // Promise-based message handling is not supported in Chrome: https://issues.chromium.org/issues/40753031
@@ -242,7 +290,11 @@ class TabShareExtension {
     // Auto-connect mode: create a new tab or reuse existing one for the thread
     if (message.autoConnect) {
       debugLog(`Auto-connect mode: threadId=${message.threadId}, sessionId=${message.sessionId}`);
-      await this._autoConnectForThread(message.extensionEndpoint, message.threadId, message.targetUrl, message.threadTitle, message.accessToken);
+      await withTimeout(
+        this._autoConnectForThread(message.extensionEndpoint, message.threadId, message.targetUrl, message.threadTitle, message.accessToken),
+        30000,  // 30 second timeout
+        'Auto-connect to browser'
+      );
       return;
     }
 
@@ -250,7 +302,7 @@ class TabShareExtension {
     const connectUrl = new URL(chrome.runtime.getURL('connect.html'));
     connectUrl.searchParams.set('mcpRelayUrl', message.extensionEndpoint);
     connectUrl.searchParams.set('client', JSON.stringify({ name: 'SREAgent', version: '1.0' }));
-    connectUrl.searchParams.set('protocolVersion', '1');
+    connectUrl.searchParams.set('protocolVersion', '2');  // SignalR protocol
 
     debugLog(`Opening connect page: ${connectUrl.toString()}`);
 
@@ -297,9 +349,7 @@ class TabShareExtension {
   private async _reconnectToExistingTab(extensionEndpoint: string, tabId: number, threadId: string, accessToken?: string): Promise<void> {
     // Close any existing connection to a different tab
     if (this._activeConnection && this._connectedTabId !== tabId) {
-      this._activeConnection.close('Switching to different thread');
-      this._activeConnection = undefined;
-      await this._setConnectedTabId(null);
+      await this._safelyCloseConnection('Switching to different thread');
     }
 
     // If already connected to this tab, just show the animation
@@ -309,47 +359,28 @@ class TabShareExtension {
       return;
     }
 
-    // Build WebSocket URL, appending access token if provided (production mode)
-    let wsUrl = extensionEndpoint;
-    if (accessToken) {
-      const separator = wsUrl.includes('?') ? '&' : '?';
-      wsUrl = `${wsUrl}${separator}access_token=${encodeURIComponent(accessToken)}`;
-    }
+    // Parse endpoint to get hub URL and session ID
+    const { hubUrl, sessionId } = parseExtensionEndpoint(extensionEndpoint);
+    debugLog(`Reconnecting to tab ${tabId}: hubUrl=${hubUrl}, sessionId=${sessionId}`);
 
-    // Connect to the relay
-    const socket = new WebSocket(wsUrl);
-
-    await new Promise<void>((resolve, reject) => {
-      socket.onopen = () => resolve();
-      socket.onerror = () => reject(new Error(`WebSocket reconnect error: readyState=${socket.readyState}`));
-      setTimeout(() => reject(new Error('Reconnect timeout after 10s')), 10000);
-    });
-
-    const connection = new RelayConnection(socket);
-    connection.setTabId(tabId);
-    connection.onclose = () => {
-      this._activeConnection = undefined;
-      void this._setConnectedTabId(null);
-    };
+    // Create connection and attach to tab
+    const connection = await this._createAndConnectToTab({ hubUrl, sessionId, accessToken }, tabId);
 
     this._activeConnection = connection;
+    this._activeSessionId = sessionId;
     this._currentThreadId = threadId;
     await this._setConnectedTabId(tabId);
 
     // Show focus animation
     await this._showFocusAnimation(tabId);
 
-    debugLog(`Reconnected to existing tab ${tabId} for thread ${threadId}`);
+    debugLog(`Reconnected to existing tab ${tabId} for thread ${threadId} via SignalR`);
   }
 
   // Create a new tab for a thread with tab group
   private async _createNewTabForThread(extensionEndpoint: string, threadId?: string, threadTitle?: string, accessToken?: string): Promise<void> {
     // Close any existing connection
-    if (this._activeConnection) {
-      this._activeConnection.close('New auto-connect requested');
-      this._activeConnection = undefined;
-      await this._setConnectedTabId(null);
-    }
+    await this._safelyCloseConnection('New auto-connect requested');
 
     // Create a new tab with about:blank - Playwright will handle navigation
     // active: false keeps the user on the agent page
@@ -374,30 +405,15 @@ class TabShareExtension {
       }
     }
 
-    // Build WebSocket URL, appending access token if provided (production mode)
-    let wsUrl = extensionEndpoint;
-    if (accessToken) {
-      const separator = wsUrl.includes('?') ? '&' : '?';
-      wsUrl = `${wsUrl}${separator}access_token=${encodeURIComponent(accessToken)}`;
-    }
+    // Parse endpoint to get hub URL and session ID
+    const { hubUrl, sessionId } = parseExtensionEndpoint(extensionEndpoint);
+    debugLog(`Connecting new tab: hubUrl=${hubUrl}, sessionId=${sessionId}`);
 
-    // Connect to the relay
-    const socket = new WebSocket(wsUrl);
-
-    await new Promise<void>((resolve, reject) => {
-      socket.onopen = () => resolve();
-      socket.onerror = () => reject(new Error(`WebSocket error: readyState=${socket.readyState}`));
-      setTimeout(() => reject(new Error('Connection timeout after 10s')), 10000);
-    });
-
-    const connection = new RelayConnection(socket);
-    connection.setTabId(newTab.id);
-    connection.onclose = () => {
-      this._activeConnection = undefined;
-      void this._setConnectedTabId(null);
-    };
+    // Create connection and attach to tab
+    const connection = await this._createAndConnectToTab({ hubUrl, sessionId, accessToken }, newTab.id);
 
     this._activeConnection = connection;
+    this._activeSessionId = sessionId;
     this._currentThreadId = threadId || null;
     await this._setConnectedTabId(newTab.id);
 
@@ -415,7 +431,7 @@ class TabShareExtension {
     // Show focus animation
     await this._showFocusAnimation(newTab.id);
 
-    debugLog(`Auto-connected to new tab ${newTab.id} for thread ${threadId}`);
+    debugLog(`Auto-connected to new tab ${newTab.id} for thread ${threadId} via SignalR`);
   }
 
   // Add a tab to a group for a thread (creates group if needed)
@@ -502,57 +518,60 @@ class TabShareExtension {
 
   private async _connectToRelay(selectorTabId: number, mcpRelayUrl: string): Promise<void> {
     try {
-      debugLog(`Connecting to relay at ${mcpRelayUrl}`);
-      const socket = new WebSocket(mcpRelayUrl);
-      await new Promise<void>((resolve, reject) => {
-        socket.onopen = () => resolve();
-        socket.onerror = () => reject(new Error('WebSocket error'));
-        setTimeout(() => reject(new Error('Connection timeout')), 5000);
+      debugLog(`Preparing relay connection at ${mcpRelayUrl}`);
+
+      // Parse the endpoint to get hub URL and session ID
+      const { hubUrl, sessionId } = parseExtensionEndpoint(mcpRelayUrl);
+
+      // Store the config for when user selects a tab
+      this._pendingTabSelection.set(selectorTabId, {
+        hubUrl,
+        sessionId,
+        accessToken: undefined  // Manual flow doesn't use access token
       });
 
-      const connection = new RelayConnection(socket);
-      connection.onclose = () => {
-        debugLog('Connection closed');
-        this._pendingTabSelection.delete(selectorTabId);
-        // TODO: show error in the selector tab?
-      };
-      this._pendingTabSelection.set(selectorTabId, { connection });
-      debugLog(`Connected to MCP relay`);
+      debugLog(`Prepared SignalR connection config: hubUrl=${hubUrl}, sessionId=${sessionId}`);
     } catch (error: any) {
-      const message = `Failed to connect to MCP relay: ${error.message}`;
+      const message = `Failed to prepare relay connection: ${error.message}`;
       debugLog(message);
       throw new Error(message);
     }
   }
 
-  private async _connectTab(selectorTabId: number, tabId: number, windowId: number, mcpRelayUrl: string): Promise<void> {
+  private async _connectTab(selectorTabId: number, tabId: number, windowId: number, _mcpRelayUrl: string): Promise<void> {
     try {
-      debugLog(`Connecting tab ${tabId} to relay at ${mcpRelayUrl}`);
-      try {
-        this._activeConnection?.close('Another connection is requested');
-      } catch (error: any) {
-        debugLog(`Error closing active connection:`, error);
-      }
-      await this._setConnectedTabId(null);
+      debugLog(`Connecting tab ${tabId} via SignalR`);
 
-      this._activeConnection = this._pendingTabSelection.get(selectorTabId)?.connection;
-      if (!this._activeConnection)
-        throw new Error('No active MCP relay connection');
+      // Close any existing connection
+      await this._safelyCloseConnection('Another connection is requested');
+
+      // Get the pending connection config
+      const pendingConfig = this._pendingTabSelection.get(selectorTabId);
+      if (!pendingConfig) {
+        throw new Error('No pending connection config found');
+      }
       this._pendingTabSelection.delete(selectorTabId);
 
-      this._activeConnection.setTabId(tabId);
-      this._activeConnection.onclose = () => {
-        debugLog('MCP connection closed');
-        this._activeConnection = undefined;
-        void this._setConnectedTabId(null);
-      };
+      // Create connection and attach to tab
+      const connection = await this._createAndConnectToTab(
+        {
+          hubUrl: pendingConfig.hubUrl,
+          sessionId: pendingConfig.sessionId,
+          accessToken: pendingConfig.accessToken
+        },
+        tabId
+      );
+
+      this._activeConnection = connection;
+      this._activeSessionId = pendingConfig.sessionId;
 
       await Promise.all([
         this._setConnectedTabId(tabId),
         chrome.tabs.update(tabId, { active: true }),
         chrome.windows.update(windowId, { focused: true }),
       ]);
-      debugLog(`Connected to MCP bridge`);
+
+      debugLog(`Connected to tab ${tabId} via SignalR`);
     } catch (error: any) {
       await this._setConnectedTabId(null);
       debugLog(`Failed to connect tab ${tabId}:`, error.message);
@@ -581,10 +600,14 @@ class TabShareExtension {
   }
 
   private async _onTabRemoved(tabId: number): Promise<void> {
-    const pendingConnection = this._pendingTabSelection.get(tabId)?.connection;
-    if (pendingConnection) {
+    // Clean up pending connection config if this was a selector tab
+    if (this._pendingTabSelection.has(tabId)) {
+      const pending = this._pendingTabSelection.get(tabId);
+      if (pending?.timerId) {
+        clearTimeout(pending.timerId);
+      }
       this._pendingTabSelection.delete(tabId);
-      pendingConnection.close('Browser tab closed');
+      debugLog(`Removed pending connection config for closed selector tab ${tabId}`);
       return;
     }
 
@@ -600,8 +623,9 @@ class TabShareExtension {
 
     if (this._connectedTabId !== tabId)
       return;
-    this._activeConnection?.close('Browser tab closed');
+    await this._activeConnection?.close('Browser tab closed');
     this._activeConnection = undefined;
+    this._activeSessionId = null;
     this._connectedTabId = null;
     this._currentThreadId = null;
   }
@@ -609,20 +633,23 @@ class TabShareExtension {
   private _onTabActivated(activeInfo: chrome.tabs.TabActiveInfo) {
     for (const [tabId, pending] of this._pendingTabSelection) {
       if (tabId === activeInfo.tabId) {
+        // User returned to the selector tab, clear timeout
         if (pending.timerId) {
           clearTimeout(pending.timerId);
           pending.timerId = undefined;
         }
         continue;
       }
+      // User navigated away from selector tab, start timeout
       if (!pending.timerId) {
         pending.timerId = setTimeout(() => {
           const existed = this._pendingTabSelection.delete(tabId);
           if (existed) {
-            pending.connection.close('Tab has been inactive for 5 seconds');
-            chrome.tabs.sendMessage(tabId, { type: 'connectionTimeout' });
+            // With SignalR, we just remove the pending config (no active connection to close)
+            debugLog(`Pending connection for tab ${tabId} timed out after 5s of inactivity`);
+            chrome.tabs.sendMessage(tabId, { type: 'connectionTimeout' }).catch(() => { });
           }
-        }, 5000);
+        }, 5000) as unknown as number;
         return;
       }
     }

@@ -24,7 +24,8 @@
       "https://*.portal.azure.com/*",
       "https://*.azurecopilot.io/*",
       "https://*.azurecopilot-test.io/*",
-      "https://*.azuresre.ai/*"
+      "https://*.azuresre.ai/*",
+      "https://sre.azure.com/*"
     ]
   },
   "background": {
