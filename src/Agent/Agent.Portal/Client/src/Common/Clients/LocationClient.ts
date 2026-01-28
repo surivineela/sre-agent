@@ -2,7 +2,6 @@ import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
 import { ArmArray, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
-import { Model } from '../Contracts/SreAgent';
 import { format } from '../Utilities/String';
 import { ArmClient } from './ArmClient';
 import { Client } from './Client';
@@ -24,8 +23,13 @@ export interface AzureLocation {
     };
 }
 
-export interface SupportedModel extends Model {
+export interface SupportedModel {
     default: boolean;
+    providerName: string;
+    providerDisplayName: string;
+    modelName: string;
+    modelDisplayName: string;
+    multiplier: string;
 }
 
 export class LocationClient extends Client {

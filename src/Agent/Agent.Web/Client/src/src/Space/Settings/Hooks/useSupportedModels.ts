@@ -4,10 +4,92 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { LocationClient } from '../../../Common/Clients/LocationClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
-import { Model, ModelProvider } from '../../../Common/Contracts/Azure/SreAgent';
+import { Model } from '../../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
-import { SettingsTabResources, SreAgentResources } from '../../../Strings/SREAgentResources';
+import { SettingsTabResources } from '../../../Strings/SREAgentResources';
+
+/** @note (wangcynthia): Hardcoded for now until the ARM supported API is finished. */
+const supportedModelsResponse = {
+    data: {
+        value: [
+            {
+                id: '/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/locations/{location}/supportedModels/MicrosoftFoundry-gpt-5.2',
+                name: 'MicrosoftFoundry-gpt-5.2',
+                type: '{resourceProviderNamespace}/locations/supportedModels',
+                location: '{location}',
+                properties: {
+                    providerName: 'MicrosoftFoundry',
+                    providerDisplayName: 'Azure OpenAI',
+                    modelName: 'gpt-5.2',
+                    modelDisplayName: 'GPT-5.2',
+                    multiplier: '1x',
+                    default: false,
+                },
+            },
+            {
+                id: '/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/locations/{location}/supportedModels/MicrosoftFoundry-gpt-5',
+                name: 'MicrosoftFoundry-gpt-5',
+                type: '{resourceProviderNamespace}/locations/supportedModels',
+                location: '{location}',
+                properties: {
+                    providerName: 'MicrosoftFoundry',
+                    providerDisplayName: 'Azure OpenAI',
+                    modelName: 'gpt-5',
+                    modelDisplayName: 'GPT-5',
+                    multiplier: '1x',
+                    default: true,
+                },
+            },
+            {
+                id: '/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/locations/{location}/supportedModels/Anthropic-claude-opus-4-5',
+                name: 'Anthropic-claude-opus-4-5',
+                type: '{resourceProviderNamespace}/locations/supportedModels',
+                location: '{location}',
+                properties: {
+                    providerName: 'Anthropic',
+                    providerDisplayName: 'Anthropic',
+                    modelName: 'claude-opus-4-5',
+                    modelDisplayName: 'Claude Opus 4.5',
+                    multiplier: '3x',
+                    default: false,
+                },
+            },
+            {
+                id: '/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/locations/{location}/supportedModels/Anthropic-claude-sonnet-4-5',
+                name: 'Anthropic-claude-sonnet-4-5',
+                type: '{resourceProviderNamespace}/locations/supportedModels',
+                location: '{location}',
+                properties: {
+                    providerName: 'Anthropic',
+                    providerDisplayName: 'Anthropic',
+                    modelName: 'claude-sonnet-4-5',
+                    modelDisplayName: 'Claude Sonnet 4.5',
+                    multiplier: '1x',
+                    default: false,
+                },
+            },
+            {
+                id: '/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}/locations/{location}/supportedModels/Anthropic-claude-haiku-4-5',
+                name: 'Anthropic-claude-haiku-4-5',
+                type: '{resourceProviderNamespace}/locations/supportedModels',
+                location: '{location}',
+                properties: {
+                    providerName: 'Anthropic',
+                    providerDisplayName: 'Anthropic',
+                    modelName: 'claude-haiku-4-5',
+                    modelDisplayName: 'Claude Haiku 4.5',
+                    multiplier: '0.33x',
+                    default: false,
+                },
+            },
+        ],
+    },
+    metadata: {
+        success: true,
+        error: null,
+    },
+};
 
 export const useSupportedModels = (agentResourceId: string, location: string) => {
     const intl = useIntl();
@@ -26,26 +108,24 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
 
     const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
 
-    const providerMapping: Record<ModelProvider, string> = useMemo(
-        () => ({
-            [ModelProvider.Anthropic]: intl.formatMessage(SreAgentResources.anthropicProviderLabel),
-            [ModelProvider.MicrosoftFoundry]: intl.formatMessage(SreAgentResources.azureOpenAiProviderLabel),
-        }),
-        [intl]
-    );
-
     const getSupportedModels = useCallback(async () => {
         setIsSupportedModelsLoading(true);
         setGetSupportedModelsFailure('');
 
-        const supportedModelsPromise = await LocationClient.getSupportedModels(subscription, location);
+        const supportedModelsPromise = showDefaultModelPicker
+            ? await Promise.resolve(supportedModelsResponse)
+            : await LocationClient.getSupportedModels(subscription, location);
 
         if (supportedModelsPromise?.metadata?.success && supportedModelsPromise.data) {
             const supportedModels = supportedModelsPromise.data.value;
 
-            const supportedProviders = Array.from(new Set(supportedModels.map(model => model.properties.provider))).map(provider => {
-                return { key: provider, text: providerMapping[provider as ModelProvider] || provider };
-            });
+            const providerMap = new Map(
+                supportedModels.map(model => [
+                    model.properties.providerName,
+                    { key: model.properties.providerName, text: model.properties.providerDisplayName },
+                ])
+            );
+            const supportedProviders = Array.from(providerMap.values());
             setSupportedProviders(supportedProviders);
             setIsSupportedModelsLoading(false);
         } else {
@@ -62,7 +142,7 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
             setGetSupportedModelsFailure(intl.formatMessage(SettingsTabResources.getSupportedModelsFailedMessage));
             setIsSupportedModelsLoading(false);
         }
-    }, [agentResourceId, az, intl, location, providerMapping, subscription]);
+    }, [agentResourceId, az, intl, location, subscription, showDefaultModelPicker]);
 
     const updateDefaultModel = useCallback(
         async (values: Model) => {
@@ -76,7 +156,7 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
                 properties: {
                     defaultModel: {
                         provider: values.provider,
-                        model: 'Automatic',
+                        name: 'Automatic',
                     },
                 },
             };
@@ -118,10 +198,10 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
     );
 
     useEffect(() => {
-        if (agentResourceId && showDefaultModelPicker) {
+        if (agentResourceId) {
             getSupportedModels();
         }
-    }, [agentResourceId, getSupportedModels, showDefaultModelPicker]);
+    }, [agentResourceId, getSupportedModels]);
 
     return {
         supportedProviders,

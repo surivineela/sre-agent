@@ -107,7 +107,7 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
                     ? {
                           defaultModel: {
                               provider: `[parameters('${SreAgentParameterName.DefaultModelProvider}')]`,
-                              model: 'Automatic',
+                              name: "Automatic",
                           },
                       }
                     : {}),

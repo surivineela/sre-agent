@@ -405,8 +405,6 @@ export const PortalResources = defineMessages({
     deleteConnectors: { defaultMessage: 'Delete {count} connectors', id: 'kWfaS8' },
     editConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
     updateConnector: { defaultMessage: 'Update connector', id: 'GeSTZm' },
-    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
-    azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
     getSupportedModelsFailedMessage: { defaultMessage: 'Unable to load available models. Please try again later.', id: 'rhW41X' },
     modelProviderLabel: { defaultMessage: 'Model provider', id: 'DTJ2/l' },
     providerLabel: { defaultMessage: 'Provider', id: 'xaj9Ba' },

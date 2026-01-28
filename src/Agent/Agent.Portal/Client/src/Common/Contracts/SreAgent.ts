@@ -105,7 +105,7 @@ export enum ModelProvider {
 
 export interface Model {
     provider: ModelProvider;
-    model?: string; // (NOTE (wangcynthia): optional for now, since for GA the user can only select provider.
+    name?: string; // (NOTE (wangcynthia): optional for now, since for GA the user can only select provider.
 }
 
 export interface Agent {
