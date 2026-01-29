@@ -636,6 +636,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             source: ThreadSource.Incident,
             incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
             incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
+            overrideAgentMode: filterPayload?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             incidentDetails: new IncidentDetails(
                 title,
                 startDateTime,
@@ -793,7 +794,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             incidentId: alertIdResource.Name,
             incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
             AllowedTools: handlerDoc.Tools,
-            overrideAgentMode: filterPayload?.AgentMode ?? "",
+            overrideAgentMode: filterPayload?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             incidentDetails: new IncidentDetails(
                 title,
                 startDateTime,
