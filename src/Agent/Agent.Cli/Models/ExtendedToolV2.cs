@@ -397,16 +397,6 @@ namespace Agent.Cli.Models
                 {
                     errors.Add($"Parameter '{param.Name}' must have a 'description'.");
                 }
-
-                // Validate mapTo if present
-                if (!string.IsNullOrWhiteSpace(param.MapTo))
-                {
-                    var validMapTo = new[] { "args", "context", "body" };
-                    if (!validMapTo.Contains(param.MapTo.ToLowerInvariant()))
-                    {
-                        errors.Add($"Parameter '{param.Name}' has invalid mapTo '{param.MapTo}'. Must be one of: {string.Join(", ", validMapTo)}");
-                    }
-                }
             }
 
             return errors;

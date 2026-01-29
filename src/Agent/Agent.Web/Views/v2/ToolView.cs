@@ -142,11 +142,7 @@ public class ParameterView
 
     public Settable<string> Description { get; set; }
 
-    public Settable<string> MapTo { get; set; }
-
     public Settable<bool> Required { get; set; }
-
-    public Settable<string> Target { get; set; }
 
     public Settable<object?> Value { get; set; }
 }
@@ -200,9 +196,7 @@ public class KustoToolView : ToolView
                 Name = parameter.Name,
                 Type = parameter.Type,
                 Description = parameter.Description,
-                MapTo = parameter.MapTo,
                 Required = parameter.Required,
-                Target = parameter.Target,
                 Value = parameter.Value,
             };
             paramView.Add(parameterView);
@@ -268,9 +262,7 @@ public class KustoToolView : ToolView
                     Name = p.Name!,
                     Type = p.Type!,
                     Description = p.Description!,
-                    MapTo = p.MapTo!,
                     Required = p.Required,
-                    Target = p.Target!,
                     Value = p.Value,
                 }).ToList();
             });
@@ -316,9 +308,7 @@ public class LinkToolView : ToolView
                 Name = parameter.Name,
                 Type = parameter.Type,
                 Description = parameter.Description,
-                MapTo = parameter.MapTo,
                 Required = parameter.Required,
-                Target = parameter.Target,
                 Value = parameter.Value,
             };
             paramView.Add(parameterView);
@@ -384,9 +374,7 @@ public class LinkToolView : ToolView
                     Name = p.Name!,
                     Type = p.Type!,
                     Description = p.Description!,
-                    MapTo = p.MapTo!,
                     Required = p.Required,
-                    Target = p.Target!,
                     Value = p.Value,
                 }).ToList();
             });
@@ -436,9 +424,7 @@ public class PythonToolView : ToolView
                 Name = parameter.Name,
                 Type = parameter.Type,
                 Description = parameter.Description,
-                MapTo = parameter.MapTo,
                 Required = parameter.Required,
-                Target = parameter.Target,
                 Value = parameter.Value,
             };
             paramView.Add(parameterView);
@@ -504,9 +490,7 @@ public class PythonToolView : ToolView
                     Name = p.Name!,
                     Type = p.Type!,
                     Description = p.Description!,
-                    MapTo = p.MapTo!,
                     Required = p.Required,
-                    Target = p.Target!,
                     Value = p.Value,
                 }).ToList();
             });
@@ -591,9 +575,7 @@ public class HttpClientToolView : ToolView
                 Name = parameter.Name,
                 Type = parameter.Type,
                 Description = parameter.Description,
-                MapTo = parameter.MapTo,
                 Required = parameter.Required,
-                Target = parameter.Target,
                 Value = parameter.Value,
             };
             paramView.Add(parameterView);
@@ -659,9 +641,7 @@ public class HttpClientToolView : ToolView
                     Name = p.Name!,
                     Type = p.Type!,
                     Description = p.Description!,
-                    MapTo = p.MapTo!,
                     Required = p.Required,
-                    Target = p.Target!,
                     Value = p.Value,
                 }).ToList();
             });

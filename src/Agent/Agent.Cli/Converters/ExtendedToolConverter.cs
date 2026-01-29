@@ -166,9 +166,7 @@ namespace Agent.Cli.Converters
                 Name = v1.Name,
                 Type = v1.Type,
                 Description = v1.Description,
-                MapTo = v1.MapTo,
                 Required = v1.Required,
-                Target = v1.Target,
                 Value = v1.Value
             };
         }
