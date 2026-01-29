@@ -1,10 +1,11 @@
-// Thread Source Usage by Customer Type (1P/3P)
+// Thread Source Usage by Customer Type (1P/3P) with P50/P90 Percentiles
 // Uses: ThreadSourceUsageTrend() from SREAgentStoredFunctions
 //
-// Breaks down thread sources by 1P vs 3P
+// Breaks down thread sources by 1P vs 3P with Total, P50, P90 metrics
 // CRITICAL: ThreadSource is ONLY on CreateThread events, NOT GenerateModelResponse.
 // This query joins with CreateThread to get the correct ThreadSource.
 // IMPORTANT: Only include Incident, Conversation, ScheduledTask (the 3 sources we care about)
+// OUTPUT: CustomerCategory, ActualThreadSource, Day, TotalDurationMinutes, P50_Minutes, P90_Minutes, CallCount, AgentCount, ThreadCount
 
 let StartDate = ago(21d);
 let EndDate = now();
@@ -20,25 +21,38 @@ let Metadata = ExtendedAgentDocumentDBState()
 
 // Get ThreadSource from thread creation events (NOT model responses)
 // Filter to only the 3 sources we care about
+// IMPORTANT: Rename to ActualThreadSource to avoid column collision in join
 let ThreadSourceMap = All('AgentActionEvents')
 | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
 | where isnotempty(ThreadSource)
 | where ThreadSource in ("Incident", "Conversation", "ScheduledTask")
-| project ThreadId, ThreadSource;
+| project ThreadId, ActualThreadSource = ThreadSource;
 
 // Join model response durations with thread source (INNER join - only threads with known source)
-All('AgentActionEvents')
+let RawData = All('AgentActionEvents')
 | where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
 | where Action == "GenerateModelResponse"
 | where Duration > 0
 | join kind=inner (Metadata) on AgentName
 | join kind=inner (ThreadSourceMap) on ThreadId
-| extend Day = startofday(PreciseTimeStamp)
+| extend Day = startofday(PreciseTimeStamp);
+
+// First aggregate per agent per day per thread source (for percentile calculation)
+let AgentDailyBySource = RawData
+| summarize DurationMinutes = sum(Duration) / 60000.0 by CustomerCategory, ActualThreadSource, Day, AgentName;
+
+// Calculate totals AND P50/P90 per thread source per day
+AgentDailyBySource
 | summarize 
-    TotalDurationMinutes = round(sum(Duration) / 60000.0, 2),
-    CallCount = count(),
-    AgentCount = dcount(AgentName),
-    ThreadCount = dcount(ThreadId)
-    by CustomerCategory, ThreadSource, Day
-| order by CustomerCategory asc, ThreadSource asc, Day asc
+    TotalDurationMinutes = round(sum(DurationMinutes), 2),
+    P50_Minutes = round(percentile(DurationMinutes, 50), 2),
+    P90_Minutes = round(percentile(DurationMinutes, 90), 2),
+    AgentCount = dcount(AgentName)
+    by CustomerCategory, ActualThreadSource, Day
+| join kind=leftouter (
+    RawData
+    | summarize CallCount = count(), ThreadCount = dcount(ThreadId) by CustomerCategory, ActualThreadSource, Day
+) on CustomerCategory, ActualThreadSource, Day
+| project CustomerCategory, ActualThreadSource, Day, TotalDurationMinutes, P50_Minutes, P90_Minutes, CallCount, AgentCount, ThreadCount
+| order by CustomerCategory asc, ActualThreadSource asc, Day asc
 
