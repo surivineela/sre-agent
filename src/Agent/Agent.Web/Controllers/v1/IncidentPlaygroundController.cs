@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Core.Validation;
 using Agent.Data;

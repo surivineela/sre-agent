@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Data.DataModels;
-using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;

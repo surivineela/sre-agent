@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Core.Validation;
 using Agent.Data.DataModels;
-using Agent.Runtime.Reasoning;
 
 namespace Agent.Web.Validation;
 

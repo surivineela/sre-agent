@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.Interface.IncidentAPI;
-using Agent.Runtime.Reasoning;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;

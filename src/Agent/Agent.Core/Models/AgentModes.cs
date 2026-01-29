@@ -1,4 +1,8 @@
-namespace Agent.Runtime.Reasoning;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Core.Models;
 
 /// <summary>
 /// Constants for agent modes to avoid hardcoded strings throughout the controller

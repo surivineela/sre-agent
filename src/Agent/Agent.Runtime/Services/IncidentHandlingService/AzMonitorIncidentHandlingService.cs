@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;

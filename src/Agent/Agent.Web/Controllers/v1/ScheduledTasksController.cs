@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.ScheduledTasks.Services;
@@ -30,7 +31,8 @@ namespace Agent.Web.Controllers.v1
         Dictionary<string, object>? ExecutionContext = null,
         int? MaxExecutions = null,
         string? NotificationChannel = null,
-        string? CreatedBy = null
+        string? CreatedBy = null,
+        string? AgentMode = null
     );
 
     public record UpdateScheduledTaskApiRequest(
@@ -44,7 +46,8 @@ namespace Agent.Web.Controllers.v1
         Dictionary<string, object>? ExecutionContext = null,
         int? MaxExecutions = null,
         string? NotificationChannel = null,
-        string? ThreadId = null
+        string? ThreadId = null,
+        string? AgentMode = null
     );
 
     [ApiController]
@@ -78,7 +81,8 @@ namespace Agent.Web.Controllers.v1
                     NextExecutionTime = ScheduledTaskExecutionService.GetNextExecutionTime(task, DateTime.UtcNow),
                     task.ExecutionCount,
                     task.MaxExecutions,
-                    task.ThreadId
+                    task.ThreadId,
+                    task.AgentMode
                 }).ToList();
 
                 return Ok(response);
@@ -124,7 +128,8 @@ namespace Agent.Web.Controllers.v1
                     task.MaxExecutions,
                     task.NotificationChannel,
                     task.ExecutionContext,
-                    ExecutionHistory = task.ExecutionHistory?.OrderByDescending(e => e.ExecutionTime).Take(10).ToList()
+                    ExecutionHistory = task.ExecutionHistory?.OrderByDescending(e => e.ExecutionTime).Take(10).ToList(),
+                    task.AgentMode
                 };
 
                 return Ok(response);
@@ -144,6 +149,13 @@ namespace Agent.Web.Controllers.v1
             {
                 logger.LogInternalInformation("Creating scheduled task: {TaskName}", request.Name);
 
+                // Validate and default AgentMode
+                var agentMode = request.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant();
+                if (!string.IsNullOrEmpty(request.AgentMode) && !AgentModes.IsModeValid(request.AgentMode))
+                {
+                    return BadRequest(new { error = $"Invalid agent mode '{request.AgentMode}'. Valid modes are: readonly, review, autonomous." });
+                }
+
                 var createRequest = new CreateScheduledTaskRequest(
                     Name: request.Name,
                     Description: request.Description,
@@ -156,7 +168,8 @@ namespace Agent.Web.Controllers.v1
                     CreatedBy: string.IsNullOrEmpty(request.CreatedBy) ? "api" : request.CreatedBy, // TODO: Get from authentication context
                     ExecutionContext: request.ExecutionContext,
                     MaxExecutions: request.MaxExecutions,
-                    NotificationChannel: request.NotificationChannel
+                    NotificationChannel: request.NotificationChannel,
+                    AgentMode: agentMode
                 );
 
                 var task = await scheduledTaskService.CreateScheduledTask(createRequest);
@@ -187,6 +200,12 @@ namespace Agent.Web.Controllers.v1
             {
                 logger.LogInternalInformation("Updating scheduled task: {TaskId}", id);
 
+                // Validate AgentMode if provided
+                if (!string.IsNullOrEmpty(request.AgentMode) && !AgentModes.IsModeValid(request.AgentMode))
+                {
+                    return BadRequest(new { error = $"Invalid agent mode '{request.AgentMode}'. Valid modes are: readonly, review, autonomous." });
+                }
+
                 var updateRequest = new UpdateScheduledTaskRequest(
                     Name: request.Name,
                     Description: request.Description,
@@ -198,7 +217,8 @@ namespace Agent.Web.Controllers.v1
                     ExecutionContext: request.ExecutionContext,
                     MaxExecutions: request.MaxExecutions,
                     NotificationChannel: request.NotificationChannel,
-                    ThreadId: request.ThreadId
+                    ThreadId: request.ThreadId,
+                    AgentMode: request.AgentMode
                 );
 
                 var task = await scheduledTaskService.UpdateScheduledTask(id, updateRequest);
