@@ -80,6 +80,7 @@ describe('useUserPermissions', () => {
     it('returns error and false permissions when no resource id', async () => {
         const { result } = renderHook(() => useUserPermissions(), { wrapper: wrapperFactory(undefined) });
         expect(result.current.loading).toBe(false);
+        expect(result.current.canReadAgent).toBe(false);
         expect(result.current.canWriteAgent).toBe(false);
         expect(result.current.canDeleteAgent).toBe(false);
         expect(result.current.canReadThreads).toBe(false);
@@ -112,6 +113,7 @@ describe('useUserPermissions', () => {
 
         // Mock canPerformActions for each permission check
         canPerformActionsMock
+            .mockReturnValueOnce(true) // agent read
             .mockReturnValueOnce(true) // agent write
             .mockReturnValueOnce(false) // agent delete
             .mockReturnValueOnce(true) // threads write
@@ -137,71 +139,73 @@ describe('useUserPermissions', () => {
         rerender();
 
         expect(getPermissionsMock).toHaveBeenCalledTimes(1);
-        expect(canPerformActionsMock).toHaveBeenCalledTimes(12);
-        expect(canPerformActionsMock).toHaveBeenNthCalledWith(1, [PermissionActions.AgentWrite], expect.any(Array), expect.any(String));
-        expect(canPerformActionsMock).toHaveBeenNthCalledWith(2, [PermissionActions.AgentDelete], expect.any(Array), expect.any(String));
+        expect(canPerformActionsMock).toHaveBeenCalledTimes(13);
+        expect(canPerformActionsMock).toHaveBeenNthCalledWith(1, [PermissionActions.AgentRead], expect.any(Array), expect.any(String));
+        expect(canPerformActionsMock).toHaveBeenNthCalledWith(2, [PermissionActions.AgentWrite], expect.any(Array), expect.any(String));
+        expect(canPerformActionsMock).toHaveBeenNthCalledWith(3, [PermissionActions.AgentDelete], expect.any(Array), expect.any(String));
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            3,
+            4,
             [PermissionActions.AgentThreadsWrite],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            4,
+            5,
             [PermissionActions.AgentThreadsRead],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            5,
+            6,
             [PermissionActions.AgentThreadsDelete],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            6,
+            7,
             [PermissionActions.AgentThreadsApprove],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            7,
+            8,
             [PermissionActions.AgentIncidentManagementRead],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            8,
+            9,
             [PermissionActions.AgentIncidentManagementWrite],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            9,
+            10,
             [PermissionActions.AgentIncidentManagementDelete],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            10,
+            11,
             [PermissionActions.AgentGraphRead],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            11,
+            12,
             [PermissionActions.AgentGraphWrite],
             expect.any(Array),
             expect.any(String)
         );
         expect(canPerformActionsMock).toHaveBeenNthCalledWith(
-            12,
+            13,
             [PermissionActions.AgentGraphDelete],
             expect.any(Array),
             expect.any(String)
         );
 
         expect(result.current.loading).toBe(false);
+        expect(result.current.canReadAgent).toBe(true);
         expect(result.current.canWriteAgent).toBe(true);
         expect(result.current.canDeleteAgent).toBe(false);
         expect(result.current.canReadThreads).toBe(true);
@@ -228,6 +232,7 @@ describe('useUserPermissions', () => {
         rerender();
 
         expect(result.current.loading).toBe(false);
+        expect(result.current.canReadAgent).toBe(false);
         expect(result.current.canWriteAgent).toBe(false);
         expect(result.current.canDeleteAgent).toBe(false);
         expect(result.current.canReadThreads).toBe(false);
@@ -259,6 +264,7 @@ describe('useUserPermissions', () => {
         });
 
         canPerformActionsMock
+            .mockReturnValueOnce(true) // agent read
             .mockReturnValueOnce(true) // agent write
             .mockReturnValueOnce(true) // agent delete
             .mockReturnValueOnce(true) // threads write
@@ -293,6 +299,7 @@ describe('useUserPermissions', () => {
         });
 
         canPerformActionsMock
+            .mockReturnValueOnce(false) // agent read
             .mockReturnValueOnce(false) // agent write
             .mockReturnValueOnce(false) // agent delete
             .mockReturnValueOnce(false) // threads write
@@ -313,6 +320,7 @@ describe('useUserPermissions', () => {
         await act(async () => {});
         rerender();
 
+        expect(result.current.canReadAgent).toBe(false);
         expect(result.current.canWriteAgent).toBe(false);
         expect(result.current.canDeleteAgent).toBe(false);
         expect(result.current.canReadThreads).toBe(false);
@@ -344,6 +352,7 @@ describe('useUserPermissions', () => {
 
         // Simulate underlying evaluation where the action exists only as a dataAction; our mock returns true only if includeDataActions flag is present.
         canPerformActionsMock
+            .mockReturnValueOnce(true) // agent read
             .mockReturnValueOnce(true) // agent write
             .mockReturnValueOnce(false) // agent delete
             .mockReturnValueOnce(true) // threads write (allowed via dataAction merge)
@@ -363,7 +372,8 @@ describe('useUserPermissions', () => {
         await act(async () => {});
         rerender();
 
-        expect(canPerformActionsMock).toHaveBeenCalledTimes(12);
+        expect(canPerformActionsMock).toHaveBeenCalledTimes(13);
+        expect(result.current.canReadAgent).toBe(true);
         expect(result.current.canWriteAgent).toBe(true);
         expect(result.current.canDeleteAgent).toBe(false);
         expect(result.current.canReadThreads).toBe(true);

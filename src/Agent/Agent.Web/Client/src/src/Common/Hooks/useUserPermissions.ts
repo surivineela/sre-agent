@@ -5,6 +5,7 @@ import { PermissionClient } from '../Clients/PermissionsClient';
 import { PermissionActions } from '../Contracts/Azure/Permission';
 
 interface UserPermissionsState {
+    canReadAgent: boolean;
     canWriteAgent: boolean;
     canDeleteAgent: boolean;
     canReadThreads: boolean;
@@ -30,6 +31,7 @@ interface CachedPermissionState {
     fetched: boolean;
     promise?: Promise<void>;
     data?: {
+        canReadAgent: boolean;
         canWriteAgent: boolean;
         canDeleteAgent: boolean;
         canReadThreads: boolean;
@@ -57,6 +59,7 @@ const ttlExpired = (entry?: CachedPermissionState) => {
 };
 
 const createPermissionObject = (value: boolean) => ({
+    canReadAgent: value,
     canWriteAgent: value,
     canDeleteAgent: value,
     canReadThreads: value,
@@ -119,11 +122,19 @@ export const useUserPermissions = (): UserPermissions => {
                         const raw = response.data?.value;
                         if (!raw) throw new Error('No permissions data received');
 
-                        const permissionSet = raw.map(p => ({
-                            actions: [...(p.actions || []), ...((p as any).dataActions || [])],
-                            notActions: [...(p.notActions || []), ...((p as any).notDataActions || [])],
+                        // Checking just data plane permissions
+                        const dataPlanePermissionSet = raw.map(p => ({
+                            actions: (p as any).dataActions || [],
+                            notActions: (p as any).notDataActions || [],
                         }));
 
+                        // Checking both control plane and data plane permissions
+                        const permissionSet = raw.map(p => ({
+                            actions: [...(p.actions || []), ...(dataPlanePermissionSet.map(ps => ps.actions).flat() || [])],
+                            notActions: [...(p.notActions || []), ...(dataPlanePermissionSet.map(ps => ps.notActions).flat() || [])],
+                        }));
+
+                        const canReadAgent = client.canPerformActions([PermissionActions.AgentRead], permissionSet, agentResourceId);
                         const canWriteAgent = client.canPerformActions([PermissionActions.AgentWrite], permissionSet, agentResourceId);
                         const canDeleteAgent = client.canPerformActions([PermissionActions.AgentDelete], permissionSet, agentResourceId);
                         const canWriteThreads = client.canPerformActions(
@@ -131,9 +142,12 @@ export const useUserPermissions = (): UserPermissions => {
                             permissionSet,
                             agentResourceId
                         );
+
+                        // TODO (yoonaoh): Data plane thread/read permissions are needed for functionality,
+                        // will be adding more data plane checks per feature in the future
                         const canReadThreads = client.canPerformActions(
                             [PermissionActions.AgentThreadsRead],
-                            permissionSet,
+                            dataPlanePermissionSet,
                             agentResourceId
                         );
                         const canDeleteThreads = client.canPerformActions(
@@ -170,6 +184,7 @@ export const useUserPermissions = (): UserPermissions => {
                         );
 
                         permissionCache!.data = {
+                            canReadAgent,
                             canWriteAgent,
                             canDeleteAgent,
                             canReadThreads,

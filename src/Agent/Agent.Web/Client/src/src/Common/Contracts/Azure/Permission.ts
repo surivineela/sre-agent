@@ -14,6 +14,7 @@ export interface PermissionsCheckResponse {
 
 export enum PermissionActions {
     RbacWrite = 'Microsoft.Authorization/roleAssignments/write',
+    AgentRead = 'Microsoft.App/agents/read',
     AgentWrite = 'Microsoft.App/agents/write',
     AgentDelete = 'Microsoft.App/agents/delete',
     AgentThreadsWrite = 'Microsoft.App/agents/threads/write',

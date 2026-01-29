@@ -740,6 +740,13 @@ export const SreAgentResources = defineMessages({
     detailsPermission: { defaultMessage: 'Permission', id: 'Oz5LRn' },
     detailsAccess: { defaultMessage: 'Details', id: 'Lv0zJu' },
     detailsAccessNoAccess: { defaultMessage: 'No access', id: 'XLRt15' },
+    accessRequirement: { defaultMessage: 'Access requirement', id: 'owqydq' },
+    accessRequirementDescription: {
+        defaultMessage: 'Access to use this agent requires an Azure role-based access control (RBAC) SRE Agent Reader role or higher.',
+        id: 'mLVRgA',
+    },
+    learnMoreAboutSREAgentRBAC: { defaultMessage: 'Learn more about SRE Agent RBAC', id: 'URn8FF' },
+    goToAccessControl: { defaultMessage: 'Go to Access Control (IAM)', id: 'ezYx3I' },
     equals: { defaultMessage: 'equals', id: 'Y2QRpS' },
     safe: { defaultMessage: 'Safe', id: 'Fr5LyM' },
     lowRisk: { defaultMessage: 'Low risk', id: 'jd2Xsp' },

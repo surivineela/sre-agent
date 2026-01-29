@@ -25,10 +25,10 @@ export const useSreAgentSpaceStyles = makeStyles({
         gap: '5px',
         alignItems: 'center',
     },
-    stoppedAgentComponentContainer: {
+    overlayComponentContainer: {
         height: '100%',
     },
-    stoppedAgentComponentFlexBox: {
+    overlayComponentFlexBox: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
