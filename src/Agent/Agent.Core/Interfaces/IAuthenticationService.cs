@@ -148,4 +148,12 @@ public interface IAuthenticationService
     public Task<TokenCredential> GetGenevaActionOboCredential();
 
     public Task<Dictionary<string, string>?> GetAllOboTokens();
+
+    /// <summary>
+    /// Get the credential to access ADC (Azure Dev Compute) management API.
+    /// In development: uses GitHubTokenOverride if set, otherwise DefaultAzureCredential.
+    /// In production: uses workload identity.
+    /// </summary>
+    /// <returns>The token credential for ADC management API access.</returns>
+    public TokenCredential GetAdcManagementCredential();
 }

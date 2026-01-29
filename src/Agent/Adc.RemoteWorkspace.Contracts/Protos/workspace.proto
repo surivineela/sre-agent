@@ -1,0 +1,220 @@
+syntax = "proto3";
+
+option csharp_namespace = "Adc.RemoteWorkspace.Protocol";
+
+package workspace;
+
+service FileSystem {
+  // Workspace Initialization
+  rpc InitializeSandboxRoot (InitializeSandboxRootRequest) returns (InitializeSandboxRootResponse);
+
+  // File Operations
+  rpc ReadFile (ReadFileRequest) returns (ReadFileResponse);
+  rpc CreateFile (CreateFileRequest) returns (CreateFileResponse);
+  rpc CreateDirectory (CreateDirectoryRequest) returns (CreateDirectoryResponse);
+  rpc ListDirectory (ListDirectoryRequest) returns (ListDirectoryResponse);
+
+  // Edit Operations
+  rpc ReplaceStringInFile (ReplaceStringInFileRequest) returns (ReplaceStringInFileResponse);
+  rpc MultiReplaceStringInFile (MultiReplaceStringInFileRequest) returns (MultiReplaceStringInFileResponse);
+
+  // Search Operations
+  rpc FileSearch (FileSearchRequest) returns (FileSearchResponse);
+  rpc GrepSearch (GrepSearchRequest) returns (GrepSearchResponse);
+}
+
+service Execution {
+  rpc ExecuteBash (ExecuteBashRequest) returns (ExecuteBashResponse);
+  rpc GetBashOutput (GetBashOutputRequest) returns (GetBashOutputResponse);
+  rpc KillTask (KillTaskRequest) returns (KillTaskResponse);
+}
+
+service AmbientContext {
+  // Gets instruction context (copilot-instructions.md, AGENTS.md, etc.)
+  rpc GetInstructionsContext (GetInstructionsContextRequest) returns (GetInstructionsContextResponse);
+  // Gets environment context (OS info, workspace structure)
+  rpc GetEnvironmentContext (GetEnvironmentContextRequest) returns (GetEnvironmentContextResponse);
+  // Gets pre-query context (git repos, terminal state - excluding todo list which is local)
+  rpc GetPreQueryContext (GetPreQueryContextRequest) returns (GetPreQueryContextResponse);
+}
+
+// ==================== Workspace Initialization ====================
+
+message InitializeSandboxRootRequest {
+  // Empty - sandbox root is determined by server configuration
+}
+
+message InitializeSandboxRootResponse {
+  string sandbox_root = 1;      // The initialized sandbox root path
+  string code_refs_path = 2;    // Path to codeRefs directory
+  string tmp_path = 3;          // Path to tmp directory
+  string error = 4;             // Error message if initialization failed
+}
+
+// ==================== File Operations ====================
+
+message ReadFileRequest {
+  string file_path = 1;
+  int32 start_line = 2;  // 1-based line number
+  int32 end_line = 3;    // 1-based line number
+}
+
+message ReadFileResponse {
+  string result = 1; 
+}
+
+message CreateFileRequest {
+  string file_path = 1;
+  string content = 2;
+}
+
+message CreateFileResponse {
+  string result = 1;
+}
+
+message CreateDirectoryRequest {
+  string dir_path = 1;
+}
+
+message CreateDirectoryResponse {
+  string result = 1;
+}
+
+message ListDirectoryRequest {
+  string path = 1;
+}
+
+message ListDirectoryResponse {
+  string result = 1;
+}
+
+// ==================== Edit Operations ====================
+
+message ReplaceStringInFileRequest {
+  string file_path = 1;
+  string old_string = 2;
+  string new_string = 3;
+}
+
+message ReplaceStringInFileResponse {
+  string result = 1;
+}
+
+message ReplaceOperation {
+  string explanation = 1;
+  string file_path = 2;
+  string old_string = 3;
+  string new_string = 4;
+}
+
+message MultiReplaceStringInFileRequest {
+  string explanation = 1;
+  repeated ReplaceOperation replacements = 2;
+}
+
+message MultiReplaceStringInFileResponse {
+  string result = 1; 
+}
+
+// ==================== Search Operations ====================
+
+message FileSearchRequest {
+  string query = 1;           // Glob pattern
+  int32 max_results = 2;      // Optional, 0 means default
+}
+
+message FileSearchResponse {
+  string result = 1;
+}
+
+message GrepSearchRequest {
+  string query = 1;
+  bool is_regexp = 2;
+  string include_pattern = 3;     // Optional glob pattern to filter files
+  int32 max_results = 4;          // Optional, 0 means default
+  bool include_ignored_files = 5;
+}
+
+message GrepSearchResponse {
+  string result = 1;
+}
+
+// ==================== Execution ====================
+
+message ExecuteBashRequest {
+  string command = 1;
+  int32 timeout = 2;
+  bool run_in_background = 3;
+}
+
+message ExecuteBashResponse {
+  int32 exit_code = 1;
+  string stdout = 2;
+  string stderr = 3;
+  bool truncated = 4;
+  bool timed_out = 5;
+  string session_id = 6;
+  string error = 7;
+}
+
+message KillTaskRequest {
+  string task_id = 1;
+}
+
+message KillTaskResponse {
+  bool success = 1;
+  string message = 2;
+  string error = 3;
+}
+
+message GetBashOutputRequest {
+    string task_id = 1;
+    bool block = 2;
+    int32 timeout = 3;
+}
+
+message GetBashOutputResponse {
+    string retrieval_status = 1;
+    string task_id = 2;
+    string status = 3;
+    string output = 4;
+    string error = 5;
+    int32 exit_code = 6;
+}
+
+// ==================== Ambient Context ====================
+
+message GetInstructionsContextRequest {
+  // Empty - server determines sandbox context
+}
+
+message GetInstructionsContextResponse {
+  string context = 1;      // The formatted instructions context string
+  string error = 2;        // Error message if failed
+}
+
+message GetEnvironmentContextRequest {
+  // Empty - server determines sandbox context
+}
+
+message GetEnvironmentContextResponse {
+  string context = 1;      // The formatted environment context string
+  string error = 2;        // Error message if failed
+}
+
+message TodoItem {
+  int32 id = 1;
+  string title = 2;
+  string description = 3;  // Optional
+  string status = 4;       // "not-started", "in-progress", "completed"
+}
+
+message GetPreQueryContextRequest {
+  string terminal_state = 1;       // Terminal state string (provided by caller)
+  repeated TodoItem todo_list = 2; // Todo list items (provided by caller, since todo list is local)
+}
+
+message GetPreQueryContextResponse {
+  string context = 1;      // The formatted pre-query context string
+  string error = 2;        // Error message if failed
+}

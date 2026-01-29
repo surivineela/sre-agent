@@ -305,6 +305,8 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
         public Task<Dictionary<string, string>?> GetAllOboTokens() => Task.FromResult<Dictionary<string, string>?>(null);
 
+        public TokenCredential GetAdcManagementCredential() => _credential;
+
         internal sealed class FakeTokenCredential : TokenCredential
         {
             public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)

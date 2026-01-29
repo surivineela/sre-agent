@@ -73,6 +73,16 @@ namespace Agent.Core.Extensions
                 client.Timeout = TimeSpan.FromMinutes(5); // Set timeout to 5 minutes for PagerDuty API calls.
             });
         }
+
+        public static void AddAdcManagementHttpClient(this IServiceCollection services)
+        {
+            services.AddTransient<AdcManagementAccessTokenHandler>();
+            services.AddHttpClient(Constants.HttpClientForAdcManagement, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+                client.Timeout = TimeSpan.FromMinutes(10); // Set timeout to 10 minutes for ADC API calls.
+            }).AddHttpMessageHandler<AdcManagementAccessTokenHandler>();
+        }
     }
 
     // This handler targets for Agent's arm operation
@@ -173,6 +183,35 @@ namespace Agent.Core.Extensions
             var cred = _authenticationService.GetSessionPoolCredential();
             var accessToken = await cred.GetTokenAsync(
                 new TokenRequestContext(new[] { "https://dynamicsessions.io/.default" }),
+                cancellationToken);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken.Token);
+
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Handler for ADC (Azure Dev Compute) management API authentication.
+    /// </summary>
+    public class AdcManagementAccessTokenHandler : DelegatingHandler
+    {
+        private readonly IAuthenticationService _authenticationService;
+
+        public AdcManagementAccessTokenHandler(IAuthenticationService authenticationService)
+        {
+            _authenticationService = authenticationService;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var cred = _authenticationService.GetAdcManagementCredential();
+            var accessToken = await cred.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
                 cancellationToken);
 
             request.Headers.Authorization = new AuthenticationHeaderValue(

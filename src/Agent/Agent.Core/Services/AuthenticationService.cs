@@ -28,6 +28,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly AzureSearchSettings _azureSearchSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
     private readonly AgentSpaceProxySettings _agentSpaceProxySettings;
+    private readonly AdcSettings _adcSettings;
 
     public AuthenticationService(
         ILogger<AuthenticationService> logger,
@@ -38,6 +39,7 @@ public class AuthenticationService : IAuthenticationService
         GitHubSettings gitHubSettings,
         AzureSearchSettings azureSearchSettings,
         AgentSpaceProxySettings agentSpaceProxySettings,
+        AdcSettings adcSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
@@ -50,6 +52,7 @@ public class AuthenticationService : IAuthenticationService
         _gitHubSettings = gitHubSettings;
         _azureSearchSettings = azureSearchSettings;
         _agentSpaceProxySettings = agentSpaceProxySettings;
+        _adcSettings = adcSettings;
 
         // To avoid cyclic dependency between cosmos client
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
@@ -752,6 +755,27 @@ public class AuthenticationService : IAuthenticationService
     public async Task<TokenCredential> GetGenevaActionOboCredential()
     {
         return await ApprovalAwareCredentialHelper(() => DelegatedTokenCredential.Create((context, _) => new AccessToken()));
+    }
+
+    public TokenCredential GetAdcManagementCredential()
+    {
+        // In development mode, use GitHub token override if set, otherwise use default credential
+        // In production, use workload identity
+        if (_hostEnvironment.IsDevelopment())
+        {
+            // Check if ADC-specific GitHub token override is set
+            if (!string.IsNullOrEmpty(_adcSettings.GitHubTokenOverride))
+            {
+                // Return a delegated credential that returns the static token
+                var token = _adcSettings.GitHubTokenOverride;
+                return DelegatedTokenCredential.Create((context, _) =>
+                    new AccessToken(token, DateTimeOffset.UtcNow.AddHours(1)));
+            }
+
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
     #endregion
 }

@@ -24,15 +24,12 @@ public static class WorkspaceServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddWorkspaceServices(this IServiceCollection services)
     {
-        // Register the terminal session manager as singleton (manages terminal processes)
-        services.AddSingleton<TerminalSessionManager>();
-
         // Register the plugin implementation as singleton
         // Todo list is keyed by ThreadContextAccessor.CurrentThreadId, so plugin can be shared
-        services.AddSingleton<IWorkspaceToolsPlugin, WorkspaceToolsPlugin>();
-
-        // Register the ambient context provider (injects workspace/environment context into prompts)
-        services.AddSingleton<IAmbientContextProvider, WorkspaceAmbientContextProvider>();
+        // WorkspaceToolsPlugin implements both IWorkspaceToolsPlugin and IAmbientContextProvider
+        services.AddSingleton<WorkspaceToolsPlugin>();
+        services.AddSingleton<IWorkspaceToolsPlugin>(sp => sp.GetRequiredService<WorkspaceToolsPlugin>());
+        services.AddSingleton<IAmbientContextProvider>(sp => sp.GetRequiredService<WorkspaceToolsPlugin>());
 
         // Register the plugin definition for tool discovery
         services.AddTransient<WorkspacePluginDefinition>();

@@ -128,6 +128,15 @@ public interface IWorkspaceToolsPlugin
     /// <returns>Last command or error if no terminal exists.</returns>
     Task<string> GetTerminalLastCommandAsync();
 
+    /// <summary>
+    /// Get the output of a background task started by RunInTerminalAsync.
+    /// </summary>
+    /// <param name="taskId">The task ID from previous output of execute bash.</param>
+    /// <param name="block">Whether to wait for completion.</param>
+    /// <param name="timeout">Max wait time in milliseconds.</param>
+    /// <returns>Task output or error.</returns>
+    Task<string> GetBackgroundTaskOutputAsync(string taskId, bool block = true, int timeout = 30000);
+
     #endregion
 
     #region Task Management

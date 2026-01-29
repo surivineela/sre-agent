@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Agent.Core.Services;
-using Agent.Plugins.Implementation;
 using Agent.Plugins.Models.WorkspaceTools;
 using Microsoft.Extensions.Logging;
 
@@ -19,15 +18,17 @@ namespace Agent.Plugins.Services;
 /// </summary>
 public class TerminalSessionManager : IDisposable
 {
-    private readonly ILogger<TerminalSessionManager> _logger;
+    private readonly ILogger _logger;
     private readonly ConcurrentDictionary<Guid, TerminalSession> _sessions = new();
     private int _sessionCounter;
     private bool _disposing;
     private bool _disposed;
+    private readonly string _sandboxRoot;
 
-    public TerminalSessionManager(ILogger<TerminalSessionManager> logger)
+    public TerminalSessionManager(ILogger logger, string sandboxRoot)
     {
         _logger = logger;
+        _sandboxRoot = sandboxRoot;
     }
 
     /// <summary>
@@ -40,20 +41,28 @@ public class TerminalSessionManager : IDisposable
         var threadId = ThreadContextAccessor.CurrentThreadId
             ?? throw new InvalidOperationException("No thread context available");
 
+        return await GetOrCreateSessionAsync(threadId, ct);
+    }
+
+    /// <summary>
+    /// Gets or creates a terminal session for a specific session ID (thread ID).
+    /// </summary>
+    public async Task<TerminalSession> GetOrCreateSessionAsync(Guid sessionId, CancellationToken ct = default)
+    {
         // Check for existing alive session
-        if (_sessions.TryGetValue(threadId, out var existing) && existing.IsAlive)
+        if (_sessions.TryGetValue(sessionId, out var existing) && existing.IsAlive)
         {
             return existing;
         }
 
         // Session died or doesn't exist - create new
-        _logger.LogInternalInformation("Creating new terminal session for thread {ThreadId}", threadId);
+        _logger.LogInternalInformation("Creating new terminal session for session {SessionId}", sessionId);
 
         var session = await CreateSessionWithRetryAsync(ct);
-        _sessions[threadId] = session;
+        _sessions[sessionId] = session;
 
         // Subscribe to process death for logging (auto-restart happens on next GetOrCreateSessionAsync)
-        session.ProcessExited += (s, e) => OnProcessExited(threadId, session);
+        session.ProcessExited += (s, e) => OnProcessExited(sessionId, session);
 
         return session;
     }
@@ -91,7 +100,7 @@ public class TerminalSessionManager : IDisposable
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
-            WorkingDirectory = WorkspaceToolsPlugin.SandboxRoot
+            WorkingDirectory = _sandboxRoot ?? GetDefaultSandboxRoot()
         };
 
         var process = Process.Start(psi)
@@ -241,6 +250,26 @@ public class TerminalSessionManager : IDisposable
         }
 
         return "/bin/bash";
+    }
+
+    private static string GetDefaultSandboxRoot()
+    {
+        string path;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SreAgent", "TerminalRoot");
+        }
+        else
+        {
+            path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sreagent", "terminalRoot");
+        }
+
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        return path;
     }
 
     public void Dispose()

@@ -41,6 +41,7 @@ public class Constants
     public const string HttpClientForAzureDevOps = "AzureDevOps";
     public const string HttpClientForSessionPool = "SessionPool";
     public const string HttpClientForPagerDuty = "PagerDuty";
+    public const string HttpClientForAdcManagement = "AdcManagement";
 
     public const string DefaultAgentName = "sre_agent";
 

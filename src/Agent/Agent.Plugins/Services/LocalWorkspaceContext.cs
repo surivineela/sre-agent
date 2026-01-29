@@ -5,14 +5,14 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Agent.Common.Services;
 using Agent.Framework;
-using Agent.Plugins.Interface;
 using Agent.Plugins.Models.WorkspaceTools;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Plugins.Implementation;
+namespace Agent.Plugins.Services;
 
-#region Ambient Context Records
+#region Workspace Context Records
 
 /// <summary>
 /// Result of loading instruction files - contains both full-content files
@@ -31,36 +31,31 @@ public record GitRepositoryInfo(string Name, string Owner, string CurrentBranch,
 #endregion
 
 /// <summary>
-/// Provides ambient context for VS Code agent mode.
-/// Replicates Copilot Chat's context injection pattern.
+/// Local implementation of IWorkspaceContext.
+/// Reads files and builds context from the local file system.
+/// Used by both WorkspaceToolsPlugin (local mode) and gRPC server.
 /// </summary>
-public class WorkspaceAmbientContextProvider : IAmbientContextProvider
+public class LocalWorkspaceContext : IWorkspaceContext
 {
-    private readonly IWorkspaceToolsPlugin _plugin;
-    private readonly ILogger<WorkspaceAmbientContextProvider> _logger;
+    private readonly ILogger _logger;
+    private readonly ISandboxPaths _sandboxPaths;
 
     // Ambient context configuration
     private const int MaxCharsPerInstructionFile = 5000;
     private const int MaxTotalInstructionChars = 25000;
     private const int MaxDirectoryTreeLength = 2000;
 
-    /// <inheritdoc />
-    public bool Enabled => _plugin.Enabled;
-
-    public WorkspaceAmbientContextProvider(
-        IWorkspaceToolsPlugin plugin,
-        ILogger<WorkspaceAmbientContextProvider> logger)
+    public LocalWorkspaceContext(
+        ILogger logger,
+        ISandboxPaths sandboxPaths)
     {
-        _plugin = plugin;
         _logger = logger;
+        _sandboxPaths = sandboxPaths;
     }
 
-    #region IAmbientContextProvider Implementation
+    #region IWorkspaceContext Implementation
 
-    /// <summary>
-    /// Instructions context for FIRST SYSTEM MESSAGE (after main system prompt).
-    /// Contains copilot-instructions.md, AGENTS.md, and *.instructions.md files.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<string> GetInstructionsContextAsync(CancellationToken ct = default)
     {
         var sb = new StringBuilder();
@@ -141,14 +136,11 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Environment context for FIRST USER MESSAGE.
-    /// Contains OS and workspace folder structure.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<string> GetEnvironmentContextAsync(CancellationToken ct = default)
     {
         var sb = new StringBuilder();
-        var sandboxRoot = WorkspaceToolsPlugin.SandboxRoot;
+        var sandboxPaths = await _sandboxPaths.GetSandboxPathsAsync();
 
         // 1. Environment info
         sb.AppendLine("<environment_info>");
@@ -158,7 +150,7 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         // 2. Workspace info (SandboxRoot structure)
         sb.AppendLine("<workspace_info>");
         sb.AppendLine("I am working in a workspace with the following folders:");
-        sb.AppendLine($"- {sandboxRoot}");
+        sb.AppendLine($"- {sandboxPaths.SandboxRoot}");
         sb.AppendLine();
         sb.AppendLine("The workspace has these special directories:");
         sb.AppendLine("- codeRefs/: Contains code repositories the user has attached for context.");
@@ -166,7 +158,7 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         sb.AppendLine();
         sb.AppendLine("I am working in a workspace that has the following structure:");
         sb.AppendLine("```");
-        sb.AppendLine(await BuildDirectoryTreeAsync(sandboxRoot, MaxDirectoryTreeLength, ct));
+        sb.AppendLine(await BuildDirectoryTreeAsync(sandboxPaths.SandboxRoot, MaxDirectoryTreeLength, ct));
         sb.AppendLine("```");
         sb.AppendLine("This is the state of the context at this point. The view may be truncated.");
         sb.AppendLine("</workspace_info>");
@@ -174,18 +166,17 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Pre-query context for 2ND LAST USER MESSAGE.
-    /// Contains git repos, date, terminals, and reminders.
-    /// The plugin has internal access to tools, todo state, and terminal state.
-    /// </summary>
-    public async Task<string> GetPreUserQueryContextAsync(CancellationToken ct = default)
+    /// <inheritdoc />
+    public async Task<string> GetPreUserQueryContextAsync(
+        string? terminalState,
+        IReadOnlyList<WorkspaceTodoItemDto>? todoList,
+        CancellationToken ct = default)
     {
         var sb = new StringBuilder();
-        var sandboxRoot = WorkspaceToolsPlugin.SandboxRoot;
+        var sandboxPaths = await _sandboxPaths.GetSandboxPathsAsync();
 
         // 1. Git repository attachments
-        var gitRepos = await GetGitRepositoriesAsync(sandboxRoot, ct);
+        var gitRepos = await GetGitRepositoriesAsync(sandboxPaths.SandboxRoot, ct);
         if (gitRepos.Count > 0)
         {
             sb.AppendLine("<attachments>");
@@ -207,7 +198,6 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         sb.AppendLine("<context>");
         sb.AppendLine($"The current date and time is {DateTimeOffset.UtcNow:MMMM d, yyyy h:mm tt} UTC.");
 
-        var terminalState = _plugin.GetTerminalStateForContext();
         if (!string.IsNullOrEmpty(terminalState))
         {
             sb.AppendLine();
@@ -223,12 +213,12 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         sb.AppendLine("Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.");
         sb.AppendLine("</reminder_tool>");
 
-        // 4. Plan reminder (plugin has direct access to todo lists)
-        var planReminder = BuildPlanReminder(_plugin.GetTodoList());
-        if (!string.IsNullOrEmpty(planReminder))
+        // 4. Plan reminder (format todo list internally)
+        var todoReminder = BuildPlanReminder(todoList);
+        if (!string.IsNullOrEmpty(todoReminder))
         {
             sb.AppendLine("<reminder_todo>");
-            sb.AppendLine(planReminder);
+            sb.AppendLine(todoReminder);
             sb.AppendLine("</reminder_todo>");
         }
 
@@ -237,7 +227,59 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
 
     #endregion
 
-    #region Ambient Context Helpers
+    #region Public Static Helpers
+
+    /// <summary>
+    /// Builds plan reminder from a todo list.
+    /// Formats todos in a structured way matching Copilot Chat's todoList context.
+    /// This is public static so it can be called by both client and gRPC server.
+    /// </summary>
+    public static string BuildPlanReminder(IReadOnlyList<WorkspaceTodoItemDto>? todos)
+    {
+        if (todos == null || todos.Count == 0)
+        {
+            return "This is a reminder that your todo list is currently empty. " +
+                "DO NOT mention this to the user explicitly because they are already aware. " +
+                "If you are working on tasks that would benefit from a todo list please use the ManageTodoList tool to create one. " +
+                "If not, please feel free to ignore. Again do not mention this message to the user.";
+        }
+
+        var completed = todos.Count(t => string.Equals(t.Status, "completed", StringComparison.OrdinalIgnoreCase));
+        var inProgress = todos.Count(t => string.Equals(t.Status, "in-progress", StringComparison.OrdinalIgnoreCase));
+        var notStarted = todos.Count(t => string.Equals(t.Status, "not-started", StringComparison.OrdinalIgnoreCase));
+        var total = todos.Count;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("<todoList>");
+        sb.AppendLine($"Progress: {completed}/{total} completed, {inProgress} in-progress, {notStarted} not-started");
+        sb.AppendLine();
+
+        foreach (var todo in todos.OrderBy(t => t.Id))
+        {
+            var statusIcon = todo.Status?.ToLowerInvariant() switch
+            {
+                "completed" => "[x]",
+                "in-progress" => "[~]",
+                _ => "[ ]"
+            };
+
+            sb.AppendLine($"{statusIcon} {todo.Id}. {todo.Title}");
+            if (!string.IsNullOrWhiteSpace(todo.Description))
+            {
+                sb.AppendLine($"    {todo.Description}");
+            }
+        }
+
+        sb.AppendLine("</todoList>");
+        sb.AppendLine();
+        sb.AppendLine("Remember to update your todo list as you complete tasks using the ManageTodoList tool.");
+
+        return sb.ToString().TrimEnd();
+    }
+
+    #endregion
+
+    #region Private Helpers
 
     private static string GetOperatingSystemName()
     {
@@ -264,8 +306,9 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
     {
         var fullContentFiles = new List<InstructionFileContent>();
         var metadataOnlyFiles = new List<InstructionFileMetadata>();
-        var sandboxRoot = WorkspaceToolsPlugin.SandboxRoot;
-        var codeRefsPath = Path.Combine(sandboxRoot, "codeRefs");
+        var sandboxPaths = await _sandboxPaths.GetSandboxPathsAsync();
+        var sandboxRoot = sandboxPaths.SandboxRoot;
+        var codeRefsPath = sandboxPaths.CodeRefsPath;
 
         if (!Directory.Exists(codeRefsPath))
         {
@@ -347,17 +390,16 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
 
             string? description = null;
             string? applyTo = null;
-
             for (var i = 1; i < endIndex; i++)
             {
                 var line = lines[i];
-                if (line.StartsWith("description:", StringComparison.OrdinalIgnoreCase))
+                if (line.StartsWith("description:"))
                 {
-                    description = line["description:".Length..].Trim().Trim('"', '\'');
+                    description = line["description:".Length..].Trim().Trim('"');
                 }
-                else if (line.StartsWith("applyTo:", StringComparison.OrdinalIgnoreCase))
+                else if (line.StartsWith("applyTo:"))
                 {
-                    applyTo = line["applyTo:".Length..].Trim().Trim('"', '\'');
+                    applyTo = line["applyTo:".Length..].Trim().Trim('"');
                 }
             }
 
@@ -491,15 +533,15 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         "7z", "bz2", "gz", "tgz", "rar", "tar", "xz", "zip", "vsix", "iso", "img", "pkg",
         // Fonts
         "woff", "woff2", "otf", "ttf", "eot",
-        // 3D formats
+        // 3D Models
         "obj", "fbx", "stl", "3ds", "dae", "blend", "ply", "glb", "gltf", "max", "c4d",
-        // Documents
+        // Docs / Office
         "pdf", "ai", "ps", "indd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp", "rtf", "psd", "pbix",
-        // Binary/compiled
+        // Binaries / Compiled / Serialized
         "exe", "dll", "dylib", "so", "a", "o", "lib", "out", "elf", "wasm", "pdb", "idb", "sym",
         "nupkg", "winmd", "pyc", "pkl", "pickle", "pyd", "rlib", "rmeta", "dill",
         "jar", "class", "ear", "war", "apk", "dex", "phar",
-        // Build artifacts
+        // Misc binary / db / caches
         "temp", "tmp", "db", "sqlite", "parquet", "bin", "dat", "data", "hex", "cache", "sum", "hash",
         "coverage", "testlog", "log", "trace", "tlog", "snap", "msi", "deb",
         "vsidx", "suo", "xcuserstate", "download", "map", "tsbuildinfo", "jsbundle",
@@ -785,53 +827,6 @@ public class WorkspaceAmbientContextProvider : IAmbientContextProvider
         }
 
         return "unknown";
-    }
-
-    /// <summary>
-    /// Builds plan reminder from the current thread's todo list.
-    /// Formats todos in a structured way matching Copilot Chat's todoList context.
-    /// </summary>
-    private static string BuildPlanReminder(IReadOnlyList<WorkspaceTodoItem>? todos)
-    {
-        if (todos == null || todos.Count == 0)
-        {
-            return "This is a reminder that your todo list is currently empty. " +
-                "DO NOT mention this to the user explicitly because they are already aware. " +
-                "If you are working on tasks that would benefit from a todo list please use the ManageTodoList tool to create one. " +
-                "If not, please feel free to ignore. Again do not mention this message to the user.";
-        }
-
-        var completed = todos.Count(t => string.Equals(t.Status, "completed", StringComparison.OrdinalIgnoreCase));
-        var inProgress = todos.Count(t => string.Equals(t.Status, "in-progress", StringComparison.OrdinalIgnoreCase));
-        var notStarted = todos.Count(t => string.Equals(t.Status, "not-started", StringComparison.OrdinalIgnoreCase));
-        var total = todos.Count;
-
-        var sb = new StringBuilder();
-        sb.AppendLine("<todoList>");
-        sb.AppendLine($"Progress: {completed}/{total} completed, {inProgress} in-progress, {notStarted} not-started");
-        sb.AppendLine();
-
-        foreach (var todo in todos.OrderBy(t => t.Id))
-        {
-            var statusIcon = todo.Status?.ToLowerInvariant() switch
-            {
-                "completed" => "[x]",
-                "in-progress" => "[~]",
-                _ => "[ ]"
-            };
-
-            sb.AppendLine($"{statusIcon} {todo.Id}. {todo.Title}");
-            if (!string.IsNullOrWhiteSpace(todo.Description))
-            {
-                sb.AppendLine($"    {todo.Description}");
-            }
-        }
-
-        sb.AppendLine("</todoList>");
-        sb.AppendLine();
-        sb.AppendLine("Remember to update your todo list as you complete tasks using the ManageTodoList tool.");
-
-        return sb.ToString().TrimEnd();
     }
 
     #endregion

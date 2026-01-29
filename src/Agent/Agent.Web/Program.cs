@@ -53,6 +53,7 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.Services.Adc;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailySummaryAgent;
@@ -179,6 +180,9 @@ public class Program
                     {
                         logger.LogInternalInformation("Agent Memory is not enabled. Skipping Agent Memory setup.");
                     }
+
+                    logger.LogInternalInformation("Ensuring ADC base snapshot...");
+                    await app.Services.EnsureAdcBaseSnapshotAsync();
 
                     logger.LogInternalInformation("Setting up Data Connector index...");
                     var dataConnectorIndex = app.Services.GetRequiredService<DataConnectorIndex>();
@@ -404,6 +408,9 @@ public class Program
 
         // Add HttpClient factory for plugins that need to make HTTP requests
         builder.Services.AddHttpClient();
+
+        // Add ADC (Azure Dev Compute) sandbox services
+        builder.Services.AddAdcServices(builder.Configuration);
 
         // Register workspace tools and services (file ops, terminal, search, user questions)
         builder.Services.AddWorkspaceServices();

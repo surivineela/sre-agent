@@ -282,11 +282,13 @@ public class TerminalSession : IDisposable
         {
             // Ensure background output directory exists
             var outputDir = TerminalConfiguration.BackgroundOutputDir;
-            var outputFile = $"{outputDir}/bg_{Process?.Id ?? 0}_{DateTime.UtcNow.Ticks}.log";
+
+            // Generate a unique file name but STORE it so we can retrieve it later
+            _lastBackgroundOutputFile = $"{outputDir}/bg_{Process?.Id ?? 0}_{DateTime.UtcNow.Ticks}.log";
 
             // Wrap command: nohup + redirect + background + echo PID
             var escapedCommand = command.Replace("'", "'\\''");
-            var wrappedCommand = $"mkdir -p {outputDir} && nohup sh -c '{escapedCommand}' > {outputFile} 2>&1 & echo $!";
+            var wrappedCommand = $"mkdir -p {outputDir} && nohup sh -c '{escapedCommand}' > {_lastBackgroundOutputFile} 2>&1 & echo $!";
 
             PrepareForCommand(command);
             await WriteLineAsync(wrappedCommand);
@@ -294,13 +296,34 @@ public class TerminalSession : IDisposable
             // Wait briefly for PID echo
             await Task.Delay(TerminalConfiguration.BackgroundPidWait);
 
-            var pid = OutputBuffer.GetOutput().Trim();
-            return $"Background process started (PID: {pid}). Output file: {outputFile}";
+            var pidStr = OutputBuffer.GetOutput().Trim();
+            // Try parse PID
+            if (int.TryParse(pidStr, out var pid))
+            {
+                _lastBackgroundPid = pid;
+            }
+
+            return $"Background process started (PID: {pidStr}). Output file: {_lastBackgroundOutputFile}";
         }
         finally
         {
             _commandSemaphore.Release();
         }
+    }
+
+    private string? _lastBackgroundOutputFile;
+    private int? _lastBackgroundPid;
+
+    public (string? path, int? pid) GetLastBackgroundProcessInfo()
+    {
+        return (_lastBackgroundOutputFile, _lastBackgroundPid);
+    }
+
+    public string GetBackgroundOutputFile()
+    {
+        // This method is now redundant or should return _lastBackgroundOutputFile?
+        // Leaving it as it was requested in previous edit but I realized state wasn't saved.
+        return _lastBackgroundOutputFile ?? string.Empty;
     }
 
     /// <summary>
@@ -392,6 +415,36 @@ public class TerminalSession : IDisposable
         // Use \n explicitly - bash expects Unix line endings, not Windows \r\n
         await Process.StandardInput.WriteAsync(text + "\n");
         await Process.StandardInput.FlushAsync();
+    }
+
+    /// <summary>
+    /// Kills the entire process tree of the terminal session.
+    /// </summary>
+    public void KillSession()
+    {
+        if (Process != null && !Process.HasExited)
+        {
+            Process.Kill(entireProcessTree: true);
+        }
+    }
+
+    /// <summary>
+    /// Kills a background process by PID.
+    /// </summary>
+    public void KillBackgroundProcess(int pid)
+    {
+        try
+        {
+            Process.GetProcessById(pid).Kill(entireProcessTree: true);
+        }
+        catch (ArgumentException)
+        {
+            // Process might not exist or already exited
+        }
+        catch (InvalidOperationException)
+        {
+            // Process might have exited
+        }
     }
 
     public void Dispose()

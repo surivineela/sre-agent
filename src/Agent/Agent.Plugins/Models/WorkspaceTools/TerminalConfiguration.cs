@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Implementation;
+using System.Runtime.InteropServices;
 
 namespace Agent.Plugins.Models.WorkspaceTools;
 
@@ -44,7 +44,22 @@ public static class TerminalConfiguration
     /// <summary>
     /// Directory for background command output files.
     /// </summary>
-    public static string BackgroundOutputDir => WorkspaceToolsPlugin.TmpPath;
+    public static string BackgroundOutputDir => GetTmpPath();
+
+    private static string GetTmpPath()
+    {
+        string sandboxRoot;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            sandboxRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SreAgent", "TerminalRoot");
+        }
+        else
+        {
+            sandboxRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "sreagent", "terminalRoot");
+        }
+
+        return Path.Combine(sandboxRoot, "tmp");
+    }
 }
 
 /// <summary>
