@@ -457,5 +457,462 @@ public static class ChartHelper
             return $"ERROR: Chart data processing failed: {ex.Message}";
         }
     }
-}
 
+    /// <summary>
+    /// Generates HTML with an embedded chart image from TSV-formatted data.
+    /// Useful for embedding charts in HTML content like ICM discussion entries.
+    /// </summary>
+    /// <param name="tsvData">TSV-formatted data. First row is headers, first column is X-axis (timestamp or category), other numeric columns are Y values.</param>
+    /// <param name="chartTitle">Optional title for the chart.</param>
+    /// <param name="chartType">Optional chart type: "timeseries" or "bar". Auto-detects if not specified.</param>
+    /// <returns>HTML string with embedded base64 chart image, or null if chart generation fails.</returns>
+    public static string? GenerateChartHtmlFromTsv(string tsvData, string? chartTitle = null, string? chartType = null)
+    {
+        if (string.IsNullOrWhiteSpace(tsvData))
+        {
+            return null;
+        }
+
+        // Parse TSV data
+        var lines = tsvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length < 2)
+        {
+            return null; // Not enough data
+        }
+
+        var headers = lines[0].Split('\t');
+        if (headers.Length < 2)
+        {
+            return null; // Need at least 2 columns
+        }
+
+        // Determine chart type based on first column if not specified
+        // Map chart types:
+        // - timeseries/line/area -> time series chart (area is rendered as line, ScottPlot fill not easily supported for static images)
+        // - bar -> bar chart
+        // - pie -> pie chart
+        // Note: scatter is not supported (would require X/Y coordinate pairs)
+        var chartTypeLower = chartType?.ToLowerInvariant();
+        var useTimeSeries = chartTypeLower == "timeseries" || chartTypeLower == "line" || chartTypeLower == "area";
+        var usePieChart = chartTypeLower == "pie";
+        var useBarChart = chartTypeLower == "bar";
+
+        if (!useTimeSeries && !usePieChart && !useBarChart)
+        {
+            // Auto-detect: if first data value looks like a date, use time series
+            if (lines.Length > 1)
+            {
+                var cells = lines[1].Split('\t');
+                var firstValue = cells.Length > 0 ? cells[0] : string.Empty;
+                useTimeSeries = !string.IsNullOrEmpty(firstValue) &&
+                    DateTime.TryParse(firstValue, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out _);
+                useBarChart = !useTimeSeries;
+            }
+        }
+
+        string? base64Image = null;
+
+        if (useTimeSeries)
+        {
+            base64Image = GenerateTimeSeriesChartFromTsv(lines, headers, chartTitle);
+        }
+        else if (usePieChart)
+        {
+            base64Image = GeneratePieChartFromTsv(lines, headers);
+        }
+        else
+        {
+            base64Image = GenerateBarChartFromTsv(lines, headers, chartTitle);
+        }
+
+        if (string.IsNullOrEmpty(base64Image))
+        {
+            return null;
+        }
+
+        // Build HTML with embedded chart
+        var htmlBuilder = new System.Text.StringBuilder();
+
+        if (!string.IsNullOrWhiteSpace(chartTitle))
+        {
+            htmlBuilder.Append("<h3>").Append(System.Web.HttpUtility.HtmlEncode(chartTitle)).Append("</h3>");
+        }
+
+        htmlBuilder.Append("<div style=\"margin: 10px 0;\">");
+        htmlBuilder.Append("<img src=\"").Append(base64Image).Append("\" alt=\"Chart\" style=\"max-width: 100%; height: auto;\" />");
+        htmlBuilder.Append("</div>");
+
+        return htmlBuilder.ToString();
+    }
+
+    private static string? GenerateTimeSeriesChartFromTsv(string[] lines, string[] headers, string? chartTitle)
+    {
+        var timeSeriesData = new List<TimeSeriesData>();
+        var numericColumnIndices = new List<int>();
+
+        // Find numeric columns (skip first which is X-axis)
+        for (int col = 1; col < headers.Length; col++)
+        {
+            for (int row = 1; row < Math.Min(lines.Length, 5); row++)
+            {
+                var cells = lines[row].Split('\t');
+                if (col < cells.Length && double.TryParse(cells[col], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+                {
+                    numericColumnIndices.Add(col);
+                    break;
+                }
+            }
+        }
+
+        if (numericColumnIndices.Count == 0)
+        {
+            return null;
+        }
+
+        // Parse data rows
+        for (int row = 1; row < lines.Length; row++)
+        {
+            var cells = lines[row].Split('\t');
+            if (cells.Length < 2) continue;
+
+            if (!DateTime.TryParse(cells[0], System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var timestamp))
+            {
+                continue;
+            }
+
+            foreach (var colIdx in numericColumnIndices)
+            {
+                if (colIdx < cells.Length && double.TryParse(cells[colIdx], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var value))
+                {
+                    timeSeriesData.Add(new TimeSeriesData
+                    {
+                        Name = headers[colIdx],
+                        Timestamp = timestamp,
+                        Value = value,
+                        Unit = string.Empty
+                    });
+                }
+            }
+        }
+
+        if (timeSeriesData.Count == 0)
+        {
+            return null;
+        }
+
+        var chartInput = new ChartImageInput
+        {
+            TimeSeries = timeSeriesData,
+            Title = chartTitle
+        };
+
+        return GenerateChartBase64String(chartInput);
+    }
+
+    private static string? GenerateBarChartFromTsv(string[] lines, string[] headers, string? chartTitle)
+    {
+        var barData = new List<BarData>();
+
+        // Find first numeric column
+        int valueColumnIndex = -1;
+        for (int col = 1; col < headers.Length; col++)
+        {
+            for (int row = 1; row < Math.Min(lines.Length, 5); row++)
+            {
+                var cells = lines[row].Split('\t');
+                if (col < cells.Length && double.TryParse(cells[col], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+                {
+                    valueColumnIndex = col;
+                    break;
+                }
+            }
+            if (valueColumnIndex >= 0) break;
+        }
+
+        if (valueColumnIndex < 0)
+        {
+            return null;
+        }
+
+        // Parse data rows (limit for readability)
+        const int MaxBarChartRows = 30;
+        const int MaxCategoryLength = 25;
+        for (int row = 1; row < Math.Min(lines.Length, MaxBarChartRows + 1); row++)
+        {
+            var cells = lines[row].Split('\t');
+            if (cells.Length <= valueColumnIndex) continue;
+
+            var category = cells[0];
+            if (double.TryParse(cells[valueColumnIndex], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var value))
+            {
+                barData.Add(new BarData
+                {
+                    Category = category.Length > MaxCategoryLength ? category.Substring(0, MaxCategoryLength - 3) + "..." : category,
+                    Value = value
+                });
+            }
+        }
+
+        if (barData.Count == 0)
+        {
+            return null;
+        }
+
+        var barChartInput = new BarChartInput
+        {
+            Title = chartTitle ?? "Query Results",
+            XAxisLabel = headers[0],
+            YAxisLabel = headers[valueColumnIndex],
+            Data = barData
+        };
+
+        return GenerateBarChartBase64String(barChartInput);
+    }
+
+    private static string? GeneratePieChartFromTsv(string[] lines, string[] headers)
+    {
+        var slices = new List<PieSlice>();
+
+        // Find first numeric column for values
+        int valueColumnIndex = -1;
+        for (int col = 1; col < headers.Length; col++)
+        {
+            for (int row = 1; row < Math.Min(lines.Length, 5); row++)
+            {
+                var cells = lines[row].Split('\t');
+                if (col < cells.Length && double.TryParse(cells[col], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+                {
+                    valueColumnIndex = col;
+                    break;
+                }
+            }
+            if (valueColumnIndex >= 0) break;
+        }
+
+        if (valueColumnIndex < 0)
+        {
+            return null;
+        }
+
+        // Parse data rows (limit for readability - pie charts shouldn't have too many slices)
+        const int MaxPieSlices = 10;
+        const int MaxLabelLength = 20;
+        for (int row = 1; row < Math.Min(lines.Length, MaxPieSlices + 1); row++)
+        {
+            var cells = lines[row].Split('\t');
+            if (cells.Length <= valueColumnIndex) continue;
+
+            var label = cells[0];
+            if (double.TryParse(cells[valueColumnIndex], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var value))
+            {
+                slices.Add(new PieSlice
+                {
+                    Label = label.Length > MaxLabelLength ? label.Substring(0, MaxLabelLength - 3) + "..." : label,
+                    Value = value
+                });
+            }
+        }
+
+        return slices.Any() ? GeneratePieChartBase64String(slices) : null;
+    }
+
+    /// <summary>
+    /// Converts a chart-data JSON string to a base64-encoded PNG image.
+    /// Supports pie, line, and bar chart types.
+    /// </summary>
+    /// <param name="chartDataJson">JSON with type, title, and data array</param>
+    /// <returns>Base64 data URI (data:image/png;base64,...) or empty string if conversion fails</returns>
+    public static string ConvertChartDataJsonToBase64(string chartDataJson)
+    {
+        if (string.IsNullOrWhiteSpace(chartDataJson))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var chartDoc = JsonDocument.Parse(chartDataJson);
+            var root = chartDoc.RootElement;
+
+            var chartType = root.GetProperty("type").GetString();
+            var title = root.TryGetProperty("title", out var titleProp) ? titleProp.GetString() : "Chart";
+
+            return chartType switch
+            {
+                "pie" => GeneratePieChartFromJson(root),
+                "line" => GenerateLineChartFromJson(root, title),
+                "bar" => GenerateBarChartFromJson(root, title),
+                _ => string.Empty
+            };
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string GeneratePieChartFromJson(JsonElement root)
+    {
+        var data = root.GetProperty("data");
+        var slices = new List<PieSlice>();
+
+        foreach (var item in data.EnumerateArray())
+        {
+            var label = item.GetProperty("label").GetString() ?? "";
+            var value = item.GetProperty("value").GetDouble();
+            slices.Add(new PieSlice { Label = label, Value = value });
+        }
+
+        return slices.Any() ? GeneratePieChartBase64String(slices) : string.Empty;
+    }
+
+    private static string GenerateLineChartFromJson(JsonElement root, string? title)
+    {
+        var data = root.GetProperty("data");
+        var yAxisLabel = root.TryGetProperty("yAxisLabel", out var yProp) ? yProp.GetString() : null;
+
+        var timeSeries = new List<TimeSeriesData>();
+
+        // Get series field names from first data item
+        var firstItem = data.EnumerateArray().FirstOrDefault();
+        if (firstItem.ValueKind == JsonValueKind.Undefined)
+        {
+            return string.Empty;
+        }
+
+        var seriesNames = new List<string>();
+        foreach (var prop in firstItem.EnumerateObject())
+        {
+            if (prop.Name != "name" && prop.Value.ValueKind == JsonValueKind.Number)
+            {
+                seriesNames.Add(prop.Name);
+            }
+        }
+
+        foreach (var item in data.EnumerateArray())
+        {
+            var nameValue = item.GetProperty("name").GetString() ?? "";
+            // Skip data points with unparseable timestamps to avoid chart corruption
+            if (!DateTime.TryParse(nameValue, out var timestamp))
+            {
+                continue;
+            }
+
+            foreach (var seriesName in seriesNames)
+            {
+                if (item.TryGetProperty(seriesName, out var valueProp) &&
+                    valueProp.ValueKind == JsonValueKind.Number)
+                {
+                    timeSeries.Add(new TimeSeriesData
+                    {
+                        Name = seriesName,
+                        Timestamp = timestamp,
+                        Value = valueProp.GetDouble(),
+                        Unit = ""
+                    });
+                }
+            }
+        }
+
+        if (!timeSeries.Any())
+        {
+            return string.Empty;
+        }
+
+        var chartInput = new ChartImageInput
+        {
+            TimeSeries = timeSeries,
+            Title = title,
+            YAxisLabel = yAxisLabel
+        };
+
+        return GenerateChartBase64String(chartInput);
+    }
+
+    private static string GenerateBarChartFromJson(JsonElement root, string? title)
+    {
+        var data = root.GetProperty("data");
+        var xAxisLabel = root.TryGetProperty("xAxisLabel", out var xProp) ? xProp.GetString() : null;
+        var yAxisLabel = root.TryGetProperty("yAxisLabel", out var yProp) ? yProp.GetString() : null;
+
+        var barData = new List<BarData>();
+
+        foreach (var item in data.EnumerateArray())
+        {
+            var category = item.GetProperty("name").GetString() ?? "";
+
+            // Find the first numeric property that isn't "name"
+            foreach (var prop in item.EnumerateObject())
+            {
+                if (prop.Name != "name" && prop.Value.ValueKind == JsonValueKind.Number)
+                {
+                    barData.Add(new BarData
+                    {
+                        Category = category,
+                        Value = prop.Value.GetDouble()
+                    });
+                    break;
+                }
+            }
+        }
+
+        if (!barData.Any())
+        {
+            return string.Empty;
+        }
+
+        var chartInput = new BarChartInput
+        {
+            Title = title ?? "Bar Chart",
+            XAxisLabel = xAxisLabel ?? "Category",
+            YAxisLabel = yAxisLabel ?? "Value",
+            Data = barData
+        };
+
+        return GenerateBarChartBase64String(chartInput);
+    }
+
+    /// <summary>
+    /// Converts ```chart-data``` markdown blocks in content to base64 embedded images.
+    /// Useful for contexts that only support HTML/images (e.g., ICM discussions).
+    /// </summary>
+    /// <param name="content">Content potentially containing chart-data blocks</param>
+    /// <returns>Content with chart-data blocks replaced by HTML img tags</returns>
+    public static string ConvertChartDataBlocksToBase64Images(string content)
+    {
+        if (string.IsNullOrEmpty(content) || !content.Contains("```chart-data"))
+        {
+            return content;
+        }
+
+        var chartDataRegex = new System.Text.RegularExpressions.Regex(
+            @"```chart-data\s*\n([\s\S]*?)\n```",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        return chartDataRegex.Replace(content, match =>
+        {
+            var jsonContent = match.Groups[1].Value.Trim();
+            var base64Image = ConvertChartDataJsonToBase64(jsonContent);
+
+            // Validate the image is a proper data URI to prevent XSS
+            if (string.IsNullOrEmpty(base64Image) || !base64Image.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return "<p><em>[Chart visualization not available]</em></p>";
+            }
+
+            // Extract title from JSON for alt text
+            var title = "Chart";
+            try
+            {
+                var chartDoc = JsonDocument.Parse(jsonContent);
+                if (chartDoc.RootElement.TryGetProperty("title", out var titleProp))
+                {
+                    title = titleProp.GetString() ?? "Chart";
+                }
+            }
+            catch { }
+
+            return $"<p><strong>{System.Web.HttpUtility.HtmlEncode(title)}</strong></p><img src=\"{base64Image}\" alt=\"{System.Web.HttpUtility.HtmlEncode(title)}\" />";
+        });
+    }
+}
