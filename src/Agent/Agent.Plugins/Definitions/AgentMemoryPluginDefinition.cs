@@ -320,6 +320,7 @@ public class AgentMemoryPluginDefinition(
         {
             logger.LogInternalInformation("[Thread {ThreadId}] Found {Count} relevant documents", threadId, documents.Count);
             sb.AppendLine("## Relevant Documentation");
+            sb.AppendLine("**Important: When referencing these documents in your response, always include the Link as a clickable markdown link.**");
             sb.AppendLine();
             for (var i = 0; i < documents.Count; i++)
             {
@@ -331,7 +332,7 @@ public class AgentMemoryPluginDefinition(
                 }
                 if (!string.IsNullOrEmpty(doc.Url))
                 {
-                    sb.AppendLine($"- **Link:** {doc.Url}");
+                    sb.AppendLine($"- **Link (MUST include in response):** [{doc.Title}]({doc.Url})");
                 }
                 sb.AppendLine();
             }
