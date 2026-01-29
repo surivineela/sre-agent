@@ -168,7 +168,7 @@ public class IncidentCentricScannerHelper
 
         if (!detectionResult.HasEvents)
         {
-            _logger.LogInternalDebug(
+            _logger.LogInternalInformation(
                 "[IncidentCentricScanner] No events detected for incident {incidentId}",
                 context.IncidentId);
             return mappings;
@@ -190,8 +190,8 @@ public class IncidentCentricScannerHelper
 
             if (eligibleFilters.Count == 0)
             {
-                _logger.LogInternalDebug(
-                    "[IncidentCentricScanner] No eligible filters for event {eventType} on incident {incidentId}",
+                _logger.LogInternalInformation(
+                    "[IncidentCentricScanner] No eligible filters for event {eventType} on incident {incidentId} - no filters have this trigger enabled",
                     detectedEvent,
                     context.IncidentId);
                 continue;
