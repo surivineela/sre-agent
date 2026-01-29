@@ -1421,8 +1421,8 @@ export const RbacWarningBannerResources = defineMessages({
     },
     usageReachedLimitMessage: {
         defaultMessage:
-            'The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and acrtions.',
-        id: 'rdsirP',
+            'The agent has reached the active flow AAU limit. It now runs only in the always-on flow and is unavailable for chat and actions.',
+        id: 'xmeCBe',
     },
     usageApproachingLimitMessage: {
         defaultMessage:
