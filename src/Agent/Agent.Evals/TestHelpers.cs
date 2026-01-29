@@ -6,7 +6,6 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
-using Agent.Core.Implementations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -205,7 +204,7 @@ public static class TestHelpers
         builder.Services.AddSingleton(Mock.Of<ITimePlugin>());
 
         // Also provide a mock for the Agent.Core IICMAPIClient used by first-party plugins
-        builder.Services.AddSingleton(Mock.Of<Agent.Core.Services.IICMAPIClient>());
+        builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton(Mock.Of<IICMAPIClient>());
         builder.Services
@@ -238,7 +237,7 @@ public static class TestHelpers
 
         // Add mock Prometheus service
         builder.Services.AddSingleton(Mock.Of<IPrometheusQueryService>());
-        builder.Services.AddSingleton(Mock.Of<Agent.Graph.Services.IPrometheusEndpointService>());
+        builder.Services.AddSingleton(Mock.Of<Graph.Services.IPrometheusEndpointService>());
 
         builder.Services.AddSingleton(Mock.Of<IAzureMetricsClient>());
 
@@ -261,7 +260,7 @@ public static class TestHelpers
         });
 
         // Add AzureResourceGraphClient
-        builder.Services.AddSingleton<Agent.Graph.Crawler.ARM.AzureResourceGraphClient>();
+        builder.Services.AddSingleton<Graph.Crawler.ARM.AzureResourceGraphClient>();
 
         // Add mock Crawler Trigger Service
         builder.Services.AddSingleton(Mock.Of<ICrawlerTriggerService>());
@@ -313,33 +312,36 @@ public static class TestHelpers
         builder.Services.AddSingleton<UserInteractionPluginDefinition>();
         builder.Services.AddSingleton<AgentControlFlowPluginDefinition>();
         builder.Services.AddSingleton<AgentReasoningControlFlowPluginDefinition>();
+        builder.Services.AddSingleton<ViewImagePluginDefinition>();
         builder.Services.AddSingleton<CannotConnectToVmPluginDefinition>();
         builder.Services.AddSingleton<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>();
 
-        // Register IToolOutputStorage for test environment
-        builder.Services.AddSingleton<IToolOutputStorage>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
-            var storagePath = Path.Combine(Path.GetTempPath(), "SREAgent", "TestToolOutputs");
-            return new LocalToolOutputStorage(storagePath, logger);
-        });
+        // Register IThreadFileStorageService for test environment
+        builder.Services.AddSingleton(Mock.Of<IThreadFileStorageService>());
 
         // Configure ToolOutputSettings
         builder.Services.Configure<ToolOutputSettings>(options =>
         {
-            options.StoragePath = Path.Combine(Path.GetTempPath(), "SREAgent", "TestToolOutputs");
-            options.RetentionDays = 1;
             options.MaxOutputChars = 16384;
         });
 
         builder.Services.AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>();
         builder.Services.AddTransient<ToolOutputRetrieverPluginDefinition>();
-        builder.Services.AddSingleton<IToolOutputTruncationService, ToolOutputTruncationService>();
+        builder.Services.AddSingleton<IToolOutputProcessService, ToolOutputProcessService>();
+        builder.Services.AddSingleton<IToolOutputProcessorFactory>(sp =>
+        {
+            var factory = new ToolOutputProcessorFactory();
+            // Register CodeInterpreter output processor for CodeExecutionResponse type
+            factory.RegisterProcessorForType(
+                typeof(Core.Models.CodeExecutionResponse),
+                new CodeExecutionResponseProcessor());
+            return factory;
+        });
         builder.Services.AddSingleton<IReasoningLoopManager, ReasoningLoopManager>();
         builder.Services.AddSingleton<IReasoningLoopFactory, ReasoningLoopFactory>();
 
         // Configure IConnectorResolver with TeamsApiHubConnector
-        builder.Services.AddSingleton<IConnectorResolver>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var mockResolver = new Mock<IConnectorResolver>();
 
@@ -482,7 +484,7 @@ public static class TestHelpers
 
         builder.Services.AddSingleton<ISearchEndpointService, SearchEndpointService>();
 
-        builder.Services.AddSingleton<JavaProfilerSettings>(new JavaProfilerSettings
+        builder.Services.AddSingleton(new JavaProfilerSettings
         {
             DebugProfileContainer = string.Empty,
             ProfileTimeoutMinutes = 5,
@@ -589,7 +591,7 @@ public static class TestHelpers
         // Provide a minimal mock to satisfy DI during test host initialization.
         builder.Services.AddSingleton(sp => Mock.Of<IAgentTasksRepository>());
         // Register AgentTaskToolResultHelper used by runtime services
-        builder.Services.AddSingleton<Agent.Runtime.Helpers.AgentTaskToolResultHelper>();
+        builder.Services.AddSingleton<Runtime.Helpers.AgentTaskToolResultHelper>();
         var host = builder.Build();
         await host.StartAsync();
         return TestHost.Create(host);

@@ -40,7 +40,11 @@ public sealed class ProcessedTrajectoryOutput_v3
 
     public required int InvestigationCompleteness { get; set; }
 
-    public required string InvestigationOutcome { get; set; }
+    /// <summary>
+    /// The outcome of the investigation (resolved, partial, abandoned, not_applicable).
+    /// Not required for backward compatibility with existing stored trajectories.
+    /// </summary>
+    public string InvestigationOutcome { get; set; } = string.Empty;
 
     public static ProcessedTrajectoryOutput_v3 FromTrajectoryOutput(TrajectoryOutput_v3 trajectoryOutput)
     {

@@ -50,7 +50,7 @@ public static class Runner
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -80,6 +80,12 @@ public static class Runner
             functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
             previousResult.Trajectory.Append(resultContent);
 
+            // Append any additional messages (e.g., images from ViewImage tool)
+            if (matchingResult.AdditionalMessages is not null)
+            {
+                functionCallMessages.AddRange(matchingResult.AdditionalMessages);
+            }
+
             if (hooks != null)
             {
                 await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.FunctionCall, manualToolCall.Tool, matchingResult.Output);
@@ -103,7 +109,7 @@ public static class Runner
             _shouldRunAgentStartHooks: previousResult.AgentChanged(),
             allowParallelToolCalls: allowParallelToolCalls,
             toolResultCache: toolResultCache,
-            toolOutputTruncationService: toolOutputTruncationService
+            toolOutputProcessService: toolOutputProcessService
         );
     }
 
@@ -119,7 +125,7 @@ public static class Runner
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -136,7 +142,7 @@ public static class Runner
             cancellationToken: cancellationToken,
             allowParallelToolCalls: allowParallelToolCalls,
             toolResultCache: toolResultCache,
-            toolOutputTruncationService: toolOutputTruncationService,
+            toolOutputProcessService: toolOutputProcessService,
             _shouldRunAgentStartHooks: true // always run agent start hooks on initial run
         );
     }
@@ -155,7 +161,7 @@ public static class Runner
         RunHooks<TContext>? hooks = null,
         IDisplayModelOutput? displayModelOutput = null,
         bool allowParallelToolCalls = true,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -187,7 +193,7 @@ public static class Runner
                 cancellationToken: cancellationToken,
                 _shouldRunAgentStartHooks: true,
                 allowParallelToolCalls: allowParallelToolCalls,
-                toolOutputTruncationService: toolOutputTruncationService
+                toolOutputProcessService: toolOutputProcessService
             );
 
             return new RunResultWithHandoff<TContext>
@@ -221,7 +227,7 @@ public static class Runner
         bool _shouldRunAgentStartHooks = true,
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default // TODO: use cancellation token
     ) where TContext : class
     {
@@ -291,7 +297,7 @@ public static class Runner
                     allowParallelToolCalls: allowParallelToolCalls,
                     displayModelOutput: displayModelOutput,
                     toolResultCache: toolResultCache,
-                    toolOutputTruncationService: toolOutputTruncationService,
+                    toolOutputProcessService: toolOutputProcessService,
                     cancellationToken: cancellationToken
                 );
 
@@ -584,7 +590,7 @@ public static class Runner
         bool allowParallelToolCalls = true,
         ToolResultCache? toolResultCache = null,
         IDisplayModelOutput? displayModelOutput = null,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -753,7 +759,7 @@ public static class Runner
             logger: logger,
             displayModelOutput: displayModelOutput,
             toolResultCache: toolResultCache,
-            toolOutputTruncationService: toolOutputTruncationService,
+            toolOutputProcessService: toolOutputProcessService,
             cancellationToken: cancellationToken
         );
     }
@@ -775,7 +781,7 @@ public static class Runner
         ILogger logger,
         ToolResultCache? toolResultCache = null,
         IDisplayModelOutput? displayModelOutput = null,
-        IToolOutputTruncationService? toolOutputTruncationService = null,
+        IToolOutputProcessService? toolOutputProcessService = null,
         CancellationToken cancellationToken = default
     ) where TContext : class
     {
@@ -986,7 +992,7 @@ public static class Runner
                         && filePath.Contains("SKILL.md") // reading top level skill file
                         && activeSkills.GetSkillByName(skillName) is null) // skill not already active
                     {
-                        var skill = runConfig.SkillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+                        var skill = runConfig.SkillRegistry.GetSkillByName(skillName, agent.AddSystemSkills, agent.AllowedSkills);
                         if (skill is not null)
                         {
                             newActivatedSkills.Enqueue(skill);
@@ -1040,14 +1046,9 @@ public static class Runner
                             toolResult = await tool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments));
 
                             // Process tool output for potential truncation
-                            if (runConfig.EnablePartialToolOutput
-                                && toolOutputTruncationService != null)
+                            if (runConfig.EnablePartialToolOutput && toolOutputProcessService != null)
                             {
-                                toolResult = await toolOutputTruncationService.ProcessToolOutputAsync(
-                                    contextWrapper.Context,
-                                    tool,
-                                    toolResult,
-                                    cancellationToken);
+                                toolResult = await toolOutputProcessService.ProcessToolOutputAsync(contextWrapper.Context, tool, toolResult, cancellationToken);
                             }
                         }
                         catch (Exception e)

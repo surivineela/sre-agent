@@ -244,6 +244,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             IsExtended = isCustomAgent,
             EnableSkills = agentDescriptor.EnableSkills,
             AddSystemSkills = agentDescriptor.AddSystemSkills,
+            AllowedSkills = agentDescriptor.AllowedSkills?.ToList(),
             EnableVanillaMode = agentDescriptor.EnableVanillaMode,
 
             // === Workflow Agent Properties ===
@@ -261,6 +262,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             AugmentToDoWrite(agentDescriptor, agent);
         }
 
+        AugmentGuardRail(agentDescriptor, agent);
+
         // Automatically add read_skill_file tool if skills are enabled
         AugmentSkills(agentDescriptor, agent);
 
@@ -270,6 +273,9 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         //TODO: This func could be replaced when experiment is working on extended agents. When experiment is working, use ApplyParamOverlay to set enablePartialOutput and common prompt in agent
         // Add ToolOutputRetriever tool if enabled
         AugmentPartialOutputTool(agent);
+
+        // Add ViewImage tool for image viewing capability
+        AugmentViewImageTool(agent);
 
         // Add common tools to the agent
         if (agentDescriptor.CommonTools is not null
@@ -383,6 +389,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
     private static void AugmentSkills(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
     {
+        // Auto-enable skills if AllowedSkills is specified (non-null)
+        if (agent.AllowedSkills is not null && !agent.EnableSkills)
+        {
+            agent.EnableSkills = true;
+        }
+
         if (!agent.EnableSkills)
         {
             return;
@@ -434,6 +446,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         return instructions.Contains(templatePattern, StringComparison.OrdinalIgnoreCase);
     }
 
+    private static void AugmentGuardRail(IAgentDescriptor agentDescriptor, Agent<TContext> agent)
+    {
+        const string GuardRailCommonPrompt = "guard_rail";
+
+        // add guardrail common prompt to all agents
+        if (!AgentInstructionsContainsCommonPrompt(agentDescriptor, GuardRailCommonPrompt))
+        {
+            agentDescriptor.CommonPrompts.Add(GuardRailCommonPrompt);
+        }
+    }
+
     private void AugmentPartialOutputTool(Agent<TContext> agent)
     {
         const string ToolOutputRetrieverTool = "ToolOutputRetriever";
@@ -446,6 +469,17 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             {
                 agent.FactoryTools.Add(ToolOutputRetrieverTool);
             }
+        }
+    }
+
+    private static void AugmentViewImageTool(Agent<TContext> agent)
+    {
+        const string ViewImageTool = "ViewImage";
+
+        // Add ViewImage tool to all agents for image viewing capability
+        if (!agent.FactoryTools.Contains(ViewImageTool))
+        {
+            agent.FactoryTools.Add(ViewImageTool);
         }
     }
 
@@ -1379,6 +1413,15 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         if (overlay.AddSystemSkills.HasValue)
         {
             agent.AddSystemSkills = overlay.AddSystemSkills.Value;
+        }
+        if (overlay.AllowedSkills is not null)
+        {
+            agent.AllowedSkills = overlay.AllowedSkills.ToList();
+
+            // Per IAgentDescriptor documentation, specifying AllowedSkills automatically
+            // enables skills. This behavior is consistent whether AllowedSkills is set
+            // in the base descriptor or via a ParamOverlay.
+            agent.EnableSkills = true;
         }
         if (overlay.AllowParallelToolCalls.HasValue)
         {

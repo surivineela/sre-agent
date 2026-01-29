@@ -18,6 +18,9 @@
     "clean": "rm -rf dist",
     "refresh-creds": "artifacts-npm-credprovider && npm install"
   },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0"
+  },
   "devDependencies": {
     "@types/chrome": "^0.0.315",
     "@types/react": "^18.2.66",

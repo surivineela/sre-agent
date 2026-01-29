@@ -1,13 +1,16 @@
 import { Body1, Body1Strong, Caption1, EntityCard, EntityTitle, Subtitle2 } from '@fluentui-copilot/react-copilot';
 import { Badge, Button, Caption1Strong, Card, DrawerBody, makeStyles, tokens } from '@fluentui/react-components';
 import { ChevronDown20Regular, ChevronUp20Regular, Document20Regular, Open16Regular } from '@fluentui/react-icons';
-import { memo, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { DocumentResult, MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
+import { MemorySearchFocusOptions } from '../Contracts/Context';
 
 interface MemorySearchPanelContentProps {
     memoryResult: MemorySearchResult;
+    focusOptions?: MemorySearchFocusOptions;
+    onFocusHandled?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -20,6 +23,7 @@ const useStyles = makeStyles({
         gap: tokens.spacingVerticalXL,
         maxWidth: '100%',
         overflowX: 'hidden',
+        padding: '2px',
     },
     section: {
         display: 'flex',
@@ -36,6 +40,11 @@ const useStyles = makeStyles({
         width: '100%',
         boxSizing: 'border-box',
         backgroundColor: tokens.colorNeutralBackground2,
+    },
+    cardHighlightWrapper: {
+        borderRadius: tokens.borderRadiusLarge,
+        outline: `2px solid ${tokens.colorBrandForeground1}`,
+        outlineOffset: '1px',
     },
     cardClickable: {
         cursor: 'pointer',
@@ -90,10 +99,61 @@ const useStyles = makeStyles({
     },
 });
 
-const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProps) => {
+const MemorySearchPanelContent = ({ memoryResult, focusOptions, onFocusHandled }: MemorySearchPanelContentProps) => {
     const styles = useStyles();
     const intl = useIntl();
     const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(new Set());
+    const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+
+    // Refs for scrolling to items
+    const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+    const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
+        if (el) {
+            itemRefs.current.set(id, el);
+        } else {
+            itemRefs.current.delete(id);
+        }
+    }, []);
+
+    // Handle focus when focusOptions changes
+    useEffect(() => {
+        if (!focusOptions) return;
+
+        const { itemId, itemType, itemIndex } = focusOptions;
+
+        // Determine the key for the item to focus
+        let focusKey: string | undefined;
+        if (itemType === 'memory' && itemIndex !== undefined) {
+            focusKey = `memory-${itemIndex}`;
+        } else if (itemId) {
+            focusKey = itemId;
+        }
+
+        if (focusKey) {
+            // If it's a document without URL, auto-expand it
+            if (itemType === 'document' && itemId) {
+                const doc = memoryResult.documents?.find(d => d.id === itemId);
+                if (doc && !doc.url && doc.content) {
+                    setExpandedDocuments(prev => new Set(prev).add(itemId));
+                }
+            }
+
+            // Set highlight (persists until another item is clicked or panel closes)
+            setHighlightedItemId(focusKey);
+
+            // Scroll to item after a brief delay to allow render
+            setTimeout(() => {
+                const el = itemRefs.current.get(focusKey!);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+
+            // Notify parent that focus was handled
+            onFocusHandled?.();
+        }
+    }, [focusOptions, memoryResult.documents, onFocusHandled]);
 
     const toggleDocumentExpansion = (documentId: string) => {
         const newExpanded = new Set(expandedDocuments);
@@ -105,24 +165,30 @@ const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProp
         setExpandedDocuments(newExpanded);
     };
 
+    const getWrapperClassName = (itemId: string) => {
+        return highlightedItemId === itemId ? styles.cardHighlightWrapper : undefined;
+    };
+
     const renderTrajectory = (trajectory: any) => (
-        <Card key={trajectory.id} className={styles.card} size="small">
-            <div className={styles.trajectoryContent}>
-                <Body1Strong>{trajectory.title}</Body1Strong>
-                {trajectory.symptomsObserved && (
-                    <Caption1>
-                        <Caption1Strong>{intl.formatMessage(MemorySearchCardResources.symptomsLabel)}</Caption1Strong>{' '}
-                        {trajectory.symptomsObserved}
-                    </Caption1>
-                )}
-                {trajectory.rootCause && (
-                    <Caption1>
-                        <Caption1Strong>{intl.formatMessage(MemorySearchCardResources.rootCauseLabel)}</Caption1Strong>{' '}
-                        {trajectory.rootCause}
-                    </Caption1>
-                )}
-            </div>
-        </Card>
+        <div key={trajectory.id} ref={el => setItemRef(trajectory.id, el)} className={getWrapperClassName(trajectory.id)}>
+            <Card className={styles.card} size="small">
+                <div className={styles.trajectoryContent}>
+                    <Body1Strong>{trajectory.title}</Body1Strong>
+                    {trajectory.symptomsObserved && (
+                        <Caption1>
+                            <Caption1Strong>{intl.formatMessage(MemorySearchCardResources.symptomsLabel)}</Caption1Strong>{' '}
+                            {trajectory.symptomsObserved}
+                        </Caption1>
+                    )}
+                    {trajectory.rootCause && (
+                        <Caption1>
+                            <Caption1Strong>{intl.formatMessage(MemorySearchCardResources.rootCauseLabel)}</Caption1Strong>{' '}
+                            {trajectory.rootCause}
+                        </Caption1>
+                    )}
+                </div>
+            </Card>
+        </div>
     );
 
     const renderDocument = (doc: DocumentResult) => {
@@ -137,9 +203,8 @@ const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProp
         };
 
         return (
-            <>
+            <div key={doc.id} ref={el => setItemRef(doc.id, el)} className={getWrapperClassName(doc.id)}>
                 <EntityCard
-                    key={doc.id}
                     role={'group'}
                     className={hasPublicUrl ? styles.cardClickable : undefined}
                     onClick={hasPublicUrl ? handleDocumentClick : undefined}
@@ -200,7 +265,7 @@ const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProp
                         )}
                     </div>
                 </EntityCard>
-            </>
+            </div>
         );
     };
 
@@ -236,11 +301,16 @@ const MemorySearchPanelContent = ({ memoryResult }: MemorySearchPanelContentProp
                             {intl.formatMessage(MemorySearchCardResources.userMemories)} ({memoryResult.userMemories.length})
                         </Subtitle2>
                         <div className={styles.itemsContainer}>
-                            {memoryResult.userMemories.map((memory, index) => (
-                                <Card key={index} className={styles.card} size="small">
-                                    <Body1>{memory}</Body1>
-                                </Card>
-                            ))}
+                            {memoryResult.userMemories.map((memory, index) => {
+                                const memoryKey = `memory-${index}`;
+                                return (
+                                    <div key={memoryKey} ref={el => setItemRef(memoryKey, el)} className={getWrapperClassName(memoryKey)}>
+                                        <Card className={styles.card} size="small">
+                                            <Body1>{memory}</Body1>
+                                        </Card>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

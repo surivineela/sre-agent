@@ -166,6 +166,7 @@ export interface IChatMessageGroupProps {
 export interface ReasoningItem {
     messageId: string;
     content: string;
+    timestamp?: string;
 }
 
 export interface Reasoning {
@@ -224,7 +225,9 @@ export interface IChatBoxFooterProps {
     isIncidentRetroModeTurnedOn?: boolean;
     toggleIncidentRetroMode?: () => void;
     hasPendingUserQuestion?: boolean;
-    isOverview?: boolean;
+    showOverview?: boolean;
+    centerChatBoxFooter?: boolean;
+    children?: ReactNode;
 }
 
 export interface SendMessageOptions {

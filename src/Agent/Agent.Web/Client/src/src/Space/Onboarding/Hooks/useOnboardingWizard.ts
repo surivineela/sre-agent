@@ -1,7 +1,8 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { StepStatus, WizardStep as StepperStep } from '../../../Common/Components/Wizard/WizardStepper';
+import { StepStatus } from '../../../Common/Components/Wizard/WizardStepper';
+import { WizardStepHorizontal } from '../../../Common/Components/Wizard/WizardStepperHorizontal';
 import { Agent, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { LocalStorageFlags } from '../../../Common/Hooks/useLocalStorage';
 import { OnboardingWizardResources } from '../../../Strings/SREAgentResources';
@@ -14,14 +15,14 @@ import { SreAgentContext } from '../../Contracts/Context';
 export enum WizardStep {
     InfrastructureScope = 1,
     IncidentPlatform = 2,
-    ConnectRepositories = 3,
+    KnowledgeBase = 3,
     GrantPermissions = 4,
 }
 
 const WIZARD_STEPS = [
     WizardStep.InfrastructureScope,
     WizardStep.IncidentPlatform,
-    WizardStep.ConnectRepositories,
+    WizardStep.KnowledgeBase,
     WizardStep.GrantPermissions,
 ] as const;
 
@@ -31,7 +32,7 @@ const LAST_STEP = WizardStep.GrantPermissions;
 export interface UseOnboardingWizardResult {
     // Steps
     currentStep: WizardStep;
-    steps: StepperStep[];
+    steps: WizardStepHorizontal[];
     isLastStep: boolean;
     isFirstStep: boolean;
 
@@ -103,7 +104,8 @@ const isStepComplete = (step: WizardStep, agent: Agent | undefined): boolean => 
                 agent.incidentManagementConfiguration?.type !== undefined &&
                 agent.incidentManagementConfiguration?.type !== IncidentManagementType.None
             );
-        case WizardStep.ConnectRepositories:
+        case WizardStep.KnowledgeBase:
+            // Knowledge base step is optional - considered complete if any knowledge sources exist
             return false;
         case WizardStep.GrantPermissions:
             return (agent.permissions?.length ?? 0) > 0;
@@ -140,7 +142,7 @@ export const useOnboardingWizard = (): UseOnboardingWizardResult => {
     const [currentStep, setCurrentStep] = useState<WizardStep>(() => determineInitialStep(agentObj?.properties));
     const [isSaving, setIsSaving] = useState(false);
 
-    const steps = useMemo<StepperStep[]>(() => {
+    const steps = useMemo<WizardStepHorizontal[]>(() => {
         const getStepStatus = (step: WizardStep): StepStatus => {
             if (step === currentStep) {
                 return StepStatus.Active;
@@ -155,17 +157,20 @@ export const useOnboardingWizard = (): UseOnboardingWizardResult => {
             {
                 id: WizardStep.InfrastructureScope,
                 title: intl.formatMessage(OnboardingWizardResources.infrastructureScope),
+                description: intl.formatMessage(OnboardingWizardResources.infrastructureScopeStepDescription),
                 status: getStepStatus(WizardStep.InfrastructureScope),
             },
             {
                 id: WizardStep.IncidentPlatform,
                 title: intl.formatMessage(OnboardingWizardResources.incidentPlatform),
+                description: intl.formatMessage(OnboardingWizardResources.incidentPlatformStepDescription),
                 status: getStepStatus(WizardStep.IncidentPlatform),
             },
             {
-                id: WizardStep.ConnectRepositories,
-                title: intl.formatMessage(OnboardingWizardResources.connectRepositories),
-                status: getStepStatus(WizardStep.ConnectRepositories),
+                id: WizardStep.KnowledgeBase,
+                title: intl.formatMessage(OnboardingWizardResources.knowledgeBase),
+                description: intl.formatMessage(OnboardingWizardResources.knowledgeBaseStepDescription),
+                status: getStepStatus(WizardStep.KnowledgeBase),
             },
             {
                 id: WizardStep.GrantPermissions,
@@ -183,30 +188,16 @@ export const useOnboardingWizard = (): UseOnboardingWizardResult => {
             const nextStep = (currentStep + 1) as WizardStep;
             setCurrentStep(nextStep);
             setStoredStep(nextStep);
-
-            azPortalContext.log({
-                action: 'onboarding-wizard',
-                actionModifier: 'next-step',
-                logLevel: 'info',
-                data: { fromStep: WizardStep[currentStep], toStep: WizardStep[nextStep] },
-            });
         }
-    }, [currentStep, azPortalContext]);
+    }, [currentStep]);
 
     const goToPreviousStep = useCallback(() => {
         if (currentStep > FIRST_STEP) {
             const prevStep = (currentStep - 1) as WizardStep;
             setCurrentStep(prevStep);
             setStoredStep(prevStep);
-
-            azPortalContext.log({
-                action: 'onboarding-wizard',
-                actionModifier: 'previous-step',
-                logLevel: 'info',
-                data: { fromStep: WizardStep[currentStep], toStep: WizardStep[prevStep] },
-            });
         }
-    }, [currentStep, azPortalContext]);
+    }, [currentStep]);
 
     const skipWizard = useCallback(() => {
         setWizardSkippedForResource(agentObj?.id);

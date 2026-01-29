@@ -31,7 +31,8 @@ public record ThreadEvaluateResultResponse(
     AgentTypeEnum AgentType,
     string StartingAgentName,
     bool SkillsEnabled,
-    bool IsExtendedAgent
+    bool IsExtendedAgent,
+    string BlockedReason = "None"
 );
 
 /// <summary>
@@ -68,7 +69,8 @@ public static class ThreadEvaluateResultExtensions
             AgentType: result.AgentType,
             StartingAgentName: result.StartingAgentName,
             SkillsEnabled: result.SkillsEnabled,
-            IsExtendedAgent: result.IsExtendedAgent
+            IsExtendedAgent: result.IsExtendedAgent,
+            BlockedReason: result.BlockedReason
         );
     }
 

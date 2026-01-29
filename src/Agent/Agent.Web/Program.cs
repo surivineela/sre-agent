@@ -9,7 +9,6 @@ using Agent.Core.Configuration;
 using Agent.Core.DataConnectors;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
-using Agent.Core.Implementations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -138,7 +137,7 @@ public class Program
         app.MapBlazorHub();
 
         // Map SignalR hub
-        app.MapHub<Agent.Web.SignalR.AgentHub>("/agentHub");
+        app.MapHub<SignalR.AgentHub>("/agentHub");
 
         // Finally, map the fallback page
         app.MapFallbackToFile("/static/index.html");
@@ -204,6 +203,13 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(options);
 
+        // Increase max header size to accommodate multiple OBO tokens from infra proxy
+        // Default is 32KB, observed ~60KB with 7 OBO tokens - using 128KB for headroom
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            serverOptions.Limits.MaxRequestHeadersTotalSize = 131072; // 128KB
+        });
+
         var isAcaFirstPartyAgent = IsAcaFirstParty(options.Args ?? []);
 
         var agentType = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
@@ -245,6 +251,7 @@ public class Program
         // Configure Tool Output Storage settings
         builder.Services.Configure<ToolOutputSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:ToolOutputSettings"));
+
         // Configure Python Tool settings
         builder.Services.Configure<PythonToolSettings>(
             builder.Configuration.GetSection("AppSettings:Core:Azure:PythonTool"));
@@ -262,7 +269,7 @@ public class Program
             .ValidateDataAnnotations();
 
         // Add AgentMemorySettings singleton registration
-        builder.Services.AddSingleton<AgentMemorySettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<AgentMemorySettings>>();
             return options.Value;
@@ -283,19 +290,19 @@ public class Program
         builder.RegisterAzureSearchSettings();
 
         // Add TsgCrawlerSettings registration right after the AzureSearchSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.TsgCrawlerSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             // Try to get from configuration first
-            var settings = configuration.GetSection("AppSettings:Core:External:TSGCrawler").Get<Agent.Core.Configuration.TsgCrawlerSettings>();
+            var settings = configuration.GetSection("AppSettings:Core:External:TSGCrawler").Get<TsgCrawlerSettings>();
 
             if (settings == null)
             {
                 // Provide default settings to prevent null reference exceptions
-                settings = new Agent.Core.Configuration.TsgCrawlerSettings
+                settings = new TsgCrawlerSettings
                 {
                     Enabled = false,
-                    AiSearchSettings = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>()
+                    AiSearchSettings = sp.GetRequiredService<AzureSearchSettings>()
                 };
             }
 
@@ -303,55 +310,55 @@ public class Program
         });
 
         // Register DiagnosticsHelper before ApplensService
-        builder.Services.AddSingleton<Agent.Core.Helpers.DiagnosticsHelper>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
-            var authenticationService = sp.GetRequiredService<Agent.Core.Interfaces.IAuthenticationService>();
-            var logger = sp.GetRequiredService<ILogger<Agent.Core.Helpers.DiagnosticsHelper>>();
+            var authenticationService = sp.GetRequiredService<IAuthenticationService>();
+            var logger = sp.GetRequiredService<ILogger<DiagnosticsHelper>>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
 
-            return new Agent.Core.Helpers.DiagnosticsHelper(logger, authenticationService, hostEnvironment);
+            return new DiagnosticsHelper(logger, authenticationService, hostEnvironment);
         });
 
         // Register IApplensService with DiagnosticsHelper instead of HttpClient
-        builder.Services.AddSingleton<Agent.Plugins.Services.Interfaces.IApplensService>(sp =>
+        builder.Services.AddSingleton<IApplensService>(sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<Agent.Plugins.Services.ApplensService>>();
-            var diagnosticsHelper = sp.GetRequiredService<Agent.Core.Helpers.DiagnosticsHelper>();
+            var logger = sp.GetRequiredService<ILogger<ApplensService>>();
+            var diagnosticsHelper = sp.GetRequiredService<DiagnosticsHelper>();
 
-            return new Agent.Plugins.Services.ApplensService(logger, diagnosticsHelper);
+            return new ApplensService(logger, diagnosticsHelper);
         });
 
         // Register ApplensDetectorPlugin and its definition
-        builder.Services.AddSingleton<Agent.Plugins.Interface.IApplensDetectorPlugin, Agent.Plugins.Implementation.ApplensDetectorPlugin>();
-        builder.Services.AddTransient<Agent.Plugins.Definitions.ApplensDetectorPluginDefinition>();
+        builder.Services.AddSingleton<IApplensDetectorPlugin, ApplensDetectorPlugin>();
+        builder.Services.AddTransient<ApplensDetectorPluginDefinition>();
         // Register DGrepPlugin client and definition
-        builder.Services.AddSingleton<Agent.Plugins.Interface.IDGrepPluginClient, Agent.Plugins.Implementation.DGrepPluginClient>();
-        builder.Services.AddTransient<Agent.Plugins.DGrepPluginDefinition>();
+        builder.Services.AddSingleton<IDGrepPluginClient, DGrepPluginClient>();
+        builder.Services.AddTransient<DGrepPluginDefinition>();
         // Add ExternalSettings registration after the other settings registrations
-        builder.Services.AddSingleton<Agent.Core.Configuration.ExternalSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var externalSettings = new Agent.Core.Configuration.ExternalSettings
+            var externalSettings = new ExternalSettings
             {
                 // Use the already registered AzureSearchSettings and TsgCrawlerSettings
-                AzureSearch = sp.GetRequiredService<Agent.Core.Configuration.AzureSearchSettings>(),
-                TsgCrawler = sp.GetRequiredService<Agent.Core.Configuration.TsgCrawlerSettings>()
+                AzureSearch = sp.GetRequiredService<AzureSearchSettings>(),
+                TsgCrawler = sp.GetRequiredService<TsgCrawlerSettings>()
             };
 
             return externalSettings;
         });
 
         // Add JavaProfilerSettings registration
-        builder.Services.AddSingleton<Agent.Core.Configuration.JavaProfilerSettings>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             // Try to get from configuration first
-            var settings = configuration.GetSection("AppSettings:Core:Azure:JavaProfiler").Get<Agent.Core.Configuration.JavaProfilerSettings>();
+            var settings = configuration.GetSection("AppSettings:Core:Azure:JavaProfiler").Get<JavaProfilerSettings>();
 
             if (settings == null)
             {
                 // Provide default settings to prevent null reference exceptions
-                settings = new Agent.Core.Configuration.JavaProfilerSettings
+                settings = new JavaProfilerSettings
                 {
                     DebugProfileContainer = "",
                     ProfileTimeoutMinutes = 5,
@@ -413,7 +420,7 @@ public class Program
             .AddSingleton<IMetricsPlugin, MetricsPlugin>()
             .AddSingleton<IAppInsightsPlugin, AppInsightsPlugin>()
             .AddSingleton<AppInsightsPluginDefinition>()
-            .AddSingleton<Agent.Plugins.Models.GitHubClient>()
+            .AddSingleton<Plugins.Models.GitHubClient>()
             .AddSingleton<IAzureDevOpsWorkItemPlugin, AzureDevOpsWorkItemPlugin>()
             .AddSingleton<IAzureDevOpsSourceCodeSearch, AzureDevOpsSourceCodeSearch>()
             .AddSingleton<IOutlookConnectorPlugin, OutlookConnectorPlugin>()
@@ -504,6 +511,7 @@ public class Program
             .AddTransient<FunctionsFlexConsumptionCRIPluginDefinition>()
             .AddTransient<AgentControlFlowPluginDefinition>()
             .AddTransient<AgentReasoningControlFlowPluginDefinition>()
+            .AddTransient<ViewImagePluginDefinition>()
             .AddTransient<UserInteractionPluginDefinition>()
             .AddTransient<APIManagementPluginDefinition>()
             .AddTransient<AgentMemoryPluginDefinition>()
@@ -550,37 +558,44 @@ public class Program
             .AddTransient<ChartPluginV2>()
             .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
             .AddTransient<IAzureActivityLogsPlugin, AzureActivityLogsPlugin>()
-            .AddSingleton<IToolOutputStorage>(sp =>
+            .AddSingleton<IRemoteFileStorage>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<ToolOutputSettings>>().Value;
 
-                // Use configured path if available, otherwise fall back to temp directory
-                var storagePath = !string.IsNullOrEmpty(settings.StoragePath)
-                    ? settings.StoragePath
-                    : Path.Combine(Path.GetTempPath(), "SREAgent");
-
-                // Validate configuration if storage account is enabled
+                // Only create remote storage if Azure Blob Storage is properly configured
                 if (settings.IsStorageAccountValid())
                 {
-                    // Use Azure Blob Storage
                     var authService = sp.GetRequiredService<IAuthenticationService>();
-                    var logger = sp.GetRequiredService<ILogger<AzureBlobToolOutputStorage>>();
-                    return new AzureBlobToolOutputStorage(settings, authService, logger, storagePath);
+                    var logger = sp.GetRequiredService<ILogger<AzureBlobRemoteFileStorage>>();
+                    return new AzureBlobRemoteFileStorage(
+                        sp.GetRequiredService<IOptions<ToolOutputSettings>>(),
+                        authService,
+                        logger);
                 }
                 else
                 {
-                    // Use local file system storage (either not enabled or invalid configuration)
-                    var logger = sp.GetRequiredService<ILogger<LocalToolOutputStorage>>();
+                    // Return no-op implementation for local-only mode
+                    var logger = sp.GetRequiredService<ILogger<Program>>();
                     if (settings.StorageAccountEnabled)
                     {
-                        logger.LogInternalWarning("Azure Blob Storage for tool outputs is enabled but configuration is invalid. Falling back to local storage.");
+                        logger.LogInternalWarning("Azure Blob Storage is enabled but configuration is invalid. Using local-only storage mode.");
                     }
-                    return new LocalToolOutputStorage(storagePath, logger);
+                    return new NullRemoteFileStorage();
                 }
             })
+            .AddSingleton<IThreadFileStorageService, ThreadFileStorageService>()
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
-            .AddSingleton<IToolOutputTruncationService, ToolOutputTruncationService>()
+            .AddSingleton<IToolOutputProcessService, ToolOutputProcessService>()
+            .AddSingleton<IToolOutputProcessorFactory>(sp =>
+            {
+                var factory = new ToolOutputProcessorFactory();
+                // Register CodeInterpreter output processor for CodeExecutionResponse type
+                factory.RegisterProcessorForType(
+                    typeof(Agent.Core.Models.CodeExecutionResponse),
+                    new CodeExecutionResponseProcessor());
+                return factory;
+            })
             .AddTransient<IAzureApplicationInsightsPlugin, AzureApplicationInsightsPlugin>()
             .AddTransient<IPagerDutyIncidentPlugin, PagerDutyIncidentPlugin>()
             .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
@@ -599,6 +614,7 @@ public class Program
             .AddTransient<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>()
             .AddTransient<CannotConnectToVmPluginDefinition>()
 
+            .AddSingleton<IThreadEvaluationSnapshotService, ThreadEvaluationSnapshotService>()
             .AddSingleton<ThreadEvaluator>();
 
         // Conditionally register InsightPostingService based on Session Insights enablement
@@ -691,6 +707,7 @@ public class Program
         builder.Services.AddSingleton<IYamlToolExecutorFactory, KustoToolExecutorFactory>();
         builder.Services.AddSingleton<IYamlToolExecutorFactory, LinkToolExecutorFactory>();
         builder.Services.AddSingleton<IYamlToolExecutorFactory, PythonToolExecutorFactory>();
+        builder.Services.AddSingleton<IYamlToolExecutorFactory, HttpClientToolExecutorFactory>();
 
         builder.Services.AddSingleton<ISkillRegistry>(sp =>
         {
@@ -776,7 +793,7 @@ public class Program
                 agentsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "AgentsV2"),
                 commonPromptsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonPrompts"),
                 commonToolsYamlDirectory: Path.Combine(AppContext.BaseDirectory, "CommonTools"),
-                promptStarters: promptStarters.ToArray(),
+                promptStarters: [.. promptStarters],
                 promptEnders: [Core.Constants.SREAgentFinalInstructions],
                 defaultOutputType: typeof(DefaultAgentOutput),
                 enableHandoffReasoning: experimentalSettings.EnableHandoffReasoning,
@@ -823,7 +840,7 @@ public class Program
                 var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("AzureSreAgent"));
                 return client;
             })
-            .AddTransient<Kernel>(sp => new Kernel(sp))
+            .AddTransient(sp => new Kernel(sp))
             // Register all SubAgent types as singletons
             .AddSingleton<GraphDBQueryAgent>()
             .AddSingleton<ArchitectureAgent>()
@@ -866,7 +883,7 @@ public class Program
         builder.Services.AddSingleton<ICustomAgentFileService>(
             sp => sp.GetRequiredService<CustomAgentFileService>());
 
-        builder.Services.AddSingleton<KustoConnector>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var actionSettings = sp.GetRequiredService<ActionSettings>();
             var kustoAuthSetting = new ConnectorAuthSettings()
@@ -885,7 +902,7 @@ public class Program
                 RegionalClusterGroups = []
             };
         });
-        builder.Services.AddSingleton<KustoClient>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<KustoClient>>();
             var kustoSetting = sp.GetRequiredService<KustoConnector>();
@@ -922,7 +939,7 @@ public class Program
             .ConfigureIEmbeddingGenerator(builder.Configuration);
 
         // Register non-keyed IEmbeddingGenerator for services that need it via constructor injection
-        builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+        builder.Services.AddSingleton(sp =>
         {
             var chatClientProvider = sp.GetRequiredService<IChatClientProvider>();
             return chatClientProvider.EmbeddingModel;
@@ -941,7 +958,7 @@ public class Program
         builder.Services.AddTransient<TsgPluginDefinition>();
 
         // Register ApplensDetectorPlugin - now always enabled
-        builder.Services.AddTransient<ApplensDetectorPluginDefinition>(sp =>
+        builder.Services.AddTransient(sp =>
         {
             return new ApplensDetectorPluginDefinition(sp.GetRequiredService<IApplensDetectorPlugin>());
         });
@@ -1022,14 +1039,15 @@ public class Program
             tracingBuilder.AddProcessor(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<AgentTraceProcessor>>();                // Create a list of exporters to use
-                var exporters = new List<BaseExporter<Activity>>();
-
-                // Configure exporter with appropriate settings based on environment
-                // if (builder.Environment.IsDevelopment())
-                // TODO: sanmeht - only enable traces for non-production environments
-                // {
-                // In-memory exporter for development - direct implementation
-                exporters.Add(new InMemoryActivityExporter(exportedActivities));
+                var exporters = new List<BaseExporter<Activity>>
+                {
+                    // Configure exporter with appropriate settings based on environment
+                    // if (builder.Environment.IsDevelopment())
+                    // TODO: sanmeht - only enable traces for non-production environments
+                    // {
+                    // In-memory exporter for development - direct implementation
+                    new InMemoryActivityExporter(exportedActivities)
+                };
 
                 // }
 
@@ -1496,21 +1514,21 @@ public class Program
         builder.Services.AddAgentMemory(AgentMemoryEnabled(builder));
     }
 
-    private static Agent.Core.Configuration.AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
+    private static AzureSearchSettings GetAzureSearchSettings(IConfiguration configuration)
     {
-        var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<Agent.Core.Configuration.AzureSearchSettings>();
+        var settings = configuration.GetSection("AppSettings:Core:Azure:AzureSearch").Get<AzureSearchSettings>();
         if (settings == null)
         {
             var firstPartySettings = configuration
                 .GetSection("AppSettings:Core:External:AzureSearch")
-                .Get<Agent.Core.Configuration.AzureSearchSettings>();
+                .Get<AzureSearchSettings>();
             if (firstPartySettings != null)
             {
                 settings = firstPartySettings;
             }
             else
             {
-                settings = new Agent.Core.Configuration.AzureSearchSettings();
+                settings = new AzureSearchSettings();
             }
         }
         return settings;
@@ -1605,11 +1623,11 @@ public class Program
                 kustoFirstPartyAppCertificatePath: internalKustoClusterSettings.CertificatePath);
 
             builder.Services.AddSingleton<ILoggerProvider>(logger);
-            builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
+            builder.Services.AddSingleton(logger.GetLogger());
         }
         else
         {
-            builder.Services.AddSingleton<AzureDataExplorerLogger>(new AzureDataExplorerLogger());
+            builder.Services.AddSingleton(new AzureDataExplorerLogger());
         }
     }
 
@@ -1626,8 +1644,8 @@ public class Program
             IncludeSystemSpans = false // Exclude system-level spans
         };
 
-        builder.Services.AddSingleton<CustomerLogger>(customerLogger);
-        builder.Services.AddSingleton<CustomerAuditLogger>(customerAuditLogger);
+        builder.Services.AddSingleton(customerLogger);
+        builder.Services.AddSingleton(customerAuditLogger);
 
         builder.Services.AddOpenTelemetry().WithTracing(tracingBuilder =>
         {

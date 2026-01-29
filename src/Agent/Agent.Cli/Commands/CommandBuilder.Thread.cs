@@ -48,6 +48,10 @@ public static partial class CommandBuilder
                 {
                     result.AddError("--no-wait requires --message to be specified");
                 }
+                if (w && string.IsNullOrWhiteSpace(message))
+                {
+                    result.AddError("--wait requires --message to be specified");
+                }
             });
 
             cmd.SetAction(ThreadCommandHandlers.HandleThreadNewCommand);
@@ -76,6 +80,10 @@ public static partial class CommandBuilder
                 if (nw && string.IsNullOrWhiteSpace(message))
                 {
                     result.AddError("--no-wait requires --message to be specified");
+                }
+                if (w && string.IsNullOrWhiteSpace(message))
+                {
+                    result.AddError("--wait requires --message to be specified");
                 }
             });
 

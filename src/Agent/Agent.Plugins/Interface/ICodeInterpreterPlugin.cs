@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Plugins.Interface;
@@ -15,9 +16,10 @@ public interface ICodeInterpreterPlugin
     Guid? ThreadId { get; set; }
 
     /// <summary>
-    /// Execute an arbitrary (but sandbox‑validated) python code and return stdout / stderr summary.
+    /// Execute an arbitrary (but sandbox‑validated) python code and return the execution response.
+    /// The response contains stdout, stderr, result, and any auto-retrieved files.
     /// </summary>
-    Task<string> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds);
+    Task<CodeExecutionResponse> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds);
 
     /// <summary>
     /// Execute a constrained POSIX shell command (bash) within the code interpreter sandbox.

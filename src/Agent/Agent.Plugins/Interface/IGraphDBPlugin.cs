@@ -1,7 +1,6 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 
@@ -99,36 +98,23 @@ namespace Agent.Plugins.Interface
         Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
 
         /// <summary>
-        /// Searches for resources by a partial resource name and resource type.
-        /// Helps locate specific resources in the Azure environment.
+        /// Searches for resources by partial name, resource types, and/or other filters.
+        /// At least one filter parameter must be provided (resourceName, resourceTypes, subscriptionId, or location).
+        /// When multiple filters are provided, AND logic is applied.
+        /// Results include resourceId, resourceName, location (plus clusterResourceId/namespace for K8s).
         /// </summary>
-        /// <param name="resourceName">Partial or complete name of the resource to search for.</param>
-        /// <param name="resourceType">The type of resource to search for (e.g., microsoft.app/containerapps).</param>
-        /// <returns>A list of ArmResourceNode objects matching the search criteria.</returns>
-        Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType);
-
-        /// <summary>
-        /// Searches for resources by a partial resource name and resource type.
-        /// Helps locate specific resources in the Azure environment.
-        /// </summary>
-        /// <param name="resourceName">Partial or complete name of the resource to search for.</param>
-        /// <returns>A list of ArmResourceNode objects matching the search criteria.</returns>
-        Task<dynamic> SearchResourceByNameAsync(string resourceName);
-
-        /// <summary>
-        /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.
-        /// Useful for discovery and inventory of available subscriptions.
-        /// </summary>
-        /// <returns>A list of subscription IDs found in the graph.</returns>
-        Task<List<dynamic>> ListSubscriptionsAsync();
-
-        /// <summary>
-        /// Returns a list of resource groups for a given subscription ID.
-        /// </summary>
-        /// <param name="subscriptionId">Subscription Id that resource groups belong to.</param>
-        /// <returns></returns>
-        Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId);
-
+        /// <param name="resourceName">Partial or complete name of the resource to search for (case-insensitive).</param>
+        /// <param name="resourceTypes">List of resource types to filter by (e.g., ['microsoft.app/containerapps', 'microsoft.web/sites']).</param>
+        /// <param name="subscriptionId">Filter by Azure subscription ID.</param>
+        /// <param name="location">Filter by Azure region/location (e.g., 'eastus', 'westus2').</param>
+        /// <param name="limit">Maximum number of results to return. Default is 50.</param>
+        /// <returns>A list of matching resources with slim fields: resourceId, resourceName, location.</returns>
+        Task<List<object>> SearchResourceAsync(
+            string? resourceName,
+            List<string>? resourceTypes = null,
+            string? subscriptionId = null,
+            string? location = null,
+            int limit = 50);
 
         /// <summary>
         /// Gets a count of Azure resources of a specified type, optionally grouped by a property.
@@ -142,15 +128,6 @@ namespace Agent.Plugins.Interface
         Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "");
 
         /// <summary>
-        /// Returns a list of resources of a specified type with their complete property bag.
-        /// Each resource is represented as a dictionary of property names and values.
-        /// The 'updateTs' property is excluded from the results.
-        /// </summary>
-        /// <param name="resourceType">The type of resource to query (e.g., 'microsoft.app/containerapps')</param>
-        /// <returns>A list of dictionaries containing all properties for each resource of the specified type.</returns>
-        Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50);
-
-        /// <summary>
         /// Retrieves comprehensive information about all managed Azure resources.
         /// Returns count data for various resource types categorized into Azure and other resources,
         /// along with total resource counts.
@@ -159,19 +136,41 @@ namespace Agent.Plugins.Interface
 
         string GetKnowledgeGraphResourceUsageDashboard();
 
-        Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId);
         Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId);
+
         Task UpdateRepoNodeWithLastScanTime(string repoUrl);
 
-        Task<string> GetResourceIdForResourceName(string resourceName, string resourceType);
+        #region Internal Methods (not exposed to LLM)
 
         /// <summary>
-        /// Gets all properties for a resource from Azure Resource Graph in real-time as a fallback
-        /// when the knowledge graph doesn't contain the needed information. Queries live Azure APIs
-        /// for the most current resource state and properties.
+        /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.
+        /// Useful for discovery and inventory of available subscriptions.
+        /// NOTE: This method is for internal programmatic use only, not exposed to LLM.
         /// </summary>
-        /// <param name="resourceId">Azure Resource ID of the resource to query.</param>
-        /// <returns>A JSON string containing all properties from the live Azure Resource Graph query.</returns>
-        Task<string> GetResourcePropertiesRealTime(string resourceId);
+        /// <returns>A list of subscription IDs found in the graph.</returns>
+        Task<List<dynamic>> ListSubscriptionsAsync();
+
+        /// <summary>
+        /// Returns a list of resource groups for a given subscription ID.
+        /// NOTE: This method is for internal programmatic use only, not exposed to LLM.
+        /// </summary>
+        /// <param name="subscriptionId">Subscription Id that resource groups belong to.</param>
+        /// <returns>A list of resource groups with their properties.</returns>
+        Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId);
+
+        /// <summary>
+        /// Returns a list of resources of a specified type with their complete property bag.
+        /// Each resource is represented as a dictionary of property names and values.
+        /// NOTE: This method is for internal programmatic use only, not exposed to LLM.
+        /// </summary>
+        /// <param name="resourceType">The type of resource to query (e.g., 'microsoft.app/containerapps')</param>
+        /// <param name="propertyName">Optional property name to filter on.</param>
+        /// <param name="propertyValue">Optional property value to filter on.</param>
+        /// <param name="skip">Number of results to skip for pagination.</param>
+        /// <param name="take">Number of results to return. Use 0 or negative to return all.</param>
+        /// <returns>A list of dictionaries containing properties for each resource of the specified type.</returns>
+        Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50);
+
+        #endregion
     }
 }

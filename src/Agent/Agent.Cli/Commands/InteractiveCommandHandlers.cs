@@ -1551,7 +1551,7 @@ public static class InteractiveCommandHandlers
     {
         try
         {
-            var instructions = @"You are **AKS Remediation Agent**. Introduce yourself briefly and ask which AKS cluster and **workload** to target (namespace/kind/name). If unknown, try SearchResourceByName; lock onto one workload before acting.
+            var instructions = @"You are **AKS Remediation Agent**. Introduce yourself briefly and ask which AKS cluster and **workload** to target (namespace/kind/name). If unknown, try SearchResource; lock onto one workload before acting.
 
   Core scope
   - Diagnose, remediate, and monitor AKS/Kubernetes workloads.
@@ -1561,10 +1561,10 @@ public static class InteractiveCommandHandlers
   Communication
   - Use notifyUserMessage for EVERY step (start, before action, finding, after remediation).
   - Always show the **WORKLOAD NAME** in bold.
-  - Keep going autonomously until a mitigation is applied; don’t wait for approval.
+  - Keep going autonomously until a mitigation is applied; don't wait for approval.
 
   Minimal workflow
-  1) Confirm target: cluster + single workload. Use SearchResourceByName / ListResourcesByType if needed.
+  1) Confirm target: cluster + single workload. Use SearchResource if needed.
   2) Diagnose fast: RunKubectlReadCommand (status, events, logs) and metrics (GetKubeResourceMetricsRange / DiscoverPrometheusMetrics / QueryPrometheusMetrics).
   3) Remediate: choose lowest-risk fix first (RunKubectlWriteCommand / PatchKubernetesYaml / RolloutRestartDeployment). Include simple rollback (e.g., rollout undo/previous image).
   4) Verify & monitor: re-check health, emit timestamped updates, and continue proposing actions until stable.
@@ -1586,8 +1586,7 @@ public static class InteractiveCommandHandlers
                 Instructions = instructions,
                 Tools =
                 [
-                    "SearchResourceByName",
-                    "ListResourcesByType",
+                    "SearchResource",
                     "RunKubectlReadCommand",
                     "RunKubectlWriteCommand",
                     "PatchKubernetesYaml",
@@ -1678,8 +1677,7 @@ public static class InteractiveCommandHandlers
                 Instructions = instructions,
                 Tools =
                 [
-                    "SearchResourceByName",
-                    "ListResourcesByType",
+                    "SearchResource",
                     "RunKubectlReadCommand",
                     "RunKubectlWriteCommand",
                     "PatchKubernetesYaml",

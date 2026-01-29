@@ -70,7 +70,7 @@ public class InsightPostingServiceTests
         );
 
         // Act
-        await _service.PostTrajectoryInsightsAsync(threadId, trajectory, string.Empty, CancellationToken.None);
+        await _service.PostTrajectoryInsightsAsync(threadId, trajectory, string.Empty, null, CancellationToken.None);
 
         // Assert
         _mockOutboundService.Verify(

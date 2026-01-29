@@ -18,6 +18,10 @@ handoffs:
     agent: agent
     prompt: "Save this conversation as a benchmark test run. First, ask the user: 'What type of task was this? (feature/bugfix/refactor)'. Then create a markdown file in `benchmarks/runs/` named `{date}-{short-description}.md`. Include: task description, summary of work, key decisions, and files modified. Read and append the appropriate rubric from `benchmarks/rubrics/{feature|bugfix|refactor}.md`. Finally, ask the user to score each metric with notes and record their scores in the table."
     send: false
+  - label: Review Fluent v9 compliance
+    agent: UXSubAgent_Fluent
+    prompt: Launch a subagent to review the implementation for Fluent UI v9 compliance and make improvements
+    send: false
 ---
 
 # UX Coding Agent
@@ -262,6 +266,34 @@ useEffect(() => {
 }, [location, azPortalProxy, resourceId]);
 ```
 
+#### Logging Best Practices
+
+**Avoid excessive logging** - Not every API call needs success logging, especially for frequent operations:
+
+```typescript
+// ❌ WRONG - Logging every successful GET request
+const result = await client.getModels();
+if (result.isSuccessful) {
+  logEvent("GetModelsSuccess", { count: result.data.length }); // Excessive for GETs
+}
+
+// ✅ CORRECT - Only log errors 
+const result = await client.getModels();
+if (!result.isSuccessful) {
+  logError("GetModelsFailed", result.error);
+}
+```
+
+**When to log success:**
+- Mutating operations (POST, PUT, DELETE) - user took an action worth tracking
+- Significant user milestones (completed wizard, submitted form)
+- Performance-sensitive operations where timing matters
+
+**When NOT to log success:**
+- GET requests that happen frequently (polling, data fetching)
+- Background refreshes or re-renders
+- Operations already covered by parent telemetry
+
 ### 7. API Clients & Error Handling
 
 ```typescript
@@ -284,7 +316,34 @@ if (!response.isSuccessful) {
 // Use response.data
 ```
 
-**Error Handling Rule**: Use try/catch only at one level - typically in the core request method within the Client. Components should check `isSuccessful` instead of wrapping calls in try/catch.
+**Error Handling Rules**:
+
+1. **Use try/catch only at one level** - typically in the core request method within the Client. Components should check `isSuccessful` instead of wrapping calls in try/catch.
+
+2. **Don't add redundant try/catch around client calls** - If a client already handles errors internally and returns a result object, wrapping the call in try/catch is unnecessary and adds noise.
+
+```typescript
+// ❌ WRONG - Redundant try/catch when client handles errors
+const fetchData = async () => {
+  try {
+    const result = await myClient.getData(); // Client already catches errors
+    return result;
+  } catch (error) {
+    // This catch is never reached because client handles it
+    return { isSuccessful: false, error };
+  }
+};
+
+// ✅ CORRECT - Trust the client's error handling
+const fetchData = async () => {
+  const result = await myClient.getData();
+  return result; // Result already contains isSuccessful and error if any
+};
+```
+
+3. **Only add try/catch when you need custom error behavior** - If you need to transform errors, add additional context, or handle errors differently than the client does, then a try/catch is appropriate.
+
+Always ensure that you are making api calls through the appropriate client. If an API is missing, create or extend the relevant client in `Common/Clients/`.
 
 ### 8. Component Structure
 
@@ -804,4 +863,5 @@ src/
 1. **Check for problems** using the problems tool
 2. **Verify no console.log** statements were added
 3. **Ensure localization** is used for all user-facing strings
-4. **Hand off to testing** for E2E test coverage
+
+IMPORTANT: Once finished with any task that adds new UX, launch the UXSubAgent_Fluent using #tool:agent/runSubagent to review.

@@ -2,7 +2,8 @@ import { AuthError, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { getScopesForApi } from '../Auth/cloudConfig';
 import { msalInstance } from '../Auth/msalConfig';
 import { TelemetrySource } from '../Constants/Telemetry';
-import { KeyValue } from '../Contracts/Arm';
+import { ArmBatchObject, KeyValue } from '../Contracts/Arm';
+import { Response } from '../Contracts/Response';
 import { LogLevel } from '../Contracts/Telemetry';
 import { AuthScopeIdentifier } from '../Hooks/useAuthTokenManager';
 import { logTelemetryEvent } from '../Hooks/useTelemetry';
@@ -129,12 +130,12 @@ export const acquireAccessToken = async (
     }
 };
 
-export const delay = async (func: () => Promise<any>, ms = 3000) => {
+export const delay = async <T>(func: () => Promise<T>, ms = 3000): Promise<T> => {
     await new Promise(resolve => setTimeout(resolve, ms));
     return await func();
 };
 
-export const getHeader = (headerToFind: string, headers: KeyValue<string>) => {
+export const getHeader = (headerToFind: string, headers: KeyValue<string | undefined>) => {
     for (const key of Object.keys(headers)) {
         if (key.toLowerCase() === headerToFind.toLowerCase()) {
             return headers[key];
@@ -189,4 +190,37 @@ export const getDeploymentOperationErrorMessage = (statusMessage: any): string |
     }
 
     return null;
+};
+
+export const convertFetchResponseToResponseObject = async <T>(response: globalThis.Response): Promise<Response<T>> => {
+    const status = response.status;
+    let data: T;
+    try {
+        data = await response.json();
+    } catch {
+        data = null as any; // If response is not JSON, set data to null
+    }
+    const headers: Record<string, string> = {};
+    response.headers.forEach((value, key) => {
+        headers[key] = value;
+    });
+
+    const responseSuccess = status < 300;
+    return {
+        isSuccessful: responseSuccess,
+        error: responseSuccess ? null : data,
+        content: responseSuccess ? data : (null as T),
+        metadata: { status, headers },
+    };
+};
+
+export const convertArmBatchResponseToResponseObject = <T>(response: ArmBatchObject): Response<T> => {
+    const { status, data, headers } = { status: response.httpStatusCode, data: response.content as T, headers: response.headers };
+    const responseSuccess = status < 300;
+    return {
+        isSuccessful: responseSuccess,
+        error: responseSuccess ? null : data,
+        content: responseSuccess ? data : (null as T),
+        metadata: { status, headers },
+    };
 };

@@ -34,5 +34,6 @@ export const useKnowledgeGraphSearchResultDrawer = (
         knowledgeGraphSearchResult,
         openKnowledgeGraphSearchResult,
         closeKnowledgeGraphSearchResult,
+        setKnowledgeGraphSearchResult
     };
 };

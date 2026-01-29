@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Location, useLocation } from 'react-router-dom';
+import { Location, useLocation } from 'react-router';
 
 export enum SettingNames {
     /** 1 Error -> 5 Verbose */
@@ -16,6 +16,8 @@ export enum SettingNames {
     SreUxLocal = 'sre_ux_local',
     /** Only used by unit tests */
     ForUnitTests = 'forUnitTests',
+    /** Show default model picker */
+    ShowDefaultModelPicker = 'showDefaultModelPicker',
 }
 
 const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {

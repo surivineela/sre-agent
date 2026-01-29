@@ -1,5 +1,3 @@
-import { Model } from './SreAgent';
-
 export interface ResourceType {
     resourceType: string;
     locations: string[];
@@ -13,6 +11,11 @@ export interface LocForResTypes {
     registrationState: string;
 }
 
-export interface SupportedModel extends Model {
+export interface SupportedModel {
     default: boolean;
+    providerName: string;
+    providerDisplayName: string;
+    modelName: string;
+    modelDisplayName: string;
+    multiplier: string;
 }

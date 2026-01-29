@@ -8,4 +8,5 @@ export const LearnMoreLinks = {
     sreAgentManagedRgPermissions: 'https://go.microsoft.com/fwlink/?linkid=2325119',
     sreAgentAgentPermissions: 'https://go.microsoft.com/fwlink/?linkid=2327604',
     genevaActions: 'https://aka.ms/sre-agent-geneva-actions',
+    sreAgentDataHandling: 'https://go.microsoft.com/fwlink/?linkid=2347418',
 };

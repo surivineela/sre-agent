@@ -1,6 +1,4 @@
 import { ForwardedRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { AgentTaskMetaData } from '../../Common/Contracts/DataPlane/AgentTask';
-import { TodoPlan } from '../../Common/Contracts/DataPlane/TodoPlan';
 import { ChatBoxHandleRef, ChatBoxSidePanelData, ChatBoxSidePanelType } from '../Contracts/Activities';
 import { useAgentTask } from './useAgentTask';
 import { useKnowledgeGraphSearchResultDrawer } from './useKnowledgeGraphSearchResultDrawer';
@@ -24,8 +22,6 @@ export const useChatBoxSidePanel = (
     const [selectedSidePanelType, setSelectedSidePanelType] = useState<ChatBoxSidePanelType | null>(null);
     const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
     const [sidePanelWidth, setSidePanelWidth] = useState<number | null>(null);
-    const [exisitingLatestAgentTask, setExistingLatestAgentTask] = useState<AgentTaskMetaData | null>(null);
-    const [existingLatestToDoPlan, setExistingLatestToDoPlan] = useState<TodoPlan | null>(null);
 
     const isSidePanelOpenRef = useRef<boolean>(isSidePanelOpen);
     isSidePanelOpenRef.current = isSidePanelOpen;
@@ -91,7 +87,6 @@ export const useChatBoxSidePanel = (
         threadIdUsedForCreatingNewThread,
         openSidePanel,
         closeSidePanel,
-        setExistingLatestAgentTask
     );
 
     const { setToDoInfo, ...todoPlanProps } = useTodoPlanDrawer(
@@ -99,13 +94,12 @@ export const useChatBoxSidePanel = (
         threadIdUsedForCreatingNewThread,
         setHasToDoPlans,
         openSidePanel,
-        closeSidePanel,
-        setExistingLatestToDoPlan
+        closeSidePanel
     );
 
-    const memorySearchResultProps = useMemorySearchResultDrawer(initialSidePanelData, openSidePanel, closeSidePanel, initSidePanel);
+    const { setMemorySearchResult, ...memorySearchResultProps } = useMemorySearchResultDrawer(initialSidePanelData, openSidePanel, closeSidePanel, initSidePanel);
 
-    const knowledgeGraphSearchResultProps = useKnowledgeGraphSearchResultDrawer(
+    const { setKnowledgeGraphSearchResult, ...knowledgeGraphSearchResultProps } = useKnowledgeGraphSearchResultDrawer(
         initialSidePanelData,
         openSidePanel,
         closeSidePanel,
@@ -131,24 +125,18 @@ export const useChatBoxSidePanel = (
             initSidePanel(null);
             return;
         }
+        initSidePanel(initialSidePanelData);
 
-        const sidePanelData: ChatBoxSidePanelData = { ...initialSidePanelData };
-
-        if (!sidePanelData.agentTask && !sidePanelData.todoInfo) {
-            if (exisitingLatestAgentTask) {
-                sidePanelData.agentTask = { ...exisitingLatestAgentTask };
-            } else if (existingLatestToDoPlan) {
-                sidePanelData.todoInfo = { ...existingLatestToDoPlan };
-            }
+        if (initialSidePanelData?.agentTask) {
+            setTask(initialSidePanelData.agentTask);
+        } else if (initialSidePanelData?.todoInfo) {
+            setToDoInfo(initialSidePanelData.todoInfo);
+        } else if (initialSidePanelData?.memorySearchResult) {
+            setMemorySearchResult(initialSidePanelData.memorySearchResult);
+        } else if (initialSidePanelData?.knowledgeGraphSearchResult) {
+            setKnowledgeGraphSearchResult(initialSidePanelData.knowledgeGraphSearchResult);
         }
-        initSidePanel(sidePanelData);
-
-        if (sidePanelData?.agentTask) {
-            setTask(sidePanelData.agentTask);
-        } else if (sidePanelData?.todoInfo) {
-            setToDoInfo(sidePanelData.todoInfo);
-        }
-    }, [initSidePanel, initialSidePanelData, setTask, setToDoInfo, exisitingLatestAgentTask, existingLatestToDoPlan, canOpenSidePanel]);
+    }, [initSidePanel, initialSidePanelData, setTask, setToDoInfo, setMemorySearchResult, setKnowledgeGraphSearchResult, canOpenSidePanel]);
 
     return {
         sidePanelProps: {

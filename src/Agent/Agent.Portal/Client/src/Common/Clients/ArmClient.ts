@@ -7,6 +7,7 @@ import {
     ArmBatchObject,
     ArmBatchResponse,
     ArmRequestObject,
+    AzureAsyncOperationResult,
     AzureAsyncOperationStatus,
     InternalArmRequest,
     KeyValue,
@@ -15,18 +16,17 @@ import {
     Tenant,
 } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
-import { acquireAccessToken, delay, getHeader } from '../Utilities/Client';
+import {
+    acquireAccessToken,
+    convertArmBatchResponseToResponseObject,
+    convertFetchResponseToResponseObject,
+    delay,
+    getHeader,
+} from '../Utilities/Client';
 import { newGuid } from '../Utilities/Guid';
 import { getSessionId } from '../Utilities/SessionManager';
-import { appendQueryString } from '../Utilities/Url';
+import { appendQueryString, getPathAndQuery } from '../Utilities/Url';
 import { Client } from './Client';
-
-// Custom response interface to replace AxiosResponse
-interface CommonResponse<T> {
-    content: T;
-    httpStatusCode: number;
-    headers: Record<string, string>;
-}
 
 const bufferTimeInterval = 100; // ms
 const maxBufferSize = 20;
@@ -81,7 +81,7 @@ export class ArmClient extends Client {
                     })
                 ).pipe(
                     concatMap(result => {
-                        if (result.httpStatusCode < 300) {
+                        if (result.isSuccessful && result.content) {
                             const { responses } = result.content;
                             const responsesWithId: ArmBatchObject[] = [];
                             for (let i = 0; i < responses.length; i = i + 1) {
@@ -158,23 +158,12 @@ export class ArmClient extends Client {
                 });
 
                 const res = await fetchFromBatch;
-                const resSuccess = res.httpStatusCode < 300;
+                const response = convertArmBatchResponseToResponseObject<T>(res);
 
                 if ((res.httpStatusCode === 201 || res.httpStatusCode === 202) && !skipPolling) {
-                    return this.pollForCompletion(
-                        { content: res.content, httpStatusCode: res.httpStatusCode, headers: res.headers },
-                        requestObject
-                    );
+                    return this.pollForCompletion(response, requestObject);
                 } else {
-                    return {
-                        isSuccessful: resSuccess,
-                        content: resSuccess ? res.content : undefined,
-                        error: resSuccess ? undefined : res.content,
-                        metadata: {
-                            status: res.httpStatusCode,
-                            headers: res.headers,
-                        },
-                    };
+                    return response;
                 }
             } catch (err) {
                 return {
@@ -185,29 +174,21 @@ export class ArmClient extends Client {
         }
 
         const response = await this.makeArmRequest<T>(armBatchObject);
-        const responseSuccess = response.httpStatusCode < 300;
-        if ((response.httpStatusCode === 201 || response.httpStatusCode === 202) && !skipPolling) {
+        if ((response.metadata?.status === 201 || response.metadata?.status === 202) && !skipPolling) {
             return this.pollForCompletion(response, requestObject);
         }
-        return {
-            isSuccessful: responseSuccess,
-            content: responseSuccess ? response.content : undefined,
-            error: responseSuccess ? undefined : response.content,
-            metadata: {
-                status: response.httpStatusCode,
-                headers: response.headers,
-            },
-        };
+        return response;
     }
 
-    private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<CommonResponse<T>> {
+    private async makeArmRequest<T>(armObj: InternalArmRequest, _retry = 0): Promise<Response<T>> {
         const { accessToken: token } = await acquireAccessToken('arm', this.telemetrySource);
         const { method, resourceId, body, apiVersion, queryString, useManagementEndpoint, commandName } = armObj;
         let url: string;
+        const sanitizedResourceId = resourceId.startsWith('/') ? resourceId : `/${resourceId}`;
         if (useManagementEndpoint) {
-            url = `${this.armEndpoint}${resourceId}${queryString || ''}`;
+            url = `${this.armEndpoint}${sanitizedResourceId}${queryString || ''}`;
         } else {
-            url = `${resourceId}${queryString || ''}`;
+            url = `${sanitizedResourceId}${queryString || ''}`;
         }
         if (apiVersion !== null) {
             url = appendQueryString(url, `api-version=${apiVersion}`);
@@ -234,34 +215,17 @@ export class ArmClient extends Client {
                 body: body ? JSON.stringify(body) : undefined,
             });
 
-            // Parse response body as JSON
-            let data: T;
-            try {
-                data = await response.json();
-            } catch {
-                data = null as any; // If response is not JSON, set data to null
-            }
-
-            // Convert Headers object to plain object
-            const responseHeaders: Record<string, string> = {};
-            response.headers.forEach((value, key) => {
-                responseHeaders[key] = value;
-            });
-
-            return {
-                content: data,
-                httpStatusCode: response.status,
-                headers: responseHeaders,
-            };
+            const convertedResponse = await convertFetchResponseToResponseObject<T>(response);
+            return convertedResponse;
         } catch (error) {
             console.error('makeArmRequest:', error);
             throw error;
         }
     }
 
-    private pollForCompletion<T, U = T>(response: CommonResponse<T>, request: ArmRequestObject<U>): Promise<Response<T>> {
-        const location = getHeader('location', response.headers);
-        const azureAsyncOperation = getHeader('Azure-AsyncOperation', response.headers);
+    private pollForCompletion<T, U = T>(response: Response<T>, request: ArmRequestObject<U>): Promise<Response<T>> {
+        const location = getHeader('location', response.metadata?.headers || {});
+        const azureAsyncOperation = getHeader('Azure-AsyncOperation', response.metadata?.headers || {});
 
         if (location) {
             return this.pollLocationForCompletion(response, location, request);
@@ -270,16 +234,7 @@ export class ArmClient extends Client {
         } else if ((<any>response.content)?.properties.provisioningState) {
             return this.pollProvisioningStateForCompletion(request);
         } else {
-            const responseSuccess = response.httpStatusCode < 300;
-            return Promise.resolve({
-                isSuccessful: responseSuccess,
-                content: responseSuccess ? response.content : undefined,
-                error: responseSuccess ? undefined : response.content,
-                metadata: {
-                    status: response.httpStatusCode,
-                    headers: response.headers,
-                },
-            });
+            return Promise.resolve(response);
         }
     }
 
@@ -288,76 +243,83 @@ export class ArmClient extends Client {
     }
 
     private pollLocationForCompletion<T, U = T>(
-        response: CommonResponse<T>,
+        response: Response<T>,
         previousLocation: string,
         request: ArmRequestObject<U>
     ): Promise<Response<T>> {
-        const location = getHeader('location', response.headers) || previousLocation;
-        const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
+        const location = getHeader('location', response.metadata?.headers || {}) || previousLocation;
+        const url = getPathAndQuery(location);
+        const retryAfter = Math.max(Number(getHeader('Retry-After', response.metadata?.headers || {})), 2000);
         const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
             return this.makeArmCall<T>({
                 method: 'GET',
-                url: location,
+                url: url,
                 commandName: setTelemetryHeader,
-                useManagementEndpoint: false,
             });
         }, retryAfter);
     }
 
     private pollAzureAsyncOperationForCompletion<T, U = T>(
-        response: CommonResponse<T>,
+        originalResponse: Response<T>,
         azureAsyncOperation: string,
-        request: ArmRequestObject<U>
+        request: ArmRequestObject<U>,
+        retriesRemaining: number = 5
     ): Promise<Response<T>> {
-        const retryAfter = Math.max(Number(getHeader('Retry-After', response.headers)), 2000);
+        const url = getPathAndQuery(azureAsyncOperation);
+        const retryAfter = Math.max(Number(getHeader('Retry-After', originalResponse.metadata?.headers || {})), 2000);
         const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
         return delay(() => {
-            return this.makeArmCall<T>({
+            return this.makeArmCall<AzureAsyncOperationResult>({
                 method: 'GET',
-                resourceId: azureAsyncOperation,
+                url: url,
                 commandName: setTelemetryHeader,
-                apiVersion: request.apiVersion,
             });
         }, retryAfter).then(r => {
-            if (!r || !r.isSuccessful) {
-                // Return error if no response or failed
-                return {
-                    isSuccessful: false,
-                    error: r?.error || { code: 'NoResponse', message: 'No response from polling operation' },
-                };
-            }
+            const operationStatus = r && r.isSuccessful && r.content?.status;
+            const pollingFailed = !operationStatus;
 
-            const status = r.content?.status;
-
-            if (status === AzureAsyncOperationStatus.Succeeded) {
+            if (operationStatus === AzureAsyncOperationStatus.Succeeded) {
                 if (request.method === 'PUT' || request.method === 'PATCH') {
                     return this.makeArmCall<T>({
+                        ...request,
                         method: 'GET',
-                        resourceId: request.resourceId,
                         commandName: setTelemetryHeader,
-                        apiVersion: request.apiVersion,
+                        body: undefined,
                     });
-                } else {
-                    return {
-                        isSuccessful: true,
-                        content: response.content,
-                    };
                 }
-            } else if (status === AzureAsyncOperationStatus.Cancelled || status === AzureAsyncOperationStatus.Failed) {
+                return originalResponse;
+            }
+
+            if (operationStatus === AzureAsyncOperationStatus.Cancelled || operationStatus === AzureAsyncOperationStatus.Failed) {
                 return {
                     isSuccessful: false,
-                    error: r.content || { code: status, message: null },
+                    error: r.content || { code: operationStatus, message: null },
+                    content: null as T,
+                    metadata: r.metadata,
                 };
-            } else {
-                return this.pollAzureAsyncOperationForCompletion<T, U>(response, azureAsyncOperation, request);
             }
+
+            if (pollingFailed && retriesRemaining < 1) {
+                return {
+                    ...r,
+                    isSuccessful: false,
+                    content: null as T,
+                };
+            }
+
+            return this.pollAzureAsyncOperationForCompletion<T, U>(
+                originalResponse,
+                azureAsyncOperation,
+                request,
+                pollingFailed ? retriesRemaining - 1 : undefined
+            );
         });
     }
 
-    private pollProvisioningStateForCompletion<T, U = T>(request: ArmRequestObject<U>): Promise<Response<T>> {
+    private pollProvisioningStateForCompletion<T, U = T>(request: ArmRequestObject<U>, retriesRemaining: number = 5): Promise<Response<T>> {
         const retryAfter = 2000;
         const setTelemetryHeader = this.getPollingTelemetryHeader(request.commandName);
 
@@ -369,42 +331,17 @@ export class ArmClient extends Client {
                 apiVersion: request.apiVersion,
             });
         }, retryAfter).then(r => {
-            if (!r || !r.isSuccessful) {
-                // Return error if no response or failed
-                return {
-                    isSuccessful: false,
-                    error: r?.error || { code: 'NoResponse', message: 'No response from polling operation' },
-                };
+            if (!r.isSuccessful) {
+                return retriesRemaining < 1 ? r : this.pollProvisioningStateForCompletion(request, retriesRemaining - 1);
             }
 
-            if (r.metadata?.status === 200) {
-                return {
-                    isSuccessful: true,
-                    content: r.content,
-                };
-            } else if (r.metadata?.status === 201 || r.metadata?.status === 202) {
+            if (r.metadata?.status === 201 || r.metadata?.status === 202) {
                 const provisioningState = (<any>r.content)?.properties?.provisioningState;
-                if (provisioningState === ProvisioningState.Succeeded) {
-                    return {
-                        isSuccessful: true,
-                        content: r.content,
-                    };
-                } else if (provisioningState === ProvisioningState.Failed) {
-                    const error = r.content?.error || r.content;
-                    return {
-                        isSuccessful: false,
-                        error: error,
-                    };
-                } else {
-                    return this.pollProvisioningStateForCompletion(request);
-                }
-            } else {
-                const error = r.content || { code: r.metadata?.status, message: null };
-                return {
-                    isSuccessful: false,
-                    error: error,
-                };
+                const isTerminalState = provisioningState === ProvisioningState.Succeeded || provisioningState === ProvisioningState.Failed;
+                return isTerminalState ? r : this.pollProvisioningStateForCompletion(request);
             }
+
+            return r;
         });
     }
 

@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { memo, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { FilterProps } from '../../../Common/Components/PillFilter/Contracts';
@@ -6,7 +7,6 @@ import { ExtendedAgentsGraphResources } from '../../../Strings/SREAgentResources
 import { ExtendedAgent, ExtendedTool, PlaygroundEntity, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { EntityIcon, EntityIconType } from '../EntityIcon';
 import { McpConnection } from '../ExtendedAgentCreationDialog/api/mcpConnectionsApi';
-import { tokens } from '@fluentui/react-components';
 
 const iconShorthandStyle = { wrapperSize: 20, iconSize: 16, borderRadius: 6 };
 
@@ -196,7 +196,7 @@ const getEntityOptionKey = (playgroundEntity: PlaygroundEntity) => {
 
 const getPillFilterLabel = (entityOption: PlaygroundEntity | undefined, intl: ReturnType<typeof useIntl>) => {
     if (!entityOption) {
-        return 'Agent/Tool';
+        return intl.formatMessage(ExtendedAgentsGraphResources.subagentOrTool);
     }
 
     if (entityOption.entityType === 'Agent') {

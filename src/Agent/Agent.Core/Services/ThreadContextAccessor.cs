@@ -14,12 +14,19 @@ namespace Agent.Core.Services
     public static class ThreadContextAccessor
     {
         private static readonly AsyncLocal<Guid?> _currentThreadId = new();
+        private static readonly AsyncLocal<string?> _currentHandlerId = new();
         private static readonly ConcurrentDictionary<Guid, bool> _retroModeByThread = new();
 
         public static Guid? CurrentThreadId
         {
             get => _currentThreadId.Value;
             private set => _currentThreadId.Value = value;
+        }
+
+        public static string? CurrentHandlerId
+        {
+            get => _currentHandlerId.Value;
+            set => _currentHandlerId.Value = value;
         }
 
         public static bool IsIncidentTestModeEnabled

@@ -98,6 +98,16 @@ export interface DataConnector {
     source?: string;
 }
 
+export enum ModelProvider {
+    Anthropic = 'Anthropic',
+    MicrosoftFoundry = 'MicrosoftFoundry',
+}
+
+export interface Model {
+    provider: ModelProvider;
+    name?: string; // (NOTE (wangcynthia): optional for now, since for GA the user can only select provider.
+}
+
 export interface Agent {
     provisioningState: ProvisioningState;
     agentEndpoint: string;
@@ -113,4 +123,5 @@ export interface Agent {
     dashboardConfiguration: DashboardConfiguration;
     upgradeChannel?: UpgradeChannel;
     powerState?: AgentPowerState;
+    defaultModel?: Model;
 }

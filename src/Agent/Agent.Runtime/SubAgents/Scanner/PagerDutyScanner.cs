@@ -482,6 +482,11 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                     if (incidentDocument.Status != incident.Status)
                     {
                         incidentDocument.Status = incident.Status;
+                        // Set ResolvedAt when status changes to resolved
+                        if (incident.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase))
+                        {
+                            incidentDocument.ResolvedAt = incident.UpdatedAt;
+                        }
                         needsUpsert = true;
                     }
                     if (incident.Priority != null && incidentDocument.Priority != incident.Priority.Summary)

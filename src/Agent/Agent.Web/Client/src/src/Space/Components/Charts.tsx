@@ -305,6 +305,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
         switch (type) {
             case 'line': {
+                if (!data || data.length === 0 || !data[0]) {
+                    return null;
+                }
                 const seriesNames = Object.keys(data[0]).filter(key => key !== 'name');
                 return (
                     <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>

@@ -8,6 +8,28 @@ using System.Text.Json;
 
 namespace Agent.Plugins.Models;
 
+/// <summary>
+/// Represents an email attachment with base64-encoded content.
+/// </summary>
+public record EmailAttachment
+{
+    /// <summary>
+    /// Gets the file name for the attachment (e.g., "report.pdf").
+    /// </summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the base64-encoded content of the attachment.
+    /// </summary>
+    public string ContentBytes { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the MIME content type of the attachment (e.g., "application/pdf").
+    /// Optional - if not provided, the email service will attempt to infer it.
+    /// </summary>
+    public string? ContentType { get; init; }
+}
+
 public record EmailMessage
 {
     public string Id { get; init; } = string.Empty;

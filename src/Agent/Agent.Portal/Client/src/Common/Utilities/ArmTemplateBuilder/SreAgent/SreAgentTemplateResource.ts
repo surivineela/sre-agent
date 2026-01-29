@@ -19,6 +19,7 @@ interface SreAgentResourceOptions {
     deploymentGuid: string;
     agentSpaceId?: string;
     createNewAppInsights: boolean;
+    defaultModelProvider?: string;
 }
 
 /**
@@ -48,6 +49,12 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
         private _options: SreAgentResourceOptions
     ) {
         super(builder);
+
+        if (this._options.defaultModelProvider) {
+            this.parameters[SreAgentParameterName.DefaultModelProvider] = {
+                type: 'string',
+            };
+        }
 
         const dependencyArray = this._options.managedResourceNames.map(resource => {
             const safeName = resource.length > 34 ? resource.substring(0, 34) : resource;
@@ -96,6 +103,14 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
                         connectionString: `[reference(parameters('${AppInsightsParameterName.AppInsightsResourceId}'), '${ApiVersions.appInsightsApiVersion20200202}').ConnectionString]`,
                     },
                 },
+                ...(this._options.defaultModelProvider
+                    ? {
+                          defaultModel: {
+                              provider: `[parameters('${SreAgentParameterName.DefaultModelProvider}')]`,
+                              name: "Automatic",
+                          },
+                      }
+                    : {}),
             },
             identity: {
                 type: 'SystemAssigned, UserAssigned',

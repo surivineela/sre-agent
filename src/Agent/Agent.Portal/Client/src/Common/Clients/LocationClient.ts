@@ -1,6 +1,6 @@
 import { ApiVersions } from '../Constants/ApiVersions';
 import { TelemetrySource } from '../Constants/Telemetry';
-import { ResponseArray } from '../Contracts/Arm';
+import { ArmArray, ResponseArray } from '../Contracts/Arm';
 import { Response } from '../Contracts/Response';
 import { format } from '../Utilities/String';
 import { ArmClient } from './ArmClient';
@@ -21,6 +21,15 @@ export interface AzureLocation {
         geographyGroup?: string;
         physicalLocation?: string;
     };
+}
+
+export interface SupportedModel {
+    default: boolean;
+    providerName: string;
+    providerDisplayName: string;
+    modelName: string;
+    modelDisplayName: string;
+    multiplier: string;
 }
 
 export class LocationClient extends Client {
@@ -77,6 +86,18 @@ export class LocationClient extends Client {
             resourceId: format(listLocationsUrl, subscriptionId),
             apiVersion,
             commandName: 'listLocations',
+        });
+    }
+
+    public async getSupportedModels(
+        subscriptionId: string,
+        location: string,
+        apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview
+    ) {
+        const url = `/subscriptions/${subscriptionId}/providers/Microsoft.App/locations/${location}/supportedModels?api-version=${apiVersion}`;
+        return this.armClient.makeArmCall<ArmArray<SupportedModel>>({
+            url,
+            commandName: 'GetSupportedModels',
         });
     }
 

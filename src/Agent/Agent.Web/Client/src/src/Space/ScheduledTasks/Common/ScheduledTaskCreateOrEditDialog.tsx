@@ -68,10 +68,10 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                                 refreshTasks(
                                     values.subAgent
                                         ? { entityType: 'Agent', entityName: values.subAgent }
-                                        : { entityType: 'Trigger', entityName: values.name }
+                                        : { entityType: 'ScheduledTrigger', entityName: values.name }
                                 );
                             } else {
-                                refreshTasks({ entityType: 'Trigger', entityName: values.name });
+                                refreshTasks({ entityType: 'ScheduledTrigger', entityName: values.name });
                             }
                         }
                     });

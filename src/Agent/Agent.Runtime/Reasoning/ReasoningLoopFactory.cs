@@ -40,8 +40,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IHostEnvironment _hostEnvironment;
     private readonly CustomerLogger _customerLogger;
     private readonly ISkillRegistry _skillRegistry;
-    private readonly IToolOutputTruncationService _toolOutputTruncationService;
-    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IToolOutputProcessService _toolOutputProcessService;
+    private readonly IThreadFileStorageService _threadFileStorageService;
     private readonly IAmbientContextProvider _ambientContextProvider;
 
     private readonly Tracer _tracer;
@@ -77,8 +77,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         SearchHelper searchHelper,
         IAgentMemoryClient agentMemoryClient,
         ISearchIndexService searchIndexService,
-        IToolOutputTruncationService toolOutputTruncationService,
-        IToolOutputStorage toolOutputStorage,
+        IToolOutputProcessService toolOutputProcessService,
+        IThreadFileStorageService threadFileStorageService,
         IMeterFactory meterFactory,
         IncidentManagementSettings incidentManagementSettings,
         ISkillRegistry skillRegistry,
@@ -105,8 +105,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _searchHelper = searchHelper;
         _agentMemoryClient = agentMemoryClient;
         _searchIndexService = searchIndexService;
-        _toolOutputTruncationService = toolOutputTruncationService;
-        _toolOutputStorage = toolOutputStorage;
+        _toolOutputProcessService = toolOutputProcessService;
+        _threadFileStorageService = threadFileStorageService;
         _incidentManagementSettings = incidentManagementSettings;
         _skillRegistry = skillRegistry;
         _ambientContextProvider = ambientContextProvider;
@@ -232,8 +232,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     coreSettings: _coreSettings,
                     modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
                     skillRegistry: _skillRegistry,
-                    toolOutputTruncationService: _toolOutputTruncationService,
-                    toolOutputStorage: _toolOutputStorage,
+                    toolOutputProcessService: _toolOutputProcessService,
+                    threadFileStorageService: _threadFileStorageService,
                     hostEnvironment: _hostEnvironment,
                     ambientContextProvider: _ambientContextProvider);
 
@@ -267,8 +267,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             agentMemorySettings: _coreSettings.AgentMemory,
             featureConfig: _featureConfig,
             agentRuntimeModifier: _agentRuntimeModifier,
-            toolOutputTruncationService: _toolOutputTruncationService,
-            toolOutputStorage: _toolOutputStorage,
+            toolOutputProcessService: _toolOutputProcessService,
+            threadFileStorageService: _threadFileStorageService,
             hostEnvironment: _hostEnvironment,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
             skillRegistry: _skillRegistry,

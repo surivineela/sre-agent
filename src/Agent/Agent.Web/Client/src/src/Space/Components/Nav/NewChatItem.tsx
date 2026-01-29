@@ -2,7 +2,7 @@ import { Dialog, Tooltip, useRestoreFocusTarget } from '@fluentui/react-componen
 import { Add20Filled, Add20Regular, bundleIcon, Search20Filled, Search20Regular } from '@fluentui/react-icons';
 import { memo, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { SpecialControlValue } from '../../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread, ThreadSource } from '../../../Common/Contracts/DataPlane/Thread';

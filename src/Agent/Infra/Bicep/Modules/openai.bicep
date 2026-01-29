@@ -16,10 +16,6 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' e
   name: '${namePrefix}${consts.appConfigNameSuffix}'
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: '${namePrefix}${consts.kvNameSuffix}'
-}
-
 // gpt-5-mini is not supported in all regions
 resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: openAIName
@@ -31,7 +27,7 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   properties: {
     publicNetworkAccess: 'Enabled'
     customSubDomainName: customSubDomainName
-    disableLocalAuth: false
+    disableLocalAuth: true
     // restore: true
   }
 }
@@ -143,31 +139,28 @@ resource openaiEmbeddingGeneratorModelNameSetting 'Microsoft.AppConfiguration/co
   }
 }
 
-// Secret Settings
-var openaiApiKey = openai.listKeys().key1
-resource openaiApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  name: 'openai-api-key'
-  parent: kv
-  properties: {
-    value: openaiApiKey
-  }
-}
-resource openaiApiKeySetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
-  name: 'AppSettings:Core:Azure:OpenAI:ApiKey'
-  parent: appConfig
-  properties: {
-    value: string({uri: openaiApiKeySecret.properties.secretUri})
-    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
-  }
-}
-
-// Additional role assignment for embeddings access
+// Role assignments for managed identity access (replaces API key auth)
+// User-assigned managed identity access for Azure deployments (application identity)
 resource cognitiveServicesUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(openAIName, identity.name, consts.CognitiveServicesUser)
   scope: openai
   properties: {
     principalId: identity.properties.principalId
     principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      consts.CognitiveServicesUser
+    )
+  }
+}
+
+// Local user access for local development deployments
+resource cognitiveServicesUserDeployerRoleAssignment 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(openAIName, deployer().objectId, consts.CognitiveServicesUser)
+  scope: openai
+  properties: {
+    principalId: deployer().objectId
+    principalType: 'User'
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       consts.CognitiveServicesUser

@@ -26,6 +26,8 @@ export const EntityCard: FC<EntityCardProps> = ({ type, entityCount, handleCardC
                 return intl.formatMessage(ScheduledTasksResources.scheduledTasks);
             case 'kustoTools':
                 return intl.formatMessage(ExtendedAgentsGraphResources.kustoTools);
+            case 'pythonTools':
+                return intl.formatMessage(ExtendedAgentsGraphResources.pythonTools);
             case 'skills':
                 return intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel);
             default:
@@ -43,6 +45,8 @@ export const EntityCard: FC<EntityCardProps> = ({ type, entityCount, handleCardC
                 return 'scheduledTask';
             case 'kustoTools':
                 return 'toolWithGear';
+            case 'pythonTools':
+                return 'pythonTool';
             case 'skills':
                 return 'skill';
             default:

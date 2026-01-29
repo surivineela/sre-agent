@@ -65,7 +65,7 @@ export const useSharedNavDrawerStyles = makeStyles({
         paddingTop: '16px',
         paddingLeft: '16px',
         backgroundColor: 'transparent',
-        maxWidth: '300px', // Default width for Settings
+        maxWidth: '240px', // Default width for Settings
     },
     drawerIncidentManagement: {
         height: 'calc(100% - 16px)',
@@ -79,7 +79,7 @@ export const useSharedNavDrawerStyles = makeStyles({
         paddingTop: '16px',
         paddingLeft: '16px',
         backgroundColor: 'transparent',
-        width: '56px',
+        width: '48px',
     },
     drawerHeader: {
         backgroundColor: 'transparent',

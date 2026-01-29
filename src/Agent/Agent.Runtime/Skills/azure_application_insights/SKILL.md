@@ -1,3 +1,19 @@
+---
+name: azure_application_insights
+description: |
+  Use this skill when you need to analyze Azure Application Insights telemetry to understand application health, reliability, performance, or user experience for a specific incident or investigation.
+  Load this skill when:
+  - The issue description references Azure Application Insights, app insights, or an Application Insights resource.
+  - You are asked to explain or investigate metrics, traces, exceptions, or dependencies captured in Application Insights.
+  - You need structured, end-to-end analysis of an application problem using telemetry (including impact assessment and recommendations).
+  This skill provides a structured workflow for root cause analysis using time-series correlation, distributed tracing, and impact analysis, and for producing clear, prioritized remediation guidance.
+tools:
+  - CorrelateTimeSeries
+  - GetDistributedTrace
+  - ListDistributedTraces
+  - GetImpact
+---
+
 # Azure Application Insights Skill
 
 Use this skill to perform structured, telemetry-driven analysis of application health, reliability, performance, and user experience using Azure Application Insights.

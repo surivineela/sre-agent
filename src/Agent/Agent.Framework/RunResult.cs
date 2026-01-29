@@ -108,6 +108,12 @@ public class ManualToolCallResult
 {
     public required FunctionCallContent FunctionCall { get; set; }
     public required object? Output { get; set; }
+
+    /// <summary>
+    /// Optional additional messages to inject into the conversation after the tool result.
+    /// This is used for tools like ViewImage that need to inject content (e.g., images) into the conversation.
+    /// </summary>
+    public List<ChatMessage>? AdditionalMessages { get; set; }
 }
 
 public class TurnLimitReachedException<TContext>(

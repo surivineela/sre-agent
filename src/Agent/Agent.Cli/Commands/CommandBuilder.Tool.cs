@@ -46,7 +46,13 @@ public static partial class CommandBuilder
                 ToolCommandOptions.Create.FunctionCodeOption,
                 ToolCommandOptions.Create.TimeoutSecondsOption,
                 ToolCommandOptions.Create.DependenciesOption,
-                ToolCommandOptions.Create.ParameterOption
+                ToolCommandOptions.Create.ParameterOption,
+                ToolCommandOptions.Create.UrlOption,
+                ToolCommandOptions.Create.MethodOption,
+                ToolCommandOptions.Create.BodyOption,
+                ToolCommandOptions.Create.HeaderOption,
+                ToolCommandOptions.Create.AuthConnectorOption,
+                ToolCommandOptions.Create.AuthScopeOption
             };
 
             // Define common options shared across all tool types
@@ -79,13 +85,25 @@ public static partial class CommandBuilder
                 ToolCommandOptions.Create.DependenciesOption
             };
 
+            var httpClientToolOptions = new Option[]
+            {
+                ToolCommandOptions.Create.UrlOption,
+                ToolCommandOptions.Create.MethodOption,
+                ToolCommandOptions.Create.BodyOption,
+                ToolCommandOptions.Create.HeaderOption,
+                ToolCommandOptions.Create.AuthConnectorOption,
+                ToolCommandOptions.Create.AuthScopeOption,
+                ToolCommandOptions.Create.TimeoutSecondsOption
+            };
+
             // Define tool type to specific options mapping (empty string = Common options)
             var toolTypeOptions = new Dictionary<string, Option[]>
             {
                 [""] = commonOptions,
                 [ToolName.KustoTool] = kustoToolOptions,
                 [ToolName.LinkTool] = linkToolOptions,
-                [ToolName.PythonTool] = pythonToolOptions
+                [ToolName.PythonTool] = pythonToolOptions,
+                [ToolName.HttpClientTool] = httpClientToolOptions
             };
 
             // Add custom help option to override default behavior
@@ -263,6 +281,21 @@ public static partial class CommandBuilder
                     };
                     ConsoleUI.WriteExamples(pythonExamples, indent: 2, pad: 2);
                 }
+
+                // Show HttpClientTool Options with examples
+                if (_toolTypeOptions.TryGetValue(ToolName.HttpClientTool, out var httpClientOptions))
+                {
+                    ConsoleUI.Write("HttpClientTool Options:");
+                    ConsoleUI.WriteOptions(httpClientOptions);
+                    ConsoleUI.Write("");
+                    var httpClientExamples = new (string Comment, string Command)[]
+                    {
+                        ("Create a simple GET request tool", "srectl tool create --name GetUserInfo --type HttpClientTool --url \"https://api.example.com/users/{{userId}}\" --method GET --parameter userId:string:User ID"),
+                        ("Create a POST request tool with body", "srectl tool create --name CreateTicket --type HttpClientTool --url \"https://api.example.com/tickets\" --method POST --body \"{\\\"title\\\": \\\"{{title}}\\\"}\" --header \"Content-Type:application/json\""),
+                        ("Create an authenticated API call", "srectl tool create --name CallSecureApi --type HttpClientTool --url \"https://api.example.com/data\" --method GET --auth-connector my-oauth-connector --auth-scope \"api://example/.default\"")
+                    };
+                    ConsoleUI.WriteExamples(httpClientExamples, indent: 2, pad: 2);
+                }
             }
 
         }
@@ -323,7 +356,8 @@ public static partial class CommandBuilder
             var cmd = new Command("delete", CommandExamples.Tool.DeleteDescription)
             {
                 ToolCommandOptions.Delete.NameOption,
-                ToolCommandOptions.Delete.DryRunOption
+                ToolCommandOptions.Delete.DryRunOption,
+                ToolCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             // Add validator for name

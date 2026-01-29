@@ -321,7 +321,7 @@ public sealed class IncidentInvestigationTaskHandler(
                     tools.Add(tool);
                 }
 
-                return Task.FromResult(tools);
+                return Task.FromResult(tools.DistinctBy(t => t.Name).ToList());
             };
 
             // 1. Initial Investigation
@@ -938,9 +938,6 @@ public sealed class IncidentInvestigationTaskHandler(
                 "RunAzCliReadCommands",
                 "GetResourceDetailedProperties",
                 "SearchResource",
-                "SearchResourceByName",
-                "GetResourceIdForResourceName",
-                "ListResourcesByType",
                 "SearchDesignDocs",
                 "SearchMemory",
                 "SearchIncidentKnowledge",

@@ -59,7 +59,7 @@ export const useTodoPlanContentStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalM,
-        padding: '10px 15px',
+        padding: '10px 15px 10px 36px', // Left padding aligns items with header text (icon 28px + gap 8px)
         minHeight: '0px',
     },
     taskItem: {
@@ -67,14 +67,16 @@ export const useTodoPlanContentStyles = makeStyles({
         flexDirection: 'row',
         minWidth: '0px',
         minHeight: '0px',
-        gap: tokens.spacingHorizontalS,
         alignItems: 'flex-start',
         justifyItems: 'flex-start',
     },
     taskItemIcon: {
         fontSize: '18px',
-        flex: '0 0 18px',
+        width: '18px',
+        marginLeft: '-26px', // Pull icon into left margin to align with header icon
+        marginRight: '8px', // Space between icon and text
         paddingTop: '2px',
+        flexShrink: 0,
     },
     taskItemContent: {
         minWidth: '0px',

@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
-using Anthropic;
 using Microsoft.Extensions.AI;
 using OpenAI.Responses;
 
@@ -204,6 +203,39 @@ public static partial class ChatClientExtensions
 
         Debug.Assert(isResponsesApi is not null);
 
+        // Enable prompt caching for Anthropic models by inserting a cache control marker user message after the system message to keep the prefix
+        // of all chat threads consistent for better cache hits.
+        // This marker uses a neutral "." text to avoid influencing the model's reasoning while enabling cache breakpoints.
+        //
+        // Why a user message instead of system message?
+        // The Anthropic SDK v12.2.0 converts system messages to a single content block without respecting RawRepresentation,
+        // so cache control cannot be set on system messages directly.
+        // See: https://github.com/anthropics/anthropic-sdk-csharp/blob/Anthropic-v12.2.0/src/Anthropic/Services/Beta/Messages/AnthropicBetaClientExtensions.cs#L488
+        //
+        // User message content blocks DO respect RawRepresentation, allowing us to attach BetaCacheControlEphemeral.
+        // See: https://github.com/anthropics/anthropic-sdk-csharp/blob/Anthropic-v12.2.0/src/Anthropic/Services/Beta/Messages/AnthropicBetaClientExtensions.cs#L502
+        //
+        // Note: This workaround is specific to Anthropic SDK v12.2.0 and may break if the SDK changes its internal implementation.
+        if (isAnthropicModel)
+        {
+            var messagesList = messages.ToList();
+            if (messagesList.Count > 0)
+            {
+                var cacheMarkerString = ".";
+                var cacheMarkerText = new TextContent(cacheMarkerString)
+                {
+                    RawRepresentation = (Anthropic.Models.Beta.Messages.BetaContentBlockParam)new Anthropic.Models.Beta.Messages.BetaTextBlockParam
+                    {
+                        Text = cacheMarkerString,
+                        CacheControl = new Anthropic.Models.Beta.Messages.BetaCacheControlEphemeral(),
+                    }
+                };
+                var cacheMarkerMessage = new ChatMessage(ChatRole.User, [cacheMarkerText]);
+                messagesList.Insert(1, cacheMarkerMessage);
+                messages = messagesList;
+            }
+        }
+
         while (true)
         {
             try
@@ -219,7 +251,7 @@ public static partial class ChatClientExtensions
                 var modelId = string.Empty;
 
                 // responses api state properties
-                var lastResponse = default(OpenAI.Responses.OpenAIResponse);
+                var lastResponse = default(OpenAI.Responses.ResponseResult);
 
                 // handle streaming updates
                 await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
@@ -375,27 +407,6 @@ public static partial class ChatClientExtensions
                     await outputTextStreamHandler.CompleteAsync();
                 }
 
-                if (isAnthropicModel)
-                {
-                    // Deduplicate tool call messages by tool call id for each response.Messages.Contents
-                    // because there's a bug in Anthropic SDK that may cause duplicate tool calls in streaming mode with parallel tool call enabled
-                    // https://github.com/anthropics/anthropic-sdk-csharp/issues/53
-                    foreach (var message in response.Messages)
-                    {
-                        var seenToolCallIds = new HashSet<string>();
-                        message.Contents = message.Contents
-                            .Where(content =>
-                            {
-                                if (content is FunctionCallContent toolCall)
-                                {
-                                    return seenToolCallIds.Add(toolCall.CallId);
-                                }
-                                return true;
-                            })
-                            .ToList();
-                    }
-                }
-
                 return response;
             }
             catch (RateLimitExceededException ex)
@@ -424,7 +435,7 @@ public static partial class ChatClientExtensions
                 if (rateLimitRetried <= maxRateLimitRetries)
                 {
                     rateLimitRetried++;
-                    await Task.Delay(TimeSpan.FromMilliseconds(1000), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
                     continue;
                 }
                 throw;

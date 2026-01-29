@@ -44,6 +44,11 @@ public class ToolOutputSettings
     public string BlobStorageContainerName { get; set; } = "tooloutput";
 
     /// <summary>
+    /// Azure Blob Storage container name for thread files (e.g., code interpreter outputs)
+    /// </summary>
+    public string ThreadFilesContainerName { get; set; } = "threadfiles";
+
+    /// <summary>
     /// Maximum number of characters allowed in tool output retrieval results
     /// Default: 65536 characters (64KB)
     /// </summary>

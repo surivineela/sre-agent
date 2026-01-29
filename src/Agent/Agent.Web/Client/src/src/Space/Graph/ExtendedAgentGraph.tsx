@@ -4,7 +4,7 @@ import { BeakerRegular } from '@fluentui/react-icons';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -475,7 +475,7 @@ const ExtendedAgentGraphContent = memo(() => {
                 }
                 if (triggers.length > 0) {
                     return {
-                        entityType: 'Trigger',
+                        entityType: triggers[0].type === 'incident' ? 'IncidentTrigger' : 'ScheduledTrigger',
                         entityName: triggers[0].name,
                     };
                 }
@@ -504,7 +504,7 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         const hasAgent = anchorEntity.entityType === 'Agent' && agents.some(agent => agent.name === anchorEntity.entityName);
-        const hasTrigger = anchorEntity.entityType === 'Trigger' && triggers.some(trigger => trigger.name === anchorEntity.entityName);
+        const hasTrigger = (anchorEntity.entityType === 'IncidentTrigger' || anchorEntity.entityType === 'ScheduledTrigger') && triggers.some(trigger => trigger.name === anchorEntity.entityName);
 
         if (hasAgent || hasTrigger) {
             return;
@@ -532,7 +532,7 @@ const ExtendedAgentGraphContent = memo(() => {
         }
         if (triggers.length > 0) {
             setAnchorEntity({
-                entityType: 'Trigger',
+                entityType: triggers[0].type === 'incident' ? 'IncidentTrigger' : 'ScheduledTrigger',
                 entityName: triggers[0].name,
             });
             return;
@@ -544,9 +544,9 @@ const ExtendedAgentGraphContent = memo(() => {
             return;
         }
 
-        if (pendingEntitySelection.entityType === 'Trigger') {
+        if (pendingEntitySelection.entityType === 'IncidentTrigger' || pendingEntitySelection.entityType === 'ScheduledTrigger') {
             if (triggers.some(trigger => trigger.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({ entityType: 'Trigger', entityName: pendingEntitySelection.entityName });
+                setAnchorEntity({...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
             return;
@@ -554,7 +554,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
         if (pendingEntitySelection.entityType === 'Agent') {
             if (agents.some(agent => agent.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({ entityType: 'Agent', entityName: pendingEntitySelection.entityName });
+                setAnchorEntity({...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
         }
@@ -893,7 +893,10 @@ const ExtendedAgentGraphContent = memo(() => {
                     setAnchorEntity({ entityType: 'Agent', entityName: agentName });
 
                     if (!agents.some(agent => agent.name === agentName)) {
-                        setPendingEntitySelection({ entityType: 'Agent', entityName: agentName });
+                        setPendingEntitySelection({
+                            entityType: 'Agent',
+                            entityName: agentName,
+                        });
                     } else {
                         setPendingEntitySelection(undefined);
                     }
@@ -1586,15 +1589,9 @@ const ExtendedAgentGraphContent = memo(() => {
     const isLoading = useMemo(() => loading || isLayouting, [loading, isLayouting]);
     const hasSkills = useMemo(() => skills.length > 0, [skills.length]);
     const hasAgents = useMemo(() => agents.length > 0, [agents.length]);
+    const hasTriggers = useMemo(() => triggers.length > 0, [triggers.length]);
     // Check for subagents excluding the meta_agent override (for skill creation logic)
     const hasSubagents = useMemo(() => agents.some(agent => agent.name !== 'meta_agent'), [agents]);
-    const hasTools = useMemo(() => tools.length > 0, [tools.length]);
-    const hasConnectors = useMemo(() => connectors.length > 0, [connectors.length]);
-    const hasSystemTools = useMemo(() => systemTools.length > 0, [systemTools.length]);
-    const hasAnyResources = useMemo(
-        () => hasAgents || hasTools || hasConnectors || hasSystemTools || hasSkills,
-        [hasAgents, hasTools, hasConnectors, hasSystemTools, hasSkills]
-    );
     const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
     const infoPanelStyle: React.CSSProperties = useMemo(() => {
@@ -1637,17 +1634,17 @@ const ExtendedAgentGraphContent = memo(() => {
             );
         }
 
-        if (!hasData) {
-            return (
-                <div style={{ padding: '20px' }}>
-                    <MessageBar intent="warning">
-                        <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.noResultsForFilters)}</MessageBarBody>
-                    </MessageBar>
-                </div>
-            );
-        }
-
         if (currentView === ExtendedAgentGraphView.Canvas) {
+            if (!hasData) {
+                return (
+                    <div style={{ padding: '20px' }}>
+                        <MessageBar intent="warning">
+                            <MessageBarBody>{intl.formatMessage(ExtendedAgentsGraphResources.noResultsForFilters)}</MessageBarBody>
+                        </MessageBar>
+                    </div>
+                );
+            }
+
             return (
                 <ReactFlow
                     style={{ width: '100%', height: '100%' }}
@@ -1807,7 +1804,10 @@ const ExtendedAgentGraphContent = memo(() => {
         });
     }, [tools]);
 
-    const showEmptyState = useMemo(() => !isLoading && !hasAgents && !hasSkills, [isLoading, hasAgents, hasSkills]);
+    const showEmptyState = useMemo(
+        () => !isLoading && currentView === ExtendedAgentGraphView.Canvas && !hasAgents && !hasSkills && !hasTriggers,
+        [isLoading, currentView, hasAgents, hasSkills, hasTriggers]
+    );
 
     const handleCreateItemStandalone = useCallback(
         (itemType: EntityTypeExt) => {
@@ -1939,8 +1939,6 @@ const ExtendedAgentGraphContent = memo(() => {
                         onRefresh={handleRefresh}
                         onCreateItem={handleCreateItemStandalone}
                         isLoading={isLoading}
-                        hasData={hasData}
-                        showEmptyState={showEmptyState}
                         disableCreateMetaAgent={hasMetaAgentOverride}
                         disableCreateSubagent={hasSkills}
                         disableCreateSkill={hasSubagents}
@@ -2000,7 +1998,7 @@ const ExtendedAgentGraphContent = memo(() => {
                     <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
                         <div className={visualRoot} ref={visualRootRef}>
                             <div className={reactFlow}>
-                                {currentView === ExtendedAgentGraphView.Canvas && hasAnyResources && !showEmptyState && (
+                                {currentView === ExtendedAgentGraphView.Canvas && !showEmptyState && !loading && (
                                     <div className={selectorOverlay}>
                                         <ExtendedAgentSelector
                                             agents={agents}
@@ -2013,9 +2011,11 @@ const ExtendedAgentGraphContent = memo(() => {
                                             nodes={nodes}
                                             nodeCount={nodes.length}
                                             edgeCount={edges.length}
-                                            showAgentPicker={hasAgents}
+                                            showAgentPicker={hasAgents || hasTriggers}
                                             noAgentsMessage={
-                                                hasAgents ? undefined : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsFound)
+                                                hasAgents || hasTriggers
+                                                    ? undefined
+                                                    : intl.formatMessage(ExtendedAgentsGraphResources.noAgentsOrTriggersFound)
                                             }
                                         />
                                     </div>
@@ -2106,7 +2106,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                 handleRefresh().then(() => {
                                     if (isNew) {
                                         if (filterName) {
-                                            setPendingEntitySelection({ entityType: 'Trigger', entityName: filterName });
+                                            setPendingEntitySelection({ entityType: 'IncidentTrigger', entityName: filterName });
                                         }
                                         return;
                                     }
@@ -2117,7 +2117,7 @@ const ExtendedAgentGraphContent = memo(() => {
                                             t.name?.toLowerCase() === handlerId?.toLowerCase()
                                     );
                                     if (trigger) {
-                                        setPendingEntitySelection({ entityType: 'Trigger', entityName: trigger.name });
+                                        setPendingEntitySelection({ entityType: 'IncidentTrigger', entityName: trigger.name });
                                     }
                                 });
                             }
@@ -2181,7 +2181,9 @@ const ExtendedAgentGraphContent = memo(() => {
                         onDismiss={() => setAgentCreateOrEditInfo(undefined)}
                         refresh={(selectedAgent?: string) => {
                             handleRefresh().then(() => {
-                                setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
+                                setPendingEntitySelection(
+                                    selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined
+                                );
                             });
                         }}
                         agents={agents}

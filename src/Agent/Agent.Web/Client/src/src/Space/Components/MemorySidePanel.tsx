@@ -4,14 +4,17 @@ import { memo } from 'react';
 import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { MemorySearchCardResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { MemorySearchFocusOptions } from '../Contracts/Context';
 import MemorySearchPanelContent from './MemorySearchPanelContent';
 
 interface MemorySidePanelProps {
     memoryResult: MemorySearchResult | null;
     onClose: () => void;
+    focusOptions?: MemorySearchFocusOptions;
+    onFocusHandled?: () => void;
 }
 
-const MemorySidePanel = ({ memoryResult, onClose }: MemorySidePanelProps) => {
+const MemorySidePanel = ({ memoryResult, onClose, focusOptions, onFocusHandled }: MemorySidePanelProps) => {
     const intl = useIntl();
 
     if (!memoryResult) return null;
@@ -32,7 +35,7 @@ const MemorySidePanel = ({ memoryResult, onClose }: MemorySidePanelProps) => {
                     {intl.formatMessage(MemorySearchCardResources.memorySearchResults)}
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <MemorySearchPanelContent memoryResult={memoryResult} />
+            <MemorySearchPanelContent memoryResult={memoryResult} focusOptions={focusOptions} onFocusHandled={onFocusHandled} />
         </>
     );
 };

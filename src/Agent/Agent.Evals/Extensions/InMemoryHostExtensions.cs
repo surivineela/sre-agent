@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Microsoft.Extensions.AI;
@@ -16,9 +20,11 @@ public static class AgentExtensions
             .Select(ft => host.ToolFactory.GetTool(ft)));
         tools.AddRange(agent.Handoffs);
 
+        var distinctTools = tools.DistinctBy(t => t.Name).ToList();
+
         return new ChatOptions
         {
-            Tools = tools,
+            Tools = distinctTools,
             ToolMode = agent.ChatToolMode,
             Temperature = agent.Temperature,
             AllowMultipleToolCalls = tools.Count > 0

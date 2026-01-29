@@ -5,10 +5,8 @@
 using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
-using Agent.Core.Exceptions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -18,7 +16,6 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Agent.Plugins.Interface;
-using Azure;
 using Azure.Core;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
@@ -30,33 +27,26 @@ namespace Agent.Plugins.Implementation;
 
 public class GraphDBPlugin : IGraphDBPlugin
 {
-    // Using ThreadContext from your original code. When a thread ID is needed, we pull it from here.
-    public Guid? ThreadId { get; set; }
+    /// <summary>
+    /// Azure resource types that require querying the ARG resourcecontainers table instead of Resources.
+    /// </summary>
+    private static readonly HashSet<string> ArgResourceContainerTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "microsoft.resources/subscriptions",
+        "microsoft.resources/subscriptions/resourcegroups"
+    };
 
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IChatClientProvider _chatClientProvider;
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
     private readonly ILogger<GraphDBPlugin> _logger;
-
-    // Additional fields for health dashboard screenshot and LLM summarization
-    private readonly string _grafanaUrl;
-    private readonly string _puppeteerScreenshotApiUrl;
-    private readonly HttpClient _httpClient;
     private readonly DashboardSettings _dashboardSettings;
     private readonly IAuthenticationService _authService;
     private readonly List<string> _crawlRoots;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly AzureResourceGraphClient _azureResourceGraphClient;
 
-    private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new(StringComparer.OrdinalIgnoreCase)
-    {
-        { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
-        { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
-        { "microsoft.documentdb/databaseaccounts", "azure-insights-cosmos-db" },
-        { "microsoft.cache/redis", "azure-redis" },
-        { "microsoft.web/sites", "azure-app-service-monitoring" },
-        // Pending: webapp, sql
-    };
+    public Guid? ThreadId { get; set; }
 
     public GraphDBPlugin(
         IGraphDatabaseClient graphDbClient,
@@ -74,10 +64,6 @@ public class GraphDBPlugin : IGraphDBPlugin
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
         _logger = logger;
         _dashboardSettings = dashboardSettings;
-
-        _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
-        _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
-        _httpClient = new HttpClient();
         _authService = authService;
         _crawlRoots = [.. crawlerSettings.CrawlRoots.Split([','], StringSplitOptions.RemoveEmptyEntries).Select(root => root.Trim())];
 
@@ -86,7 +72,7 @@ public class GraphDBPlugin : IGraphDBPlugin
     }
 
     /// <summary>
-    /// When implementing this in prod, we need to give this agent a read-only user
+    /// Executes a generic read-only query against the graph database.
     /// </summary>
     [KernelFunction("query")]
     [Description("Run a generic query against the graph database. Do NOT perform any write operations.")]
@@ -95,13 +81,16 @@ public class GraphDBPlugin : IGraphDBPlugin
         return await _graphDbClient.Query(query);
     }
 
+    /// <summary>
+    /// Finds all network-connected resources for a given resource or all container apps.
+    /// </summary>
     public async Task<string> FindAllNetworkConnectedResources(string resourceId = "")
     {
         try
         {
             var vertexFilter = string.IsNullOrEmpty(resourceId)
                 ? "hasLabel('microsoft.app/containerapps')"
-                : $"hasId('{resourceId.ToLower().Replace("/", "_")}')"; // Replacing "/" with "_" as graph IDs use underscores
+                : $"hasId('{resourceId.ToLower().Replace("/", "_")}')";
 
             var query = $@"
     g.V().{vertexFilter}.has('isDeleted', false)
@@ -130,6 +119,9 @@ public class GraphDBPlugin : IGraphDBPlugin
         }
     }
 
+    /// <summary>
+    /// Gets a summary of application components connected to the specified resource.
+    /// </summary>
     public async Task<List<Node>> GetApplicationComponentsSummary(string resourceId, int hops = 3)
     {
         _logger.LogInternalInformation($"[GetApplicationComponentsSummary] Invoked with resourceId: {resourceId}");
@@ -138,6 +130,9 @@ public class GraphDBPlugin : IGraphDBPlugin
         return ConvertResultToNodes(result);
     }
 
+    /// <summary>
+    /// Generates a Mermaid diagram visualizing the microservice topology for an AKS deployment.
+    /// </summary>
     public async Task<string> VisualizeAKSMicroserviceTopology(
         string AKSClusterResourceId,
         string _namespace,
@@ -327,6 +322,9 @@ For reference, here is the raw Mermaid specification used to create the diagram:
 
     }
 
+    /// <summary>
+    /// Generates a Mermaid diagram visualizing application components and their relationships.
+    /// </summary>
     public async Task<string> VisualizeApplicationComponents(
         string resourceId,
         int hops = 3,
@@ -430,17 +428,13 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
         return "Error: Unexpected execution path in visualization process";
     }
 
-    // TODO: Consider refactoring this method to use a more generic approach for querying the graph database, for now it's only support Deployment, we need to support StatefulSet as well.
     private async Task<ResultSet<dynamic>> GetAKSMicroserviceTopologyRaw(string resourceId, string namespaceName, string deploymentName)
     {
         try
         {
             var formattedResourceId = resourceId.ToLower().Replace("/", "_");
-
-            // Query with specific deployment as starting point
             var deploymentResourceId = $"{formattedResourceId}_apps_v1_namespaces_{namespaceName}_deployments_{deploymentName}";
 
-            // We are leaving out contains for now
             var query = $@"
 g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 .repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'POSTGRESQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
@@ -494,6 +488,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
+    /// <summary>
+    /// Discovers all applications (Container Apps, App Services, AKS clusters) in a subscription.
+    /// </summary>
     public async Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId)
     {
         _logger.LogInternalInformation($"[DiscoverApplications] Invoked with subscription {subscriptionId}");
@@ -563,7 +560,6 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
         foreach (var item in result)
         {
-            // For consistency, we assume the properties are already a dictionary.
             var properties = new Dictionary<string, object>();
             foreach (var prop in item["properties"])
             {
@@ -583,12 +579,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         return nodes;
     }
 
+    /// <summary>
+    /// Adds an ignore/suppress configuration to a resource for a specified duration.
+    /// </summary>
     public async Task<string> AddIgnoreInfoToResource(string resourceId, TimeSpan ignoreTagDuration, string actionTaken)
     {
         try
         {
-            // Format the resource node ID
-            var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);                // Check if the resource node exists
+            var resourceNodeId = CrawlerExtensions.GetSanitizedCosmosDBId(resourceId);
             var query = $@"g.V().hasId('{resourceNodeId}').has('isDeleted', false)";
             var resourceNodeResults = await _graphDbClient.Query(query);
 
@@ -640,6 +638,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
+    /// <summary>
+    /// Links a source code repository to a container app in the knowledge graph.
+    /// </summary>
     public async Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl)
     {
         try
@@ -689,6 +690,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         return resources;
     }
 
+    /// <summary>
+    /// Updates a repository node with the last scan timestamp.
+    /// </summary>
     public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
     {
         var queryResults = await _graphDbClient.Query($@"                g.V().has('resourceId', '{repoUrl}').has('isDeleted', false)
@@ -716,23 +720,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         await _graphDbClient.AddOrUpdateNodeAsync(label, id, resourceType, properties);
     }
 
-    public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
-    {
-        var query = $@"
-                g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}').has('isDeleted', false)
-                .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceName', 'location')
-                .by(coalesce(values('subscriptionId'), constant('unknown')))
-                .by(coalesce(values('resourceGroupName'), constant('unknown')))
-                .by(coalesce(values('resourceType'), constant('unknown')))
-                .by(coalesce(values('resourceName'), constant('unknown')))
-                .by(coalesce(values('location'), constant('unknown')))
-                ";
-
-        var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
-
-        return results.FirstOrDefault([]);
-    }
-
+    /// <summary>
+    /// Gets detailed properties for a resource from the knowledge graph.
+    /// </summary>
     public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
     {
         resourceId = Regex.Replace(resourceId, $"^{Regex.Escape(Constants.AzureManagementPrefix)}", "", RegexOptions.IgnoreCase);
@@ -741,31 +731,15 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         {
             throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");
         }
-        // Filter out appHealthInfo property as it may be stale
         var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').has('isDeleted', false).properties().as('p').where(select('p').key().is(neq('appHealthInfo'))).group().by(select('p').key()).by(select('p').value())";
 
         var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
         return results.FirstOrDefault([]);
     }
 
-    public async Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
-    {
-        try
-        {
-            var query = $@"g.V().has(""resourceName"", ""{resourceName.ToLower()}"").has(""resourceType"", ""{resourceType.ToLower()}"").has('isDeleted', false).values('resourceId')";
-            var results = await _graphDbClient.Query<string>(query);
-            return results.FirstOrDefault("");
-        }
-        catch (RequestFailedException ex) when (ex.Status == 401 || ex.Status == 403)
-        {
-            throw new ToolExecutionUnauthorizedException($"Unauthorized access to resource {resourceName}");
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error retrieving resource ID for {resourceName} of type {resourceType}: {ex.Message}", ex);
-        }
-    }
-    #region Additional Methods
+    /// <summary>
+    /// Returns the URL to the knowledge graph resource usage dashboard.
+    /// </summary>
     public string GetKnowledgeGraphResourceUsageDashboard()
     {
         if (string.IsNullOrEmpty(_dashboardSettings?.PrometheusUrl))
@@ -776,262 +750,164 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/{AgentNameHelper.GetMainDashboardUid(_hostEnvironment.IsProduction())}/sre-azure-resource-overview?orgId=1&refresh=1m";
     }
 
-    public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(
-        string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
-    {
-        var actualGraphResourceType = resourceType.ToLower();
-
-        var kindToGraphTypeMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "deployment", "k8s/apps/v1/deployments" }, { "deployments", "k8s/apps/v1/deployments" },
-            { "statefulset", "k8s/apps/v1/statefulsets" }, { "statefulsets", "k8s/apps/v1/statefulsets" },
-            { "node", "k8s/core/v1/nodes" }, { "nodes", "k8s/core/v1/nodes" },
-            { "service", "k8s/core/v1/services" }, { "services", "k8s/core/v1/services" },
-            { "namespace", "k8s/core/v1/namespaces" }, { "namespaces", "k8s/core/v1/namespaces" },
-            { "configmap", "k8s/core/v1/configmaps" }, { "configmaps", "k8s/core/v1/configmaps" },
-            { "secret", "k8s/core/v1/secrets" }, { "secrets", "k8s/core/v1/secrets" },
-            { "persistentvolumeclaim", "k8s/core/v1/persistentvolumeclaims" }, { "persistentvolumeclaims", "k8s/core/v1/persistentvolumeclaims" },
-            { "pvc", "k8s/core/v1/persistentvolumeclaims" }
-        };
-
-        if (kindToGraphTypeMapping.ContainsKey(resourceType))
-        {
-            actualGraphResourceType = kindToGraphTypeMapping[resourceType];
-        }
-
-        try
-        {
-            var sb = new StringBuilder();
-            sb.Append("g.V().has('isDeleted', false)");
-
-            if (actualGraphResourceType != "all")
-            {
-                sb.Append($".hasLabel('{actualGraphResourceType}')");
-            }
-
-            if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
-            {
-                sb.Append($".has('{propertyName}', '{propertyValue}')");
-            }
-
-            sb.Append(@".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType', 'clusterResourceId', 'namespace')
-                    .by(coalesce(values('subscriptionId'), constant('')))
-                    .by(coalesce(values('resourceGroupName'), constant('')))
-                    .by(coalesce(values('resourceName'), constant('')))
-                    .by(coalesce(values('resourceType'), constant('')))
-                    .by(coalesce(values('clusterResourceId'), constant('')))
-                    .by(coalesce(values('namespace'), constant('')))");
-
-            // Add skip and take only if take > 0
-            if (take > 0)
-            {
-                sb.Append($".limit({take})");
-                _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, actualGraphResourceType);
-            }
-
-            var result = await _graphDbClient.Query(sb.ToString());
-            var resources = new List<Dictionary<string, object>>();
-
-            foreach (var item in result)
-            {
-                // Create a new dictionary for each resource
-                var propertyBag = new Dictionary<string, object>
-                {
-                    // Add label
-                    ["subscriptionId"] = item?["subscriptionId"]?.ToString() ?? string.Empty,
-                    ["resourceGroupName"] = item?["resourceGroupName"]?.ToString() ?? string.Empty,
-                    ["resourceName"] = item?["resourceName"]?.ToString() ?? string.Empty,
-                    ["resourceType"] = item?["resourceType"]?.ToString() ?? string.Empty
-                };
-
-                if (!string.IsNullOrEmpty(item?["clusterResourceId"]?.ToString()))
-                {
-                    propertyBag["clusterResourceId"] = item?["clusterResourceId"]?.ToString() ?? string.Empty;
-                }
-                if (!string.IsNullOrEmpty(item?["namespace"]?.ToString()))
-                {
-                    propertyBag["namespace"] = item?["namespace"]?.ToString() ?? string.Empty;
-                }
-
-                resources.Add(propertyBag);
-            }
-
-            _logger.LogInternalInformation("Found {Count} resources of type '{ActualResourceType}' matching filters.", resources.Count, actualGraphResourceType);
-            return resources;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error listing resources of type '{Type}'", actualGraphResourceType);
-            throw;
-        }
-    }
-
     /// <summary>
-    /// Searches for resources by a partial resource name and resource type.
+    /// Searches for resources by partial name, resource types, and/or other filters.
+    /// At least one filter parameter must be provided (resourceName, resourceTypes, subscriptionId, or location).
+    /// When multiple filters are provided, AND logic is applied.
+    /// Results include resourceId, resourceName, location (plus clusterResourceId/namespace for K8s).
     /// </summary>
-    public async Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType)
+    public async Task<List<object>> SearchResourceAsync(
+        string? resourceName,
+        List<string>? resourceTypes = null,
+        string? subscriptionId = null,
+        string? location = null,
+        int limit = 50)
     {
+        var normalizedTypes = NormalizeResourceTypes(resourceTypes);
+
+        var hasName = !string.IsNullOrWhiteSpace(resourceName);
+        var hasTypes = normalizedTypes.Count > 0;
+        var hasSubscriptionId = !string.IsNullOrWhiteSpace(subscriptionId);
+        var hasLocation = !string.IsNullOrWhiteSpace(location);
+
+        if (!hasName && !hasTypes && !hasSubscriptionId && !hasLocation)
+        {
+            throw new ArgumentException("At least one filter parameter must be provided for search (resourceName, resourceTypes, subscriptionId, or location).");
+        }
+
         try
         {
-            var modifiedResourceName = SanitizeInputForQuery(resourceName);
-            var query = $@"
-                g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
-                .where(values('resourceName').is(containing('{modifiedResourceName}')))
-                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
-                .by(id())
-                .by(values('resourceName'))
-                .by(label())
-                .by(values('subscriptionId'))
-                .by(values('resourceGroupName'))
-                .by(coalesce(values('location'), constant('')))
-                .by(values('resourceId'))
-";
+            var queryBuilder = new StringBuilder("g.V().has('isDeleted', false)");
 
-            var result = await _graphDbClient.Query(query);
-            var resources = new List<ArmResourceNode>();
-
-            foreach (var item in result)
+            if (hasName)
             {
-                var node = new ArmResourceNode
-                {
-                    ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
-                    ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
-                    SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
-                    ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
-                    Location = item["location"]?.ToString() ?? string.Empty,
-                    ResourceId = item["resourceId"]?.ToString() ?? string.Empty
-                };
-
-                resources.Add(node);
+                var sanitizedResourceName = SanitizeInputForQuery(resourceName!);
+                queryBuilder.Append($".where(values('resourceName').is(containing('{sanitizedResourceName}')))");
             }
 
-            return resources;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error searching for resource with name '{Name}' and type '{Type}'", resourceName, resourceType);
-            throw;
-        }
-    }
+            if (hasTypes)
+            {
+                var typeFilters = normalizedTypes.Select(t => $"hasLabel('{t}')");
+                queryBuilder.Append($".or({string.Join(", ", typeFilters)})");
+            }
 
-    /// <summary>
-    /// Searches for resources by a partial resource name.
-    /// </summary>
-    public async Task<dynamic> SearchResourceByNameAsync(string resourceName)
-    {
-        try
-        {
-            var modifiedResourceName = SanitizeInputForQuery(resourceName);
-            var query = $@"
-                g.V().has('isDeleted', false)
-                .where(values('resourceName').is(containing('{modifiedResourceName}')))
-                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId', 'namespace', 'clusterResourceId', 'group', 'apiVersion', 'kind', 'updateTs')
-                .by(id())
-                .by(values('resourceName'))
-                .by(label())
-                .by(coalesce(values('subscriptionId'), constant('')))
-                .by(coalesce(values('resourceGroupName'), constant('')))
-                .by(coalesce(values('location'), constant('')))
+            if (hasSubscriptionId)
+            {
+                var sanitizedSubId = SanitizeInputForQuery(subscriptionId!);
+                queryBuilder.Append($".has('subscriptionId', '{sanitizedSubId}')");
+            }
+
+            if (hasLocation)
+            {
+                var sanitizedLoc = SanitizeInputForQuery(location!);
+                queryBuilder.Append($".has('location', '{sanitizedLoc}')");
+            }
+
+            queryBuilder.Append($@"
+                .project('resourceId', 'resourceName', 'resourceType', 'location', 'namespace', 'clusterResourceId')
                 .by(coalesce(values('resourceId'), constant('')))
+                .by(coalesce(values('resourceName'), constant('')))
+                .by(label())
+                .by(coalesce(values('location'), constant('')))
                 .by(coalesce(values('namespace'), constant('')))
                 .by(coalesce(values('clusterResourceId'), constant('')))
-                .by(coalesce(values('group'), constant('')))
-                .by(coalesce(values('apiVersion'), constant('')))
-                .by(coalesce(values('kind'), constant('')))
-                .by(coalesce(values('updateTs'), constant(0)))
-";
+                .limit({limit})");
 
-            // Use the raw result directly
+            var query = queryBuilder.ToString();
+            _logger.LogInternalInformation("Executing SearchResourceAsync with query: {Query}", query);
+
             var result = await _graphDbClient.Query(query);
+            var resources = result.Select(item => (object)BuildResourceDictionary(item)).ToList();
 
-            // Create a composite key for each resource considering multiple dimensions
-            // Resources are unique if they differ by any of: subscription, resource group, resource type,
-            // kind, namespace, or cluster (for k8s resources)
-            var uniqueResources = result
-                .GroupBy(item =>
-                {
-                    string resourceName = item["resourceName"]?.ToString() ?? string.Empty;
-                    string subscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty;
-                    string resourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty;
-                    string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
-                    string kind = item["kind"]?.ToString() ?? string.Empty;
-                    string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
-                    string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
-
-                    // Create a composite key from these properties
-                    return $"{resourceName}|{subscriptionId}|{resourceGroupName}|{resourceType}|{kind}|{namespaceValue}|{clusterResourceId}";
-                })
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.OrderByDescending(item =>
-                       {
-                           if (item["updateTs"] is long updateTsLong)
-                           {
-                               return updateTsLong;
-                           }
-                           else if (item["updateTs"] is string updateTsString && long.TryParse(updateTsString, out var parsedValue))
-                           {
-                               return parsedValue;
-                           }
-                           return 0;
-                       }
-                    ).First() // Take the one with latest updateTs
-                );
-
-            // Convert to a more generic list that won't lose information
-            var resources = new List<object>();
-
-            // Use the filtered unique resources
-            foreach (var item in uniqueResources.Values)
+            // If knowledge graph returned no results, fall back to Azure Resource Graph
+            if (resources.Count == 0)
             {
-                // Determine if this is a Kubernetes resource by checking if the resourceType starts with "k8s/"
-                string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
-                string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
-                string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
-
-                // Check if this is a Kubernetes namespaced resource
-                if (resourceType.StartsWith("k8s/") && !string.IsNullOrEmpty(namespaceValue) && !string.IsNullOrEmpty(clusterResourceId))
-                {
-                    var k8sNode = new KubernetesNamespacedResourceNode(
-                        null,
-                        clusterResourceId,
-                        namespaceValue,
-                        item["subscriptionId"]?.ToString() ?? string.Empty,
-                        item["resourceGroupName"]?.ToString() ?? string.Empty,
-                         item["location"]?.ToString() ?? string.Empty,
-                        item["resourceName"]?.ToString() ?? string.Empty,
-                        item["group"]?.ToString() ?? string.Empty,
-                        item["apiVersion"]?.ToString() ?? string.Empty,
-                        item["kind"]?.ToString() ?? string.Empty
-                    );
-
-                    k8sNode.Location = item["location"]?.ToString() ?? string.Empty;
-
-                    resources.Add(k8sNode);
-                }
-                else
-                {
-                    var node = new ArmResourceNode
-                    {
-                        ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
-                        ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
-                        SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
-                        ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
-                        Location = item["location"]?.ToString() ?? string.Empty,
-                        ResourceId = item["resourceId"]?.ToString() ?? string.Empty
-                    };
-
-                    resources.Add(node);
-                }
+                _logger.LogInternalInformation("No results from knowledge graph, falling back to Azure Resource Graph");
+                var argResults = await QueryAzureResourceGraphAsync(resourceName, resourceTypes, subscriptionId, location, limit);
+                return argResults;
             }
 
-            // Return as dynamic to preserve all data
+            _logger.LogInternalInformation("SearchResourceAsync returned {Count} results", resources.Count);
             return resources;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error searching for resource with name '{Name}'", resourceName);
+            _logger.LogInternalError(ex, "Error searching for resources with name '{Name}' and types '{Types}'", resourceName, resourceTypes != null ? string.Join(", ", resourceTypes) : "none");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Queries Azure Resource Graph by name pattern, resource types, and/or other filters.
+    /// Returns slim fields: resourceId, resourceName, location.
+    /// Uses AND logic when multiple filters are provided.
+    /// </summary>
+    private async Task<List<object>> QueryAzureResourceGraphAsync(
+        string? resourceName,
+        List<string>? resourceTypes,
+        string? subscriptionId,
+        string? location,
+        int limit)
+    {
+        var resources = new List<object>();
+
+        try
+        {
+            var subscriptionIds = GetSubscriptionIdsFromCrawlRoots(subscriptionId);
+
+            if (subscriptionIds.Count == 0)
+            {
+                if (!string.IsNullOrWhiteSpace(subscriptionId))
+                {
+                    _logger.LogInternalWarning("Requested subscription '{SubscriptionId}' is not in crawl roots, returning empty results", subscriptionId);
+                    return resources;
+                }
+
+                _logger.LogInternalError("No subscription IDs found in crawl roots, cannot query Azure Resource Graph");
+                throw new InvalidOperationException("No subscription IDs found in crawl roots, cannot query Azure Resource Graph. Please add managed resources to your agent configuration.");
+            }
+
+            // Check if all requested types are container types (subscriptions/resourcegroups)
+            var isContainerQuery = resourceTypes != null &&
+                resourceTypes.Count > 0 &&
+                resourceTypes.All(t => ArgResourceContainerTypes.Contains(t));
+
+            var tableName = isContainerQuery ? "resourcecontainers" : "Resources";
+            var filters = BuildArgQueryFilters(resourceName, resourceTypes, location, isContainerQuery);
+            var whereClause = filters.Count > 0 ? $"| where {string.Join(" and ", filters)}" : "";
+            var projection = GetArgProjection(isContainerQuery);
+
+            var query = $@"
+                {tableName}
+                {whereClause}
+                {projection}
+                | limit {limit}
+            ";
+
+            _logger.LogInternalInformation("Executing Azure Resource Graph query with filters: name='{Name}', types='{Types}', subscriptionId='{SubId}', location='{Loc}'",
+                resourceName ?? "none",
+                resourceTypes != null ? string.Join(", ", resourceTypes) : "none",
+                subscriptionId ?? "none",
+                location ?? "none");
+
+            var result = await _azureResourceGraphClient.Query([.. subscriptionIds], query);
+
+            if (result?.Data is not null)
+            {
+                var jsonArray = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(result.Data.ToString());
+                if (jsonArray is not null)
+                {
+                    resources.AddRange(jsonArray);
+                }
+            }
+
+            _logger.LogInternalInformation("Azure Resource Graph returned {Count} results", resources.Count);
+            return resources;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error querying Azure Resource Graph");
+            throw new InvalidOperationException("Error querying Azure Resource Graph", ex);
         }
     }
 
@@ -1056,7 +932,6 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 "microsoft.alertsmanagement/smartdetectoralertrules",
                 "microsoft.insights/metricalerts"
             };
-            // todo: do we need to show k8s resources in the count?
             var counts = result.First().Where(kvp => kvp.Key.StartsWith("microsoft") && !excludedResourceTypes.Contains(kvp.Key) && kvp.Key.Count(c => c == '/') == 1).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             return counts;
         }
@@ -1067,6 +942,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
+    /// <summary>
+    /// Gets the count of resources of a specified type, optionally grouped by a property.
+    /// </summary>
     public async Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "")
     {
         if (string.Equals(resourceType, "all", StringComparison.OrdinalIgnoreCase))
@@ -1079,7 +957,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             string query;
 
             if (string.IsNullOrWhiteSpace(groupBy))
-            {                    // Simple count query when no groupBy is specified
+            {
                 query = $@"
                 g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
                 .count()
@@ -1090,7 +968,6 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 long count = 0;
                 if (result != null && result.Count > 0)
                 {
-                    // Convert the first result to long
                     count = Convert.ToInt64(result.First());
                     _logger.LogInternalInformation("Found {Count} resources of type '{Type}'", count, resourceType);
                 }
@@ -1098,7 +975,7 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 return new { ResourceType = resourceType, Count = count };
             }
             else
-            {                    // todo: this query linearly lists all resources of the type and manually groups them by the property, which could be slow
+            {
                 query = $@"
     g.V().hasLabel('{resourceType.ToLower()}').has('isDeleted', false)
     .project('id', 'propertyValue')
@@ -1161,6 +1038,9 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
+    /// <summary>
+    /// Gets a summary of all managed Azure resources and their counts by type.
+    /// </summary>
     public async Task<dynamic> GetManagedResourcesInfoAsync()
     {
         try
@@ -1183,10 +1063,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 "microsoft.source/repository"
             };
 
-            // Combine all resource types for processing
             var allResourceTypes = azureResourceTypes.Concat(otherResourceTypes).ToList();
 
-            // Create and execute tasks for getting counts of each resource type
             var resourceTypeTasks = new List<Task<dynamic>>();
             foreach (var resourceType in allResourceTypes)
             {
@@ -1194,7 +1072,6 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             }
             var results = await Task.WhenAll(resourceTypeTasks);
 
-            // Process results
             var managedResources = new Dictionary<string, long>();
             var otherResources = new Dictionary<string, long>();
 
@@ -1205,10 +1082,8 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
 
                 if (count > 0)
                 {
-                    // Extract a more readable name from the full resource type
                     var simpleName = resourceType.Split('/').Last();
 
-                    // Add to the appropriate dictionary based on resource type
                     if (azureResourceTypes.Contains(resourceType.ToLower()))
                     {
                         managedResources[simpleName] = count;
@@ -1220,7 +1095,6 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
                 }
             }
 
-            // Calculate totals
             var totalAzureCount = managedResources.Values.Sum();
             var totalOtherCount = otherResources.Values.Sum();
 
@@ -1239,6 +1113,144 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
             throw;
         }
     }
+
+    #region Private Utilities
+
+    /// <summary>
+    /// Escapes single quotes to prevent injection attacks in Gremlin/KQL queries.
+    /// </summary>
+    private static string SanitizeInputForQuery(string input)
+    {
+        return input.Replace("'", "''");
+    }
+
+    /// <summary>
+    /// Normalizes resource types for queries by lowercasing them.
+    /// </summary>
+    private static List<string> NormalizeResourceTypes(List<string>? resourceTypes)
+    {
+        if (resourceTypes == null || resourceTypes.Count == 0)
+            return [];
+
+        return [.. resourceTypes.Select(t => t.ToLower())];
+    }
+
+    /// <summary>
+    /// Builds a resource dictionary from graph query result item.
+    /// Handles both standard Azure resources and Kubernetes namespaced resources.
+    /// </summary>
+    private static Dictionary<string, string> BuildResourceDictionary(dynamic item)
+    {
+        var resourceId = item["resourceId"]?.ToString() ?? string.Empty;
+        var name = item["resourceName"]?.ToString() ?? string.Empty;
+        var resourceLocation = item["location"]?.ToString() ?? string.Empty;
+        var resourceType = item["resourceType"]?.ToString() ?? string.Empty;
+        var namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
+        var clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
+
+        var isK8sNamespacedResource = resourceType.StartsWith("k8s/") &&
+            !string.IsNullOrEmpty(namespaceValue) &&
+            !string.IsNullOrEmpty(clusterResourceId);
+
+        var result = new Dictionary<string, string>
+        {
+            ["resourceId"] = resourceId,
+            ["resourceName"] = name,
+            ["location"] = resourceLocation
+        };
+
+        if (isK8sNamespacedResource)
+        {
+            result["clusterResourceId"] = clusterResourceId;
+            result["namespace"] = namespaceValue;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Extracts subscription IDs from crawl roots, optionally filtering to a specific subscription.
+    /// </summary>
+    private HashSet<string> GetSubscriptionIdsFromCrawlRoots(string? subscriptionIdFilter = null)
+    {
+        var subscriptionIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var crawlRoot in _crawlRoots)
+        {
+            if (ResourceIdentifier.TryParse(crawlRoot, out var id) && id is not null && !string.IsNullOrWhiteSpace(id.SubscriptionId))
+            {
+                subscriptionIds.Add(id.SubscriptionId);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(subscriptionIdFilter))
+        {
+            var sanitizedSubId = SanitizeInputForQuery(subscriptionIdFilter);
+            subscriptionIds = subscriptionIds
+                .Where(s => s.Equals(sanitizedSubId, StringComparison.OrdinalIgnoreCase))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
+        return subscriptionIds;
+    }
+
+    /// <summary>
+    /// Builds ARG query filters based on provided parameters.
+    /// For container queries, also searches in displayName for subscription friendly names.
+    /// </summary>
+    private static List<string> BuildArgQueryFilters(
+        string? resourceName,
+        List<string>? argTypes,
+        string? location,
+        bool isContainerQuery)
+    {
+        var filters = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(resourceName))
+        {
+            var sanitizedName = SanitizeInputForQuery(resourceName);
+            if (isContainerQuery)
+            {
+                filters.Add($"(name contains '{sanitizedName}' or properties.displayName contains '{sanitizedName}')");
+            }
+            else
+            {
+                filters.Add($"name contains '{sanitizedName}'");
+            }
+        }
+
+        if (argTypes != null && argTypes.Count > 0)
+        {
+            var typeConditions = argTypes.Select(t => $"type =~ '{t.ToLower()}'");
+            filters.Add($"({string.Join(" or ", typeConditions)})");
+        }
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var sanitizedLoc = SanitizeInputForQuery(location);
+            filters.Add($"location =~ '{sanitizedLoc}'");
+        }
+
+        return filters;
+    }
+
+    /// <summary>
+    /// Gets the ARG projection clause based on query type.
+    /// Container queries include displayName and subscriptionId for friendly names.
+    /// </summary>
+    private static string GetArgProjection(bool isContainerQuery)
+    {
+        if (isContainerQuery)
+        {
+            return "| project resourceId = id, resourceName = name, location, displayName = coalesce(properties.displayName, name), subscriptionId";
+        }
+
+        return "| project resourceId = id, resourceName = name, location";
+    }
+
+    #endregion
+
+    #region Internal Methods (not exposed to LLM)
 
     /// <summary>
     /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.
@@ -1266,10 +1278,14 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
+    /// <summary>
+    /// Returns a list of resource groups for a given subscription ID.
+    /// </summary>
     public async Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId)
     {
         try
-        {                // Query with the correct lowercase 'resourcegroups' type
+        {
+            // Query with the correct lowercase 'resourcegroups' type
             var query = $@"g.V().has('resourceType', 'resourcegroups').has('isDeleted', false)
                          .has('subscriptionId', '{subscriptionId}')
                          .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceId', 'location')
@@ -1306,243 +1322,97 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         }
     }
 
-    private string SanitizeInputForQuery(string input)
+    /// <summary>
+    /// Returns a list of resources of a specified type with their complete property bag.
+    /// </summary>
+    public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(
+        string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
     {
-        // Sanitize the input to prevent injection attacks
-        return input.Replace("'", "''").Replace(".", "").Replace("//", "");
-    }
+        var actualGraphResourceType = resourceType.ToLower();
 
-    #endregion
-
-    #region Dummy Screenshot & LLM Summary Methods
-
-    private async Task<ScreenshotResponse?> CaptureDashboardScreenshotAsync(string dashboardUrl)
-    {
-        try
+        var kindToGraphTypeMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            var payload = new
-            {
-                grafanaEndpoint = _grafanaUrl,
-                grafanaToken = await _authService.GetGrafanaAccessToken(),
-                dashboardUrl
-            };
-
-            var requestJson = JsonSerializer.Serialize(payload);
-            var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
-            _logger.LogInternalInformation("Requesting screenshot for dashboard: {DashboardUrl}", dashboardUrl);
-
-            var response = await _httpClient.PostAsync($"{_puppeteerScreenshotApiUrl}/screenshot", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
-
-            _logger.LogInternalInformation("Screenshot captured successfully for dashboard: {DashboardUrl}", dashboardUrl);
-            return screenshotResponse;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error capturing dashboard screenshot for {DashboardUrl}", dashboardUrl);
-            return new ScreenshotResponse { Screenshot = string.Empty };
-        }
-    }
-
-    private string AddQueryParameters(string url, Dictionary<string, string> parameters)
-    {
-        // Return the original URL if there are no parameters to add
-        if (string.IsNullOrEmpty(url) || parameters == null || parameters.Count == 0)
-        {
-            return url;
-        }
-
-        // Convert dictionary to a query string with URL-encoded parameters
-        var queryString = string.Join("&", parameters
-            .Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
-
-        // Determine the correct separator: ? if no query exists, otherwise use &
-        var separator = url.Contains("?") ? '&' : '?';
-
-        // Append the query string to the URL
-        return $"{url}{separator}{queryString}";
-    }
-
-    private async Task<string> SummarizeDashboardScreenshotAsync(string base64Screenshot, string dashboardUrl)
-    {
-        try
-        {
-            var messages = new List<ChatMessage>();
-            var prompt = $"Please analyze the dashboard screenshot for the dashboard at {dashboardUrl}. " +
-                         $"Based on the visual data, provide a concise summary of the resource's health and any notable observations.";
-
-            _logger.LogInternalInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
-            messages.Add(new ChatMessage(ChatRole.System, prompt));
-            var screenshot = Convert.FromBase64String(base64Screenshot);
-            var content = new List<AIContent>
-                {
-                    new Microsoft.Extensions.AI.TextContent($"This is a screenshot of the dashboard: {dashboardUrl}"),
-                    new DataContent(screenshot, "image/png")
-                };
-            messages.Add(new ChatMessage(ChatRole.User, content));
-
-            var options = new ChatOptions
-            {
-                Temperature = (float)0.2,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    ["response_format"] = "text"
-                }
-            };
-
-            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(messages, options);
-            var summary = response.Text;
-
-            _logger.LogInternalInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
-            return summary;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error summarizing dashboard screenshot for {DashboardUrl}", dashboardUrl);
-            return $"Error summarizing dashboard screenshot: {ex.Message}";
-        }
-    }
-
-    private string FormatHealthInfoMessage(AppHealthInfo? healthInfo, string resourceId)
-    {
-        var resourceName = resourceId?.Split('/')?.Last() ?? "Unknown";
-        var sb = new StringBuilder();
-
-        sb.AppendLine($"## Health Scorecard for {resourceName}");
-        sb.AppendLine();
-
-        // Overall health state
-        sb.AppendLine($"**Overall Health State**: {GetHealthStateEmoji(healthInfo?.Health)} {healthInfo?.Health}");
-        sb.AppendLine();
-
-        // Key metrics section
-        sb.AppendLine("### Key Metrics");
-
-        if (healthInfo?.Availability.HasValue == true)
-        {
-            sb.AppendLine($"- **Availability**: {healthInfo.Availability.Value:P2}");
-        }
-
-        if (healthInfo?.AvgCpuUsage.HasValue == true)
-        {
-            sb.AppendLine($"- **CPU Usage**: {healthInfo.AvgCpuUsage.Value:P2}");
-        }
-
-        if (healthInfo?.AvgMemoryUsage.HasValue == true)
-        {
-            sb.AppendLine($"- **Memory Usage**: {healthInfo.AvgMemoryUsage.Value:P2}");
-        }
-
-        if (healthInfo?.AvgLatencyInMs.HasValue == true)
-        {
-            sb.AppendLine($"- **Average Latency**: {healthInfo.AvgLatencyInMs.Value:N2} ms");
-        }
-
-        if (healthInfo?.Transactions.HasValue == true)
-        {
-            sb.AppendLine($"- **Transaction Volume**: {healthInfo.Transactions.Value:N0} requests");
-        }
-
-        // Activity status
-        sb.AppendLine();
-        sb.AppendLine($"**Activity Status**: {(healthInfo?.IsActive == true ? "🟢 Active" : "🔴 Inactive")}");
-
-        if (healthInfo?.TimeSinceLastActivity.HasValue == true)
-        {
-            var timeSince = DateTime.UtcNow - healthInfo.TimeSinceLastActivity.Value;
-            sb.AppendLine($"**Last Activity**: {FormatTimeSpan(timeSince)} ago");
-        }
-
-        sb.AppendLine();
-
-        var lastUpdated = healthInfo != null
-             ? healthInfo.LastDataCaptureTimeStampInUTC.ToString("yyyy-MM-dd HH:mm:ss")
-             : "Unknown";
-
-        sb.AppendLine($"*Last updated: {lastUpdated} UTC*");
-
-        return sb.ToString();
-    }
-
-    private string FormatTimeSpan(TimeSpan timeSpan)
-    {
-        if (timeSpan.TotalDays > 1)
-        {
-            return $"{timeSpan.TotalDays:N1} days";
-        }
-        else if (timeSpan.TotalHours > 1)
-        {
-            return $"{timeSpan.TotalHours:N1} hours";
-        }
-        else if (timeSpan.TotalMinutes > 1)
-        {
-            return $"{timeSpan.TotalMinutes:N1} minutes";
-        }
-        else
-        {
-            return $"{timeSpan.TotalSeconds:N0} seconds";
-        }
-    }
-
-    private string GetHealthStateEmoji(ScorecardHealthState? healthState)
-    {
-        return healthState switch
-        {
-            ScorecardHealthState.Healthy => "✅",
-            ScorecardHealthState.Degraded => "⚠️",
-            ScorecardHealthState.Unhealthy => "❌",
-            _ => "❓"
+            { "deployment", "k8s/apps/v1/deployments" }, { "deployments", "k8s/apps/v1/deployments" },
+            { "statefulset", "k8s/apps/v1/statefulsets" }, { "statefulsets", "k8s/apps/v1/statefulsets" },
+            { "node", "k8s/core/v1/nodes" }, { "nodes", "k8s/core/v1/nodes" },
+            { "service", "k8s/core/v1/services" }, { "services", "k8s/core/v1/services" },
+            { "namespace", "k8s/core/v1/namespaces" }, { "namespaces", "k8s/core/v1/namespaces" },
+            { "configmap", "k8s/core/v1/configmaps" }, { "configmaps", "k8s/core/v1/configmaps" },
+            { "secret", "k8s/core/v1/secrets" }, { "secrets", "k8s/core/v1/secrets" },
+            { "persistentvolumeclaim", "k8s/core/v1/persistentvolumeclaims" }, { "persistentvolumeclaims", "k8s/core/v1/persistentvolumeclaims" },
+            { "pvc", "k8s/core/v1/persistentvolumeclaims" }
         };
-    }
 
-    public class ScreenshotResponse
-    {
-        [JsonPropertyName("screenshot")]
-        public string? Screenshot { get; set; }
-    }
+        if (kindToGraphTypeMapping.ContainsKey(resourceType))
+        {
+            actualGraphResourceType = kindToGraphTypeMapping[resourceType];
+        }
 
-    #endregion
-
-    public async Task<string> GetResourcePropertiesRealTime(string resourceId)
-    {
         try
         {
-            // Validate the resource ID format
-            if (!ResourceIdentifier.TryParse(resourceId, out var parsedResourceId))
+            var sb = new StringBuilder();
+            sb.Append("g.V().has('isDeleted', false)");
+
+            if (actualGraphResourceType != "all")
             {
-                throw new ArgumentException($"Invalid Azure resource ID format: {resourceId}");
+                sb.Append($".hasLabel('{actualGraphResourceType}')");
             }
 
-            // Extract subscription ID from the resource ID
-            var subscriptionId = parsedResourceId!.SubscriptionId;
-            if (string.IsNullOrEmpty(subscriptionId))
+            if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
             {
-                throw new ArgumentException($"Could not extract subscription ID from resource ID: {resourceId}");
+                sb.Append($".has('{propertyName}', '{propertyValue}')");
             }
 
-            // Build KQL query to get the specific resource
-            var query = $@"
-                    Resources
-                    | where id =~ '{resourceId}'
-                    | project id, name, type, kind, location, resourceGroup, subscriptionId, properties, tags
-                ";
+            sb.Append(@".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType', 'clusterResourceId', 'namespace')
+                    .by(coalesce(values('subscriptionId'), constant('')))
+                    .by(coalesce(values('resourceGroupName'), constant('')))
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(coalesce(values('resourceType'), constant('')))
+                    .by(coalesce(values('clusterResourceId'), constant('')))
+                    .by(coalesce(values('namespace'), constant('')))");
 
-            _logger.LogInternalInformation("Executing real-time Azure Resource Graph query for resource: {ResourceId}", resourceId);
+            // Add skip and take only if take > 0
+            if (take > 0)
+            {
+                sb.Append($".limit({take})");
+                _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, actualGraphResourceType);
+            }
 
-            // Execute the query using Azure Resource Graph
-            var result = await _azureResourceGraphClient.Query([subscriptionId], query);
+            var result = await _graphDbClient.Query(sb.ToString());
+            var resources = new List<Dictionary<string, object>>();
 
-            _logger.LogInternalInformation("Successfully retrieved real-time properties for resource: {ResourceId}", resourceId);
-            return result.Data.ToString();
+            foreach (var item in result)
+            {
+                // Create a new dictionary for each resource
+                var propertyBag = new Dictionary<string, object>
+                {
+                    ["subscriptionId"] = item?["subscriptionId"]?.ToString() ?? string.Empty,
+                    ["resourceGroupName"] = item?["resourceGroupName"]?.ToString() ?? string.Empty,
+                    ["resourceName"] = item?["resourceName"]?.ToString() ?? string.Empty,
+                    ["resourceType"] = item?["resourceType"]?.ToString() ?? string.Empty
+                };
+
+                if (!string.IsNullOrEmpty(item?["clusterResourceId"]?.ToString()))
+                {
+                    propertyBag["clusterResourceId"] = item?["clusterResourceId"]?.ToString() ?? string.Empty;
+                }
+                if (!string.IsNullOrEmpty(item?["namespace"]?.ToString()))
+                {
+                    propertyBag["namespace"] = item?["namespace"]?.ToString() ?? string.Empty;
+                }
+
+                resources.Add(propertyBag);
+            }
+
+            _logger.LogInternalInformation("Found {Count} resources of type '{ActualResourceType}' matching filters.", resources.Count, actualGraphResourceType);
+            return resources;
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error retrieving real-time properties for resource: {ResourceId}", resourceId);
-            throw new Exception($"Failed to retrieve real-time properties for resource {resourceId}: {ex.Message}", ex);
+            _logger.LogInternalError(ex, "Error listing resources of type '{Type}'", actualGraphResourceType);
+            throw;
         }
     }
+
+    #endregion
 }

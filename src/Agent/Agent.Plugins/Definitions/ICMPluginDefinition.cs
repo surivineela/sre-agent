@@ -4,7 +4,6 @@
 
 using System.ComponentModel;
 using System.Globalization;
-using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Implementation;
@@ -177,14 +176,12 @@ public class ICMPluginDefinition
         return await _icmPlugin.ResolveIncident(incidentId.ToString(), discussionEntry);
     }
 
-    [Description("Post an ICM discussion entry. IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
+    [Description("Post a discussion entry, comment, or update to an ICM incident (also known as 'post to ICM', 'write to the incident', 'share findings on the ticket'). IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
     public async Task<string> PostDiscussionEntry(
        [Description("Incident ID")] long incidentId,
        [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
     {
-        // Convert any chart-data blocks to base64 images for ICM
-        var processedEntry = ChartHelper.ConvertChartDataBlocksToBase64Images(discussionEntry);
-        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), processedEntry);
+        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), discussionEntry);
     }
 
     [Description("Add a tag to an ICM incident")]
@@ -374,5 +371,13 @@ public class ICMPluginDefinition
         [Description("Incident ID")] long incidentId)
     {
         return await _icmPlugin.GetIncidentAlertDetails(incidentId.ToString());
+    }
+
+    [Description("Get the aliases of people currently on-call for a given ICM team")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<List<string>> GetCurrentOnCallAliases(
+        [Description("The ICM Team ID to get on-call aliases for")] string teamId)
+    {
+        return await _icmPlugin.GetCurrentOnCallAliases(teamId);
     }
 }

@@ -19,6 +19,7 @@ import {
     TableCellLayout,
     TableColumnDefinition,
     TableColumnId,
+    Text,
     tokens,
     Tooltip,
     useRestoreFocusSource,
@@ -636,12 +637,40 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                 },
                 renderHeaderCell: () => <span style={{ fontWeight: 600 }}>{intl.formatMessage(IncidentManagementResources.handler)}</span>,
                 renderCell: item => {
+                    // Priority 1: Use thread's handlerId if set (from incidentDetails)
+                    const handlerId = item.incidentDetails?.handlerId;
+                    if (handlerId) {
+                        const anchorEntity: ExtendedAgentAnchorEntity = {
+                            entityType: 'Agent',
+                            entityName: handlerId,
+                        };
+                        return (
+                            <ResponsePlanLinkWithIcon
+                                type="handlingAgent"
+                                value={handlerId}
+                                onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    navigate({
+                                        primaryNavItemValue: PrimaryNavItemValues.Builder,
+                                        secondaryNavItemValue: SecondaryNavItemValues.ExtendedAgentsGraph,
+                                        options: {
+                                            state: { anchorEntity },
+                                        },
+                                    });
+                                }}
+                            />
+                        );
+                    }
+
+                    // Move variable declarations closer to where they're used
                     const filterId = getColumnInfo(IncidentsListColumnKey.handler).getColumnValue(item) as string;
                     const filterMatch = !filterId || filterId === '-' ? undefined : filtersMap.get(filterId);
 
+                    // Priority 2: Use filter's handlingAgent (legacy behavior)
                     if (filterMatch?.handlingAgent) {
                         const anchorEntity: ExtendedAgentAnchorEntity = {
-                            entityType: 'Trigger',
+                            entityType: 'IncidentTrigger',
                             entityName: filterMatch.id,
                         };
                         return (
@@ -663,6 +692,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                         );
                     }
 
+                    // Priority 3: Show response plan link (filter-based)
                     if (filterMatch) {
                         return (
                             <ResponsePlanLinkWithIcon
@@ -816,8 +846,31 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             );
         }
 
-        return <div style={{ textAlign: 'center' }}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</div>;
-    }, [incidentThreads.length, incidentThreadsLoading, hasAnyIncidents, incidentManagementConfigured, hasFilters, intl, navigate]);
+        return (
+            <div className={localStyles.noItemsContainer}>
+                <img
+                    src={'AiSearchWarningSpotIllustration.svg'}
+                    alt={intl.formatMessage(SreAgentResources.warning)}
+                    style={{ height: 180, width: 180 }}
+                />
+                <div className={localStyles.textContainer}>
+                    <Text className={localStyles.primaryTitle}>{intl.formatMessage(IncidentManagementResources.noIncidentsFound)}</Text>
+                    <Text className={localStyles.description}>
+                        {intl.formatMessage(IncidentManagementResources.noIncidentsFoundDescription)}
+                    </Text>
+                </div>
+            </div>
+        );
+    }, [
+        incidentThreads.length,
+        incidentThreadsLoading,
+        hasAnyIncidents,
+        incidentManagementConfigured,
+        hasFilters,
+        localStyles,
+        intl,
+        navigate,
+    ]);
 
     const columnSizingOptions = useMemo(
         () => ({
@@ -906,7 +959,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                         onEnterFullScreen={openThreadFullScreen}
                         size="large"
                         titleActions={
-                            showThreadTraceUI ? (
+                            showThreadTraceUI && showControlPlaneDependentFeatures ? (
                                 <Button
                                     ref={traceFocusRestorationRef}
                                     icon={<Branch16Regular />}
@@ -918,6 +971,7 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
                                         margin: 'auto',
                                     }}
                                     onClick={openThreadTrace}
+                                    disabled={!agentAppInsightsAppId}
                                 >
                                     {intl.formatMessage(IncidentManagementResources.viewTrace)}
                                 </Button>
@@ -1150,6 +1204,33 @@ const useIncidentsOverviewStyles = makeStyles({
     },
     dataGridRow: {
         width: '100%',
+    },
+    noItemsContainer: {
+        marginTop: '40px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: tokens.spacingVerticalXXL,
+    },
+    textContainer: {
+        maxWidth: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: tokens.spacingVerticalS,
+    },
+    primaryTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: tokens.colorNeutralForeground1,
+        whiteSpace: 'nowrap',
+    },
+    description: {
+        fontSize: '14px',
+        color: tokens.colorNeutralForeground2,
+        lineHeight: '20px',
+        whiteSpace: 'nowrap',
     },
 });
 

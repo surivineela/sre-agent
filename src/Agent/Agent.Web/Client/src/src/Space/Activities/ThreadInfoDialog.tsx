@@ -129,8 +129,7 @@ export const ThreadInfoDialog: FC<ThreadInfoDialogProps> = ({
         return lines.join('\n');
     }, [intl, resourceId, sreAgentEndpoint, thread.createdTimestamp, thread.modifiedTimestamp, thread.source, thread.id]);
 
-    const hasActionsStatus =
-        thread.status?.actionsStatus?.hasCriticalActions || thread.status?.actionsStatus?.hasWarningActions;
+    const hasActionsStatus = thread.status?.actionsStatus?.hasCriticalActions || thread.status?.actionsStatus?.hasWarningActions;
     const hasIncidentStatus = thread.status?.incidentStatus?.incidentId;
 
     return (
@@ -218,7 +217,9 @@ export const ThreadInfoDialog: FC<ThreadInfoDialogProps> = ({
                                             <Text className={styles.value}>{thread.status?.incidentStatus?.incidentId}</Text>
                                             {thread.status?.incidentStatus?.status && (
                                                 <>
-                                                    <Caption1 className={styles.label}>{intl.formatMessage(SreAgentResources.status)}</Caption1>
+                                                    <Caption1 className={styles.label}>
+                                                        {intl.formatMessage(SreAgentResources.status)}
+                                                    </Caption1>
                                                     <Text className={styles.value}>{thread.status.incidentStatus.status}</Text>
                                                 </>
                                             )}

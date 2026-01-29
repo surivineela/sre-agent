@@ -37,6 +37,7 @@ public class TrajectoryEvaluator
     private readonly ISearchIndexService _searchIndexService;
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
     private readonly InsightPostingService? _insightPostingService;
+    private readonly Agent.Data.Repositories.ISessionInsightRepository _sessionInsightRepository;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
 
@@ -48,6 +49,7 @@ public class TrajectoryEvaluator
         Tracer tracer,
         ISearchIndexService searchIndexService,
         IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
+        Agent.Data.Repositories.ISessionInsightRepository sessionInsightRepository,
         InsightPostingService? insightPostingService = null,
         TimeSpan? evaluationHistoryRange = null,
         TimeSpan? coolDownPeriod = null)
@@ -61,6 +63,7 @@ public class TrajectoryEvaluator
         _searchIndexService = searchIndexService;
         _embeddingGenerator = embeddingGenerator;
         _insightPostingService = insightPostingService;
+        _sessionInsightRepository = sessionInsightRepository;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
@@ -361,10 +364,14 @@ public class TrajectoryEvaluator
 
         try
         {
+            // Get thread evaluation if available
+            var threadEvaluation = await _threadRepository.GetThreadEvaluateResultByThreadIdAsync(thread.Id);
+
             return await _insightPostingService.PostTrajectoryInsightsAsync(
                 thread.Id,
                 trajectory,
                 chatTranscript,
+                threadEvaluation,
                 cancellationToken);
         }
         catch (Exception ex)
@@ -460,7 +467,7 @@ public class TrajectoryEvaluator
                 },
                 cancellationToken: cancellationToken);
 
-            var evaluation = JsonSerializer.Deserialize<InfrastructureKnowledgeEvaluation>(response.response.Text, _jsonSerializerOptions);
+            var evaluation = response.result as InfrastructureKnowledgeEvaluation;
 
             if (evaluation != null)
             {

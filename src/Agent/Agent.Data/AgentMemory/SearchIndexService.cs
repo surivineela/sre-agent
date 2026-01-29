@@ -150,6 +150,63 @@ public class SearchIndexService : ISearchIndexService
         }
     }
 
+    /// <summary>
+    /// Upserts a trajectory - deletes existing if present, then indexes the new content.
+    /// AI Search MergeOrUpload works for most cases, but for vector updates we ensure clean replacement.
+    /// </summary>
+    public async Task<bool> UpsertTrajectoryAsync(AgentMemory trajectory)
+    {
+        try
+        {
+            // Check if trajectory exists and delete it first to ensure clean replacement
+            var existing = await GetTrajectoryByIdAsync(trajectory.Id);
+            if (existing != null)
+            {
+                _logger.LogInternalInformation($"Deleting existing trajectory {trajectory.Id} before upserting");
+                await DeleteContentsAsync([existing]);
+            }
+
+            // Index the new/updated trajectory
+            return await IndexContentAsync(trajectory);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error upserting trajectory with ID: {trajectory.Id}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets a trajectory document by its ID from the search index
+    /// </summary>
+    public async Task<AgentMemory?> GetTrajectoryByIdAsync(string trajectoryId)
+    {
+        try
+        {
+            _logger.LogInternalInformation($"Retrieving trajectory with ID: {trajectoryId}");
+            var response = await _searchClient.GetDocumentAsync<AgentMemory>(trajectoryId);
+
+            if (response?.Value != null)
+            {
+                _logger.LogInternalInformation($"Successfully retrieved trajectory with ID: {trajectoryId}");
+                return response.Value;
+            }
+
+            _logger.LogInternalWarning($"Trajectory with ID {trajectoryId} not found");
+            return null;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            _logger.LogInternalInformation($"Trajectory with ID {trajectoryId} not found in search index (404)");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error retrieving trajectory with ID: {trajectoryId}");
+            return null;
+        }
+    }
+
     private SearchIndex GetSearchIndex()
     {
         var fieldBuilder = new FieldBuilder

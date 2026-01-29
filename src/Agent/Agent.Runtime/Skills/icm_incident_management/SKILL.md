@@ -1,3 +1,38 @@
+---
+name: icm_incident_management
+description: |
+  Load this skill when the user asks to work with Azure ICM incidents: acknowledge, mitigate, resolve, reopen, transfer, adjust severity, search/list incidents, retrieve or summarize discussions, custom fields, repair items, attachments, or link/unlink/correlate incidents.
+  Do NOT load for general Azure resource discovery or diagnostics (covered by the main system prompt). Use only for incident lifecycle, context enrichment, and relationship/correlation management.
+tools:
+  - AcknowledgeIncident
+  - MitigateIncident
+  - ResolveIncident
+  - TransferIncident
+  - GetIncidentInfo
+  - GetCustomFields
+  - GetDiscussionEntries
+  - GetAlertingDiscussionEntry
+  - SearchIncidents
+  - GetCurrentUtcDateTime
+  - PostDiscussionEntry
+  - DowngradeSeverity
+  - UpdateIncidentSeverity
+  - AddTagToIncident
+  - AddKeywordToIncident
+  - GetIcmCorrelationAndLinkingRules
+  - GetLinkedRelatedIncidentInfo
+  - AddRelatedIncidentLink
+  - RemoveRelatedIncidentLink
+  - GetParentIncidentInfo
+  - AddParentIncidentLink
+  - RemoveParentIncidentLink
+  - GetChildIncidentsInfo
+  - GetIncidentRepairItems
+  - AddIncidentAttachmentFromFile
+  - AddIncidentAttachmentFromContent
+  - ListIncidentAttachments
+---
+
 # Azure ICM Incident Management Skill
 
 ## Purpose & Scope

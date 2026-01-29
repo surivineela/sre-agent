@@ -32,7 +32,7 @@ system_prompt: |
      **Execute only if SDK diagnostics are in scope.**
     - If `appInsightsResourceId` is provided → skip discovery.
     - If `appInsightsResourceId` is missing:
-      1. Run `ListResourcesByType` with type `microsoft.insights/components`.
+      1. Run `SearchResource` with resourceTypes `["microsoft.insights/components"]`.
       2. If multiple resources found → present indexed list and pause for user selection.
       3. If none found → log under `dataGaps` and continue with **server side diagnose path only** (skip SDK diagnostics).
 
@@ -87,7 +87,7 @@ tools:
   - GetSupportProblemClassificationsForProduct
   - GetAzureSupportCenterDiagnosticResultsForQuestion
   - HandoffBack
-  - ListResourcesByType
+  - SearchResource
 
 common_prompts:
   - format_guidelines

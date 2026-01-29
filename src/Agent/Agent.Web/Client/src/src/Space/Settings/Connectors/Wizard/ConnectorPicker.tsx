@@ -1,4 +1,4 @@
-import { Card, CardHeader, mergeClasses, Text } from '@fluentui/react-components';
+import { Card, CardHeader, mergeClasses, Text, Tooltip } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -46,10 +46,9 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                 setFieldValue('url', '');
                 setFieldValue('authType', '');
             }
-            if (connector.id === ConnectorType.OutlookSendEmail) {
-                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultOutlookConnectorName, { id: Guid.newTinyGuid() }));
-            } else if (connector.id === ConnectorType.TeamsSendNotification) {
-                setFieldValue('name', intl.formatMessage(ConnectorsResources.defaultTeamsConnectorName, { id: Guid.newTinyGuid() }));
+
+            if (connector.id === ConnectorType.OutlookSendEmail || connector.id === ConnectorType.TeamsSendNotification) {
+                setFieldValue('name', `connector-${Guid.newTinyGuid()}`); // default connector name
             } else {
                 setFieldValue('name', '');
             }
@@ -61,7 +60,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
             setTouched({});
             setErrors({});
         },
-        [intl, setErrors, setFieldValue, setTouched]
+        [setErrors, setFieldValue, setTouched]
     );
 
     return (
@@ -81,9 +80,13 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                                 equals(existing.dataConnectorType, connector.id, AntUxStringComparison.IgnoreCase)
                             );
                         const selected = !disabled && connector.id === values.connectorType;
-                        return (
+                        const disabledTooltipContent =
+                            connector.id === ConnectorType.TeamsSendNotification
+                                ? intl.formatMessage(ConnectorsResources.onlyOneTeamsConnector)
+                                : intl.formatMessage(ConnectorsResources.onlyOneOutlookConnector);
+
+                        const cardContent = (
                             <Card
-                                key={`${connector.id}-${index}`}
                                 className={styles.cardContent}
                                 selected={selected}
                                 disabled={disabled}
@@ -102,6 +105,16 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
                                     {connector.description}
                                 </Text>
                             </Card>
+                        );
+
+                        return disabled ? (
+                            <Tooltip content={disabledTooltipContent} relationship="description" key={`${connector.id}-${index}`}>
+                                <span tabIndex={0} role="group" aria-label={connector.name}>
+                                    {cardContent}
+                                </span>
+                            </Tooltip>
+                        ) : (
+                            <span key={`${connector.id}-${index}`}>{cardContent}</span>
                         );
                     })}
                 </div>

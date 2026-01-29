@@ -451,8 +451,9 @@ public static class AgentCommandHandlers
         DebugLogger.Debug("Command", "Starting agent delete command");
 
         var agentName = parseResult.GetValue(AgentCommandOptions.Delete.NameOption);
+        var deleteLocalFiles = parseResult.GetValue(AgentCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"AgentName: {agentName}");
+        DebugLogger.Debug("Parameters", $"AgentName: {agentName}, DeleteLocalFiles: {deleteLocalFiles}");
 
         if (string.IsNullOrWhiteSpace(agentName))
         {
@@ -470,7 +471,7 @@ public static class AgentCommandHandlers
             ConsoleUI.WriteStatus(true, response);
 
             // After successful server deletion, offer to clean up local files
-            OfferLocalAgentCleanup(agentName);
+            OfferLocalAgentCleanup(agentName, deleteLocalFiles);
             return 0;
         }
         else
@@ -843,7 +844,9 @@ public static class AgentCommandHandlers
     /// <summary>
     /// Offers to clean up local agent files after successful server deletion.
     /// </summary>
-    private static void OfferLocalAgentCleanup(string agentName)
+    /// <param name="agentName">The name of the agent to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalAgentCleanup(string agentName, bool? deleteLocalFiles = null)
     {
         // Check both subdirectory and flat structure (matching FindAgentFile logic)
         var subdirPath = Path.Combine("agents", agentName, $"{agentName}.yaml");
@@ -874,7 +877,10 @@ public static class AgentCommandHandlers
         ConsoleUI.WriteBullet(agentFile, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             try
             {

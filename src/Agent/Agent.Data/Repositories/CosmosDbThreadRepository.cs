@@ -1737,30 +1737,57 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             if (thread.Status != null && !string.IsNullOrEmpty(thread.IncidentSource?.IncidentId))
             {
-                // check for incident in cosmos and apply status
-                // check pager duty first
-                var pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread?.IncidentSource?.IncidentId ?? string.Empty, thread?.IncidentSource?.IncidentId ?? string.Empty);
+                var incidentId = thread.IncidentSource.IncidentId;
 
-                if (pagerDutyIncident != null)
+                switch (thread.IncidentSource.IncidentType)
                 {
-                    status.IncidentStatus = new IncidentStatus
-                    {
-                        IncidentId = thread?.IncidentSource?.IncidentId,
-                        Status = pagerDutyIncident.Status
-                    };
-                }
-                else
-                {
-                    // check azmon incident
-                    var azMonIncident = await GetDocumentAsync<AzMonitorAlertDocument>(thread?.Status?.IncidentStatus?.IncidentId ?? string.Empty, thread?.Status?.IncidentStatus?.IncidentId ?? string.Empty);
-                    if (azMonIncident != null)
-                    {
-                        status.IncidentStatus = new IncidentStatus
+                    case IncidentType.PagerDuty:
+                        var pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(incidentId, incidentId);
+                        if (pagerDutyIncident != null)
                         {
-                            IncidentId = thread?.Status?.IncidentStatus?.IncidentId,
-                            Status = azMonIncident.Status
-                        };
-                    }
+                            status.IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = incidentId,
+                                Status = pagerDutyIncident.Status
+                            };
+                        }
+                        break;
+
+                    case IncidentType.AzMonitor:
+                        var azMonIncident = await GetDocumentAsync<AzMonitorAlertDocument>(incidentId, incidentId);
+                        if (azMonIncident != null)
+                        {
+                            status.IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = incidentId,
+                                Status = azMonIncident.Status
+                            };
+                        }
+                        break;
+
+                    case IncidentType.Icm:
+                        var icmIncident = await GetDocumentAsync<IcmIncidentDocument>(incidentId, incidentId);
+                        if (icmIncident != null)
+                        {
+                            status.IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = incidentId,
+                                Status = icmIncident.State  // ICM uses "State" instead of "Status"
+                            };
+                        }
+                        break;
+
+                    case IncidentType.ServiceNow:
+                        var serviceNowIncident = await GetDocumentAsync<ServiceNowIncidentDocument>(incidentId, incidentId);
+                        if (serviceNowIncident != null)
+                        {
+                            status.IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = incidentId,
+                                Status = serviceNowIncident.Status
+                            };
+                        }
+                        break;
                 }
             }
         }

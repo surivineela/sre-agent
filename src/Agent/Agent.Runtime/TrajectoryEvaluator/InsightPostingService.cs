@@ -2,13 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -31,87 +34,88 @@ public class InsightPostingService
     private static readonly JsonSerializerOptions _jsonSerializerOptions = AIJsonUtilities.DefaultOptions;
 
     private const string InsightGenerationPrompt = """
-        Analyze this Azure troubleshooting session and provide concise insights in two sections: Timeline and Agent Performance.
+        Analyze this Azure troubleshooting session and provide structured insights to help understand agent performance and learning opportunities.
 
         **Session Data:**
         - Session Type: {0}
         - Classification: {1}
         - Investigation Quality: {2}/5
-        - Final Outcome: {3}
-        - Initial Symptoms: {4}
-        - Steps Followed: {5}
-        - Azure Resources: {6}
-        - Root Cause: {7}
-        - Pitfalls: {8}
-        - System Design Knowledge: {9}
-        - Original Request: {10}
-
-        **Output Format:**
-
-        # Session Insight
-
-        ## TIMELINE
-
-        Transform the "Steps Followed" into a chronological narrative showing the investigation flow. Each milestone should:
-        - Show what action was taken
-        - Indicate the outcome or finding
-        - Use clear status markers
-        - Focus on the technical actions, not which tool/agent performed them
-
-        **Format (MAX 8 milestones):**
+        - Initial Symptoms: {3}
+        - Steps Followed: {4}
+        - Azure Resources: {5}
+        - Root Cause: {6}
+        - Pitfalls: {7}
+        - System Design Knowledge: {8}
+        - Original Request: {9}
         
-        **[Milestone Name]** - [Status: Initial/Progress/Success/Issue/Resolved]
-        [1-2 sentences: what happened, what was discovered, or what decision was made]
+        **Evaluation Scores (from EvaluateThreadWithLLM):**
+        - Intent Met / Resolved: {10}/5
+        - Autonomy: {11}/5
+        - Adherence: {12}/5
 
-        Status types:
+        **Instructions:**
+
+        Generate structured insights following these guidelines:
+
+        **TIMELINE (Required):**
+        Transform the "Steps Followed" into chronological milestones (MAX 8). Each milestone needs:
+        - Name: Clear milestone title
+        - Status: Initial/Progress/Success/Issue/Resolved
+        - Description: 1-2 sentences in clear business language, no technical noise
+        
+        Status meanings:
         - Initial: Starting point or task assignment
         - Progress: Investigation step completed, moving forward
         - Success: Found useful information or confirmed hypothesis
         - Issue: Discovered a problem or blocker
         - Resolved: Issue fixed or investigation complete
 
-        **Example:**
-        **Resource Discovery Initiated** - Status: Initial
-        Located container apps and Redis instances named "iot-dashboard" across subscriptions to identify affected resources.
+        **EVALUATION (Include if evaluation scores are provided):**
+        
+        Score Card:
+        - For each score (Resolved, Autonomy, Adherence), provide:
+          * Raw score (1-5)
+          * Explanation: Direct explanation of the score (no "Analysis:" prefix or "Status:" label)
+        
+        Qualitative Evaluation:
+        - What Went Well (MAX 3): Successful actions with technical specifics
+        - What Didn't Go Well (MAX 5): **ONLY include items where there is concrete evidence of agent failure in the session data.**
+          
+          REQUIRED: Each item MUST reference specific evidence from the session:
+          * Quote the actual error, failed command, or incorrect action taken
+          * Name the specific Azure resource, API, or service involved
+          * Describe what actually happened vs what should have happened
+          
+          Format: "[Specific failure with evidence] - [Concrete impact observed]. [Specific better approach with example]."
+          
+          EXCLUDE generic/boilerplate issues like:
+          - "Missed intent fulfillment" without citing what was actually missed
+          - "Lack of context confirmation" without evidence the agent had opportunity to ask
+          - "No structured workflow" without showing what step was skipped
+          - "Insufficient prompting" without showing what info was available but not requested
+          - "No safety gates" without evidence a dangerous action was taken
+          
+          ONLY INCLUDE if the session shows:
+          - Agent ran a command that returned an error (cite the error)
+          - Agent queried wrong resource/scope (cite what was queried vs what was needed)
+          - Agent missed information that was explicitly available in prior messages
+          - Agent took an action that caused a failure or warning
+          - Agent gave incorrect technical information (cite the incorrect claim)
+          
+          If no concrete failures are evident in the session, return an EMPTY list rather than generic criticisms.
 
-        **Network Connectivity Test** - Status: Issue
-        Connectivity tests revealed timeouts on port 6380, indicating potential firewall or NSG blocking.
-
-        **Root Cause Identified** - Status: Resolved
-        NSG rule blocking port 6380 was discovered and confirmed as the cause of Redis connection failures.
-
-        ## AGENT PERFORMANCE
-
-        Analyze how the agent performed based on system design claims and identified pitfalls.
-
-        ### What Went Well (MAX 3)
-        Based on "System Design Knowledge" - highlight agent's correct understanding and effective actions:
-        - **[Achievement]:** [What the agent did correctly with technical specifics]
-
-        ### Areas for Improvement (MAX 5)
-        Based on "Pitfalls" - show what could have been done better:
-        - **Did:** [What the agent did incorrectly]
-          **Should:** [What the correct approach would be, including specific Azure CLI commands, portal steps, or configuration changes]
-
-        ### Key Learnings (MAX 3)
-        Actionable takeaways for future sessions:
-        - **[Learning]:** [Specific technical insight or pattern to remember]
-
-        **Need more context for better troubleshooting?** Upload runbooks, documentation, or configuration files to the [Knowledge Base](/static/#/settings/dataknowledge) to improve future investigations.
+        **DERIVED LEARNING (Required):**
+        - System Design Knowledge (MAX 3, optional): NEW technical insights about Azure services/components in compact format
+        - Investigation Patterns (MAX 2, optional): Reusable troubleshooting approaches in compact format (no separate headers)
+        - Knowledge Graph Updates (optional): Suggested relationships in compact format (no separate Node/Relationship/Context headers)
 
         **CRITICAL GUIDELINES:**
-        - Keep output scannable and concise - no verbose explanations
-        - LIMIT each subsection to specified MAX items for readability
         - Use ONLY session data provided - no hallucination
         - Focus EXCLUSIVELY on Azure resources, services, and investigation workflow
-        - Include emojis in the overall timeline.
+        - Write in clear, user-friendly language - REMOVE technical noise (subscription IDs, resource type strings like "Microsoft.Web/sites", enumeration details)
         - NEVER mention: internal AI mechanisms, model details, meta-commentary, tools, handoffs, or agent names
-        - Include concrete specifics: error codes, resource names, Azure CLI commands, configuration settings
-        - For Timeline: describe actions and outcomes without mentioning which agent/tool performed them
-        - For Agent Performance: extract insights from both successes and mistakes
-        - Replace any tool/agent references with the action performed (e.g., "ran diagnostic tests" instead of "azure_cli_agent executed tests")
-
-        Return ONLY the formatted insights or empty string if insufficient technical content.
+        - Include concrete specifics: error codes, resource names, Azure services, configuration settings, CLI commands
+        - For Derived Learning: focus on NOVEL insights not already in documentation
         """;
 
     private const string ClassificationExplanationPrompt = """
@@ -159,12 +163,14 @@ public class InsightPostingService
     /// <param name="threadId">The ID of the thread to post insights to</param>
     /// <param name="trajectory">The trajectory data containing insights</param>
     /// <param name="chatTranscript">The full chat transcript that was analyzed</param>
+    /// <param name="evaluationScores">The evaluation scores from thread evaluation (optional)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if insights were successfully posted, false otherwise</returns>
     public async Task<bool> PostTrajectoryInsightsAsync(
         Guid threadId,
         ProcessedTrajectoryOutput_v3 trajectory,
         string chatTranscript,
+        ThreadEvaluateResult? evaluationScores,
         CancellationToken cancellationToken)
     {
         try
@@ -178,9 +184,9 @@ public class InsightPostingService
                 return false;
             }
 
-            var insightMessage = await GenerateInsightsMessageAsync(trajectory, chatTranscript, cancellationToken);
+            var insightResult = await GenerateInsightsMessageAsync(trajectory, chatTranscript, evaluationScores, cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(insightMessage))
+            if (string.IsNullOrWhiteSpace(insightResult.markdown))
             {
                 _logger.LogInternalInformation($"No insights generated for thread {threadId}");
                 return false;
@@ -188,7 +194,7 @@ public class InsightPostingService
 
             _logger.LogInternalInformation($"Posting trajectory insights to thread {threadId}");
 
-            var message = new ChatMessage(ChatRole.Assistant, insightMessage);
+            var message = new ChatMessage(ChatRole.Assistant, insightResult.markdown);
             var insightMessageId = Guid.NewGuid();
 
             // Use empty orchestration ID to prevent triggering orchestration continuation
@@ -203,9 +209,18 @@ public class InsightPostingService
             await _outboundService.SignalProcessingComplete(threadId, insightMessageId, cancellationToken);
 
             // Save to Cosmos DB for persistent insights
-            await SaveToCosmosDbAsync(threadId, trajectory, insightMessage, cancellationToken);
+            await SaveToCosmosDbAsync(threadId, trajectory, insightResult.markdown, insightResult.schema, cancellationToken);
 
             _logger.LogInternalInformation($"Successfully posted trajectory insights to thread {threadId}");
+
+            // Log action for analytics
+            _logger.LogAgentAction(
+                action: AgentActionEvents.GenerateSessionInsight,
+                parameter: insightResult.markdown,
+                status: AgentActionStatus.Success,
+                duration: 0,
+                threadId: threadId.ToString());
+
             return true;
         }
         catch (Exception ex)
@@ -215,35 +230,45 @@ public class InsightPostingService
         }
     }
 
-    private async Task<string?> GenerateInsightsMessageAsync(
+    private async Task<(string? markdown, SessionInsightSchema? schema)> GenerateInsightsMessageAsync(
         ProcessedTrajectoryOutput_v3 trajectory,
         string chatTranscript,
+        ThreadEvaluateResult? evaluationScores,
         CancellationToken cancellationToken)
     {
         try
         {
             var threadType = trajectory.IsInvestigationThread ? "Investigation/Troubleshooting" : "Routine Query";
             var pitfalls = trajectory.Pitfalls ?? "None identified";
-            var outcome = trajectory.InvestigationOutcome ?? "Not specified";
             var initialSymptoms = trajectory.InitialSymptoms ?? "Not specified";
             var stepsFollowed = trajectory.StepsFollowed ?? "Not specified";
             var resourcesInvolved = trajectory.ResourcesInvolved ?? "Not specified";
             var rootCause = trajectory.RootCause ?? "Not determined";
             var title = trajectory.Title ?? "Untitled session";
 
-            var prompt = string.Format(
+            // Extract scores or use defaults
+            var resolvedScore = evaluationScores?.Resolved ?? 0;
+            var automaticScore = evaluationScores?.Automatic ?? 0;
+            var adherenceScore = evaluationScores?.Adherence ?? 0;
+
+            // Check if we have any non-zero evaluation scores
+            var hasEvaluationScores = resolvedScore > 0 || automaticScore > 0 || adherenceScore > 0;
+
+            string prompt = string.Format(
                 InsightGenerationPrompt,
                 threadType,
                 trajectory.ClassificationReason ?? "Investigation thread",
                 trajectory.InvestigationCompleteness,
-                outcome,
                 initialSymptoms,
                 stepsFollowed,
                 resourcesInvolved,
                 rootCause,
                 pitfalls,
                 trajectory.SystemDesignKnowledge ?? "Not specified",
-                title
+                title,
+                resolvedScore,      // {10}
+                automaticScore,     // {11}
+                adherenceScore      // {12}
             );
 
             var messages = new List<ChatMessage>
@@ -252,23 +277,30 @@ public class InsightPostingService
                 new(ChatRole.User, chatTranscript)
             };
 
-            var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
+            // Use structured output
+            var (response, result) = await _chatClientProvider.ReasoningHeavyModel.GetResponseAsync(
                 messages,
+                typeof(SessionInsightSchema),
                 new ChatOptions
                 {
                     Temperature = 0.3f,
                     ToolMode = ChatToolMode.None,
-                    ResponseFormat = ChatResponseFormat.Text,
                 },
-                cancellationToken
+                cancellationToken: cancellationToken
             );
 
-            return response.Text?.Trim();
+            if (result is SessionInsightSchema insightSchema)
+            {
+                return (ConvertStructuredInsightToMarkdown(insightSchema, hasEvaluationScores), insightSchema);
+            }
+
+            // Fallback to text response if structured output fails
+            return (response.Text?.Trim(), null);
         }
         catch (Exception ex)
         {
             _logger.LogInternalWarning(ex, "Failed to generate insights message");
-            return null;
+            return (null, null);
         }
     }
 
@@ -276,6 +308,7 @@ public class InsightPostingService
         Guid threadId,
         ProcessedTrajectoryOutput_v3 trajectory,
         string insightMarkdown,
+        SessionInsightSchema? insightSchema,
         CancellationToken cancellationToken)
     {
         try
@@ -313,20 +346,11 @@ public class InsightPostingService
                 ResourcesInvolved: ParseResourceList(trajectory.ResourcesInvolved),
                 ResourceTypesInvolved: ExtractResourceTypes(trajectory.ResourcesInvolved),
                 SubscriptionsInvolved: ExtractSubscriptions(trajectory.ResourcesInvolved),
-                AgentPerformance: new AgentPerformanceMetrics(
-                    TotalAgentTurns: 0, // Not available in trajectory v3
-                    TotalToolCalls: 0,
-                    SuccessfulToolCalls: 0,
-                    FailedToolCalls: 0,
-                    AgentHandoffs: 0,
-                    AgentsInvolved: null,
-                    TotalDuration: null,
-                    EfficiencyRating: trajectory.InvestigationCompleteness >= 4 ? "Excellent" :
-                                    trajectory.InvestigationCompleteness >= 3 ? "Good" : "Fair"
-                ),
+                AgentPerformance: null, // No longer populated - kept for backward compatibility
                 Pitfalls: ParsePitfallsList(trajectory.Pitfalls),
-                KeyLearnings: ExtractKeyLearnings(insightMarkdown),
+                KeyLearnings: ExtractKeyLearningsFromSchema(insightSchema),
                 Feedback: new List<InsightFeedback>(),
+                TrajectoryId: threadId.ToString(), // Use thread ID as trajectory ID (matches how trajectories are indexed in Agent Memory)
                 TrajectoryJson: JsonSerializer.Serialize(trajectory, _jsonSerializerOptions),
                 InsightMarkdown: insightMarkdown
             );
@@ -338,6 +362,119 @@ public class InsightPostingService
         {
             _logger.LogInternalWarning(ex, $"Failed to save session insight to Cosmos DB for thread {threadId}");
         }
+    }
+
+    private string ConvertStructuredInsightToMarkdown(SessionInsightSchema insight, bool includeEvaluation)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("# Session Insights");
+        sb.AppendLine();
+
+        // Timeline section
+        sb.AppendLine("## TIMELINE");
+        sb.AppendLine();
+        foreach (var milestone in insight.Timeline.Milestones)
+        {
+            sb.AppendLine($"**{milestone.Name}** - Status: {milestone.Status}");
+            sb.AppendLine(milestone.Description);
+            sb.AppendLine();
+        }
+
+        // Evaluation section (always show qualitative, only show scores if available)
+        if (insight.Evaluation != null)
+        {
+            sb.AppendLine("## EVALUATION");
+            sb.AppendLine();
+
+            // Score Card section (only if scores are available)
+            if (includeEvaluation)
+            {
+                sb.AppendLine("### Score Card");
+                sb.AppendLine();
+
+                // Resolved Score
+                var resolved = insight.Evaluation.ScoreCard.ResolvedScore;
+                sb.AppendLine($"#### Resolved / Intent Met Score: {resolved.Score}/5");
+                sb.AppendLine();
+                sb.AppendLine(resolved.Explanation);
+                sb.AppendLine();
+
+                // Autonomy Score
+                var autonomy = insight.Evaluation.ScoreCard.AutonomyScore;
+                sb.AppendLine($"#### Autonomy Score: {autonomy.Score}/5");
+                sb.AppendLine();
+                sb.AppendLine(autonomy.Explanation);
+                sb.AppendLine();
+
+                // Adherence Score
+                var adherence = insight.Evaluation.ScoreCard.AdherenceScore;
+                sb.AppendLine($"#### Adherence Score: {adherence.Score}/5");
+                sb.AppendLine();
+                sb.AppendLine(adherence.Explanation);
+                sb.AppendLine();
+
+                sb.AppendLine("---");
+                sb.AppendLine();
+            }
+
+            // Qualitative Evaluation (always included when Evaluation exists)
+            sb.AppendLine("### Qualitative Evaluation");
+            sb.AppendLine();
+
+            if (insight.Evaluation.QualitativeEvaluation.WhatWentWell.Count > 0)
+            {
+                sb.AppendLine("#### What Went Well");
+                foreach (var achievement in insight.Evaluation.QualitativeEvaluation.WhatWentWell)
+                {
+                    sb.AppendLine($"- **{achievement.Name}:** {achievement.Description}");
+                }
+                sb.AppendLine();
+            }
+
+            if (insight.Evaluation.QualitativeEvaluation.WhatDidntGoWell.Count > 0)
+            {
+                sb.AppendLine("#### What Didn't Go Well");
+                sb.AppendLine();
+                foreach (var failure in insight.Evaluation.QualitativeEvaluation.WhatDidntGoWell)
+                {
+                    sb.AppendLine($"- {failure.Description}");
+                    sb.AppendLine();
+                }
+            }
+        }
+
+        // Derived Learning section (only include if there's content)
+        var hasSystemDesignKnowledge = insight.DerivedLearning.SystemDesignKnowledge != null && insight.DerivedLearning.SystemDesignKnowledge.Count > 0;
+        var hasInvestigationPatterns = insight.DerivedLearning.InvestigationPatterns != null && insight.DerivedLearning.InvestigationPatterns.Count > 0;
+
+        if (hasSystemDesignKnowledge || hasInvestigationPatterns)
+        {
+            sb.AppendLine("## DERIVED LEARNING FROM THREAD");
+            sb.AppendLine();
+
+            if (hasSystemDesignKnowledge)
+            {
+                sb.AppendLine("### System Design Knowledge");
+                foreach (var knowledge in insight.DerivedLearning.SystemDesignKnowledge!)
+                {
+                    sb.AppendLine($"- **{knowledge.ServiceOrComponent}:** {knowledge.Insight}");
+                }
+                sb.AppendLine();
+            }
+
+            if (hasInvestigationPatterns)
+            {
+                sb.AppendLine("### Investigation Pattern");
+                foreach (var pattern in insight.DerivedLearning.InvestigationPatterns!)
+                {
+                    sb.AppendLine($"- {pattern.Description}");
+                }
+                sb.AppendLine();
+            }
+        }
+
+        return sb.ToString().Trim();
     }
 
     private List<string>? ParseResourceList(string? resourcesInvolved)
@@ -354,6 +491,40 @@ public class InsightPostingService
             .ToList();
 
         return resources.Count > 0 ? resources : null;
+    }
+
+    /// <summary>
+    /// Extracts key learnings from the SessionInsightSchema's DerivedLearning section.
+    /// Combines SystemDesignKnowledge insights and InvestigationPatterns into a flat list.
+    /// </summary>
+    private static List<string>? ExtractKeyLearningsFromSchema(SessionInsightSchema? schema)
+    {
+        if (schema?.DerivedLearning == null)
+        {
+            return null;
+        }
+
+        var learnings = new List<string>();
+
+        // Extract system design knowledge insights
+        if (schema.DerivedLearning.SystemDesignKnowledge != null)
+        {
+            foreach (var knowledge in schema.DerivedLearning.SystemDesignKnowledge)
+            {
+                learnings.Add($"[{knowledge.ServiceOrComponent}] {knowledge.Insight}");
+            }
+        }
+
+        // Extract investigation patterns
+        if (schema.DerivedLearning.InvestigationPatterns != null)
+        {
+            foreach (var pattern in schema.DerivedLearning.InvestigationPatterns)
+            {
+                learnings.Add($"[Pattern] {pattern.Description}");
+            }
+        }
+
+        return learnings.Count > 0 ? learnings : null;
     }
 
     private List<string>? ParsePitfallsList(string? pitfalls)
@@ -506,5 +677,68 @@ public class InsightPostingService
 
         return learnings.Count > 0 ? learnings : null;
     }
+
+    /// <summary>
+    /// Builds extracted knowledge structure from feedback extraction result.
+    /// Transforms raw extraction results into structured knowledge items.
+    /// </summary>
+    /// <param name="extractionResult">The raw extraction result from LLM</param>
+    /// <param name="originalComment">The original user comment</param>
+    /// <returns>Tuple of extracted knowledge and whether it should be flagged for review</returns>
+    public static (ExtractedFeedbackKnowledge? knowledge, bool flagForReview) BuildExtractedKnowledge(
+        FeedbackExtractionResult extractionResult,
+        string originalComment)
+    {
+        var knowledgeItems = new List<FeedbackKnowledgeItem>();
+
+        if (!string.IsNullOrWhiteSpace(extractionResult.InvestigationPattern))
+        {
+            knowledgeItems.Add(new FeedbackKnowledgeItem(
+                Type: FeedbackKnowledgeType.InvestigationPattern,
+                Comment: extractionResult.InvestigationPattern
+            ));
+        }
+
+        if (!string.IsNullOrWhiteSpace(extractionResult.SystemDesignKnowledge))
+        {
+            knowledgeItems.Add(new FeedbackKnowledgeItem(
+                Type: FeedbackKnowledgeType.SystemDesignKnowledge,
+                Comment: extractionResult.SystemDesignKnowledge
+            ));
+        }
+
+        if (!string.IsNullOrWhiteSpace(extractionResult.Other))
+        {
+            knowledgeItems.Add(new FeedbackKnowledgeItem(
+                Type: FeedbackKnowledgeType.Other,
+                Comment: extractionResult.Other
+            ));
+        }
+
+        if (knowledgeItems.Count > 0)
+        {
+            return (new ExtractedFeedbackKnowledge(
+                KnowledgeItems: knowledgeItems,
+                OriginalComment: originalComment,
+                SubmittedAt: DateTime.UtcNow
+            ), false);
+        }
+
+        return (null, true); // No knowledge extracted, flag for review
+    }
 }
 
+/// <summary>
+/// Result of feedback knowledge extraction
+/// </summary>
+public class FeedbackExtractionResult
+{
+    [System.ComponentModel.Description("Extracted investigation pattern knowledge (empty string if none found)")]
+    public required string InvestigationPattern { get; set; }
+
+    [System.ComponentModel.Description("Extracted system design knowledge (empty string if none found)")]
+    public required string SystemDesignKnowledge { get; set; }
+
+    [System.ComponentModel.Description("Other feedback that doesn't fit the above categories (empty string if none)")]
+    public required string Other { get; set; }
+}

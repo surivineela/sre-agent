@@ -17,12 +17,11 @@ export const useAgentTask = (
     threadIdUsedForCreatingNewThread: string,
     openSidePanel: (panelType: ChatBoxSidePanelType, sidePanelData: ChatBoxSidePanelData) => void,
     closeSidePanel: (panelType: ChatBoxSidePanelType) => void,
-    setExistingLatestAgentTask: (task: AgentTaskMetaData | null) => void
 ) => {
     const { updateTreeState } = useAgentTaskStreamHandler();
 
     const [task, setTask] = useState<AgentTaskMetaData | null>(null);
-    const [taskDropdownOptions, setTaskDropdownOptions] = useState<AgentTaskMetaData[]>([]);
+    const [taskDropdownData, setTaskDropdownData] = useState<{ prev: AgentTaskMetaData[], current: AgentTaskMetaData[] }>({ prev: [], current: [] });
     const [selectedTaskId, setSelectedTaskId] = useState<string>('');
     const [isLoadingTaskDropdown, setIsLoadingTaskDropdown] = useState<boolean>(false);
     const [treeStates, setTreeStates] = useState<Map<string, TreeStateValue>>(new Map());
@@ -41,6 +40,12 @@ export const useAgentTask = (
     threadIdRef.current = threadId || threadIdUsedForCreatingNewThread || null;
     treeStatesRef.current = treeStates;
 
+    const taskDropdownOptions = taskDropdownData.current;
+
+    if (task && task.id !== selectedTaskId) {
+        setSelectedTaskId(task.id);
+    }
+
     const openAgentTask = useCallback(
         (task: AgentTaskMetaData) => {
             openSidePanel(ChatBoxSidePanelType.AgentTask, { agentTask: task });
@@ -53,13 +58,13 @@ export const useAgentTask = (
         closeSidePanel(ChatBoxSidePanelType.AgentTask);
     }, [closeSidePanel]);
 
-    const updateTaskDropdownOption = (...tasks: AgentTaskMetaData[]) => {
-        setTaskDropdownOptions(prev => {
+    const updateTaskDropdownOption = (initPrev: boolean, ...tasks: AgentTaskMetaData[]) => {
+        setTaskDropdownData(prevTaskDropdownData => {
             const tasksToBeUpdated: AgentTaskMetaData[] = [];
             const tasksToBeAdded: AgentTaskMetaData[] = [];
 
             for (const task of tasks) {
-                const existingTask = prev.find(option => option.id === task.id);
+                const existingTask = prevTaskDropdownData.current.find(option => option.id === task.id);
                 if (existingTask) {
                     // ToDo: use isStatusAllowed and the timestamp to determine if the task should be updated
                     if (existingTask.status !== task.status || existingTask.title !== task.title) {
@@ -71,10 +76,10 @@ export const useAgentTask = (
             }
 
             if (tasksToBeUpdated.length === 0 && tasksToBeAdded.length === 0) {
-                return prev;
+                return prevTaskDropdownData;
             }
 
-            const newTasks = [...prev];
+            const newTasks = [...prevTaskDropdownData.current];
             for (const task of tasksToBeUpdated) {
                 const index = newTasks.findIndex(option => option.id === task.id);
                 if (index !== -1) {
@@ -82,7 +87,12 @@ export const useAgentTask = (
                 }
             }
 
-            return cloneDeep([...newTasks, ...tasksToBeAdded]);
+            const current = cloneDeep([...newTasks, ...tasksToBeAdded]);
+
+            return {
+                prev: initPrev ? current : prevTaskDropdownData.current,
+                current: current
+            };
         });
     };
 
@@ -173,6 +183,16 @@ export const useAgentTask = (
         }
     }, [selectedTaskId, taskDropdownOptions]);
 
+    // When a new task is added to the dropdown, open it automatically
+    useEffect(() => {
+        const pre = taskDropdownData.prev;
+        const curr = taskDropdownData.current;
+
+        if (curr.length > pre.length) {
+            openAgentTask(curr[curr.length - 1]);
+        }
+    }, [taskDropdownData, openAgentTask])
+
     useEffect(() => {
         if (threadId) {
             const setAgentTasks = async () => {
@@ -180,7 +200,7 @@ export const useAgentTask = (
                 const response = await threadClient.getThread(threadId);
                 const tasks = response.content?.agentTasks || [];
                 if (tasks.length > 0) {
-                    updateTaskDropdownOption(...tasks);
+                    updateTaskDropdownOption(true, ...tasks);
                     setSelectedTaskId(prev => {
                         if (prev) {
                             return prev;
@@ -188,20 +208,13 @@ export const useAgentTask = (
 
                         return tasks.length > 0 ? tasks[tasks.length - 1].id : prev;
                     });
-                    setExistingLatestAgentTask(tasks[tasks.length - 1]);
                 }
                 setIsLoadingTaskDropdown(false);
             };
 
             setAgentTasks();
         }
-    }, [threadId, setExistingLatestAgentTask]);
-
-    useEffect(() => {
-        if (task) {
-            setSelectedTaskId(task.id);
-        }
-    }, [task]);
+    }, [threadId]);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -261,7 +274,7 @@ export const useAgentTask = (
             if (isSubscribed && threadId && threadId === threadIdRef.current && isTaskUpdate && content) {
                 try {
                     const task = JSON.parse(content) as AgentTask;
-                    updateTaskDropdownOption(task);
+                    updateTaskDropdownOption(false, task);
                     setSelectedTaskId(prev => {
                         if (prev) return prev;
                         return task.id;
@@ -294,7 +307,7 @@ export const useAgentTask = (
                             'deepinvestigation'
                         );
                         if (agentTaskData && agentTaskData.agentTaskInfo) {
-                            updateTaskDropdownOption(agentTaskData.agentTaskInfo);
+                            updateTaskDropdownOption(false, agentTaskData.agentTaskInfo);
                             setSelectedTaskId(prev => {
                                 if (prev) return prev;
                                 return agentTaskData.agentTaskInfo.id;

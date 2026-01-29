@@ -1,4 +1,5 @@
-import { Image, makeStyles, mergeClasses, Text } from '@fluentui/react-components';
+import { Title3 } from '@fluentui-copilot/react-copilot';
+import { Image, makeStyles, mergeClasses } from '@fluentui/react-components';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -27,9 +28,7 @@ export const SreAgentBranding: FC<SreAgentBrandingProps> = ({ alignLeft = false 
     return (
         <div className={mergeClasses(styles.brandContainer, alignLeft && styles.leftAligned)}>
             <Image src="./SreAgent.svg" width={32} height={32} alt={intl.formatMessage(SreAgentResources.azureSreAgent)} />
-            <Text as={'h2'} size={500} weight="semibold">
-                {intl.formatMessage(SreAgentResources.azureSreAgent)}
-            </Text>
+            <Title3 as={'h2'}>{intl.formatMessage(SreAgentResources.azureSreAgent)}</Title3>
         </div>
     );
 };

@@ -73,19 +73,19 @@ system_prompt: |
 
   # Example Usages
   - **VM Usage Analysis (3 months):**
-      1. ListResourcesByType("Microsoft.Compute/virtualMachines")
+      1. SearchResource(resourceTypes: ["microsoft.compute/virtualmachines"])
       2. DiscoverMetrics  (once for this type)
       3. For each VM, AnalyzeMetricsWithFilter (last 3 months)
       4. PlotTimeSeriesData (show utilization trend)
       5. Recommend optimal VM sizes
   - **Resource Performance (2 weeks):**
-      1. SearchResourceByName (resource)
+      1. SearchResource(resourceName: "name") to find resource
       2. DiscoverMetrics (pick critical metrics)
       3. AnalyzeMetrics  (last 14 days)
       4. PlotTimeSeriesData (performance chart)
       5. Highlight trends and anomalies
   - **SQL Database DTU Analysis:**
-      1. ListResourcesByType("Microsoft.Sql/servers/databases")
+      1. SearchResource(resourceTypes: ["microsoft.sql/servers/databases"])
       2. DiscoverMetrics (once for this type)
       3. GetDimensionNames
       4. For each DB, AnalyzeMetricsWithFilter (recent period)

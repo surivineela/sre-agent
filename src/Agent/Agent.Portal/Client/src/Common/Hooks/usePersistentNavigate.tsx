@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { NavigateOptions, To, useLocation, useNavigate } from 'react-router-dom';
+import { NavigateOptions, To, useLocation, useNavigate } from 'react-router';
 
 /**
  * Hook that provides a navigate function that automatically preserves query strings.
  * This ensures feature flags like ?sre_ux_local=true persist across navigation.
  *
- * @returns A navigate function with the same signature as useNavigate() from react-router-dom
+ * @returns A navigate function with the same signature as useNavigate() from react-router
  *
  * @example
  * const navigate = usePersistentNavigate();

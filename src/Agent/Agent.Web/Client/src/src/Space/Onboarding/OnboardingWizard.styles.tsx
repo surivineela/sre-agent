@@ -18,7 +18,7 @@ export const useOnboardingWizardStyles = makeStyles({
         flexDirection: 'column',
         alignItems: 'center',
         paddingTop: '2px',
-        paddingBottom: '8px',
+        paddingBottom: tokens.spacingVerticalS,
         backgroundColor: tokens.colorNeutralBackground1,
     },
     rocketIcon: {
@@ -35,60 +35,58 @@ export const useOnboardingWizardStyles = makeStyles({
     welcomeSubtitle: {
         fontSize: tokens.fontSizeBase300,
         color: tokens.colorNeutralForeground2,
+        marginBottom: tokens.spacingVerticalL,
     },
-    cardContainer: {
-        display: 'flex',
-        flex: 1,
-        justifyContent: 'center',
+    stepperContainer: {
+        maxWidth: '1100px',
+        width: '100%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
         paddingLeft: tokens.spacingHorizontalXXXL,
         paddingRight: tokens.spacingHorizontalXXXL,
-        paddingBottom: tokens.spacingVerticalXXXL,
-        marginTop: tokens.spacingVerticalS,
+        marginBottom: tokens.spacingVerticalL,
     },
-    wizardCard: {
+    cardContainer: {
         display: 'flex',
         flexDirection: 'column',
         maxWidth: '1100px',
         width: '100%',
-        minHeight: '500px',
-        maxHeight: '580px',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        paddingLeft: tokens.spacingHorizontalXXXL,
+        paddingRight: tokens.spacingHorizontalXXXL,
+        paddingBottom: tokens.spacingVerticalXXL,
+    },
+    wizardCard: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        minHeight: '400px',
         backgroundColor: tokens.colorNeutralBackground1,
         borderRadius: '16px',
         boxShadow: tokens.shadow28,
         overflow: 'hidden',
         border: `1px solid ${tokens.colorNeutralStroke2}`,
     },
-    contentContainer: {
+    buttonFooter: {
         display: 'flex',
-        flex: 1,
-        overflow: 'hidden',
-    },
-    stepperPanel: {
-        width: '260px',
-        minWidth: '260px',
-        padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXL}`,
-        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground2,
-        overflowY: 'auto',
+        justifyContent: 'flex-end',
+        gap: tokens.spacingHorizontalM,
+        marginTop: tokens.spacingVerticalL,
     },
     mainContent: {
         flex: 1,
-        padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXXXL}`,
+        padding: tokens.spacingHorizontalXXL,
         overflowY: 'auto',
         display: 'flex',
         flexDirection: 'column',
         gap: tokens.spacingVerticalL,
     },
-    footer: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: tokens.spacingHorizontalM,
-        padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalXXL}`,
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground1,
+    stepVisible: {
+        display: 'contents',
     },
-    footerSpacer: {
-        flex: 1,
+    stepHidden: {
+        display: 'none',
     },
 });
 
@@ -98,44 +96,27 @@ export const useInfrastructureScopeStepStyles = makeStyles({
         flexDirection: 'column',
         gap: tokens.spacingVerticalL,
     },
-    scopeTypeContainer: {
+    headerSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    headerTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    headerDescription: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    addButtonsContainer: {
         display: 'flex',
         gap: tokens.spacingHorizontalM,
     },
-    scopeCard: {
-        minWidth: '140px',
-        padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusLarge,
-        cursor: 'pointer',
+    scopeTypeContainer: {
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: tokens.spacingVerticalS,
-        transitionProperty: 'all',
-        transitionDuration: '0.2s',
-        transitionTimingFunction: 'ease',
-        backgroundColor: tokens.colorNeutralBackground1,
-        '&:hover': {
-            borderTopColor: tokens.colorBrandStroke1,
-            borderRightColor: tokens.colorBrandStroke1,
-            borderBottomColor: tokens.colorBrandStroke1,
-            borderLeftColor: tokens.colorBrandStroke1,
-            backgroundColor: tokens.colorNeutralBackground1Hover,
-        },
-    },
-    scopeCardSelected: {
-        border: `2px solid ${tokens.colorBrandStroke1}`,
-        backgroundColor: tokens.colorBrandBackground2,
-    },
-    scopeCardIcon: {
-        width: '32px',
-        height: '32px',
-    },
-    scopeCardTitle: {
-        fontSize: tokens.fontSizeBase300,
-        fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground1,
+        gap: tokens.spacingHorizontalM,
     },
     recommendedText: {
         fontSize: tokens.fontSizeBase200,
@@ -182,6 +163,11 @@ export const useInfrastructureScopeStepStyles = makeStyles({
     detailsValue: {
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground1,
+    },
+    selectedValueContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalM,
     },
 });
 
@@ -286,6 +272,33 @@ export const useRepositoriesStepStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
         maxWidth: '500px',
         fontStyle: 'italic',
+    },
+});
+
+export const useKnowledgeBaseStepStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+    },
+    headerSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalS,
+    },
+    description: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground2,
+    },
+    addButtonsContainer: {
+        display: 'flex',
+        gap: tokens.spacingHorizontalM,
+        flexWrap: 'wrap',
+    },
+    nameCell: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
     },
 });
 

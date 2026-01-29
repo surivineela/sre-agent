@@ -64,7 +64,10 @@ export const GrantPermissionsStep: FC = () => {
 
     const { values, setFieldValue } = useFormikContext<WizardFormValues>();
 
-    const isSubscriptionScope = values.scopeType === 'subscription';
+    const hasSubscriptionScope = values.selectedSubscriptionIds.length > 0;
+    const hasResourceGroupScope = values.selectedResourceGroupIds.length > 0;
+    const primarySubscriptionId = values.selectedSubscriptionIds[0] ?? '';
+    const primaryResourceGroupId = values.selectedResourceGroupIds[0] ?? '';
 
     const agentIdentityResourceId = useMemo(() => {
         return agentObj?.properties?.knowledgeGraphConfiguration?.identity ?? '';
@@ -72,9 +75,9 @@ export const GrantPermissionsStep: FC = () => {
 
     const { requiredRoleIds, existingRoleIds, missingRoleIds, isLoading, isGranting, error, grantSuccess, grantPermissions } =
         useGrantPermissions({
-            scopeType: values.scopeType,
-            subscriptionId: values.selectedSubscriptionId,
-            resourceGroupId: values.selectedResourceGroupId,
+            scopeType: hasSubscriptionScope ? 'subscription' : 'resourceGroup',
+            subscriptionId: primarySubscriptionId,
+            resourceGroupId: primaryResourceGroupId,
             permissionsLevel: values.permissionsLevel,
             agentIdentityResourceId,
             agentResourceId: resourceId,
@@ -82,13 +85,16 @@ export const GrantPermissionsStep: FC = () => {
         });
 
     const scopeDisplayName = useMemo(() => {
-        if (isSubscriptionScope) {
-            return values.selectedSubscriptionId;
+        if (hasSubscriptionScope) {
+            return primarySubscriptionId;
         }
-        const parts = values.selectedResourceGroupId.split('/');
-        const rgIndex = parts.findIndex(p => p.toLowerCase() === 'resourcegroups');
-        return rgIndex >= 0 && parts[rgIndex + 1] ? parts[rgIndex + 1] : values.selectedResourceGroupId;
-    }, [isSubscriptionScope, values.selectedSubscriptionId, values.selectedResourceGroupId]);
+        if (hasResourceGroupScope) {
+            const parts = primaryResourceGroupId.split('/');
+            const rgIndex = parts.findIndex(p => p.toLowerCase() === 'resourcegroups');
+            return rgIndex >= 0 && parts[rgIndex + 1] ? parts[rgIndex + 1] : primaryResourceGroupId;
+        }
+        return '';
+    }, [hasSubscriptionScope, hasResourceGroupScope, primarySubscriptionId, primaryResourceGroupId]);
 
     const handlePermissionLevelChange = useCallback(
         (level: AgentAccessLevel) => {
@@ -125,12 +131,12 @@ export const GrantPermissionsStep: FC = () => {
     return (
         <div className={styles.container}>
             <Text className={styles.description}>
-                {isSubscriptionScope
+                {hasSubscriptionScope
                     ? intl.formatMessage(OnboardingWizardResources.permissionsSubscriptionDescription)
                     : intl.formatMessage(OnboardingWizardResources.permissionsResourceGroupDescription)}
             </Text>
 
-            {!isSubscriptionScope && (
+            {!hasSubscriptionScope && (
                 <div className={styles.permissionLevelContainer}>
                     <Text className={styles.permissionLevelTitle}>{intl.formatMessage(OnboardingWizardResources.permissionsLevel)}</Text>
                     <div className={styles.permissionLevelOptions}>
@@ -194,7 +200,7 @@ export const GrantPermissionsStep: FC = () => {
             <div className={styles.scopeSection}>
                 <Text className={styles.scopeLabel}>{intl.formatMessage(OnboardingWizardResources.scopeLabel)}</Text>
                 <Text className={styles.scopeValue}>
-                    {isSubscriptionScope
+                    {hasSubscriptionScope
                         ? intl.formatMessage(OnboardingWizardResources.subscriptionScopeLabel, { name: scopeDisplayName })
                         : intl.formatMessage(OnboardingWizardResources.resourceGroupScopeLabel, { name: scopeDisplayName })}
                 </Text>
@@ -282,7 +288,7 @@ export const GrantPermissionsStep: FC = () => {
                 )}
             </div>
 
-            {isSubscriptionScope && (
+            {hasSubscriptionScope && (
                 <div className={styles.infoMessage}>
                     <Info16Filled />
                     {intl.formatMessage(OnboardingWizardResources.subscriptionScopeNote)}

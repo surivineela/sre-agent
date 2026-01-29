@@ -259,14 +259,19 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         },
         chatContainer: {
             height: '100%',
-            padding: '20px 10px 0px 20px',
+            padding: '20px 24px 0px 24px',
             borderRadius: tokens.borderRadiusLarge,
             ...overrides?.chatContainer,
         },
+        hiddenChatContainer: {
+            height: 'unset',
+            padding: 'unset',
+        },
         chat: {
             height: '100%',
-            maxWidth: '1000px',
-            margin: 'auto',
+            maxWidth: '48rem',
+            width: '100%',
+            margin: '0 auto',
             ...overrides?.chat,
         },
         userMessage: {
@@ -283,10 +288,10 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         agentMessage: {
             fontSize: '14px',
             lineHeight: '20px',
-            '.fai-CopilotMessage__content': {
-                width: '90%',
-                gap: tokens.spacingVerticalM,
-            },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: tokens.spacingVerticalM,
+            paddingLeft: tokens.spacingHorizontalM,
             ...overrides?.agentMessage,
         },
         toolCallText: {
@@ -299,25 +304,19 @@ export const getChatBoxStyles = (sidePanelVisible?: boolean, overrides?: ChatBox
         },
     });
 
-const textFieldMaxWidth = '1000px';
-
 export const useChatInputStyles = makeStyles({
-    root: {
-        flex: '0 0 auto',
-        margin: '5px 0px',
-        padding: '0px 20px',
+    chatBoxFooterInner: {
+        maxWidth: '800px',
+        width: '100%',
+        minHeight: '0px',
+        flexShrink: 1,
+    },
+    chatBoxFooterInnerOverview: {
+        flexShrink: 0,
     },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
-        maxWidth: textFieldMaxWidth,
         margin: 'auto',
-    },
-    selectedCommandRow: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
-        margin: `${tokens.spacingVerticalXS} auto`,
-        maxWidth: textFieldMaxWidth,
     },
     promptMenuPopover: {
         width: '280px',
@@ -345,8 +344,6 @@ export const useChatInputStyles = makeStyles({
 
 export const chatInputTextStyles = {
     textFieldContainer: {
-        maxWidth: textFieldMaxWidth,
-        margin: 'auto',
         marginBottom: '8px',
         padding: '12px 8px 6px 8px',
         position: 'relative',
@@ -510,7 +507,7 @@ export const useThreadActionsStyles = makeStyles({
         wordBreak: 'break-word',
     },
     pendingIcon: {
-        backgroundColor: tokens.colorPaletteBlueBorderActive,
+        backgroundColor: tokens.colorNeutralStroke1,
         borderRadius: tokens.borderRadiusCircular,
         display: 'flex',
         justifyContent: 'center',

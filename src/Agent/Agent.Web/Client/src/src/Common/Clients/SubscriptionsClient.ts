@@ -52,4 +52,42 @@ export class SubscriptionsClient {
             apiVersion,
         });
     };
+
+    /**
+     * Queries Azure Resource Graph to find subscriptions with SRE Agent-compatible resources.
+     */
+    public static getSubscriptionsWithSreAgentResources = async (
+        subscriptionIds: string[],
+        apiVersion = ApiVersions.argQueryApiVersion20200401Preview
+    ): Promise<Set<string>> => {
+        if (subscriptionIds.length === 0) {
+            return new Set<string>();
+        }
+
+        const query = `
+            where type in~ ('microsoft.web/sites', 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters', 'microsoft.cache/redis', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbforpostgresql/servers', 'microsoft.documentdb/databaseaccounts', 'microsoft.sql/servers', 'microsoft.sql/servers/databases', 'microsoft.storage/storageaccounts')
+            | summarize by subscriptionId
+        `;
+
+        const content: ARGRequestContent = {
+            query,
+            subscriptions: subscriptionIds,
+        };
+
+        const response = await MakeArmCall<ARGResponse, ARGRequestContent>({
+            method: 'POST',
+            url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+            body: content,
+            commandName: 'GetSubscriptionsWithSreAgentResources',
+        });
+
+        const subscriptionsWithResources = new Set<string>();
+        if (response?.data?.data?.rows) {
+            response.data.data.rows.forEach((row: any[]) => {
+                subscriptionsWithResources.add(row[0]);
+            });
+        }
+
+        return subscriptionsWithResources;
+    };
 }

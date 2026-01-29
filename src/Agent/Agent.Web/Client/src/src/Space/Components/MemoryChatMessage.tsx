@@ -1,10 +1,11 @@
 import { Book24Regular } from '@fluentui/react-icons';
-import { memo, useContext } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { MemorySearchResult } from '../../Common/Contracts/DataPlane/Message';
 import { MemorySearchCardResources } from '../../Strings/SREAgentResources';
 import { ChatBoxSidePanelContext } from '../Contracts/Context';
 import { SpecialMessageCard } from './Chat/SpecialMessageCard';
+import CitationList from './Citations/CitationList';
 
 const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemorySearchResult }) => {
     const { openMemorySearchResult } = useContext(ChatBoxSidePanelContext);
@@ -31,6 +32,12 @@ const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemoryS
         return parts.join(' • ');
     };
 
+    // Combine all trajectories for citation list
+    const allTrajectories = useMemo(
+        () => [...(memorySearchResult.sameResourceTrajectories || []), ...(memorySearchResult.similarSymptomsTrajectories || [])],
+        [memorySearchResult.sameResourceTrajectories, memorySearchResult.similarSymptomsTrajectories]
+    );
+
     return (
         <SpecialMessageCard
             icon={<Book24Regular />}
@@ -39,7 +46,14 @@ const MemoryChatMessage = ({ memorySearchResult }: { memorySearchResult: MemoryS
             onClick={() => {
                 openMemorySearchResult(memorySearchResult);
             }}
-        />
+        >
+            <CitationList
+                documents={memorySearchResult.documents || []}
+                trajectories={allTrajectories}
+                userMemories={memorySearchResult.userMemories || []}
+                memorySearchResult={memorySearchResult}
+            />
+        </SpecialMessageCard>
     );
 };
 

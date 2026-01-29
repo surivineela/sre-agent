@@ -17,7 +17,7 @@ public class AzCliExecution
     // The command is the full az command without the 'az ' prefix
     private readonly string _command;
     private readonly string? _accessToken;
-    private readonly Dictionary<string, string>? _additionalTokens;
+    private Dictionary<string, string>? _additionalTokens;
     private readonly string _configDir;
     private readonly bool _isDevelopment;
     private readonly SessionPoolSettings _sessionPoolSettings;
@@ -57,6 +57,11 @@ public class AzCliExecution
                 && !string.IsNullOrEmpty(_sessionPoolSettings.PoolManagementEndpoint))
             {
                 var agentName = AgentNameHelper.GetAgentName(!_isDevelopment);
+                if (_isDevelopment && _accessToken != null)
+                {
+                    _additionalTokens ??= new Dictionary<string, string>();
+                    _additionalTokens[Constants.DefaultOboTokenScope] = _accessToken;
+                }
                 (exitCode, stdout, stderr) = await _sessionPoolService.ExecuteCliAsync(_command, _sessionPoolService.BuildSessionIdentifier(agentName, _threadId, false), _additionalTokens, _identityResourceId);
             }
             else

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getCloudEndpoints } from '../../Common/Auth/cloudConfig';
 import { TelemetrySource } from '../../Common/Constants/Telemetry';
-import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry';
 import { useAuth } from '../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../Common/Contexts/NotificationContext';
 import { useUserPreferences } from '../../Common/Contexts/UserPreferencesContext';
 import { ILogEvent, LogLevel } from '../../Common/Contracts/Telemetry';
+import { useAmplitudeTelemetry } from '../../Common/Hooks/useAmplitudeTelemetry';
 import { AuthScopeIdentifier, useAuthTokenManager } from '../../Common/Hooks/useAuthTokenManager';
 import { useTelemetry } from '../../Common/Hooks/useTelemetry';
 import { getSessionId } from '../../Common/Utilities/SessionManager';
@@ -19,9 +19,12 @@ import {
     IFrameTelemetryInfo,
     IFrameUserInfo,
     INotificationInfo,
+    IUserActivityInfo,
     TokenTypes,
 } from './AgentIFrameContracts';
 import { AgentLoadError, resolveAgentSiteUrl } from './Utilities';
+
+export const AGENT_LOAD_TIMEOUT_MS = 60000;
 
 export const useAgentView = (resourceId: string, sreLink?: string) => {
     const intl = useIntl();
@@ -253,6 +256,21 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         [authTokenManager]
     );
 
+    const userActivityCallback = useCallback(
+        (data: IUserActivityInfo) => {
+            logEvent({
+                action: 'user-activity',
+                actionModifier: 'received',
+                logLevel: LogLevel.Debug,
+                additionalData: {
+                    activityType: data.type,
+                    timestamp: data.timestamp,
+                },
+            });
+        },
+        [logEvent]
+    );
+
     const receiveMessage = useCallback(
         (event: MessageEvent) => {
             const messageCallbackMap: Record<string, (data: any) => void> = {
@@ -264,6 +282,7 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 [AgentSiteToAzPortalVerbs.openBlade]: openBladeCallback,
                 [AgentSiteToAzPortalVerbs.updateNotification]: updateNotificationCallback,
                 [AgentSiteToAzPortalVerbs.requestToken]: requestTokenCallback,
+                [AgentSiteToAzPortalVerbs.userActivity]: userActivityCallback,
             };
 
             // Validate the origin and signature of the incoming message
@@ -308,10 +327,24 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                 });
             }
         },
-        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback, logControlEvent, logNavigationEvent, logOperationEvent]
+        [
+            uxOrigin,
+            logEvent,
+            readyForDataCallback,
+            logCallback,
+            openBladeCallback,
+            updateNotificationCallback,
+            requestTokenCallback,
+            userActivityCallback,
+            logControlEvent,
+            logNavigationEvent,
+            logOperationEvent,
+        ]
     );
 
     useEffect(() => {
+        let isMounted = true;
+
         // We need to ping the site because if the site is cold-starting and fails for some reason then the iframe will hang
         const pingSite = async () => {
             if (!agentUxUrl) {
@@ -386,11 +419,12 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
                     console.log(error);
                 }
 
+                if (!isMounted) return;
                 await new Promise(r => setTimeout(r, agentSitePingSleep));
             }
 
             const totalTime = Date.now() - startTime;
-            if (pingIndex >= agentSitePingLimit || totalTime >= 60000) {
+            if (pingIndex >= agentSitePingLimit || totalTime >= AGENT_LOAD_TIMEOUT_MS) {
                 const errorMessage =
                     pingIndex >= agentSitePingLimit
                         ? `Agent site failed to respond within ${agentSitePingLimit} pings. Blade timeout.`
@@ -410,6 +444,10 @@ export const useAgentView = (resourceId: string, sreLink?: string) => {
         };
 
         pingSite();
+
+        return () => {
+            isMounted = false;
+        };
     }, [intl, agentUxUrl, logEvent, resourceId]);
 
     useEffect(() => {

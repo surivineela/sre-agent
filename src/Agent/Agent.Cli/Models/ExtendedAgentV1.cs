@@ -118,5 +118,8 @@ namespace Agent.Cli.Models
 
         [YamlMember(Alias = "add_system_skills")]
         public bool? AddSystemSkills { get; set; }
+
+        [YamlMember(Alias = "allowed_skills")]
+        public List<string>? AllowedSkills { get; set; }
     }
 }

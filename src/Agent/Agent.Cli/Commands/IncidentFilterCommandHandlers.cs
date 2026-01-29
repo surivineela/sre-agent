@@ -236,8 +236,9 @@ public static class IncidentFilterCommandHandlers
 
         var filterName = parseResult.GetValue(IncidentFilterCommandOptions.Delete.NameOption);
         var dryRun = parseResult.GetValue(IncidentFilterCommandOptions.Delete.DryRunOption);
+        var deleteLocalFiles = parseResult.GetValue(IncidentFilterCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"FilterName: {filterName}, DryRun: {dryRun}");
+        DebugLogger.Debug("Parameters", $"FilterName: {filterName}, DryRun: {dryRun}, DeleteLocalFiles: {deleteLocalFiles}");
 
         if (string.IsNullOrWhiteSpace(filterName))
         {
@@ -265,7 +266,7 @@ public static class IncidentFilterCommandHandlers
             // After successful server deletion (not dry-run), offer to clean up local files
             if (!dryRun)
             {
-                OfferLocalFilterCleanup(filterName);
+                OfferLocalFilterCleanup(filterName, deleteLocalFiles);
             }
 
             return 0;
@@ -302,7 +303,9 @@ public static class IncidentFilterCommandHandlers
     /// <summary>
     /// Offers to clean up local incident filter files after successful server deletion.
     /// </summary>
-    private static void OfferLocalFilterCleanup(string filterName)
+    /// <param name="filterName">The name of the incident filter to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalFilterCleanup(string filterName, bool? deleteLocalFiles = null)
     {
         var filterFile = FindIncidentFilter(filterName);
 
@@ -319,7 +322,10 @@ public static class IncidentFilterCommandHandlers
         ConsoleUI.WriteBullet(filterFile, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             // If filter is in its own directory, delete the directory
             if (filterDir != null && Path.GetFileName(filterDir) == filterName)

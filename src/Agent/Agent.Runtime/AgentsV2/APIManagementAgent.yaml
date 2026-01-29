@@ -30,8 +30,7 @@ handoffs:
 
 tools:
   - ListAPIManagement
-  - ListSubscriptions
-  - ListResourceGroups
+  - SearchResource
   - HandoffBack
 
 common_prompts:

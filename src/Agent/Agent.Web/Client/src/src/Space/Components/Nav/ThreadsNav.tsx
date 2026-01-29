@@ -3,7 +3,7 @@ import { CopilotNavSubItemGroup, SplitCopilotNavCategoryItem } from '@fluentui-c
 import { makeStyles, Skeleton, SkeletonItem, useId } from '@fluentui/react-components';
 import { memo, MutableRefObject, ReactNode, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { Thread } from '../../../Common/Contracts/DataPlane/Thread';
 import useUserPermissions from '../../../Common/Hooks/useUserPermissions';
 import { KnowledgeGraphBuildStatusContext } from '../../../Common/Providers/KnowledgeGraphBuildStatusProvider';

@@ -26,10 +26,16 @@ public class AgentToolAttribute : Attribute
     public string ResourceType { get; set; }
 
     /// <summary>
-    /// When set to true, the output of this tool will not be truncated by ToolOutputTruncationService,
+    /// When set to true, the output of this tool will not be truncated by ToolOutputProcessService,
     /// regardless of size. Use this for tools where the full output is critical for the agent's operation.
     /// </summary>
     public bool DisableOutputTruncation { get; set; }
+
+    /// <summary>
+    /// When set to true, the tool's return value will be returned as-is without JSON serialization.
+    /// This is useful for tools that return complex objects that need to be processed by the caller directly.
+    /// </summary>
+    public bool KeepOriginalReturnType { get; set; }
 }
 
 public enum ToolMode

@@ -27,8 +27,9 @@ export default defineConfig(({ mode }) => {
         },
         publicDir: './src/assets',
         server: {
+            // Allow local-dev agent site UX to be hosted within: localhost (SREA Portal), Azure Portal, prod SREA Portal
             cors: isDevelopment
-                ? { origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\]|(?:[^:]+\.)?portal\.azure\.net)(?::\d+)?$/ }
+                ? { origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\]|(?:[^:]+\.)?portal\.azure\.net|(?:[^:]+\.)?sre\.azure\.com)(?::\d+)?$/ }
                 : undefined,
             proxy: isDevelopment
                 ? {

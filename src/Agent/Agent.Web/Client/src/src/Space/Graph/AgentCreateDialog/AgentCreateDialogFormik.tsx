@@ -1,5 +1,6 @@
 import { Button, DialogBody, DialogSurface, mergeClasses, Tab, TabList, ToolbarButton, Tooltip } from '@fluentui/react-components';
 import { Beaker20Regular, Dismiss24Regular } from '@fluentui/react-icons';
+import { MessageBar, MessageBarBody } from '@fluentui/react-message-bar';
 import { FC } from 'react';
 import { useIntl } from 'react-intl';
 import { ExtendedAgentsGraphResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -20,6 +21,8 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
     isEditScenario,
     existingAgentGuid,
     isOverrideScenario,
+    submissionError,
+    setSubmissionError,
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
@@ -101,9 +104,17 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                         aria-label={intl.formatMessage(SreAgentResources.close)}
                         appearance="transparent"
                         icon={<Dismiss24Regular />}
-                        onClick={onDismiss}
+                        onClick={() => {
+                            setSubmissionError?.(undefined);
+                            onDismiss();
+                        }}
                     />
                 </div>
+                {submissionError && (
+                    <MessageBar intent="error" style={{ margin: '16px 24px' }}>
+                        <MessageBarBody>{submissionError}</MessageBarBody>
+                    </MessageBar>
+                )}
                 {view === 'form' ? (
                     <FormView
                         handoffAgentsHook={handoffAgentsHook}
@@ -134,7 +145,13 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                             {intl.formatMessage(SreAgentResources.discard)}
                         </Button>
                     )}
-                    <Button appearance="secondary" onClick={onDismiss}>
+                    <Button
+                        appearance="secondary"
+                        onClick={() => {
+                            setSubmissionError?.(undefined);
+                            onDismiss();
+                        }}
+                    >
                         {intl.formatMessage(SreAgentResources.close)}
                     </Button>
                 </div>

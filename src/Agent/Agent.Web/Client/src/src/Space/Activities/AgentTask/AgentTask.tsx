@@ -137,6 +137,7 @@ const AgentTask = forwardRef<AgentTaskGraphHandle, IAgentTaskProps>((props, agen
         switch (task.status.toLowerCase()) {
             case AgentTaskStatus.Complete.toLowerCase():
                 return <CheckmarkCircleRegular style={{ color: tokens.colorPaletteGreenBackground3 }} />;
+            case AgentTaskStatus.PendingUserApproval.toLowerCase():
             case AgentTaskStatus.InProgress.toLowerCase():
                 return <ArrowCounterclockwiseFilled style={{ color: tokens.colorBrandForegroundLinkHover }} />;
             case AgentTaskStatus.Failed.toLowerCase():

@@ -1,7 +1,7 @@
 import { useTheme } from '@fluentui/react';
-import { mergeClasses, RadioGroup, Spinner } from '@fluentui/react-components';
+import { mergeClasses, MessageBar, MessageBarBody, RadioGroup, Spinner } from '@fluentui/react-components';
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react';
-import { memo, useCallback, useContext, useState } from 'react';
+import { memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -67,6 +67,8 @@ const GraphContent = () => {
         resourceGroups,
         appGroups,
         onLoadAppGroupResources,
+        refreshGraph,
+        refreshCurrentAppGroup,
     } = useGraph();
 
     const { hasChatPermissions } = useContext(KnowledgeGraphBuildStatusContext);
@@ -99,19 +101,35 @@ const GraphContent = () => {
         [logAmplitudeControlEvent]
     );
 
+    const graphContextValue = useMemo(
+        () => ({
+            selectedNode,
+            setSelectedNode,
+            hoveredNodeId,
+            hoverNode,
+            unHoverNode,
+            nodesToHighlight,
+            edgesToHighlight,
+            selectedAppGroupId,
+            refreshGraph,
+            refreshCurrentAppGroup,
+        }),
+        [
+            selectedNode,
+            setSelectedNode,
+            hoveredNodeId,
+            hoverNode,
+            unHoverNode,
+            nodesToHighlight,
+            edgesToHighlight,
+            selectedAppGroupId,
+            refreshGraph,
+            refreshCurrentAppGroup,
+        ]
+    );
+
     return (
-        <GraphContext.Provider
-            value={{
-                selectedNode,
-                setSelectedNode,
-                hoveredNodeId,
-                hoverNode,
-                unHoverNode,
-                nodesToHighlight,
-                edgesToHighlight,
-                selectedAppGroupId,
-            }}
-        >
+        <GraphContext.Provider value={graphContextValue}>
             <div
                 style={{
                     display: 'flex',
@@ -121,68 +139,74 @@ const GraphContent = () => {
                 }}
             >
                 {hasChatPermissions && canReadGraph ? (
-                    <>
-                        <div className={mergeClasses(radioGroupContainer, commonStyles.contentHeader)}>
-                            <RadioGroup
-                                value={currentView}
-                                onChange={(_, data) => onChangeViewType(data.value as GraphView)}
-                                layout="horizontal"
-                            >
-                                <CopilotRadio value={GraphView.Canvas} label={intl.formatMessage(GraphResources.canvasView)} />
-                                <CopilotRadio value={GraphView.Table} label={intl.formatMessage(GraphResources.tableView)} />
-                            </RadioGroup>
-                        </div>
-                        <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
-                            <div className={visualRoot}>
-                                {currentView === GraphView.Table ? (
-                                    <GraphGridView
-                                        resources={resources}
-                                        selectedAppGroup={selectedAppGroup}
-                                        resourceGroups={resourceGroups}
-                                        appGroups={appGroups}
-                                        onLoadAppGroupResources={onLoadAppGroupResources}
-                                    />
-                                ) : (
-                                    <div className={reactFlow}>
-                                        {isLoading ? (
-                                            <Spinner size={'large'} className={spinner} />
-                                        ) : (
-                                            <ReactFlow
-                                                fitView
-                                                nodeTypes={{ [GRAPH_CARD_TYPE]: GraphCard }}
-                                                edgeTypes={{ [CUSTOM_EDGE_TYPE]: CustomEdge }}
-                                                nodes={nodes}
-                                                edges={edges}
-                                                onNodesChange={onNodesChange}
-                                                onEdgesChange={onEdgesChange}
-                                                proOptions={{ hideAttribution: true }}
-                                                colorMode={theme.isInverted ? 'dark' : 'light'}
-                                                style={{ display: currentView === GraphView.Canvas ? 'block' : 'none' }}
-                                            >
-                                                <Controls />
-                                                <MiniMap />
-                                                <ResourceSelector
-                                                    subscriptions={subscriptions}
-                                                    filteredAppGroups={filteredAppGroups}
-                                                    selectedSubscription={selectedSubscription}
-                                                    selectedRscType={selectedRscType}
-                                                    selectedAppGroup={selectedAppGroup}
-                                                    isSubscriptionLoading={isSubscriptionLoading}
-                                                    isAppGroupLoading={isAppGroupLoading}
-                                                    resourceTypeFilterOptions={resourceTypeFilterOptions}
-                                                    onSelectSubscription={onSelectSubscription}
-                                                    onSelectRscType={onSelectRscType}
-                                                    onSelectAppGroupDropdown={onSelectAppGroupDropdown}
-                                                    allKey={allKey}
-                                                />
-                                            </ReactFlow>
-                                        )}
-                                    </div>
-                                )}
+                    !isSubscriptionLoading && subscriptions.length === 0 ? (
+                        <MessageBar intent="warning" style={{ maxWidth: 500 }}>
+                            <MessageBarBody>{intl.formatMessage(GraphResources.noSubscriptionsFound)}</MessageBarBody>
+                        </MessageBar>
+                    ) : (
+                        <>
+                            <div className={mergeClasses(radioGroupContainer, commonStyles.contentHeader)}>
+                                <RadioGroup
+                                    value={currentView}
+                                    onChange={(_, data) => onChangeViewType(data.value as GraphView)}
+                                    layout="horizontal"
+                                >
+                                    <CopilotRadio value={GraphView.Canvas} label={intl.formatMessage(GraphResources.canvasView)} />
+                                    <CopilotRadio value={GraphView.Table} label={intl.formatMessage(GraphResources.tableView)} />
+                                </RadioGroup>
                             </div>
-                            {currentView === GraphView.Canvas && <ResourceInfo />}
-                        </div>
-                    </>
+                            <div className={mergeClasses(container, commonStyles.contentRootBorderAndBackground)}>
+                                <div className={visualRoot}>
+                                    {currentView === GraphView.Table ? (
+                                        <GraphGridView
+                                            resources={resources}
+                                            selectedAppGroup={selectedAppGroup}
+                                            resourceGroups={resourceGroups}
+                                            appGroups={appGroups}
+                                            onLoadAppGroupResources={onLoadAppGroupResources}
+                                        />
+                                    ) : (
+                                        <div className={reactFlow}>
+                                            {isLoading ? (
+                                                <Spinner size={'large'} className={spinner} />
+                                            ) : (
+                                                <ReactFlow
+                                                    fitView
+                                                    nodeTypes={{ [GRAPH_CARD_TYPE]: GraphCard }}
+                                                    edgeTypes={{ [CUSTOM_EDGE_TYPE]: CustomEdge }}
+                                                    nodes={nodes}
+                                                    edges={edges}
+                                                    onNodesChange={onNodesChange}
+                                                    onEdgesChange={onEdgesChange}
+                                                    proOptions={{ hideAttribution: true }}
+                                                    colorMode={theme.isInverted ? 'dark' : 'light'}
+                                                    style={{ display: currentView === GraphView.Canvas ? 'block' : 'none' }}
+                                                >
+                                                    <Controls />
+                                                    <MiniMap />
+                                                    <ResourceSelector
+                                                        subscriptions={subscriptions}
+                                                        filteredAppGroups={filteredAppGroups}
+                                                        selectedSubscription={selectedSubscription}
+                                                        selectedRscType={selectedRscType}
+                                                        selectedAppGroup={selectedAppGroup}
+                                                        isSubscriptionLoading={isSubscriptionLoading}
+                                                        isAppGroupLoading={isAppGroupLoading}
+                                                        resourceTypeFilterOptions={resourceTypeFilterOptions}
+                                                        onSelectSubscription={onSelectSubscription}
+                                                        onSelectRscType={onSelectRscType}
+                                                        onSelectAppGroupDropdown={onSelectAppGroupDropdown}
+                                                        allKey={allKey}
+                                                    />
+                                                </ReactFlow>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                {currentView === GraphView.Canvas && <ResourceInfo />}
+                            </div>
+                        </>
+                    )
                 ) : (
                     <NoAccessError requiredPermission={PermissionActions.AgentGraphRead} resourceId={resourceId || 'unknown'} />
                 )}

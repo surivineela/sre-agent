@@ -1,3 +1,17 @@
+---
+name: azure_cli_command_executor
+description: |
+  Execute Azure CLI commands for read and write operations on Azure resources.
+  Behavior:
+  - Read commands (list, show, get): Execute immediately. Chain discovery commands if context is missing (e.g., az account show → az group list → requested command).
+  - Write commands: Require user approval before execution.
+tools:
+  - RunAzCliWriteCommands
+  - RunAzCliReadCommands
+  - GetAzCliHelp
+  - SearchDocuments
+---
+
 # Azure CLI Command Executor Skill
 
 ## Overview
@@ -30,14 +44,14 @@ Open supplementary skills only when a trigger below is met. Provide the trigger 
 
 | Trigger (Observed Need) | Action | Rationale |
 |-------------------------|--------|-----------|
-| Missing or ambiguous resource scope after 2 read attempts (ID, subscription, type) | Use built‑in discovery tools (ListSubscriptions, ListResourceGroups, SearchResource, GetResourceIdForResourceName) | Establish precise scope before further CLI actions |
+| Missing or ambiguous resource scope after 2 read attempts (ID, subscription, type) | Use SearchResource with filters: SearchResource(resourceTypes: ["microsoft.resources/subscriptions"]) for subscriptions, SearchResource(resourceTypes: ["microsoft.resources/subscriptions/resourcegroups"], subscriptionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for resource groups, SearchResource(resourceName: "name", resourceTypes: ["type"]) to locate resources | Establish precise scope before further CLI actions |
 | Need multi‑metric trend or anomaly validation beyond immediate CLI output (e.g. sustained CPU spike justification before scaling) | Open `metrics_and_chart_visualization` | Time‑series analysis and correlation prior to modification |
 | Performance degradation cause unclear (utilization vs configuration) | Open `metrics_and_chart_visualization` | Deep metric inspection to separate config vs load issues |
 
 ## Minimal Operational Workflow
 
 1. Clarify Intent: Resource(s), desired outcome, urgency. Distinguish READ vs WRITE.
-2. Context Validation: Subscription present? Resource ID available? If not → invoke built‑in discovery tools (ListSubscriptions → select; ListResourceGroups / SearchResource → locate; GetResourceIdForResourceName → resolve ID) before proceeding.
+2. Context Validation: Subscription present? Resource ID available? If not → use SearchResource: SearchResource(resourceTypes: ["microsoft.resources/subscriptions"]) to find subscriptions, SearchResource(resourceName: "name", resourceTypes: ["type"]) to locate and resolve resource ID before proceeding.
 3. Baseline Reads: Execute targeted list/show commands (use `--query` for focus) to collect current state.
 4. State Analysis: Summarize key properties vs desired outcome (e.g., instances 2 → need 4).
 5. Help Lookup (WRITE only): Use `GetAzCliHelp` to confirm required parameters + flags; stop after logical scope exhaustion.

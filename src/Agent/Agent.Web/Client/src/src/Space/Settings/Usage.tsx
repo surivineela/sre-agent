@@ -1,7 +1,8 @@
-import { Body1, Body2, Body2Strong, Body3Strong, Caption1, Caption1Strong, EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
+import { Body1, Body2, Body2Strong, Body3Strong, Caption1, Caption1Strong, EntityTitle } from '@fluentui-copilot/react-copilot';
 import { VerticalBarChart, VerticalBarChartDataPoint } from '@fluentui/react-charts';
 import {
     Button,
+    Card,
     Dialog,
     DialogActions,
     DialogSurface,
@@ -68,6 +69,8 @@ const useStyles = makeStyles({
     },
     infoCard: {
         maxWidth: 'unset',
+        borderRadius: '24px',
+        padding: tokens.spacingVerticalXXL,
     },
     totalUsageInfoLabel: {
         display: 'flex',
@@ -95,8 +98,37 @@ const useStyles = makeStyles({
     totalConsumptionLoader: {
         height: '240px',
     },
+    totalConsumptionContent: {
+        maxWidth: 'unset',
+        borderRadius: 'unset',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: tokens.spacingVerticalXXL,
+        padding: `${tokens.spacingVerticalXXL} 0px ${tokens.spacingVerticalS} 0px`,
+        marginBottom: tokens.spacingVerticalL,
+    },
+    totalConsumptionProgressBarContainer: {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: tokens.spacingVerticalXXL,
+        paddingBottom: tokens.spacingVerticalS,
+    },
     dailyConsumptionLoader: {
         height: '550px',
+    },
+    dailyConsumptionChart: {
+        height: '450px',
+    },
+    dailyConsumptionCard: {
+        maxWidth: 'unset',
+        borderRadius: 'unset',
+        width: '100%',
+        minHeight: '450px',
+        padding: `${tokens.spacingVerticalXXL} 0px ${tokens.spacingVerticalS} 0px`,
     },
     chartLegendOverride: {
         '& .fui-legend__resizableArea': {
@@ -113,7 +145,10 @@ const useStyles = makeStyles({
         marginTop: tokens.spacingVerticalL,
     },
     noDataContainer: {
-        position: 'relative',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
         width: '100%',
         minHeight: '100px',
     },
@@ -380,26 +415,14 @@ const Usage = () => {
                     </ToolbarButton>
                 </Toolbar>
                 <div className={styles.section}>
-                    <EntityCard
-                        role="group"
-                        entityTitle={
-                            <EntityTitle
-                                primaryText={
-                                    <Body2>
-                                        <span className={styles.smallSpaceOnRight}>
-                                            {intl.formatMessage(UsageResources.monthlyAAULimitLabel)}
-                                        </span>
-                                        {totalLimit !== undefined && !monthlyUsageError && (
-                                            <Body3Strong>
-                                                {intl.formatMessage(UsageResources.billingDescription, { count: totalLimit })}
-                                            </Body3Strong>
-                                        )}
-                                    </Body2>
-                                }
-                            />
-                        }
-                        className={styles.infoCard}
-                    />
+                    <Card role="group" className={styles.infoCard}>
+                        <Body2>
+                            <span className={styles.smallSpaceOnRight}>{intl.formatMessage(UsageResources.monthlyAAULimitLabel)}</span>
+                            {totalLimit !== undefined && !monthlyUsageError && (
+                                <Body3Strong>{intl.formatMessage(UsageResources.billingDescription, { count: totalLimit })}</Body3Strong>
+                            )}
+                        </Body2>
+                    </Card>
                 </div>
                 <div className={styles.sectionTitle}>
                     <Body2Strong block={true}>{currentDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</Body2Strong>
@@ -411,50 +434,37 @@ const Usage = () => {
                             <SkeletonItem className={styles.totalConsumptionLoader} />
                         </Skeleton>
                     ) : (
-                        <EntityCard
-                            role="group"
-                            entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.totalActiveFlowConsumptionTitle)} />}
-                            style={{ maxWidth: 'unset' }}
-                            content={{
-                                style: {
-                                    maxWidth: 'unset',
-                                    borderRadius: 'unset',
-                                    width: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    gap: tokens.spacingVerticalXXL,
-                                    padding: `${tokens.spacingVerticalXXL} 0px ${tokens.spacingVerticalS} 0px`,
-                                },
-                            }}
-                        >
-                            {monthlyUsageError ? (
-                                <NoDataMessage />
-                            ) : (
-                                <>
-                                    <div className={styles.totalUsageInfoLabel}>
-                                        <Caption1>{intl.formatMessage(UsageResources.consumptionAAUUsageLabel)}</Caption1>
+                        <Card role="group" className={styles.infoCard}>
+                            <EntityTitle primaryText={intl.formatMessage(UsageResources.totalActiveFlowConsumptionTitle)} />
+                            <div className={styles.totalConsumptionContent}>
+                                {monthlyUsageError ? (
+                                    <NoDataMessage />
+                                ) : (
+                                    <div className={styles.totalConsumptionProgressBarContainer}>
+                                        <div className={styles.totalUsageInfoLabel}>
+                                            <Caption1>{intl.formatMessage(UsageResources.consumptionAAUUsageLabel)}</Caption1>
 
-                                        <Title2>
-                                            <span style={{ color: tokens.colorPaletteCornflowerBorderActive }}>
-                                                {currentUsageDisplayData}
-                                            </span>
-                                            <span>{'/'}</span>
-                                            <span>{totalLimitDisplayData}</span>
-                                        </Title2>
+                                            <Title2>
+                                                <span style={{ color: tokens.colorPaletteCornflowerBorderActive }}>
+                                                    {currentUsageDisplayData}
+                                                </span>
+                                                <span>{'/'}</span>
+                                                <span>{totalLimitDisplayData}</span>
+                                            </Title2>
+                                        </div>
+                                        <div className={styles.fullWidth}>
+                                            <Caption1 className={styles.progressBarField} block={true} align={'end'}>
+                                                <Caption1Strong>{currentUsageDisplayData}</Caption1Strong>
+                                                <span>{'/'}</span>
+                                                <span className={styles.extraSmallSpaceOnRight}>{totalLimitDisplayData}</span>
+                                                <span>{'AAUs'}</span>
+                                            </Caption1>
+                                            <ProgressBar value={currentUsage} max={totalLimit} className={styles.progressBar}></ProgressBar>
+                                        </div>
                                     </div>
-                                    <div className={styles.fullWidth}>
-                                        <Caption1 className={styles.progressBarField} block={true} align={'end'}>
-                                            <Caption1Strong>{currentUsageDisplayData}</Caption1Strong>
-                                            <span>{'/'}</span>
-                                            <span className={styles.extraSmallSpaceOnRight}>{totalLimitDisplayData}</span>
-                                            <span>{'AAUs'}</span>
-                                        </Caption1>
-                                        <ProgressBar value={currentUsage} max={totalLimit} className={styles.progressBar}></ProgressBar>
-                                    </div>
-                                </>
-                            )}
-                        </EntityCard>
+                                )}
+                            </div>
+                        </Card>
                     )}
                 </div>
                 <div className={styles.section}>
@@ -463,31 +473,29 @@ const Usage = () => {
                             <SkeletonItem className={styles.dailyConsumptionLoader} />
                         </Skeleton>
                     ) : (
-                        <EntityCard
-                            role="group"
-                            entityTitle={<EntityTitle primaryText={intl.formatMessage(UsageResources.dailyActiveFlowConsumptionTitle)} />}
-                            style={{ maxWidth: 'unset' }}
-                            content={{
-                                ref: dailyUsageChartRef,
-                                style: { maxWidth: 'unset', borderRadius: 'unset', width: '100%', minHeight: '450px' },
-                            }}
-                        >
-                            {dailyUsageError ? (
-                                <NoDataMessage />
-                            ) : (
-                                <div className={`${styles.fullWidth} ${styles.chartLegendOverride}`}>
-                                    <VerticalBarChart
-                                        culture={typeof window !== 'undefined' ? window.navigator.language : 'en-us'}
-                                        data={dailyUsagesDataPoint}
-                                        lineLegendText={intl.formatMessage(UsageResources.aauConsumptionLegendText)}
-                                        useUTC={false}
-                                        parentRef={dailyUsageChartRef.current}
-                                        yMaxValue={chartMaxValue}
-                                        yMinValue={0}
-                                    />
-                                </div>
-                            )}
-                        </EntityCard>
+                        <Card role="group" className={styles.infoCard}>
+                            <EntityTitle primaryText={intl.formatMessage(UsageResources.dailyActiveFlowConsumptionTitle)} />
+                            <div className={styles.dailyConsumptionCard}>
+                                {dailyUsageError ? (
+                                    <NoDataMessage />
+                                ) : (
+                                    <div
+                                        ref={dailyUsageChartRef}
+                                        className={`${styles.fullWidth} ${styles.chartLegendOverride} ${styles.dailyConsumptionChart}`}
+                                    >
+                                        <VerticalBarChart
+                                            culture={typeof window !== 'undefined' ? window.navigator.language : 'en-us'}
+                                            data={dailyUsagesDataPoint}
+                                            lineLegendText={intl.formatMessage(UsageResources.aauConsumptionLegendText)}
+                                            useUTC={false}
+                                            parentRef={dailyUsageChartRef.current}
+                                            yMaxValue={chartMaxValue}
+                                            yMinValue={0}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </Card>
                     )}
                 </div>
             </div>

@@ -97,6 +97,42 @@ export class ResourceGroupClient {
         });
     }
 
+    public static getResourceGroupIdsWithSreAgentResources = async (
+        subscriptionIds: string[],
+        apiVersion = ApiVersions.argQueryApiVersion20200401Preview
+    ): Promise<Set<string>> => {
+        if (subscriptionIds.length === 0) {
+            return new Set<string>();
+        }
+
+        const query = `
+            where type in~ ('microsoft.web/sites', 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microsoft.containerservice/managedclusters', 'microsoft.cache/redis', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbforpostgresql/servers', 'microsoft.documentdb/databaseaccounts', 'microsoft.sql/servers', 'microsoft.sql/servers/databases', 'microsoft.storage/storageaccounts')
+            | summarize by resourceGroup, subscriptionId
+        `;
+
+        const content: ARGRequestContent = {
+            query,
+            subscriptions: subscriptionIds,
+        };
+
+        const response = await MakeArmCall<ARGResponse, ARGRequestContent>({
+            method: 'POST',
+            url: `/providers/Microsoft.ResourceGraph/resources?api-version=${apiVersion}`,
+            body: content,
+            commandName: 'GetResourceGroupIdsWithSreAgentResources',
+        });
+
+        const resourceGroupIds = new Set<string>();
+        if (response?.data?.data?.rows) {
+            response.data.data.rows.forEach((row: any[]) => {
+                const resourceGroupId = `/subscriptions/${row[1]}/resourceGroups/${row[0]}`.toLowerCase();
+                resourceGroupIds.add(resourceGroupId);
+            });
+        }
+
+        return resourceGroupIds;
+    };
+
     public static listResourceKindsInResourceGroups(
         resourceGroupIds: string[],
         apiVersion = ApiVersions.argQueryApiVersion20200401Preview

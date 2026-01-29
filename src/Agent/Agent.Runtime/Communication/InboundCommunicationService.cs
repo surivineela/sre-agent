@@ -98,11 +98,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     {
         var agentContext = await _repository.GetAgentContextAsync(agentContextId: threadMessage.AgentContextId, threadId: threadMessage.ThreadId);
 
-        // we don't need to sink user message if the message is the start message
+        // we don't need to sink user message if the message is the start message or if it's already been posted
         var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
 
         agentContext = agentContext with { IsIncidentTestModeEnabled = thread?.IsIncidentTestModeEnabled ?? false };
         ThreadContextAccessor.SetThreadContext(agentContext);
+        ThreadContextAccessor.CurrentHandlerId = thread?.IncidentDetails?.HandlerId;
         if (threadMessage.MessageId != thread?.StartMessage?.Id)
         {
             await _sinkService.SinkUserMessageAsync(threadMessage);
@@ -153,6 +154,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             // Add request-level metadata to the trace scope
             //traceScope.AddMetadata("request_type", "user_message");
             traceScope.AddMetadata("thread_id", threadMessage.ThreadId.ToString());
+            traceScope.AddMetadata("gen_ai.conversation.id", threadMessage.ThreadId.ToString());
             //traceScope.AddMetadata("user_name", threadMessage.DisplayName ?? "unknown");
             traceScope.AddMetadata("gen_ai.provider.name", "Microsoft.SREAgent");
         }
@@ -332,6 +334,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 IncidentStatus = new Core.Models.Api.v1.IncidentStatus
                 {
                     IncidentId = incidentId,
+                    Status = incidentDetails?.IncidentStatus
                 }
             };
         }

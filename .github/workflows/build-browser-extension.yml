@@ -1,0 +1,62 @@
+name: Build SRE Agent Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a Release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/Agent/Agent.Extension
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Get version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Create distribution zip
+        run: |
+          cd dist
+          zip -r ../sre-agent-extension-${{ steps.version.outputs.VERSION }}.zip .
+
+      - name: Upload extension zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: sre-agent-browser-extension-${{ steps.version.outputs.VERSION }}
+          path: src/Agent/Agent.Extension/sre-agent-extension-${{ steps.version.outputs.VERSION }}.zip
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: ${{ inputs.create_release }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "extension-v${{ steps.version.outputs.VERSION }}" \
+            --title "SRE Agent Browser Extension v${{ steps.version.outputs.VERSION }}" \
+            --notes "SRE Agent Browser Extension v${{ steps.version.outputs.VERSION }}" \
+            sre-agent-extension-${{ steps.version.outputs.VERSION }}.zip

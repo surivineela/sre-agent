@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Anthropic.Foundry" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.ResourceManager.AlertsManagement" />
     <PackageReference Include="Azure.Search.Documents" />

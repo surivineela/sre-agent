@@ -929,7 +929,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: testResult.ErrorMessage);
     }
 
-    // Helper: ICM connector status using CheckConnectivity
+    // Helper: ICM connector status using GetConnectivityStatus
     private async Task<ConnectorStatusResponse> BuildIcmConnectorStatusAsync(string connectorName)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -940,8 +940,15 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         try
         {
             var service = _incidentFilterManagementServiceFactory.GetServiceDynamic();
-            healthy = await service.CheckConnectivity();
-            message = healthy ? "ICM connectivity OK." : "ICM connectivity failed.";
+            var result = await service.GetConnectivityStatus();
+            healthy = result.Success;
+            message = healthy
+                ? "ICM connectivity OK."
+                : $"ICM connectivity failed: {result.ErrorMessage ?? "Unknown error"}";
+            if (!healthy && !string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                details = new { error = result.ErrorMessage };
+            }
         }
         catch (Exception ex)
         {

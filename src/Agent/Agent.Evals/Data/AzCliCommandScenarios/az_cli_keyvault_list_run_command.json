@@ -8,7 +8,7 @@
           "type": "TextContent",
           "value": {
             "$type": "text",
-            "text": "List all keyvaults in /subscriptions/1f3b4420-610a-4ae8-8f10-0fae219fc7fb/resourceGroups/rg-demo-app-ebentest2"
+            "text": "List all secrets in keyvault kv-demo-app-prod"
           }
         }
       ]
@@ -19,14 +19,14 @@
         {
           "type": "TextReasoningContent",
           "value": {
-            "text": "**Listing Key Vaults**\n\nI need to list all Key Vaults within a specific subscription and resource group using the ListResourcesByType function. I\u2019ll filter by the resource type \u0027microsoft.keyvault/vaults\u0027 and specify the resource group name \u0027rg-demo-app-ebentest2\u0027. It\u2019s a straightforward read, so I\u2019ll make sure to provide a concise answer with a list of resource names and IDs. I\u2019ll even use take -1 to ensure I capture all entries, then I\u2019ll execute the tool call."
+            "text": "**Finding the Key Vault**\n\nThe user wants to list secrets in a specific Key Vault. First, I need to find the Key Vault resource to get its full resource ID and vault URI. I\u0027ll use SearchResource to locate it."
           }
         },
         {
           "type": "TextContent",
           "value": {
             "$type": "text",
-            "text": "Searching that resource group for Key Vaults."
+            "text": "Looking up the Key Vault resource."
           }
         },
         {
@@ -34,13 +34,10 @@
           "value": {
             "$type": "functionCall",
             "callId": "call_uguDUyHulO90AxRsyjajmaHm",
-            "name": "ListResourcesByType",
+            "name": "SearchResource",
             "arguments": {
-              "resourceType": "microsoft.keyvault/vaults",
-              "propertyName": "resourceGroupName",
-              "propertyValue": "rg-demo-app-ebentest2",
-              "skip": 0,
-              "take": -1
+              "resourceName": "kv-demo-app-prod",
+              "resourceTypes": ["microsoft.keyvault/vaults"]
             }
           }
         }
@@ -54,7 +51,17 @@
           "value": {
             "$type": "functionResult",
             "callId": "call_uguDUyHulO90AxRsyjajmaHm",
-            "result": []
+            "result": {
+              "resources": [
+                {
+                  "resourceId": "/subscriptions/1f3b4420-610a-4ae8-8f10-0fae219fc7fb/resourceGroups/rg-demo-app/providers/Microsoft.KeyVault/vaults/kv-demo-app-prod",
+                  "resourceName": "kv-demo-app-prod",
+                  "resourceType": "microsoft.keyvault/vaults",
+                  "location": "eastus"
+                }
+              ],
+              "totalCount": 1
+            }
           }
         }
       ]
@@ -65,44 +72,14 @@
         {
           "type": "TextReasoningContent",
           "value": {
-            "text": "**Investigating Key Vaults**\n\nI need to list all the key vaults in the specified resource group, but the last attempt with ListResourcesByType returned an empty list. I could try using SearchResource with a type filter, but that also failed. So, I\u2019m considering the SearchResource with a name pattern, though that could be tricky since \u0022key\u0022 might not work. Alternatively, I may use GetResourceCount or try again with ListResourcesByType while ensuring correct case syntax for the resource group name. Maybe Azure Resource Graph can help, but I only have specific resourceId access.**Responding about Key Vaults**\n\nI\u0027m realizing we don\u0027t have a tool for general listing via Azure Resource Graph. I could use ListResourcesByType without filtering property names, but it might return too many results to filter effectively. Another option was SearchResourceByName, but that hasn\u2019t been helpful. So, I\u0027ll simply reply that no Key Vaults were found in this resource group. I should ask if they want me to verify in real-time or confirm the resource group and subscription. The response will include the RG name and subscription ID for clarity."
+            "text": "**Listing Key Vault Secrets**\n\nI found the Key Vault. Now I need to list the secrets within it. Listing secrets requires interacting with the Key Vault data plane, not the management plane. This operation isn\u0027t available through my current resource discovery tools - I need to use the Azure CLI to run `az keyvault secret list`. I should load the azure_cli_command_executor skill to get access to the CLI tools."
           }
         },
         {
           "type": "TextContent",
           "value": {
             "$type": "text",
-            "text": "No Key Vaults found in resource group \u0060rg-demo-app-ebentest2\u0060 in subscription \u00601f3b4420-610a-4ae8-8f10-0fae219fc7fb\u0060.\n\nWould you like me to verify this in real-time against Azure in case the graph is missing recent changes?"
-          }
-        }
-      ]
-    },
-    {
-      "role": "user",
-      "contents": [
-        {
-          "type": "TextContent",
-          "value": {
-            "$type": "text",
-            "text": "Yes"
-          }
-        }
-      ]
-    },
-    {
-      "role": "assistant",
-      "contents": [
-        {
-          "type": "TextReasoningContent",
-          "value": {
-            "text": "**Considering Azure CLI commands**\n\nI see that our functions list doesn\u0027t include RunAzCliReadCommands. However, the skills section mentions that new tools can be added after loading skill SKILL.md. So, once I call read_skill_file, I should be able to access functions.RunAzCliReadCommands. I\u0027ll produce a brief preamble stating: \u0022Checking Azure in real-time for Key Vaults in that resource group.\u0022 It\u0027s vital to handle error recovery effectively as I proceed."
-          }
-        },
-        {
-          "type": "TextContent",
-          "value": {
-            "$type": "text",
-            "text": "Checking Azure in real-time for Key Vaults in that resource group."
+            "text": "Found the Key Vault `kv-demo-app-prod` in resource group `rg-demo-app`. To list secrets, I need to query the Key Vault data plane."
           }
         },
         {
@@ -176,7 +153,7 @@
         {
           "type": "TextReasoningContent",
           "value": {
-            "text": "**Executing Azure query**\n\nI need to perform a real-time Azure query to list key vaults in a specific subscription or resource group. I\u0027ll use the RunAzCliReadCommands tool with the correct command. Following the tool\u0027s advice, I\u2019ll include the --subscription parameter in the command. The command will be: \u0060az keyvault list -g rg-demo-app-ebentest2 --subscription \u003Cid\u003E\u0060. Now, I just need to execute it and return the results!"
+            "text": "**Executing Azure CLI command**\n\nNow that I have the azure_cli_command_executor skill loaded, I can use RunAzCliReadCommands to list the secrets in the Key Vault. I\u0027ll use the `az keyvault secret list` command with the vault name. This is a read operation so it\u0027s safe to execute."
           }
         },
         {
@@ -186,7 +163,7 @@
             "callId": "call_Oexh8XRIQsDdy8ixsrdXZ8Qy",
             "name": "RunAzCliReadCommands",
             "arguments": {
-              "command": "az keyvault list -g rg-demo-app-ebentest2 --subscription 1f3b4420-610a-4ae8-8f10-0fae219fc7fb"
+              "command": "az keyvault secret list --vault-name kv-demo-app-prod --subscription 1f3b4420-610a-4ae8-8f10-0fae219fc7fb"
             }
           }
         }

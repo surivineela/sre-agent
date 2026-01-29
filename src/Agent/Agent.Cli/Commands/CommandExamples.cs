@@ -393,13 +393,13 @@ Examples:
   # Delete with debug logging
   srectl skill delete --name unused-skill --debug";
 
-        public const string MigrateDescription = @"Migrate V1 skill configurations to V2 format
+        public const string MigrateDescription = @"Migrate skills from metadata.yaml to SKILL.md frontmatter format
 
 Examples:
   # Migrate a specific skill
   srectl skill migrate --name my-skill
 
-  # Migrate all V1 skills
+  # Migrate all skills in the skills/ directory
   srectl skill migrate --all
 
   # Preview migration without making changes (dry run)

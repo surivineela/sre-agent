@@ -40,6 +40,13 @@ export type KustoToolItem = {
     data: ExtendedTool;
 };
 
+export type PythonToolItem = {
+    name: string;
+    description: string;
+    timeout: string;
+    data: ExtendedTool;
+};
+
 export type SkillItem = {
     name: string;
     description: string;
@@ -49,7 +56,7 @@ export type SkillItem = {
     data: Skill;
 };
 
-export type TableViewTabValue = 'agents' | 'incidentTriggers' | 'scheduledTasks' | 'kustoTools' | 'skills';
+export type TableViewTabValue = 'agents' | 'incidentTriggers' | 'scheduledTasks' | 'kustoTools' | 'pythonTools' | 'skills';
 
 export type BaseTableItem = {
     name: string;

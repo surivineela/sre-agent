@@ -165,6 +165,13 @@ public class ExtendedAgentValidator : IExtendedAgentValidator
             result.AddError("Handoff description exceeds maximum length of 500 characters.");
         }
 
+        // Validate total tools count (Tools + McpTools combined)
+        var totalToolsCount = (spec.Tools?.Count ?? 0) + (spec.McpTools?.Count ?? 0);
+        if (totalToolsCount > 80)
+        {
+            result.AddError($"Agent cannot have more than 80 tools. Current count: {totalToolsCount}.");
+        }
+
         // Validate tool names
         if (spec.Tools?.Count > 0)
         {

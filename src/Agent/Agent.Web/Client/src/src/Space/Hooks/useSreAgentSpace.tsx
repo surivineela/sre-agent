@@ -1,6 +1,7 @@
 import { DrawerProps } from '@fluentui/react-components';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import useIntl from 'react-intl/src/components/useIntl';
+import { useLocation } from 'react-router';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -9,14 +10,16 @@ import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
-import { isFinalStreamingMessage, parseThreadFromStreamingText } from '../Activities/Utility';
+import { isFinalStreamingMessage, isThreadUnread, parseThreadFromStreamingText } from '../Activities/Utility';
 import { SreAgentContext, StreamingContext } from '../Contracts/Context';
 import { PrimaryNavItemValues, SecondaryNavItemValues, ThreadCategoryKey } from '../Contracts/SreAgentSpace';
+import { getNavItemIdFromPathName } from '../Utilities';
 import { useAgentSiteNavigate } from './useAgentSiteNavigate';
 import { InputForThreadListWithFavoriteList, useThreadListWithFavoriteList } from './useThreadListWithFavoriteList';
 
 export const useSreAgentSpace = () => {
     const intl = useIntl();
+    const location = useLocation();
 
     const { subscribeThreadUpdateEvent, subscribeMessageUpdateEvent } = useContext(StreamingContext);
     const proxy = useContext(AzPortalContext);
@@ -94,9 +97,13 @@ export const useSreAgentSpace = () => {
         [navigate, onNavItemSelected]
     );
 
-    const onClickNonThreadNavItem = useCallback(
-        (primary: PrimaryNavItemValues) => {
-            onClickNavItem(primary, undefined, undefined);
+    const onClickThreadNavItem = useCallback(
+        (primary: PrimaryNavItemValues, threadId: string | null) => {
+            // Since navigate() is in transition, we need to wrap setState in startTransition to put it in the same priority level
+            startTransition(() => {
+                onClickNavItem(primary, undefined, threadId ? threadId : undefined);
+                setThreadsRenderKey(Guid.newGuid());
+            });
         },
         [onClickNavItem]
     );
@@ -110,11 +117,14 @@ export const useSreAgentSpace = () => {
 
     const selectThread = useCallback(
         (threadId: string | null) => {
-            onClickNavItem(PrimaryNavItemValues.Threads, undefined, threadId ? threadId : undefined);
-            setThreadsRenderKey(Guid.newGuid());
+            onClickThreadNavItem(PrimaryNavItemValues.Threads, threadId);
         },
-        [onClickNavItem]
+        [onClickThreadNavItem]
     );
+
+    const selectOverview = useCallback(() => {
+        onClickThreadNavItem(PrimaryNavItemValues.Overview, null);
+    }, [onClickThreadNavItem]);
 
     const addThread = useCallback(
         (threadId: string) => {
@@ -345,6 +355,59 @@ export const useSreAgentSpace = () => {
     };
 
     useEffect(() => {
+        let isSubscribed = true;
+
+        const selectedNavItem = getNavItemIdFromPathName(location.pathname);
+        if (!selectedNavItem || selectedNavItem === '/') {
+            const checkForWelcomeThread = async () => {
+                // Get the welcome thread for the last 24 hours if it exists
+                const timestampCutoff = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
+
+                const threadsResponse = await threadClient.getThreads({
+                    skip: 0,
+                    top: 1,
+                    orderBy: 'modifiedTimestamp',
+                    descending: true,
+                    filters: {
+                        sources: [ThreadSource.welcomeMessage],
+                        timestamps: {
+                            min: {
+                                timestamp: timestampCutoff,
+                                inclusive: true,
+                            },
+                        },
+                    },
+                });
+
+                if (isSubscribed && threadsResponse.isSuccessful && threadsResponse.content && threadsResponse.content.length > 0) {
+                    const welcomeThread = threadsResponse.content[0];
+
+                    if (isThreadUnread(welcomeThread)) {
+                        selectThread(welcomeThread.id);
+
+                        proxy.logAmplitudeOperationEvent({
+                            targetType: 'load',
+                            targetAction: 'loaded',
+                            targetName: 'autoLoadWelcomeThread',
+                            targetFriendlyName: 'Auto-load welcome thread',
+                            metadata: {
+                                threadId: welcomeThread.id,
+                                threadType: ThreadSource.welcomeMessage,
+                            },
+                        });
+                    }
+                }
+            };
+
+            checkForWelcomeThread();
+        }
+
+        return () => {
+            isSubscribed = false;
+        };
+    }, [location.pathname, proxy, selectThread, threadClient]);
+
+    useEffect(() => {
         const handleResize = () => {
             const smallerScreen = window.innerWidth <= 840;
             setNavBarState(prev => {
@@ -423,6 +486,7 @@ export const useSreAgentSpace = () => {
         showUnreadOnly,
         setShowUnreadOnly,
         selectThread,
+        selectOverview,
         addThread,
         threadListsState,
         unreadThreadIds,
@@ -440,7 +504,6 @@ export const useSreAgentSpace = () => {
         onExpandOrCollapseNavBar,
         openedCategoryNavItems,
         onClickCategoryNavItem,
-        onClickNonThreadNavItem,
         onClickNonThreadSubNavItem,
 
         isNavOpen: navBarState.isNavBarOpen,

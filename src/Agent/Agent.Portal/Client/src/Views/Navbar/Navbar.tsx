@@ -1,12 +1,13 @@
 import { Button, Image, makeStyles, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router';
 import { PreviewBadge } from '../../Common/Components/PreviewBadge';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { useAuth } from '../../Common/Contexts/AuthContext';
 import { usePersistentNavigate } from '../../Common/Hooks/usePersistentNavigate';
 import { parseArmId } from '../../Common/Utilities/ArmId';
+import { parseResourceRoute } from '../../Common/Utilities/ResourceRouting';
 import { PortalResources } from '../../Strings/Resources';
 import { FeedbackButton } from './FeedbackButton';
 import { NotificationButton } from './NotificationButton';
@@ -22,8 +23,8 @@ const useStyles = makeStyles({
         height: '44px',
         minHeight: '44px',
         maxHeight: '44px',
-        paddingLeft: tokens.spacingHorizontalXL,
-        paddingRight: tokens.spacingHorizontalXL,
+        paddingLeft: '10px',
+        paddingRight: '10px',
         alignItems: 'center',
         backgroundColor: tokens.colorNeutralBackground4,
     },
@@ -78,11 +79,8 @@ export const Navbar = () => {
     const intl = useIntl();
     const navigate = usePersistentNavigate();
     const styles = useStyles();
-    const {
-        agentId: encodedAgentId,
-        agentName: encodedExternalAgentName,
-        spaceId: encodedSpaceId,
-    } = useParams<{ agentId: string; agentName: string; spaceId: string }>();
+    const location = useLocation();
+    const { agentName: encodedExternalAgentName } = useParams<{ agentName: string }>();
     const { isAuthenticated } = useAuth();
 
     // Parse agent name from the route if we're on an agent page
@@ -92,23 +90,23 @@ export const Navbar = () => {
             return decodeURIComponent(encodedExternalAgentName);
         }
 
-        // ARM-based agent name from resource ID
-        if (encodedAgentId) {
-            const agentRscId = decodeURIComponent(encodedAgentId);
-            return parseArmId(agentRscId).resourceName;
+        // ARM-based agent name from resource ID (path-based routing)
+        const agentRoute = parseResourceRoute(location.pathname, '/agents');
+        if (agentRoute) {
+            return parseArmId(agentRoute.resourceId).resourceName;
         }
 
         return undefined;
-    }, [encodedAgentId, encodedExternalAgentName]);
+    }, [location.pathname, encodedExternalAgentName]);
 
     // Parse space name from the route if we're on an agent space page
     const spaceName = useMemo(() => {
-        if (encodedSpaceId) {
-            const spaceRscId = decodeURIComponent(encodedSpaceId);
-            return parseArmId(spaceRscId).resourceName;
+        const spaceRoute = parseResourceRoute(location.pathname, '/spaces');
+        if (spaceRoute) {
+            return parseArmId(spaceRoute.resourceId).resourceName;
         }
         return undefined;
-    }, [encodedSpaceId]);
+    }, [location.pathname]);
 
     return (
         <div className={styles.navbar}>
@@ -123,8 +121,8 @@ export const Navbar = () => {
                         <>
                             {/* TODO: Fancy selector thingy */}
                             <Text className={styles.breadcrumbSeparator}>/</Text>
-                            <Text weight="semibold" className={styles.agentName} title={decodeURIComponent(agentName)}>
-                                {decodeURIComponent(agentName)}
+                            <Text weight="semibold" className={styles.agentName} title={agentName}>
+                                {agentName}
                             </Text>
                         </>
                     )}

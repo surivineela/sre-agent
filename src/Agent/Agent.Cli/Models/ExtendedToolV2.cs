@@ -113,6 +113,7 @@ namespace Agent.Cli.Models
                             var t when ToolName.KustoTool == t => typeof(KustoToolSpecV2),
                             var t when ToolName.LinkTool == t => typeof(LinkToolSpecV2),
                             var t when ToolName.PythonTool == t => typeof(PythonToolSpecV2),
+                            var t when ToolName.HttpClientTool == t => typeof(HttpClientToolSpecV2),
                             _ => typeof(ToolSpecV2)
                         };
                     }
@@ -240,6 +241,10 @@ namespace Agent.Cli.Models
                 {
                     errors.AddRange(ValidatePythonTool());
                 }
+                else if (ToolName.HttpClientTool == Spec.Type)
+                {
+                    errors.AddRange(ValidateHttpClientTool());
+                }
                 else
                 {
                     errors.Add($"Unsupported tool type: {Spec.Type}");
@@ -319,6 +324,42 @@ namespace Agent.Cli.Models
             if (pythonSpec.TimeoutSeconds <= 0)
             {
                 errors.Add("PythonTool 'timeoutSeconds' must be greater than 0.");
+            }
+
+            return errors;
+        }
+
+        private List<string> ValidateHttpClientTool()
+        {
+            var errors = new List<string>();
+
+            if (Spec is not HttpClientToolSpecV2 httpSpec)
+            {
+                errors.Add("HttpClientTool must use HttpClientToolSpecV2.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(httpSpec.Url))
+            {
+                errors.Add("HttpClientTool must have 'url' specified.");
+            }
+
+            if (string.IsNullOrWhiteSpace(httpSpec.Method))
+            {
+                errors.Add("HttpClientTool must have 'method' specified.");
+            }
+            else
+            {
+                var validMethods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" };
+                if (!validMethods.Contains(httpSpec.Method.ToUpperInvariant()))
+                {
+                    errors.Add($"HttpClientTool 'method' must be one of: {string.Join(", ", validMethods)}");
+                }
+            }
+
+            if (httpSpec.TimeoutSeconds <= 0)
+            {
+                errors.Add("HttpClientTool 'timeoutSeconds' must be greater than 0.");
             }
 
             return errors;

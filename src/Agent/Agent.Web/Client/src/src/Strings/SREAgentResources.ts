@@ -52,6 +52,24 @@ export const SreAgentResources = defineMessages({
         id: 'uvxuDW',
     },
 
+    deletePythonToolNotificationTitle: {
+        defaultMessage: '{count, plural, one {Delete Python tool} other {Delete Python tools}}',
+        id: 'biN4w4',
+    },
+    deletePythonToolNotificationInProgress: {
+        defaultMessage: '{count, plural, one {Deleting Python tool {name}} other {Deleting Python tools}}',
+        id: 'ZKb+EH',
+    },
+    deletePythonToolNotificationSuccess: {
+        defaultMessage: '{count, plural, one {Python tool {name} deleted successfully} other {Python tools deleted successfully}}',
+        id: 'pusu9A',
+    },
+    deletePythonToolNotificationFailure: {
+        defaultMessage:
+            '{count, plural, one {Failed to delete Python tool {name}} other {Failed to delete Python tools}}.{errorMessage, select, undefined {} other { {errorMessage}}}',
+        id: 'QnoGM7',
+    },
+
     deleteIncidentTriggerNotificationTitle: {
         defaultMessage: '{count, plural, one {Delete incident trigger} other {Delete incident triggers}}',
         id: 'TGc4Lh',
@@ -123,6 +141,7 @@ export const SreAgentResources = defineMessages({
     remove: { defaultMessage: 'Remove', id: 'G/yZLu' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
     next: { defaultMessage: 'Next', id: '9+Ddtu' },
+    skip: { defaultMessage: 'Skip', id: '/4tOwT' },
     resources: { defaultMessage: 'Resources', id: 'c/KktL' },
     notApplicable: { defaultMessage: 'Not applicable', id: '61zy45' },
     NA: { defaultMessage: 'N/A', id: 'PW+sL4' },
@@ -703,7 +722,9 @@ export const SreAgentResources = defineMessages({
     viewJson: { defaultMessage: 'View JSON', id: 'fqjEXz' },
     apiVersion: { defaultMessage: 'API version', id: 'uA4y7P' },
     loadingResource: { defaultMessage: 'Loading resource...', id: 'K2QY23' },
+    loadingImage: { defaultMessage: 'Loading image...', id: 'dC5mLx' },
     failedToLoadResource: { defaultMessage: 'Failed to load resource', id: '3tc4vZ' },
+    imageFailedToLoad: { defaultMessage: 'Image failed to load', id: 'sMWhqP' },
     latestVersionSuffix: { defaultMessage: '(latest)', id: 'Ul5wZf' },
     youDoNotHaveAccess: { defaultMessage: 'You do not have access', id: 'DnkQsX' },
     missingPermissionForAgent: { defaultMessage: 'You are missing the required permission "{permission}" for this agent.', id: 'ldy3CI' },
@@ -821,7 +842,11 @@ export const SreAgentResources = defineMessages({
     removeItemWithName: { defaultMessage: 'Remove {name}', id: 'T0e6Lh' },
     // Session Insights
     sessionInsight: { defaultMessage: 'Session Insight', id: 'DYp/nK' },
-    clickToViewSessionAnalysis: { defaultMessage: 'Click to view session analysis and insights', id: 'ttWUo6' },
+    clickToViewSessionAnalysis: {
+        defaultMessage:
+            "Agent's self-reflection on learnings, issues, and key points for this thread. Your feedback helps improve performance.",
+        id: 'sYET0j',
+    },
     timeline: { defaultMessage: 'Timeline', id: 'zWkvNO' },
     agentPerformance: { defaultMessage: 'Agent Performance', id: 'urxxsP' },
     noInsightContentAvailable: { defaultMessage: 'No insight content available', id: 'cHKA8f' },
@@ -901,8 +926,8 @@ export const SreAgentResources = defineMessages({
         defaultMessage: 'Command completed with no output.',
         id: 'sY4rUA',
     },
-    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
-    azureOpenAiProviderLabel: { defaultMessage: 'Azure OpenAI', id: 'MTp7be' },
+    dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
+    openMenu: { defaultMessage: 'Agent configuration and more', id: 'qTuUKM' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -1959,6 +1984,10 @@ export const IncidentManagementResources = defineMessages({
     viewTrace: { defaultMessage: 'View trace', id: 'Hgs+WM' },
     closePanel: { defaultMessage: 'Close panel', id: 'RAjqKb' },
     noIncidentsFound: { defaultMessage: 'No incidents found', id: '312q4w' },
+    noIncidentsFoundDescription: {
+        defaultMessage: 'Try updating your filters or review your incident triggers to make sure they are configured properly.',
+        id: 'xErbrt',
+    },
     expandNavigation: { defaultMessage: 'Expand navigation', id: '3wVEAO' },
     collapseNavigation: { defaultMessage: 'Collapse navigation', id: 'IoApza' },
     selectedOutOfTotal: { defaultMessage: '{selectedCount} of {totalCount}', id: '01sZoP' },
@@ -2020,6 +2049,13 @@ export const IncidentManagementResources = defineMessages({
     },
     handlersEmptyStateLearnMore: { defaultMessage: 'Learn more about response plans', id: 'HQ4NJ3' },
     handlersEmptyStateButtonText: { defaultMessage: 'Add a response plan', id: 'GkKcbX' },
+    configureApplicationInsights: { defaultMessage: 'Configure Application Insights', id: 'UqbR2b' },
+    configureApplicationInsightsDescription: {
+        defaultMessage:
+            'Set up Application Insights to gain visibility into incident metrics, pending user actions, and performance data for your response plans.',
+        id: 'JdHbCZ',
+    },
+    goToSettings: { defaultMessage: 'Go to Settings', id: 'p7mA0U' },
     rcaCategory: { defaultMessage: 'RCA category', id: 'hqWr3L' },
     rcaCategoryLabel: { defaultMessage: 'Category', id: 'ccXLVi' },
     relatedIncidents: { defaultMessage: 'Related incidents', id: '+Kcoxv' },
@@ -2027,6 +2063,61 @@ export const IncidentManagementResources = defineMessages({
     whatHappened: { defaultMessage: 'What happened', id: 'Xup5P8' },
     incidentTeamSearchAssignableOnly: { defaultMessage: 'Only teams that allow incident assignment', id: 'Q0B/Lb' },
     incidentTeamSearchWithOncallRotation: { defaultMessage: 'Only teams with an on-call rotation', id: 'dLWrbO' },
+    // Filter conflict warnings
+    filterConflictWarningTitle: { defaultMessage: 'Potential trigger overlap detected', id: '46U3n7' },
+    filterConflictWarningDescription: {
+        defaultMessage:
+            'Another response plan may trigger on similar incidents. Review your trigger configurations to avoid duplicate processing.',
+        id: '+0n0LF',
+    },
+    conflictingFilters: { defaultMessage: 'Overlapping response plans:', id: 'x+eWfz' },
+    // Multi-agent selector
+    multiAgentLabel: { defaultMessage: 'Handling agents', id: 'eE+6n3' },
+    multiAgentDescription: {
+        defaultMessage: 'Select one or more agents that will process incidents matching this filter.',
+        id: 'eMrrxz',
+    },
+    multiAgentPlaceholder: { defaultMessage: 'Select agents...', id: 'LZJme9' },
+    selectedAgents: { defaultMessage: 'Selected agents:', id: 'F/Dvm7' },
+    selectedAgentsAriaLabel: { defaultMessage: 'Selected handling agents', id: 'fF4ppo' },
+    minAgentWarning: { defaultMessage: 'At least one agent must be selected', id: '85eQp2' },
+    // Trigger types
+    triggerEvents: { defaultMessage: 'Trigger events', id: 'P3uGTY' },
+    triggerEventsDescription: {
+        defaultMessage: 'Choose which events will trigger agent processing for incidents matching this filter.',
+        id: 'Q4WNky',
+    },
+    triggerIncidentCreatedOrTransferred: { defaultMessage: 'Incident created or transferred', id: 'jH0r1M' },
+    triggerIncidentCreatedOrTransferredDescription: {
+        defaultMessage: 'Trigger when a new incident is created or an existing incident is transferred to this team.',
+        id: '1BoLsw',
+    },
+    triggerDiscussionEntry: { defaultMessage: 'Discussion entry with @sreagent', id: '3m87Hu' },
+    triggerDiscussionEntryDescription: {
+        defaultMessage:
+            'Trigger when the current on-call engineer adds a discussion entry mentioning @sreagent. Requires owning team to be set.',
+        id: 'u0CP5N',
+    },
+    triggerIncidentMitigated: { defaultMessage: 'Incident mitigated', id: 'wC7+Zm' },
+    triggerIncidentMitigatedDescription: {
+        defaultMessage: 'Trigger when the incident state changes to Mitigated.',
+        id: 'aAiES8',
+    },
+    triggerIncidentReactivated: { defaultMessage: 'Incident reactivated', id: 'AghUcY' },
+    triggerIncidentReactivatedDescription: {
+        defaultMessage: 'Trigger when the incident state changes from Mitigated or Resolved back to Active.',
+        id: 'oh/E0l',
+    },
+    triggerIncidentResolved: { defaultMessage: 'Incident resolved', id: 'lyG6Lg' },
+    triggerIncidentResolvedDescription: {
+        defaultMessage: 'Trigger when the incident state changes to Resolved.',
+        id: 'hCwKXB',
+    },
+    discussionEntryRequiresOwningTeam: {
+        defaultMessage: 'Discussion entry trigger requires an owning team to be selected.',
+        id: 'XfQMoL',
+    },
+    atLeastOneTriggerRequired: { defaultMessage: 'At least one trigger event must be selected.', id: '/Nn0fO' },
 });
 
 export const TriggerIncidentManagementResources = defineMessages({
@@ -2034,12 +2125,12 @@ export const TriggerIncidentManagementResources = defineMessages({
     search: { defaultMessage: 'Search', id: 'xmcVZ0' },
     submit: { defaultMessage: 'Submit', id: 'wSZR47' },
     incidentProcessSuccess: {
-        defaultMessage: 'Incident {incidentId} successfully processed.',
-        id: '7e84yC',
+        defaultMessage: 'Incident {incidentId} successfully processed. {message}',
+        id: 'DIJjVa',
     },
     incidentProcessSuccessWithThread: {
-        defaultMessage: 'Incident {incidentId} successfully processed. (Thread ID: {threadId})',
-        id: 'LZXqGi',
+        defaultMessage: 'Incident {incidentId}: {message} (Thread ID: {threadId})',
+        id: 'kSFfvM',
     },
     incidentProcessFailure: {
         defaultMessage: 'Incident {incidentId} cannot be processed. {message}',
@@ -2385,6 +2476,7 @@ export const SettingsTabResources = defineMessages({
     azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
     configureAzureSettings: { defaultMessage: 'Configure Azure settings', id: 'Q9DSD7' },
     knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
     sessionInsights: { defaultMessage: 'Session insights', id: 'CQ0CLu' },
@@ -2405,7 +2497,11 @@ export const SettingsTabResources = defineMessages({
     upgradeChannelCurrentStatus: { defaultMessage: 'Current status', id: 'pFm27r' },
     upgradeChannelUpdatingTitle: { defaultMessage: 'Updating upgrade channel', id: 'ppARxn' },
     upgradeChannelUpdatingDescription: { defaultMessage: 'Updating upgrade channel to {channel}', id: 'ZCA/Ga' },
-    upgradeChannelUpdateSuccess: { defaultMessage: 'Upgrade channel updated to {channel} successfully. This may take a couple minutes to take effect, and will require refreshing the page.', id: 'IJ3Jsu' },
+    upgradeChannelUpdateSuccess: {
+        defaultMessage:
+            'Upgrade channel updated to {channel} successfully. This may take a couple minutes to take effect, and will require refreshing the page.',
+        id: 'IJ3Jsu',
+    },
     upgradeChannelUpdateFailed: { defaultMessage: 'Failed to update upgrade channel', id: 'aRUGFu' },
     defaultModelUpdatingTitle: { defaultMessage: 'Updating default model provider', id: 'R/9v0F' },
     defaultModelUpdatingDescription: { defaultMessage: 'Updating default model provider to {model}', id: 'uXCK62' },
@@ -2607,6 +2703,11 @@ export const FeedbackResources = defineMessages({
         defaultMessage: 'Give as much detail as you can, but do not include any personal information.',
         id: 'csu0rb',
     },
+    sessionInsightsFeedbackPlaceholder: {
+        defaultMessage:
+            'Share insights about investigation approaches, system architecture, or what could be improved. Your feedback helps the agent learn and provide better assistance in future sessions.',
+        id: 'ywVQSK',
+    },
     threadFeedbackPlaceholder: {
         defaultMessage: `What didn't you like about the agent's response? Your feedback helps us make the agent even better.`,
         id: '61e5yQ',
@@ -2694,6 +2795,7 @@ export const GraphResources = defineMessages({
     },
     canvasView: { defaultMessage: 'Canvas view', id: 'uKwm6S' },
     tableView: { defaultMessage: 'Table view', id: 'ufzv1A' },
+    noSubscriptionsFound: { defaultMessage: 'No subscriptions found', id: 'TJ5+Fb' },
     tableHeaderName: { defaultMessage: 'Resource name', id: 'eqYdSS' },
     tableHeaderResourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     tableHeaderRepositoryConnection: { defaultMessage: 'Repository connection', id: 'FLm/x4' },
@@ -3187,6 +3289,38 @@ export const KnowledgeBaseResources = defineMessages({
         defaultMessage: 'Maximum file size: 100MB',
         id: '0sA1BF',
     },
+    fileSizeLimit: {
+        defaultMessage: 'Each file can be up to 16 MB, with a maximum of 100 MB per upload.',
+        id: 'o2yyB5',
+    },
+    createFile: {
+        defaultMessage: 'Create file',
+        id: '29C9Pb',
+    },
+    createTextFile: {
+        defaultMessage: 'Create text file',
+        id: 'Cn7C35',
+    },
+    createTextFileDescription: {
+        defaultMessage: 'Create a knowledge file with a brief description for the agent.',
+        id: 'jurctS',
+    },
+    fileNameLabel: {
+        defaultMessage: 'File name',
+        id: 'ppAn7O',
+    },
+    fileNamePlaceholder: {
+        defaultMessage: 'Enter the file name',
+        id: 'kY5D4x',
+    },
+    textLabel: {
+        defaultMessage: 'Text',
+        id: 'aA8bDw',
+    },
+    textPlaceholder: {
+        defaultMessage: 'Enter text',
+        id: 'SikZWx',
+    },
     knowledgeBase: {
         defaultMessage: 'Knowledge Base',
         id: 'EbNaDn',
@@ -3194,6 +3328,140 @@ export const KnowledgeBaseResources = defineMessages({
     searchResultsFound: {
         defaultMessage: '{count, plural, one {{count} file found} other {{count} files found}} out of {total}',
         id: 'G7EU2S',
+    },
+});
+
+export const KnowledgeSettingsResources = defineMessages({
+    knowledgeBaseTitle: {
+        defaultMessage: 'Knowledge base',
+        id: 'tLYOnZ',
+    },
+    knowledgeBaseDescription: {
+        defaultMessage:
+            'Add knowledge sources to build a knowledge base that the agent uses to generate accurate, context-aware responses and insights.',
+        id: 'GBLNmn',
+    },
+    learnMoreAboutKnowledgeSources: {
+        defaultMessage: 'Learn more about knowledge sources',
+        id: 's00xPm',
+    },
+    addFile: {
+        defaultMessage: 'Add file',
+        id: 'sXiGbo',
+    },
+    addWebPage: {
+        defaultMessage: 'Add web page',
+        id: 'ww0sud',
+    },
+    addRepository: {
+        defaultMessage: 'Add repository',
+        id: 'FvUsYi',
+    },
+    searchKnowledgeSources: {
+        defaultMessage: 'Search knowledge sources',
+        id: 'HM7d3p',
+    },
+    typeColumn: {
+        defaultMessage: 'Type',
+        id: '+U6ozc',
+    },
+    lastModifiedColumn: {
+        defaultMessage: 'Last modified',
+        id: '1Jufsz',
+    },
+    typeAll: {
+        defaultMessage: 'All',
+        id: 'zQvVDJ',
+    },
+    typeFile: {
+        defaultMessage: 'File',
+        id: 'gyrIEl',
+    },
+    typeWebPage: {
+        defaultMessage: 'Web page',
+        id: 'uM1S1h',
+    },
+    typeRepository: {
+        defaultMessage: 'Repository',
+        id: 'UxeJFE',
+    },
+    lastIndexed: {
+        defaultMessage: 'Last indexed {time}',
+        id: 'ngNj+t',
+    },
+    groundResponsesTitle: {
+        defaultMessage: 'Ground responses and insights with knowledge',
+        id: '7vJSlo',
+    },
+    groundResponsesDescription: {
+        defaultMessage: 'Add sources that the agent will reference for accuracy.',
+        id: 'UwHF//',
+    },
+    addKnowledgeSource: {
+        defaultMessage: 'Add knowledge source',
+        id: 'vazhxm',
+    },
+    // Add web page dialog
+    addWebPageDescription: {
+        defaultMessage: 'Add a web page URL to your knowledge base.',
+        id: '3BBefX',
+    },
+    webPageUrlLabel: {
+        defaultMessage: 'Web page URL',
+        id: 'n7N5Wd',
+    },
+    webPageUrlPlaceholder: {
+        defaultMessage: 'Enter the web page URL',
+        id: 'UFq/BQ',
+    },
+    webPageNamePlaceholder: {
+        defaultMessage: 'Enter a name for the web page',
+        id: 'WfHZfp',
+    },
+    webPageDescriptionPlaceholder: {
+        defaultMessage: 'Enter a description (optional)',
+        id: 'CplVHD',
+    },
+    // Add repository dialog
+    addRepositoryDialogDescription: {
+        defaultMessage: 'Add a repository as a knowledge source. The agent will index information from the repository.',
+        id: 'EblExr',
+    },
+    repositoryUrlLabel: {
+        defaultMessage: 'Repository URL',
+        id: 'AA/tRJ',
+    },
+    repositoryUrlPlaceholder: {
+        defaultMessage: 'https://github.com/owner/repo',
+        id: 'Gzx+AT',
+    },
+    supportedRepositoriesHint: {
+        defaultMessage: 'Supported repositories: Azure DevOps, GitHub',
+        id: 'K/5jyc',
+    },
+    displayNameLabel: {
+        defaultMessage: 'Display name',
+        id: 'dOQCL8',
+    },
+    displayNamePlaceholder: {
+        defaultMessage: 'Enter the display name',
+        id: '5/rrw+',
+    },
+    repositoryDescriptionPlaceholder: {
+        defaultMessage: 'The agent indexes information from a GitHub repository.',
+        id: '+4GsbF',
+    },
+    gitHubAccountLabel: {
+        defaultMessage: 'GitHub account',
+        id: 'lrwOUh',
+    },
+    signInToGitHub: {
+        defaultMessage: 'Sign in to GitHub',
+        id: 'w0rIv0',
+    },
+    addRepositoryButton: {
+        defaultMessage: 'Add repository',
+        id: 'FvUsYi',
     },
 });
 
@@ -3537,6 +3805,9 @@ export const MemorySearchCardResources = defineMessages({
     viewFullDocument: { defaultMessage: 'View Full Document', id: 'LsxQP2' },
     hideFullDocument: { defaultMessage: 'Hide Full Document', id: 'ZAshJw' },
     documentAriaLabel: { defaultMessage: 'Document', id: 'wmirkP' },
+    sourcesHeader: { defaultMessage: 'Sources:', id: 'U59/R/' },
+    showMore: { defaultMessage: 'Show {count} more', id: 'Z184O6' },
+    showFewer: { defaultMessage: 'Show fewer', id: '/OvJVm' },
 });
 
 export const KnowledgeGraphCardResources = defineMessages({
@@ -3791,6 +4062,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     instructions: { defaultMessage: 'Instructions', id: 'sV2v5L' },
     instructionsPlaceholder: { defaultMessage: 'Describe what this agent does and how it should behave...', id: 'o0pkiK' },
     instructionsHelp: { defaultMessage: "System prompt that defines the agent's behavior", id: 'FkvYGq' },
+    instructionMinLengthValidationMessage: { defaultMessage: 'Instructions must be longer than {minLength} characters.', id: 'qaj8pr' },
+    instructionMaxLengthValidationMessage: { defaultMessage: 'Instructions must be under {maxLength} characters.', id: 'jfJxX5' },
 
     handoffDescriptionLabel: { defaultMessage: 'Handoff Description', id: 'QY3CEK' },
     handoffDescriptionPlaceholder: {
@@ -4012,6 +4285,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     uploadFolder: { defaultMessage: 'Upload folder', id: '5X7NpJ' },
     skill: { defaultMessage: 'Skill', id: 'GFhSwY' },
     subagent: { defaultMessage: 'Subagent', id: 'Q++yMM' },
+    subagentOrTool: { defaultMessage: 'Subagent/Tool', id: 'I6/8Cp' },
+    subagentOrTrigger: { defaultMessage: 'Subagent/Trigger', id: 'P1IYZz' },
     aiAgents: { defaultMessage: 'AI Agents', id: '4XOvey' },
     aiAgentsFeature: { defaultMessage: 'Define autonomous agents with custom instructions and capabilities', id: '7smbCB' },
     toolsFeature: { defaultMessage: 'Create reusable functions and actions for your agents', id: 'AqVLXi' },
@@ -4026,7 +4301,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     optional: { defaultMessage: 'Optional', id: 'InWqys' },
     agentSelectorLabel: { defaultMessage: 'Agent', id: 'QGVI63' },
     agentSelectorPlaceholder: { defaultMessage: 'Select an agent', id: 'ipsqxO' },
-    noAgentsFound: { defaultMessage: 'No agents available yet', id: '3H77Ic' },
+    noAgentsOrTriggersFound: { defaultMessage: 'No agents or triggers found', id: 'agoR69' },
     searchLabel: { defaultMessage: 'Search', id: 'xmcVZ0' },
     refreshGraphButton: { defaultMessage: 'Refresh', id: 'rELDbB' },
     installMcp: { defaultMessage: 'Build Subagents in VS Code', id: 'LZPnC6' },
@@ -4281,7 +4556,9 @@ export const ExtendedAgentsGraphResources = defineMessages({
     scheduledTaskNameTitle: { id: 'C6Jt4c', defaultMessage: 'Scheduled task name' },
     scheduleTitle: { id: 'hGQqkW', defaultMessage: 'Schedule' },
     kustoToolName: { id: 'cg54iX', defaultMessage: 'Kusto tool name' },
+    pythonToolName: { id: 'm07K06', defaultMessage: 'Python tool name' },
     connectorStatus: { id: 'cLHCHE', defaultMessage: 'Connector status' },
+    timeout: { id: 'Mtd9LO', defaultMessage: 'Timeout' },
     onLabel: { id: 'Zh+5A6', defaultMessage: 'On' },
     offLabel: { id: 'OvzONl', defaultMessage: 'Off' },
     completedLabel: { id: '95stPq', defaultMessage: 'Completed' },
@@ -4289,6 +4566,8 @@ export const ExtendedAgentsGraphResources = defineMessages({
     disconnectedStatus: { id: 'FZeQlc', defaultMessage: 'Disconnected' },
     incidentTriggers: { id: 'vS6Lmt', defaultMessage: 'Incident triggers' },
     kustoTools: { id: 'Y47Dwm', defaultMessage: 'Kusto tools' },
+    pythonTools: { id: 'LFV4rP', defaultMessage: 'Python tools' },
+    searchByPythonTool: { id: 'hawbNS', defaultMessage: 'Search by Python tool' },
     agentDatagrid: { id: 'kxokJj', defaultMessage: 'Agent datagrid' },
     noEntityFound: { defaultMessage: 'No {entity} found', id: 'EVA81S' },
     service: { defaultMessage: 'Service', id: 'n7yYXG' },
@@ -5772,6 +6051,7 @@ export const ThreadTraceResources = defineMessages({
             '• Agent start/end events with timing\n• Model generation calls with token usage (prompt, completion, total)\n• Model thinking (internal reasoning from o1/Claude reasoning models)\n• Agent reasoning (from reasoningScratchPad)\n• Agent responses (from notifyUserMessage)\n• Tool executions with inputs and outputs\n• Agent handoffs between meta_agent and specialized agents\n• Azure CLI command status (PendingAuthorization, Failed, Success)\n• User messages that triggered agent actions',
         id: 'RPuopt',
     },
+    refreshTraces: { defaultMessage: 'Refresh traces', id: 'uzQLqw' },
 });
 
 export const DeleteConfirmationDialogResources = defineMessages({
@@ -5795,8 +6075,6 @@ export const ConnectorsResources = defineMessages({
         defaultMessage: 'Add a connector to give the agent additional tools for automating incident handling.',
         id: 'REOGTJ',
     },
-    defaultOutlookConnectorName: { defaultMessage: 'Outlook connector {id}', id: 'PB0ecx' },
-    defaultTeamsConnectorName: { defaultMessage: 'Teams connector {id}', id: 'BXFezC' },
     addConnector: { defaultMessage: 'Add connector', id: 'QDa8Q+' },
     connector: { defaultMessage: 'connector', id: '44QmgP' },
     connectorCapital: { defaultMessage: 'Connector', id: 'r8XsCU' },
@@ -5966,8 +6244,8 @@ export const ConnectorsResources = defineMessages({
     mcpServerDescription: { defaultMessage: 'Add a custom MCP server for the agent to reference.', id: 'DJydCh' },
     needConnectionWritePermission: {
         defaultMessage:
-            'You need contributor or Microsoft.Web/connections/write role on the resource group in order to sign in. Click {link} to go to access control or contact your subscription administrator to update your permissions.',
-        id: 'y/usAC',
+            'You need owner or Microsoft.Web/connections/write and Microsoft.Authorization/roleAssignments/write roles on the resource group in order to sign in and create a connector. Click {link} to go to access control or contact your subscription administrator to update your permissions.',
+        id: 'LsYvIM',
     },
     here: { defaultMessage: 'here', id: 'hniz8Z' },
     checkingPermissions: { defaultMessage: 'Checking permissions...', id: 'K1tTU1' },
@@ -5986,6 +6264,10 @@ export const ConnectorsResources = defineMessages({
             'Please ensure that your firewall or load balancer allows both POST and GET calls, and that the MCP endpoint is the correct Streamable-HTTP endpoint.',
         id: 'yit592',
     },
+
+    // Connector Limits
+    onlyOneTeamsConnector: { defaultMessage: 'Your agent can only have one Teams connector', id: 'qmYsUB' },
+    onlyOneOutlookConnector: { defaultMessage: 'Your agent can only have one Outlook connector', id: 'Iw8con' },
 
     // MCP Tool Execution Messages
     mcpQueryKql: { defaultMessage: 'Query (KQL):', id: 'Dn1EZZ' },
@@ -6041,16 +6323,40 @@ export const OnboardingWizardResources = defineMessages({
     welcomeTitle: { defaultMessage: 'Welcome to SRE Agent', id: 'Iq+EHz' },
     welcomeSubtitle: { defaultMessage: 'Get started by configuring your agent settings.', id: 'mcXRBx' },
     setupProgress: { defaultMessage: 'Setup progress', id: 'JCOCUP' },
-    infrastructureScope: { defaultMessage: 'Infrastructure scope', id: 'akZ1Wp' },
-    incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
+    infrastructureScope: { defaultMessage: 'Agent scope', id: 'm4xAhL' },
+    infrastructureScopeStepDescription: { defaultMessage: 'Allow agent to manage Azure resources', id: 'PT7Qrz' },
+    incidentPlatform: { defaultMessage: 'Incident insights', id: 'cxAQ12' },
+    incidentPlatformStepDescription: { defaultMessage: 'Setup incident platform so agent can provide insights', id: '9n7DYz' },
     connectRepositories: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
+    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    knowledgeBaseStepDescription: { defaultMessage: 'Connect to repositories for agent to resolve issues', id: 'dUK3Nn' },
     grantPermissions: { defaultMessage: 'Grant permissions', id: 'u4WKBH' },
     saveAndNext: { defaultMessage: 'Save + next', id: 't2c+xn' },
+    next: { defaultMessage: 'Next', id: '9+Ddtu' },
     skip: { defaultMessage: 'Skip', id: '/4tOwT' },
     finish: { defaultMessage: 'Finish', id: '2O2sfp' },
+    launchPortal: { defaultMessage: 'Launch portal', id: 'KHuaZx' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
     resourceGroup: { defaultMessage: 'Resource group', id: '+uAdUZ' },
+    knowledgeBaseDescription: {
+        defaultMessage: 'Add knowledge sources so the agent can generate accurate, context-aware responses and insights.',
+        id: 'jlnk9E',
+    },
+    addFile: { defaultMessage: 'Add file', id: 'sXiGbo' },
+    addWebPage: { defaultMessage: 'Add web page', id: 'ww0sud' },
+    addRepository: { defaultMessage: 'Add repository', id: 'FvUsYi' },
+    knowledgeSources: { defaultMessage: 'Knowledge sources', id: '9hxI1i' },
+    noKnowledgeSourcesSelected: { defaultMessage: 'No knowledge sources added yet', id: 'UHnL83' },
+    filesTitle: { defaultMessage: 'Files', id: 'm4vqJl' },
+    webPagesTitle: { defaultMessage: 'Web pages', id: 'fdS1or' },
+    repositoriesTitle: { defaultMessage: 'Repositories', id: 'mn3PMJ' },
+    noFilesSelected: { defaultMessage: 'No files added yet', id: 'b0OAcx' },
+    noWebPagesSelected: { defaultMessage: 'No web pages added yet', id: 'YOK0w/' },
+    noRepositoriesSelected: { defaultMessage: 'No repositories added yet', id: 'eGXPyk' },
+    nameColumn: { defaultMessage: 'Name', id: 'HAlOn1' },
+    typeColumn: { defaultMessage: 'Type', id: '+U6ozc' },
+    lastModifiedColumn: { defaultMessage: 'Last modified', id: '1Jufsz' },
     subscriptionScopeDescription: {
         defaultMessage: 'Recommended. The agent will discover and monitor all resources within the selected subscription.',
         id: '0K6PSP',
@@ -6083,7 +6389,6 @@ export const OnboardingWizardResources = defineMessages({
     usernamePlaceholder: { defaultMessage: 'Enter username', id: 'qiqDqt' },
     password: { defaultMessage: 'Password', id: '5sg7KC' },
     passwordPlaceholder: { defaultMessage: 'Enter password', id: '2LbrkB' },
-    repositoriesTitle: { defaultMessage: 'Connect repositories', id: 'Cx8OOc' },
     repositoriesDescription: {
         defaultMessage:
             'Repository connections allow the agent to access your code, issues, and pull requests for enhanced troubleshooting.',
@@ -6148,6 +6453,64 @@ export const OnboardingWizardResources = defineMessages({
     saveSuccess: { defaultMessage: 'Settings saved successfully.', id: 'vnlr4s' },
     subscriptionRequired: { defaultMessage: 'Please select a subscription to continue.', id: 'sr8bXY' },
     resourceGroupRequired: { defaultMessage: 'Please select a resource group to continue.', id: 'WUGr5F' },
+    addSubscriptions: { defaultMessage: 'Add subscriptions', id: 'twgtSB' },
+    addSubscription: { defaultMessage: 'Add subscription', id: '16BslC' },
+    change: { defaultMessage: 'Change', id: 'BY343C' },
+    searchSubscriptions: { defaultMessage: 'Search subscriptions', id: '8Bnc32' },
+    showRecommended: { defaultMessage: 'Show recommended', id: 'PfwAB2' },
+    showRecommendedTooltip: {
+        defaultMessage: 'Show only subscriptions with SRE Agent compatible resources',
+        id: '+1hQ1k',
+    },
+    agentSubscriptionReaderAccess: {
+        defaultMessage: 'Agent will have subscription reader access to selected subscriptions.',
+        id: '1Vy3gO',
+    },
+    noRoleAssignmentPermission: {
+        defaultMessage: 'You need Owner or User Access Administrator role to select:',
+        id: 'Y6++4k',
+    },
+    openInAzurePortal: { defaultMessage: 'Open in Azure Portal', id: '5NZIbS' },
+    recommendedTooltip: {
+        defaultMessage: 'Recommended - has SRE Agent compatible resources',
+        id: 'vq4C5b',
+    },
+    selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
+    myRole: { defaultMessage: 'My role', id: 'HjcJf/' },
+    region: { defaultMessage: 'Region', id: 'lnaWo/' },
+    noRole: { defaultMessage: 'No role', id: 'VQB58n' },
+    countSelected: { defaultMessage: '{count} selected', id: 'NKPfmm' },
+    // Resource Group Picker Dialog
+    addResourceGroups: { defaultMessage: 'Add resource groups', id: '3r/fkq' },
+    addResourceGroup: { defaultMessage: 'Add resource group', id: 'HWMrXF' },
+    searchResourceGroups: { defaultMessage: 'Search resource groups', id: 'pMlVvA' },
+    resourceGroupNames: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    allResourceGroups: { defaultMessage: 'All resource groups', id: 'jEU2gk' },
+    noResourceGroupSelected: { defaultMessage: 'No resource group selected', id: 'wnc+L5' },
+    resourceGroupsSelected: { defaultMessage: '{count} resource groups selected', id: 'oWUS25' },
+    showRecommendedResourceGroupsTooltip: {
+        defaultMessage: 'Show only resource groups with SRE Agent compatible resources',
+        id: 'D16PMT',
+    },
+    agentResourceGroupReaderAccess: {
+        defaultMessage: 'Agent will have reader access to selected resource groups.',
+        id: 'yYnPLi',
+    },
+    noRoleAssignmentPermissionResourceGroups: {
+        defaultMessage: 'You need Owner or User Access Administrator role to select:',
+        id: 'Y6++4k',
+    },
+    // Agent scope step
+    agentScope: { defaultMessage: 'Agent scope', id: 'm4xAhL' },
+    agentScopeDescription: {
+        defaultMessage: 'Select the Azure subscriptions and resource groups the agent will monitor and manage.',
+        id: 'btOLRC',
+    },
+    subscriptionScope: { defaultMessage: 'Subscription scope', id: 'at/ilQ' },
+    resourceGroupScope: { defaultMessage: 'Resource group scope', id: 'mxzrxC' },
+    delete: { defaultMessage: 'Delete', id: 'K3r6DQ' },
+    noSubscriptionsSelected: { defaultMessage: 'No subscriptions selected', id: 'AszVMO' },
+    noResourceGroupsSelected: { defaultMessage: 'No resource groups selected', id: 'VLS2HJ' },
 });
 
 /**
@@ -6185,4 +6548,16 @@ export const RolesResources = defineMessages({
 
 export const OverviewResources = defineMessages({
     overview: { defaultMessage: 'Overview', id: '9uOFF3' },
+    suggestionActions: { defaultMessage: 'Suggested actions {value}', id: 'Efkzqy' },
+    goToQuickStart: { defaultMessage: 'Go to quick start', id: 'qZ6FID' },
+    intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
+    meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
+    incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
+    incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
+    recentInsights: { defaultMessage: 'Recent insights', id: 'G4Dpsw' },
+    noRecentInsights: { defaultMessage: 'No recent insights available', id: 'E4ETPQ' },
+    failedToLoadInsights: { defaultMessage: 'Failed to get recent insights', id: 'W1FdP1' },
+    viewLogs: { defaultMessage: 'View logs', id: 't/FntL' },
+    rootCause: { defaultMessage: 'Root cause', id: '18rcDe' },
+    talkToAgent: { defaultMessage: 'Talk to agent', id: '3kxCAE' },
 });

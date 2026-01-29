@@ -1,7 +1,7 @@
 import { Body1, CopilotNavCategory, CopilotNavSubItemGroup, tokens } from '@fluentui-copilot/react-copilot';
 import { makeStyles, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, mergeClasses, Tooltip, useId } from '@fluentui/react-components';
 import { FC, memo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { CategoryNavItemInput, PrimaryNavItemValues, SecondaryNavItemValues, SubNavItemInput } from '../../Contracts/SreAgentSpace';
 import { constructNavItemId, getCategoryNavItemIdFromPathName, getNavItemIdFromPathName } from '../../Utilities';
 import { CopilotNavCategoryItem } from './CopilotNavCategoryItem';

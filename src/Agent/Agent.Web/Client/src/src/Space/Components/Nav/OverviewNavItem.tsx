@@ -8,13 +8,13 @@ import { CopilotNavItem } from './CopilotNavItem';
 
 interface OverviewNavItemProps {
     isNavOpen: boolean;
-    onClick: (value: PrimaryNavItemValues) => void;
+    selectOverview: () => void;
     children?: React.ReactNode;
 }
 
 const OverviewIcon = bundleIcon(Board20Filled, Board20Regular);
 
-const OverviewNavItem: FC<OverviewNavItemProps> = ({ isNavOpen, onClick, children }) => {
+const OverviewNavItem: FC<OverviewNavItemProps> = ({ isNavOpen, selectOverview, children }) => {
     const intl = useIntl();
 
     const label = intl.formatMessage(OverviewResources.overview);
@@ -22,11 +22,7 @@ const OverviewNavItem: FC<OverviewNavItemProps> = ({ isNavOpen, onClick, childre
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
             {isNavOpen ? (
-                <CopilotNavItem
-                    icon={<OverviewIcon />}
-                    value={PrimaryNavItemValues.Overview}
-                    onClick={() => onClick(PrimaryNavItemValues.Overview)}
-                >
+                <CopilotNavItem icon={<OverviewIcon />} value={PrimaryNavItemValues.Overview} onClick={() => selectOverview()}>
                     {label}
                 </CopilotNavItem>
             ) : (
@@ -34,7 +30,7 @@ const OverviewNavItem: FC<OverviewNavItemProps> = ({ isNavOpen, onClick, childre
                     <CopilotNavItem
                         icon={<OverviewIcon />}
                         value={PrimaryNavItemValues.Overview}
-                        onClick={() => onClick(PrimaryNavItemValues.Overview)}
+                        onClick={() => selectOverview()}
                         aria-label={label}
                     />
                 </Tooltip>

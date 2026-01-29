@@ -4,6 +4,7 @@
 
 using System.Text.Json.Serialization;
 using Agent.Data.DataModels;
+using Agent.Data.Tools;
 using Agent.Framework;
 using Agent.Web.ApiResources;
 using Agent.Web.Json;
@@ -14,6 +15,7 @@ namespace Agent.Web.Views.v2;
 [JsonDerivedType(typeof(KustoToolView), ToolDocumentModel.KustoToolType)]
 [JsonDerivedType(typeof(LinkToolView), ToolDocumentModel.LinkToolType)]
 [JsonDerivedType(typeof(PythonToolView), ToolDocumentModel.PythonToolType)]
+[JsonDerivedType(typeof(HttpClientToolView), ToolDocumentModel.HttpClientToolType)]
 public class ToolView
 {
     [JsonIgnore] // this is a must because type is already be serialized due to polymorphic deserialization
@@ -36,6 +38,7 @@ public class ToolView
             KustoToolDocumentModel kustoToolDocumentModel => KustoToolView.CreateApiResponseEnvelope(kustoToolDocumentModel).Properties!,
             LinkToolDocumentModel linkToolDocumentModel => LinkToolView.CreateApiResponseEnvelope(linkToolDocumentModel).Properties!,
             PythonToolDocumentModel pythonToolDocumentModel => PythonToolView.CreateApiResponseEnvelope(pythonToolDocumentModel).Properties!,
+            HttpClientToolDocumentModel httpClientToolDocumentModel => HttpClientToolView.CreateApiResponseEnvelope(httpClientToolDocumentModel).Properties!,
             _ => throw new NotSupportedException($"Unsupported tool type: {toolDoc.Type}"),
         };
 
@@ -86,6 +89,18 @@ public class ToolView
                         Properties = new Settable<PythonToolView>(pythonToolView),
                     };
                     return PythonToolView.CreateModel(newEnvelope, metadata, (PythonToolDocumentModel?)baseModel);
+                }
+
+            case HttpClientToolView httpClientToolView:
+                {
+                    var newEnvelope = new ApiRequestEnvelope<HttpClientToolView>
+                    {
+                        Name = envelope.Name,
+                        Type = envelope.Type,
+                        Tags = envelope.Tags,
+                        Properties = new Settable<HttpClientToolView>(httpClientToolView),
+                    };
+                    return HttpClientToolView.CreateModel(newEnvelope, metadata, (HttpClientToolDocumentModel?)baseModel);
                 }
 
             case null:
@@ -502,6 +517,179 @@ public class PythonToolView : ToolView
             properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
             properties.AuthEnabled.ApplyTo(value => result.Spec.AuthEnabled = value);
             properties.AuthScopes.ApplyTo(value => result.Spec.AuthScopes = value);
+        });
+
+        return result;
+    }
+}
+
+public class HttpHeaderView
+{
+    public Settable<string> Key { get; set; }
+    public Settable<string> Value { get; set; }
+}
+
+/// <summary>
+/// Authentication settings view for HttpClientTool.
+/// </summary>
+public class HttpClientToolAuthView
+{
+    public Settable<string> DataConnector { get; set; }
+    public Settable<string> Scope { get; set; }
+}
+
+public class HttpClientToolView : ToolView
+{
+    public Settable<string> Url { get; set; }
+
+    public Settable<string> Method { get; set; }
+
+    public Settable<string> Body { get; set; }
+
+    public Settable<List<HttpHeaderView>> Headers { get; set; }
+
+    public Settable<HttpClientToolAuthView> Auth { get; set; }
+
+    public Settable<int> TimeoutSeconds { get; set; }
+
+    public static ApiResponseEnvelope<HttpClientToolView> CreateApiResponseEnvelope(HttpClientToolDocumentModel toolDoc)
+    {
+        var tool = toolDoc.Spec;
+        var toolView = new HttpClientToolView
+        {
+            Type = tool.Type,
+            Connector = tool.Connector,
+            Description = tool.Description,
+            Attributes = tool.Attributes,
+            Url = tool.Url,
+            Method = tool.Method,
+            Body = tool.Body,
+            Auth = tool.Auth != null ? new HttpClientToolAuthView
+            {
+                DataConnector = tool.Auth.DataConnector,
+                Scope = tool.Auth.Scope
+            } : null,
+            TimeoutSeconds = tool.TimeoutSeconds,
+            ToolMode = tool.ToolMode,
+        };
+
+        // Convert headers
+        if (tool.Headers != null)
+        {
+            toolView.Headers = tool.Headers.Select(h => new HttpHeaderView
+            {
+                Key = h.Key,
+                Value = h.Value,
+            }).ToList();
+        }
+
+        var paramView = new List<ParameterView>();
+        foreach (var parameter in tool.Parameters ?? [])
+        {
+            var parameterView = new ParameterView
+            {
+                Name = parameter.Name,
+                Type = parameter.Type,
+                Description = parameter.Description,
+                MapTo = parameter.MapTo,
+                Required = parameter.Required,
+                Target = parameter.Target,
+                Value = parameter.Value,
+            };
+            paramView.Add(parameterView);
+        }
+        toolView.Parameters = paramView;
+
+        ApiResponseEnvelope<HttpClientToolView> apiResponse = new()
+        {
+            Name = toolDoc.Name,
+            Type = toolDoc.DocumentType,
+            Tags = toolDoc.Metadata.Tags,
+            Properties = toolView,
+        };
+
+        return apiResponse;
+    }
+
+    public static HttpClientToolDocumentModel CreateModel(ApiRequestEnvelope<HttpClientToolView> envelope, ResourceMetadata? metadata = null, HttpClientToolDocumentModel? baseModel = null)
+    {
+        var result = baseModel ?? new HttpClientToolDocumentModel(
+            new ResourceMetadata
+            {
+                CreatedAt = DateTime.UtcNow,
+            },
+            new HttpClientToolSpec()
+            {
+                Type = ToolDocumentModel.HttpClientToolType,
+            }
+        );
+
+        if (metadata != null)
+        {
+            result = result with
+            {
+                Metadata = metadata,
+            };
+        }
+
+        result.Metadata.UpdatedAt = DateTime.UtcNow;
+
+        envelope.Name.ApplyTo(name => result.Metadata.Name = name!);
+        envelope.Tags.ApplyTo(tag => result.Metadata.Tags = tag);
+        envelope.Properties.ApplyTo(properties =>
+        {
+            if (properties == null)
+            {
+                return;
+            }
+
+            properties.Type.ApplyTo(value => result.Spec.Type = value!);
+            properties.Connector.ApplyTo(value => result.Spec.Connector = value!);
+            properties.Description.ApplyTo(value => result.Spec.Description = value!);
+            properties.Parameters.ApplyTo(value =>
+            {
+                if (value == null)
+                {
+                    result.Spec.Parameters = null;
+                    return;
+                }
+
+                result.Spec.Parameters = value.Select(p => new YamlParameter
+                {
+                    Name = p.Name!,
+                    Type = p.Type!,
+                    Description = p.Description!,
+                    MapTo = p.MapTo!,
+                    Required = p.Required,
+                    Target = p.Target!,
+                    Value = p.Value,
+                }).ToList();
+            });
+            properties.Attributes.ApplyTo(value => result.Spec.Attributes = value!);
+            properties.Url.ApplyTo(value => result.Spec.Url = value!);
+            properties.Method.ApplyTo(value => result.Spec.Method = value!);
+            properties.Body.ApplyTo(value => result.Spec.Body = value);
+            properties.Headers.ApplyTo(value =>
+            {
+                if (value == null)
+                {
+                    result.Spec.Headers = null;
+                    return;
+                }
+
+                result.Spec.Headers = value.Select(h => new Agent.Data.Tools.HttpHeaderDefinition
+                {
+                    Key = h.Key!,
+                    Value = h.Value!,
+                }).ToList();
+            });
+            properties.Auth.ApplyTo(value => result.Spec.Auth = value != null ? new Agent.Data.DataModels.HttpClientToolAuthSpec
+            {
+                DataConnector = value.DataConnector,
+                Scope = value.Scope
+            } : null);
+            properties.TimeoutSeconds.ApplyTo(value => result.Spec.TimeoutSeconds = value);
+            properties.ToolMode.ApplyTo(value => result.Spec.ToolMode = value);
         });
 
         return result;

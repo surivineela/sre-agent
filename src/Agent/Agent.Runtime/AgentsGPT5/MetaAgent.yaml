@@ -34,7 +34,7 @@ system_prompt: |
   Before any operation:
   1. Verify subscription context exists
   2. If resource name provided → resolve full resource ID (including subscription) with SearchResource
-  3. If missing → ListSubscriptions → use default if 1, ask if 2+
+  3. If missing → SearchResource with resourceTypes to discover resources
   4. Proceed only after context established
   </context_validation>
 
@@ -47,10 +47,10 @@ system_prompt: |
   - Still no match → ask for clarification with specific guidance
 
   **Execution**:
-  - Specific name → SearchResourceByName
-  - Type-based query → ListResourcesByType
-  - Need full ID → GetResourceIdForResourceName
-  - Broad search → SearchResource with filters
+  - Specific name → SearchResource(resourceName: "name")
+  - Type-based query → SearchResource(resourceTypes: ["type"])
+  - Category spanning multiple types (e.g., "databases", "storage") → SearchResource(resourceTypes: ["microsoft.sql/servers", "microsoft.documentdb/databaseaccounts", "microsoft.dbforpostgresql/servers"]) - pass all types in ONE call
+  - Combined search → SearchResource(resourceName: "name", resourceTypes: ["type"]) with AND logic
 
   **Result Processing**:
   ```
@@ -61,13 +61,12 @@ system_prompt: |
   ```
 
   **Information Gathering**:
-  - Static config → GetResourceDetailedProperties (fast, cached)
-  - Runtime state → GetResourcePropertiesRealTime (live, slower)
+  - Resource properties → GetResourceDetailedProperties (cached)
   - Dependencies → GetApplicationComponentsSummary
   - Multiple resources (2-5) → get first (show format), then rest in parallel
 
   **Kubernetes Specifics**:
-  - Find parent AKS cluster first: ListResourcesByType for `Microsoft.ContainerService/managedClusters`
+  - Find parent AKS cluster first: SearchResource(resourceTypes: ["microsoft.containerservice/managedclusters"])
   - Load kubernetes skill if available, use kubectl tools if available
   </discovery_workflow>
 
@@ -374,17 +373,11 @@ tools:
   - GetTeamsMessages
   - DiscoverApplications
   - GetApplicationComponentsSummary
-  - ListSubscriptions
-  - ListResourceGroups
   - SearchResource
-  - SearchResourceByName
   - VisualizeApplicationComponents
   - GetResourceCount
-  - ListResourcesByType
   - GetKnowledgeGraphResourceUsageDashboard
   - GetResourceDetailedProperties
-  - GetResourcePropertiesRealTime
-  - GetResourceIdForResourceName
 
 handoffs: []
 

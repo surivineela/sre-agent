@@ -1,3 +1,12 @@
+---
+name: logs_resource_discovery
+description: Load this skill when a user asks where logs/metrics/traces for an Azure resource are going, how to find its connected Application Insights / Log Analytics workspace / Data Explorer cluster, needs instrumentation keys or connection strings, wants to confirm diagnostic settings coverage, or reports missing / unclear logging configuration. Also use it to inventory monitoring infrastructure before suggesting query or analysis steps. After discovery, if the user shifts to deep performance or incident diagnosis, defer to the relevant domain skill; this skill focuses on discovering and enumerating logging & monitoring attachments, not root cause analysis.
+tools:
+  - GetResourceDetailedProperties
+  - SearchResource
+  - VisualizeApplicationComponents
+---
+
 # Logs Resource Discovery Skill
 
 ## Purpose
@@ -28,8 +37,11 @@ Discover and enumerate logging & monitoring infrastructure attached to a specifi
 2. Direct References: scan properties/app settings/env vars for AI connection string, instrumentation key, workspace IDs, cluster URIs.
 3. Diagnostic Settings: enumerate & capture destinations (Log Analytics / Event Hub / Storage / Partner) and note missing categories.
 4. Enumerate Monitoring Resources:
-   - ListResourcesByType for Microsoft.Insights/components, Microsoft.OperationalInsights/workspaces, Microsoft.Kusto/clusters (same RG then subscription).
-   - SearchResourceByName & SearchResource for naming patterns (-ai-, -insights-, -logs-, -la-), tags, and inferred environment labels.
+   - SearchResource(resourceTypes: ["microsoft.insights/components"]) for Application Insights components.
+   - SearchResource(resourceTypes: ["microsoft.operationalinsights/workspaces"]) for Log Analytics workspaces.
+   - SearchResource(resourceTypes: ["microsoft.kusto/clusters"]) for Data Explorer clusters.
+   - SearchResource(resourceName: "-ai-") or SearchResource(resourceName: "-logs-") for naming patterns.
+   - Use subscriptionId filter to narrow scope.
 5. Relationship Map: VisualizeApplicationComponents with discovered resources.
 6. Gap Handling: If none found, ask user for expected logging target (e.g., known workspace or AI resource ID) then re-run minimal checks.
 7. Output & Next Steps: Provide IDs, connection strings (avoid exposing secrets beyond what is already surfaced in configuration), and recommend enabling or adjusting diagnostic settings, or querying via appropriate tools (monitor / kusto) only if the user requests analysis.
@@ -63,10 +75,10 @@ Discover and enumerate logging & monitoring infrastructure attached to a specifi
 ## Tool Usage Patterns
 
 - Start: GetResourceDetailedProperties.
-- Enumerate types: ListResourcesByType.
-- Pattern & tag search: SearchResourceByName, SearchResource.
-- Name → ID resolution: GetResourceIdForResourceName (if user supplies partial names).
-- Scope context: ListResourceGroups (if RG uncertain or user asks for cross-RG scan).
+- Enumerate by type: SearchResource(resourceTypes: ["microsoft.insights/components"]).
+- Search by name pattern: SearchResource(resourceName: "pattern").
+- Name → ID resolution: SearchResource(resourceName: "name", resourceTypes: ["type"]) returns resourceId in results.
+- Scope by subscription: SearchResource(subscriptionId: "sub-id", resourceTypes: ["type"]).
 - Relationship diagram: VisualizeApplicationComponents.
 - Query (only after user asks for analysis): monitor (Log Analytics), kusto (Data Explorer), datadog (Datadog).
 
@@ -82,10 +94,10 @@ Use discovered artifacts to direct next steps:
 ## Example Minimal Flow
 
 1. GetResourceDetailedProperties(resourceId)
-2. ListResourcesByType (AI components in RG)
-3. ListResourcesByType (OperationalInsights workspaces in RG)
+2. SearchResource(resourceTypes: ["microsoft.insights/components"], subscriptionId: "sub-id") for AI components
+3. SearchResource(resourceTypes: ["microsoft.operationalinsights/workspaces"], subscriptionId: "sub-id") for workspaces
 4. Check diagnostic settings → capture destinations & missing categories
-5. SearchResourceByName for pattern "{baseName}-ai" and "{baseName}-logs"
+5. SearchResource(resourceName: "{baseName}-ai") and SearchResource(resourceName: "{baseName}-logs") for naming patterns
 6. VisualizeApplicationComponents (resource + discovered monitoring assets)
 7. Output IDs + note gaps (e.g., "No diagnostic settings found; enable categories X,Y via Diagnostic Settings")
 

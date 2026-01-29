@@ -126,17 +126,11 @@ public static class ToolDescriptionHelper
             "UpdateRepoNodeWithLastScanTime" => "Updating repository scan timestamp...",
             "GetManagedResourcesInfoAsync" => "Getting managed resources inventory...",
             "SearchResource" => "Searching for resources...",
-            "SearchResourceByName" => "Finding resources by name...",
             "GetResourceCount" => "Counting resources...",
-            "ListSubscriptions" => "Listing available subscriptions...",
-            "ListResourceGroups" => "Listing resource groups...",
             "GetActivityLogsSummary" => "Analyzing recent activity logs...",
-            "ListResourcesByType" => "Listing resources by type...",
             "GetKnowledgeGraphResourceUsageDashboard" => "Getting resource usage dashboard...",
             "VisualizeAKSMicroserviceTopology" => "Creating Kubernetes architecture diagram...",
-            "GetResourceBasicProperties" => "Getting basic resource information...",
             "GetResourceDetailedProperties" => "Fetching detailed resource properties...",
-            "GetResourceIdForResourceName" => "Finding resource ID by name...",
 
             // ACA Kusto functions
             "ExecuteFunction" => "Running Kusto query function...",

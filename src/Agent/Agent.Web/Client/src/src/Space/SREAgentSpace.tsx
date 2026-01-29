@@ -2,7 +2,7 @@ import { CopilotNavDrawer, CopilotNavDrawerBody, tokens as copilotTokens } from 
 import { Body1, Button, mergeClasses, Subtitle1 } from '@fluentui/react-components';
 import { FC, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { createHashRouter, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { createHashRouter, Outlet, RouterProvider, useLocation } from 'react-router';
 import { HttpResponseObject } from '../Common/ArmHelper.types';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -38,7 +38,6 @@ import { DirtyStateNavigationConfirmDialog } from './IncidentManagement/CreateIn
 import IncidentManagement from './IncidentManagement/IncidentManagement';
 import { useOnboardingVisibility } from './Onboarding/Hooks/useOnboardingVisibility';
 import { OnboardingWizard } from './Onboarding/OnboardingWizard';
-import Overview from './Overview/Overview';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
@@ -176,7 +175,7 @@ const TabsListWrapper: FC = () => {
         isNavBarHidden,
         openedCategoryNavItems,
         onClickCategoryNavItem,
-        onClickNonThreadNavItem,
+        selectOverview,
         onClickNonThreadSubNavItem,
         ...threadsNavProps
     } = useSreAgentSpace();
@@ -221,10 +220,10 @@ const TabsListWrapper: FC = () => {
                                 selectedValue={getNavItemIdFromPathName(location.pathname)}
                                 selectedCategoryValue={getCategoryNavItemIdFromPathName(location.pathname)}
                                 style={{
-                                    width: isNavOpen ? undefined : '56px',
+                                    width: isNavOpen ? '280px' : '48px',
                                     transition: 'width 0.25s ease',
                                     height: '100%',
-                                    padding: `${copilotTokens.spacingVerticalS} 0px 0px 0px`,
+                                    padding: '0px',
                                 }}
                                 openCategories={openedCategoryNavItems}
                                 tabbable={true}
@@ -237,7 +236,7 @@ const TabsListWrapper: FC = () => {
                                     className={mergeClasses(scrollable, styles.navBody, isNavOpen ? undefined : styles.collapsedNavBody)}
                                 >
                                     {showOverview && (
-                                        <OverviewNavItem isNavOpen={isNavOpen} onClick={onClickNonThreadNavItem}>
+                                        <OverviewNavItem isNavOpen={isNavOpen} selectOverview={selectOverview}>
                                             {isNavOpen && (
                                                 <NavBarOpenCloseButton
                                                     isNavOpen={true}
@@ -338,7 +337,7 @@ const router = createHashRouter([
         errorElement: <RouteErrorBoundary />,
         children: [
             { index: true, element: <Thread /> },
-            { path: getPathName(false, PrimaryNavItemValues.Overview), element: <Overview /> },
+            { path: getPathName(false, PrimaryNavItemValues.Overview), element: <Thread isOverview={true} /> },
             {
                 path: getPathName(false, PrimaryNavItemValues.Activities),
                 element: <IncidentManagement menuItem={SecondaryNavItemValues.IncidentOverview} />,
@@ -580,12 +579,6 @@ const SREAgentSpace: FC = () => {
 const OnboardingGate: FC<{ router: ReturnType<typeof createHashRouter> }> = ({ router }) => {
     const { showWizard, onComplete } = useOnboardingVisibility();
 
-    // Wait for visibility to be determined
-    if (showWizard === null) {
-        return null;
-    }
-
-    // Show full-page wizard if needed
     if (showWizard) {
         return <OnboardingWizard onComplete={onComplete} />;
     }

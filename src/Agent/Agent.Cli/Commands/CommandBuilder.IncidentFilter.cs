@@ -31,7 +31,7 @@ public static partial class CommandBuilder
                 // Required options
                 IncidentFilterCommandOptions.Create.NameOption,
                 IncidentFilterCommandOptions.Create.PlatformOption,
-                
+
                 // Common filter options
                 IncidentFilterCommandOptions.Create.HandlingAgentOption,
                 IncidentFilterCommandOptions.Create.ImpactedServiceOption,
@@ -44,11 +44,11 @@ public static partial class CommandBuilder
                 IncidentFilterCommandOptions.Create.MaxAutomatedInvestigationAttemptsOption,
                 IncidentFilterCommandOptions.Create.DeepInvestigationEnabledOption,
                 IncidentFilterCommandOptions.Create.DisabledOption,
-                
+
                 // IcM-specific options
                 IncidentFilterCommandOptions.Create.MonitorIdOption,
                 IncidentFilterCommandOptions.Create.CreatedByOption,
-                
+
                 // AzMonitor-specific options
                 IncidentFilterCommandOptions.Create.TargetResourceTypeOption,
                 IncidentFilterCommandOptions.Create.TargetResourceOption
@@ -135,7 +135,8 @@ public static partial class CommandBuilder
             var cmd = new Command("delete", CommandExamples.IncidentFilter.DeleteDescription)
             {
                 IncidentFilterCommandOptions.Delete.NameOption,
-                IncidentFilterCommandOptions.Delete.DryRunOption
+                IncidentFilterCommandOptions.Delete.DryRunOption,
+                IncidentFilterCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             cmd.Validators.Add(result =>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { isAllowedAgentDomain } from '../../../Common/Constants/AllowedAgentDomains';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { useAuth } from '../../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../../Common/Contexts/NotificationContext';
@@ -17,9 +18,11 @@ import {
     IFrameTelemetryInfo,
     IFrameUserInfo,
     INotificationInfo,
+    IUserActivityInfo,
     TokenTypes,
 } from '../AgentIFrameContracts';
 import { AgentLoadError, buildAgentUxUrl } from '../Utilities';
+import { AGENT_LOAD_TIMEOUT_MS } from '../useAgentView';
 
 /**
  * Hook for external agent iframe management (cross-tenant scenarios)
@@ -41,14 +44,36 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
     const [iframeInitialized, setIframeInitialized] = useState(false);
     const [agentLoadError, setAgentLoadError] = useState<AgentLoadError>();
 
-    const agentUxUrl = useMemo(() => buildAgentUxUrl(agentUrl, sreDeepLink), [agentUrl, sreDeepLink]);
+    // Validate agent URL against domain allowlist before loading iframe (security)
+    const isDomainAllowed = useMemo(() => isAllowedAgentDomain(agentUrl), [agentUrl]);
+
+    const agentUxUrl = useMemo(
+        () => (isDomainAllowed ? buildAgentUxUrl(agentUrl, sreDeepLink) : ''),
+        [isDomainAllowed, agentUrl, sreDeepLink]
+    );
     const uxOrigin = useMemo(() => {
         try {
-            return new URL(agentUxUrl).origin;
+            return agentUxUrl ? new URL(agentUxUrl).origin : undefined;
         } catch {
             return undefined;
         }
     }, [agentUxUrl]);
+
+    // Log security event and set error for blocked domains
+    useEffect(() => {
+        if (!isDomainAllowed && agentUrl) {
+            logEvent({
+                action: 'external-agent-domain-blocked',
+                actionModifier: 'security',
+                logLevel: LogLevel.Warning,
+                additionalData: {
+                    message: 'Blocked external agent URL from untrusted domain',
+                    attemptedUrl: agentUrl,
+                },
+            });
+            setErrorBannerMessage(intl.formatMessage(PortalResources.externalAgentDomainNotAllowed));
+        }
+    }, [isDomainAllowed, agentUrl, logEvent, intl]);
 
     const postMessage = useCallback(
         (verb: string, data: object) => {
@@ -258,6 +283,21 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
         [authTokenManager]
     );
 
+    const userActivityCallback = useCallback(
+        (data: IUserActivityInfo) => {
+            logEvent({
+                action: 'user-activity',
+                actionModifier: 'received',
+                logLevel: LogLevel.Debug,
+                additionalData: {
+                    activityType: data.type,
+                    timestamp: data.timestamp,
+                },
+            });
+        },
+        [logEvent]
+    );
+
     const receiveMessage = useCallback(
         (event: MessageEvent) => {
             const messageCallbackMap: Record<string, (data: any) => void> = {
@@ -269,6 +309,7 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                 [AgentSiteToAzPortalVerbs.openBlade]: openBladeCallback,
                 [AgentSiteToAzPortalVerbs.updateNotification]: updateNotificationCallback,
                 [AgentSiteToAzPortalVerbs.requestToken]: requestTokenCallback,
+                [AgentSiteToAzPortalVerbs.userActivity]: userActivityCallback,
             };
 
             // Validate the origin and signature of the incoming message
@@ -313,10 +354,21 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                 });
             }
         },
-        [uxOrigin, logEvent, readyForDataCallback, logCallback, openBladeCallback, updateNotificationCallback, requestTokenCallback]
+        [
+            uxOrigin,
+            logEvent,
+            readyForDataCallback,
+            logCallback,
+            openBladeCallback,
+            updateNotificationCallback,
+            requestTokenCallback,
+            userActivityCallback,
+        ]
     );
 
     useEffect(() => {
+        let isMounted = true;
+
         // We need to ping the site because if the site is cold-starting and fails for some reason then the iframe will hang
         const pingSite = async () => {
             if (!agentUxUrl) {
@@ -392,11 +444,12 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
                     console.log(error);
                 }
 
+                if (!isMounted) return;
                 await new Promise(r => setTimeout(r, agentSitePingSleep));
             }
 
             const totalTime = Date.now() - startTime;
-            if (pingIndex >= agentSitePingLimit || totalTime >= 60000) {
+            if (pingIndex >= agentSitePingLimit || totalTime >= AGENT_LOAD_TIMEOUT_MS) {
                 const errorMessage =
                     pingIndex >= agentSitePingLimit
                         ? `Agent site failed to respond within ${agentSitePingLimit} pings. Blade timeout.`
@@ -416,6 +469,10 @@ export const useExternalAgentView = (agentUrl: string, sreDeepLink?: string) => 
         };
 
         pingSite();
+
+        return () => {
+            isMounted = false;
+        };
     }, [intl, agentUxUrl, logEvent]);
 
     useEffect(() => {

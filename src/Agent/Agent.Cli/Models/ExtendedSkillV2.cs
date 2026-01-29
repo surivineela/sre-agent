@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Cli.Helpers;
+using Agent.Framework.Skills;
 using YamlDotNet.Serialization;
 
 namespace Agent.Cli.Models
@@ -64,15 +65,128 @@ namespace Agent.Cli.Models
         }
 
         /// <summary>
+        /// Loads a skill from a directory, supporting both new format (SKILL.md with frontmatter)
+        /// and legacy format (metadata.yaml + SKILL.md).
+        /// </summary>
+        /// <param name="directoryPath">The skill directory path</param>
+        /// <returns>A tuple containing the parsed ExtendedSkillV2 object and an error message (if any)</returns>
+        public static async Task<(ExtendedSkillV2? Skill, string? Error)> LoadFromDirectoryAsync(string directoryPath)
+        {
+            try
+            {
+                if (!Directory.Exists(directoryPath))
+                {
+                    return (null, $"Directory not found: {directoryPath}");
+                }
+
+                var skillMdPath = Path.Combine(directoryPath, ExtendedSkillHelper.SkillContentFileName);
+                var metadataPath = Path.Combine(directoryPath, ExtendedSkillHelper.MetadataFileName);
+
+                ExtendedSkillV2? skill = null;
+
+                // Try new format first: SKILL.md with frontmatter
+                if (File.Exists(skillMdPath))
+                {
+                    var skillMdContent = await File.ReadAllTextAsync(skillMdPath);
+                    var frontmatterResult = SkillFrontmatter.Parse(skillMdContent);
+
+                    if (frontmatterResult.HasFrontmatter)
+                    {
+                        skill = new ExtendedSkillV2
+                        {
+                            Metadata = new ResourceMetadataModel
+                            {
+                                Name = frontmatterResult.Metadata?.Name ?? string.Empty
+                            },
+                            Spec = new SkillSpecV2
+                            {
+                                Description = frontmatterResult.Metadata?.Description,
+                                Tools = frontmatterResult.Metadata?.Tools ?? [],
+                                SkillContent = frontmatterResult.MarkdownContent
+                            }
+                        };
+                    }
+                }
+
+                // Fall back to legacy format: metadata.yaml
+                if (skill == null)
+                {
+                    if (!File.Exists(metadataPath))
+                    {
+                        return (null, $"No valid skill found in directory: {directoryPath}. Expected SKILL.md with frontmatter or metadata.yaml");
+                    }
+
+                    var yamlContent = await File.ReadAllTextAsync(metadataPath);
+                    skill = ParseYaml(yamlContent);
+
+                    if (skill == null)
+                    {
+                        return (null, "Failed to parse metadata.yaml");
+                    }
+
+                    // Load SKILL.md content for legacy format
+                    if (!File.Exists(skillMdPath))
+                    {
+                        return (null, $"{ExtendedSkillHelper.SkillContentFileName} not found in skill directory: {directoryPath}");
+                    }
+                    skill.Spec.SkillContent = await File.ReadAllTextAsync(skillMdPath);
+                }
+
+                // Auto-discover all additional files in the directory (excluding metadata.yaml and SKILL.md)
+                await LoadAdditionalFilesAsync(skill, directoryPath);
+
+                return (skill, null);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Failed to load skill: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Loads a YAML file and parses it into an ExtendedSkillV2 object asynchronously.
         /// Also loads the SKILL.md content and any additional files referenced in the metadata.
         /// </summary>
         /// <param name="fileName">The file path to the metadata.yaml to read and parse</param>
         /// <returns>A tuple containing the parsed ExtendedSkillV2 object and an error message (if any)</returns>
+        /// <remarks>
+        /// This method handles multiple input formats:
+        /// - Directory path: delegates to LoadFromDirectoryAsync
+        /// - metadata.yaml path: extracts directory and delegates to LoadFromDirectoryAsync
+        /// - SKILL.md path: extracts directory and delegates to LoadFromDirectoryAsync
+        /// - Other YAML file: parses as standalone skill definition (legacy support for direct YAML loading)
+        /// </remarks>
         public static async Task<(ExtendedSkillV2? Skill, string? Error)> LoadYamlAsync(string fileName)
         {
             try
             {
+                // Check if fileName is a directory - if so, use LoadFromDirectoryAsync
+                if (Directory.Exists(fileName))
+                {
+                    return await LoadFromDirectoryAsync(fileName);
+                }
+
+                // If it's metadata.yaml, get the directory and use LoadFromDirectoryAsync
+                if (string.Equals(Path.GetFileName(fileName), ExtendedSkillHelper.MetadataFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var directory = Path.GetDirectoryName(fileName);
+                    if (!string.IsNullOrEmpty(directory))
+                    {
+                        return await LoadFromDirectoryAsync(directory);
+                    }
+                }
+
+                // If it's SKILL.md, get the directory and use LoadFromDirectoryAsync
+                if (string.Equals(Path.GetFileName(fileName), ExtendedSkillHelper.SkillContentFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var directory = Path.GetDirectoryName(fileName);
+                    if (!string.IsNullOrEmpty(directory))
+                    {
+                        return await LoadFromDirectoryAsync(directory);
+                    }
+                }
+
+                // Legacy path: direct YAML file loading (e.g., for standalone skill YAML files not in standard directory structure)
                 if (!File.Exists(fileName))
                 {
                     return (null, $"File not found: {fileName}");
@@ -101,31 +215,8 @@ namespace Agent.Cli.Models
                 }
                 skill.Spec.SkillContent = await File.ReadAllTextAsync(skillMdPath);
 
-                // Auto-discover all additional files in the directory (excluding metadata.yaml and SKILL.md)
-                var allFiles = Directory.GetFiles(skillDirectory, "*", SearchOption.AllDirectories);
-                skill.Spec.AdditionalFiles = [];
-
-                foreach (var filePath in allFiles)
-                {
-                    var fileNameInLoop = Path.GetFileName(filePath);
-
-                    // Skip metadata.yaml and SKILL.md
-                    if (string.Equals(fileNameInLoop, ExtendedSkillHelper.MetadataFileName, StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(fileNameInLoop, ExtendedSkillHelper.SkillContentFileName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    // Get relative path from skill directory
-                    var relativePath = Path.GetRelativePath(skillDirectory, filePath);
-                    var content = await File.ReadAllTextAsync(filePath);
-
-                    skill.Spec.AdditionalFiles.Add(new SkillAdditionalFileV2
-                    {
-                        FilePath = relativePath,
-                        Content = content
-                    });
-                }
+                // Auto-discover all additional files in the directory
+                await LoadAdditionalFilesAsync(skill, skillDirectory);
 
                 return (skill, null);
             }
@@ -136,10 +227,101 @@ namespace Agent.Cli.Models
         }
 
         /// <summary>
-        /// Saves the skill to a directory with metadata.yaml, SKILL.md, and additional files.
+        /// Loads additional files from a skill directory into the skill object.
+        /// </summary>
+        private static async Task LoadAdditionalFilesAsync(ExtendedSkillV2 skill, string directoryPath)
+        {
+            var allFiles = Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories);
+            skill.Spec.AdditionalFiles = [];
+
+            foreach (var filePath in allFiles)
+            {
+                var fileNameInLoop = Path.GetFileName(filePath);
+
+                // Skip metadata.yaml and SKILL.md
+                if (string.Equals(fileNameInLoop, ExtendedSkillHelper.MetadataFileName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(fileNameInLoop, ExtendedSkillHelper.SkillContentFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // Get relative path from skill directory
+                var relativePath = Path.GetRelativePath(directoryPath, filePath);
+                var content = await File.ReadAllTextAsync(filePath);
+
+                skill.Spec.AdditionalFiles.Add(new SkillAdditionalFileV2
+                {
+                    FilePath = relativePath,
+                    Content = content
+                });
+            }
+        }
+
+        /// <summary>
+        /// Saves the skill to a directory using the new frontmatter format.
+        /// Deletes any existing metadata.yaml file (migration).
         /// </summary>
         /// <param name="directoryPath">The directory path where the skill files will be saved</param>
         public async Task SaveAsync(string directoryPath)
+        {
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                throw new ArgumentException("Directory path cannot be null or empty", nameof(directoryPath));
+            }
+
+            // Create directory if it doesn't exist
+            Directory.CreateDirectory(directoryPath);
+
+            // Generate SKILL.md with frontmatter (new format)
+            var skillMdPath = Path.Combine(directoryPath, ExtendedSkillHelper.SkillContentFileName);
+            var skillMetadata = new YamlSkillDescriptor
+            {
+                Metadata = new YamlSkillMetadata
+                {
+                    ApiVersion = ApiVersion,
+                    Kind = Kind
+                },
+                Name = Metadata.Name ?? string.Empty,
+                Description = Spec.Description ?? string.Empty,
+                Tools = Spec.Tools ?? []
+            };
+            var skillMdContent = SkillFrontmatter.Generate(skillMetadata, Spec.SkillContent ?? string.Empty, includeFirstPartyOnly: false);
+            await File.WriteAllTextAsync(skillMdPath, skillMdContent, System.Text.Encoding.UTF8);
+
+            // Delete legacy metadata.yaml if it exists (migration)
+            var metadataPath = Path.Combine(directoryPath, ExtendedSkillHelper.MetadataFileName);
+            if (File.Exists(metadataPath))
+            {
+                File.Delete(metadataPath);
+            }
+
+            // Save additional files
+            if (Spec.AdditionalFiles != null)
+            {
+                foreach (var file in Spec.AdditionalFiles)
+                {
+                    if (string.IsNullOrWhiteSpace(file.FilePath) || string.IsNullOrWhiteSpace(file.Content))
+                    {
+                        continue;
+                    }
+
+                    var filePath = Path.Combine(directoryPath, file.FilePath);
+                    var fileDirectory = Path.GetDirectoryName(filePath);
+                    if (!string.IsNullOrEmpty(fileDirectory))
+                    {
+                        Directory.CreateDirectory(fileDirectory);
+                    }
+                    await File.WriteAllTextAsync(filePath, file.Content, System.Text.Encoding.UTF8);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves the skill to a directory using the legacy metadata.yaml format.
+        /// Use SaveAsync for the new frontmatter format.
+        /// </summary>
+        /// <param name="directoryPath">The directory path where the skill files will be saved</param>
+        public async Task SaveLegacyAsync(string directoryPath)
         {
             if (string.IsNullOrEmpty(directoryPath))
             {

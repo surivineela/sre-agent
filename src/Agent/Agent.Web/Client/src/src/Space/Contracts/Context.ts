@@ -75,10 +75,19 @@ type StreamingContextProps = {
     noPermission: boolean;
 };
 
+/**
+ * Focus options for deep-linking into memory search panel
+ */
+export type MemorySearchFocusOptions = {
+    itemId?: string;
+    itemType?: 'document' | 'trajectory' | 'memory';
+    itemIndex?: number; // For memories which don't have IDs
+};
+
 type ChatBoxSidePanelProps = {
     openAgentTask: (agentTask: AgentTaskMetaData) => void;
     openTodoPlan: (todoPlan: TodoInfo) => void;
-    openMemorySearchResult: (result: MemorySearchResult) => void;
+    openMemorySearchResult: (result: MemorySearchResult, focusOptions?: MemorySearchFocusOptions) => void;
     openKnowledgeGraphSearchResult: (result: KnowledgeGraphSearchResult) => void;
 };
 
@@ -218,7 +227,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
 export const ChatBoxSidePanelContext = createContext<ChatBoxSidePanelProps>({
     openAgentTask: (_agentTask: AgentTaskMetaData) => {},
     openTodoPlan: (_todoPlan: TodoInfo) => {},
-    openMemorySearchResult: (_result: MemorySearchResult) => {},
+    openMemorySearchResult: (_result: MemorySearchResult, _focusOptions?: MemorySearchFocusOptions) => {},
     openKnowledgeGraphSearchResult: (_result: KnowledgeGraphSearchResult) => {},
 });
 

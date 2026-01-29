@@ -109,7 +109,8 @@ public static partial class CommandBuilder
         {
             var cmd = new Command("delete", CommandExamples.Agent.DeleteDescription)
             {
-                AgentCommandOptions.Delete.NameOption
+                AgentCommandOptions.Delete.NameOption,
+                AgentCommandOptions.Delete.DeleteLocalFilesOption
             };
 
             // Add name validation

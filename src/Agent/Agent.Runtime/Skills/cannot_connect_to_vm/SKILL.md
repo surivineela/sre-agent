@@ -1,3 +1,16 @@
+---
+name: cannot_connect_to_vm
+description: The "Cannot Connect to VM" skill specializes in diagnosing and addressing connectivity or boot issues (RDP/SSH) with Azure Virtual Machines, leveraging targeted tools and resources for troubleshooting while adhering to strict validation steps and prerequisites.
+tools:
+  - DiagnoseVmConnectivityIssues
+  - GetArmResourceAsJson
+  - GetVirtualMachineBootStateAsJson
+  - AnalyzeVmScreenshot
+  - AnalyzeVmSerialLog
+  - RunAzCliReadCommands
+  - PowerOnVirtualMachine
+---
+
 # Cannot Connect to Azure VM Skill
 
 ## Overview
@@ -33,13 +46,13 @@ Open an additional skill only when a trigger below is met; load one, act, then r
 
 | Trigger | Action | Rationale |
 |---------|--------|-----------|
-| VM resourceId missing or ambiguous after one clarification | Use built‑in discovery tools (ListSubscriptions, ListResourceGroups, SearchResource, GetResourceIdForResourceName) | Obtain precise VM ID before diagnosis |
+| VM resourceId missing or ambiguous after one clarification | Use SearchResource with filters: SearchResource(resourceTypes: ["microsoft.resources/subscriptions"]) for subscriptions, SearchResource(resourceTypes: ["microsoft.resources/subscriptions/resourcegroups"], subscriptionId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for resource groups, SearchResource(resourceName: "vm-name", resourceTypes: ["microsoft.compute/virtualmachines"]) for VMs | Obtain precise VM ID before diagnosis |
 | Need to enable boot diagnostics or run supporting CLI (e.g., set diagnostics storage) | Open `azure_cli_command_executor` | Safe enablement / parameterized CLI execution |
 | Need performance or availability trend beyond current snapshot (e.g., intermittent connectivity correlating with CPU spikes) | Open `metrics_and_chart_visualization` | Correlate resource metrics with connection failures |
 
 ## Input Gathering
 
-1. Confirm VM resourceId. If absent → use built‑in discovery tools (ListSubscriptions → select subscription; ListResourceGroups / SearchResource → locate VM; GetResourceIdForResourceName → resolve full ID), then proceed.
+1. Confirm VM resourceId. If absent → use SearchResource: SearchResource(resourceTypes: ["microsoft.resources/subscriptions"]) to find subscriptions, SearchResource(resourceName: "vm-name", resourceTypes: ["microsoft.compute/virtualmachines"]) to locate the VM (returns resourceId in results), then proceed.
 2. Prompt once: “Do you have the exact RDP / SSH error message? Paste it so I can map known guidance. If not, say ‘no’.”
 3. Fetch prerequisites:
    - `GetVirtualMachineBootStateAsJson` → powerState
@@ -116,8 +129,6 @@ User cannot RDP; error: “The Local Security Authority cannot be contacted”.
 
 ## Cross References
 
-- `azure_cli_command_executor` – enable boot diagnostics, execute minor configuration commands (with approval).
-- `metrics_and_chart_visualization` – correlate intermittent connectivity with performance trends when diagnosis inconclusive.
 - `azure_cli_command_executor` – enable boot diagnostics, execute minor configuration commands (with approval).
 - `metrics_and_chart_visualization` – correlate intermittent connectivity with performance trends when diagnosis inconclusive.
 

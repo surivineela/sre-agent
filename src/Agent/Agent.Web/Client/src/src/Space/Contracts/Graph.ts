@@ -80,6 +80,8 @@ interface GraphContextProps {
     nodesToHighlight: string[];
     edgesToHighlight: string[];
     selectedAppGroupId?: string;
+    refreshGraph?: () => Promise<void>;
+    refreshCurrentAppGroup?: () => Promise<void>;
 }
 
 export const GraphContext = createContext<GraphContextProps>({
@@ -88,6 +90,8 @@ export const GraphContext = createContext<GraphContextProps>({
     unHoverNode: () => {},
     nodesToHighlight: [],
     edgesToHighlight: [],
+    refreshGraph: async () => {},
+    refreshCurrentAppGroup: async () => {},
 });
 
 export class NodeSize {

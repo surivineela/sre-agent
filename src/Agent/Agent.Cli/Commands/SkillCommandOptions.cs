@@ -127,9 +127,16 @@ public static class SkillCommandOptions
             Required = true,
             Description = "Name of the skill to delete"
         };
+
         public static readonly Option<bool> DryRunOption = new("--dry-run")
         {
             Description = "Preview deletion without actually removing the skill"
+        };
+
+        public static readonly Option<bool?> DeleteLocalFilesOption = new("--delete-local-files")
+        {
+            Description = "Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)",
+            Arity = ArgumentArity.ZeroOrOne
         };
     }
 
@@ -141,12 +148,12 @@ public static class SkillCommandOptions
     {
         public static readonly Option<string?> NameOption = new("--name")
         {
-            Description = "Name of the skill to migrate from V1 to V2"
+            Description = "Name of the skill to migrate to frontmatter format"
         };
 
         public static readonly Option<bool> AllOption = new("--all")
         {
-            Description = "Migrate all V1 skills to V2 format"
+            Description = "Migrate all skills to frontmatter format"
         };
 
         public static readonly Option<bool> DryRunOption = new("--dry-run")

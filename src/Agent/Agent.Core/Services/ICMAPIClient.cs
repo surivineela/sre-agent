@@ -26,13 +26,13 @@ public interface IICMAPIClient
     Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, uint? limit = null, bool isAscending = true);
     Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
     Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
-    Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "");
-    Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "");
+    Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "");
+    Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false);
     Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering = true);
     Task<string> SetIncidentTags(string incidentId, List<string> tags);
     Task<string> AddTagToIncident(string incidentId, string tag);
     Task<string> AddKeywordToIncident(string incidentId, string keyword);
-    Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "");
+    Task<string> AcknowledgeIncidentAsync(string incidentId);
     Task<List<string>> GetLinkedRelatedIncidentInfoAsync(long incidentId);
     Task<string> AddRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
     Task<string> RemoveRelatedIncidentLinkAsync(long incidentId, long relatedIncidentId);
@@ -47,6 +47,14 @@ public interface IICMAPIClient
     Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true);
     Task<IcmTeamResult> GetTeamAsync(string teamId);
     Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null);
+
+    /// <summary>
+    /// Gets the list of aliases currently on-call for the specified team.
+    /// Returns aliases from all active on-call rotations for the team.
+    /// </summary>
+    /// <param name="teamId">The ICM team ID to lookup on-call for.</param>
+    /// <returns>List of on-call aliases, or empty list if none found.</returns>
+    Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId);
 }
 
 public class ICMAPIClient : IICMAPIClient
@@ -172,7 +180,7 @@ public class ICMAPIClient : IICMAPIClient
 
     //Only active incident can be mitigated
     //If is resolved, no more further action needed
-    public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "")
+    public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "")
     {
 
         var incident = await GetIncidentAsync(incidentId);
@@ -187,7 +195,7 @@ public class ICMAPIClient : IICMAPIClient
         {
             throw new InvalidOperationException($"Incident {incidentId} with state {incident.State} is not in a valid state to mitigate. Only {string.Join(", ", allowedStates)} are allowed.");
         }
-        var res = await _icmApiClientSDKService.MitigateIncidentAsync(incidentId, discussionEntry, isCustomerImpacting, isNoise, howFixed, mitigateContactAlias);
+        var res = await _icmApiClientSDKService.MitigateIncidentAsync(incidentId, discussionEntry, isCustomerImpacting, isNoise, howFixed);
         if (!res.Success)
         {
             throw new Exception($"Failed to mitigate incident. Error: {res.Message}");
@@ -202,7 +210,7 @@ public class ICMAPIClient : IICMAPIClient
     }
 
     //Only mitigated incident can be resolved
-    public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "")
+    public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false)
     {
         var incident = await GetIncidentAsync(incidentId);
         if (CheckIncidentState(incident, new[] { IncidentStatus.Active }))
@@ -217,7 +225,7 @@ public class ICMAPIClient : IICMAPIClient
             throw new InvalidOperationException($"Incident {incidentId} with state {incident.State} is not in a valid state to resolve. Only {string.Join(", ", allowedStates)} are allowed.");
         }
 
-        var res = await _icmApiClientSDKService.ResolveIncidentAsync(incidentId, discussionEntry, isCustomerImpacting, isNoise, resolveContactAlias);
+        var res = await _icmApiClientSDKService.ResolveIncidentAsync(incidentId, discussionEntry, isCustomerImpacting, isNoise);
         if (!res.Success)
         {
             throw new Exception($"Failed to resolve incident. Error: {res.Message}");
@@ -265,9 +273,9 @@ public class ICMAPIClient : IICMAPIClient
         return res.Message;
     }
     //If is resovled, cannot be ack
-    public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "")
+    public async Task<string> AcknowledgeIncidentAsync(string incidentId)
     {
-        var res = await _icmApiClientSDKService.AcknowledgeIncidentAsync(incidentId, acknowledgeContactAlias);
+        var res = await _icmApiClientSDKService.AcknowledgeIncidentAsync(incidentId);
         if (!res.Success)
         {
             throw new Exception($"Failed to acknowledge incident. Error: {res.Message}");
@@ -402,11 +410,26 @@ public class ICMAPIClient : IICMAPIClient
         }
         return res.Message;
     }
+
+    /// <inheritdoc />
+    public async Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId)
+    {
+        try
+        {
+            var aliases = await _icmApiClientSDKService.GetAliasForCurrentOnCallRotationsAsync(teamId);
+            return aliases ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, $"Failed to get on-call aliases for team {teamId}. Returning empty list.");
+            return new List<string>();
+        }
+    }
 }
 
 public class NullableICMAPIClient : IICMAPIClient
 {
-    public Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "")
+    public Task<string> AcknowledgeIncidentAsync(string incidentId)
     {
         throw new NotImplementedException();
     }
@@ -471,7 +494,7 @@ public class NullableICMAPIClient : IICMAPIClient
         throw new NotImplementedException();
     }
 
-    public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "", string mitigateContactAlias = "")
+    public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string howFixed = "")
     {
         throw new NotImplementedException();
     }
@@ -491,7 +514,7 @@ public class NullableICMAPIClient : IICMAPIClient
         throw new NotImplementedException();
     }
 
-    public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false, string resolveContactAlias = "")
+    public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting = false, bool isNoise = false)
     {
         throw new NotImplementedException();
     }
@@ -547,6 +570,11 @@ public class NullableICMAPIClient : IICMAPIClient
     }
 
     public Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId)
     {
         throw new NotImplementedException();
     }

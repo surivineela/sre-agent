@@ -1,5 +1,5 @@
 import { FC, useMemo } from 'react';
-import { useBlocker } from 'react-router-dom';
+import { useBlocker } from 'react-router';
 import { DirtyStateConfirmationDialog } from './DirtyStateConfirmationDialog';
 
 export const DirtyStateNavigationConfirmDialog: FC<{ isDirty: boolean }> = ({ isDirty }) => {

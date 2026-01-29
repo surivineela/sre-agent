@@ -6,8 +6,9 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' e
   name: '${namePrefix}${consts.appConfigNameSuffix}'
 }
 
-resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
-  name: '${namePrefix}${consts.kvNameSuffix}'
+// Reference the user-assigned managed identity used by the application
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
+  name: '${namePrefix}${consts.managedIdentityNameSuffix}'
 }
 
 resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
@@ -16,7 +17,7 @@ resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
   kind: 'GlobalDocumentDB'
   properties: {
     databaseAccountOfferType: 'Standard'
-    disableLocalAuth: false
+    disableLocalAuth: true
     locations: [
       {
         locationName: resourceGroup().location
@@ -101,20 +102,28 @@ resource cosmosCollectionSetting 'Microsoft.AppConfiguration/configurationStores
   }
 }
 
-// Secret Settings
-var cosmosApiKey = cosmosdbAccount.listKeys().primaryMasterKey
-resource cosmosApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  name: 'graph-cosmos-api-key'
-  parent: kv
+// Assign data plane role for managed identity
+// Using Cosmos DB Built-in Data Contributor role for Gremlin API access
+var roleDefinitionId = '/${subscription().id}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${namePrefix}${consts.cosmosAccountNameSuffix}/sqlRoleDefinitions/${consts.cosmosDBDataContributor}'
+
+// User-assigned managed identity access for Azure deployments (application identity)
+resource identityRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosdbAccount.id, identity.properties.principalId, consts.cosmosDBDataContributor)
+  parent: cosmosdbAccount
   properties: {
-    value: cosmosApiKey
+    principalId: identity.properties.principalId
+    roleDefinitionId: roleDefinitionId
+    scope: cosmosdbAccount.id
   }
 }
-resource cosmosApiKeySetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
-  name: 'AppSettings:Core:Azure:CosmosDB:Graph:ApiKey'
-  parent: appConfig
+
+// Local user access for local development deployments
+resource deployerRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosdbAccount.id, deployer().objectId, consts.cosmosDBDataContributor)
+  parent: cosmosdbAccount
   properties: {
-    value: string({uri: cosmosApiKeySecret.properties.secretUri})
-    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+    principalId: deployer().objectId
+    roleDefinitionId: roleDefinitionId
+    scope: cosmosdbAccount.id
   }
 }

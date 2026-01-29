@@ -100,7 +100,7 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
-    public deleteKustoTool = async (toolName: string) => {
+    public deleteTool = async (toolName: string) => {
         const encodedToolName = encodeURIComponent(toolName);
         try {
             const { data } = await axios.delete(this.getRequestUrl(`/api/v1/extendedAgent/tools/${encodedToolName}`), {
@@ -139,7 +139,14 @@ export class ExtendedAgentClient extends DataPlaneClient {
                 isSuccessful: true,
             };
         } catch (error) {
-            const errorMessage = this.getErrorMessage(error);
+            let errorMessage = this.getErrorMessage(error);
+            const errorResponse = (error as any)?.response?.data;
+            if (errorResponse?.error_code === VALIDATION_FAILED) {
+                const validationErrorMessages = this.getValidationErrorMessages(errorResponse);
+                if (validationErrorMessages) {
+                    errorMessage = validationErrorMessages;
+                }
+            }
             return {
                 isSuccessful: false,
                 error: errorMessage,
@@ -378,4 +385,13 @@ export class ExtendedAgentClient extends DataPlaneClient {
             return document.replace(/^---\s*\n?/, '').trim();
         });
     }
+
+    private getValidationErrorMessages(errorResponse: any): string {
+        if (errorResponse?.details?.errors && Array.isArray(errorResponse.details.errors)) {
+            return errorResponse.details.errors.map((error: { field: string; message: string }) => error.message).join(' ');
+        }
+        return '';
+    }
 }
+
+const VALIDATION_FAILED = 'VALIDATION_FAILED';

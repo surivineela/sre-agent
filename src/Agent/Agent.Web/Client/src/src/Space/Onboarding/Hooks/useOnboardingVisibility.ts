@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
@@ -22,7 +22,7 @@ const isOnboardingSkippedForResource = (resourceId: string | undefined): boolean
 };
 
 export interface UseOnboardingVisibilityResult {
-    showWizard: boolean | null;
+    showWizard: boolean;
     onComplete: () => void;
 }
 
@@ -31,23 +31,31 @@ export const useOnboardingVisibility = (): UseOnboardingVisibilityResult => {
     const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
     const { agentObj, agentLoaded } = useContext(SreAgentContext);
 
-    const [showWizard, setShowWizard] = useState<boolean | null>(null);
+    const [showWizard, setShowWizard] = useState(false);
+
+    const hasEvaluatedOnboarding = useRef(false);
 
     useEffect(() => {
-        if (!agentLoaded) return;
-
-        const showOnboardingWizardFlag = getConfigSetting(SettingNames.ShowOnboardingWizard);
-        if (!showOnboardingWizardFlag) {
-            setShowWizard(false);
-            return;
-        }
-
         if (inStandaloneMode || isCrossTenantPortalMode) {
             setShowWizard(false);
             return;
         }
 
+        if (!agentLoaded) return;
+
+        if (hasEvaluatedOnboarding.current) {
+            return;
+        }
+
+        const showOnboardingWizardFlag = getConfigSetting(SettingNames.ShowOnboardingWizard);
+        if (!showOnboardingWizardFlag) {
+            hasEvaluatedOnboarding.current = true;
+            setShowWizard(false);
+            return;
+        }
+
         if (isOnboardingSkippedForResource(agentObj?.id)) {
+            hasEvaluatedOnboarding.current = true;
             setShowWizard(false);
             return;
         }
@@ -60,6 +68,7 @@ export const useOnboardingVisibility = (): UseOnboardingVisibilityResult => {
             agent?.incidentManagementConfiguration?.type !== IncidentManagementType.None;
         const isOnboardingNeeded = !hasManagedResources || !hasIncidentPlatform;
 
+        hasEvaluatedOnboarding.current = true;
         setShowWizard(isOnboardingNeeded);
 
         if (isOnboardingNeeded) {

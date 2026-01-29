@@ -75,4 +75,6 @@ public interface IICMPlugin
     Task<string> GetIncidentDetails(string incidentId, bool includeAlertDetails = false);
 
     Task<string> GetIncidentAlertDetails(string incidentId);
+
+    Task<List<string>> GetCurrentOnCallAliases(string teamId);
 }

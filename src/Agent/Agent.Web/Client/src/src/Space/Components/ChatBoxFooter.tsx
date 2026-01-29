@@ -34,7 +34,6 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    DialogTrigger,
     makeStyles,
     MenuItem,
     MenuList,
@@ -43,7 +42,6 @@ import {
     PopoverSurface,
     PositioningImperativeRef,
     PositioningProps,
-    Spinner,
     Table,
     TableBody,
     TableCell,
@@ -55,16 +53,15 @@ import {
     Tooltip,
     useRestoreFocusTarget,
 } from '@fluentui/react-components';
-import { ChartMultiple24Regular, ChatWarningRegular, Lightbulb32Regular, SearchSparkle32Regular } from '@fluentui/react-icons';
+import { ChatWarningRegular, History20Regular, SearchSparkle20Regular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import debounce from 'lodash/debounce';
-import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../Common/Clients/ExtendedAgentClient';
-import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { SearchBoxWithDebounce } from '../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Thread, ThreadSource } from '../../Common/Contracts/DataPlane/Thread';
 import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
@@ -90,99 +87,48 @@ import { usePermissionContext } from '../Contracts/PermissionContext';
 import { useResourceSearching } from '../Hooks/useResourceSearching';
 import { useThreadList } from '../Hooks/useThreadList';
 import { chatInputTextStyles, useChatInputStyles, useDialogStyles } from '../Styles/Activities.styles';
-import AgentModeSelector from './AgentModeSelector';
 import { $createResourceNode, ResourceNode } from './Chat/ResourceNode';
 import { $createShortcutNode, $getShortcutValuefromShortcutNode, $isShortcutNode, ShortcutNode } from './Chat/ShortcutNode';
+import { SreAgentBranding } from './Chat/SreAgentBranding';
+import { AnimatedHistogramIcon } from './ChatBoxFooter/AnimatedHistogramIcon';
+import { IconPill } from './ChatBoxFooter/IconPill';
+import { PlusMenuButton } from './ChatBoxFooter/PlusMenu/PlusMenuButton';
+import { usePlusMenuStyles } from './ChatBoxFooter/styles';
+import Fade from './Fade';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
-const GenerateInsightsButton = memo(
-    ({
-        threadId,
-        isTyping,
-        disableInputInteraction,
-    }: {
-        threadId?: string | null;
-        isTyping: boolean;
-        disableInputInteraction: boolean;
-    }) => {
-        const { sreAgentEndpoint } = useContext(EnvironmentContext);
-        const { canWriteThreads } = usePermissionContext();
-        const intl = useIntl();
-        const [isGenerating, setIsGenerating] = useState(false);
-        const { iconWrapper } = useFooterButtonIconStyles();
-        const { features } = useFeatureFlags();
+const useGenerateInsights = (threadId?: string | null) => {
+    const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const { canWriteThreads } = usePermissionContext();
+    const { features } = useFeatureFlags();
+    const [isGenerating, setIsGenerating] = useState(false);
 
-        const handleGenerateInsights = useCallback(async () => {
-            if (!threadId) return;
-            setIsGenerating(true);
-            try {
-                const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
-                    method: 'POST',
-                    headers: getAgentHeaders(),
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Failed to generate insights:', errorData.errorMessage);
-                }
-            } catch (error) {
-                console.error('Error generating insights:', error);
-            } finally {
-                setIsGenerating(false);
+    const handleGenerateInsights = useCallback(async () => {
+        if (!threadId) return;
+        setIsGenerating(true);
+        try {
+            const response = await fetch(`${sreAgentEndpoint}/api/v1/threads/${threadId}/insights`, {
+                method: 'POST',
+                headers: getAgentHeaders(),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to generate insights:', errorData.errorMessage);
             }
-        }, [threadId, sreAgentEndpoint]);
-
-        // Don't render if session insights is disabled (after all hooks)
-        if (!features.sessionInsights) {
-            return null;
+        } catch (error) {
+            console.error('Error generating insights:', error);
+        } finally {
+            setIsGenerating(false);
         }
+    }, [threadId, sreAgentEndpoint]);
 
-        return (
-            <Tooltip content={intl.formatMessage(SreAgentResources.generateInsights)} relationship="label">
-                <Button
-                    icon={<span className={iconWrapper}>{isGenerating ? <Spinner size="tiny" /> : <ChartMultiple24Regular />}</span>}
-                    appearance="subtle"
-                    shape="rounded"
-                    disabled={!canWriteThreads || isGenerating || !threadId || isTyping || disableInputInteraction}
-                    onClick={handleGenerateInsights}
-                    style={{ height: '100%' }}
-                />
-            </Tooltip>
-        );
-    }
-);
-
-enum ChatBoxButtonIds {
-    DeepInvestigation = 'deep-investigation',
-    AgentMode = 'agent-mode',
-    PromptLibrary = 'prompt-library',
-}
-
-const useFooterButtonGroupStyles = makeStyles({
-    container: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
-    },
-    trailingGroup: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: tokens.spacingHorizontalXS,
-    },
-});
-
-const useFooterButtonIconStyles = makeStyles({
-    iconWrapper: {
-        width: '24px',
-        height: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        '& svg': {
-            width: '24px',
-            height: '24px',
-        },
-    },
-});
+    return {
+        isGenerating,
+        handleGenerateInsights,
+        canGenerateInsights: canWriteThreads && !!threadId,
+        isSessionInsightsEnabled: features.sessionInsights,
+    };
+};
 
 const useDownButtonStyles = makeStyles({
     root: {
@@ -243,7 +189,6 @@ const ChatBoxFooter = ({
     isLoading,
     onClickDownButton,
     downButtonState,
-    prompts,
     messagePromptsUsed,
     cancelStreaming,
     isTyping,
@@ -260,7 +205,9 @@ const ChatBoxFooter = ({
     isIncidentRetroModeTurnedOn,
     toggleIncidentRetroMode,
     hasPendingUserQuestion,
-    isOverview,
+    showOverview,
+    centerChatBoxFooter,
+    children,
 }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
@@ -282,7 +229,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { root, chatStatement } = useChatInputStyles();
+    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -310,6 +257,15 @@ const ChatBoxFooter = ({
     focusedResourceRef.current = focusedResource;
 
     const [showInputDisabledDialog, setShowInputDisabledDialog] = useState<boolean>(false);
+    const [showPromptLibraryDialog, setShowPromptLibraryDialog] = useState<boolean>(false);
+
+    // Generate insights hook
+    const {
+        isGenerating: isGeneratingInsights,
+        handleGenerateInsights,
+        canGenerateInsights,
+        isSessionInsightsEnabled,
+    } = useGenerateInsights(threadId);
 
     const restoreFocusTargetAttribute = useRestoreFocusTarget();
     const { scrollable } = useScrollableComponentStyles();
@@ -1014,207 +970,253 @@ const ChatBoxFooter = ({
     const popoverPositioningShorthand = useMemo<PositioningProps>(() => ({ position: 'above', align: 'start', offset: 8 }), []);
 
     return (
-        <div className={root}>
-            <KnowledgeGraphBuildStatus />
-            <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
-                <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
-                <Popover
-                    unstable_disableAutoFocus={true}
-                    open={showShortcutLists}
-                    positioning={{ positioningRef: shortcutMenuPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface style={{ padding: '5px' }}>
-                        <MenuList>
-                            {matchedShortcuts.map(shortcut => {
-                                return (
-                                    <MenuItem
-                                        id={shortcut}
-                                        key={shortcut}
-                                        onMouseDown={e => {
-                                            e.preventDefault();
-                                            onSelectShortcut(shortcut);
-                                        }}
-                                        aria-selected={shortcut === focusedShortcutRef.current}
-                                        subText={getShortcutDescription(shortcut)}
-                                        style={
-                                            shortcut === focusedShortcutRef.current
-                                                ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
-                                                : undefined
-                                        }
-                                    >
-                                        <Text weight={'semibold'}>{'/' + shortcut}</Text>
-                                    </MenuItem>
-                                );
-                            })}
-                        </MenuList>
-                    </PopoverSurface>
-                </Popover>
-                <Popover
-                    unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.Agent}
-                    positioning={{ positioningRef: extendedAgentMenuPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface style={{ padding: '5px' }}>
-                        {filteredExtendedAgents.length > 0 ? (
+        <div
+            className={centerChatBoxFooter ? scrollable : undefined}
+            style={{
+                flex: '1 1 auto',
+                margin: '5px 0px',
+                padding: `${showOverview ? '20px' : '0px'} 20px`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: centerChatBoxFooter || showOverview ? 'flex-start' : 'center',
+                paddingTop: centerChatBoxFooter && !showOverview ? 'calc(38.2vh - 100px)' : undefined, // Golden ratio positioning
+            }}
+        >
+            <div className={mergeClasses(chatBoxFooterInner, showOverview ? chatBoxFooterInnerOverview : undefined)}>
+                <Fade visible={centerChatBoxFooter} unmountOnExit appear>
+                    <div>
+                        <SreAgentBranding />
+                    </div>
+                </Fade>
+
+                <KnowledgeGraphBuildStatus />
+                <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)} style={{ position: 'relative' }}>
+                    <DownButton downButtonState={downButtonState} onClick={onClickDownButton} />
+                    <Popover
+                        unstable_disableAutoFocus={true}
+                        open={showShortcutLists}
+                        positioning={{ positioningRef: shortcutMenuPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface style={{ padding: '5px' }}>
                             <MenuList>
-                                {filteredExtendedAgents.map(agent => {
+                                {matchedShortcuts.map(shortcut => {
                                     return (
-                                        <ExtendedAgentMenuItem
-                                            key={agent.name}
-                                            agent={agent}
-                                            onSelectExtendedAgent={onSelectExtendedAgent}
-                                            isFocused={agent.name === focusedExtendedAgent?.name}
-                                        />
+                                        <MenuItem
+                                            id={shortcut}
+                                            key={shortcut}
+                                            onMouseDown={e => {
+                                                e.preventDefault();
+                                                onSelectShortcut(shortcut);
+                                            }}
+                                            aria-selected={shortcut === focusedShortcutRef.current}
+                                            subText={getShortcutDescription(shortcut)}
+                                            style={
+                                                shortcut === focusedShortcutRef.current
+                                                    ? { border: `2px ${tokens.colorNeutralForeground1Selected} solid` }
+                                                    : undefined
+                                            }
+                                        >
+                                            <Text weight={'semibold'}>{'/' + shortcut}</Text>
+                                        </MenuItem>
                                     );
                                 })}
                             </MenuList>
-                        ) : (
-                            <NoSearchResultWarning searchText={searchText} isExtendedAgent={true} />
-                        )}
-                    </PopoverSurface>
-                </Popover>
-                <Popover
-                    inline={true}
-                    unstable_disableAutoFocus={true}
-                    open={selectedShortcut === Shortcut.Incident || selectedShortcut === Shortcut.Resource}
-                    positioning={{ positioningRef: incidentOrResourcePopoverPositionRef, ...popoverPositioningShorthand }}
-                >
-                    <PopoverSurface className={shortcutStyles.incidentOrResourcePopoverSurface}>
-                        {selectedShortcut === Shortcut.Incident ? (
-                            <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScrollThreadsList}>
-                                <Table className={shortcutStyles.incidentOrResourceContainer}>
-                                    <IncidentOrResourceTableHeader columns={incidentColumns} />
-                                    <TableBody>
-                                        {threads.map(thread => (
-                                            <IncidentOrResourceRow
-                                                key={thread.id}
-                                                id={thread.id}
-                                                cells={[thread.id, thread.title]}
-                                                onClick={() => onSelectIncident(thread)}
-                                                isFocused={focusedIncident?.id === thread.id}
+                        </PopoverSurface>
+                    </Popover>
+                    <Popover
+                        unstable_disableAutoFocus={true}
+                        open={selectedShortcut === Shortcut.Agent}
+                        positioning={{ positioningRef: extendedAgentMenuPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface style={{ padding: '5px' }}>
+                            {filteredExtendedAgents.length > 0 ? (
+                                <MenuList>
+                                    {filteredExtendedAgents.map(agent => {
+                                        return (
+                                            <ExtendedAgentMenuItem
+                                                key={agent.name}
+                                                agent={agent}
+                                                onSelectExtendedAgent={onSelectExtendedAgent}
+                                                isFocused={agent.name === focusedExtendedAgent?.name}
                                             />
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                                {moreThreadsToLoad && (
-                                    <div ref={threadsListIntersectionObserverRef}>
-                                        <IncidentOrResourcePopoverLoader />
-                                    </div>
-                                )}
-                                {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
-                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
-                                )}
-                            </div>
-                        ) : (
-                            <div
-                                className={mergeClasses(scrollable)}
-                                ref={resourcesSearchResultDivRef}
-                                onScroll={onScrollResourceSearchResultDiv}
-                            >
-                                <Table className={shortcutStyles.incidentOrResourceContainer}>
-                                    <IncidentOrResourceTableHeader columns={resourceColumns} />
-                                    <TableBody>
-                                        {resourcesSearchResult.map(resource => (
-                                            <IncidentOrResourceRow
-                                                key={resource.resource_id}
-                                                id={resource.resource_id}
-                                                cells={[
-                                                    resource.name || '-',
-                                                    getResourceTypeFriendlyName(resource.type) || '-',
-                                                    resource.resource_group || '-',
-                                                    resource.subscription_id || '-',
-                                                ]}
-                                                onClick={() => onSelectResource(resource)}
-                                                isFocused={focusedResource?.resource_id === resource.resource_id}
-                                            />
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                                {moreResourcesSearchResultToLoad && (
-                                    <div ref={resourceSearchResultPopoverIntersectionObserverRef}>
-                                        <IncidentOrResourcePopoverLoader />
-                                    </div>
-                                )}
-                                {!isLoadingInitialResults && !moreResourcesSearchResultToLoad && resourcesSearchResult.length === 0 && (
-                                    <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
-                                )}
-                            </div>
-                        )}
-                    </PopoverSurface>
-                </Popover>
-                <Dialog
-                    modalType="alert"
-                    open={showInputDisabledDialog}
-                    onOpenChange={(_, data) => {
-                        if (!data.open) {
-                            setShowInputDisabledDialog(false);
+                                        );
+                                    })}
+                                </MenuList>
+                            ) : (
+                                <NoSearchResultWarning searchText={searchText} isExtendedAgent={true} />
+                            )}
+                        </PopoverSurface>
+                    </Popover>
+                    <Popover
+                        inline={true}
+                        unstable_disableAutoFocus={true}
+                        open={selectedShortcut === Shortcut.Incident || selectedShortcut === Shortcut.Resource}
+                        positioning={{ positioningRef: incidentOrResourcePopoverPositionRef, ...popoverPositioningShorthand }}
+                    >
+                        <PopoverSurface className={shortcutStyles.incidentOrResourcePopoverSurface}>
+                            {selectedShortcut === Shortcut.Incident ? (
+                                <div className={mergeClasses(scrollable)} ref={threadListDivRef} onScroll={onScrollThreadsList}>
+                                    <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                        <IncidentOrResourceTableHeader columns={incidentColumns} />
+                                        <TableBody>
+                                            {threads.map(thread => (
+                                                <IncidentOrResourceRow
+                                                    key={thread.id}
+                                                    id={thread.id}
+                                                    cells={[thread.id, thread.title]}
+                                                    onClick={() => onSelectIncident(thread)}
+                                                    isFocused={focusedIncident?.id === thread.id}
+                                                />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {moreThreadsToLoad && (
+                                        <div ref={threadsListIntersectionObserverRef}>
+                                            <IncidentOrResourcePopoverLoader />
+                                        </div>
+                                    )}
+                                    {!isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0 && (
+                                        <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    className={mergeClasses(scrollable)}
+                                    ref={resourcesSearchResultDivRef}
+                                    onScroll={onScrollResourceSearchResultDiv}
+                                >
+                                    <Table className={shortcutStyles.incidentOrResourceContainer}>
+                                        <IncidentOrResourceTableHeader columns={resourceColumns} />
+                                        <TableBody>
+                                            {resourcesSearchResult.map(resource => (
+                                                <IncidentOrResourceRow
+                                                    key={resource.resource_id}
+                                                    id={resource.resource_id}
+                                                    cells={[
+                                                        resource.name || '-',
+                                                        getResourceTypeFriendlyName(resource.type) || '-',
+                                                        resource.resource_group || '-',
+                                                        resource.subscription_id || '-',
+                                                    ]}
+                                                    onClick={() => onSelectResource(resource)}
+                                                    isFocused={focusedResource?.resource_id === resource.resource_id}
+                                                />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {moreResourcesSearchResultToLoad && (
+                                        <div ref={resourceSearchResultPopoverIntersectionObserverRef}>
+                                            <IncidentOrResourcePopoverLoader />
+                                        </div>
+                                    )}
+                                    {!isLoadingInitialResults && !moreResourcesSearchResultToLoad && resourcesSearchResult.length === 0 && (
+                                        <NoSearchResultWarning searchText={searchText} isExtendedAgent={false} />
+                                    )}
+                                </div>
+                            )}
+                        </PopoverSurface>
+                    </Popover>
+                    <Dialog
+                        modalType="alert"
+                        open={showInputDisabledDialog}
+                        onOpenChange={(_, data) => {
+                            if (!data.open) {
+                                setShowInputDisabledDialog(false);
+                            }
+                        }}
+                    >
+                        <DialogSurface>
+                            {inputDisabledMessage}
+                            <DialogActions>
+                                <Button
+                                    appearance="primary"
+                                    style={{ marginLeft: 'auto' }}
+                                    onClick={() => setShowInputDisabledDialog(false)}
+                                >
+                                    {intl.formatMessage(SreAgentResources.close)}
+                                </Button>
+                            </DialogActions>
+                        </DialogSurface>
+                    </Dialog>
+                    <ChatInput
+                        {...restoreFocusTargetAttribute}
+                        root={{ ref: chatInputRef }}
+                        aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
+                        placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
+                        customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
+                        contentBefore={
+                            <ContentBefore
+                                isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
+                                isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
+                                onClickDeepInvestigationButton={onClickDeepInvestigationButton}
+                                handleDisableDeepInvestigation={onClickDeepInvestigationButton}
+                                showAgentModeSelector={showAgentModeSelector}
+                                threadId={threadId}
+                                isTyping={isTyping}
+                                disableInputInteraction={disableInputInteraction}
+                                onOpenPromptLibrary={() => setShowPromptLibraryDialog(true)}
+                                isGeneratingInsights={isGeneratingInsights}
+                                onGenerateInsights={handleGenerateInsights}
+                                canGenerateInsights={canGenerateInsights}
+                                isSessionInsightsEnabled={isSessionInsightsEnabled}
+                                isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
+                                handleToggleRetroMode={() => chatInputHandleSendClick('/incidentRetroMode')}
+                            />
                         }
-                    }}
-                >
-                    <DialogSurface>
-                        {inputDisabledMessage}
-                        <DialogActions>
-                            <Button appearance="primary" style={{ marginLeft: 'auto' }} onClick={() => setShowInputDisabledDialog(false)}>
-                                {intl.formatMessage(SreAgentResources.close)}
-                            </Button>
-                        </DialogActions>
-                    </DialogSurface>
-                </Dialog>
-                <ChatInput
-                    {...restoreFocusTargetAttribute}
-                    root={{ ref: chatInputRef }}
-                    aria-label={intl.formatMessage(ActivitiesResources.chatInputAriaLabel)}
-                    placeholderValue={<FormattedMessage {...ActivitiesResources.chatInputPlaceholder} />}
-                    customNodes={[ShortcutNode, ResourceNode, GhostTextNode]}
-                    contentBefore={
-                        <ContentBefore
-                            isOverview={isOverview}
-                            isDeepInvestigationButtonEnabled={isDeepInvestigationButtonEnabled && !disableInputInteraction}
-                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                            onClickDeepInvestigationButton={onClickDeepInvestigationButton}
-                            showAgentModeSelector={showAgentModeSelector}
-                            threadId={threadId}
-                            isTyping={isTyping}
-                            disableInputInteraction={disableInputInteraction}
-                            messagePromptsUsed={messagePromptsUsed}
-                            sendMessage={sendMessage}
-                            prompts={prompts}
-                            threadSource={threadSource}
-                        />
-                    }
-                    attachments={
-                        <Attachments
-                            selectedAgentName={selectedAgentName}
-                            isDeepInvestigationTurnedOn={isDeepInvestigationTurnedOn}
-                            isDeepInvestigationEnabled={isDeepInvestigationButtonEnabled}
-                            isIncidentRetroModeTurnedOn={isIncidentRetroModeTurnedOn}
-                            handleClearSelectedAgent={handleClearSelectedAgent}
-                            handleDisableDeepInvestigation={onClickDeepInvestigationButton}
-                            handleToggleRetroMode={() => chatInputHandleSendClick('/incidentRetroMode')}
-                            lockAgentSelection={lockAgentSelection}
-                        />
-                    }
-                    maxLength={1000000000}
-                    charactersRemainingMessage={undefined}
-                    autoFocus={true}
-                    disableSend={!canWriteThreads || disableInputInteractionUnforced}
-                    isSending={isTyping}
-                    onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
-                    onStop={cancelStreaming}
-                    expandButtonLineVisibilityThreshold={3}
-                    onKeyDown={onKeyDown}
-                    aria-activedescendant={
-                        focusedShortcut ?? focusedIncident?.id ?? focusedResource?.resource_id ?? focusedExtendedAgent?.name ?? undefined
-                    }
-                >
-                    <ImperativeControlPlugin ref={imperativeControlPluginRef} />
-                    <LexicalEditorRefPlugin editorRef={editorRef} />
-                </ChatInput>
+                        attachments={
+                            <Attachments
+                                selectedAgentName={selectedAgentName}
+                                handleClearSelectedAgent={handleClearSelectedAgent}
+                                lockAgentSelection={lockAgentSelection}
+                            />
+                        }
+                        maxLength={1000000000}
+                        charactersRemainingMessage={undefined}
+                        autoFocus={true}
+                        disableSend={!canWriteThreads || disableInputInteractionUnforced}
+                        isSending={isTyping}
+                        onSubmit={(_, data) => chatInputHandleSendClick(data.value)}
+                        onStop={cancelStreaming}
+                        expandButtonLineVisibilityThreshold={3}
+                        onKeyDown={onKeyDown}
+                        aria-activedescendant={
+                            focusedShortcut ??
+                            focusedIncident?.id ??
+                            focusedResource?.resource_id ??
+                            focusedExtendedAgent?.name ??
+                            undefined
+                        }
+                    >
+                        <ImperativeControlPlugin ref={imperativeControlPluginRef} />
+                        <LexicalEditorRefPlugin editorRef={editorRef} />
+                    </ChatInput>
+                </div>
+
+                {!centerChatBoxFooter && (
+                    <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
+                        {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
+                    </Text>
+                )}
+
+                <Fade visible={centerChatBoxFooter} unmountOnExit appear>
+                    <div>
+                        <ChatSuggestions sendMessage={sendMessage} />
+                    </div>
+                </Fade>
             </div>
 
-            <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
-                {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
-            </Text>
+            {children}
+
+            <PromptLibraryDialog
+                open={showPromptLibraryDialog}
+                onOpenChange={setShowPromptLibraryDialog}
+                isTyping={isTyping}
+                disableInputInteraction={disableInputInteraction}
+                sendMessage={sendMessage}
+                threadId={threadId}
+                threadSource={threadSource}
+            />
         </div>
     );
 };
@@ -1327,216 +1329,137 @@ const IncidentOrResourcePopoverLoader = () => {
 };
 
 const Attachments = memo(
-    (props: {
-        selectedAgentName?: string | null;
-        lockAgentSelection?: boolean;
-        isDeepInvestigationTurnedOn: boolean;
-        isDeepInvestigationEnabled: boolean;
-        isIncidentRetroModeTurnedOn?: boolean;
-        handleClearSelectedAgent: () => void;
-        handleDisableDeepInvestigation: () => void;
-        handleToggleRetroMode?: () => void;
-    }) => {
+    (props: { selectedAgentName?: string | null; lockAgentSelection?: boolean; handleClearSelectedAgent: () => void }) => {
         const intl = useIntl();
 
-        const showAttachmentList = !!props.selectedAgentName || props.isDeepInvestigationTurnedOn || props.isIncidentRetroModeTurnedOn;
+        if (!props.selectedAgentName) {
+            return null;
+        }
 
-        return showAttachmentList ? (
+        return (
             <AttachmentList
-                maxVisibleAttachments={3}
+                maxVisibleAttachments={1}
                 overflowMenuButton={
                     <AttachmentOverflowMenuButton aria-label={intl.formatMessage(ActivitiesResources.removeAttachmentButtonAriaLabel)} />
                 }
             >
-                {props.selectedAgentName && (
-                    <Attachment
-                        id={props.selectedAgentName}
-                        key={props.selectedAgentName}
-                        dismissButton={
-                            props.lockAgentSelection
-                                ? undefined
-                                : {
-                                      'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
-                                          agentName: props.selectedAgentName,
-                                      }),
-                                      onClick: () => props.handleClearSelectedAgent(),
-                                  }
+                <Attachment
+                    id={props.selectedAgentName}
+                    key={props.selectedAgentName}
+                    dismissButton={
+                        props.lockAgentSelection
+                            ? undefined
+                            : {
+                                  'aria-label': intl.formatMessage(ActivitiesResources.removeExtendedAgentAriaLabel, {
+                                      agentName: props.selectedAgentName,
+                                  }),
+                                  onClick: () => props.handleClearSelectedAgent(),
+                              }
+                    }
+                >
+                    <Tooltip
+                        content={
+                            <FormattedMessage
+                                {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                                values={{ agentName: props.selectedAgentName }}
+                            />
                         }
+                        relationship="label"
                     >
-                        <Tooltip
-                            content={
-                                <FormattedMessage
-                                    {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
-                                    values={{ agentName: props.selectedAgentName }}
-                                />
-                            }
-                            relationship="label"
-                        >
-                            <Text weight="semibold" wrap={false}>
-                                <FormattedMessage
-                                    {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
-                                    values={{ agentName: props.selectedAgentName }}
-                                />
-                            </Text>
-                        </Tooltip>
-                    </Attachment>
-                )}
-                {props.isDeepInvestigationTurnedOn && (
-                    <Attachment
-                        id={'deep-investigation-attachment'}
-                        key={'deep-investigation-attachment'}
-                        dismissButton={{
-                            disabled: !props.isDeepInvestigationEnabled,
-                            'aria-label': intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOffMessage),
-                            onClick: () => {
-                                if (props.isDeepInvestigationEnabled) {
-                                    props.handleDisableDeepInvestigation();
-                                }
-                            },
-                            style: props.isDeepInvestigationEnabled ? undefined : { cursor: 'not-allowed', opacity: 0.5 },
-                        }}
-                    >
-                        <Tooltip content={<FormattedMessage {...AgentTaskResources.deepInvestigation} />} relationship="label">
-                            <Text weight="semibold" wrap={false}>
-                                <FormattedMessage {...AgentTaskResources.deepInvestigation} />
-                            </Text>
-                        </Tooltip>
-                    </Attachment>
-                )}
-                {props.isIncidentRetroModeTurnedOn && (
-                    <Attachment
-                        id={'incident-retro-mode-attachment'}
-                        key={'incident-retro-mode-attachment'}
-                        dismissButton={{
-                            'aria-label': intl.formatMessage(AgentTaskResources.incidentRetroMode),
-                            onClick: () => props.handleToggleRetroMode?.(),
-                        }}
-                    >
-                        <Tooltip content={<FormattedMessage {...AgentTaskResources.incidentRetroMode} />} relationship="label">
-                            <Text weight="semibold" wrap={false}>
-                                <FormattedMessage {...AgentTaskResources.incidentRetroMode} />
-                            </Text>
-                        </Tooltip>
-                    </Attachment>
-                )}
+                        <Text weight="semibold" wrap={false}>
+                            <FormattedMessage
+                                {...ActivitiesResources.slashCommandExtendedAgentTagLabel}
+                                values={{ agentName: props.selectedAgentName }}
+                            />
+                        </Text>
+                    </Tooltip>
+                </Attachment>
             </AttachmentList>
-        ) : null;
-    }
-);
-
-const ContentBefore = (props: {
-    isOverview?: boolean;
-    isDeepInvestigationButtonEnabled: boolean;
-    isDeepInvestigationTurnedOn: boolean;
-    onClickDeepInvestigationButton: () => void;
-    showAgentModeSelector: boolean;
-    threadId?: string | null;
-    isTyping: boolean;
-    disableInputInteraction: boolean;
-    messagePromptsUsed: string[];
-    sendMessage: (message: string) => Promise<void>;
-    prompts: string[];
-    threadSource?: string;
-}) => {
-    const { container, trailingGroup } = useFooterButtonGroupStyles();
-    return (
-        <div className={container}>
-            {!props.isOverview && (
-                <DeepInvestigationButton
-                    isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
-                    isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
-                    onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
-                />
-            )}
-            {props.showAgentModeSelector && props.threadId && (
-                <AgentModeSelector
-                    id={ChatBoxButtonIds.AgentMode}
-                    threadId={props.threadId}
-                    disabled={props.isTyping || props.disableInputInteraction}
-                />
-            )}
-            <div className={trailingGroup}>
-                <PromptLibraryButton
-                    isTyping={props.isTyping}
-                    disableInputInteraction={props.disableInputInteraction}
-                    messagePromptsUsed={props.messagePromptsUsed}
-                    sendMessage={props.sendMessage}
-                    prompts={props.prompts}
-                    threadId={props.threadId}
-                    threadSource={props.threadSource}
-                />
-                <GenerateInsightsButton
-                    threadId={props.threadId}
-                    isTyping={props.isTyping}
-                    disableInputInteraction={props.disableInputInteraction}
-                />
-            </div>
-        </div>
-    );
-};
-
-const DeepInvestigationButton = memo(
-    ({
-        isDeepInvestigationButtonEnabled,
-        isDeepInvestigationTurnedOn,
-        onClickDeepInvestigationButton,
-    }: {
-        isDeepInvestigationButtonEnabled: boolean;
-        isDeepInvestigationTurnedOn: boolean;
-        onClickDeepInvestigationButton: () => void;
-    }) => {
-        const { canWriteThreads } = usePermissionContext();
-        const intl = useIntl();
-        const { iconWrapper } = useFooterButtonIconStyles();
-
-        const tooltipContentWhenNoPermission = isDeepInvestigationTurnedOn
-            ? intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOnMessage)
-            : intl.formatMessage(AgentTaskResources.deepInvestigationNoPermissionTurnedOffMessage);
-
-        return (
-            <PermissionedButton
-                canPerform={canWriteThreads}
-                noPermissionTooltip={canWriteThreads ? '' : tooltipContentWhenNoPermission}
-                allowedTooltip={intl.formatMessage(AgentTaskResources.deepInvestigation)}
-                icon={
-                    <span className={iconWrapper}>
-                        <SearchSparkle32Regular />
-                    </span>
-                }
-                disabledReason={!isDeepInvestigationButtonEnabled}
-                appearance={'subtle'}
-                shape={'rounded'}
-                onClick={() => onClickDeepInvestigationButton()}
-                style={{ height: '100%' }}
-            />
         );
     }
 );
 
-const PromptLibraryButton = memo(
-    ({
-        isTyping,
-        disableInputInteraction,
-        messagePromptsUsed: _messagePromptsUsed,
-        sendMessage,
-        prompts: _prompts,
-        threadId,
-        threadSource,
-    }: {
-        isTyping: boolean;
-        disableInputInteraction: boolean;
-        messagePromptsUsed: string[];
-        sendMessage: (message: string) => Promise<void>;
-        prompts: string[];
-        threadId?: string | null;
-        threadSource?: string;
-    }) => {
+const ContentBefore = (props: {
+    isDeepInvestigationButtonEnabled: boolean;
+    isDeepInvestigationTurnedOn: boolean;
+    onClickDeepInvestigationButton: () => void;
+    handleDisableDeepInvestigation: () => void;
+    showAgentModeSelector: boolean;
+    threadId?: string | null;
+    isTyping: boolean;
+    disableInputInteraction: boolean;
+    onOpenPromptLibrary: () => void;
+    isGeneratingInsights: boolean;
+    onGenerateInsights: () => void;
+    canGenerateInsights: boolean;
+    isSessionInsightsEnabled: boolean;
+    isIncidentRetroModeTurnedOn?: boolean;
+    handleToggleRetroMode?: () => void;
+}) => {
+    const intl = useIntl();
+    const plusMenuStyles = usePlusMenuStyles();
+
+    return (
+        <div className={plusMenuStyles.iconPillContainer}>
+            <PlusMenuButton
+                isDeepInvestigationButtonEnabled={props.isDeepInvestigationButtonEnabled}
+                isDeepInvestigationTurnedOn={props.isDeepInvestigationTurnedOn}
+                onClickDeepInvestigationButton={props.onClickDeepInvestigationButton}
+                showAgentModeSelector={props.showAgentModeSelector}
+                threadId={props.threadId}
+                isTyping={props.isTyping}
+                disableInputInteraction={props.disableInputInteraction}
+                onOpenPromptLibrary={props.onOpenPromptLibrary}
+                isGeneratingInsights={props.isGeneratingInsights}
+                onGenerateInsights={props.onGenerateInsights}
+                canGenerateInsights={props.canGenerateInsights}
+                isSessionInsightsEnabled={props.isSessionInsightsEnabled}
+            />
+            {/* Icon pills inline with + button (Claude.ai style) */}
+            {props.isDeepInvestigationTurnedOn && (
+                <IconPill
+                    icon={<SearchSparkle20Regular />}
+                    ariaLabel={intl.formatMessage(AgentTaskResources.deepInvestigation)}
+                    tooltip={intl.formatMessage(AgentTaskResources.deepInvestigation)}
+                    onDismiss={props.isDeepInvestigationButtonEnabled ? props.handleDisableDeepInvestigation : undefined}
+                    disabled={!props.isDeepInvestigationButtonEnabled}
+                />
+            )}
+            {props.isIncidentRetroModeTurnedOn && (
+                <IconPill
+                    icon={<History20Regular />}
+                    ariaLabel={intl.formatMessage(AgentTaskResources.incidentRetroMode)}
+                    tooltip={intl.formatMessage(AgentTaskResources.incidentRetroMode)}
+                    onDismiss={props.handleToggleRetroMode}
+                />
+            )}
+            {props.isGeneratingInsights && (
+                <IconPill
+                    icon={<AnimatedHistogramIcon />}
+                    ariaLabel={intl.formatMessage(SreAgentResources.generatingInsights)}
+                    tooltip={intl.formatMessage(SreAgentResources.generatingInsights)}
+                />
+            )}
+        </div>
+    );
+};
+
+interface PromptLibraryDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    isTyping: boolean;
+    disableInputInteraction: boolean;
+    sendMessage: (message: string) => Promise<void>;
+    threadId?: string | null;
+    threadSource?: string;
+}
+
+const PromptLibraryDialog: FC<PromptLibraryDialogProps> = memo(
+    ({ open, onOpenChange, isTyping, disableInputInteraction, sendMessage, threadId, threadSource }) => {
         const { logAmplitudeControlEvent } = useAzPortalContext();
-        const [open, setOpen] = useState(false);
         const [query, setQuery] = useState('');
         const intl = useIntl();
         const { dialogSurface, dialogBody, dialogContent } = useDialogStyles();
-        const { iconWrapper } = useFooterButtonIconStyles();
 
         const categories = useMemo<string[]>(
             () => ['Get started', 'Azure App Service', 'Azure Container App', 'Azure Kubernetes Service', 'Azure API Management'],
@@ -1712,7 +1635,7 @@ const PromptLibraryButton = memo(
         const sendAndClose = useCallback(
             async (message: string) => {
                 await sendMessage(message);
-                setOpen(false);
+                onOpenChange(false);
                 logAmplitudeControlEvent({
                     targetType: 'button',
                     targetAction: 'clicked',
@@ -1723,26 +1646,11 @@ const PromptLibraryButton = memo(
                     metadata: { threadId, threadType: threadSource },
                 });
             },
-            [sendMessage, logAmplitudeControlEvent, threadId, threadSource]
+            [sendMessage, onOpenChange, logAmplitudeControlEvent, threadId, threadSource]
         );
 
         return (
-            <Dialog open={open} onOpenChange={(_, data) => setOpen(!!data.open)}>
-                <DialogTrigger disableButtonEnhancement>
-                    <Tooltip content={intl.formatMessage(PromptResources.promptExamples)} relationship="label">
-                        <Button
-                            icon={
-                                <span className={iconWrapper}>
-                                    <Lightbulb32Regular />
-                                </span>
-                            }
-                            disabled={disableInputInteraction || isTyping}
-                            shape="rounded"
-                            appearance="subtle"
-                            style={{ height: '100%' }}
-                        />
-                    </Tooltip>
-                </DialogTrigger>
+            <Dialog open={open} onOpenChange={(_, data) => onOpenChange(!!data.open)}>
                 <DialogSurface className={dialogSurface}>
                     <DialogBody className={dialogBody}>
                         <DialogTitle>
@@ -1764,7 +1672,6 @@ const PromptLibraryButton = memo(
                                         sendMessage={sendAndClose}
                                         categories={filteredCategories}
                                         getQuestionsForCategory={filteredGetQuestionsForCategory}
-                                        showSreAgentLogo={false}
                                         alignLeft={true}
                                         getCategorySubcategories={getCategorySubcategories}
                                         initialExpandedCategory="Get started"

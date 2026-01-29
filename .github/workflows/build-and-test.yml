@@ -54,13 +54,6 @@ jobs:
           frontend_portal:
             - 'src/Agent/Agent.Portal/Client/**'
 
-  build-npm:
-    name: build-npm
-    runs-on: ubuntu-latest
-    steps:
-    - name: ✅ Placeholder
-      run: echo "build-npm placeholder job for branch protection"
-
   build-dotnet:
     name: build-dotnet
     runs-on: ubuntu-latest

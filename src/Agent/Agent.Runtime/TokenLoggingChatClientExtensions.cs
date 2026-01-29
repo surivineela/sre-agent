@@ -55,34 +55,8 @@ namespace Agent.Runtime
                 var modelId = response?.ModelId?.ToString() ?? string.Empty;
                 var inputTokens = response?.Usage?.InputTokenCount ?? 0L;
                 var outputTokens = response?.Usage?.OutputTokenCount ?? 0L;
-
-                // Extract cached token count from AdditionalCounts (same pattern as ReasoningLoop.cs)
-                var cachedTokens = 0L;
-                try
-                {
-                    if (response?.Usage?.AdditionalCounts is not null)
-                    {
-                        response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out cachedTokens);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalDebug("Failed to parse cached token count from AdditionalCounts: {Exception}", ex);
-                }
-
-                // Extract reasoning token count from AdditionalCounts (same pattern as ReasoningLoop.cs)
-                var reasoningTokens = 0L;
-                try
-                {
-                    if (response?.Usage?.AdditionalCounts is not null)
-                    {
-                        response.Usage.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out reasoningTokens);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogInternalDebug("Failed to parse reasoning token count from AdditionalCounts: {Exception}", ex);
-                }
+                var cachedTokens = response?.Usage?.CachedInputTokenCount ?? 0L;
+                var reasoningTokens = response?.Usage?.ReasoningTokenCount ?? 0L;
 
                 // Split modelId into Model and ModelVersion when in format "model-modelVersion" (modelVersion is a date like 2025-04-14 or 20250414)
                 // Prefer parsing the trailing date first because model names can contain hyphens (e.g. gpt-4.1-2025-04-14).
@@ -108,7 +82,7 @@ namespace Agent.Runtime
                 var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
 
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, 0L, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {
@@ -162,6 +136,7 @@ namespace Agent.Runtime
             long outputTokens = 0L;
             long cachedTokens = 0L;
             long reasoningTokens = 0L;
+            long cacheCreationInputTokens = 0L;
 
             await foreach (var update in _inner.GetStreamingResponseAsync(chatMessages, options, cancellationToken))
             {
@@ -180,6 +155,13 @@ namespace Agent.Runtime
 
                 }
 
+                // Capture cache creation input tokens from Anthropic streaming updates
+                if (update.RawRepresentation is Anthropic.Models.Beta.Messages.BetaRawMessageDeltaEvent anthropicDeltaEvent
+                    && anthropicDeltaEvent.Usage?.CacheCreationInputTokens != null)
+                {
+                    cacheCreationInputTokens = Math.Max(cacheCreationInputTokens, anthropicDeltaEvent.Usage.CacheCreationInputTokens.Value);
+                }
+
                 // Extract usage information from UsageContent in the update contents
                 foreach (var content in update.Contents)
                 {
@@ -188,7 +170,7 @@ namespace Agent.Runtime
                     {
                         if (usage.Details.InputTokenCount.HasValue)
                         {
-                            inputTokens += usage.Details.InputTokenCount.Value;
+                            inputTokens = Math.Max(inputTokens, usage.Details.InputTokenCount.Value);
                         }
 
                         if (usage.Details.OutputTokenCount.HasValue)
@@ -196,36 +178,21 @@ namespace Agent.Runtime
                             outputTokens += usage.Details.OutputTokenCount.Value;
                         }
 
-                        // Extract cached token count from AdditionalCounts
-                        try
+                        if (usage.Details.CachedInputTokenCount.HasValue)
                         {
-                            if (usage.Details.AdditionalCounts is not null)
-                            {
-                                if (usage.Details.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out var cached))
-                                {
-                                    cachedTokens += cached;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogInternalDebug("Failed to parse cached token count from streaming update: {Exception}", ex);
+                            cachedTokens = Math.Max(cachedTokens, usage.Details.CachedInputTokenCount.Value);
                         }
 
-                        // Extract reasoning token count from AdditionalCounts
-                        try
+                        if (usage.Details.ReasoningTokenCount.HasValue)
                         {
-                            if (usage.Details.AdditionalCounts is not null)
-                            {
-                                if (usage.Details.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out var reasoning))
-                                {
-                                    reasoningTokens += reasoning;
-                                }
-                            }
+                            reasoningTokens += usage.Details.ReasoningTokenCount.Value;
                         }
-                        catch (Exception ex)
+
+                        // Also check AdditionalCounts for CacheCreationInputTokens (used by some SDK versions)
+                        if (usage.Details.AdditionalCounts != null
+                            && usage.Details.AdditionalCounts.TryGetValue("CacheCreationInputTokens", out var additionalCacheCreation))
                         {
-                            _logger.LogInternalDebug("Failed to parse reasoning token count from streaming update: {Exception}", ex);
+                            cacheCreationInputTokens = Math.Max(cacheCreationInputTokens, additionalCacheCreation);
                         }
                     }
                 }
@@ -258,8 +225,19 @@ namespace Agent.Runtime
 
                 var effectiveReasoningEffort = GetEffectiveReasoningEffort(options, model);
 
+                // This is a workaround for Claude models which report double token usage in streaming mode as of Anthropic SDK v12.2.0
+                // This bug has been fixed in
+                // https://github.com/anthropics/anthropic-sdk-csharp/pull/99/changes#diff-dcc8ae7a379bf0e30728ddfac2154a44dd543e968d60acbc45fddcdea650e67c
+                // but not released yet. Remove this workaround when upgrading to Anthropic SDK version.
+                if (modelId.StartsWith("claude"))
+                {
+                    inputTokens /= 2;
+                    cachedTokens /= 2;
+                    cacheCreationInputTokens /= 2;
+                }
+
                 // Log token consumption (structured record with model and modelVersion)
-                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, reasoningTokens, effectiveReasoningEffort);
+                _logger.LogTokenConsumption(model, modelVersion, inputTokens, outputTokens, cachedTokens, cacheCreationInputTokens, reasoningTokens, effectiveReasoningEffort);
             }
             catch (Exception ex)
             {

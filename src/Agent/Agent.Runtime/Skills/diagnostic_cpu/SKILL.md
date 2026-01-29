@@ -1,3 +1,10 @@
+---
+name: diagnostic_cpu
+description: Diagnose high CPU in Container Apps, Web Apps, and AKS by collecting a sampling trace and ranking methods (user code first). Produces a concise table, highlights the top hotspot, and gives 1-3 targeted remediation suggestions. Retries once on failure; escalates on second.
+tools:
+  - GetCPUAnalysis
+---
+
 # CPU Usage Diagnosis Skill
 
 ## Purpose
@@ -69,4 +76,3 @@ Exclude non‑method frames and unresolved symbols. If exclusions materially red
 ## Remediation Suggestion Style
 
 Each suggestion: hotspot + action + expected benefit (e.g., “Reduce JSON serialization in CalculateTotals using cached contract – lowers CPU by reducing allocations”). Avoid vague language.
-

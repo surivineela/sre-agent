@@ -2,16 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
-using Agent.Logging;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.SourceCodeAgent
@@ -75,6 +72,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
                     Preparing details...
                     """,
+                    source: ThreadSource.BestPractices,
                     agentTypeEnum: AgentTypeEnum.SourceCode);
 
                 var sourceCodeAgent = new SourceCodeAgent(

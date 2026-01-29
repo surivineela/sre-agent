@@ -1,3 +1,12 @@
+---
+name: cdb_general
+description: Provides diagnostics for Azure Cosmos DB SDK and service-side issues (throttling, latency, availability, configuration), leveraging Azure Support Center APIs. Specializes in product discovery, problem classification, and guided diagnostics. Does not handle infrastructure networking (NSG, VNet, DNS, firewall). Diagnosis only, no remediation.
+tools:
+  - GetSupportProductsFromArm
+  - GetSupportProblemClassificationsForProduct
+  - GetAzureSupportCenterDiagnosticResultsForQuestion
+---
+
 # Cosmos DB (CDB) General Diagnostic Skill
 
 ## Overview
@@ -25,7 +34,7 @@ Open another skill only if a trigger below is met; load one, act, then return.
 
 | Trigger | Action | Rationale |
 |---------|--------|-----------|
-| Missing/ambiguous Cosmos DB account resource ID, subscription, or region | Use built‑in discovery tools (ListSubscriptions, ListResourceGroups, SearchResource, GetResourceIdForResourceName) | Establish accurate scope before classification |
+| Missing/ambiguous Cosmos DB account resource ID, subscription, or region | Use SearchResource with appropriate filters: SearchResource(resourceTypes: ["microsoft.resources/subscriptions"]) for subscriptions, SearchResource(resourceTypes: ["microsoft.resources/subscriptions/resourcegroups"]) for resource groups, SearchResource(resourceName: "account-name", resourceTypes: ["microsoft.documentdb/databaseaccounts"]) for Cosmos DB accounts | Establish accurate scope before classification |
 | Need metric trends (RU consumption, latency, throttling) beyond snapshot results | Open `metrics_and_chart_visualization` | Time‑series correlation for performance or intermittent issues |
 | Need CLI commands to fetch additional static properties not in diagnostics | Open `azure_cli_command_executor` | Safe retrieval of supplemental config (consistency level, indexing) |
 
@@ -76,8 +85,8 @@ Interpretation (example): Elevated 429 rate isolated to a single logical partiti
 
 ## Example Flow (Throttling)
 
-1. User reports “frequent 429 errors since upgrade”.
-2. Confirm resource ID + time window (past hour). Missing ID → use built‑in discovery tools (ListSubscriptions / ListResourceGroups / SearchResource / GetResourceIdForResourceName) to resolve.
+1. User reports "frequent 429 errors since upgrade".
+2. Confirm resource ID + time window (past hour). Missing ID → use SearchResource(resourceName: "account-name", resourceTypes: ["microsoft.documentdb/databaseaccounts"]) to find the Cosmos DB account.
 3. Discover and select Cosmos DB support product.
 4. Match classification containing “throttle” or “rate exceeded” → run diagnostics.
 5. Table shows elevated partition 429s; other checks normal.
@@ -85,8 +94,6 @@ Interpretation (example): Elevated 429 rate isolated to a single logical partiti
 
 ## Cross References
 
-- `metrics_and_chart_visualization` – correlate RU, latency, and 429 trends over time.
-- `azure_cli_command_executor` – fetch static account/container properties if absent from diagnostic results.
 - `metrics_and_chart_visualization` – correlate RU, latency, and 429 trends over time.
 - `azure_cli_command_executor` – fetch static account/container properties if absent from diagnostic results.
 

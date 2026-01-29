@@ -224,6 +224,8 @@ extends:
             command: 'custom'
             customCommand: 'run build'
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Portal\Client'
+          env:
+            SRE_AGENT_PORTAL_VERSION: $(Build.BuildNumber)
 
         #
         # Build Solution

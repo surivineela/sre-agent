@@ -135,7 +135,7 @@ public class ReadSkillFileTool<TContext>(
     </skill_file_structure>
 
     <available_skills>
-    {skillRegistry.GetSkillsMetadataForPrompt(includeSystemSkills: agent?.AddSystemSkills ?? true)}
+    {skillRegistry.GetSkillsMetadataForPrompt(includeSystemSkills: agent?.AddSystemSkills ?? true, allowedSkills: agent?.AllowedSkills)}
     </available_skills>
     """;
 
@@ -169,7 +169,7 @@ public class ReadSkillFileTool<TContext>(
             return new("Error: skill_name and file_path cannot be empty");
         }
 
-        var result = skillRegistry.ReadSkillFile(skillName, filePath, includeSystemSkills: agent?.AddSystemSkills ?? true);
+        var result = skillRegistry.ReadSkillFile(skillName, filePath, includeSystemSkills: agent?.AddSystemSkills ?? true, allowedSkills: agent?.AllowedSkills);
         return new(result);
     }
 

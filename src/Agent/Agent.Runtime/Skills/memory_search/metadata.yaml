@@ -1,9 +1,0 @@
-name: memory_search
-description: |
-  Load when the user asks substantive questions that benefit from grounding in organizational knowledge, past experiences, or technical documentation. Search for relevant information from past incident resolutions, user memories, and documentation to provide accurate, context-aware answers. Also load when user explicitly requests to look up or search uploaded files/documents.
-  
-  **Don't load for**: Simple conversational exchanges (greetings, acknowledgments, clarifications) or meta questions about the agent that don't require external knowledge.
-
-tools:
-  - SearchMemory
-  - SearchIncidentKnowledge

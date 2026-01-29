@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins.Kusto;
@@ -14,34 +13,6 @@ namespace Agent.Plugins.Kusto;
 /// </summary>
 internal static class KustoDisplayFormatter
 {
-    /// <summary>
-    /// Extracts the chart type from a KQL query's render operator.
-    /// Maps Kusto render types to frontend chart types.
-    /// </summary>
-    /// <param name="query">The KQL query to analyze.</param>
-    /// <returns>The chart type (line, bar, pie, scatter, table) or null if no render operator or unsupported type.</returns>
-    public static string? GetChartType(string query)
-    {
-        // Match "| render <type>" pattern
-        var renderMatch = string.IsNullOrWhiteSpace(query) ? null : Regex.Match(query, @"\|\s*render\s+(\w+)", RegexOptions.IgnoreCase);
-        if (renderMatch?.Success == true)
-        {
-            return renderMatch.Groups[1].Value.ToLowerInvariant() switch
-            {
-                "piechart" => "pie",
-                "barchart" => "bar",
-                "columnchart" => "bar",
-                "scatterchart" => "scatter",
-                "timechart" => "line",
-                "linechart" => "line",
-                "table" => "table",
-                _ => null  // Unsupported render type
-            };
-        }
-
-        return null;
-    }
-
     public static ChatMessage BuildDisplayMessage(ChatMessage baseMessage, string tsv, KustoDisplayOptions options)
     {
         if ((!options.ShowTable && !options.ShowChart) || string.IsNullOrEmpty(tsv))
@@ -143,14 +114,6 @@ internal static class KustoDisplayFormatter
         // - x field must exist
         // - one or more numeric series fields exist
         var xField = options.XField;
-        var chartType = options?.ChartType;
-
-        // No chart type means we shouldn't render a chart
-        if (string.IsNullOrEmpty(chartType))
-        {
-            return string.Empty;
-        }
-
         List<string> series = options?.SeriesFields?.ToList<string>() ?? new List<string>();
 
         if (string.IsNullOrWhiteSpace(xField))
@@ -179,35 +142,21 @@ internal static class KustoDisplayFormatter
         // Build a normalized data array
         var hIndex = headers.Select((h, idx) => (h, idx)).ToDictionary(t => t.h, t => t.idx, StringComparer.OrdinalIgnoreCase);
         var dataObjects = new List<Dictionary<string, object?>>();
-
         foreach (var r in rows)
         {
             var obj = new Dictionary<string, object?>();
-
-            if (chartType == "pie")
+            obj["name"] = GetCellByHeader(r, hIndex, xField);
+            foreach (var s in series)
             {
-                // Pie chart: use "label" for category and "value" for the first numeric series
-                obj["label"] = GetCellByHeader(r, hIndex, xField);
-                var valStr = GetCellByHeader(r, hIndex, series[0]);
-                obj["value"] = TryParseDouble(valStr, out var d) ? d : null;
+                var valStr = GetCellByHeader(r, hIndex, s);
+                obj[s] = TryParseDouble(valStr, out var d) ? d : null;
             }
-            else
-            {
-                // Line/bar/scatter: use "name" for x-axis and series names for values
-                obj["name"] = GetCellByHeader(r, hIndex, xField);
-                foreach (var s in series)
-                {
-                    var valStr = GetCellByHeader(r, hIndex, s);
-                    obj[s] = TryParseDouble(valStr, out var d) ? d : null;
-                }
-            }
-
             dataObjects.Add(obj);
         }
 
         var payload = new
         {
-            type = chartType,
+            type = "line",
             title = options?.ChartTitle ?? "Kusto Result",
             data = dataObjects,
             xAxisLabel = xField,

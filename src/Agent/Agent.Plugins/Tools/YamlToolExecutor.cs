@@ -14,7 +14,7 @@ namespace Agent.Plugins.Tools;
 /// </summary>
 public interface IYamlToolExecutor
 {
-    Task<string> ExecuteAsync(string threadId, AIFunctionArguments arguments);
+    Task<object?> ExecuteAsync(string threadId, AIFunctionArguments arguments);
     JsonElement CreateSchema();
 }
 
@@ -37,8 +37,8 @@ public abstract class YamlToolExecutor<TDefinition> : IYamlToolExecutor where TD
     /// </summary>
     /// <param name="threadId">The thread/conversation ID for context</param>
     /// <param name="arguments">Arguments from the LLM including tool parameters and metadata</param>
-    /// <returns>Tool execution result as a string</returns>
-    public abstract Task<string> ExecuteAsync(string threadId, AIFunctionArguments arguments);
+    /// <returns>Tool execution result</returns>
+    public abstract Task<object?> ExecuteAsync(string threadId, AIFunctionArguments arguments);
 
     /// <summary>
     /// Creates a JSON schema for the tool based on YAML parameter definitions.

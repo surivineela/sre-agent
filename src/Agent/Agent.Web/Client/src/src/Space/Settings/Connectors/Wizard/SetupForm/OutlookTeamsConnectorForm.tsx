@@ -65,62 +65,64 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
     const [isDifferentAccountSignInInProgress, setIsDifferentAccountSignInInProgress] = useState(false);
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(true);
     const [hasConnectionWritePermission, setHasConnectionWritePermission] = useState<boolean | null>(null);
+    const [signInErrorMessage, setSignInErrorMessage] = useState<string | null>(null);
 
     const az = useContext(AzPortalContext);
 
     const onSignInClick = useCallback(async () => {
+        setSignInErrorMessage(null);
         setIsAccountSignInInProgress(true);
-        await createApiConnection({
-            subscriptionId: subscription,
-            resourceGroup,
-            connectionName: connectorApiName,
-            location: agentLocation || '',
-            agentName: agentName || '',
-        });
-        const consentLinkObject = await fetchConsentLink();
-        if (consentLinkObject?.link) {
-            const oauthPopupClient = new OAuthPopup({ consentUrl: consentLinkObject?.link || '' });
-
-            const loginResponse = await oauthPopupClient.loginPromise;
-            if (loginResponse.error) {
-                throw new Error(atob(loginResponse.error));
-            }
-            if (loginResponse.code) {
-                await OAuthServiceClient.confirmConsentCodeForConnection({
-                    subscriptionId: subscription,
-                    resourceGroup,
-                    connectionName: connectorApiName,
-                    code: loginResponse.code,
-                    tenantId: agentIdentity?.tenantId || '',
-                    objectId: agentIdentity?.principalId || '',
-                });
-            }
-
-            const fetchedConnection = await fetchApiConnection({
+        try {
+            await createApiConnection({
                 subscriptionId: subscription,
                 resourceGroup,
-                agentName: agentName || '',
                 connectionName: connectorApiName,
+                location: agentLocation || '',
+                agentName: agentName || '',
             });
-            await refreshConsentLink();
+            const consentLinkObject = await fetchConsentLink();
+            if (consentLinkObject?.link) {
+                const oauthPopupClient = new OAuthPopup({ consentUrl: consentLinkObject?.link || '' });
 
-            setFieldValue('email', fetchedConnection?.properties?.authenticatedUser?.name || '');
-            setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
+                const loginResponse = await oauthPopupClient.loginPromise;
+                if (loginResponse.error) {
+                    throw new Error(atob(loginResponse.error));
+                }
+                if (loginResponse.code) {
+                    await OAuthServiceClient.confirmConsentCodeForConnection({
+                        subscriptionId: subscription,
+                        resourceGroup,
+                        connectionName: connectorApiName,
+                        code: loginResponse.code,
+                        tenantId: agentIdentity?.tenantId || '',
+                        objectId: agentIdentity?.principalId || '',
+                    });
+                }
+
+                const fetchedConnection = await fetchApiConnection({
+                    subscriptionId: subscription,
+                    resourceGroup,
+                    agentName: agentName || '',
+                    connectionName: connectorApiName,
+                });
+                await refreshConsentLink();
+
+                setFieldValue('email', fetchedConnection?.properties?.authenticatedUser?.name || '');
+                setFieldValue('url', fetchedConnection?.properties?.connectionRuntimeUrl || '');
+            }
+        } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'status' in error && error.status === 403) {
+                setHasConnectionWritePermission(false);
+            } else if (error && typeof error === 'object' && 'data' in error) {
+                const errorData = error.data as { error?: { message?: string } };
+                if (errorData?.error?.message) {
+                    setSignInErrorMessage(errorData.error.message);
+                }
+            }
+        } finally {
             setIsAccountSignInInProgress(false);
         }
-    }, [
-        agentIdentity,
-        agentLocation,
-        agentName,
-        connectorApiName,
-        createApiConnection,
-        fetchApiConnection,
-        fetchConsentLink,
-        refreshConsentLink,
-        resourceGroup,
-        setFieldValue,
-        subscription,
-    ]);
+    }, [agentIdentity, agentLocation, agentName, connectorApiName, createApiConnection, fetchApiConnection, fetchConsentLink, refreshConsentLink, resourceGroup, setFieldValue, subscription]);
 
     const signInWithDifferentAccount = useCallback(async () => {
         setIsDifferentAccountSignInInProgress(true);
@@ -139,7 +141,7 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
         setIsCheckingPermissions(true);
         const resourceGroupId = `/subscriptions/${subscription}/resourceGroups/${resourceGroup}`;
 
-        const hasPermission = await PermissionClient.getInstance().hasPermission(resourceGroupId, ['Microsoft.Web/connections/write']);
+        const hasPermission = await PermissionClient.getInstance().hasPermission(resourceGroupId, ['Microsoft.Web/connections/write', 'Microsoft.Authorization/roleAssignments/write']);
 
         setHasConnectionWritePermission(hasPermission);
         setIsCheckingPermissions(false);
@@ -215,6 +217,11 @@ export const OutlookTeamsConnectorForm: React.FC<OutlookTeamsConnectorFormProps>
             >
                 {!values.email && isNotAuthenticated ? (
                     <>
+                        {signInErrorMessage && (
+                            <MessageBar intent="error" layout="multiline" role="alert" className={styles.permissionWarning}>
+                                <MessageBarBody>{signInErrorMessage}</MessageBarBody>
+                            </MessageBar>
+                        )}
                         {!isCheckingPermissions && !hasConnectionWritePermission && (
                             <MessageBar intent="warning" layout="multiline" className={styles.permissionWarning}>
                                 <MessageBarBody>

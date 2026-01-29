@@ -24,5 +24,21 @@ namespace Agent.Core.Configuration
         /// Configuration for model selection based on scenario types.
         /// </summary>
         public ModelScenarioConfiguration ScenarioConfiguration { get; set; } = new();
+
+
+        public DefaultModel? UserSpecifiedDefaultModel { get; set; }
+    }
+
+    public class DefaultModel
+    {
+        /// <summary>
+        /// Default model deployment name to use for general scenarios.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Provider of the default model.
+        /// </summary>
+        public string Provider { get; set; } = string.Empty;
     }
 }

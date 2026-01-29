@@ -43,7 +43,12 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
 - Use a clear structure: greeting, body paragraphs, and closing.
 - Use <p> for paragraphs, <ul>/<ol> and <li> for lists, and <a> for links.
 - Use simple inline formatting only (<strong>, <em>, <br/>); avoid complex CSS or external assets.
-- Keep a professional, concise tone and include a polite closing and signature when appropriate.")]
+- Keep a professional, concise tone and include a polite closing and signature when appropriate.
+
+Attachments:
+- Supports file attachments with a maximum total size of 5MB across all attachments.
+- Each attachment must be base64-encoded.
+- If attachments exceed 5MB, the operation will fail with an error.")]
     [AgentTool(ToolMode.Auto)]
     public async Task<EmailSendResult> SendOutlookEmail(
         [Description("Comma-separated list of primary recipients (To field).")]
@@ -59,7 +64,9 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
         [Description("Optional comma-separated list of CC recipients.")]
         string? cc = null,
         [Description("Optional comma-separated list of BCC recipients.")]
-        string? bcc = null)
+        string? bcc = null,
+        [Description("Optional list of email attachments. Each attachment must have a Name and ContentBytes (base64-encoded). Maximum total size: 5MB.")]
+        IReadOnlyList<EmailAttachment>? attachments = null)
     {
         return await _outlookConnectorPlugin.SendEmailAsync(
            to,
@@ -68,7 +75,8 @@ When body_type is HTML (default), the `body` parameter MUST be well-formed, prof
            body_type,
            importance,
            cc,
-           bcc).ConfigureAwait(false);
+           bcc,
+           attachments).ConfigureAwait(false);
     }
 
     [Description(@"Retrieves a specific email message from the Outlook connector using the v2 Mail API. Provide the messageId returned by other email calls. Use mailbox_address when accessing a shared mailbox.

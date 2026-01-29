@@ -2,7 +2,7 @@ import { tokens } from '@fluentui/react-components';
 import { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useIntl } from 'react-intl';
-import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router';
 import { RouteErrorBoundary } from './Common/Components/RouteErrorBoundary';
 import { TelemetrySource } from './Common/Constants/Telemetry';
 import { useAuth } from './Common/Contexts/AuthContext';
@@ -90,9 +90,9 @@ const router = createBrowserRouter(
             children: [
                 { index: true, element: <HomeBrowseView /> },
                 { path: 'welcome', element: <LandingPage /> },
-                { path: 'agents/:agentId/*', element: <AgentIFrameView /> },
+                { path: 'agents/*', element: <AgentIFrameView /> },
                 { path: 'externalagents/:agentName/:agentUri/*', element: <ExternalAgentIFrameView /> },
-                { path: 'spaces/:spaceId', element: <AgentSpaceView /> },
+                { path: 'spaces/*', element: <AgentSpaceView /> },
                 { path: '*', element: <HomeBrowseView /> },
             ],
         },

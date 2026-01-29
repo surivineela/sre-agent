@@ -3,7 +3,7 @@ import { Edge, Node, useEdgesState, useNodesState, useReactFlow } from '@xyflow/
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -302,14 +302,14 @@ export const useGraph = () => {
             const initialGroupSubscription = initialGroupSubscriptionId
                 ? subscriptions.find(sub => sub.id === initialGroupSubscriptionId)
                 : undefined;
-            const selectedSubscription =
+            const selectedSubscription: Subscription | undefined =
                 initialGroupSubscriptionId && initialGroupSubscription ? initialGroupSubscription : subscriptions[0];
 
             if (isSubscribed) {
                 setSelectedSubscription(selectedSubscription);
             }
 
-            const appGroups = await getAppGroups(selectedSubscription.id);
+            const appGroups = await getAppGroups(selectedSubscription?.id);
 
             if (isSubscribed) {
                 setAppGroups(appGroups);
@@ -404,6 +404,69 @@ export const useGraph = () => {
         }
     }, [nodes.length, isLoading, fitView]);
 
+    const refreshCurrentAppGroup = useCallback(async () => {
+        if (!selectedAppGroup || !selectedSubscription) return;
+
+        // Clear the cached data for this app group
+        setGraph(prev => {
+            const newGraph = new Map(prev);
+            newGraph.delete(selectedAppGroup.id);
+            return newGraph;
+        });
+
+        // Re-fetch app groups to get updated metadata (e.g., sourceCodeLinkageStatus)
+        const refreshedAppGroups = await getAppGroups(selectedSubscription.id);
+        setAppGroups(refreshedAppGroups);
+
+        // Find the updated version of the selected app group
+        const updatedAppGroup = refreshedAppGroups.find(ag => ag.id === selectedAppGroup.id) || selectedAppGroup;
+        setSelectedAppGroup(updatedAppGroup);
+
+        // Re-fetch the app group data and update view
+        await onAppGroupUpdate(updatedAppGroup);
+    }, [selectedAppGroup, selectedSubscription, onAppGroupUpdate, getAppGroups]);
+
+    const refreshGraph = useCallback(async () => {
+        if (!sreAgentEndpoint || !hasChatPermissions) return;
+
+        setIsLoading(true);
+        setIsSubscriptionLoading(true);
+        setIsAppGroupLoading(true);
+
+        // Clear all cached graph data
+        setGraph(new Map());
+
+        const subscriptions = await getSubscriptions();
+        setSubscriptions(subscriptions);
+        setIsSubscriptionLoading(false);
+
+        if (subscriptions.length === 0) {
+            setAppGroups([]);
+            setFilteredAppGroups([]);
+            setSelectedSubscription(undefined);
+            setSelectedAppGroup(undefined);
+            setIsAppGroupLoading(false);
+            setIsLoading(false);
+            return;
+        }
+
+        // Keep current subscription if still valid, otherwise use first
+        const currentSubscriptionValid = subscriptions.some(sub => sub.id === selectedSubscription?.id);
+        const targetSubscription = currentSubscriptionValid ? selectedSubscription : subscriptions[0];
+        setSelectedSubscription(targetSubscription);
+
+        const appGroups = await getAppGroups(targetSubscription?.id ?? '');
+        setAppGroups(appGroups);
+
+        // Keep current app group if still valid, otherwise use first
+        const currentAppGroupValid = appGroups.some(ag => ag.id === selectedAppGroup?.id);
+        const targetAppGroup = currentAppGroupValid ? selectedAppGroup : appGroups[0];
+        setSelectedAppGroup(targetAppGroup);
+
+        setIsAppGroupLoading(false);
+        setIsLoading(false);
+    }, [sreAgentEndpoint, hasChatPermissions, selectedSubscription, selectedAppGroup, getSubscriptions, getAppGroups]);
+
     return {
         nodes,
         edges,
@@ -436,5 +499,7 @@ export const useGraph = () => {
         resources,
         resourceGroups,
         onLoadAppGroupResources,
+        refreshGraph,
+        refreshCurrentAppGroup,
     };
 };

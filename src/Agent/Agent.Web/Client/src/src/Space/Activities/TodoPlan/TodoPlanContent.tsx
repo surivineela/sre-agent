@@ -31,7 +31,7 @@ const StatusIcon = memo(({ status }: { status: TodoItemStatus }) => {
         case TodoItemStatus.Completed:
             return <CheckmarkRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteGreenForeground1 }} />;
         case TodoItemStatus.InProgress:
-            return <CircleFilled className={styles.taskItemIcon} style={{ color: tokens.colorPaletteBlueForeground2 }} />;
+            return <CircleFilled className={styles.taskItemIcon} style={{ color: tokens.colorNeutralForeground3 }} />;
         case TodoItemStatus.Failed:
             return <DismissRegular className={styles.taskItemIcon} style={{ color: tokens.colorPaletteRedForeground1 }} />;
         default:

@@ -53,7 +53,9 @@ namespace Agent.Core.Models.Api.v1
         string ImpactedService,
         string FilterId,
         string HandlerId,
-        InvestigationStatus InvestigationStatus
+        InvestigationStatus InvestigationStatus,
+        IcmIncidentTriggerEvent? TriggerEvent = null,
+        string? IncidentStatus = null
     );
 
     //Thread type: PROD/TEST

@@ -1,3 +1,4 @@
+import { IncidentTriggerEvent } from '../../../Common/Contracts/Azure/IncidentHandler';
 import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { McpConnection } from '../../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
@@ -14,6 +15,9 @@ export interface IncidentHandlerCreateFormValues {
     createdBy?: string;
     monitorId?: string;
     handlingAgent?: string;
+    /** Multiple handling agents for parallel processing (Phase 2) */
+    handlingAgents?: string[];
+    triggers?: IncidentTriggerEvent[];
 
     incidentIds?: string[];
     customInstructions?: string;

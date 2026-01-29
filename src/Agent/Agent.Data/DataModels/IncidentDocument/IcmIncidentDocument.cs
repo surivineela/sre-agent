@@ -142,6 +142,17 @@ public class IcmIncidentDocument : Incident, IIncidentDocument
 
     public string ExtractedKnowledge { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Tracks the previous state for detecting state transitions (e.g., reactivation).
+    /// </summary>
+    public string? PreviousState { get; set; }
+
+    /// <summary>
+    /// Tracks IDs of discussion entries that have already triggered agent processing.
+    /// Used for deduplication of DiscussionEntry trigger.
+    /// </summary>
+    public HashSet<string> ProcessedDiscussionEntryIds { get; set; } = new();
+
     public DateTime? MitigatedAt => MitigateData?.MitigateTime?.UtcDateTime;
 
     public DateTime? ResolvedAt => ResolveData?.ResolveTime?.UtcDateTime;

@@ -4,9 +4,25 @@ enabled: true
 coverage: 1.0
 variants:
   - name: params_variant
-    split: 1.0
+    split: 0.5
     overlay:
       agent_params:
         - agent_names: ["*"]
           model_name: gpt-4o
           reasoning_effort_level: high
+  - name: allowed_skills_variant
+    split: 0.5
+    overlay:
+      agent_params:
+        - agent_names: ["*"]
+          allowed_skills:
+            - test_skill_1
+            - test_skill_2
+  - name: allowed_skills_override_disabled_variant
+    split: 0.0
+    overlay:
+      agent_params:
+        - agent_names: ["*"]
+          enable_skills: false
+          allowed_skills:
+            - test_skill_1

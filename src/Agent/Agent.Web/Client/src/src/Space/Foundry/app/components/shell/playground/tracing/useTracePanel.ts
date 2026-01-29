@@ -216,5 +216,6 @@ export const useTracePanel = (appInsightsAppId: string, threadId: string, isInci
         noDataMessage,
         warnings,
         errors,
+        refresh: fetch,
     };
 };

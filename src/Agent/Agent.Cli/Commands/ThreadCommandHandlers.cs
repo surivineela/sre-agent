@@ -17,8 +17,9 @@ public static class ThreadCommandHandlers
         var message = parseResult.GetValue(ThreadCommandOptions.New.MessageOption);
         var agent = parseResult.GetValue(ThreadCommandOptions.New.AgentNameOption);
         var noWait = parseResult.GetValue(ThreadCommandOptions.New.NoWaitOption);
+        var wait = parseResult.GetValue(ThreadCommandOptions.New.WaitOption);
 
-        DebugLogger.Debug("Parameters", $"Agent: {agent}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}");
+        DebugLogger.Debug("Parameters", $"Agent: {agent}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}, Wait: {wait}");
 
         var threadManager = new ThreadManagerService();
 
@@ -26,6 +27,24 @@ public static class ThreadCommandHandlers
         if (noWait)
         {
             var error = await threadManager.SendMessageWithoutWaitAsync(threadId: null, agentName: agent, message: message!);
+            if (error != null)
+            {
+                ConsoleUI.WriteStatus(false, error);
+                return 1;
+            }
+            return 0;
+        }
+
+        // If --wait is specified, send message and wait for response then exit
+        if (wait)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                ConsoleUI.WriteStatus(false, "--wait requires --message to be specified");
+                return 1;
+            }
+
+            var error = await threadManager.SendMessageAndWaitForResponseAsync(threadId: null, agentName: agent, message: message);
             if (error != null)
             {
                 ConsoleUI.WriteStatus(false, error);
@@ -108,6 +127,7 @@ public static class ThreadCommandHandlers
         var threadId = parseResult.GetValue(ThreadCommandOptions.Continue.ThreadIdOption);
         var message = parseResult.GetValue(ThreadCommandOptions.Continue.MessageOption);
         var noWait = parseResult.GetValue(ThreadCommandOptions.Continue.NoWaitOption);
+        var wait = parseResult.GetValue(ThreadCommandOptions.Continue.WaitOption);
 
         var threadManager = new ThreadManagerService();
 
@@ -122,12 +142,30 @@ public static class ThreadCommandHandlers
             }
         }
 
-        DebugLogger.Debug("Parameters", $"ThreadId: {threadId}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}");
+        DebugLogger.Debug("Parameters", $"ThreadId: {threadId}, Message: {(string.IsNullOrEmpty(message) ? "<none>" : "<provided>")}, NoWait: {noWait}, Wait: {wait}");
 
         // If --no-wait is specified, just send the message without starting interactive session
         if (noWait)
         {
             var error = await threadManager.SendMessageWithoutWaitAsync(threadId, agentName: null, message: message!);
+            if (error != null)
+            {
+                ConsoleUI.WriteStatus(false, error);
+                return 1;
+            }
+            return 0;
+        }
+
+        // If --wait is specified, send message and wait for response then exit
+        if (wait)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                ConsoleUI.WriteStatus(false, "--wait requires --message to be specified");
+                return 1;
+            }
+
+            var error = await threadManager.SendMessageAndWaitForResponseAsync(threadId, agentName: null, message: message);
             if (error != null)
             {
                 ConsoleUI.WriteStatus(false, error);

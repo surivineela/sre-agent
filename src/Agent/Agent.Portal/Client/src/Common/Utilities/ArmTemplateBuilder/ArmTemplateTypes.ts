@@ -64,6 +64,7 @@ export enum SreAgentParameterName {
     AzureBotName = 'azureBotName',
     AzureBotSku = 'azureBotSku',
     UserObjectId = 'userObjectId',
+    DefaultModelProvider = 'defaultModelProvider',
 }
 
 export enum AgentSpaceParameterName {

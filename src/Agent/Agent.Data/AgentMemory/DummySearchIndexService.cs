@@ -36,4 +36,16 @@ public class DummySearchIndexService : ISearchIndexService
         _logger.LogInternalInformation($"DummySearchIndexService: IndexContentAsync called with AgentMemory ID: {content.Id}");
         return Task.FromResult(true);
     }
+
+    public Task<bool> UpsertTrajectoryAsync(AgentMemory trajectory)
+    {
+        _logger.LogInternalInformation($"DummySearchIndexService: UpsertTrajectoryAsync called with trajectory ID: {trajectory.Id}");
+        return Task.FromResult(true);
+    }
+
+    public Task<AgentMemory?> GetTrajectoryByIdAsync(string trajectoryId)
+    {
+        _logger.LogInternalInformation($"DummySearchIndexService: GetTrajectoryByIdAsync called with trajectory ID: {trajectoryId}");
+        return Task.FromResult<AgentMemory?>(null);
+    }
 }

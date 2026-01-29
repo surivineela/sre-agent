@@ -68,13 +68,13 @@ const MessageFooter = ({
         <>
             {!isTyping && messageContent && (
                 <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    <CopyButton textToCopy={messageContent} />
                     <FeedbackButtons
                         positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
                         negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
                         selected={selectedFeedback}
                         disabled={hasSubmittedFeedback}
                     />
-                    <CopyButton textToCopy={messageContent} />
                 </div>
             )}
             <FeedbackDialog

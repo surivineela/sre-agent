@@ -3,7 +3,7 @@ import { makeStyles, MenuButtonProps, MenuProps, useRestoreFocusTarget } from '@
 import { Text } from '@fluentui/react-text';
 import { memo, useContext, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread } from '../../Common/Contracts/DataPlane/Thread';
 import { SreAgentResources } from '../../Strings/SREAgentResources';

@@ -5,9 +5,11 @@
 using System.Collections.ObjectModel;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Data.AgentMemory;
 using Agent.Data.Json;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -69,7 +71,9 @@ public static class AgentDataConfiguration
 
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbSessionInsightRepository>>();
-            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger);
+            var searchIndexService = serviceProvider.GetRequiredService<ISearchIndexService>();
+            var embeddingGenerator = serviceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger, searchIndexService, embeddingGenerator);
         });
 
         // Add Thread Teams Conversation Mapping repository registration
@@ -146,7 +150,9 @@ public static class AgentDataConfiguration
 
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbSessionInsightRepository>>();
-            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger);
+            var searchIndexService = serviceProvider.GetRequiredService<ISearchIndexService>();
+            var embeddingGenerator = serviceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+            return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger, searchIndexService, embeddingGenerator);
         });
 
         return serviceCollection;
@@ -237,7 +243,7 @@ public static class AgentDataConfiguration
         // Create vector embedding policy
         var vectorEmbeddingPolicy = new VectorEmbeddingPolicy(
         [
-            new Embedding
+            new Microsoft.Azure.Cosmos.Embedding
             {
                 Path = "/vector",
                 DataType = VectorDataType.Float32,

@@ -4,10 +4,12 @@ import { useIntl } from 'react-intl';
 import AzPortalProxy from '../../../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentMemoryClient } from '../../../Common/Clients/AgentMemoryClient';
-import { KnowledgeBaseResources } from '../../../Strings/SREAgentResources';
+import { KnowledgeBaseResources, KnowledgeSettingsResources } from '../../../Strings/SREAgentResources';
 
 export interface UploadedFile {
     name: string;
+    type: string;
+    lastModified: string;
 }
 
 export interface UseKnowledgeBaseReturn {
@@ -110,6 +112,8 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
                 const fileNames = Array.isArray(response.content?.files) ? response.content.files : [];
                 const files = fileNames.map(fileName => ({
                     name: fileName,
+                    type: intl.formatMessage(KnowledgeSettingsResources.typeFile),
+                    lastModified: '-',
                 }));
                 setUploadedFiles(files);
             } else {
@@ -138,7 +142,7 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
         } finally {
             setIsLoadingFiles(false);
         }
-    }, [agentMemoryClient, portalContext, resourceId]);
+    }, [agentMemoryClient, intl, portalContext, resourceId]);
 
     // Debounced refresh function to avoid indexer conflicts
     const scheduleRefresh = useCallback(() => {
@@ -387,6 +391,22 @@ export const useKnowledgeBase = (portalContext: AzPortalProxy, resourceId: strin
                 compare: (a, b) => a.name.localeCompare(b.name),
                 renderHeaderCell: () => <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeBaseResources.fileName)}</span>,
                 renderCell: fileObj => fileObj.name,
+            }),
+            createTableColumn<UploadedFile>({
+                columnId: 'type',
+                compare: (a, b) => a.type.localeCompare(b.type),
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeSettingsResources.typeColumn)}</span>
+                ),
+                renderCell: fileObj => fileObj.type,
+            }),
+            createTableColumn<UploadedFile>({
+                columnId: 'lastModified',
+                compare: (a, b) => a.lastModified.localeCompare(b.lastModified),
+                renderHeaderCell: () => (
+                    <span style={{ fontWeight: 500 }}>{intl.formatMessage(KnowledgeSettingsResources.lastModifiedColumn)}</span>
+                ),
+                renderCell: fileObj => fileObj.lastModified,
             }),
         ];
     }, [intl]);

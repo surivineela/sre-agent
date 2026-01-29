@@ -1,0 +1,202 @@
+import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
+
+export const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        ...shorthands.overflow('hidden'),
+    },
+    header: {
+        ...shorthands.padding('16px', '24px'),
+        ...shorthands.borderBottom('1px', 'solid', tokens.colorNeutralStroke2),
+        backgroundColor: tokens.colorNeutralBackground1,
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap('8px'),
+        flexShrink: 0,
+    },
+    headerTop: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    threadTitle: {
+        fontSize: tokens.fontSizeBase400,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    threadMeta: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+    },
+    content: {
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        scrollbarGutter: 'stable',
+        ...shorthands.padding('24px'),
+        backgroundColor: tokens.colorNeutralBackground1,
+    },
+    contentInner: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap('16px'),
+    },
+    introSection: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.padding('20px'),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    },
+    accordionWrapper: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.padding('20px'),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    },
+    accordion: {
+        backgroundColor: 'transparent',
+    },
+    accordionItem: {
+        backgroundColor: 'transparent',
+        ...shorthands.border('none'),
+        marginBottom: '16px',
+        '&:last-child': {
+            marginBottom: 0,
+        },
+    },
+    accordionHeader: {
+        fontWeight: tokens.fontWeightSemibold,
+        fontSize: tokens.fontSizeBase300,
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        color: tokens.colorNeutralForeground1,
+    },
+    accordionPanel: {
+        ...shorthands.padding('12px', '0', '0', '0'),
+        backgroundColor: 'transparent',
+        maxHeight: '400px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        scrollbarGutter: 'stable',
+    },
+    insightContent: {
+        fontSize: tokens.fontSizeBase300,
+        color: tokens.colorNeutralForeground1,
+        lineHeight: '1.6',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+        '& h1': {
+            fontSize: tokens.fontSizeBase500,
+            fontWeight: tokens.fontWeightSemibold,
+            marginTop: '24px',
+            marginBottom: '12px',
+        },
+        '& h2': {
+            fontSize: tokens.fontSizeBase400,
+            fontWeight: tokens.fontWeightSemibold,
+            marginTop: '20px',
+            marginBottom: '10px',
+        },
+        '& h3': {
+            fontSize: tokens.fontSizeBase300,
+            fontWeight: tokens.fontWeightSemibold,
+            marginTop: '16px',
+            marginBottom: '8px',
+        },
+        '& ul, & ol': {
+            marginTop: '4px',
+            marginBottom: '4px',
+            paddingLeft: '24px',
+        },
+        '& li': {
+            marginBottom: '4px',
+        },
+        '& li > p': {
+            marginBottom: '0',
+        },
+        '& p': {
+            marginBottom: '8px',
+            whiteSpace: 'pre-wrap',
+        },
+        '& strong': {
+            fontWeight: tokens.fontWeightSemibold,
+        },
+        '& code': {
+            backgroundColor: tokens.colorNeutralBackground3,
+            ...shorthands.padding('2px', '6px'),
+            ...shorthands.borderRadius(tokens.borderRadiusSmall),
+            fontFamily: 'monospace',
+        },
+        '& pre': {
+            backgroundColor: tokens.colorNeutralBackground3,
+            ...shorthands.padding('12px'),
+            ...shorthands.borderRadius(tokens.borderRadiusMedium),
+            ...shorthands.overflow('auto'),
+            marginBottom: '12px',
+        },
+    },
+    fallbackCard: {
+        backgroundColor: tokens.colorNeutralBackground2,
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.padding('20px'),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    },
+    emptyState: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
+        ...shorthands.gap('12px'),
+        color: tokens.colorNeutralForeground3,
+    },
+    feedbackSection: {
+        marginTop: '16px',
+        ...shorthands.padding('16px'),
+        backgroundColor: tokens.colorNeutralBackground3,
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    },
+    feedbackHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '12px',
+        cursor: 'pointer',
+        ...shorthands.gap('8px'),
+    },
+    feedbackHeaderCollapsed: {
+        marginBottom: '0',
+    },
+    feedbackTitle: {
+        fontSize: tokens.fontSizeBase300,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+        display: 'flex',
+        alignItems: 'center',
+        ...shorthands.gap('8px'),
+    },
+    feedbackRating: {
+        display: 'flex',
+        ...shorthands.gap('8px'),
+    },
+    feedbackInput: {
+        marginBottom: '12px',
+        width: '100%',
+    },
+    feedbackActions: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        ...shorthands.gap('8px'),
+    },
+    feedbackMessage: {
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+        fontStyle: 'italic',
+        marginTop: '8px',
+    },
+});

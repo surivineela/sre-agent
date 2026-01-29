@@ -7,7 +7,6 @@ import PermissionedButton from '../../Common/Components/PermissionedButton';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { KnowledgeGraphBuildStatusContext } from '../../Common/Providers/KnowledgeGraphBuildStatusProvider';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
-import { SreAgentBranding } from '../Components/Chat/SreAgentBranding';
 import { usePermissionContext } from '../Contracts/PermissionContext';
 
 const useChatSuggestionStyles = makeStyles({
@@ -17,7 +16,6 @@ const useChatSuggestionStyles = makeStyles({
         gap: '20px',
         justifyContent: 'center',
         alignItems: 'center',
-        flex: '1',
     },
     cardContainer: {
         display: 'flex',
@@ -121,7 +119,6 @@ interface ChatSuggestionsProps {
     sendMessage: (message: string) => void | Promise<void>;
     categories?: string[];
     getQuestionsForCategory?: (category: string) => string[];
-    showSreAgentLogo?: boolean;
     alignLeft?: boolean;
     getCategorySubcategories?: (category: string) => Record<string, string[]> | null;
     initialExpandedCategory?: string;
@@ -132,7 +129,6 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
         sendMessage,
         categories: categoriesProp,
         getQuestionsForCategory: externalGetQuestions,
-        showSreAgentLogo = true,
         alignLeft = false,
         getCategorySubcategories,
         initialExpandedCategory,
@@ -292,7 +288,6 @@ export const ChatSuggestions = (props: ChatSuggestionsProps) => {
 
     return (
         <div className={mergeClasses(chatSuggestionsStyles.root, alignLeft && chatSuggestionsStyles.leftRoot)}>
-            {showSreAgentLogo && <SreAgentBranding alignLeft={alignLeft} />}
             <div className={mergeClasses(chatSuggestionsStyles.cardContainer, alignLeft && chatSuggestionsStyles.leftCardContainer)}>
                 {hasChatPermissions &&
                     chatSuggestionCategories.map(suggestion => (

@@ -59,7 +59,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="appsettings.test.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -67,6 +66,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Framework\TestPrompts\GuardRail.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\ToolReplayLogs\chatmessage-format-f41f64f7-d7a3-4061-b42f-33a992aa413e.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

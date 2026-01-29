@@ -238,12 +238,12 @@ public static partial class LoggerExtensions
         string threadId);
 
     /// <summary>
-    /// Logs token consumption information (model, model version, input, output, cached, and reasoning tokens used)
+    /// Logs token consumption information (model, model version, input, output, cached, cache creation, and reasoning tokens used)
     /// </summary>
     [LoggerMessage(
         EventId = 2001,
         Level = LogLevel.Information,
-        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}, cachedTokenUsed: {CachedTokenUsed}, reasoningTokenUsed: {ReasoningTokenUsed}, reasoningEffort: {ReasoningEffort}")]
+        Message = "LLM Token Consumption: model: {Model}, modelVersion: {ModelVersion}, inputTokenUsed: {InputTokenUsed}, outputTokenUsed: {OutputTokenUsed}, cachedTokenUsed: {CachedTokenUsed}, cacheCreationInputTokenUsed: {CacheCreationInputTokenUsed}, reasoningTokenUsed: {ReasoningTokenUsed}, reasoningEffort: {ReasoningEffort}")]
     public static partial void LogTokenConsumption(
         this ILogger logger,
         string model,
@@ -251,6 +251,7 @@ public static partial class LoggerExtensions
         long inputTokenUsed,
         long outputTokenUsed,
         long cachedTokenUsed,
+        long cacheCreationInputTokenUsed,
         long reasoningTokenUsed,
         string reasoningEffort);
 

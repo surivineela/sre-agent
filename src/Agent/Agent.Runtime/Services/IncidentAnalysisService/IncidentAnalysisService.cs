@@ -59,6 +59,10 @@ public class IncidentAIData
     public required bool IsHandlerCustom { get; set; }
     public required string IncidentPlatform { get; set; }
     public required double? TimeTilMitigation { get; set; }
+    // IntentMet Score fields
+    public Guid? ThreadId { get; set; }
+    public int? IntentMetScore { get; set; }
+    public string? IntentMetSummary { get; set; }
 }
 
 public class AgentAssistanceResponse
@@ -157,7 +161,11 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
             { "AgentAutonomyLevel", data.RunMode },
             { "ResponsePlanCustom", data.IsHandlerCustom.ToString() },
             { "IncidentPlatform", data.IncidentPlatform },
-            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty }
+            { "MinutesUntilIncidentMitigation", data.TimeTilMitigation?.ToString() ?? string.Empty },
+            // IntentMet Score fields
+            { "ThreadId", data.ThreadId?.ToString() ?? string.Empty },
+            { "IntentMetScore", data.IntentMetScore?.ToString() ?? string.Empty },
+            { "IntentMetSummary", data.IntentMetSummary ?? string.Empty }
         };
             _appInsightsLogger.LogCustomEvent("IncidentActivitySnapshot", payload);
         }

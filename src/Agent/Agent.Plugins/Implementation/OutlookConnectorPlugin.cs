@@ -29,6 +29,8 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
     private const int MaxEmailListPageSize = 50;
     // Reserve 25% of max output for metadata (subject, recipients, etc.), allocate 75% for email content
     private const double EmailContentPercentage = 0.75;
+    // Maximum total attachment size: 5MB (conservative limit accounting for base64 overhead)
+    private const int MaxTotalAttachmentSizeBytes = 5 * 1024 * 1024;
     private static readonly string[] DefaultConnectorScopes = new[] { "https://management.core.windows.net/" };
 
     private readonly IAuthenticationService _authenticationService;
@@ -65,6 +67,7 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         string importance,
         string? cc,
         string? bcc,
+        IReadOnlyList<EmailAttachment>? attachments = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(to);
@@ -84,6 +87,72 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 ResponseContent = string.Empty,
                 Message = "Recipient, subject, and body must all be provided."
             };
+        }
+
+        // Validate attachments if provided
+        if (attachments != null && attachments.Count > 0)
+        {
+            long totalSize = 0;
+            foreach (var attachment in attachments)
+            {
+                if (string.IsNullOrWhiteSpace(attachment.Name))
+                {
+                    return new EmailSendResult
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        ResponseContent = string.Empty,
+                        Message = "All attachments must have a name."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(attachment.ContentBytes))
+                {
+                    return new EmailSendResult
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        ResponseContent = string.Empty,
+                        Message = $"Attachment '{attachment.Name}' has no content."
+                    };
+                }
+
+                // Calculate decoded size from base64 string
+                // Base64 encoded size is approximately 4/3 of the original, so decode to get actual size
+                try
+                {
+                    var decodedBytes = Convert.FromBase64String(attachment.ContentBytes);
+                    totalSize += decodedBytes.Length;
+                }
+                catch (FormatException)
+                {
+                    return new EmailSendResult
+                    {
+                        Success = false,
+                        StatusCode = 400,
+                        ResponseContent = string.Empty,
+                        Message = $"Attachment '{attachment.Name}' has invalid base64 content."
+                    };
+                }
+            }
+
+            if (totalSize > MaxTotalAttachmentSizeBytes)
+            {
+                var sizeMB = totalSize / (1024.0 * 1024.0);
+                var maxSizeMB = MaxTotalAttachmentSizeBytes / (1024.0 * 1024.0);
+                return new EmailSendResult
+                {
+                    Success = false,
+                    StatusCode = 413,
+                    ResponseContent = string.Empty,
+                    Message = $"Total attachment size ({sizeMB:F2} MB) exceeds the maximum allowed size of {maxSizeMB:F2} MB."
+                };
+            }
+
+            _logger.LogInternalInformation(
+                "Sending email with {AttachmentCount} attachment(s), total size: {TotalSizeKB:F2} KB",
+                attachments.Count,
+                totalSize / 1024.0);
         }
 
         try
@@ -110,7 +179,13 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
                 Importance = NormalizeImportance(importance),
                 IsHtml = !string.Equals(bodyType, "text", StringComparison.OrdinalIgnoreCase),
                 Cc = string.IsNullOrWhiteSpace(cc) ? null : cc,
-                Bcc = string.IsNullOrWhiteSpace(bcc) ? null : bcc
+                Bcc = string.IsNullOrWhiteSpace(bcc) ? null : bcc,
+                Attachments = attachments?.Select(a => new AttachmentPayload
+                {
+                    Name = a.Name,
+                    ContentBytes = a.ContentBytes,
+                    ODataType = "#microsoft.graph.fileAttachment"
+                }).ToList()
             };
 
             var content = new StringContent(JsonSerializer.Serialize(payload, SerializerOptions), Encoding.UTF8, "application/json");
@@ -1058,5 +1133,20 @@ public class OutlookConnectorPlugin : IOutlookConnectorPlugin
         public bool IsHtml { get; init; }
         public string? Cc { get; init; }
         public string? Bcc { get; init; }
+
+        [JsonPropertyName("Attachments")]
+        public IReadOnlyList<AttachmentPayload>? Attachments { get; init; }
+    }
+
+    private sealed class AttachmentPayload
+    {
+        [JsonPropertyName("Name")]
+        public string Name { get; init; } = string.Empty;
+
+        [JsonPropertyName("ContentBytes")]
+        public string ContentBytes { get; init; } = string.Empty;
+
+        [JsonPropertyName("@odata.type")]
+        public string ODataType { get; init; } = "#microsoft.graph.fileAttachment";
     }
 }

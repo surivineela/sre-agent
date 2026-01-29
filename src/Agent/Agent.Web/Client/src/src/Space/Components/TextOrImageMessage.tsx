@@ -233,13 +233,21 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
         return <AgentChart messageText={text} />;
     } else if (regularMessageContent) {
         if (!Array.isArray(regularMessageContent)) {
-            return <ReactMarkdownComponent content={regularMessageContent} variant="chat" />;
+            return (
+                <div style={{ marginLeft: '2px' }}>
+                    <ReactMarkdownComponent content={regularMessageContent} variant="chat" />
+                </div>
+            );
         }
 
         // Mixed content with special blocks
-        return regularMessageContent.map((part, index) => {
-            return <RegularMessagePart key={index} part={part} index={index} />;
-        });
+        return (
+            <div style={{ marginLeft: '2px' }}>
+                {regularMessageContent.map((part, index) => {
+                    return <RegularMessagePart key={index} part={part} index={index} />;
+                })}
+            </div>
+        );
     }
 };
 

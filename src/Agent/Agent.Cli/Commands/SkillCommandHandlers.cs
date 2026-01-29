@@ -43,52 +43,73 @@ public static class SkillCommandHandlers
             return 1;
         }
 
-        // Detect skill version
-        var metadataPath = Path.Combine(skillDirectory, ExtendedSkillHelper.MetadataFileName);
-        var detectedVersion = ExtendedSkillHelper.DetectVersion(metadataPath);
-
-        if (detectedVersion == null)
+        // Detect skill format (frontmatter vs metadata.yaml)
+        var format = ExtendedSkillHelper.DetectSkillFormat(skillDirectory);
+        if (format == ExtendedSkillHelper.SkillMetadataFormat.Unknown)
         {
-            ConsoleUI.WriteStatus(false, $"Unable to detect skill format. The metadata.yaml file may be invalid or corrupted.");
+            ConsoleUI.WriteStatus(false, $"Unable to detect skill format. Expected SKILL.md with frontmatter or metadata.yaml.");
             return 1;
         }
 
         ExtendedSkillV2 skill;
 
-        // Handle V1 format - convert to V2
-        if (detectedVersion == YamlApiVersion.V1)
+        // Handle based on detected format
+        if (format == ExtendedSkillHelper.SkillMetadataFormat.Frontmatter)
         {
-            ConsoleUI.WriteInfo($"⚠️  Warning: Skill YAML is using V1 format.", ConsoleColor.Yellow);
-            ConsoleUI.WriteInfo($"    Consider migrating to V2 format by running: srectl skill migrate --name [skill name]", ConsoleColor.Yellow);
-            Console.WriteLine();
-
-            var (v1Skill, v1Error) = await ExtendedSkillV1.LoadYamlAsync(metadataPath);
-            if (v1Skill == null || !string.IsNullOrEmpty(v1Error))
-            {
-                ConsoleUI.WriteStatus(false, v1Error ?? $"Failed to load V1 skill: {metadataPath}");
-                return 1;
-            }
-
-            // Convert V1 to V2
-            skill = Converters.ExtendedSkillConverter.ConvertToV2(v1Skill);
-        }
-        else // V2 format
-        {
-            var (v2Skill, v2Error) = await ExtendedSkillV2.LoadYamlAsync(metadataPath);
+            // Load from new frontmatter format
+            var (v2Skill, v2Error) = await ExtendedSkillV2.LoadFromDirectoryAsync(skillDirectory);
             if (v2Skill == null || !string.IsNullOrEmpty(v2Error))
             {
-                ConsoleUI.WriteStatus(false, v2Error ?? $"Failed to load skill: {metadataPath}");
+                ConsoleUI.WriteStatus(false, v2Error ?? $"Failed to load skill from: {skillDirectory}");
                 return 1;
             }
             skill = v2Skill;
         }
-
-        // Check if --name parameter differs from the name in YAML
-        var yamlName = skill.Metadata?.Name;
-        if (!string.IsNullOrEmpty(yamlName) && !string.Equals(name, yamlName, StringComparison.OrdinalIgnoreCase))
+        else
         {
-            ConsoleUI.WriteBullet($"Warning: --name parameter '{name}' differs from YAML metadata.name '{yamlName}'", ConsoleColor.Yellow);
-            ConsoleUI.WriteBullet($"Using name from YAML: '{yamlName}'", ConsoleColor.Yellow);
+            // Handle old metadata.yaml format - check for V1/V2 version
+            var metadataPath = Path.Combine(skillDirectory, ExtendedSkillHelper.MetadataFileName);
+            var detectedVersion = ExtendedSkillHelper.DetectVersion(metadataPath);
+
+            if (detectedVersion == YamlApiVersion.V1)
+            {
+                ConsoleUI.WriteInfo($"⚠️  Warning: Skill is using deprecated V1 format.", ConsoleColor.Yellow);
+                ConsoleUI.WriteInfo($"    Run: srectl skill migrate --name {name}", ConsoleColor.Yellow);
+                Console.WriteLine();
+
+                var (v1Skill, v1Error) = await ExtendedSkillV1.LoadYamlAsync(metadataPath);
+                if (v1Skill == null || !string.IsNullOrEmpty(v1Error))
+                {
+                    ConsoleUI.WriteStatus(false, v1Error ?? $"Failed to load V1 skill: {metadataPath}");
+                    return 1;
+                }
+
+                // Convert V1 to V2
+                skill = Converters.ExtendedSkillConverter.ConvertToV2(v1Skill);
+            }
+            else
+            {
+                // V2 format with metadata.yaml (also deprecated but still supported)
+                ConsoleUI.WriteInfo($"⚠️  Warning: Skill is using deprecated metadata.yaml format.", ConsoleColor.Yellow);
+                ConsoleUI.WriteInfo($"    Run: srectl skill migrate --name {name}", ConsoleColor.Yellow);
+                Console.WriteLine();
+
+                var (v2Skill, v2Error) = await ExtendedSkillV2.LoadFromDirectoryAsync(skillDirectory);
+                if (v2Skill == null || !string.IsNullOrEmpty(v2Error))
+                {
+                    ConsoleUI.WriteStatus(false, v2Error ?? $"Failed to load skill: {skillDirectory}");
+                    return 1;
+                }
+                skill = v2Skill;
+            }
+        }
+
+        // Check if --name parameter differs from the name in metadata
+        var skillName = skill.Metadata?.Name;
+        if (!string.IsNullOrEmpty(skillName) && !string.Equals(name, skillName, StringComparison.OrdinalIgnoreCase))
+        {
+            ConsoleUI.WriteBullet($"Warning: --name parameter '{name}' differs from skill metadata name '{skillName}'", ConsoleColor.Yellow);
+            ConsoleUI.WriteBullet($"Using name from metadata: '{skillName}'", ConsoleColor.Yellow);
             Console.WriteLine();
         }
 
@@ -154,7 +175,7 @@ public static class SkillCommandHandlers
             Console.WriteLine();
             ConsoleUI.WriteSection("Next Steps");
             ConsoleUI.WriteBullet($"Review the generated skill at: {outputPath}", ConsoleColor.Cyan);
-            ConsoleUI.WriteBullet($"Edit SKILL.md and metadata.yaml as needed", ConsoleColor.Cyan);
+            ConsoleUI.WriteBullet($"Edit SKILL.md frontmatter and content as needed", ConsoleColor.Cyan);
             ConsoleUI.WriteBullet($"Apply the skill: srectl skill apply --name {skillSpec?.Name}", ConsoleColor.Cyan);
         }
         catch (Exception ex)
@@ -347,14 +368,17 @@ public static class SkillCommandHandlers
 
             try
             {
+                // Check for legacy metadata.yaml BEFORE saving (SaveAsync will delete it)
+                var oldMetadataPath = Path.Combine(skillPath, ExtendedSkillHelper.MetadataFileName);
+                var hadLegacyMetadata = File.Exists(oldMetadataPath);
+
                 DebugLogger.Debug("SkillSync", $"Saving skill '{name}' to: {skillPath}");
                 await skill.SaveAsync(skillPath);
 
                 ConsoleUI.WriteStatus(true, $"Successfully synced skill '{name}' to {skillPath}");
                 Console.WriteLine();
                 ConsoleUI.WriteSection("Synced Files:");
-                ConsoleUI.WriteBullet($"{Path.Combine(skillPath, ExtendedSkillHelper.MetadataFileName)}", ConsoleColor.Green, 3);
-                ConsoleUI.WriteBullet($"{Path.Combine(skillPath, ExtendedSkillHelper.SkillContentFileName)}", ConsoleColor.Green, 3);
+                ConsoleUI.WriteBullet($"{Path.Combine(skillPath, ExtendedSkillHelper.SkillContentFileName)} (with frontmatter)", ConsoleColor.Green, 3);
 
                 if (skill.Spec.AdditionalFiles != null && skill.Spec.AdditionalFiles.Count > 0)
                 {
@@ -365,6 +389,14 @@ public static class SkillCommandHandlers
                             ConsoleUI.WriteBullet($"{Path.Combine(skillPath, file.FilePath)}", ConsoleColor.Green, 3);
                         }
                     }
+                }
+
+                // Warn if old metadata.yaml file existed (it was deleted during save)
+                if (hadLegacyMetadata)
+                {
+                    Console.WriteLine();
+                    ConsoleUI.WriteInfo($"⚠️  Note: '{ExtendedSkillHelper.MetadataFileName}' was deleted.", ConsoleColor.Yellow);
+                    ConsoleUI.WriteInfo($"    Skill metadata is now stored in SKILL.md frontmatter.", ConsoleColor.Yellow);
                 }
 
                 Console.WriteLine();
@@ -399,8 +431,9 @@ public static class SkillCommandHandlers
 
         var skillName = parseResult.GetValue(SkillCommandOptions.Delete.NameOption);
         var dryRun = parseResult.GetValue(SkillCommandOptions.Delete.DryRunOption);
+        var deleteLocalFiles = parseResult.GetValue(SkillCommandOptions.Delete.DeleteLocalFilesOption);
 
-        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, DryRun: {dryRun}");
+        DebugLogger.Debug("Parameters", $"SkillName: {skillName}, DryRun: {dryRun}, DeleteLocalFiles: {deleteLocalFiles}");
 
         // Null check (validation should have caught this, but be defensive)
         if (string.IsNullOrWhiteSpace(skillName))
@@ -428,7 +461,7 @@ public static class SkillCommandHandlers
             // After successful server deletion (not dry-run), offer to clean up local files
             if (!dryRun)
             {
-                OfferLocalSkillCleanup(skillName);
+                OfferLocalSkillCleanup(skillName, deleteLocalFiles);
             }
 
             return 0;
@@ -473,31 +506,20 @@ public static class SkillCommandHandlers
         Directory.CreateDirectory(outputPath);
         DebugLogger.Debug("SkillCreate", $"Created directory: {outputPath}");
 
-        // Create ExtendedSkillV2 model for metadata.yaml
-        var extendedSkill = ExtendedSkillHelper.CreateSkill(skillName, description);
-
-        // Write metadata.yaml
-        var metadataPath = Path.Combine(outputPath, ExtendedSkillHelper.MetadataFileName);
-        var metadataYaml = extendedSkill.ToYaml();
-        await File.WriteAllTextAsync(metadataPath, metadataYaml, System.Text.Encoding.UTF8, cancellationToken);
-        DebugLogger.Debug("SkillCreate", $"Created {ExtendedSkillHelper.MetadataFileName}: {metadataPath}");
-
-        // Create SKILL.md with template
-        var skillMdContent = ExtendedSkillHelper.CreateSkillContent(skillName);
+        // Create SKILL.md with frontmatter (new format)
+        var skillMdContent = ExtendedSkillHelper.CreateSkillContent(skillName, description);
         var skillMdPath = Path.Combine(outputPath, ExtendedSkillHelper.SkillContentFileName);
         await File.WriteAllTextAsync(skillMdPath, skillMdContent, System.Text.Encoding.UTF8, cancellationToken);
-        DebugLogger.Debug("SkillCreate", $"Created SKILL.md: {skillMdPath}");
+        DebugLogger.Debug("SkillCreate", $"Created SKILL.md with frontmatter: {skillMdPath}");
 
         ConsoleUI.WriteStatus(true, $"Successfully created skill '{skillName}' at {outputPath}");
         Console.WriteLine();
         ConsoleUI.WriteSection("Created Files:");
-        ConsoleUI.WriteBullet(metadataPath, ConsoleColor.Green, 3);
-        ConsoleUI.WriteBullet(skillMdPath, ConsoleColor.Green, 3);
+        ConsoleUI.WriteBullet($"{skillMdPath} (with frontmatter)", ConsoleColor.Green, 3);
 
         Console.WriteLine();
         ConsoleUI.WriteSection("Next Steps");
-        ConsoleUI.WriteBullet("Edit metadata.yaml", "Update the description and add tools if needed", ConsoleColor.Cyan);
-        ConsoleUI.WriteBullet("Edit SKILL.md", "Add skill instructions and capabilities", ConsoleColor.Cyan);
+        ConsoleUI.WriteBullet("Edit SKILL.md", "Update the description, add tools, and skill instructions", ConsoleColor.Cyan);
         ConsoleUI.WriteBullet("Add additional files", "Include specialized markdown files and reference them in SKILL.md", ConsoleColor.Cyan);
         ConsoleUI.WriteBullet("Apply the skill", $"srectl skill apply --name {skillName}", ConsoleColor.Cyan);
 
@@ -507,7 +529,9 @@ public static class SkillCommandHandlers
     /// <summary>
     /// Offers to clean up local skill files after successful server deletion.
     /// </summary>
-    private static void OfferLocalSkillCleanup(string skillName)
+    /// <param name="skillName">The name of the skill to clean up.</param>
+    /// <param name="deleteLocalFiles">If true, delete without prompting. If false, skip without prompting. If null, prompt for confirmation.</param>
+    private static void OfferLocalSkillCleanup(string skillName, bool? deleteLocalFiles = null)
     {
         var skillDirectory = ExtendedSkillHelper.FindSkillDirectory(skillName);
 
@@ -522,7 +546,10 @@ public static class SkillCommandHandlers
         ConsoleUI.WriteBullet(skillDirectory, ConsoleColor.Gray);
         Console.WriteLine();
 
-        if (ConsoleUI.Confirm("Also delete local configuration files?", false))
+        // Determine whether to delete: explicit true, explicit false, or prompt
+        var shouldDelete = deleteLocalFiles ?? ConsoleUI.Confirm("Also delete local configuration files?", false);
+
+        if (shouldDelete)
         {
             try
             {
@@ -605,7 +632,7 @@ public static class SkillCommandHandlers
             if (skillDir == null)
             {
                 ConsoleUI.WriteStatus(false, $"Skill directory not found for '{skillName}'");
-                ConsoleUI.WriteInfo($"Expected: skills/{skillName}/ with metadata.yaml and SKILL.md", ConsoleColor.Gray);
+                ConsoleUI.WriteInfo($"Expected: skills/{skillName}/ with SKILL.md (with frontmatter or metadata.yaml)", ConsoleColor.Gray);
                 return 1;
             }
             directoriesToMigrate.Add(skillDir);
@@ -617,7 +644,7 @@ public static class SkillCommandHandlers
             return 1;
         }
 
-        ConsoleUI.WriteSection($"Migrating {directoriesToMigrate.Count} skill(s) from V1 to V2{(dryRun ? " (DRY RUN)" : "")}");
+        ConsoleUI.WriteSection($"Migrating {directoriesToMigrate.Count} skill(s) to frontmatter format{(dryRun ? " (DRY RUN)" : "")}");
         Console.WriteLine();
 
         int migratedCount = 0;
@@ -629,93 +656,44 @@ public static class SkillCommandHandlers
             try
             {
                 var dirName = Path.GetFileName(skillDir);
-                var metadataPath = Path.Combine(skillDir, ExtendedSkillHelper.MetadataFileName);
+                var format = ExtendedSkillHelper.DetectSkillFormat(skillDir);
 
-                if (!File.Exists(metadataPath))
+                switch (format)
                 {
-                    ConsoleUI.WriteBullet($"{dirName}: No {ExtendedSkillHelper.MetadataFileName} found", ConsoleColor.Yellow);
-                    skippedCount++;
-                    continue;
+                    case ExtendedSkillHelper.SkillMetadataFormat.Frontmatter:
+                        ConsoleUI.WriteBullet($"{dirName}: Already using frontmatter format", ConsoleColor.Gray);
+                        skippedCount++;
+                        continue;
+
+                    case ExtendedSkillHelper.SkillMetadataFormat.Unknown:
+                        ConsoleUI.WriteBullet($"{dirName}: Unknown or invalid skill format", ConsoleColor.Yellow);
+                        skippedCount++;
+                        continue;
+
+                    case ExtendedSkillHelper.SkillMetadataFormat.MetadataYaml:
+                        // Proceed with migration
+                        break;
                 }
 
-                var content = await File.ReadAllTextAsync(metadataPath);
+                // Load skill from metadata.yaml format
+                var (skill, error) = await ExtendedSkillV2.LoadFromDirectoryAsync(skillDir);
 
-                // Try to detect if this is V1 or V2
-                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
-                    .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
-                    .IgnoreUnmatchedProperties()
-                    .Build();
-
-                var yamlDict = deserializer.Deserialize<Dictionary<string, object>>(content);
-                var apiVersion = yamlDict.TryGetValue("api_version", out var apiObj) ? apiObj?.ToString() : null;
-                var kind = yamlDict.TryGetValue("kind", out var kindObj) ? kindObj?.ToString() : null;
-
-                // Check if already V2
-                if (string.Equals(apiVersion, Models.YamlApiVersion.V2, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(kind, Models.ResourceModel.ResourceKind.SkillV2, StringComparison.OrdinalIgnoreCase))
+                if (skill == null || error != null)
                 {
-                    ConsoleUI.WriteBullet($"{dirName}: Already V2 format", ConsoleColor.Gray);
-                    skippedCount++;
-                    continue;
-                }
-
-                // Check if this is V1 format (no api_version/kind or V1)
-                bool isV1 = string.IsNullOrEmpty(apiVersion) || string.IsNullOrEmpty(kind) ||
-                           string.Equals(apiVersion, Models.YamlApiVersion.V1, StringComparison.OrdinalIgnoreCase);
-
-                if (!isV1)
-                {
-                    ConsoleUI.WriteBullet($"{dirName}: Unknown format", ConsoleColor.Yellow);
-                    skippedCount++;
-                    continue;
-                }
-
-                // Parse as V1
-                var v1Skill = ExtendedSkillV1.ParseYaml(content);
-                if (v1Skill == null)
-                {
-                    ConsoleUI.WriteBullet($"{dirName}: Failed to parse V1 format", ConsoleColor.Red);
+                    ConsoleUI.WriteBullet($"{dirName}: Failed to load - {error ?? "Unknown error"}", ConsoleColor.Red);
                     errorCount++;
                     continue;
                 }
 
-                // Load SKILL.md content
-                var skillMdPath = Path.Combine(skillDir, ExtendedSkillHelper.SkillContentFileName);
-                if (File.Exists(skillMdPath))
-                {
-                    v1Skill.SkillMdContent = await File.ReadAllTextAsync(skillMdPath);
-                }
-
-                // Load additional files content if they exist
-                if (v1Skill.AdditionalFiles != null && v1Skill.AdditionalFiles.Count > 0)
-                {
-                    foreach (var additionalFile in v1Skill.AdditionalFiles)
-                    {
-                        if (string.IsNullOrWhiteSpace(additionalFile.FilePath))
-                        {
-                            continue;
-                        }
-
-                        var additionalFilePath = Path.Combine(skillDir, additionalFile.FilePath);
-                        if (File.Exists(additionalFilePath))
-                        {
-                            additionalFile.Content = await File.ReadAllTextAsync(additionalFilePath);
-                        }
-                    }
-                }
-
-                // Convert to V2
-                var v2Skill = Converters.ExtendedSkillConverter.ConvertToV2(v1Skill);
-
                 if (dryRun)
                 {
-                    ConsoleUI.WriteBullet($"{dirName}: Would migrate to V2", ConsoleColor.Green);
+                    ConsoleUI.WriteBullet($"{dirName}: Would migrate to frontmatter format", ConsoleColor.Green);
                 }
                 else
                 {
-                    // Save V2 metadata.yaml (overwrites original)
-                    await v2Skill.SaveYamlAsync(metadataPath);
-                    ConsoleUI.WriteBullet($"{dirName}: Migrated to V2", ConsoleColor.Green);
+                    // Save using new frontmatter format (this also deletes metadata.yaml)
+                    await skill.SaveAsync(skillDir);
+                    ConsoleUI.WriteBullet($"{dirName}: Migrated to frontmatter format", ConsoleColor.Green);
                 }
 
                 migratedCount++;

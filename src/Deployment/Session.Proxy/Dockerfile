@@ -53,6 +53,7 @@ RUN if [ -d /app/session-proxy/mcp-tools ]; then \
 RUN apt-get install -y git && \
     git clone https://github.com/howang-ms/azure-devops-mcp.git /azdevop && \
     cd /azdevop && \
+    git checkout tags/26.1.0 && \
     npm install && \
     npm run build && \
     mkdir -p /app/mcp-tools && \

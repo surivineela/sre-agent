@@ -10,11 +10,14 @@ import { DeploymentProvisioningStates, ResourceTypes } from '../../../Common/Con
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { useAuth } from '../../../Common/Contexts/AuthContext';
 import { useNotifications } from '../../../Common/Contexts/NotificationContext';
+import { SpecialControlValue } from '../../../Common/Contracts/Amplitude';
 import { ArmObj } from '../../../Common/Contracts/Arm';
 import { CoreRBACRoleIds, getRoleIdsForResourceGroup, RBACRoleIds } from '../../../Common/Contracts/Permissions';
 import { Response } from '../../../Common/Contracts/Response';
 import { Agent, AgentAccessLevel, AgentMode } from '../../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../../Common/Contracts/Telemetry';
+import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
+import { SettingNames, useConfigSetting } from '../../../Common/Hooks/useConfigSettings';
 import { useTelemetry } from '../../../Common/Hooks/useTelemetry';
 import { parseArmId } from '../../../Common/Utilities/ArmId';
 import { ArmTemplateBuilder } from '../../../Common/Utilities/ArmTemplateBuilder/ArmTemplateBuilder';
@@ -37,8 +40,6 @@ import { newShortGuid } from '../../../Common/Utilities/Guid';
 import { getCanonicalLocation, getResourceLocation } from '../../../Common/Utilities/Location';
 import { AgentCreateDeploymentNotificationResources, PortalResources } from '../../../Strings/Resources';
 import { ApplicationInsightsSetup, SreAgentCreateFormProps } from './CreateAgentDialog';
-import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
-import { SpecialControlValue } from '../../../Common/Contracts/Amplitude';
 
 const ARM_DEPLOYMENT_NAME_LIMIT = 64;
 
@@ -83,6 +84,8 @@ export const useSreAgentCreate = ({
     const deploymentClient = useMemo(() => DeploymentClient.getInstance(TelemetrySource.SreAgentCreate), []);
     const resourceGroupClient = useMemo(() => ResourceGroupClient.getInstance(TelemetrySource.SreAgentCreate), []);
     const agentClient = useMemo(() => SreAgentClient.getInstance(TelemetrySource.SreAgentCreate), []);
+
+    const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
 
     const handleFailedDeployment = useCallback(
         (deploymentName: string, error?: unknown, notificationId?: string, title?: string, description?: string) => {
@@ -256,26 +259,27 @@ export const useSreAgentCreate = ({
                             const errorMessage = getArmErrorMessage(deploymentResponse?.content?.properties?.error);
 
                             // Determine if this is a provisioning failure (deployment in-flight) or a validation/pre-deployment error
-            const hadStart = createStartTimeRef.current !== undefined;
-            const isProvisioningFailure = isDeploying && hadStart;
-            const durationMs = isProvisioningFailure && createStartTimeRef.current ? Date.now() - createStartTimeRef.current : undefined;
-            if (isProvisioningFailure) {
-                logOperationEvent(
-                    {
-                        targetType: 'create',
-                        targetAction: 'deploy',
-                        targetName: 'createAgentProvision',
-                        targetFriendlyName: 'Create Agent Provision',
-                    },
-                    {
-                        status: 'failed',
-                        failureType: 'provisioning',
-                        resourceId: agentResourceId,
-                        errorMessage,
-                        ...(durationMs !== undefined ? { durationMs } : {}),
-                    }
-                );
-            }
+                            const hadStart = createStartTimeRef.current !== undefined;
+                            const isProvisioningFailure = isDeploying && hadStart;
+                            const durationMs =
+                                isProvisioningFailure && createStartTimeRef.current ? Date.now() - createStartTimeRef.current : undefined;
+                            if (isProvisioningFailure) {
+                                logOperationEvent(
+                                    {
+                                        targetType: 'create',
+                                        targetAction: 'deploy',
+                                        targetName: 'createAgentProvision',
+                                        targetFriendlyName: 'Create Agent Provision',
+                                    },
+                                    {
+                                        status: 'failed',
+                                        failureType: 'provisioning',
+                                        resourceId: agentResourceId,
+                                        errorMessage,
+                                        ...(durationMs !== undefined ? { durationMs } : {}),
+                                    }
+                                );
+                            }
 
                             return {
                                 complete: true,
@@ -312,7 +316,16 @@ export const useSreAgentCreate = ({
                 );
             }
         },
-        [handleFailedDeployment, waitForAgentSiteLoad, deploymentClient, notifications, intl, onDeploymentStarted, isDeploying, logOperationEvent]
+        [
+            handleFailedDeployment,
+            waitForAgentSiteLoad,
+            deploymentClient,
+            notifications,
+            intl,
+            onDeploymentStarted,
+            isDeploying,
+            logOperationEvent,
+        ]
     );
 
     const deployTemplate = useCallback(
@@ -424,6 +437,7 @@ export const useSreAgentCreate = ({
                 deploymentGuid: dateTime,
                 agentSpaceId: agentSpaceId || undefined,
                 createNewAppInsights: values.createNewAppInsights === ApplicationInsightsSetup.New,
+                defaultModelProvider: showDefaultModelPicker ? values.defaultModelProvider : undefined,
             });
 
             const resourceGroupIdToRoleIds = await getRoleIdsForManagedResourceGroups(
@@ -474,7 +488,7 @@ export const useSreAgentCreate = ({
 
             return builder.getTemplate();
         },
-        [getRoleIdsForManagedResourceGroups, agentSpaceId]
+        [agentSpaceId, showDefaultModelPicker, getRoleIdsForManagedResourceGroups]
     );
 
     const generateParameters = useCallback(
@@ -524,9 +538,15 @@ export const useSreAgentCreate = ({
                 value: user?.objectId ?? '',
             };
 
+            if (showDefaultModelPicker) {
+                parameters[SreAgentParameterName.DefaultModelProvider] = {
+                    value: values.defaultModelProvider,
+                };
+            }
+
             return parameters;
         },
-        [user?.objectId]
+        [showDefaultModelPicker, user?.objectId]
     );
 
     const createResourceGroup = useCallback(
@@ -590,6 +610,7 @@ export const useSreAgentCreate = ({
                     location: values.location,
                     isResourceGroupNew: values.isResourceGroupNew,
                     name: values.name,
+                    defaultModelProvider: values.defaultModelProvider,
                 },
             });
 
@@ -744,8 +765,11 @@ export const useSreAgentCreate = ({
             maxResourceGroupsError: Yup.boolean().notRequired(),
             mode: Yup.string().oneOf(Object.values(AgentMode)).notRequired(),
             permissionsLevel: Yup.string().oneOf(Object.values(AgentAccessLevel)).notRequired(),
+            defaultModelProvider: showDefaultModelPicker
+                ? Yup.string().required(intl.formatMessage(PortalResources.fieldRequired))
+                : Yup.string().notRequired(),
         });
-    }, [intl, permissionsClient, agentClient]);
+    }, [intl, showDefaultModelPicker, permissionsClient, agentClient]);
 
     const initialValues = useMemo(() => {
         return {
@@ -766,6 +790,7 @@ export const useSreAgentCreate = ({
             createNewAppInsights: ApplicationInsightsSetup.New,
             existingAppInsightsId: '',
             appInsightsSubscriptionId: '',
+            defaultModelProvider: '',
         };
     }, [agentSpaceId, agentSpaceLocation]);
 

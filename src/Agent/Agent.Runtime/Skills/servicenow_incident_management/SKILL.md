@@ -1,3 +1,19 @@
+---
+name: servicenow_incident_management
+description: |
+  Load this skill when the user requests to:
+  - Acknowledge or take ownership of a ServiceNow incident (INC*).
+  - Add internal (work notes) or external (comments) updates.
+  - Decide between mitigation vs full resolution, or clarify correct state transition.
+  - Provide or improve resolution / close notes, or choose a resolution code.
+  - Structure high‑quality audit entries (who/what/when/why/next).
+  Do NOT load for purely Azure resource discovery or diagnostics that do not involve ServiceNow incident state or communication.
+tools:
+  - PostServiceNowDiscussionEntry
+  - AcknowledgeServiceNowIncident
+  - ResolveServiceNowIncident
+---
+
 # ServiceNow Incident Management
 
 ## Purpose
@@ -120,4 +136,3 @@ Before update & after update confirm:
 ## Completion Signal
 
 After successful action: brief summary (state changed / note added) + next step or "No further action required" if resolved.
-

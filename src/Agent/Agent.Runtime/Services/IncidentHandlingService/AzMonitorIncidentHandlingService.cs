@@ -244,12 +244,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             return (false, null);
         }
 
-        // If target resource is application insights or log analytics workspace, prompt user for additional input.
-        if (await ShouldSkipDueToTargetResourceInputAsync(alert, alertDocumentId))
-        {
-            return (true, existingActiveThread);
-        }
-
         // Handle retry investigation logic and user input prompting
         var shouldReturn = await HandleRetryLogicAsync(
             alert, alertDocumentId, maxAutomatedInvestigationAttempts, existingActiveThread!);
@@ -409,12 +403,6 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
     {
         // Create incident thread with handler awareness
         var (thread, agentContext) = await CreateHandlerAwareIncidentThread(alert, handlerDoc, filterPayload);
-
-        if (RequiresTargetResourceInput(alert))
-        {
-            await HandleTargetResourceInputRequestAsync(alert, thread, agentContext);
-            return thread.Id;
-        }
 
         await InitiateIncidentInvestigationAsync(alert, thread, agentContext, handlerDoc);
         return thread.Id;

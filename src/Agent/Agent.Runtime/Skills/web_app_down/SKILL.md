@@ -1,3 +1,30 @@
+---
+name: web_app_down
+description: |
+  Web App Downtime Diagnosis skill.
+  Load this skill when the user asks "why is my web app down/slow", reports sustained 5xx spikes, degraded availability (<99.9%), startup failures after a deployment or slot swap, or requests a root cause analysis (RCA) for Azure App Service (Web App) health/performance issues.
+  Not for simple restart/"why did it restart" scenarios (use the `web_app_restart` skill) and not for generic resource listing.
+  Purpose: provide a structured, evidence-based workflow: availability check → resource & thread metrics → correlation with deployment swap/activity → exceptions & logs → root cause classification → SINGLE mitigation path → final summary.
+tools:
+  - GetResourceDetailedProperties
+  - GetApplicationComponentsSummary
+  - GetFunctionAppRequestAvailability
+  - GetWebAppCpuMetrics
+  - GetMemoryMetrics
+  - GetThreadMetrics
+  - PlotTimeSeriesData
+  - PlotBarChart
+  - PlotScatter
+  - GetDeploymentActivity
+  - GetStackTracesOfNMostCommonExceptions
+  - GetAppConsoleLogs
+  - ScaleUpAppServicePlanBySku
+  - ShouldTriggerHighMemoryScenario
+  - ShouldTriggerHighCPUScenario
+  - CloseAzureMonitorAlert
+  - PerformDeploymentSwapForApp
+---
+
 # Azure Web App Downtime Diagnosis Skill
 
 Investigate Azure App Service (Web App) availability degradation (downtime, slowness, 5xx spikes, post‑deployment instability) and produce a concise, evidence‑based RCA with one clear mitigation path.
@@ -92,4 +119,3 @@ Availability 96.2% (chart). CPU spikes to 95% overlapping error window; memory s
 ## Quality & Conciseness Principles
 
 Adhere to global system prompt (Safety > Accuracy > Conciseness > Efficiency). Fetch only necessary data. Provide direct RCA first, then supporting evidence. Avoid mentioning tool names to user.
-

@@ -100,7 +100,6 @@ public class AgentMemory
             StepsFollowed = trajectoryData.StepsFollowed ?? string.Empty,
             SymptomsObserved = trajectoryData.SymptomsObserved ?? string.Empty,
             InvestigationCompleteness = trajectoryData.InvestigationCompleteness,
-            InvestigationOutcome = trajectoryData.InvestigationOutcome ?? string.Empty,
             IndexedAt = DateTimeOffset.UtcNow,
             Pitfalls = trajectoryData.Pitfalls ?? string.Empty,
             Vector = embedding

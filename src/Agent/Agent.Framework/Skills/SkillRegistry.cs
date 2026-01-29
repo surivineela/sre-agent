@@ -120,16 +120,43 @@ public class SkillRegistry(
 
     private async Task LoadSystemSkillAsync(string skillDirectory)
     {
+        var skillMdPath = Path.Combine(skillDirectory, "SKILL.md");
         var metadataPath = Path.Combine(skillDirectory, "metadata.yaml");
 
-        if (!File.Exists(metadataPath))
+        YamlSkillDescriptor? descriptor = null;
+
+        // Try new format first: SKILL.md with frontmatter
+        if (File.Exists(skillMdPath))
         {
-            logger.LogInternalWarning("Skill directory '{SkillDirectory}' does not contain metadata.yaml. Skipping.", skillDirectory);
-            return;
+            var skillMdContent = await File.ReadAllTextAsync(skillMdPath);
+            var frontmatterResult = SkillFrontmatter.Parse(skillMdContent);
+
+            if (frontmatterResult.ParsingException != null)
+            {
+                logger.LogInternalWarning(frontmatterResult.ParsingException, "Skill directory '{SkillDirectory}' encountered an error while parsing SKILL.md frontmatter: {Error}. Skipping.", skillDirectory, frontmatterResult.ParsingException.Message);
+                return;
+            }
+
+            if (frontmatterResult.HasFrontmatter)
+            {
+                descriptor = frontmatterResult.Metadata;
+                logger.LogInternalInformation("Loaded skill metadata from SKILL.md frontmatter in '{SkillDirectory}'", skillDirectory);
+            }
         }
 
-        var yamlContent = await File.ReadAllTextAsync(metadataPath);
-        var descriptor = YamlSkillDescriptor.FromYaml(yamlContent);
+        // Fall back to old format: metadata.yaml (deprecated)
+        if (descriptor == null)
+        {
+            if (!File.Exists(metadataPath))
+            {
+                logger.LogInternalWarning("Skill directory '{SkillDirectory}' does not contain valid SKILL.md frontmatter or metadata.yaml. Skipping.", skillDirectory);
+                return;
+            }
+
+            var yamlContent = await File.ReadAllTextAsync(metadataPath);
+            descriptor = YamlSkillDescriptor.FromYaml(yamlContent);
+            logger.LogInternalWarning("Skill '{SkillDirectory}' uses deprecated metadata.yaml format. Consider migrating to SKILL.md frontmatter.", skillDirectory);
+        }
 
         if (string.IsNullOrEmpty(descriptor.Name))
         {
@@ -143,13 +170,37 @@ public class SkillRegistry(
         logger.LogInternalInformation("Loaded skill '{SkillName}' from {SkillDirectory}", skill.Name, skillDirectory);
     }
 
-    public string GetSkillsMetadataForPrompt(bool includeSystemSkills)
+    public string GetSkillsMetadataForPrompt(bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
+        // If allowedSkills is an empty list, return no skills
+        if (allowedSkills is { Count: 0 })
+        {
+            return "No skills available.";
+        }
+
         List<ISkill> includedSkills = [.. _extendedSkills.Values];
 
         if (includeSystemSkills)
         {
             includedSkills.AddRange(_systemSkills.Values.Where(ShouldIncludeSystemSkill));
+        }
+
+        // Apply allowedSkills filter if specified
+        if (allowedSkills is not null)
+        {
+            var allowedSet = new HashSet<string>(allowedSkills, StringComparer.OrdinalIgnoreCase);
+
+            // Log warnings for skill names that don't exist
+            var allSkillNames = includedSkills.Select(s => s.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var allowedName in allowedSkills)
+            {
+                if (!allSkillNames.Contains(allowedName))
+                {
+                    logger.LogWarning("Allowed skill '{SkillName}' does not exist in the skill registry", allowedName);
+                }
+            }
+
+            includedSkills = [.. includedSkills.Where(s => allowedSet.Contains(s.Name))];
         }
 
         if (includedSkills.Count == 0)
@@ -191,8 +242,25 @@ public class SkillRegistry(
         return sb.ToString();
     }
 
-    public string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills)
+    public string ReadSkillFile(string skillName, string filePath, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
+        // If allowedSkills is an empty list, no skills are available
+        if (allowedSkills is { Count: 0 })
+        {
+            return $"Error: Skill '{skillName}' not found. No skills are available (allowed_skills is empty).";
+        }
+
+        // Check if skill is in the allowed list (when specified)
+        if (allowedSkills is not null)
+        {
+            var isAllowed = allowedSkills.Any(s => string.Equals(s, skillName, StringComparison.OrdinalIgnoreCase));
+            if (!isAllowed)
+            {
+                var availableSkills = string.Join(", ", allowedSkills);
+                return $"Error: Skill '{skillName}' is not in the allowed skills list. Available skills: {availableSkills}";
+            }
+        }
+
         ISkill? skill = null;
 
         if (_extendedSkills.TryGetValue(skillName, out var extSkill))
@@ -208,13 +276,7 @@ public class SkillRegistry(
 
         if (skill == null)
         {
-            var availableSkillNames = _extendedSkills.Keys.ToList();
-            if (includeSystemSkills)
-            {
-                availableSkillNames.AddRange(_systemSkills.Values
-                    .Where(ShouldIncludeSystemSkill)
-                    .Select(s => s.Name));
-            }
+            var availableSkillNames = GetAvailableSkillNames(includeSystemSkills, allowedSkills);
             var availableSkills = string.Join(", ", availableSkillNames);
             return $"Error: Skill '{skillName}' not found. Available skills: {availableSkills}";
         }
@@ -252,8 +314,24 @@ public class SkillRegistry(
         }
     }
 
-    public ISkill? GetSkillByName(string name, bool includeSystemSkills)
+    public ISkill? GetSkillByName(string name, bool includeSystemSkills, IReadOnlyList<string>? allowedSkills = null)
     {
+        // If allowedSkills is an empty list, no skills are available
+        if (allowedSkills is { Count: 0 })
+        {
+            return null;
+        }
+
+        // Check if skill is in the allowed list (when specified)
+        if (allowedSkills is not null)
+        {
+            var isAllowed = allowedSkills.Any(s => string.Equals(s, name, StringComparison.OrdinalIgnoreCase));
+            if (!isAllowed)
+            {
+                return null;
+            }
+        }
+
         if (_extendedSkills.TryGetValue(name, out var extSkill))
         {
             return extSkill;
@@ -267,6 +345,29 @@ public class SkillRegistry(
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets the list of available skill names based on filtering criteria.
+    /// </summary>
+    private List<string> GetAvailableSkillNames(bool includeSystemSkills, IReadOnlyList<string>? allowedSkills)
+    {
+        var availableSkillNames = _extendedSkills.Keys.ToList();
+        if (includeSystemSkills)
+        {
+            availableSkillNames.AddRange(_systemSkills.Values
+                .Where(ShouldIncludeSystemSkill)
+                .Select(s => s.Name));
+        }
+
+        // Apply allowedSkills filter if specified
+        if (allowedSkills is not null)
+        {
+            var allowedSet = new HashSet<string>(allowedSkills, StringComparer.OrdinalIgnoreCase);
+            availableSkillNames = [.. availableSkillNames.Where(n => allowedSet.Contains(n))];
+        }
+
+        return availableSkillNames;
     }
 
     public void Dispose()

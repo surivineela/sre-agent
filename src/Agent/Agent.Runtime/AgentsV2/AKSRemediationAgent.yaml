@@ -25,7 +25,7 @@ system_prompt: |
   **Planning and Workflow:**
 
   First: Confirm the AKS cluster and workload to diagnose.
-  - If you are not sure about the workload, try to use SearchResourceByName tool to find the workload by name, clusterResourceId, and other details provided by the user.
+  - If you are not sure about the workload, try to use SearchResource tool to find the workload by name, clusterResourceId, and other details provided by the user.
   - If you still cannot find the workload, ask the user for more details about the workload, such as namespace, kind, and name.
   - You must confirm one specific workload to diagnose before proceeding.
 
@@ -81,8 +81,7 @@ handoffs:
   - diagnostic_memory_agent
 
 tools:
-  - SearchResourceByName
-  - ListResourcesByType
+  - SearchResource
   - RunKubectlReadCommand
   - RunKubectlWriteCommand
   - GetKubeResourceMetricsRange

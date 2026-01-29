@@ -125,11 +125,10 @@ public class ReasoningLoop : IDisposable
     // user-required action tracking
     private ReasoningLoopIterationResult? LastIterationResult { get; set; } = null;
 
-    // tool output truncation
-    private readonly IToolOutputTruncationService _toolOutputTruncationService;
+    // tool output processing
+    private readonly IToolOutputProcessService _toolOutputProcessService;
 
-    // tool output storage for saving chat history during compaction
-    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IThreadFileStorageService _threadFileStorageService;
 
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
@@ -157,8 +156,8 @@ public class ReasoningLoop : IDisposable
         FeatureConfigModel featureConfig,
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
-        IToolOutputTruncationService toolOutputTruncationService,
-        IToolOutputStorage toolOutputStorage,
+        IToolOutputProcessService toolOutputProcessService,
+        IThreadFileStorageService threadFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
         bool modeSwitchEnabled)
@@ -216,8 +215,8 @@ public class ReasoningLoop : IDisposable
         _logger.LogInternalInformation("[{ThreadId}] Active Experiment Variants: {experimentVariants}",
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
-        _toolOutputTruncationService = toolOutputTruncationService;
-        _toolOutputStorage = toolOutputStorage;
+        _toolOutputProcessService = toolOutputProcessService;
+        _threadFileStorageService = threadFileStorageService;
     }
 
     public virtual void CancelCurrentOperation()
@@ -518,7 +517,7 @@ public class ReasoningLoop : IDisposable
                             // process /compact command
                             if (chatMessage.Message.Text.StartsWith(CompactMarker, StringComparison.OrdinalIgnoreCase))
                             {
-                                await HandleCompactCommandAsync(agentChatHistory, chatMessage.Message.Text, cancellationToken);
+                                await HandleCompactCommandAsync(chatMessage.Message.Text, cancellationToken);
                                 return;
                             }
 
@@ -625,7 +624,7 @@ public class ReasoningLoop : IDisposable
                                         var funcCallName = functionCall.Messages.Where(m => m.Role == ChatRole.Assistant)
                                             .SelectMany(m => m.Contents.OfType<FunctionCallContent>())
                                             .Where(m => m.CallId == functionResult.CallId).FirstOrDefault()?.Name ?? "";
-                                        var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                        var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                             _context.ThreadId,
                                             funcCallName,
                                             functionResult.Result?.ToString() ?? "",
@@ -717,6 +716,16 @@ public class ReasoningLoop : IDisposable
                     await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
                     // only end the root span if we didn't continue the loop
                     TracerExtensions.EndAndClear(ref _rootSpan);
+                }
+
+                var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+                if (thread != null && thread.Source == ThreadSource.ScheduledTask)
+                {
+                    await CompactChatAsync(
+                        compactInstructions: "",
+                        compactReason: CompactReason.ScheduledTaskAutoCompact,
+                        notifyUser: false,
+                        cancellationToken);
                 }
 
                 if (_context.ContextState == ContextStateEnum.Processing)
@@ -951,7 +960,7 @@ public class ReasoningLoop : IDisposable
                 hooks: runHooks,
                 displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
                 activeSkills: GetActiveSkills(_currentAgent),
-                toolOutputTruncationService: _toolOutputTruncationService,
+                toolOutputProcessService: _toolOutputProcessService,
                 cancellationToken: cancellationToken
             );
 
@@ -1012,6 +1021,12 @@ public class ReasoningLoop : IDisposable
                             Output = handoffOutput
                         });
                     }
+                    else if (toolCall.Tool.UnderlyingMethod?.Name == nameof(ViewImagePluginDefinition.ViewImage))
+                    {
+                        // Handle ViewImage tool - intercept and load image from thread storage
+                        var viewImageResult = await HandleViewImageToolAsync(toolCall, cancellationToken);
+                        toolResults.Add(viewImageResult);
+                    }
                     else
                     {
                         var checkWriteActionResult = CheckWriteActionInReadOnlyMode(toolCall);
@@ -1058,7 +1073,7 @@ public class ReasoningLoop : IDisposable
                                         {
                                             // Unwrap cli tool output for better truncation handling
                                             object? result = isValidCliToolResult ? cliToolExecutionResult!.CliExecutionResult.Output : functionResult;
-                                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                                            var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
                                                 toolCall.Tool,
                                                 result,
@@ -1169,7 +1184,7 @@ public class ReasoningLoop : IDisposable
                             context: _context,
                             hooks: runHooks,
                             displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
-                            toolOutputTruncationService: _toolOutputTruncationService,
+                            toolOutputProcessService: _toolOutputProcessService,
                             cancellationToken: cancellationToken
                         );
 
@@ -1386,10 +1401,7 @@ public class ReasoningLoop : IDisposable
             );
         }
         catch (System.ClientModel.ClientResultException ex)
-            when (ex.Status == 429
-                || (ex.Message?.Contains("HTTP 429", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (ex.Message?.Contains("TooManyRequests", StringComparison.OrdinalIgnoreCase) ?? false)
-                || (ex.Message?.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ?? false))
+            when (RateLimitChatClient.IsRateLimit(ex))
         {
             _currentException = ex;
             var parentSpan = _currentAgentSpan ?? _rootSpan;
@@ -1480,6 +1492,103 @@ public class ReasoningLoop : IDisposable
         return Handoff<AgentContext>.GetTransferMessage(handoffReasoning);
     }
 
+    /// <summary>
+    /// Handles the ViewImage tool by downloading the image from thread storage and creating
+    /// a ManualToolCallResult with the image injected as additional messages.
+    /// </summary>
+    private async Task<ManualToolCallResult> HandleViewImageToolAsync(ManualToolCall toolCall, CancellationToken cancellationToken)
+    {
+        string? fileName = null;
+
+        // Extract fileName from tool arguments
+        if (toolCall.FunctionCall.Arguments is not null
+            && toolCall.FunctionCall.Arguments.TryGetValue("fileName", out var fileNameObject))
+        {
+            if (fileNameObject is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.String)
+            {
+                fileName = jsonElement.GetString();
+            }
+            else if (fileNameObject is string fileNameStr)
+            {
+                fileName = fileNameStr;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = "Error: No fileName parameter provided to ViewImage tool."
+            };
+        }
+
+        try
+        {
+            // Download the image from thread storage
+            var filePath = await _threadFileStorageService.DownloadThreadFileAsync(
+                _context.ThreadId,
+                fileName,
+                cancellationToken);
+
+            if (filePath == null)
+            {
+                return new ManualToolCallResult()
+                {
+                    FunctionCall = toolCall.FunctionCall,
+                    Output = $"Error: File '{fileName}' not found in thread storage."
+                };
+            }
+
+            // Read the image bytes
+            var imageBytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            var mimeType = GetImageMimeType(fileName);
+
+            // Create a user message with the image content
+            var imageContent = new List<AIContent>
+            {
+                new TextContent($"Image '{fileName}':"),
+                new DataContent(imageBytes, mimeType)
+            };
+
+            var imageMessage = new ChatMessage(ChatRole.User, imageContent);
+
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = $"Image '{fileName}' loaded.",
+                AdditionalMessages = [imageMessage]
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to load image '{FileName}' for ViewImage tool", fileName);
+            return new ManualToolCallResult()
+            {
+                FunctionCall = toolCall.FunctionCall,
+                Output = $"Error: Failed to load image '{fileName}': {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Gets the MIME type for an image based on its file extension.
+    /// </summary>
+    private static string GetImageMimeType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+        return extension switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            ".svg" => "image/svg+xml",
+            _ => "application/octet-stream" // Default for unknown types
+        };
+    }
+
     // private Task DisplayModelResponse(string t, ModelOutputType responseType)
     // {
     //     if (responseType == ModelOutputType.IntermediateOutput || responseType == ModelOutputType.Debug || responseType == ModelOutputType.ReasoningSummary)
@@ -1498,14 +1607,18 @@ public class ReasoningLoop : IDisposable
     {
         var hooks = new RunHooks<AgentContext>();
 
-        hooks.CompactionStart += (context, agent) =>
+        hooks.CompactionStart += async (context, agent) =>
         {
             _logger.LogInternalInformation("Trace starting Compaction for agent: {subAgentName}.", agent.Name);
             _currentCompactionSpan = _tracer.StartSpan($"compaction", SpanKind.Internal, _currentAgentSpan);
             _currentCompactionSpan.SetAttribute(TraceAttribute.ThreadId, _context.ThreadId.ToString());
             _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentCompactionSpan.SetAttribute(TraceAttribute.OperationName, "Compaction");
-            return Task.CompletedTask;
+
+            // Stream compaction feedback to the frontend
+            await _outboundCommunicationService.NotifyIntermediateUpdate(
+                _context.ThreadId,
+                "Compacting conversation...");
         };
 
         hooks.CompactionEnd += (context, agent) =>
@@ -1575,7 +1688,7 @@ public class ReasoningLoop : IDisposable
                 }
             }
 
-            return tools;
+            return [.. tools.DistinctBy(t => t.Name)];
         };
 
         hooks.AgentStart += (context, agent) =>
@@ -1790,32 +1903,10 @@ public class ReasoningLoop : IDisposable
             _currentGenerationStopwatch = null;
 
             // Build token usage JSON including cached token count if available
-            var cachedTokenCount = 0L;
-            try
-            {
-                if (response?.Usage?.AdditionalCounts is not null)
-                {
-                    response.Usage.AdditionalCounts.TryGetValue("InputTokenDetails.CachedTokenCount", out cachedTokenCount);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalWarning(ex, "Failed to parse cached token count from AdditionalCounts");
-            }
+            var cachedTokenCount = response?.Usage?.CachedInputTokenCount ?? 0L;
 
             // Build token usage JSON including cached token count if available
-            var reasoningTokenCount = 0L;
-            try
-            {
-                if (response?.Usage?.AdditionalCounts is not null)
-                {
-                    response.Usage.AdditionalCounts.TryGetValue("OutputTokenDetails.ReasoningTokenCount", out reasoningTokenCount);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalWarning(ex, "Failed to parse output reasoning token count from AdditionalCounts");
-            }
+            var reasoningTokenCount = response?.Usage?.ReasoningTokenCount ?? 0L;
 
             // get the effective reasoning effort for the request
             var effectiveReasoningEffort = ReasoningConstants.NonReasoningModel;
@@ -2093,7 +2184,7 @@ public class ReasoningLoop : IDisposable
             FunctionResultContent result;
             if (_featureConfig.PartialOutputEnabled)
             {
-                var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
+                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
                 result = new FunctionResultContent(functionCall.CallId, processedOutput);
             }
             else
@@ -2705,7 +2796,7 @@ public class ReasoningLoop : IDisposable
                 return;
             }
 
-            var deleted = await _searchIndexService.DeleteContentsAsync(memories.Select(m => new AgentMemory() { Id = m.Id }).ToList());
+            var deleted = await _searchIndexService.DeleteContentsAsync([.. memories.Select(m => new AgentMemory() { Id = m.Id })]);
 
             var responseText = deleted ? "✅ Agent Memory forgotten: " + memories.First().Chunk : "Failed to forget memory. Please try again.";
 
@@ -2812,15 +2903,42 @@ public class ReasoningLoop : IDisposable
         }
     }
 
-    private async Task HandleCompactCommandAsync(AgentChatHistory agentChatHistory, string userMessage, CancellationToken cancellationToken)
+    private async Task HandleCompactCommandAsync(string userMessage, CancellationToken cancellationToken)
     {
+        // Extract any additional instructions from the user message
+        var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
+        var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
+        await CompactChatAsync(
+            compactInstructions: compactAdditionalInstructions,
+            compactReason: CompactReason.UserCommand,
+            notifyUser: true,
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Compacts the chat history by summarizing the conversation.
+    /// This updates both the database and the in-memory cache.
+    /// </summary>
+    /// <param name="compactInstructions">Optional additional instructions for the compaction summarizer.</param>
+    /// <param name="notifyUser">Whether to send a notification message to the user. Default is true.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private async Task CompactChatAsync(
+        string compactInstructions,
+        CompactReason compactReason,
+        bool notifyUser = false,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalWarning($"[{_context.ThreadId}] Initiating chat compaction. Reason: {compactReason}.");
+        var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+        if (agentChatHistory == null)
+        {
+            _logger.LogInternalError("[{threadId}] No chat history found for agent context {agentContextId}", _context.ThreadId, _context.Id);
+            return;
+        }
+
         try
         {
-            _logger.LogInternalInformation($"[{_context.ThreadId}] Processing {CompactMarker} command.");
-
-            // parse any contextual additional instructions
-            var compactIndex = userMessage.IndexOf(CompactMarker, StringComparison.OrdinalIgnoreCase);
-            var compactAdditionalInstructions = userMessage.Substring(compactIndex + CompactMarker.Length).Trim();
+            _logger.LogInternalInformation("[{ThreadId}] Processing compaction. Reason: {CompactReason}", _context.ThreadId, compactReason);
 
             // Build full chat trajectory BEFORE compaction and save to file for later reference
             var chatTrajectory = new AgentTrajectory(_defaultStartingAgent.Name, _autoHandOffEnabled, _logger);
@@ -2834,11 +2952,11 @@ public class ReasoningLoop : IDisposable
             string? chatHistoryFileKey = null;
             try
             {
-                chatHistoryFileKey = await _toolOutputStorage.SaveAsync(
+                chatHistoryFileKey = await _threadFileStorageService.SaveToolOutputAsync(
                     threadId: _context.ThreadId,
                     toolName: "compaction_history",
                     content: fullChatTranscript,
-                    fileExtension: "txt",
+                    extension: "txt",
                     cancellationToken: cancellationToken);
 
                 _logger.LogInternalInformation(
@@ -2853,7 +2971,7 @@ public class ReasoningLoop : IDisposable
 
             // call LLM to get the compacted chat
             var compactedChat = await Summarizer.CompactChatHistoryAsync(
-                additionalInstructions: compactAdditionalInstructions,
+                additionalInstructions: compactInstructions,
                 chatHistory: _chatHistory!,
                 startingAgent: _defaultStartingAgent.Name,
                 autoHandOffEnabled: _autoHandOffEnabled,
@@ -2865,26 +2983,26 @@ public class ReasoningLoop : IDisposable
             {
                 var fileReferenceSection = $$"""
 
----
-**Previous Conversation Archive**
-The full conversation before this compaction has been stored.
-> Use the `ToolOutputRetriever` tool to access the previous conversation if you need to reference specific details not captured in this summary.
+                    ---
+                    **Previous Conversation Archive**
+                    The full conversation before this compaction has been stored.
+                    > Use the `ToolOutputRetriever` tool to access the previous conversation if you need to reference specific details not captured in this summary.
 
-```json
-{
-  "fileKey": "{{chatHistoryFileKey}}",
-  "contentLength": {{fullChatTranscript.Length}},
-  "format": "text",
-  "structure": {
-    "userMessage": "Role: user\n<message_text>",
-    "agentResponse": "Role: <agent_name>\n<response_text>",
-    "functionCall": "Role: <agent_name>\nFunction Call: <name>\nParameters: <json>",
-    "toolResult": "CallId: <id>\nResult: <output>",
-    "internalReasoning": "Role: <agent_name>\nInternal Reasoning: <text>"
-  }
-}
-```
-""";
+                    ```json
+                    {
+                      "fileKey": "{{chatHistoryFileKey}}",
+                      "contentLength": {{fullChatTranscript.Length}},
+                      "format": "text",
+                      "structure": {
+                        "userMessage": "Role: user\n<message_text>",
+                        "agentResponse": "Role: <agent_name>\n<response_text>",
+                        "functionCall": "Role: <agent_name>\nFunction Call: <name>\nParameters: <json>",
+                        "toolResult": "CallId: <id>\nResult: <output>",
+                        "internalReasoning": "Role: <agent_name>\nInternal Reasoning: <text>"
+                      }
+                    }
+                    ```
+                    """;
                 compactedChat += fileReferenceSection;
             }
 
@@ -2892,20 +3010,26 @@ The full conversation before this compaction has been stored.
             var compactedChatMessage = new ChatMessage(ChatRole.User, compactedChat);
             await PersistReasoningMessageAsync(agentChatHistory, compactedChatMessage);
 
-            // Send response to user
             _logger.LogInternalInformation($"[{_context.ThreadId}] Successfully compacted chat history");
-            var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ This conversation is now in compact mode.");
-            await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+
+            if (notifyUser)
+            {
+                // Send response to user
+                var responseMessage = new ChatMessage(ChatRole.Assistant, "✅ This conversation is now in compact mode.");
+                await PersistReasoningMessageAsync(agentChatHistory, responseMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, responseMessage);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing {CompactMarker} command");
+            _logger.LogInternalError(ex, $"[{_context.ThreadId}] Error processing compaction");
 
-            var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
-
-            await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+            if (notifyUser)
+            {
+                var errorMessage = new ChatMessage(ChatRole.Assistant, "Error compacting chat history. Please try again.");
+                await PersistReasoningMessageAsync(agentChatHistory, errorMessage);
+                await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, errorMessage);
+            }
         }
     }
 
@@ -3477,7 +3601,7 @@ The full conversation before this compaction has been stored.
 
                         if (_featureConfig.PartialOutputEnabled)
                         {
-                            var processedOutput = await _toolOutputTruncationService.ProcessToolOutputAsync(
+                            var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                 _context.ThreadId,
                                 toolCall.Tool,
                                 functionResult?.ToString(),
@@ -3515,7 +3639,7 @@ The full conversation before this compaction has been stored.
                         context: _context,
                         hooks: runHooks,
                         displayModelOutput: new ChatMessageOutput(_outboundCommunicationService, _streamingMessageRepository, _context, Guid.NewGuid()),
-                        toolOutputTruncationService: _toolOutputTruncationService,
+                        toolOutputProcessService: _toolOutputProcessService,
                         allowParallelToolCalls: true,
                         cancellationToken: cancellationToken
                     );
@@ -3741,7 +3865,7 @@ The full conversation before this compaction has been stored.
 
         foreach (var skillName in _context.ActiveSkills ?? [])
         {
-            var skill = _skillRegistry.GetSkillByName(skillName, agent.AddSystemSkills);
+            var skill = _skillRegistry.GetSkillByName(skillName, agent.AddSystemSkills, agent.AllowedSkills);
             if (skill != null)
             {
                 skillList.Enqueue(skill);

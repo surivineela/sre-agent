@@ -33,6 +33,12 @@ public class IncidentHandlingRequestModelBase
 
     public Dictionary<string, string>? AdditionalProperties { get; set; }
     public bool IsTest { get; set; } = false;
+
+    /// <summary>
+    /// The trigger event that initiated this incident handling request.
+    /// Used for ICM incidents with multiple trigger types.
+    /// </summary>
+    public IcmIncidentTriggerEvent? TriggerEvent { get; set; }
 }
 
 public class IncidentHandlingRequestModel<TIncidentFilterDocumentPayload> : IncidentHandlingRequestModelBase
@@ -206,7 +212,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
         }
     }
 
-    public async Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>> request)
+    public virtual async Task<List<IncidentHandlingResponseModel>> HandleIncidentsAsync(IEnumerable<IncidentHandlingRequestModel<TIncidentFilterDocumentPayload>> request)
     {
         if (request is null || !request.Any())
         {
@@ -229,8 +235,6 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
 
         return results.ToList();
     }
-
-
 
     public async Task<(TIncidentFilterDocumentPayload, IncidentHandlerDocument?)> GetIncidentFilterAndHandlerAsync(IncidentHandlingRequestModelWithFilterOnly<TIncidentFilterDocumentPayload> request)
     {
@@ -424,6 +428,21 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
 
     protected abstract IncidentManagementType IncidentType { get; }
 
+    /// <summary>
+    /// Converts the IncidentManagementType to the corresponding IncidentType for thread creation.
+    /// </summary>
+    protected Core.Models.Api.v1.IncidentType GetIncidentSourceType()
+    {
+        return IncidentType switch
+        {
+            IncidentManagementType.Icm => Core.Models.Api.v1.IncidentType.Icm,
+            IncidentManagementType.PagerDuty => Core.Models.Api.v1.IncidentType.PagerDuty,
+            IncidentManagementType.ServiceNow => Core.Models.Api.v1.IncidentType.ServiceNow,
+            IncidentManagementType.AzMonitor => Core.Models.Api.v1.IncidentType.AzMonitor,
+            _ => throw new ArgumentOutOfRangeException(nameof(IncidentType), IncidentType, "Unknown incident management type")
+        };
+    }
+
     protected abstract Task<Thread> CreateIncidentHandlerAgentThreadAsync(
         TIncidentDocument incidentDetails,
         IncidentHandlerDocumentPayload incidentHandler,
@@ -502,7 +521,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 };
 
                 // use handler id from filter to set current agent for meta agent thread
-                thread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty);
+                thread = await CreateIncidentMetaAgentThread(incidentRequest, matchingFilter, matchingFilter.HandlingAgent ?? string.Empty, incidentDetails.Status?.ToLowerInvariant());
                 _logger.LogInternalInformation("[IncidentHandlingService] HandleIncidentAsync: Created MetaAgent thread for Incident '{IncidentId}' matched Filter '{FilterId}' with HandlingAgent '{HandlingAgent}' (no Handler), created Thread '{ThreadId}'",
                     request.IncidentId,
                     matchingFilter.Id,
@@ -591,7 +610,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
     /// <param name="request">The incident request</param>
     /// <param name="incidentFilter">The matching incident filter</param>
     /// <returns>The created thread</returns>
-    public async Task<Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModelBase request, TIncidentFilterDocumentPayload incidentFilter, string currentAgent)
+    public async Task<Thread> CreateIncidentMetaAgentThread(IncidentHandlingRequestModelBase request, TIncidentFilterDocumentPayload incidentFilter, string currentAgent, string? incidentStatus = null)
     {
         _logger.LogInternalInformation("[IncidentHandlingService] CreateIncidentMetaAgentThread: Invoked for IncidentId: {IncidentId}", request.IncidentId);
         try
@@ -631,6 +650,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                 agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident,
                 incidentId: request.IncidentId ?? string.Empty,
+                incidentSource: new IncidentSource(GetIncidentSourceType(), request.IncidentId ?? string.Empty),
                 threadType: isTest ? ThreadType.Test : ThreadType.Prod,
                 overrideAgentMode: incidentFilter.AgentMode,
                 incidentDetails: new IncidentDetails(
@@ -639,8 +659,10 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                     request.Severity ?? String.Empty,
                     request.ImpactedService ?? String.Empty,
                     incidentFilter.Id ?? String.Empty,
-                    String.Empty,
-                    InvestigationStatus.InProgress)
+                    currentAgent,
+                    InvestigationStatus.InProgress,
+                    request.TriggerEvent,
+                    incidentStatus)
             );
 
             _logger.LogInternalInformation("[IncidentHandlingService] CreateIncidentMetaAgentThread: Created thread with ThreadId: {ThreadId} for IncidentId: {IncidentId}, attempting to set home agent to '{CurrentAgent}'", thread.Id, request.IncidentId, string.IsNullOrEmpty(currentAgent) ? "(none)" : currentAgent);
@@ -775,6 +797,7 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                     agentTypeEnum: _experimentalSettings.UseYamlForIncidentHandling ? AgentTypeEnum.Meta : AgentTypeEnum.Incident, // Use Meta to trigger YAML agent framework
                     source: ThreadSource.Incident,
                     incidentId: incidentDetails.Id ?? string.Empty,
+                    incidentSource: new IncidentSource(GetIncidentSourceType(), incidentDetails.Id ?? string.Empty),
                     AllowedTools: incidentHandler.Tools,
                     threadType: request.IsTest ? ThreadType.Test : ThreadType.Prod,
                     overrideAgentMode: incidentFilterPayload.AgentMode,
@@ -785,7 +808,8 @@ public abstract class IncidentHandlingService<TIncidentDocument, TIncidentFilter
                         incidentDetails.ImpactedServiceName,
                         incidentHandler.IncidentFilterId,
                         incidentHandler.Id,
-                        InvestigationStatus.InProgress)
+                        InvestigationStatus.InProgress,
+                        request.TriggerEvent)
                 );
 
                 if (_experimentalSettings.UseYamlForIncidentHandling)

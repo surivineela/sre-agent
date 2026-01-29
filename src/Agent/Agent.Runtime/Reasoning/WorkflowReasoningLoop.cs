@@ -55,8 +55,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
         IncidentManagementSettings incidentManagementSettings,
         CoreSettings coreSettings,
         bool modeSwitchEnabled,
-        IToolOutputTruncationService toolOutputTruncationService,
-        IToolOutputStorage toolOutputStorage,
+        IToolOutputProcessService toolOutputProcessService,
+        IThreadFileStorageService threadFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider)
         : base(
@@ -83,8 +83,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             agentRuntimeModifier: agentRuntimeModifier,
             modeSwitchEnabled: modeSwitchEnabled,
             skillRegistry: skillRegistry,
-            toolOutputTruncationService: toolOutputTruncationService,
-            toolOutputStorage: toolOutputStorage,
+            toolOutputProcessService: toolOutputProcessService,
+            threadFileStorageService: threadFileStorageService,
             hostEnvironment: hostEnvironment,
             ambientContextProvider: ambientContextProvider)
     {

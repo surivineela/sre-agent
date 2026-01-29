@@ -304,13 +304,18 @@ export const useExtendedAgentGraph = () => {
             incidentHandlers.forEach((handler: any) => {
                 const filter = incidentFilters.find(f => f.id === handler.incidentFilterId);
                 const agentName = filterAgentMap.get(handler.incidentFilterId) || handler.agentName;
-                if (agentName) {
+                // Support multiple handling agents - use handlingAgents array if available
+                const handlingAgentsArray = filter?.handlingAgents;
+                const agentNames: string[] =
+                    handlingAgentsArray && handlingAgentsArray.length > 0 ? handlingAgentsArray : agentName ? [agentName] : [];
+                if (agentNames.length > 0) {
                     handlerFilterIds.add(handler.incidentFilterId);
                     incidentTriggers.push({
                         name: handler.name || handler.id,
                         description: handler.description || 'Incident response handler',
                         type: 'incident' as const,
-                        agentName: agentName,
+                        agentName: agentNames[0], // First agent for backward compatibility
+                        agentNames: agentNames, // All agents for multi-agent support
                         status: filter?.isEnabled ? 'Active' : 'Disabled',
                         priority: filter?.priority || '-',
                         incidentType: filter?.incidentType || 'ServiceIssue',
@@ -323,15 +328,25 @@ export const useExtendedAgentGraph = () => {
                 }
             });
 
-            // Add incident triggers for filters with handlingAgent but no handler
+            // Add incident triggers for filters with handlingAgent(s) but no handler
             // These are subagent triggers where no handler document is created
             incidentFilters.forEach((filter: any) => {
-                if (filter.handlingAgent && !handlerFilterIds.has(filter.id)) {
+                // Support multiple handling agents - use handlingAgents array if available
+                const handlingAgentsArray = filter.handlingAgents;
+                const agentNames: string[] =
+                    handlingAgentsArray && handlingAgentsArray.length > 0
+                        ? handlingAgentsArray
+                        : filter.handlingAgent
+                          ? [filter.handlingAgent]
+                          : [];
+                if (agentNames.length > 0 && !handlerFilterIds.has(filter.id)) {
+                    const agentNamesDisplay = agentNames.join(', ');
                     incidentTriggers.push({
                         name: filter.id,
-                        description: `Incident trigger for ${filter.handlingAgent}`,
+                        description: `Incident trigger for ${agentNamesDisplay}`,
                         type: 'incident' as const,
-                        agentName: filter.handlingAgent,
+                        agentName: agentNames[0], // First agent for backward compatibility
+                        agentNames: agentNames, // All agents for multi-agent support
                         status: filter.isEnabled ? 'Active' : 'Disabled',
                         priority: filter.priority || '-',
                         incidentType: filter.incidentType || 'ServiceIssue',

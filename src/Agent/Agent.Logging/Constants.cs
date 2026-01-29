@@ -34,6 +34,10 @@ public static class AgentActionEvents
 
     // Incident Management
     public const string ResolveIncident = nameof(ResolveIncident);
+
+    // Session Insights
+    public const string GenerateSessionInsight = nameof(GenerateSessionInsight);
+    public const string SubmitSessionInsightFeedback = nameof(SubmitSessionInsightFeedback);
 }
 
 public static class AgentActionStatus

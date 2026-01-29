@@ -65,9 +65,9 @@ public static class ToolCommandOptions
             Description = "Python function code for PythonTool"
         };
 
-        public static readonly Option<int> TimeoutSecondsOption = new("--timeout")
+        public static readonly Option<int?> TimeoutSecondsOption = new("--timeout")
         {
-            Description = "Timeout in seconds for PythonTool (default: 30)"
+            Description = "Timeout in seconds (default: 30)"
         };
 
         public static readonly Option<string[]> DependenciesOption = new("--dependency")
@@ -82,6 +82,39 @@ public static class ToolCommandOptions
             Description = "Tool parameter in format 'name:type:description' (can be specified multiple times)",
             Arity = ArgumentArity.ZeroOrMore,
             AllowMultipleArgumentsPerToken = true
+        };
+
+        // HttpClientTool-specific options
+        public static readonly Option<string> UrlOption = new("--url")
+        {
+            Description = "URL template with optional {{param}} placeholders for HttpClientTool"
+        };
+
+        public static readonly Option<string> MethodOption = new("--method")
+        {
+            Description = "HTTP method (GET, POST, PUT, DELETE, PATCH) for HttpClientTool"
+        };
+
+        public static readonly Option<string> BodyOption = new("--body")
+        {
+            Description = "Request body template with {{param}} placeholders for HttpClientTool"
+        };
+
+        public static readonly Option<string[]> HeaderOption = new("--header")
+        {
+            Description = "HTTP header in format 'key:value' (can be specified multiple times)",
+            Arity = ArgumentArity.ZeroOrMore,
+            AllowMultipleArgumentsPerToken = true
+        };
+
+        public static readonly Option<string> AuthConnectorOption = new("--auth-connector")
+        {
+            Description = "Data connector name for authentication"
+        };
+
+        public static readonly Option<string> AuthScopeOption = new("--auth-scope")
+        {
+            Description = "OAuth scope to request for authentication"
         };
     }
 
@@ -135,6 +168,12 @@ public static class ToolCommandOptions
         public static readonly Option<bool> DryRunOption = new("--dry-run")
         {
             Description = "Show what would be deleted without making changes"
+        };
+
+        public static readonly Option<bool?> DeleteLocalFilesOption = new("--delete-local-files")
+        {
+            Description = "Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)",
+            Arity = ArgumentArity.ZeroOrOne
         };
     }
 

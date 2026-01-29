@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Framework;
 using Agent.Runtime.Reasoning;
@@ -10,7 +14,7 @@ public class ResourceDiscoveryAgentEvals
 {
     private static async Task<TestHost> GetTestHostAsync() => await TestHelpers.InitializeTestHost();
 
-    private static JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
     };

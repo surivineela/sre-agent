@@ -71,6 +71,7 @@ export const useChatBox = (
     const [isAgentTyping, setIsAgentTyping] = useState<boolean | undefined>();
     const [isWaitingForStreamingMessages, setIsWaitingForStreamingMessages] = useState<boolean | undefined>();
     const [hasExistingStreamingMessage, setHasExistingStreamingMessage] = useState<boolean>(false);
+    const [hideOverview, setHideOverview] = useState<boolean>(false);
 
     const [downButtonState, setDownButtonState] = useState<{ visible: boolean; flash: boolean }>({ visible: false, flash: false });
 
@@ -288,6 +289,8 @@ export const useChatBox = (
 
     const sendMessageHandler = useCallback(
         async (message: string, options?: SendMessageOptions) => {
+            setHideOverview(true);
+
             pushCurrentStreamingMessageToNewMessages();
 
             setStreamingMessageGroup({
@@ -612,10 +615,10 @@ export const useChatBox = (
                     type === 'approvalOrCli'
                         ? getApprovalOrCliMessageIndexInStreamingMessage(prev, id)
                         : type === 'agentTask'
-                          ? getAgentTaskMessageIndexInStreamingMessage(prev, id)
-                          : type === 'mcpToolExecution'
-                            ? getMcpToolExecutionMessageIndexInStreamingMessage(prev, id)
-                            : getUserQuestionMessageIndexInStreamingMessage(prev, id);
+                            ? getAgentTaskMessageIndexInStreamingMessage(prev, id)
+                            : type === 'mcpToolExecution'
+                                ? getMcpToolExecutionMessageIndexInStreamingMessage(prev, id)
+                                : getUserQuestionMessageIndexInStreamingMessage(prev, id);
 
                 if (index !== undefined) {
                     const updatedAgentMessages = [...prev.agentMessages];
@@ -635,10 +638,10 @@ export const useChatBox = (
                     type === 'approvalOrCli'
                         ? getApprovalOrCliMessageIndexInExistingMessages(messageGroups, id)
                         : type === 'agentTask'
-                          ? getAgentTaskMessageIndexInExistingMessages(messageGroups, id)
-                          : type === 'mcpToolExecution'
-                            ? getMcpToolExecutionMessageIndexInExistingMessages(messageGroups, id)
-                            : getUserQuestionMessageIndexInExistingMessages(messageGroups, id);
+                            ? getAgentTaskMessageIndexInExistingMessages(messageGroups, id)
+                            : type === 'mcpToolExecution'
+                                ? getMcpToolExecutionMessageIndexInExistingMessages(messageGroups, id)
+                                : getUserQuestionMessageIndexInExistingMessages(messageGroups, id);
                 if (index !== undefined) {
                     const [messageGroupIndex, messageIndex] = index;
                     const messageGroup = { ...messageGroups[messageGroupIndex] };
@@ -989,6 +992,7 @@ export const useChatBox = (
         toolCallText,
         isCancellingStreaming,
         sendMessage: sendMessageHandler,
+        hideOverview,
         isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,

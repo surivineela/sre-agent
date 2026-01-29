@@ -28,6 +28,7 @@ import { useListViewStyles } from './ExtendedAgentTableView.Styles';
 import { AgentTable } from './Tabs/AgentTable';
 import { IncidentTriggerTable } from './Tabs/IncidentTriggerTable';
 import { KustoToolTable } from './Tabs/KustoToolTable';
+import { PythonToolTable } from './Tabs/PythonToolTable';
 import { ScheduledTaskTable } from './Tabs/ScheduledTaskTable';
 import { SkillTable } from './Tabs/SkillTable';
 
@@ -88,6 +89,10 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
 
     const allKustoTools = useMemo(() => {
         return tools.filter(tool => tool.type === 'KustoTool');
+    }, [tools]);
+
+    const allPythonTools = useMemo(() => {
+        return tools.filter(tool => tool.type === 'PythonFunctionTool');
     }, [tools]);
 
     const handleOpenInfoPanel = useCallback((itemName: string, itemType: ExtendedAgentNodeType) => {
@@ -329,6 +334,16 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                         isLoading={isLoading}
                     />
                 );
+            case 'pythonTools':
+                return (
+                    <PythonToolTable
+                        pythonTools={allPythonTools}
+                        openInfoPanel={handleOpenInfoPanel}
+                        refresh={onRefresh}
+                        lastUpdated={lastUpdated}
+                        isLoading={isLoading}
+                    />
+                );
             case 'skills':
                 return (
                     <SkillTable
@@ -356,6 +371,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
         allIncidentTriggers,
         allScheduledTasks,
         allKustoTools,
+        allPythonTools,
         connectors,
     ]);
 
@@ -380,6 +396,7 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                     <EntityCard type="incidentTriggers" entityCount={allIncidentTriggers.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="scheduledTasks" entityCount={allScheduledTasks.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="kustoTools" entityCount={allKustoTools.length} handleCardClick={handleTabSelect} />
+                    <EntityCard type="pythonTools" entityCount={allPythonTools.length} handleCardClick={handleTabSelect} />
                     <EntityCard type="skills" entityCount={skills.length} handleCardClick={handleTabSelect} />
                 </EntityCardList>
 
@@ -400,6 +417,9 @@ export const ExtendedAgentTableView: FC<ExtendedAgentTableViewProps> = ({
                     </Tab>
                     <Tab id="kustoTools" value="kustoTools">
                         {intl.formatMessage(ExtendedAgentsGraphResources.kustoTools)}
+                    </Tab>
+                    <Tab id="pythonTools" value="pythonTools">
+                        {intl.formatMessage(ExtendedAgentsGraphResources.pythonTools)}
                     </Tab>
                     <Tab id="skills" value="skills">
                         {intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel)}

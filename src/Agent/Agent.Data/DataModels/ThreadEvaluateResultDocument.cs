@@ -37,7 +37,8 @@ public record ThreadEvaluateResultDocument(
     AgentTypeEnum AgentType,
     string? StartingAgentName = null,
     bool? SkillsEnabled = false,
-    bool? IsExtendedAgent = false
+    bool? IsExtendedAgent = false,
+    string? BlockedReason = "None"
 ) : ICosmosDocument
 {
     public string DocumentType => "ThreadEvaluationResult";
@@ -73,7 +74,8 @@ public record ThreadEvaluateResultDocument(
             evaluateResult.AgentType,
             evaluateResult.StartingAgentName,
             evaluateResult.SkillsEnabled,
-            evaluateResult.IsExtendedAgent
+            evaluateResult.IsExtendedAgent,
+            evaluateResult.BlockedReason
         );
 
     // Conversion to domain model
@@ -105,7 +107,8 @@ public record ThreadEvaluateResultDocument(
             AgentType,
             StartingAgentName ?? string.Empty,
             SkillsEnabled ?? false,
-            IsExtendedAgent ?? false
+            IsExtendedAgent ?? false,
+            BlockedReason ?? "None"
         );
 }
 

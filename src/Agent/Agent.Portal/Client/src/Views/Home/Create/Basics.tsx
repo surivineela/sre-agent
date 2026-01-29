@@ -1,4 +1,15 @@
-import { MessageBar, MessageBarBody, Option, Text } from '@fluentui/react-components';
+import {
+    Caption1,
+    Dropdown,
+    Field,
+    Link,
+    MessageBar,
+    MessageBarBody,
+    Option,
+    Skeleton,
+    SkeletonItem,
+    Text,
+} from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -10,17 +21,21 @@ import { RadioGroupFormik } from '../../../Common/Components/Formik/RadioGroupFo
 import { ResourceGroupDropdown } from '../../../Common/Components/ResourceGroupDropdown';
 import { SubscriptionDropdown } from '../../../Common/Components/SubscriptionDropdown';
 import { ApiVersions } from '../../../Common/Constants/ApiVersions';
+import { LearnMoreLinks } from '../../../Common/Constants/Links';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
 import { SpecialControlValue } from '../../../Common/Contracts/Amplitude';
 import { Subscription } from '../../../Common/Contracts/Arm';
 import { FieldRestrictionResult } from '../../../Common/Contracts/Permissions';
+import { ModelProvider } from '../../../Common/Contracts/SreAgent';
 import { useAmplitudeTelemetry } from '../../../Common/Hooks/useAmplitudeTelemetry';
+import { SettingNames, useConfigSetting } from '../../../Common/Hooks/useConfigSettings';
 import { useSubscriptionAppInsights } from '../../../Common/Hooks/useSubscriptionAppInsights';
 import { ArmServiceType } from '../../../Common/Utilities/ArmTemplateBuilder/ArmTemplateTypes';
 import { getCanonicalLocation } from '../../../Common/Utilities/Location';
 import { PortalResources } from '../../../Strings/Resources';
 import { ApplicationInsightsSetup, SreAgentCreateFormProps } from './CreateAgentDialog';
 import { useSreAgentLocations } from './useSreAgentLocations';
+import { useSreSupportedModels } from './useSreSupportedModels';
 
 const getContentDetailsForPolicyCheck = (scope: string, type: string, name: string, location: string, apiVersion: string) => {
     return {
@@ -64,6 +79,14 @@ export const Basics = (props: BasicsProps) => {
     );
     const { appInsights, isLoading: appInsightsLoading } = useSubscriptionAppInsights(
         values.appInsightsSubscriptionId,
+        TelemetrySource.SreAgentCreate
+    );
+
+    const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
+
+    const { supportedProviders, isSupportedModelsLoading, getSupportedModelsFailure } = useSreSupportedModels(
+        values.subscriptionId,
+        values.location,
         TelemetrySource.SreAgentCreate
     );
 
@@ -264,6 +287,70 @@ export const Basics = (props: BasicsProps) => {
                     </Option>
                 ))}
             </DropdownFormik>
+
+            {showDefaultModelPicker && (
+                <Field
+                    id="defaultModelProvider"
+                    label={intl.formatMessage(PortalResources.modelProviderLabel)}
+                    orientation="vertical"
+                    required
+                    validationMessage={getSupportedModelsFailure}
+                >
+                    {isSupportedModelsLoading && !!values.location && !!values.subscriptionId ? (
+                        <Skeleton aria-label={intl.formatMessage(PortalResources.loading)}>
+                            <SkeletonItem size={32} />
+                        </Skeleton>
+                    ) : (
+                        <Dropdown
+                            name="defaultModelProvider"
+                            disabled={isDeploying || isSupportedModelsLoading}
+                            value={
+                                supportedProviders?.find(option => option.key === values.defaultModelProvider)?.text ||
+                                values.defaultModelProvider
+                            }
+                            placeholder={intl.formatMessage(PortalResources.providerPlaceholder)}
+                            onOptionSelect={(_event, data) => {
+                                logControlEvent({
+                                    targetType: 'dropdown',
+                                    targetAction: 'changed',
+                                    targetName: 'sreAgentCreateDefaultModelProvider',
+                                    targetFriendlyName: 'SRE Agent Create - Default Model Provider',
+                                    valueObjectName: data.optionValue ?? '',
+                                    valueObjectFriendlyName: data.optionValue ?? '',
+                                });
+                                setFieldValue('defaultModelProvider', data.optionValue);
+                            }}
+                            onBlur={() => {
+                                logControlEvent({
+                                    targetType: 'dropdown',
+                                    targetAction: 'blurred',
+                                    targetName: 'sreAgentCreateDefaultModelProvider',
+                                    targetFriendlyName: 'SRE Agent Create - Default Model Provider',
+                                    valueObjectName: SpecialControlValue.DoAction,
+                                    valueObjectFriendlyName: SpecialControlValue.DoAction,
+                                });
+                            }}
+                        >
+                            {supportedProviders?.map(option => (
+                                <Option value={option.key} checkIcon={null}>
+                                    {option.text}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    )}
+                </Field>
+            )}
+
+            {values.defaultModelProvider === ModelProvider.Anthropic && (
+                <MessageBar layout="multiline" style={{ alignItems: 'center' }}>
+                    <MessageBarBody>
+                        <Caption1>{intl.formatMessage(PortalResources.anthropicEuRegionInfoMessage)}</Caption1>{' '}
+                        <Link href={LearnMoreLinks.sreAgentDataHandling} target="_blank" rel="noopener noreferrer">
+                            <Caption1>{intl.formatMessage(PortalResources.anthropicEuRegionLearnMore)}</Caption1>
+                        </Link>
+                    </MessageBarBody>
+                </MessageBar>
+            )}
 
             <RadioGroupFormik
                 name="createNewAppInsights"

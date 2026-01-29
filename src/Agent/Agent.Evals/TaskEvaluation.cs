@@ -5,6 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Runtime.Services;
 using Agent.Runtime.ThreadEvaluator;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,7 @@ public class TaskEvaluation
 
     public TestContext TestContext { get; set; } = null!;
 
-    private static TaskExpectation[] TaskExpectations = [
+    private static readonly TaskExpectation[] TaskExpectations = [
         new(
             TraceFileName: "traces-create-networkpolicy.json",
             ExpectedTaskCount: 1), // Expected number of user message evaluations
@@ -79,6 +80,7 @@ public class TaskEvaluation
         // Create a mock IThreadRepository
         var mockThreadRepository = new Mock<IThreadRepository>();
         var mockRagEvaluator = new Mock<IRagEvaluator>();
+        var mockThreadEvaluationSnapshotService = new Mock<IThreadEvaluationSnapshotService>();
 
         // Create the ThreadEvaluator with proper dependencies
         var threadEvaluator = new ThreadEvaluator(
@@ -87,7 +89,8 @@ public class TaskEvaluation
             chatClientProvider: mockChatClientProvider,
             tracer: mockTracer,
             ragEvaluator: mockRagEvaluator.Object,
-            agentProvider: agentProvider
+            agentProvider: agentProvider,
+            threadEvaluationSnapshotService: mockThreadEvaluationSnapshotService.Object
         );
 
         // Create a test thread model

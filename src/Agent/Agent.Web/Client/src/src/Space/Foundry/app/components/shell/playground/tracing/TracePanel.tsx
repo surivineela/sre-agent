@@ -42,7 +42,7 @@ export interface ITracePanelProps {
 export function TracePanel({ isOpen, onClose, focusRestorationRef, appInsightsAppId, thread, incident }: ITracePanelProps): JSX.Element {
     const intl = useIntl();
     const styles = useTracePanelStyles();
-    const { spans, loading, loadingFailure, parseErrorMessage, noDataMessage, warnings, errors } = useTracePanel(
+    const { spans, loading, loadingFailure, parseErrorMessage, noDataMessage, warnings, errors, refresh } = useTracePanel(
         appInsightsAppId,
         thread.id,
         thread.source === ThreadSource.incident
@@ -89,7 +89,7 @@ export function TracePanel({ isOpen, onClose, focusRestorationRef, appInsightsAp
             showCloseButton={true}
             size="large"
             title={thread.title}
-            titleActions={<TraceTitleActions rootSpan={rootSpan} threadId={thread.id} />}
+            titleActions={<TraceTitleActions rootSpan={rootSpan} threadId={thread.id} onRefresh={refresh} isLoading={loading} />}
             dialogTitleProps={{ className: styles.dialogTitle }}
             dialogBodyProps={{ className: styles.dialogBody }}
             description={description}

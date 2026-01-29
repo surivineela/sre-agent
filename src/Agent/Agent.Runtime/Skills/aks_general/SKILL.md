@@ -1,3 +1,31 @@
+---
+name: aks_general
+description: The AKS General Skill provides expertise in managing Azure Kubernetes Service (AKS) resources, enabling tasks such as monitoring, troubleshooting, creating, and updating Kubernetes resources, except deletions. It supports effective operations and diagnosis of workloads while facilitating configuration management and resource optimization.
+tools:
+  - DiscoverPrometheusMetrics
+  - GetMetricsLabels
+  - QueryPrometheusMetrics
+  - PlotTimeSeriesData
+  - PlotPieChart
+  - PlotBarChart
+  - PlotScatter
+  - VisualizeAKSMicroserviceTopology
+  - SearchRunbooks
+  - RunKubectlReadCommand
+  - RunKubectlWriteCommand
+  - RunKubectlCommandHelp
+  - SearchResource
+  - GetKubeResourceMetricsRange
+  - RunAzCliReadCommands
+  - RemoveNSGRule
+  - CreateGithubIssue
+  - FetchGithubIssue
+  - FindConnectedGitHubRepo
+  - GetIaCForGitHub
+  - DisconnectRepositoryFromResourceForGitHub
+  - FetchGithubIssuesLimited
+---
+
 # Azure Kubernetes Service (AKS) – Core Operations Skill
 
 All markdown files in this folder collectively form a single AKS operations skill. This core file is the starting point; the sibling files are supplementary references you open progressively (network, remediation, deep workload diagnosis, command execution) only when their triggers appear.

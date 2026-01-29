@@ -40,7 +40,8 @@ namespace Agent.Cli.Converters
                     OutputType = v1.Spec.OutputType,
                     EnableVanillaMode = v1.Spec.EnableVanillaMode,
                     EnableSkills = v1.Spec.EnableSkills,
-                    AddSystemSkills = v1.Spec.AddSystemSkills
+                    AddSystemSkills = v1.Spec.AddSystemSkills,
+                    AllowedSkills = v1.Spec.AllowedSkills
                 }
             };
         }

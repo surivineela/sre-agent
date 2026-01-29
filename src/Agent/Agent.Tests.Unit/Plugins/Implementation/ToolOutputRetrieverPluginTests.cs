@@ -18,7 +18,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation;
 
 public class ToolOutputRetrieverPluginTests
 {
-    private readonly Mock<IToolOutputStorage> _mockStorage;
+    private readonly Mock<IThreadFileStorageService> _mockStorage;
     private readonly Mock<IChatClientProvider> _mockChatClientProvider;
     private readonly Mock<IChatClient> _mockChatClient;
     private readonly Mock<ILogger<ToolOutputRetrieverPlugin>> _mockLogger;
@@ -28,7 +28,7 @@ public class ToolOutputRetrieverPluginTests
 
     public ToolOutputRetrieverPluginTests()
     {
-        _mockStorage = new Mock<IToolOutputStorage>();
+        _mockStorage = new Mock<IThreadFileStorageService>();
         _mockChatClientProvider = new Mock<IChatClientProvider>();
         _mockChatClient = new Mock<IChatClient>();
         _mockLogger = new Mock<ILogger<ToolOutputRetrieverPlugin>>();
@@ -47,7 +47,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -72,7 +72,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -96,7 +96,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var expectedSummary = "This is a summary of the logs.";
         var chatResponse = new ChatResponse(
@@ -135,7 +135,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-data.json";
         var filePath = Path.Combine(_testDataPath, "sample-data.json");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -159,7 +159,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-config.yaml";
         var filePath = Path.Combine(_testDataPath, "sample-config.yaml");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -183,7 +183,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -207,7 +207,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-data.json";
         var filePath = Path.Combine(_testDataPath, "sample-data.json");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -233,7 +233,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-data.json";
         var filePath = Path.Combine(_testDataPath, "sample-data.json");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -260,7 +260,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-config.yaml";
         var filePath = Path.Combine(_testDataPath, "sample-config.yaml");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -284,7 +284,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-config.yaml";
         var filePath = Path.Combine(_testDataPath, "sample-config.yaml");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -308,7 +308,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-config.yaml";
         var filePath = Path.Combine(_testDataPath, "sample-config.yaml");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -332,7 +332,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-config.yaml";
         var filePath = Path.Combine(_testDataPath, "sample-config.yaml");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -357,7 +357,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-data.json";
         var filePath = Path.Combine(_testDataPath, "sample-data.json");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -380,7 +380,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -404,7 +404,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -429,7 +429,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -452,7 +452,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -475,7 +475,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -500,7 +500,7 @@ public class ToolOutputRetrieverPluginTests
         // Arrange
         var fileKey = "sample-logs.txt";
         var filePath = Path.Combine(_testDataPath, "sample-logs.txt");
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns(filePath);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync(filePath);
 
         var options = new ToolOutputRetrieverOptions
         {
@@ -521,7 +521,7 @@ public class ToolOutputRetrieverPluginTests
     {
         // Arrange
         var fileKey = "non-existent.txt";
-        _mockStorage.Setup(s => s.EnsureFileExist(fileKey)).Returns((string?)null);
+        _mockStorage.Setup(s => s.GetToolOutputAsync(fileKey, It.IsAny<string?>(), It.IsAny<CancellationToken>())).ReturnsAsync((string?)null);
 
         var options = new ToolOutputRetrieverOptions
         {

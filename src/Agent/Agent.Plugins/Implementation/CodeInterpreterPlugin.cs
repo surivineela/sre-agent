@@ -2,14 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using Agent.Common.ApiModels.Session;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Services;
+using Agent.Plugins.Helpers;
 using Agent.Plugins.Interface;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private readonly ILogger<CodeInterpreterPlugin> _logger;
     private readonly ISessionPoolService _sessionPoolService;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IToolOutputStorage _toolOutputStorage;
+    private readonly IThreadFileStorageService _threadFileStorageService;
 
     public Guid? ThreadId { get; set; }
 
@@ -33,144 +34,41 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         ILogger<CodeInterpreterPlugin> logger,
         ISessionPoolService sessionPoolService,
         IHostEnvironment hostEnvironment,
-        IToolOutputStorage toolOutputStorage)
+        IThreadFileStorageService threadFileStorageService)
     {
         _logger = logger;
         _sessionPoolService = sessionPoolService;
         _hostEnvironment = hostEnvironment;
-        _toolOutputStorage = toolOutputStorage;
+        _threadFileStorageService = threadFileStorageService;
     }
 
-    public async Task<string> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
+    public async Task<CodeExecutionResponse> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
     {
         var validation = ValidatePython(pythonCode);
         if (validation != null)
         {
-            return validation;
+            return new CodeExecutionResponse
+            {
+                Status = "Error",
+                ErrorName = "ValidationError",
+                ErrorMessage = validation
+            };
         }
 
         var identifier = BuildIdentifier();
         var execResp = await _sessionPoolService.ExecutePythonInlineAsync(pythonCode, identifier, timeoutSeconds);
 
-        var sb = new StringBuilder();
-        sb.AppendLine($"Status: {execResp.Status?.ToString() ?? "(n/a)"}");
-        if (!string.IsNullOrEmpty(execResp.Result))
-        {
-            sb.AppendLine("=== EXECUTION RESULT ===");
-            // Execution result is important. Do not truncate.
-            sb.AppendLine(execResp.Result);
-            sb.AppendLine("=== END EXECUTION RESULT ===");
-        }
-        if (!string.IsNullOrWhiteSpace(execResp.Stdout))
-        {
-            sb.AppendLine("STDOUT:");
-            sb.AppendLine(Truncate(execResp.Stdout, 4000));
-        }
-        if (!string.IsNullOrWhiteSpace(execResp.Stderr))
-        {
-            sb.AppendLine("STDERR:");
-            sb.AppendLine(Truncate(execResp.Stderr, 2000));
-        }
+        // Process image results and auto-retrieve session files using shared helper
+        var threadId = ThreadId ?? ToolStatic.AsyncLocalThreadId.Value;
+        await SessionFileHelper.ProcessExecutionFilesAsync(
+            execResp,
+            _sessionPoolService,
+            identifier,
+            threadId,
+            _threadFileStorageService,
+            _logger);
 
-        // Automatically list and retrieve all generated files from the session
-        try
-        {
-            var filesJson = await _sessionPoolService.ListSessionFilesAsync(identifier);
-
-            // Parse the files list using proper JSON deserialization
-            if (!string.IsNullOrWhiteSpace(filesJson))
-            {
-                var filesResponse = JsonSerializer.Deserialize<FilesListResponse>(filesJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                if (filesResponse?.Value != null && filesResponse.Value.Count > 0)
-                {
-                    sb.AppendLine();
-                    sb.AppendLine("=== AUTO-RETRIEVED FILES ===");
-
-                    foreach (var fileWrapper in filesResponse.Value)
-                    {
-                        if (fileWrapper.Properties == null)
-                        {
-                            continue;
-                        }
-
-                        var file = fileWrapper.Properties;
-
-                        // Skip if filename is empty or if it's a directory indicator
-                        if (string.IsNullOrWhiteSpace(file.Filename) || file.Filename.EndsWith('/'))
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            var fileBytes = await _sessionPoolService.DownloadSessionFileAsync(identifier, file.Filename);
-
-                            var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
-                            Directory.CreateDirectory(reportsDir);
-                            var targetPath = Path.Combine(reportsDir, Path.GetFileName(file.Filename));
-                            await File.WriteAllBytesAsync(targetPath, fileBytes);
-
-                            var extension = Path.GetExtension(file.Filename).ToLowerInvariant();
-                            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(file.Filename))}";
-
-                            // Check if it's an image file (matplotlib, seaborn, PIL outputs)
-                            if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
-                                ".bmp" or ".tiff" or ".tif" or ".ico" or ".eps" or ".ps")
-                            {
-                                sb.AppendLine($"📊 Image: ![{Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-                            // Data files and spreadsheets
-                            else if (extension is ".csv" or ".tsv" or ".xlsx" or ".xls" or ".xlsm" or ".ods" or
-                                     ".json" or ".xml" or ".yaml" or ".yml")
-                            {
-                                sb.AppendLine($"📊 Data: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-                            // Documents and reports
-                            else if (extension is ".pdf" or ".html" or ".htm" or ".md" or ".docx" or ".doc" or
-                                     ".pptx" or ".ppt" or ".txt" or ".rtf")
-                            {
-                                sb.AppendLine($"📄 Document: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-                            // Code and notebooks
-                            else if (extension is ".py" or ".ipynb" or ".r" or ".sql" or ".sh")
-                            {
-                                sb.AppendLine($"� Code: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-                            // Archives and scientific data
-                            else if (extension is ".zip" or ".tar" or ".gz" or ".h5" or ".hdf5" or ".nc" or
-                                     ".mat" or ".npz" or ".pkl" or ".pickle")
-                            {
-                                sb.AppendLine($"🗜️ Archive/Data: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"📁 File: [Download {Path.GetFileName(file.Filename)}]({relativeLink})");
-                            }
-
-                            sb.AppendLine("To make these files available to the user, they must be presented in markdown syntax. eg: [FileName.txt](/api/files/FileName.txt). Else users would not be able to download these files");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogInternalWarning($"Failed to auto-retrieve file '{file.Filename}': {ex.Message}");
-                            // Don't fail the whole operation if one file fails
-                        }
-                    }
-
-                    sb.AppendLine("=== END AUTO-RETRIEVED FILES ===");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, "Failed to auto-retrieve session files");
-            // Don't fail the whole operation if file retrieval fails
-        }
-
-        return sb.ToString();
+        return execResp;
     }
 
     public async Task<string> ExecuteShellCommandAsync(string command, string explanation, bool isBackground, int timeoutSeconds)
@@ -246,18 +144,19 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             return $"Failed to retrieve generated PDF: {ex.Message}";
         }
 
+        var threadId = ThreadId ?? ToolStatic.AsyncLocalThreadId.Value;
+
         try
         {
-            var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
-            Directory.CreateDirectory(reportsDir);
-            var targetPath = Path.Combine(reportsDir, Path.GetFileName(saveAsFilename));
-            await File.WriteAllBytesAsync(targetPath, fileBytes);
-            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}"; // prefer /api/files (reports route still supported)
+            // Save to ThreadFileStorage for persistence
+            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _threadFileStorageService, _logger);
+
+            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
             return $"✅ PDF report generated successfully. Download: [Download {saveAsFilename}]({relativeLink})";
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Failed to persist PDF report locally");
+            _logger.LogInternalError(ex, "Failed to persist PDF report");
             return $"Failed to persist PDF report: {ex.Message}";
         }
     }
@@ -382,15 +281,15 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             return $"Failed to retrieve file '{filename}': {ex.Message}";
         }
 
+        var threadId = ThreadId ?? ToolStatic.AsyncLocalThreadId.Value;
+
         try
         {
-            var reportsDir = Path.Combine(AppContext.BaseDirectory, "reports");
-            Directory.CreateDirectory(reportsDir);
-            var targetPath = Path.Combine(reportsDir, Path.GetFileName(saveAsFilename));
-            await File.WriteAllBytesAsync(targetPath, fileBytes);
+            // Save to ThreadFileStorage for persistence
+            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _threadFileStorageService, _logger);
 
             var extension = Path.GetExtension(saveAsFilename).ToLowerInvariant();
-            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
+            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
 
             // Check if it's an image file (matplotlib, seaborn, PIL, and other graphics outputs)
             if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
@@ -403,7 +302,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Failed to persist file locally");
+            _logger.LogInternalError(ex, "Failed to persist file");
             return $"Failed to persist file: {ex.Message}";
         }
     }
@@ -577,24 +476,30 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
 
     public async Task<string> UploadFileToSessionAsync(string fileKey)
     {
+        _logger.LogInternalInformation("Uploading file to session: FileKey={FileKey}", fileKey);
+
+        // Use original filename from fileKey
+        var filename = Path.GetFileName(fileKey);
+
+        var threadId = ThreadId ?? ToolStatic.AsyncLocalThreadId.Value;
+
+        // Download file from thread storage or tool output
+        string? tempFilePath;
         try
         {
-            _logger.LogInternalInformation("Uploading file to session: FileKey={FileKey}", fileKey);
-
-            // Get the local file path from tool output storage
-            var localFilePath = _toolOutputStorage.EnsureFileExist(fileKey);
-            if (localFilePath == null)
+            tempFilePath = await _threadFileStorageService.DownloadThreadFileAsync(threadId, fileKey);
+            if (tempFilePath == null)
             {
-                var errorMsg = $"Error: File with key '{fileKey}' not found in tool output storage.";
+                tempFilePath = await _threadFileStorageService.GetToolOutputAsync(fileKey, threadId.ToString());
+            }
+            if (tempFilePath == null)
+            {
+                var errorMsg = $"Error: File with key '{fileKey}' not found in thread file storage.";
                 _logger.LogInternalWarning(errorMsg);
                 return errorMsg;
             }
 
-            // Read file content
-            var fileContent = await File.ReadAllBytesAsync(localFilePath);
-
-            // Use original filename from fileKey
-            var filename = Path.GetFileName(fileKey);
+            var fileContent = await File.ReadAllBytesAsync(tempFilePath);
 
             // Get session identifier
             var identifier = BuildIdentifier();
@@ -649,21 +554,4 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private static string Truncate(string value, int max)
         => value.Length <= max ? value : value.Substring(0, max) + "...<truncated>";
 
-    // Internal classes for JSON deserialization
-    private class FilesListResponse
-    {
-        public List<FileItemWrapper>? Value { get; set; }
-    }
-
-    private class FileItemWrapper
-    {
-        public FileMetadata? Properties { get; set; }
-    }
-
-    private class FileMetadata
-    {
-        public string Filename { get; set; } = string.Empty;
-        public long? Size { get; set; }
-        public DateTime? LastModifiedTime { get; set; }
-    }
 }

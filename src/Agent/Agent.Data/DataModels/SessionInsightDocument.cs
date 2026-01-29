@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
+
 namespace Agent.Data.DataModels;
 
 /// <summary>
@@ -34,7 +36,8 @@ public record SessionInsightDocument(
     List<string>? ResourceTypesInvolved,
     List<string>? SubscriptionsInvolved,
 
-    // Agent Performance
+    // Agent Performance (Obsolete - kept for backward compatibility with existing Cosmos DB documents)
+    // This property is no longer populated but must remain to allow deserialization of old documents
     AgentPerformanceMetrics? AgentPerformance,
 
     // Learning and Pitfalls
@@ -45,6 +48,7 @@ public record SessionInsightDocument(
     List<InsightFeedback>? Feedback,
 
     // Raw Data
+    string? TrajectoryId, // ID of the trajectory document in Agent Memory
     string? TrajectoryJson,
     string? InsightMarkdown
 ) : ICosmosDocument
@@ -56,6 +60,7 @@ public record SessionInsightDocument(
     // Mutable properties for updates
     public List<InsightFeedback>? Feedback { get; set; } = Feedback;
     public DateTime GeneratedTimestamp { get; set; } = GeneratedTimestamp;
+    public string? TrajectoryJson { get; set; } = TrajectoryJson;
 }
 
 /// <summary>
@@ -69,9 +74,12 @@ public record TimelineItem(
 );
 
 /// <summary>
-/// Agent performance metrics for the session
+/// Agent performance metrics for the session.
+/// This is no longer populated but kept for backward compatibility with existing Cosmos DB documents.
 /// </summary>
+#pragma warning disable CS0618
 public record AgentPerformanceMetrics(
+#pragma warning restore CS0618
     int TotalAgentTurns,
     int TotalToolCalls,
     int SuccessfulToolCalls,
@@ -79,18 +87,7 @@ public record AgentPerformanceMetrics(
     int AgentHandoffs,
     List<string>? AgentsInvolved,
     TimeSpan? TotalDuration,
-    string? EfficiencyRating // Excellent, Good, Fair, Poor
-);
-
-/// <summary>
-/// User feedback on session insights
-/// </summary>
-public record InsightFeedback(
-    string FeedbackId,
-    DateTime SubmittedAt,
-    string? Rating, // positive, negative
-    string? Comment,
-    string? UserId
+    string? EfficiencyRating
 );
 
 /// <summary>

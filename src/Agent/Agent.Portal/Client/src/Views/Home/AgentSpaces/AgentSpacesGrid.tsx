@@ -136,7 +136,7 @@ export const AgentSpacesGrid = () => {
                             <Image src="SreAgentSpace.svg" width={16} height={16} alt={intl.formatMessage(PortalResources.agentSpace)} />
                         }
                     >
-                        <Link onClick={() => navigate(`/spaces/${encodeURIComponent(item.id)}`)}>{item.name}</Link>
+                        <Link onClick={() => navigate(`/spaces${item.id}`)}>{item.name}</Link>
                     </TableCellLayout>
                 ),
             }),

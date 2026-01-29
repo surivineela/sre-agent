@@ -9,7 +9,6 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Framework;
 using Agent.Plugins.Interface;
 using Agent.Runtime.Communication;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
@@ -85,6 +84,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
 
                     """,
+                    source: ThreadSource.BestPractices,
                     agentTypeEnum: AgentTypeEnum.CVE);
 
                 var cveAgent = new CVEAgent(

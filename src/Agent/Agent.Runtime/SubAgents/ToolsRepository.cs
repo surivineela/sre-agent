@@ -57,13 +57,8 @@ public class ToolsRepository : IToolsRepository
         Register200<GraphDBPluginDefinition>(x => x.DiscoverApplications);
         Register200<GraphDBPluginDefinition>(x => x.AddSourceCodeNodeToContainerAppNode);
         Register200<GraphDBPluginDefinition>(x => x.GetContainerAppsWithNodesWithoutSourceCodeNodes);
-        Register200<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
         Register200<GraphDBPluginDefinition>(x => x.GetResourceDetailedProperties);
-        Register200<GraphDBPluginDefinition>(x => x.GetResourceIdForResourceName);
-        Register200<GraphDBPluginDefinition>(x => x.ListSubscriptions);
-        Register200<GraphDBPluginDefinition>(x => x.ListResourceGroups);
-        Register200<GraphDBPluginDefinition>(x => x.SearchResourceByName);
-        Register200<GraphDBPluginDefinition>(x => x.ListResourcesByType);
+        Register200<GraphDBPluginDefinition>(x => x.SearchResource);
         Register200<GraphDBPluginDefinition>(x => x.AddIgnoreTagToResource);
 
         // Not all tools were registered, so registering individually

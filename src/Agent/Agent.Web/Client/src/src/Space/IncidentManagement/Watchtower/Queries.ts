@@ -162,3 +162,38 @@ export const getLatestIncidentInformationQuery = (handlerId: string, incidentId:
     | summarize arg_max(UpdatedOn, HandlerId, IncidentTitle, CreatedOn, IncidentHandledOn, MitigatedOn, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, isAssistedByAgent, RootCause, RootCauseDescription, Summary, ImpactedService, RunMode, CustomHandler) by IncidentId
     | project IncidentId, HandlerId, IncidentTitle, CreatedOn, UpdatedOn, IncidentHandledOn, MitigatedOn, HandlerCreatedOn, HandlerUpdatedOn, Status, Priority, IsMitigatedByAgent, isAssistedByAgent, RootCause, RootCauseDescription, Summary, ImpactedService, RunMode, CustomHandler`;
 };
+
+/** Query for getting intent met score for the past 30 days */
+export const getIntentMetScoreQuery = () => {
+    return `
+   customEvents
+    | where name == 'IncidentActivitySnapshot'
+    | where timestamp > ago(30d)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)),
+        IncidentId = tostring(customDimensions.IncidentId),
+        IntentMetScore = todouble(customDimensions.IntentMetScore),
+        UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | where IncidentHandledOn > ago(30d)
+    | where isnotempty(IntentMetScore) and IntentMetScore >= 1 and IntentMetScore <= 5
+    | summarize arg_max(UpdatedOn, IntentMetScore) by IncidentId
+    | summarize AvgIntentMetScore = (avg(IntentMetScore) - 1) / 4 * 10
+    `;
+};
+
+/** Query for getting daily intent met score trend for the past 30 days */
+export const getIntentMetScoreTrendQuery = () => {
+    return `
+    customEvents
+    | where name == 'IncidentActivitySnapshot'
+    | where timestamp > ago(30d)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)),
+        IncidentId = tostring(customDimensions.IncidentId),
+        IntentMetScore = todouble(customDimensions.IntentMetScore),
+        UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | where IncidentHandledOn > ago(30d)
+    | where isnotempty(IntentMetScore) and IntentMetScore >= 1 and IntentMetScore <= 5
+    | summarize arg_max(UpdatedOn, IntentMetScore, IncidentHandledOn) by IncidentId
+    | summarize AvgIntentMetScore = (avg(IntentMetScore) - 1) / 4 * 10, IncidentCount = dcount(IncidentId) by bin(IncidentHandledOn, 1d)
+    | order by IncidentHandledOn asc
+    `;
+};

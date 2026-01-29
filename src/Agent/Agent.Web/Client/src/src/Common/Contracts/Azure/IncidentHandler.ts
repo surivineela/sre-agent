@@ -1,5 +1,22 @@
 import { AgentMode, IncidentManagementType, IncidentStatus } from './SreAgent';
 
+/**
+ * Defines the events that can trigger agent processing for an incident.
+ * ICM provider only.
+ */
+export enum IncidentTriggerEvent {
+    /** Default trigger. Fires when incident created OR transferred to team. */
+    IncidentCreatedOrTransferred = 'IncidentCreatedOrTransferred',
+    /** Fires when discussion entry added with @sreagent mention by current on-call. */
+    DiscussionEntry = 'DiscussionEntry',
+    /** Fires when incident state changes to Mitigated. */
+    IncidentMitigated = 'IncidentMitigated',
+    /** Fires when incident state changes from Mitigated/Resolved to Active. */
+    IncidentReactivated = 'IncidentReactivated',
+    /** Fires when incident state changes to Resolved. */
+    IncidentResolved = 'IncidentResolved',
+}
+
 export interface InstructionGenerationRequest {
     agentName: string;
     customInstructions: string;
@@ -43,6 +60,10 @@ export interface IncidentFilterDocumentPayload {
     owningTeamId?: string; // only for IcM
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM
+    /** List of trigger events that this filter responds to. ICM only. */
+    triggers?: IncidentTriggerEvent[];
+    /** List of handling agents for multi-agent parallel processing. ICM only (Phase 2). */
+    handlingAgents?: string[];
 }
 
 export type IncidentDocumentType = 'ServiceNowIncident' | 'PagerDutyIncident' | 'IcmIncident' | 'AzureMonitorIncident';
@@ -98,6 +119,10 @@ export interface IncidentFilter {
     deepInvestigationEnabled?: boolean;
     handlingAgent?: string;
     owningTeamId?: string; // only for IcM
+    /** List of trigger events that this filter responds to. ICM only. */
+    triggers?: IncidentTriggerEvent[];
+    /** List of handling agents for multi-agent parallel processing. ICM only (Phase 2). */
+    handlingAgents?: string[];
     createdBy?: string; // only for IcM
     monitorId?: string; // only for IcM
 }

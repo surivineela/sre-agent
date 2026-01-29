@@ -7,6 +7,10 @@ export const PortalResources = defineMessages({
     },
     azureSreAgent: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     azureSreAgentsPreview: { defaultMessage: 'Azure SRE Agents (Preview)', id: 'Q5mdr7' },
+    agentLoadSlowWarning: {
+        defaultMessage: 'Taking longer than usual... Your agent may be cold-starting, or there may be network issues.',
+        id: 'M9sohy',
+    },
     previewCapitalized: { defaultMessage: 'PREVIEW', id: 'Isedjj' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     agents: { defaultMessage: 'Agents', id: 'GBnvl1' },
@@ -144,6 +148,10 @@ export const PortalResources = defineMessages({
         defaultMessage: 'URI must end with {value}',
         id: 'srMOPI',
     },
+    uriMustEndWithAllowedDomain: {
+        defaultMessage: 'URI must end with ".azuresre.ai" or ".sre.azure.com"',
+        id: 'nQUeKZ',
+    },
     uriNotUnique: {
         defaultMessage: 'This URI already exists',
         id: 'gicrFI',
@@ -182,6 +190,10 @@ export const PortalResources = defineMessages({
         defaultMessage:
             "We were unable to load the URL {agentUxUrl}. We've detected that your organization has selected Zscaler to protect you from unknown domains. Please speak to your network administrator to remove the restriction on this domain in order to proceed with interacting with your agent.",
         id: 'GDEEBE',
+    },
+    externalAgentDomainNotAllowed: {
+        defaultMessage: 'The URI must end with ".azuresre.ai" or ".sre.azure.com".',
+        id: 'zX8SaB',
     },
     operationCancelled: { defaultMessage: 'Operation cancelled', id: 'g82HU6' },
     directory: { defaultMessage: 'Directory', id: 'RDwKyy' },
@@ -393,6 +405,24 @@ export const PortalResources = defineMessages({
     deleteConnectors: { defaultMessage: 'Delete {count} connectors', id: 'kWfaS8' },
     editConnector: { defaultMessage: 'Edit connector', id: '7kPmO3' },
     updateConnector: { defaultMessage: 'Update connector', id: 'GeSTZm' },
+    getSupportedModelsFailedMessage: { defaultMessage: 'Unable to load available models. Please try again later.', id: 'rhW41X' },
+    modelProviderLabel: { defaultMessage: 'Model provider', id: 'DTJ2/l' },
+    providerLabel: { defaultMessage: 'Provider', id: 'xaj9Ba' },
+    modelLabel: { defaultMessage: 'Model', id: 'rhSI1/' },
+    anthropicEuRegionInfoMessage: {
+        defaultMessage:
+            'Anthropic processes data in the United States and is excluded from European Union Data Boundary (EUDB). This data includes prompts, responses, and resource analysis. If EUDB is required for your use case, select a different model.',
+        id: 'UwPEiY',
+    },
+    anthropicEuRegionLearnMore: {
+        defaultMessage: 'Learn more about SRE Agent data handling',
+        id: 'KOamvU',
+    },
+    anthropicNotAvailable: {
+        defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
+        id: 'x3nLRm',
+    },
+    providerPlaceholder: { defaultMessage: 'Select region first', id: 'zUmqxZ' },
     // Connector CRUD operations
     creatingConnector: { defaultMessage: 'Creating connector...', id: 'jE1HXt' },
     createConnectorSuccess: { defaultMessage: 'Connector "{name}" created successfully', id: 'ZqOouB' },

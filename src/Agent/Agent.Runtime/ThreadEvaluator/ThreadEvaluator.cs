@@ -14,6 +14,7 @@ using Agent.Framework;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -35,6 +36,7 @@ public partial class ThreadEvaluator
     private readonly Tracer _tracer;
     private readonly IRagEvaluator _ragEvaluator;
     private readonly IAgentProvider<AgentContext> _agentProvider;
+    private readonly IThreadEvaluationSnapshotService _threadEvaluationSnapshotService;
 
     // Configurable time windows for thread filtering
     private readonly TimeSpan _evaluationHistoryRange; // How far back to search for threads
@@ -47,6 +49,7 @@ public partial class ThreadEvaluator
       Tracer tracer,
       IRagEvaluator ragEvaluator,
       IAgentProvider<AgentContext> agentProvider,
+      IThreadEvaluationSnapshotService threadEvaluationSnapshotService,
       TimeSpan? evaluationHistoryRange = null,
       TimeSpan? coolDownPeriod = null)
     {
@@ -56,10 +59,11 @@ public partial class ThreadEvaluator
         _tracer = tracer;
         _ragEvaluator = ragEvaluator;
         _agentProvider = agentProvider;
+        _threadEvaluationSnapshotService = threadEvaluationSnapshotService;
 
         // Allow overriding default time windows
         _evaluationHistoryRange = evaluationHistoryRange ?? TimeSpan.FromHours(24);
-        _coolDownPeriod = coolDownPeriod ?? TimeSpan.FromMinutes(5);
+        _coolDownPeriod = coolDownPeriod ?? TimeSpan.FromMinutes(10);
     }
 
     /// <summary>
@@ -271,7 +275,8 @@ public partial class ThreadEvaluator
                 AgentType: agentType,
                 StartingAgentName: startingAgentName,
                 SkillsEnabled: startingAgent.EnableSkills,
-                IsExtendedAgent: startingAgent.IsExtended
+                IsExtendedAgent: startingAgent.IsExtended,
+                BlockedReason: llmEvaluation.BlockedReason
             );
 
             // Store the evaluation result in the repository
@@ -299,6 +304,28 @@ public partial class ThreadEvaluator
 
             // Update thread with evaluation timestamp
             await _threadRepository.UpdateThreadEvaluatedTimestampAsync(thread.Id, DateTime.UtcNow);
+
+            // Ingest IntentMet snapshot for incident threads
+            if (thread.Source == ThreadSource.Incident && thread.IncidentSource != null)
+            {
+                try
+                {
+                    await _threadEvaluationSnapshotService.IngestIntentMetSnapshotAsync(
+                        thread.Id,
+                        thread.IncidentSource.IncidentId,
+                        evaluationResult.Resolved,
+                        evaluationResult.EvaluationSummary,
+                        cancellationToken);
+
+                    _logger.LogInternalInformation(
+                        $"[ThreadEvaluator] Ingested IntentMet snapshot for incident thread {thread.Id}, incident {thread.IncidentSource.IncidentId}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex,
+                        $"[ThreadEvaluator] Failed to ingest IntentMet snapshot for thread {thread.Id}: {ex.Message}");
+                }
+            }
 
             return evaluationResult;
         }
@@ -541,8 +568,8 @@ public partial class ThreadEvaluator
                         Score Definitions:
                         - 5 (Exceptionally Resolved): Agent exceeded expectations, resolved the issue faster and more thoroughly than anticipated, provided additional valuable insights or preventive measures.
                         - 4 (Well Resolved): Agent successfully resolved the issue with good understanding and effective solution, user confirms satisfaction with the resolution.
-                        - 3 (Partially Resolved): Agent made progress but didn't fully resolve the issue, or the resolution status is unclear from the conversation. Examples: Partial fixes provided, user acknowledges some progress but indicates more work needed.
-                        - 2 (Poorly Resolved): Agent attempted to resolve but failed significantly, provided incorrect or incomplete solutions, user indicates continued problems.
+                        - 3 (Partially Resolved / Neutral - Pending User Approval): Agent made progress but didn't fully resolve the issue, or the resolution status is unclear from the conversation. Examples: Partial fixes provided, user acknowledges some progress but indicates more work needed. **IMPORTANT: If the agent performed thorough investigation and analysis, identified the issue, and is now waiting for user approval or input before taking the final action, score as 3. This is a neutral outcome - the agent did the right work but cannot complete without user response. Do NOT penalize with 1-2 if the agent did sufficient investigation.**
+                        - 2 (Poorly Resolved): Agent attempted to resolve but failed significantly, provided incorrect or incomplete solutions, user indicates continued problems. Also applies when agent asks for user input without doing sufficient investigation first.
                         - 1 (Completely Unresolved): Agent completely failed to address the core problem, made the situation worse, or user explicitly states the issue is not fixed at all.
 
                     2. **Satisfied**: Was the agent's response good enough? Did the user appear satisfied and not frustrated?
@@ -587,6 +614,12 @@ public partial class ThreadEvaluator
                         - 2 (Poor Adherence): Agent frequently ignores or misinterprets instructions, shows limited understanding of user/system prompts, significant deviations from requirements.
                         - 1 (No Adherence): Agent completely ignores instructions, shows no understanding of user/system prompts, acts contrary to explicit directions.
 
+                    7. **BlockedReason**: Is the thread currently blocked waiting for user action? This helps identify threads that should be excluded from actionable metrics.
+                        Values:
+                        - "None": Thread completed normally or is progressing without waiting for user.
+                        - "PendingApproval": Agent proposed an action (e.g., restart service, delete resource) and is waiting for user to click Approve. The agent has done its investigation and is ready to act.
+                        - "PendingUserResponse": Agent asked a question or needs clarification from user (e.g., "Which resource did you mean?", "Can you grant me permissions?"). The agent cannot proceed without user input.
+
                                         Respond in valid JSON format with only the evaluation fields (do NOT include category/priority):
                                         {
                                             "Resolved": 3,
@@ -595,6 +628,7 @@ public partial class ThreadEvaluator
                                             "Smooth": 1,
                                             "Concise": 1,
                                             "Adherence": 4,
+                                            "BlockedReason": "None",
                                             "Summary": "Brief 1-2 sentence summary of performance"
                                         }
                     """),
@@ -635,7 +669,8 @@ public partial class ThreadEvaluator
                     Concise = evaluationData?.Concise ?? 0,
                     Adherence = evaluationData?.Adherence ?? 0,
                     Priority = evaluationData?.Priority ?? "low",
-                    PriorityReason = evaluationData?.PriorityReason ?? ""
+                    PriorityReason = evaluationData?.PriorityReason ?? "",
+                    BlockedReason = evaluationData?.BlockedReason ?? "None"
                 };
             }
             catch (JsonException ex)
@@ -856,6 +891,7 @@ public partial class ThreadEvaluator
         public int Adherence { get; set; }
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
+        public string BlockedReason { get; set; } = "None";
     }
     internal class LLMEvaluationResponse
     {
@@ -872,6 +908,7 @@ public partial class ThreadEvaluator
         public string Category { get; set; } = "";
         public string Priority { get; set; } = "";
         public string PriorityReason { get; set; } = "";
+        public string BlockedReason { get; set; } = "None";
     }
 
     /// <summary>

@@ -1,14 +1,4 @@
-import {
-    Button,
-    Card,
-    InfoLabel,
-    Label,
-    Link,
-    Skeleton,
-    SkeletonItem,
-    Switch,
-    Text,
-} from '@fluentui/react-components';
+import { Button, Card, InfoLabel, Label, Link, Skeleton, SkeletonItem, Switch, Text } from '@fluentui/react-components';
 import { Code16Regular } from '@fluentui/react-icons';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -230,11 +220,7 @@ const Basics = () => {
         <>
             <div style={{ ...styles.generalSettingsHeader, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {intl.formatMessage(SettingsTabResources.basics)}
-                <Button
-                    appearance="subtle"
-                    icon={<Code16Regular />}
-                    onClick={() => setShowJsonDialog(true)}
-                >
+                <Button appearance="subtle" icon={<Code16Regular />} onClick={() => setShowJsonDialog(true)}>
                     {intl.formatMessage(SreAgentResources.viewJson)}
                 </Button>
             </div>
@@ -245,11 +231,7 @@ const Basics = () => {
                     <Text>{resourceName}</Text>
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.subscription)}</Label>
                     <SkeletonField isLoading={subscriptionLoading && !subscription?.displayName}>
-                        {subscription?.displayName ? (
-                            <Link onClick={openSubscription}>{subscription.displayName}</Link>
-                        ) : (
-                            '-'
-                        )}
+                        {subscription?.displayName ? <Link onClick={openSubscription}>{subscription.displayName}</Link> : '-'}
                     </SkeletonField>
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.subscriptionId)}</Label>
                     <div style={styles.copyFieldContainer}>
@@ -281,25 +263,17 @@ const Basics = () => {
                     )}
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.managedIdentity)}</Label>
                     <SkeletonField isLoading={agentLoading && (!identityId || !identityName)}>
-                        {identityId && identityName ? (
-                            <Link onClick={openManagedIdentity}>{identityName}</Link>
-                        ) : (
-                            '-'
-                        )}
+                        {identityId && identityName ? <Link onClick={openManagedIdentity}>{identityName}</Link> : '-'}
                     </SkeletonField>
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.applicationInsights)}</Label>
                     <SkeletonField isLoading={agentLoading || appInsightsLoading}>
                         {appInsightsResourceId && appInsightsName ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Text>{appInsightsName}</Text>
-                                <Link onClick={openAppInsightsDialog}>
-                                    {intl.formatMessage(SreAgentResources.edit)}
-                                </Link>
+                                <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.edit)}</Link>
                             </div>
                         ) : (
-                            <Link onClick={openAppInsightsDialog}>
-                                {intl.formatMessage(SreAgentResources.add)}
-                            </Link>
+                            <Link onClick={openAppInsightsDialog}>{intl.formatMessage(SreAgentResources.add)}</Link>
                         )}
                     </SkeletonField>
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.agentPermissionsLevel)}</Label>
@@ -320,11 +294,7 @@ const Basics = () => {
                     )}
                     <Label className={labelStyles.small}>{intl.formatMessage(SreAgentResources.agentSpaceLabel)}</Label>
                     <SkeletonField isLoading={agentLoading && !agentSpaceId}>
-                        {agentSpaceName ? (
-                            <Link onClick={openAgentSpace}>{agentSpaceName}</Link>
-                        ) : (
-                            '-'
-                        )}
+                        {agentSpaceName ? <Link onClick={openAgentSpace}>{agentSpaceName}</Link> : '-'}
                     </SkeletonField>
                     <InfoLabel
                         info={
@@ -375,11 +345,7 @@ const Basics = () => {
                 agentResourceId={resourceId}
                 onSave={handleAppInsightsSaved}
             />
-            <ViewResourceJsonDialog
-                resourceId={resourceId}
-                isOpen={showJsonDialog}
-                onClose={() => setShowJsonDialog(false)}
-            />
+            <ViewResourceJsonDialog resourceId={resourceId} isOpen={showJsonDialog} onClose={() => setShowJsonDialog(false)} />
         </>
     );
 };
