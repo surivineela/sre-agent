@@ -1,7 +1,8 @@
 ## FAQs for Overcoming Blockers in Setting Up the Azure SRE Agent Locally
 
 1. **How do I set the subscription for the deployment?**
-   - Use the command: `az account set --subscription "your-subscription-id"`. 
+   - You can pass `-s <subscriptionId>` to the deploy3p command: `just deploy3p -n <stamp_prefix> -s <subscriptionId>`.
+   - Alternatively, use the command: `az account set --subscription "your-subscription-id"` before running the deployment. 
 
 2. **What should I do if the deployment is stuck on feature registration?**
    - Run the command to check the registration status: `az feature show --name PrivatePreview --namespace Microsoft.DurableTask --output table`. 

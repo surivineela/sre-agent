@@ -13,11 +13,6 @@ DEPLOYMENT_NAME="${NAME_PREFIX}-operations-agent-deployment"
 
 confirmDeployment $PARAMETERS_FILE
 
-# Registering dts provider
-echo "Registering dts provider..."
-az feature register --namespace Microsoft.DurableTask --name PrivatePreview
-az provider register -n Microsoft.DurableTask
-
 # Deploy the Bicep template
 echo "Creating deployment with name $DEPLOYMENT_NAME..."
 az deployment sub create \

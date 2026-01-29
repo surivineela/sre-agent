@@ -31,10 +31,12 @@ dnf install just
    For the very first execution, run the command bellow to prepare your environment and perform an initial deployment:
 
    ```bash
-   just deploy3p -n <stamp_prefix>
+   just deploy3p -n <stamp_prefix> [-s <subscriptionId>]
    ```
 
    The `<stamp prefix>` above is the prefix that would be used for your resource names. Your alias is a good option.
+
+   Optionally, you can specify a target subscription with `-s <subscriptionId>`. If not provided, the deployment will use your current Azure CLI subscription.
 
    After first time you run, an untracked `dev.bicepparam` file will be created which you can use to re-run the command without needing to specify the `-n <stamp prefix>` argument.
 

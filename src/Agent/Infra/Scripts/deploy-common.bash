@@ -31,17 +31,20 @@ validateArgs() {
     SOURCE_PARAM="$PARAMS_DIR/dev.example.bicepparam"
     PARAMETERS_FILE="$PARAMS_DIR/dev.bicepparam"
 
-    usageStr="Usage: $0 -n <namePrefix> [-s] [-o]"
-    while getopts ":n:so" opt; do
+    usageStr="Usage: $0 -n <namePrefix> [-k] [-o] [-s <subscriptionId>]"
+    while getopts ":n:kos:" opt; do
         case $opt in
             n)
                 namePrefixArg="$OPTARG"
                 ;;
-            s)
+            k)
                 useStack=true
                 ;;
             o)
                 useOldOpenAIName=true
+                ;;
+            s)
+                export subscriptionId="$OPTARG"
                 ;;
             :)
                 echo "Option -${OPTARG} requires an argument."
@@ -73,48 +76,6 @@ validateArgs() {
     else
         echo "param useOldOpenAIName = false" >> "$PARAMETERS_FILE"
     fi
-}
-
-registerFeature() {
-    # Register the feature
-    echo "Registering Microsoft.DurableTask feature..."
-    az feature register --namespace Microsoft.DurableTask --name PrivatePreview
-    echo "Waiting for feature registration to complete..."
-
-    # Wait for the feature to be registered
-    while true; do
-        state=$(az feature show --namespace Microsoft.DurableTask --name PrivatePreview --query "properties.state" -o tsv)
-        state_trimmed=$(echo "$state" | tr -d '\r\n')
-        if [[ "$state_trimmed" == "Registered" ]]; then
-            echo "Feature 'PrivatePreview' is now registered."
-            break
-        else
-            echo "Feature registration state: $state. Waiting 30 seconds..."
-            sleep 30
-        fi
-    done
-}
-
-registerProvider() {
-    # Register the provider
-    echo "Registering Microsoft.DurableTask provider..."
-    az provider register -n Microsoft.DurableTask
-    echo "Waiting for provider registration to complete..."
-
-    # Wait for the provider to be registered
-    while true; do
-        state=$(az provider show -n Microsoft.DurableTask --query "registrationState" -o tsv)
-        state_trimmed=$(echo "$state" | tr -d '\r\n')
-        if [[ "$state_trimmed" == "Registered" ]]; then
-            echo "Provider 'Microsoft.DurableTask' is now registered."
-            break
-        else
-            echo "Provider registration state: $state. Waiting 30 seconds..."
-            sleep 30
-        fi
-    done
-
-    echo "All registrations completed successfully!"
 }
 
 # We cannot use bicep to migrate a db from manual to autoscale, so we need to do it here.
