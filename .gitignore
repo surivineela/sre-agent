@@ -437,4 +437,7 @@ TestPlayground/
 .github/instructions/personal/*
 
 # Personal claude instructions
-CLAUDE.local.md
+**/.claude/*.local.*
+
+# Playwright
+**/.playwright-mcp/

@@ -987,6 +987,10 @@ public class Program
         builder.Services.AddHostedService<TimerService>();
         builder.Services.AddSingleton<ISmartFilterService, SmartFilterService>();
 
+        // Add TSG connector clone service for background repository syncing
+        builder.Services.AddSingleton<TsgConnectorCloneService>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<TsgConnectorCloneService>());
+
         // Add new MCP agent services
         builder.Services.AddMcpAgentServices();
 

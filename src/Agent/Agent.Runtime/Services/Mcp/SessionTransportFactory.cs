@@ -63,7 +63,8 @@ public class SessionTransportFactory : ISessionTransportFactory
             Constants.Ev2ProdTokenScope,
             Constants.AkvOboTokenScope,
             Constants.StorageOboTokenScope,
-            Constants.LogAnalyticsOboTokenScope
+            Constants.LogAnalyticsOboTokenScope,
+            Constants.KustoTokenScope,
         };
 
         // Get data connector credential for acquiring action tokens (same as data connectors)

@@ -647,6 +647,51 @@ Examples:
 
     #endregion
 
+    #region Repo Command Examples
+
+    public static class Repo
+    {
+        public const string AddDescription = @"Add a new Azure DevOps repository connector
+
+Examples:
+  # Add a repository with automatic PAT generation
+  srectl repo add --name my-tsg-repo --url https://dev.azure.com/myorg/myproject/_git/myrepo
+
+  # Add a repository with an existing PAT
+  srectl repo add --name my-tsg-repo --url https://dev.azure.com/myorg/myproject/_git/myrepo --pat xxxxxxx
+
+  # Add a repository using visualstudio.com URL format
+  srectl repo add --name legacy-repo --url https://myorg.visualstudio.com/myproject/_git/myrepo";
+
+        public const string UpdateDescription = @"Update an existing repository connector's credentials
+
+Note: The repository URL cannot be changed. To change the URL, delete and recreate the connector.
+
+Examples:
+  # Update with a new PAT
+  srectl repo update --name my-tsg-repo --pat new-pat-value
+
+  # Regenerate PAT using Azure CLI
+  srectl repo update --name my-tsg-repo --regenerate";
+
+        public const string RemoveDescription = @"Remove a repository connector
+
+Examples:
+  # Remove a connector (with confirmation)
+  srectl repo remove --name my-tsg-repo
+
+  # Remove without confirmation
+  srectl repo remove --name my-tsg-repo --force";
+
+        public const string ListDescription = @"List all repository connectors
+
+Examples:
+  # List all connectors
+  srectl repo list";
+    }
+
+    #endregion
+
     #region Scheduled Task Command Examples
 
     public static class ScheduledTask

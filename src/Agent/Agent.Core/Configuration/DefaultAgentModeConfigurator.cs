@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Interfaces;
 using Agent.Framework;
 
 namespace Agent.Core.Configuration;
+
 public class DefaultAgentModeConfigurator<TContext> : IAgentModeConfigurator<TContext>
     where TContext : class
 {
@@ -17,6 +17,5 @@ public class DefaultAgentModeConfigurator<TContext> : IAgentModeConfigurator<TCo
         IReadOnlyDictionary<string, IPromptDescriptor> promptDescriptors)
     {
         //  do nothing now
-
     }
 }

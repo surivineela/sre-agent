@@ -31,6 +31,8 @@ public class LocalSandboxPaths : ISandboxPaths
         EnsureDirectoriesExist();
     }
 
+    public SandboxPaths SandboxPaths => _paths;
+
     /// <inheritdoc />
     public Task<SandboxPaths> GetSandboxPathsAsync() => Task.FromResult(_paths);
 

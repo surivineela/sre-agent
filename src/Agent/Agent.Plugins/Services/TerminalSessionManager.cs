@@ -40,28 +40,28 @@ public class TerminalSessionManager : IDisposable
     {
         var threadId = ThreadContextAccessor.CurrentThreadId
             ?? throw new InvalidOperationException("No thread context available");
-
         return await GetOrCreateSessionAsync(threadId, ct);
     }
 
     /// <summary>
-    /// Gets or creates a terminal session for a specific session ID (thread ID).
+    /// Gets or creates a terminal session with an explicit session ID.
+    /// Allows callers to provide their own Guid key, bypassing ThreadContextAccessor.
     /// </summary>
+    /// <param name="sessionId">The session key.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The terminal session for this key.</returns>
     public async Task<TerminalSession> GetOrCreateSessionAsync(Guid sessionId, CancellationToken ct = default)
     {
-        // Check for existing alive session
         if (_sessions.TryGetValue(sessionId, out var existing) && existing.IsAlive)
         {
             return existing;
         }
 
-        // Session died or doesn't exist - create new
         _logger.LogInternalInformation("Creating new terminal session for session {SessionId}", sessionId);
 
         var session = await CreateSessionWithRetryAsync(ct);
         _sessions[sessionId] = session;
 
-        // Subscribe to process death for logging (auto-restart happens on next GetOrCreateSessionAsync)
         session.ProcessExited += (s, e) => OnProcessExited(sessionId, session);
 
         return session;
@@ -178,6 +178,29 @@ public class TerminalSessionManager : IDisposable
         var session = await GetOrCreateSessionAsync(ct);
         var result = await session.ExecuteCommandAsync(command, TerminalConfiguration.CommandTimeout, ct);
         return result;
+    }
+
+    /// <summary>
+    /// Executes a foreground command in a specific session identified by Guid.
+    /// </summary>
+    public async Task<(string output, int exitCode)> ExecuteCommandAsync(
+        Guid sessionId,
+        string command,
+        CancellationToken ct = default)
+    {
+        var session = await GetOrCreateSessionAsync(sessionId, ct);
+        return await session.ExecuteCommandAsync(command, TerminalConfiguration.CommandTimeout, ct);
+    }
+
+    /// <summary>
+    /// Disposes and removes a specific session identified by Guid.
+    /// </summary>
+    public void DisposeSession(Guid sessionId)
+    {
+        if (_sessions.TryRemove(sessionId, out var session))
+        {
+            session.Dispose();
+        }
     }
 
     /// <summary>

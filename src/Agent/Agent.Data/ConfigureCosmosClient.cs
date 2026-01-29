@@ -155,6 +155,17 @@ public static class AgentDataConfiguration
             return new CosmosDbSessionInsightRepository(cosmosClient, cosmosDatabaseName, logger, searchIndexService, embeddingGenerator);
         });
 
+        // Register the TsgConnector repository for PAT-based connector storage
+        serviceCollection.AddSingleton<ITsgConnectorRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbTsgConnectorRepository>>();
+            return new CosmosDbTsgConnectorRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 
