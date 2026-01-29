@@ -108,6 +108,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
                 var metadata = GetStackVersion(webConfig.Data);
 
+                // Store LinuxFxVersion if available
+                if (!string.IsNullOrWhiteSpace(webConfig.Data.LinuxFxVersion))
+                {
+                    appServiceNode.LinuxFxVersion = webConfig.Data.LinuxFxVersion;
+                }
+
                 appServiceNode.SkuName = appServicePlanData?.Sku?.Name ?? string.Empty;
                 appServiceNode.SkuTier = appServicePlanData?.Sku?.Tier ?? string.Empty;
                 appServiceNode.SkuSize = appServicePlanData?.Sku?.Size ?? string.Empty;

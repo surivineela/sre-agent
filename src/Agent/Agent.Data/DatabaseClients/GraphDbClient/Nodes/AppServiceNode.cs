@@ -51,6 +51,9 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("stackVersion")]
     public string? StackVersion { get; set; }
 
+    [GraphProperty("linuxFxVersion")]
+    public string? LinuxFxVersion { get; set; }
+
     [GraphProperty("functionsHostVersion")]
     public string? FunctionsHostVersion { get; set; }
 

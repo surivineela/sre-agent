@@ -720,6 +720,25 @@ g.V().has('id', '{deploymentResourceId}').has('isDeleted', false)
         await _graphDbClient.AddOrUpdateNodeAsync(label, id, resourceType, properties);
     }
 
+    public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
+    {
+        var query = $@"
+                g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}').has('isDeleted', false)
+                .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceName', 'location', 'kind', 'linuxFxVersion')
+                .by(coalesce(values('subscriptionId'), constant('unknown')))
+                .by(coalesce(values('resourceGroupName'), constant('unknown')))
+                .by(coalesce(values('resourceType'), constant('unknown')))
+                .by(coalesce(values('resourceName'), constant('unknown')))
+                .by(coalesce(values('location'), constant('unknown')))
+                .by(coalesce(values('kind'), constant('')))
+                .by(coalesce(values('linuxFxVersion'), constant('')))
+                ";
+
+        var results = await _graphDbClient.Query<Dictionary<string, object>>(query);
+
+        return results.FirstOrDefault([]);
+    }
+
     /// <summary>
     /// Gets detailed properties for a resource from the knowledge graph.
     /// </summary>

@@ -325,4 +325,28 @@ public class AppServiceScannerTests
     }
 
     #endregion
+
+    #region LinuxFxVersion Property Extraction Tests
+
+    [Fact]
+    public void GetFirstPropertyValue_WithLinuxFxVersion_ExtractsCorrectly()
+    {
+        // Arrange
+        var properties = new Dictionary<string, object>
+        {
+            { "linuxFxVersion", new[] { "DOCKER|nginx:latest" } }
+        };
+
+        var scanner = CreateScanner();
+        var method = typeof(AppServiceScanner).GetMethod("GetFirstPropertyValue",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        // Act
+        var result = method?.Invoke(scanner, [properties, "linuxFxVersion"]) as string;
+
+        // Assert
+        result.ShouldBe("DOCKER|nginx:latest");
+    }
+
+    #endregion
 }

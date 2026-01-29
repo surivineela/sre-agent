@@ -1466,6 +1466,8 @@ public class DailyReportScanner
                     var properties = appGroup["properties"] as IDictionary<string, object>;
                     string appId = appGroup["id"]?.ToString() ?? string.Empty;
 
+                    string? linuxFxVersion = GetLinuxFxVersion(properties);
+
                     if (properties != null && appId != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
                     {
                         var options = new JsonSerializerOptions
@@ -1500,6 +1502,7 @@ public class DailyReportScanner
                                         {
                                             Name = appGroup["name"]?.ToString() ?? string.Empty,
                                             Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                            LinuxFxVersion = linuxFxVersion,
                                             AppHealthInfo = aggregatedHealthInfo ?? latestHealthInfo
                                         });
                                     }
@@ -1510,6 +1513,7 @@ public class DailyReportScanner
                                         {
                                             Name = appGroup["name"]?.ToString() ?? string.Empty,
                                             Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                            LinuxFxVersion = linuxFxVersion,
                                             AppHealthInfo = latestHealthInfo
                                         });
                                     }
@@ -1523,6 +1527,7 @@ public class DailyReportScanner
                                     {
                                         Name = appGroup["name"]?.ToString() ?? string.Empty,
                                         Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                        LinuxFxVersion = linuxFxVersion,
                                         AppHealthInfo = latestHealthInfo
                                     });
                                 }
@@ -1543,6 +1548,26 @@ public class DailyReportScanner
         }
 
         return result;
+    }
+
+    private static string? GetLinuxFxVersion(IDictionary<string, object>? properties)
+    {
+        string? linuxfxVersion = null;
+
+        if (properties != null
+            && properties.TryGetValue("linuxFxVersion", out var linuxFxVersionObj))
+        {
+            linuxfxVersion = ((IEnumerable<object>?)linuxFxVersionObj)?.OfType<string>().FirstOrDefault();
+
+            // LinuxFxVersion starting with COMPOSE| can contain secrets, Hence we redact them.
+            if (!string.IsNullOrWhiteSpace(linuxfxVersion)
+                && linuxfxVersion.StartsWith("COMPOSE|"))
+            {
+                return "COMPOSE|REDACTED";
+            }
+        }
+
+        return linuxfxVersion;
     }
 
     private AppHealthInfo? AggregateHealthInfoFromHistory(AppHealthHistoryDocument historyDocument)
