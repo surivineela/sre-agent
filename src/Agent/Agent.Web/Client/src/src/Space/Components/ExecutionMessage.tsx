@@ -6,7 +6,6 @@ import {
     Badge,
     Button,
     Caption1,
-    Card,
     Divider,
     Spinner,
     Text,
@@ -69,6 +68,15 @@ type ExecutionMessageProps = {
 };
 
 const useStyles = makeStyles({
+    card: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '12px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        padding: '16px',
+        transitionProperty: 'background-color, border-color',
+        transitionDuration: '0.15s',
+        transitionTimingFunction: 'ease',
+    },
     codeBlock: {
         position: 'relative',
         border: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStrokeDisabled}`,
@@ -390,7 +398,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
     };
 
     return (
-        <Card>
+        <div className={classes.card}>
             <div className={classes.headerRow}>
                 <div className={classes.summaryLeft}>
                     <Text weight="semibold">{currentExecution.description}</Text>
@@ -422,7 +430,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
                 )}
             </div>
 
-            <div className={classes.codeBlock} style={{ marginTop: 4 }}>
+            <div className={classes.codeBlock} style={{ marginTop: 12 }}>
                 {!isCollapsed && <Caption1 style={{ color: tokens.colorNeutralForeground3 }}>{executionTypeLabel}</Caption1>}
                 <div className={classes.copyButton}>
                     <CopyButton textToCopy={currentExecution.command} />
@@ -569,7 +577,7 @@ const ExecutionMessage = ({ execution, threadId, type, updateApprovalOrCliMessag
                     </AccordionPanel>
                 </AccordionItem>
             </Accordion>
-        </Card>
+        </div>
     );
 };
 
