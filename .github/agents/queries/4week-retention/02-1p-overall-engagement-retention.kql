@@ -1,0 +1,52 @@
+// 4-Week Retention Cohort Analysis - 1P (Internal) OVERALL ENGAGEMENT
+// Cohorts: Nov 7-13 (Week 1) through Jan 16-22
+//
+// This query calculates weekly cohort retention for INTERNAL (1P) agents
+// Based on ANY portal engagement (excluding SignalR)
+// 1P is determined by isInternal=true in the metadata field
+// Unique entity: subscriptionId + resourceGroup + resourceName (agent)
+//
+// Data Source: wawsanneu.northeurope.kusto.windows.net / delink
+
+let ExtensionFilter = 'Microsoft_Azure_PaasServerless';
+let CohortStart = datetime(2025-11-07);
+let CohortEnd = datetime(2026-01-23);
+
+// Get portal events - excluding SignalR, filtering to internal users
+let PortalEvents = Remapped_AzPortalPartner_ExtTelemetry
+| where EventTime >= CohortStart and EventTime < CohortEnd
+| where extension == ExtensionFilter
+| where isnotempty(metadata)
+| extend isInternal = tobool(parse_json(metadata).isInternal)
+| where isInternal == true
+| where isnotempty(subscriptionId) and isnotempty(resourceGroup) and isnotempty(resourceName)
+| extend AgentId = strcat("/subscriptions/", subscriptionId, "/resourcegroups/", resourceGroup, "/providers/microsoft.app/agents/", resourceName)
+| extend event_type = strcat(iff(logType == "Navigation", "Navigation | ", ""), targetFriendlyName, ' | ', targetAction, ' - ', targetType)
+| where event_type !contains "SignalR"
+| extend DaysSinceStart = datetime_diff('day', EventTime, CohortStart)
+| extend WeekNum = DaysSinceStart / 7
+| project AgentId, WeekNum;
+
+// Find first week for each agent (cohort assignment)
+let AgentCohorts = PortalEvents
+| summarize FirstWeek = min(WeekNum) by AgentId;
+
+// Count agents per cohort
+let CohortSizes = AgentCohorts
+| summarize CohortSize = dcount(AgentId) by FirstWeek;
+
+// Calculate retention for each week after cohort (4 weeks)
+let Retention = PortalEvents
+| join kind=inner (AgentCohorts) on AgentId
+| extend WeeksAfterCohort = WeekNum - FirstWeek
+| where WeeksAfterCohort >= 0 and WeeksAfterCohort <= 4
+| summarize RetainedAgents = dcount(AgentId) by FirstWeek, WeeksAfterCohort;
+
+// Build retention table
+Retention
+| join kind=inner (CohortSizes) on FirstWeek
+| extend RetentionPct = round(100.0 * RetainedAgents / CohortSize, 1)
+| extend CohortWeekStart = CohortStart + (FirstWeek * 7d)
+| extend CohortLabel = strcat(format_datetime(CohortWeekStart, "MMM d"), "-", format_datetime(CohortWeekStart + 6d, "d"))
+| project CohortLabel, FirstWeek, CohortSize, WeeksAfterCohort, RetainedAgents, RetentionPct
+| order by FirstWeek asc, WeeksAfterCohort asc

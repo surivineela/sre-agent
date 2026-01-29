@@ -1,0 +1,27 @@
+// High Usage 3P Subscriptions (> 100 AAU per week)
+// Returns 3P customers with weekly usage exceeding 100 AAU
+// 100 AAU = 100 / 0.25 / 60 = 6.67 minutes per week
+//
+// Output: CustomerName, SubscriptionId, WeeklyDurationMinutes
+
+let StartDate = ago(7d);
+let EndDate = now();
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Get 3P agent metadata
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory == "ThirdParty"
+| where not(AgentUniqueName in (ExcludedAgents))
+| project AgentName = AgentUniqueName, CustomerName, SubscriptionId;
+
+// Calculate weekly usage per subscription
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| summarize WeeklyDurationMinutes = round(sum(Duration) / 60000.0, 2) by CustomerName, SubscriptionId
+| where WeeklyDurationMinutes > 6.67  // 100 AAU threshold
+| order by WeeklyDurationMinutes desc

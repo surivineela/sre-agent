@@ -1,0 +1,46 @@
+// 4-Week Retention Cohort Analysis - ALL PORTAL ACTIVITY (excluding SignalR)
+// Cohorts: Nov 7-13 (Week 1) through Jan 16-22
+//
+// This query calculates weekly cohort retention based on ANY portal engagement
+// Users are assigned to a cohort based on their first week of activity
+// Retention is measured for 4 weeks after cohort assignment
+//
+// Excludes: SignalR Hub connection events (background connectivity, not user actions)
+
+let ExtensionFilter = 'Microsoft_Azure_PaasServerless';
+let CohortStart = datetime(2025-11-07);
+let CohortEnd = datetime(2026-01-23);
+
+// Get portal events - excluding SignalR
+let PortalEvents = Remapped_AzPortalPartner_ExtTelemetry
+| where EventTime >= CohortStart and EventTime < CohortEnd
+| where extension == ExtensionFilter
+| extend event_type = strcat(iff(logType == "Navigation", "Navigation | ", ""), targetFriendlyName, ' | ', targetAction, ' - ', targetType)
+| where event_type !contains "SignalR"
+| extend DaysSinceStart = datetime_diff('day', EventTime, CohortStart)
+| extend WeekNum = DaysSinceStart / 7
+| project userId, WeekNum;
+
+// Find first week for each user (cohort assignment)
+let UserCohorts = PortalEvents
+| summarize FirstWeek = min(WeekNum) by userId;
+
+// Count users per cohort
+let CohortSizes = UserCohorts
+| summarize CohortSize = dcount(userId) by FirstWeek;
+
+// Calculate retention for each week after cohort (4 weeks)
+let Retention = PortalEvents
+| join kind=inner (UserCohorts) on userId
+| extend WeeksAfterCohort = WeekNum - FirstWeek
+| where WeeksAfterCohort >= 0 and WeeksAfterCohort <= 4
+| summarize RetainedUsers = dcount(userId) by FirstWeek, WeeksAfterCohort;
+
+// Build retention table
+Retention
+| join kind=inner (CohortSizes) on FirstWeek
+| extend RetentionPct = round(100.0 * RetainedUsers / CohortSize, 1)
+| extend CohortWeekStart = CohortStart + (FirstWeek * 7d)
+| extend CohortLabel = strcat(format_datetime(CohortWeekStart, "MMM d"), "-", format_datetime(CohortWeekStart + 6d, "d"))
+| project CohortLabel, FirstWeek, CohortSize, WeeksAfterCohort, RetainedUsers, RetentionPct
+| order by FirstWeek asc, WeeksAfterCohort asc
