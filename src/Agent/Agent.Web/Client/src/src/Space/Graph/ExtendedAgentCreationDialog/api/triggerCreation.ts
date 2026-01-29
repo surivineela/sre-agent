@@ -108,10 +108,10 @@ const createIncidentHandlerTrigger = async (trigger: TriggerState, sreAgentEndpo
     }
 
     // Validate required fields for new incident handler
-    if (!trigger.name || !trigger.instructions || !trigger.incidentPriority || !trigger.incidentType) {
+    if (!trigger.name || !trigger.instructions || !trigger.incidentPriorities || !trigger.incidentType) {
         return {
             success: false,
-            error: 'Missing required fields: name, instructions, priority, and type are required',
+            error: 'Missing required fields: name, instructions, priorities, and type are required',
         };
     }
 
@@ -166,7 +166,7 @@ const createIncidentFilter = async (trigger: TriggerState, sreAgentEndpoint: str
         const filter: any = {
             id: filterId,
             name: `${trigger.name} Filter`,
-            priority: trigger.incidentPriority || '',
+            priorities: trigger.incidentPriorities || [],
             incidentType: trigger.incidentType || '',
             handlingAgent: trigger.agentName || '',
             agentMode: 'autonomous',

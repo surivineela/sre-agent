@@ -1043,7 +1043,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
-            Priority = request?.IncidentFilter?.Priority ?? "",
+            Priorities = request?.IncidentFilter?.Priorities ?? [],
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
             TargetResourceType = request?.IncidentFilter?.TargetResourceType ?? string.Empty,

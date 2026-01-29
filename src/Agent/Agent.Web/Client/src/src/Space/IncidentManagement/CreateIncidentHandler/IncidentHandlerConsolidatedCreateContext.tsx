@@ -4,6 +4,7 @@ import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent
 import { ExtendedAgent, ExtendedTool, SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { AgentCreateFormValues } from '../../Graph/AgentCreateDialog/Contracts';
 import { McpConnection } from '../../Graph/ExtendedAgentCreationDialog/api/mcpConnectionsApi';
+import { FilterConflictInfo } from './Common/FilterConflictWarning';
 import { FilterMode, HandlerMode, TimeDuration } from './Contracts';
 
 export enum IncidentHandlerCreateSteps {
@@ -86,10 +87,11 @@ export interface IncidentHandlerConsolidatedCreateMetadata {
     impactedServiceOptions: string[];
     incidentTypeOptions: string[];
     titleContainsOptions: string[];
+    filterFieldOptionsLoading: boolean;
 
     handlerTestMetadata: IncidentHandlerTestMetadata;
     incidentsPreviewMetadata: IncidentsPreviewMetadata;
-
+    conflictingFilters?: FilterConflictInfo[];
     incidentTriggerWithLearningsMetadata?: IncidentTriggerWithLearningsMetadata;
 }
 
@@ -131,6 +133,7 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
     impactedServiceOptions: [],
     incidentTypeOptions: [],
     titleContainsOptions: [],
+    filterFieldOptionsLoading: true,
     handlerTestMetadata: {
         searchTerm: '',
         setSearchTerm: () => {},
@@ -151,4 +154,5 @@ export const IncidentHandlerConsolidatedCreateContext = React.createContext<Inci
         hasMoreOldIncidents: true,
         loadMoreOldIncidents: () => Promise.resolve(true),
     },
+    conflictingFilters: undefined,
 });

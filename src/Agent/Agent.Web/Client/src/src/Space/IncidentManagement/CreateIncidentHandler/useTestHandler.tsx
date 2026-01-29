@@ -41,7 +41,7 @@ export const useTestHandler = (
         loadIncidentsCallId.current = Guid.newShortGuid();
         setLoadingIncidents(true);
 
-        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
+        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined, undefined);
         const queryPayload: IncidentQueryRequest = {
             filter: filterValues,
             durationInDays: TimeDuration.Last90Days,
@@ -72,7 +72,7 @@ export const useTestHandler = (
     }, [
         incidentHandlerClient,
         values.impactedService,
-        values.priority,
+        values.priorities,
         values.incidentType,
         values.titleContains,
         values.owningTeamId,
@@ -109,7 +109,7 @@ export const useTestHandler = (
                 id: values.filterName || '',
                 incidentType: values.incidentType === 'ALL' ? undefined : values.incidentType,
                 impactedService: values.impactedService === 'ALL' ? undefined : values.impactedService,
-                priority: values.priority === 'ALL' ? undefined : values.priority,
+                priorities: values.priorities && values.priorities.length > 0 ? values.priorities : undefined,
                 titleContains: values.titleContains || '',
                 agentMode: values.agentMode || AgentMode.autonomous,
                 owningTeamId: incidentPlatformType === IncidentManagementType.Icm ? values.owningTeamId || '' : undefined,
@@ -151,7 +151,7 @@ export const useTestHandler = (
         values.customInstructions,
         values.incidentType,
         values.impactedService,
-        values.priority,
+        values.priorities,
         values.titleContains,
         values.agentMode,
         values.owningTeamId,

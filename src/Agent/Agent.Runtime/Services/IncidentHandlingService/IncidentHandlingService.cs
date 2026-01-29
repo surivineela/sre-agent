@@ -325,7 +325,7 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
             .Where(filter =>
                 (string.IsNullOrWhiteSpace(filter.ImpactedService) || filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
                 &&
-                (string.IsNullOrWhiteSpace(filter.Priority) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
+                IsPriorityMatch(filter.Priorities, incidentDetails.Priority)
                 &&
                 (string.IsNullOrWhiteSpace(filter.IncidentType) || (filter.IncidentType == incidentDetails.IncidentType))
                 &&
@@ -352,11 +352,15 @@ public abstract class IncidentHandlingServiceBase<TIncidentDocument, TIncidentFi
     /// <param name="filterPriority">The priority from the filter</param>
     /// <param name="incidentPriority">The priority from the incident</param>
     /// <returns>True if priorities match, false otherwise</returns>
-    protected virtual bool IsPriorityMatch(string filterPriority, string incidentPriority)
+    protected virtual bool IsPriorityMatch(IEnumerable<string>? priorities, string incidentPriority)
     {
         // Default implementation: simple string comparison
         // Override in specific implementations (e.g., ServiceNow) for custom logic
-        return string.Equals(filterPriority, incidentPriority, StringComparison.OrdinalIgnoreCase);
+        if (priorities is null || !priorities.Any())
+        {
+            return true;
+        }
+        return priorities.Any(p => string.Equals(p, incidentPriority, StringComparison.OrdinalIgnoreCase));
     }
 
 

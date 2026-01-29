@@ -51,7 +51,6 @@ public class ServiceNowScanner(ILogger<ServiceNowScanner> logger,
             logger.LogInternalWarning("ServiceNow client is not available (using NullableServiceNowAPIClient). Scanner will not run. Check ServiceNow configuration.");
             return;
         }
-
         var lastScanTimeKey = LastScanTimeDoc.GetLastScanTimeKey(IncidentManagementType.ServiceNow);
         var lastScanTimeDoc = await GetDocumentAsync<LastScanTimeDoc>(lastScanTimeKey, lastScanTimeKey);
         lastScanTime = lastScanTimeDoc != null ? lastScanTimeDoc.LastScanTime : DateTime.UtcNow.AddDays(-30); // Default to 30 days ago if not found

@@ -294,7 +294,8 @@ export const SuggestionsPanel: FC<SuggestionsPanelProps> = ({
         if (appliedSuggestionIndex !== null && appliedSuggestionValues) {
             const valuesMatch =
                 values.titleContains === appliedSuggestionValues.titleContains &&
-                values.priority === appliedSuggestionValues.priority &&
+                ((appliedSuggestionValues.priority === 'ALL' && values.priorities?.length === 0) ||
+                    values.priorities?.includes(appliedSuggestionValues.priority)) &&
                 values.incidentType === appliedSuggestionValues.incidentType &&
                 values.filterName === appliedSuggestionValues.filterName &&
                 values.owningTeamId === appliedSuggestionValues.owningTeamId;
@@ -307,7 +308,7 @@ export const SuggestionsPanel: FC<SuggestionsPanelProps> = ({
         }
     }, [
         values.titleContains,
-        values.priority,
+        values.priorities,
         values.incidentType,
         values.filterName,
         values.owningTeamId,
@@ -406,9 +407,9 @@ export const SuggestionsPanel: FC<SuggestionsPanelProps> = ({
             setFieldValue('titleContains', '');
         }
         if (suggestion.severity) {
-            setFieldValue('priority', suggestion.severity);
+            setFieldValue('priorities', [suggestion.severity]);
         } else {
-            setFieldValue('priority', 'ALL');
+            setFieldValue('priorities', []);
         }
         if (suggestion.incidentType) {
             setFieldValue('incidentType', suggestion.incidentType);

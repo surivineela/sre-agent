@@ -17,12 +17,13 @@ export const getFilterValues = (
     values: IncidentHandlerCreateFormValues,
     incidentPlatform?: IncidentManagementType,
     replaceAllKey?: boolean,
-    allKeyReplacement?: string
+    allKeyReplacementForString?: string,
+    allKeyReplacementForArray?: string[]
 ) => {
     const result: any = {
         incidentType: values.incidentType,
         impactedService: values.impactedService,
-        priority: values.priority,
+        priorities: values.priorities?.includes('ALL') ? [] : values.priorities,
         titleContains: values.titleContains,
         agentMode: values.agentMode,
         deepInvestigationEnabled: values.deepInvestigationEnabled,
@@ -36,9 +37,11 @@ export const getFilterValues = (
     };
 
     if (replaceAllKey) {
-        result.incidentType = result.incidentType === 'ALL' ? allKeyReplacement : result.incidentType || allKeyReplacement;
-        result.impactedService = result.impactedService === 'ALL' ? allKeyReplacement : result.impactedService || allKeyReplacement;
-        result.priority = result.priority === 'ALL' ? allKeyReplacement : result.priority || allKeyReplacement;
+        result.incidentType =
+            result.incidentType === 'ALL' ? allKeyReplacementForString : result.incidentType || allKeyReplacementForString;
+        result.impactedService =
+            result.impactedService === 'ALL' ? allKeyReplacementForString : result.impactedService || allKeyReplacementForString;
+        result.priorities = !result.priorities?.length ? allKeyReplacementForArray : result.priorities;
     }
 
     if (incidentPlatform === IncidentManagementType.AzMonitor) {

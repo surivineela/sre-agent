@@ -46,7 +46,7 @@ public class PagerDutyService : IPagerDutyService
         _container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     }
 
-    public async Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
+    public async Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, IEnumerable<string>? priorities, string? titleContains, string? urgency, IEnumerable<string>? statuses)
     {
         _logger.LogInternalInformation("Getting PagerDuty incidents with limit: {limit}, offset: {offset}", limit, offset);
 
@@ -108,9 +108,9 @@ public class PagerDutyService : IPagerDutyService
         return allIncidents.Where(incident =>
         {
             bool isMatch = true;
-            if (!string.IsNullOrEmpty(priority))
+            if (priorities is not null && priorities.Any())
             {
-                isMatch = isMatch && priority.Equals(incident.Priority?.Summary, StringComparison.OrdinalIgnoreCase);
+                isMatch = isMatch && priorities.Contains(incident.Priority?.Summary, StringComparer.OrdinalIgnoreCase);
             }
 
             if (!string.IsNullOrEmpty(titleContains))
@@ -558,7 +558,7 @@ public class NullablePagerDutyService : IPagerDutyService
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, string? priority, string? titleContains, string? urgency, IEnumerable<string>? statuses)
+    public Task<IEnumerable<PagerDutyIncident>> GetIncidentsAsync(uint limit, uint offset, DateTime? since, string? impactServiceId, IEnumerable<string>? priorities, string? titleContains, string? urgency, IEnumerable<string>? statuses)
     {
         throw new NotImplementedException();
     }

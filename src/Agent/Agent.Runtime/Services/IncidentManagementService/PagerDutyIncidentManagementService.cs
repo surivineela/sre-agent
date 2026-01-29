@@ -127,7 +127,7 @@ public class PagerDutyIncidentManagementService : IncidentManagementServiceBase<
                     since: since,
                     impactServiceId: filter.ImpactedService,
                     titleContains: filter.TitleContains,
-                    priority: filter.Priority,
+                    priorities: filter.Priorities,
                     statuses: statusFilter
                 )).ToList();
             }

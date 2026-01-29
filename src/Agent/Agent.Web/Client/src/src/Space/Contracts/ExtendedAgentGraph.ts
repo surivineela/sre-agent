@@ -136,9 +136,8 @@ export type ExtendedTrigger = {
     agentNames?: string[];
     subAgent?: string;
     status?: 'Active' | 'Paused' | 'Disabled';
-    priority?: string;
+    priorities?: string[];
     incidentType?: string;
-    severity?: string;
     service?: string;
     impactedService?: string;
     titleContains?: string;

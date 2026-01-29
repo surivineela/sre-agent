@@ -25,7 +25,10 @@ public record IncidentFilterDocumentPayload
     public string Id { get; init; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string ImpactedService { get; set; } = string.Empty;
+
+    [Obsolete("Use Priorities instead.")]
     public string Priority { get; set; } = string.Empty;
+    public List<string> Priorities { get; set; } = new List<string>();
     public string IncidentType { get; set; } = string.Empty;
     public string AlertId { get; set; } = string.Empty;
     public string TitleContains { get; set; } = string.Empty;

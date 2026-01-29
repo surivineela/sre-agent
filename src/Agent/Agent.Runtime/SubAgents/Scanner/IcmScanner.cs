@@ -285,7 +285,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
                 string.IsNullOrWhiteSpace(filterDocument.CreatedBy) ? null : filterDocument.CreatedBy,
                 string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
-                string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
+                filterDocument.Priorities
             );
 
             if (incidents is null || incidents.Count == 0)
@@ -1609,7 +1609,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         AlertId = "TestQueue",
                         AgentMode = AgentModes.Autonomous.ToLowerInvariant(),
                         ImpactedService = incidentDoc.ImpactedServiceName ?? string.Empty,
-                        Priority = incidentDoc.Priority ?? string.Empty,
+                        Priorities = string.IsNullOrWhiteSpace(incidentDoc.Priority) ? new List<string>() : new List<string> { incidentDoc.Priority },
                         IncidentType = incidentDoc.IncidentType ?? string.Empty,
                         TitleContains = string.Empty,
                         CreatedAt = DateTime.UtcNow,

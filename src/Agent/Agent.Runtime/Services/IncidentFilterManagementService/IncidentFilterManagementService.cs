@@ -14,7 +14,8 @@ namespace Agent.Runtime.Services
     public enum IncidentFilterInputType
     {
         Dropdown,
-        TextField
+        TextField,
+        MultiSelectDropdown
     }
 
     /// <summary>
@@ -141,14 +142,19 @@ namespace Agent.Runtime.Services
                     var response = await iterator.ReadNextAsync();
                     results.AddRange(response);
                 }
+
+                var tasks = results.Select(doc => PreProcessIncidentFilterDocument(doc));
+                results = (await Task.WhenAll(tasks)).ToList();
+
                 _logger.LogInternalInformation("ListIncidentFilters: Retrieved {FilterCount} filters.", results.Count);
+
+                return results;
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, "ListIncidentFilters: Exception occurred while listing incident filters.");
                 throw;
             }
-            return results;
         }
 
         public async Task<TIncidentFilterDocument?> GetIncidentFilter(string filterId)
@@ -169,6 +175,7 @@ namespace Agent.Runtime.Services
                     if (filter != null)
                     {
                         _logger.LogInternalInformation("GetIncidentFilter: Found filter for FilterId: {FilterId}", filterId);
+                        filter = await PreProcessIncidentFilterDocument(filter);
                     }
                     else
                     {
@@ -184,6 +191,28 @@ namespace Agent.Runtime.Services
                 _logger.LogInternalError(ex, "GetIncidentFilter: Exception occurred for FilterId: {FilterId}", filterId);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// This method is to preprocess incident filter before ListIncidentFilters or GetIncidentFilter
+        /// So it can be used to do data migration or other preprocessing tasks
+        /// For now, it is used to migrate Priority field to Priorities field
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        protected virtual async Task<TIncidentFilterDocument> PreProcessIncidentFilterDocument(TIncidentFilterDocument document)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (!string.IsNullOrWhiteSpace(document.Priority))
+            {
+                _logger.LogInternalInformation("PreProcessIncidentDocument: Migrating Priority to Priorities for FilterId: {FilterId}", document.Id);
+                var priorities = document.Priorities ?? new List<string>();
+                priorities.Add(document.Priority);
+                priorities = priorities.Distinct().ToList();
+                return await SaveIncidentFilter(document with { Priorities = priorities, Priority = string.Empty });
+            }
+#pragma warning restore CS0618 // Type or member is obsolete
+            return document;
         }
 
         public async Task<TIncidentFilterDocument> SaveIncidentFilter(TIncidentFilterDocument? document)

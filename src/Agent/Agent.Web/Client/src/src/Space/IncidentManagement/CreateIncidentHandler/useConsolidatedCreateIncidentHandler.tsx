@@ -20,6 +20,7 @@ import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescripto
 import { IncidentHandlerCreateResources, IncidentManagementNotificationResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { getFilterValues } from '../Utilities';
+import { useFilterConflictDetection } from './Common/useFilterConflictDetection';
 import { FilterMode, HandlerCreateOrEditInfo, HandlerMode, OperationStatus, TimeDuration } from './Contracts';
 import { IncidentHandlerCreateSteps } from './IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from './IncidentHandlerCreateFormValues';
@@ -56,8 +57,8 @@ const getSaveOrUpdateActionForFilter = (
 ): 'create-incidentFilter' | 'update-incidentFilter' | undefined => {
     if (!originalFilter) return 'create-incidentFilter';
 
-    const originalFilterValues = getFilterValues(originalFilter, incidentPlatformType, false, '');
-    const currentFilterValues = getFilterValues(formValues, incidentPlatformType, true, '');
+    const originalFilterValues = getFilterValues(originalFilter, incidentPlatformType, false, '', []);
+    const currentFilterValues = getFilterValues(formValues, incidentPlatformType, true, '', []);
     if (isEqual(originalFilterValues, currentFilterValues)) return undefined;
 
     return 'update-incidentFilter';
@@ -130,13 +131,15 @@ export const useConsolidatedCreateIncidentHandler = (
 
     const { values, setFieldValue } = useFormikContext<IncidentHandlerCreateFormValues>();
 
+    const [existingFilters, setExistingFilters] = useState<IncidentFilter[]>([]);
+
     // Timespan field
     const [selectedTimespan, setSelectedTimespan] = useState<TimeDuration>(
         incidentPlatformType === IncidentManagementType.AzMonitor
             ? TimeDuration.Last15Days
             : handlerMode === 'create'
-                ? TimeDuration.Last60Days
-                : TimeDuration.Last90Days
+              ? TimeDuration.Last60Days
+              : TimeDuration.Last90Days
     );
     const onSelectedTimespanChange = useCallback((value: TimeDuration) => {
         setSelectedTimespan(value);
@@ -380,17 +383,17 @@ export const useConsolidatedCreateIncidentHandler = (
         const [notificationTitle, notificationDescription, notificationErrorMessage, notificationSuccessMessage] =
             saveOrUpdateFilterAction === 'create-incidentFilter'
                 ? [
-                    IncidentManagementNotificationResources.createFilterTitle,
-                    IncidentManagementNotificationResources.createFilterInProgress,
-                    IncidentManagementNotificationResources.createFilterError,
-                    IncidentManagementNotificationResources.createFilterSuccess,
-                ]
+                      IncidentManagementNotificationResources.createFilterTitle,
+                      IncidentManagementNotificationResources.createFilterInProgress,
+                      IncidentManagementNotificationResources.createFilterError,
+                      IncidentManagementNotificationResources.createFilterSuccess,
+                  ]
                 : [
-                    IncidentManagementNotificationResources.updateFilterTitle,
-                    IncidentManagementNotificationResources.updateFilterInProgress,
-                    IncidentManagementNotificationResources.updateFilterError,
-                    IncidentManagementNotificationResources.updateFilterSuccess,
-                ];
+                      IncidentManagementNotificationResources.updateFilterTitle,
+                      IncidentManagementNotificationResources.updateFilterInProgress,
+                      IncidentManagementNotificationResources.updateFilterError,
+                      IncidentManagementNotificationResources.updateFilterSuccess,
+                  ];
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(notificationTitle),
@@ -398,7 +401,7 @@ export const useConsolidatedCreateIncidentHandler = (
         );
 
         if (saveOrUpdateFilterAction) {
-            const filterValues = getFilterValues(values, incidentPlatformType, true, '');
+            const filterValues = getFilterValues(values, incidentPlatformType, true, '', []);
             const filterPayload: IncidentFilterDocumentPayload = {
                 id: values.filterName || '',
                 ...filterValues,
@@ -489,8 +492,8 @@ export const useConsolidatedCreateIncidentHandler = (
             saveUpdateOrDeleteHandlerAction === 'delete-incidentHandler'
                 ? async () => await incidentHandlerClient.deleteHandler(handlerCreateOrEditInfo?.handlerId || '')
                 : saveUpdateOrDeleteHandlerAction === 'create-incidentHandler'
-                    ? async () => await incidentHandlerClient.createHandler(handlerPayload)
-                    : async () => await incidentHandlerClient.updateHandler(handlerPayload);
+                  ? async () => await incidentHandlerClient.createHandler(handlerPayload)
+                  : async () => await incidentHandlerClient.updateHandler(handlerPayload);
 
         const saveUpdateOrDeleteHandlerResult = await saveUpdateOrDeleteHandlerFunction();
         if (!saveUpdateOrDeleteHandlerResult.isSuccessful) {
@@ -540,7 +543,7 @@ export const useConsolidatedCreateIncidentHandler = (
         values.filterName,
         values.incidentType,
         values.impactedService,
-        values.priority,
+        values.priorities,
         values.titleContains,
         values.agentMode,
         values.owningTeamId,
@@ -577,6 +580,34 @@ export const useConsolidatedCreateIncidentHandler = (
         setHandlerMode('edit');
     }, []);
 
+    const queryFilterValues = useMemo(
+        () =>
+            getFilterValues(
+                {
+                    impactedService: values.impactedService,
+                    priorities: values.priorities,
+                    incidentType: values.incidentType,
+                    titleContains: values.titleContains,
+                    owningTeamId: values.owningTeamId,
+                    createdBy: values.createdBy,
+                    monitorId: values.monitorId,
+                },
+                incidentPlatformType,
+                true,
+                ''
+            ),
+        [
+            values.impactedService,
+            values.priorities,
+            values.incidentType,
+            values.titleContains,
+            values.owningTeamId,
+            values.createdBy,
+            values.monitorId,
+            incidentPlatformType,
+        ]
+    );
+
     const incidentsListDivRef = useRef<HTMLDivElement | null>(null);
     const [isLoadingInitialIncidents, setIsLoadingInitialIncidents] = useState<boolean>(true);
     const [hasMoreOldIncidents, setHasMoreOldIncidents] = useState<boolean>(true);
@@ -594,9 +625,8 @@ export const useConsolidatedCreateIncidentHandler = (
                     ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
                     : defaultNumberOfIncidentsToLoad;
 
-                const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
-                    filter: filterValues,
+                    filter: queryFilterValues,
                     durationInDays: selectedTimespan,
                     pageSize: pageSize,
                     pageNumber: ++incidentsPageNumber.current,
@@ -632,38 +662,46 @@ export const useConsolidatedCreateIncidentHandler = (
                 }
             }
         },
-        [isLoadingInitialIncidents, incidentHandlerClient.queryIncidents, selectedTimespan, incidentPlatformType, values, incidents?.length]
+        [
+            isLoadingInitialIncidents,
+            incidentHandlerClient.queryIncidents,
+            selectedTimespan,
+            incidentPlatformType,
+            queryFilterValues,
+            incidents?.length,
+        ]
     );
 
     const handlerTestMetadata = useTestHandler(resourceId, handlerCreateOrEditInfo, values, incidentHandlerClient);
     const incidentsPreviewMetadata = usePreviewIncidents();
 
-    const queryFilterValues = useMemo(
-        () => getFilterValues(
-            {
-                impactedService: values.impactedService,
-                priority: values.priority,
-                incidentType: values.incidentType,
-                titleContains: values.titleContains,
-                owningTeamId: values.owningTeamId,
-                createdBy: values.createdBy,
-                monitorId: values.monitorId,
-            },
-            incidentPlatformType,
-            true,
-            '',
-        ),
-        [
-            values.impactedService,
-            values.priority,
-            values.incidentType,
-            values.titleContains,
-            values.owningTeamId,
-            values.createdBy,
-            values.monitorId,
-            incidentPlatformType,
-        ]
-    );
+    const conflictingFilters = useFilterConflictDetection({
+        currentFilterId: handlerCreateOrEditInfo?.filter?.id || values.filterName,
+        currentOwningTeamId: values.owningTeamId,
+        currentIncidentType: values.incidentType,
+        currentImpactedService: values.impactedService,
+        currentPriorities: values.priorities,
+        currentTriggers: values.triggers,
+        existingFilters,
+    });
+
+    useEffect(() => {
+        let subscribed = true;
+
+        setExistingFilters([]);
+        incidentHandlerClient.listIncidentFilters().then(response => {
+            if (subscribed) {
+                setToolsLoading(false);
+                if (response.isSuccessful && response.content) {
+                    setExistingFilters(response.content);
+                }
+            }
+        });
+
+        return () => {
+            subscribed = false;
+        };
+    }, [incidentHandlerClient]);
 
     useEffect(() => {
         let subscribed = true;
@@ -878,12 +916,12 @@ export const useConsolidatedCreateIncidentHandler = (
 
     useEffect(() => {
         setInitialValues(currentValue => {
-            const newValue = {
+            const newValue: IncidentHandlerCreateFormValues = {
                 ...currentValue,
                 filterName: handlerCreateOrEditInfo.filter?.id || '',
                 incidentType: handlerCreateOrEditInfo.filter?.incidentType,
                 impactedService: handlerCreateOrEditInfo.filter?.impactedService,
-                priority: handlerCreateOrEditInfo.filter?.priority,
+                priorities: handlerCreateOrEditInfo.filter?.priorities,
                 titleContains: handlerCreateOrEditInfo.filter?.titleContains,
                 agentMode: handlerCreateOrEditInfo.filter?.agentMode || AgentMode.autonomous,
                 deepInvestigationEnabled: handlerCreateOrEditInfo.filter?.deepInvestigationEnabled || false,
@@ -904,7 +942,7 @@ export const useConsolidatedCreateIncidentHandler = (
         handlerCreateOrEditInfo.filter?.id,
         handlerCreateOrEditInfo.filter?.incidentType,
         handlerCreateOrEditInfo.filter?.impactedService,
-        handlerCreateOrEditInfo.filter?.priority,
+        handlerCreateOrEditInfo.filter?.priorities,
         handlerCreateOrEditInfo.filter?.titleContains,
         handlerCreateOrEditInfo.filter?.owningTeamId,
         handlerCreateOrEditInfo.filter?.createdBy,
@@ -955,5 +993,6 @@ export const useConsolidatedCreateIncidentHandler = (
 
         handlerTestMetadata,
         incidentsPreviewMetadata,
+        conflictingFilters,
     };
 };

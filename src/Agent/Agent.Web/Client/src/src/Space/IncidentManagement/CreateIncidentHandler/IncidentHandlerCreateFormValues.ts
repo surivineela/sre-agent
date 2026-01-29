@@ -7,7 +7,7 @@ export interface IncidentHandlerCreateFormValues {
     filterName?: string;
     incidentType?: string;
     impactedService?: string;
-    priority?: string;
+    priorities?: string[];
     titleContains?: string;
     agentMode?: AgentMode;
     owningTeamId?: string;

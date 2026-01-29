@@ -456,22 +456,22 @@ export function useIncidentManagementSettings(close: (() => void) | undefined) {
 
                                 if (formValues.platform === IncidentManagementType.PagerDuty) {
                                     defaultIncidentFilter.incidentType = 'incident_default';
-                                    defaultIncidentFilter.priority = 'P1';
+                                    defaultIncidentFilter.priorities = ['P1'];
                                 }
 
                                 if (formValues.platform === IncidentManagementType.Icm) {
                                     defaultIncidentFilter.incidentType = 'LiveSite';
-                                    defaultIncidentFilter.priority = '3';
+                                    defaultIncidentFilter.priorities = ['3'];
                                     defaultIncidentFilter.owningTeamId = formValues.owningTeamId;
                                 }
 
                                 if (formValues.platform === IncidentManagementType.ServiceNow) {
                                     defaultIncidentFilter.incidentType = 'incident';
-                                    defaultIncidentFilter.priority = '1';
+                                    defaultIncidentFilter.priorities = ['1'];
                                 }
 
                                 if (formValues.platform === IncidentManagementType.AzMonitor) {
-                                    defaultIncidentFilter.priority = 'Sev3';
+                                    defaultIncidentFilter.priorities = ['Sev2'];
                                 }
 
                                 incidentHandlerClient.createIncidentFilter(defaultIncidentFilter).then(filterResult => {

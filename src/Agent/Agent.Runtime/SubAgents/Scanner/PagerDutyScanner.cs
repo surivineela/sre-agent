@@ -128,8 +128,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             try
             {
                 logger.LogInternalInformation("Scanning PagerDuty incidents, page {page}", page);
-                var response = await pagerDutyService.GetIncidentsAsync(PageSize, offset, lastScanTime, filterDocument.ImpactedService,
-                    filterDocument.Priority, filterDocument.TitleContains);
+                var response = await pagerDutyService.GetIncidentsAsync(
+                   limit: PageSize,
+                    offset: offset,
+                    since: lastScanTime,
+                    impactServiceId: filterDocument.ImpactedService,
+                    priorities: filterDocument.Priorities,
+                    titleContains: filterDocument.TitleContains);
                 if (response is null || !response.Any())
                 {
                     logger.LogInternalInformation("No more incidents to process, stopping the scanner.");

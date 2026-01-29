@@ -1,14 +1,13 @@
 import { AzMonitorResources, IcMResources, PagerDutyResources, ServiceNowResources } from '../../../../Strings/SREAgentResources';
-import { IncidentPriority, IncidentType } from '../types';
 
 export interface PriorityOption {
-    key: IncidentPriority;
+    key: string;
     intlString: { id: string; defaultMessage: string };
     severity?: 'critical' | 'high' | 'medium' | 'low';
 }
 
 export interface IncidentTypeOption {
-    key: IncidentType;
+    key: string;
     label: string;
 }
 
@@ -91,18 +90,18 @@ export const getIncidentTypesForPlatform = (incidentPlatform?: string): Incident
     }
 };
 
-export const getDefaultPriorityForPlatform = (incidentPlatform?: string): IncidentPriority => {
+export const getDefaultPriorityForPlatform = (incidentPlatform?: string): string[] => {
     const priorities = getPrioritiesForPlatform(incidentPlatform);
     // Return the third priority (medium severity) as default
-    return priorities[2]?.key ?? 'Sev2';
+    return [priorities[2]?.key ?? 'Sev2'];
 };
 
-export const getDefaultIncidentTypeForPlatform = (_incidentPlatform?: string): IncidentType => {
+export const getDefaultIncidentTypeForPlatform = (_incidentPlatform?: string): string => {
     // LiveSite is the default across all platforms
     return 'LiveSite';
 };
 
-export const getBadgeColorForPriority = (priority: IncidentPriority, incidentPlatform?: string): 'danger' | 'warning' | 'informative' => {
+export const getBadgeColorForPriority = (priority: string, incidentPlatform?: string): 'danger' | 'warning' | 'informative' => {
     const priorities = getPrioritiesForPlatform(incidentPlatform);
     const priorityOption = priorities.find(p => p.key === priority);
 

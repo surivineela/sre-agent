@@ -51,7 +51,7 @@ export const useTriggerState = (
             agentDisplayName: initial?.agentDisplayName,
             name: initial?.name ?? incidentDefaults.name,
             description: initial?.description ?? scheduledDefaults.description,
-            incidentPriority: initial?.incidentPriority ?? meta.priority,
+            incidentPriorities: initial?.incidentPriorities ?? meta.priorities,
             incidentType: initial?.incidentType ?? meta.type,
             instructions: initial?.instructions ?? incidentDefaults.instructions,
             schedule: cloneSchedule(initial?.schedule ?? scheduleDefaults),
@@ -165,7 +165,7 @@ export const useTriggerState = (
                 agentDisplayName: overrides?.agentDisplayName,
                 name: overrides?.name ?? (overrides?.mode === 'scheduled' ? scheduledAuto.name : incidentAuto.name),
                 description: overrides?.description ?? scheduledAuto.description,
-                incidentPriority: overrides?.incidentPriority ?? defaults.incidentPriority,
+                incidentPriorities: overrides?.incidentPriorities ?? defaults.incidentPriorities,
                 incidentType: overrides?.incidentType ?? defaults.incidentType,
                 instructions:
                     overrides?.instructions ?? (overrides?.mode === 'scheduled' ? scheduledAuto.instructions : incidentAuto.instructions),

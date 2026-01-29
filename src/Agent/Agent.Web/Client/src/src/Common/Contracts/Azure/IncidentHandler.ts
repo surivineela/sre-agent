@@ -50,7 +50,7 @@ export interface IncidentQueryResponse {
 export interface IncidentFilterDocumentPayload {
     id?: string;
     impactedService?: string;
-    priority?: string;
+    priorities?: string[];
     incidentType?: string;
     alertId?: string;
     titleContains?: string;
@@ -112,7 +112,7 @@ export interface IncidentFilter {
     isDeleted: boolean;
     isEnabled: boolean;
     partitionKey: string;
-    priority: string;
+    priorities?: string[];
     titleContains: string;
     /** If no value, will be empty string */
     agentMode?: AgentMode;

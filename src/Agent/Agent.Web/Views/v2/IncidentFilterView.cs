@@ -28,6 +28,7 @@ public class IncidentFilterView
     public Settable<string> IncidentPlatform { get; set; }
     public Settable<string> ImpactedService { get; set; }
     public Settable<string> Priority { get; set; }
+    public Settable<List<string>> Priorities { get; set; }
     public Settable<string> IncidentType { get; set; }
     public Settable<string> AlertId { get; set; }
     public Settable<string> TitleContains { get; set; }
@@ -61,7 +62,10 @@ public class IncidentFilterView
         if (document is IncidentFilterDocumentPayload payload)
         {
             view.ImpactedService = payload.ImpactedService;
+#pragma warning disable CS0618 // Type or member is obsolete
             view.Priority = payload.Priority;
+#pragma warning restore CS0618 // Type or member is obsolete
+            view.Priorities = payload.Priorities;
             view.IncidentType = payload.IncidentType;
             view.AlertId = payload.AlertId;
             view.TitleContains = payload.TitleContains;
@@ -183,7 +187,10 @@ public class IncidentFilterView
             if (result is IncidentFilterDocumentPayload payload)
             {
                 properties.ImpactedService.ApplyTo(value => payload.ImpactedService = value ?? string.Empty);
+#pragma warning disable CS0618 // Type or member is obsolete
                 properties.Priority.ApplyTo(value => payload.Priority = value ?? string.Empty);
+#pragma warning restore CS0618 // Type or member is obsolete
+                properties.Priorities.ApplyTo(value => payload.Priorities = value ?? new List<string>());
                 properties.IncidentType.ApplyTo(value => payload.IncidentType = value ?? string.Empty);
                 properties.AlertId.ApplyTo(value => payload.AlertId = value ?? string.Empty);
                 properties.TitleContains.ApplyTo(value => payload.TitleContains = value ?? string.Empty);

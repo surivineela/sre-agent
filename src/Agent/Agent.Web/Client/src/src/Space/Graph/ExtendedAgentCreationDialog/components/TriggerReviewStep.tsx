@@ -123,7 +123,7 @@ export const TriggerReviewStep: FC<TriggerReviewStepProps> = ({ controller, intl
 
                                     {trigger.mode === 'incident' && (
                                         <>
-                                            {trigger.incidentPriority && (
+                                            {trigger.incidentPriorities.length > 0 && (
                                                 <div className={styles.reviewDetailRow}>
                                                     <Text size={200} className={styles.reviewDetailLabel}>
                                                         Priority:
@@ -131,15 +131,16 @@ export const TriggerReviewStep: FC<TriggerReviewStepProps> = ({ controller, intl
                                                     <Badge
                                                         appearance="filled"
                                                         color={
-                                                            trigger.incidentPriority === 'Sev0' || trigger.incidentPriority === 'Sev1'
+                                                            trigger.incidentPriorities.includes('Sev0') ||
+                                                            trigger.incidentPriorities.includes('Sev1')
                                                                 ? 'danger'
-                                                                : trigger.incidentPriority === 'Sev2'
+                                                                : trigger.incidentPriorities.includes('Sev2')
                                                                   ? 'warning'
                                                                   : 'informative'
                                                         }
                                                         size="small"
                                                     >
-                                                        {trigger.incidentPriority}
+                                                        {trigger.incidentPriorities.join(', ')}
                                                     </Badge>
                                                 </div>
                                             )}

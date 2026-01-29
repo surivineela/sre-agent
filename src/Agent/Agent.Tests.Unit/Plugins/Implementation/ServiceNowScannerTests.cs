@@ -76,7 +76,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
                 UpdatedAt = DateTime.UtcNow,
                 Name = "Test Filter",
                 ImpactedService = "TestService",
-                Priority = "1",
+                Priorities = new List<string> { "1" },
                 IncidentType = "ServiceNow",
                 AlertId = "alert1",
                 TitleContains = titleContains
@@ -112,7 +112,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             _mockServiceNowApiClient.Verify(
-                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
                 Times.Never);
         }
 
@@ -148,7 +148,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
 
             // Assert
             _mockServiceNowApiClient.Verify(
-                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
                 Times.Never);
         }
 
@@ -160,7 +160,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "New Incident" };
-            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(new List<ServiceNowIncident> { incident });
 
             var mockItemResponse = new Mock<ItemResponse<ServiceNowIncidentDocument>>();
@@ -219,7 +219,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation
             _mockIncidentFilterManagementService.Setup(s => s.ListIncidentFilters(It.IsAny<bool>())).ReturnsAsync(filters);
 
             var incident = new ServiceNowIncident { IncidentId = "sys1", Number = "INC001", Title = "Existing Incident" };
-            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            _mockServiceNowApiClient.Setup(c => c.GetIncidentsAsync(It.IsAny<uint>(), It.IsAny<uint>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(new List<ServiceNowIncident> { incident });
 
             var lastScanTimeDocResponse = new Mock<ItemResponse<LastScanTimeDoc>>();

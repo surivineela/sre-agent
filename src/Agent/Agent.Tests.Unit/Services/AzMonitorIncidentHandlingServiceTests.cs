@@ -122,7 +122,7 @@ namespace Agent.Tests.Unit.Services
                 Id = id,
                 Name = "Test Filter",
                 ImpactedService = impactedService,
-                Priority = "Sev2",
+                Priorities = new List<string> { "Sev2" },
                 IncidentType = "AzMonitor",
                 TitleContains = "CPU",
                 TargetResourceType = "microsoft.containerservice/managedclusters",

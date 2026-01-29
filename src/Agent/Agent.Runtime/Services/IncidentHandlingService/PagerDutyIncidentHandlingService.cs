@@ -73,7 +73,7 @@ public class PagerDutyIncidentHandlingService : IncidentHandlingService<PagerDut
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
-            Priority = request?.IncidentFilter?.Priority ?? "",
+            Priorities = request?.IncidentFilter?.Priorities ?? new List<string>(),
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,

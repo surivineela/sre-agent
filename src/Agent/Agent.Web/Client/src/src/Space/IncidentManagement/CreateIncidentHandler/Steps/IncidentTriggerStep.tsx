@@ -1,4 +1,17 @@
-import { Button, Dropdown, Field, Input, Option, Radio, RadioGroup, Text, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    Dropdown,
+    Field,
+    Input,
+    Option,
+    OptionOnSelectData,
+    Radio,
+    RadioGroup,
+    Skeleton,
+    SkeletonItem,
+    Text,
+    tokens,
+} from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -12,6 +25,7 @@ import {
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';
+import { FilterConflictWarning } from '../Common/FilterConflictWarning';
 import { MultiAgentSelector } from '../Common/MultiAgentSelector';
 import { TriggerTypeSelector } from '../Common/TriggerTypeSelector';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
@@ -31,6 +45,8 @@ export const IncidentTriggerStep: FC = () => {
         impactedServiceOptions,
         priorityOptions,
         incidentPlatformType,
+        conflictingFilters,
+        filterFieldOptionsLoading,
     } = useContext(IncidentHandlerConsolidatedCreateContext);
     const { values, setFieldValue, setFieldTouched, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
 
@@ -70,10 +86,51 @@ export const IncidentTriggerStep: FC = () => {
     }, [priorityOptions, intl, platformSpecificStrings]);
 
     const selectedPriorityDisplay = useMemo(() => {
-        const key = values.priority || (filterMode === 'edit' ? 'ALL' : '');
-        const selectedOption = priorityOptionsExtended.find(option => option.key === key);
-        return selectedOption ? selectedOption.display : '';
-    }, [priorityOptionsExtended, values.priority, filterMode]);
+        if (values.priorities == null) {
+            return filterMode === 'edit' ? intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel) : '';
+        }
+        if (values.priorities.length === 0 || values.priorities.includes('ALL')) {
+            return intl.formatMessage(platformSpecificStrings.severityOrPriorityAllOptionLabel);
+        }
+        const selectedOptionDisplayValues: string[] = [];
+        values.priorities.forEach(priority => {
+            const option = priorityOptionsExtended.find(option => option.key === priority);
+            if (option) {
+                selectedOptionDisplayValues.push(option.display);
+            }
+        });
+        return selectedOptionDisplayValues.join(', ');
+    }, [priorityOptionsExtended, values.priorities, filterMode, intl, platformSpecificStrings]);
+
+    const onPriorityOptionSelect = useCallback(
+        (data: OptionOnSelectData) => {
+            const { optionValue, selectedOptions } = data;
+
+            if (optionValue === 'ALL') {
+                if (selectedOptions.includes('ALL')) {
+                    // "ALL" was checked so set all priorities as selected
+                    setFieldValue('priorities', ['ALL', ...priorityOptions.sort()]);
+                } else {
+                    // "ALL" was unchecked so clear all priorities
+                    setFieldValue('priorities', []);
+                }
+                return;
+            }
+
+            if (!priorityOptions.some(opt => !selectedOptions.includes(opt))) {
+                // All individual priorities are selected, so ensure "ALL" is also selected
+                if (!selectedOptions.includes('ALL')) {
+                    setFieldValue('priorities', ['ALL', ...selectedOptions.sort()]);
+                }
+                return;
+            }
+
+            // Some individual priorities are not selected, so ensure "ALL" is not selected
+            const newPriorities = selectedOptions.filter(opt => opt !== 'ALL').sort();
+            setFieldValue('priorities', newPriorities);
+        },
+        [setFieldValue, priorityOptions, priorityOptionsExtended]
+    );
 
     const disableAllFields = useMemo(
         () => !incidentPlatformType || incidentPlatformType === IncidentManagementType.None,
@@ -121,9 +178,11 @@ export const IncidentTriggerStep: FC = () => {
                     ? (values.handlingAgents && values.handlingAgents.length > 0) || !!values.handlingAgent
                     : !!values.handlingAgent;
             const handlingAgentRequired = !values.isIncidentTriggerWithLearnings && !hasHandlingAgent;
+
             return (
                 !values.filterName ||
-                !values.priority ||
+                !values.priorities ||
+                values.priorities.length === 0 ||
                 handlingAgentRequired ||
                 (incidentPlatformType !== IncidentManagementType.AzMonitor && (!values.impactedService || !values.incidentType))
             );
@@ -140,7 +199,7 @@ export const IncidentTriggerStep: FC = () => {
         values.filterName,
         values.owningTeamId,
         values.impactedService,
-        values.priority,
+        values.priorities,
         values.incidentType,
         values.handlingAgent,
         values.isIncidentTriggerWithLearnings,
@@ -162,6 +221,8 @@ export const IncidentTriggerStep: FC = () => {
                     <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(ExtendedAgentsGraphResources.triggerDetails)}
                     </Text>
+
+                    {incidentPlatformType === IncidentManagementType.Icm && <FilterConflictWarning conflicts={conflictingFilters ?? []} />}
 
                     <Field label={intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerName)} required>
                         <Input
@@ -193,64 +254,83 @@ export const IncidentTriggerStep: FC = () => {
                     {incidentPlatformType !== IncidentManagementType.AzMonitor && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
-                                <Dropdown
-                                    name="incidentType"
-                                    selectedOptions={values.incidentType ? [values.incidentType] : []}
-                                    value={selectedIncidentTypeDisplay}
-                                    onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
-                                    onBlur={() => setFieldTouched('incidentType', true)}
-                                    placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
-                                    disabled={disableAllFields}
-                                    className={styles.inputField}
-                                >
-                                    {incidentTypeOptionsExtended.map(option => (
-                                        <Option value={option.key} key={option.key}>
-                                            {option.display}
-                                        </Option>
-                                    ))}
-                                </Dropdown>
+                                {filterFieldOptionsLoading ? (
+                                    <Skeleton className={styles.inputField}>
+                                        <SkeletonItem style={{ height: 32 }} />
+                                    </Skeleton>
+                                ) : (
+                                    <Dropdown
+                                        name="incidentType"
+                                        selectedOptions={values.incidentType ? [values.incidentType] : []}
+                                        value={selectedIncidentTypeDisplay}
+                                        onOptionSelect={(_, data) => setFieldValue('incidentType', data.optionValue)}
+                                        onBlur={() => setFieldTouched('incidentType', true)}
+                                        placeholder={intl.formatMessage(IncidentManagementResources.chooseIncidentType)}
+                                        disabled={disableAllFields}
+                                        className={styles.inputField}
+                                    >
+                                        {incidentTypeOptionsExtended.map(option => (
+                                            <Option value={option.key} key={option.key}>
+                                                {option.display}
+                                            </Option>
+                                        ))}
+                                    </Dropdown>
+                                )}
                             </Field>
 
                             <Field label={intl.formatMessage(IncidentManagementResources.impactedService)} required>
-                                <Dropdown
-                                    placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
-                                    name={'impactedService'}
-                                    value={selectedImpactedServiceDisplay}
-                                    selectedOptions={values.impactedService ? [values.impactedService] : []}
-                                    onOptionSelect={(_, data) => setFieldValue('impactedService', data.optionValue)}
-                                    onBlur={() => {
-                                        setFieldTouched('impactedService', true);
-                                    }}
-                                    disabled={disableAllFields}
-                                    className={styles.inputField}
-                                >
-                                    {impactedServiceOptionsExtended.map(option => (
-                                        <Option value={option.key} key={option.key}>
-                                            {option.display}
-                                        </Option>
-                                    ))}
-                                </Dropdown>
+                                {filterFieldOptionsLoading ? (
+                                    <Skeleton className={styles.inputField}>
+                                        <SkeletonItem style={{ height: 32 }} />
+                                    </Skeleton>
+                                ) : (
+                                    <Dropdown
+                                        placeholder={intl.formatMessage(IncidentManagementResources.chooseImpactedService)}
+                                        name={'impactedService'}
+                                        value={selectedImpactedServiceDisplay}
+                                        selectedOptions={values.impactedService ? [values.impactedService] : []}
+                                        onOptionSelect={(_, data) => setFieldValue('impactedService', data.optionValue)}
+                                        onBlur={() => {
+                                            setFieldTouched('impactedService', true);
+                                        }}
+                                        disabled={disableAllFields}
+                                        className={styles.inputField}
+                                    >
+                                        {impactedServiceOptionsExtended.map(option => (
+                                            <Option value={option.key} key={option.key}>
+                                                {option.display}
+                                            </Option>
+                                        ))}
+                                    </Dropdown>
+                                )}
                             </Field>
                         </div>
                     )}
 
                     <Field label={intl.formatMessage(platformSpecificStrings.severityOrPriorityLabel)} required>
-                        <Dropdown
-                            placeholder={intl.formatMessage(platformSpecificStrings.severityOrPriorityPlaceholder)}
-                            name={'priority'}
-                            value={selectedPriorityDisplay}
-                            onBlur={() => setFieldTouched('priority', true)}
-                            selectedOptions={values.priority ? [values.priority] : []}
-                            onOptionSelect={(_, data) => setFieldValue('priority', data.optionValue)}
-                            disabled={disableAllFields}
-                            className={styles.inputField}
-                        >
-                            {priorityOptionsExtended.map(option => (
-                                <Option value={option.key} key={option.key}>
-                                    {option.display}
-                                </Option>
-                            ))}
-                        </Dropdown>
+                        {filterFieldOptionsLoading ? (
+                            <Skeleton className={styles.inputField}>
+                                <SkeletonItem style={{ height: 32 }} />
+                            </Skeleton>
+                        ) : (
+                            <Dropdown
+                                multiselect
+                                placeholder={intl.formatMessage(platformSpecificStrings.severityOrPriorityPlaceholder)}
+                                name={'priorities'}
+                                value={selectedPriorityDisplay}
+                                selectedOptions={values.priorities || []}
+                                onOptionSelect={(_, data) => onPriorityOptionSelect(data)}
+                                onBlur={() => setFieldTouched('priorities', true)}
+                                disabled={disableAllFields}
+                                className={styles.inputField}
+                            >
+                                {priorityOptionsExtended.map(option => (
+                                    <Option value={option.key} key={option.key}>
+                                        {option.display}
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        )}
                     </Field>
 
                     <Field label={intl.formatMessage(IncidentManagementResources.titleContains)}>

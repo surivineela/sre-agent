@@ -61,11 +61,16 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
             .Select(p => new KeyValuePair<string, string>(p, p))
             .ToList();
 
+
+        // Return "Priority" as FieldName to match what frontend expects
+        // But set FieldInputType to MultiSelectDropdown for multi-select behavior
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(AzMonitorIncidentFilterDocument.Priority),
+            FieldName = "Priority",
             DisplayName = "Severity",
-            Options = priorityOptions
+            Options = priorityOptions,
+            FieldInputType = IncidentFilterInputType.MultiSelectDropdown,
+            IsRequired = true
         });
 
         return Task.FromResult(result);
@@ -102,8 +107,8 @@ public class AzMonitorIncidentFilterManagementService : IncidentFilterManagement
                 Id = "quickstart_handler",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                Priority = "Sev3",
                 AgentMode = AgentModes.Autonomous.ToLowerInvariant(),
+                Priorities = ["Sev0", "Sev1", "Sev2"]
             };
             await SaveIncidentFilter(defaultFilter);
         }

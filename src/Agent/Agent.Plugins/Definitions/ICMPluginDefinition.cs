@@ -381,6 +381,12 @@ Do NOT use chart parameters if you're just posting a text summary or HTML table.
             sinceDate = parsedDate.DateTime;
         }
 
+        List<string>? severities = null;
+        if (!string.IsNullOrEmpty(severity))
+        {
+            severities = new List<string> { severity };
+        }
+
         return await _icmPlugin.ListIncidents(
             (uint)limit,
             (uint)offset,
@@ -388,7 +394,7 @@ Do NOT use chart parameters if you're just posting a text summary or HTML table.
             owningServiceId,
             owningTeamId,
             incidentType,
-            severity);
+            severities);
     }
 
     //[Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]

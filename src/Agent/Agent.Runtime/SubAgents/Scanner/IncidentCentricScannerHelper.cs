@@ -233,7 +233,9 @@ public class IncidentCentricScannerHelper
     {
         var score = 0;
         if (!string.IsNullOrWhiteSpace(filter.TitleContains)) score += 10;
-        if (!string.IsNullOrWhiteSpace(filter.Priority)) score += 5;
+#pragma warning disable CS0618
+        if (!string.IsNullOrWhiteSpace(filter.Priority) || (filter.Priorities != null && filter.Priorities.Count > 0)) score += 5;
+#pragma warning restore CS0618
         if (!string.IsNullOrWhiteSpace(filter.OwningTeamId)) score += 5;
         if (!string.IsNullOrWhiteSpace(filter.IncidentType)) score += 3;
         if (!string.IsNullOrWhiteSpace(filter.MonitorId)) score += 3;

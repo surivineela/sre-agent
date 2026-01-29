@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data;
@@ -94,7 +95,6 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
         {
             ServiceNowIncidentFilterDocumentPayload? filter = null;
             var statusFilter = request.Statuses?.Select(s => s.ToLower()).ToList() ?? [];
-            var priorityFilter = request.Priorities?.Select(p => p.ToLower()).ToList() ?? [];
             uint limit = request.PageSize > 0 ? (uint)request.PageSize : 20;
             uint offset = request.PageNumber > 0 ? (uint)((request.PageNumber - 1) * limit) : 0;
 
@@ -155,7 +155,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
                     lastModifiedDate: since,
                     serviceId: filter.ImpactedService,
                     titleContains: filter.TitleContains,
-                    priority: filter.Priority
+                    priorities: filter.Priorities
                 );
             }
             else
@@ -168,7 +168,7 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
                     lastModifiedDate: since,
                     serviceId: null,
                     titleContains: !string.IsNullOrEmpty(keyword) ? keyword : null,
-                    priority: null
+                    priorities: null
                 );
             }
 
@@ -192,17 +192,6 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
                 );
             }
 
-            // Apply priority filtering if specified
-            if (priorityFilter.Any())
-            {
-                var normalizedPriorities = priorityFilter.SelectMany(p => NormalizePriorityForFiltering(p)).ToList();
-                docs = docs.Where(d => normalizedPriorities.Contains(d.Priority?.ToLower() ?? "")).ToList();
-
-                _logger.LogInternalInformation(
-                    "QueryIncidents: Filtered by priority. Count after filtering: {Count}",
-                    docs.Count
-                );
-            }
 
             return new IncidentQueryResult<ServiceNowIncidentDocument>
             {
@@ -331,81 +320,15 @@ public class ServiceNowIncidentManagementService : IncidentManagementServiceBase
         }
     }
 
-    private static ServiceNowIncidentStatus GetServiceNowStatusFromString(string status)
+
+
+    protected override string[] NormalizeStatusesForFiltering(IEnumerable<string> statuses)
     {
-        return status.ToLower() switch
-        {
-            "1" or "new" => ServiceNowIncidentStatus.New,
-            "2" or "active" or "in progress" or "work in progress" => ServiceNowIncidentStatus.InProgress,
-            "3" or "awaiting problem" => ServiceNowIncidentStatus.AwaitingProblem,
-            "4" or "awaiting user info" or "on hold" => ServiceNowIncidentStatus.OnHold,
-            "5" or "awaiting evidence" => ServiceNowIncidentStatus.AwaitingEvidence,
-            "6" or "resolved" => ServiceNowIncidentStatus.Resolved,
-            "7" or "closed" => ServiceNowIncidentStatus.Closed,
-            "8" or "cancelled" or "canceled" => ServiceNowIncidentStatus.Cancelled,
-            _ => ServiceNowIncidentStatus.New
-        };
+        return ServiceNowStatusHelper.NormalizeStatusesForFiltering(statuses);
     }
 
-    private static string[] GetStatusVariations(ServiceNowIncidentStatus status)
+    public override string[] NormalizePriorityForFiltering(IEnumerable<string> priorities)
     {
-        return status switch
-        {
-            ServiceNowIncidentStatus.New => new[] { "new", "1" },
-            ServiceNowIncidentStatus.InProgress => new[] { "active", "in progress", "work in progress", "2" },
-            ServiceNowIncidentStatus.AwaitingProblem => new[] { "awaiting problem", "3" },
-            ServiceNowIncidentStatus.OnHold => new[] { "awaiting user info", "on hold", "4" },
-            ServiceNowIncidentStatus.AwaitingEvidence => new[] { "awaiting evidence", "5" },
-            ServiceNowIncidentStatus.Resolved => new[] { "resolved", "6" },
-            ServiceNowIncidentStatus.Closed => new[] { "closed", "7" },
-            ServiceNowIncidentStatus.Cancelled => new[] { "cancelled", "canceled", "8" },
-            _ => new[] { "new", "1" }
-        };
-    }
-
-    private static ServiceNowIncidentPriority GetServiceNowPriorityFromString(string priority)
-    {
-        return priority.ToLower() switch
-        {
-            "1" or "critical" or "1 - critical" => ServiceNowIncidentPriority.Critical,
-            "2" or "high" or "2 - high" => ServiceNowIncidentPriority.High,
-            "3" or "moderate" or "medium" or "3 - moderate" => ServiceNowIncidentPriority.Moderate,
-            "4" or "low" or "4 - low" => ServiceNowIncidentPriority.Low,
-            "5" or "planning" or "5 - planning" => ServiceNowIncidentPriority.Planning,
-            _ => ServiceNowIncidentPriority.Low
-        };
-    }
-
-    private static string[] GetPriorityVariations(ServiceNowIncidentPriority priority)
-    {
-        return priority switch
-        {
-            ServiceNowIncidentPriority.Critical => new[] { "critical", "1 - critical", "1" },
-            ServiceNowIncidentPriority.High => new[] { "high", "2 - high", "2" },
-            ServiceNowIncidentPriority.Moderate => new[] { "moderate", "medium", "3 - moderate", "3" },
-            ServiceNowIncidentPriority.Low => new[] { "low", "4 - low", "4" },
-            ServiceNowIncidentPriority.Planning => new[] { "planning", "5 - planning", "5" },
-            _ => new[] { "low", "4" }
-        };
-    }
-
-    protected override string[] NormalizeStatusesForFiltering(string[] statuses)
-    {
-        var normalizedStatuses = new List<string>();
-
-        foreach (var status in statuses)
-        {
-            var serviceNowStatus = GetServiceNowStatusFromString(status);
-            var variations = GetStatusVariations(serviceNowStatus);
-            normalizedStatuses.AddRange(variations);
-        }
-
-        return normalizedStatuses.Distinct().ToArray();
-    }
-
-    public override string[] NormalizePriorityForFiltering(string priority)
-    {
-        var serviceNowPriority = GetServiceNowPriorityFromString(priority);
-        return GetPriorityVariations(serviceNowPriority);
+        return ServiceNowPriorityHelper.NormalizePriorityForFiltering(priorities);
     }
 }

@@ -181,29 +181,29 @@ public static class IncidentServiceCollectionExtensions
             Scope = $"{icmAppsettings.IcmMSIResource}/.default",
         };
 
-        IHttpClientBuilder httpClientBuilder;
-
-
         Func<IServiceProvider, Action<LogLevel, string>> loggerProvider = sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<IICMAPIClient>>();
-            return (level, message) =>
+            var logger = sp.GetRequiredService<ILogger<ICMAPIClient>>();
+
+            return (LogLevel logLevel, string message) =>
             {
-                switch (level)
+                switch (logLevel)
                 {
-                    case LogLevel.Critical:
                     case LogLevel.Error:
                         logger.LogInternalError($"[ICMSDK]{message}");
                         break;
                     case LogLevel.Warning:
                         logger.LogInternalWarning($"[ICMSDK]{message}");
                         break;
+                    case LogLevel.Information:
                     default:
                         logger.LogInternalInformation($"[ICMSDK]{message}");
                         break;
                 }
             };
         };
+
+        IHttpClientBuilder httpClientBuilder;
 
         // if UserToken is not null -> local development, use UserToken/Cert from appsettings
         // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService

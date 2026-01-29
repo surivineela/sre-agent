@@ -730,7 +730,7 @@ export const ExtendedAgentCreationDialog: FC<ExtendedAgentCreationDialogProps> =
                         agentName: triggerController.trigger.agentName,
                         name: triggerController.trigger.name,
                         description: triggerController.trigger.description,
-                        incidentPriority: triggerController.trigger.incidentPriority,
+                        incidentPriorities: triggerController.trigger.incidentPriorities,
                         incidentType: triggerController.trigger.incidentType,
                         instructions: triggerController.trigger.instructions,
                         schedule: triggerController.trigger.schedule,

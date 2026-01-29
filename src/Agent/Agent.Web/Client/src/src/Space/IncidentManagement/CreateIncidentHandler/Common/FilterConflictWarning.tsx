@@ -21,7 +21,7 @@ export const FilterConflictWarning: FC<FilterConflictWarningProps> = ({ conflict
     }
 
     return (
-        <MessageBar intent="warning" style={{ marginTop: 8, marginBottom: 8 }}>
+        <MessageBar intent="warning" layout="multiline">
             <MessageBarBody>
                 <MessageBarTitle>{intl.formatMessage(IncidentManagementResources.filterConflictWarningTitle)}</MessageBarTitle>
                 <Text size={200}>{intl.formatMessage(IncidentManagementResources.filterConflictWarningDescription)}</Text>

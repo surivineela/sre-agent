@@ -119,7 +119,7 @@ const ResponsePlanDetailsDrawer = ({ isOpen, onClose, responsePlan, onEditHandle
             },
             {
                 label: intl.formatMessage(IncidentManagementResources.priority),
-                value: filterDetails?.priority || intl.formatMessage(IncidentManagementResources.allPriorities),
+                value: filterDetails?.priorities?.join(', ') || intl.formatMessage(IncidentManagementResources.allPriorities),
                 isLoaded: !filterLoading,
             },
             {

@@ -1,6 +1,6 @@
 import { IntlShape } from 'react-intl';
 import { ExtendedAgentsGraphResources } from '../../../../Strings/SREAgentResources';
-import { IncidentPriority, IncidentType, TriggerDefaults } from '../types';
+import { TriggerDefaults } from '../types';
 import { getDefaultIncidentTypeForPlatform, getDefaultPriorityForPlatform } from './incidentPlatforms';
 import { DEFAULT_SCHEDULE_PRESET, SCHEDULE_PRESETS } from './schedule';
 
@@ -30,7 +30,7 @@ export const buildTriggerDefaults = (intl: IntlShape, agentDisplayName?: string,
         name: getIncidentDefaultName(intl, fallbackName),
         description: getScheduledDefaultDescription(intl, fallbackName),
         instructions: getIncidentDefaultInstructions(intl, fallbackName),
-        incidentPriority: getDefaultPriorityForPlatform(incidentPlatformType),
+        incidentPriorities: getDefaultPriorityForPlatform(incidentPlatformType),
         incidentType: getDefaultIncidentTypeForPlatform(incidentPlatformType),
         schedule: {
             preset: DEFAULT_SCHEDULE_PRESET,
@@ -53,7 +53,7 @@ export const getIncidentDefaults = (intl: IntlShape, agentDisplayName?: string) 
     instructions: getIncidentDefaultInstructions(intl, agentDisplayName || getFallbackAgentDisplayName(intl)),
 });
 
-export const getIncidentDefaultsMeta = (incidentPlatformType?: string): { priority: IncidentPriority; type: IncidentType } => ({
-    priority: getDefaultPriorityForPlatform(incidentPlatformType),
+export const getIncidentDefaultsMeta = (incidentPlatformType?: string): { priorities: string[]; type: string } => ({
+    priorities: getDefaultPriorityForPlatform(incidentPlatformType),
     type: getDefaultIncidentTypeForPlatform(incidentPlatformType),
 });

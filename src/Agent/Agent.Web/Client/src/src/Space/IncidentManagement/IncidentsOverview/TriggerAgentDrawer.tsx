@@ -169,13 +169,17 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                         !queryIncidentsFilter?.owningTeamId ||
                         !queryIncidentsFilter?.incidentType ||
                         !queryIncidentsFilter?.impactedService ||
-                        !queryIncidentsFilter?.priority
+                        !queryIncidentsFilter?.priorities?.length
                     );
                 case IncidentManagementType.PagerDuty:
                 case IncidentManagementType.ServiceNow:
-                    return !queryIncidentsFilter?.incidentType || !queryIncidentsFilter?.impactedService || !queryIncidentsFilter?.priority;
+                    return (
+                        !queryIncidentsFilter?.incidentType ||
+                        !queryIncidentsFilter?.impactedService ||
+                        !queryIncidentsFilter?.priorities?.length
+                    );
                 case IncidentManagementType.AzMonitor:
-                    return !queryIncidentsFilter?.priority;
+                    return !queryIncidentsFilter?.priorities?.length;
                 default:
                     return false;
             }
@@ -254,7 +258,10 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                         ...queryIncidentsFilter,
                         impactedService:
                             queryIncidentsFilter?.impactedService === 'ALL' ? undefined : queryIncidentsFilter?.impactedService,
-                        priority: queryIncidentsFilter?.priority === 'ALL' ? undefined : queryIncidentsFilter?.priority,
+                        priorities:
+                            queryIncidentsFilter?.priorities?.length === 0 || queryIncidentsFilter?.priorities?.includes('ALL')
+                                ? undefined
+                                : queryIncidentsFilter?.priorities,
                         incidentType: queryIncidentsFilter?.incidentType === 'ALL' ? undefined : queryIncidentsFilter?.incidentType,
                     },
                     statuses: [IncidentStatus.active, IncidentStatus.new],
@@ -458,10 +465,9 @@ const TriggerAgentDrawer = ({ isOpen, onClose }: TriggerAgentDrawerProps) => {
                                         <Dropdown
                                             id="incident-priority"
                                             placeholder={intl.formatMessage(platformSpecificStrings.severityOrPriorityPlaceholder)}
-                                            value={queryIncidentsFilter?.priority || ''}
-                                            selectedOptions={queryIncidentsFilter?.priority ? [queryIncidentsFilter?.priority] : []}
+                                            selectedOptions={queryIncidentsFilter?.priorities ?? []}
                                             onOptionSelect={(_, data) =>
-                                                setQueryIncidentsFilter(prev => ({ ...prev, priority: data.optionValue }))
+                                                setQueryIncidentsFilter(prev => ({ ...prev, priorities: data.selectedOptions }))
                                             }
                                             className={styles.fieldInput}
                                         >

@@ -174,7 +174,7 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
-            Priority = request?.IncidentFilter?.Priority ?? "",
+            Priorities = request?.IncidentFilter?.Priorities ?? new List<string>(),
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,
@@ -216,7 +216,7 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
             .Where(filter =>
                 (string.IsNullOrWhiteSpace(filter.ImpactedService) || filter.ImpactedService == incidentDetails.ImpactedServiceId || filter.ImpactedService == incidentDetails.ImpactedServiceName)
                 &&
-                (string.IsNullOrWhiteSpace(filter.Priority) || IsPriorityMatch(filter.Priority, incidentDetails.Priority))
+                IsPriorityMatch(filter.Priorities, incidentDetails.Priority)
                 &&
                 (string.IsNullOrWhiteSpace(filter.IncidentType) || (filter.IncidentType == incidentDetails.IncidentType))
                 &&
@@ -292,7 +292,7 @@ public class IcmIncidentHandlingService : IncidentHandlingService<IcmIncidentDoc
                 .Where(filter =>
                     (string.IsNullOrWhiteSpace(filter.ImpactedService) || filter.ImpactedService == incident.ImpactedServiceId || filter.ImpactedService == incident.ImpactedServiceName)
                     &&
-                    (string.IsNullOrWhiteSpace(filter.Priority) || IsPriorityMatch(filter.Priority, incident.Priority))
+                    IsPriorityMatch(filter.Priorities, incident.Priority)
                     &&
                     (string.IsNullOrWhiteSpace(filter.IncidentType) || (filter.IncidentType == incident.IncidentType))
                     &&

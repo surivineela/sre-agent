@@ -20,7 +20,7 @@ namespace Agent.Core.Services;
 public interface IICMAPIClient
 {
     Task<Incident> GetIncidentAsync(string incidentId);
-    Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null);
+    Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? severities = null, IEnumerable<string>? statuses = null);
     Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
     Task<List<Incident>> SearchIncidentsAsync(string searchString);
     Task<List<DescriptionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, uint? limit = null, bool isAscending = true);
@@ -90,7 +90,7 @@ public class ICMAPIClient : IICMAPIClient
         }
     }
 
-    public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null)
+    public async Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? severities = null, IEnumerable<string>? statuses = null)
     {
         owningServiceId = owningServiceId ?? _icmApiSettings.OwningServiceId;
 
@@ -126,7 +126,7 @@ public class ICMAPIClient : IICMAPIClient
             incidentType: incidentType,
             createdBy: createdBy,
             monitorId: monitorId,
-            severities: severity is null ? null : new List<string> { severity },
+            severities: severities,
             statuses: statuses
         );
     }
@@ -474,7 +474,7 @@ public class NullableICMAPIClient : IICMAPIClient
         throw new NotImplementedException();
     }
 
-    public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, string? severity = null, IEnumerable<string>? statuses = null)
+    public Task<List<Incident>> GetIncidentsAsync(uint limit, uint offset, DateTime? lastModifiedDate, string? owningServiceId, string? titleContains, string? owningTeamId = null, string? incidentType = null, string? createdBy = null, string? monitorId = null, IEnumerable<string>? severities = null, IEnumerable<string>? statuses = null)
     {
         throw new NotImplementedException();
     }

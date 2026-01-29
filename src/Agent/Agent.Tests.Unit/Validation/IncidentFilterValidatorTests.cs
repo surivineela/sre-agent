@@ -279,7 +279,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -302,7 +302,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -333,7 +333,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -356,7 +356,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -387,7 +387,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -410,7 +410,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -439,7 +439,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -462,7 +462,7 @@ public class IncidentFilterValidatorTests
         {
             Id = "test-filter",
             HandlingAgent = "test-agent",
-            Priority = priority
+            Priorities = new List<string> { priority }
         };
 
         // Act
@@ -491,7 +491,7 @@ public class IncidentFilterValidatorTests
         // Set Priority to empty
         if (document is IncidentFilterDocumentPayload payload)
         {
-            payload.Priority = string.Empty;
+            payload.Priorities = [];
         }
 
         // Act
@@ -515,7 +515,7 @@ public class IncidentFilterValidatorTests
             Id = string.Empty,
             HandlingAgent = string.Empty,
             AgentMode = "InvalidMode",
-            Priority = "InvalidPriority"
+            Priorities = ["InvalidPriority"]
         };
 
         // Act
@@ -579,28 +579,28 @@ public class IncidentFilterValidatorTests
                 Id = "valid-filter",
                 HandlingAgent = "test-agent",
                 AgentMode = "Review",
-                Priority = "2"
+                Priorities = ["2"]
             },
             IncidentManagementType.AzMonitor => new AzMonitorIncidentFilterDocument
             {
                 Id = "valid-filter",
                 HandlingAgent = "test-agent",
                 AgentMode = "Review",
-                Priority = "Sev2"
+                Priorities = ["Sev2"]
             },
             IncidentManagementType.PagerDuty => new PagerDutyIncidentFilterDocument
             {
                 Id = "valid-filter",
                 HandlingAgent = "test-agent",
                 AgentMode = "Review",
-                Priority = "P2"
+                Priorities = ["P2"]
             },
             IncidentManagementType.ServiceNow => new ServiceNowIncidentFilterDocument
             {
                 Id = "valid-filter",
                 HandlingAgent = "test-agent",
                 AgentMode = "Review",
-                Priority = "2"
+                Priorities = ["2"]
             },
             _ => throw new NotSupportedException($"Unsupported type: {type}")
         };
