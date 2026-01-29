@@ -108,7 +108,7 @@ var roleDefinitionId = '/${subscription().id}/resourceGroups/${resourceGroup().n
 
 // User-assigned managed identity access for Azure deployments (application identity)
 resource identityRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
-  name: guid(cosmosdbAccount.id, identity.properties.principalId, consts.cosmosDBDataContributor)
+  name: guid(cosmosdbAccount.id, identity.id, consts.cosmosDBDataContributor)
   parent: cosmosdbAccount
   properties: {
     principalId: identity.properties.principalId

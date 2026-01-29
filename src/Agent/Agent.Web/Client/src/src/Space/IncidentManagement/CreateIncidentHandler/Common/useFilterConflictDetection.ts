@@ -7,8 +7,8 @@ interface UseFilterConflictDetectionParams {
     currentOwningTeamId?: string;
     currentIncidentType?: string;
     currentImpactedService?: string;
-    currentPriority?: string;
-    currentTriggers: IncidentTriggerEvent[];
+    currentPriorities?: string[];
+    currentTriggers?: IncidentTriggerEvent[];
     existingFilters: IncidentFilter[];
 }
 
@@ -21,7 +21,7 @@ export const useFilterConflictDetection = ({
     currentOwningTeamId,
     currentIncidentType,
     currentImpactedService,
-    currentPriority,
+    currentPriorities,
     currentTriggers,
     existingFilters,
 }: UseFilterConflictDetectionParams): FilterConflictInfo[] => {
@@ -45,13 +45,13 @@ export const useFilterConflictDetection = ({
                     owningTeamId: currentOwningTeamId,
                     incidentType: currentIncidentType,
                     impactedService: currentImpactedService,
-                    priority: currentPriority,
+                    priorities: currentPriorities,
                 },
                 {
                     owningTeamId: filter.owningTeamId,
                     incidentType: filter.incidentType,
                     impactedService: filter.impactedService,
-                    priority: filter.priority,
+                    priorities: filter.priorities,
                 }
             );
 
@@ -61,9 +61,9 @@ export const useFilterConflictDetection = ({
 
             // Check for overlapping triggers
             const existingTriggers = filter.triggers || [IncidentTriggerEvent.IncidentCreatedOrTransferred];
-            const overlappingTriggers = currentTriggers.filter(t => existingTriggers.includes(t));
+            const overlappingTriggers = currentTriggers?.filter(t => existingTriggers.includes(t));
 
-            if (overlappingTriggers.length > 0) {
+            if (overlappingTriggers?.length) {
                 conflicts.push({
                     filterName: filter.id, // Use ID as name since IncidentFilter doesn't have a name field
                     filterId: filter.id,
@@ -78,7 +78,7 @@ export const useFilterConflictDetection = ({
         currentOwningTeamId,
         currentIncidentType,
         currentImpactedService,
-        currentPriority,
+        currentPriorities,
         currentTriggers,
         existingFilters,
     ]);
@@ -88,7 +88,7 @@ interface FilterCriteria {
     owningTeamId?: string;
     incidentType?: string;
     impactedService?: string;
-    priority?: string;
+    priorities?: string[];
 }
 
 /**
@@ -102,17 +102,17 @@ const checkFilterOverlap = (current: FilterCriteria, existing: FilterCriteria): 
     }
 
     // Check incident type (ALL matches everything)
-    if (!criteriaOverlaps(current.incidentType, existing.incidentType)) {
+    if (!stringCriteriaOverlaps(current.incidentType, existing.incidentType)) {
         return false;
     }
 
     // Check impacted service (ALL matches everything)
-    if (!criteriaOverlaps(current.impactedService, existing.impactedService)) {
+    if (!stringCriteriaOverlaps(current.impactedService, existing.impactedService)) {
         return false;
     }
 
-    // Check priority (ALL matches everything)
-    if (!criteriaOverlaps(current.priority, existing.priority)) {
+    // Check priorities (ALL matches everything)
+    if (!arrayCriteriaOverlaps(current.priorities, existing.priorities)) {
         return false;
     }
 
@@ -120,10 +120,27 @@ const checkFilterOverlap = (current: FilterCriteria, existing: FilterCriteria): 
 };
 
 /**
+ * Check if two array criteria values overlap.
+ * "ALL" or empty array matches everything.
+ */
+const arrayCriteriaOverlaps = (values1?: string[], values2?: string[]): boolean => {
+    const isAll1 = !values1 || values1.length === 0 || values1.includes('ALL');
+    const isAll2 = !values2 || values2.length === 0 || values2.includes('ALL');
+
+    // If either is ALL, they overlap
+    if (isAll1 || isAll2) {
+        return true;
+    }
+
+    // Check for any common values
+    return values1.some(value => values2.includes(value));
+};
+
+/**
  * Check if two criteria values overlap.
  * "ALL" or empty string matches everything.
  */
-const criteriaOverlaps = (value1?: string, value2?: string): boolean => {
+const stringCriteriaOverlaps = (value1?: string, value2?: string): boolean => {
     const isAll1 = !value1 || value1 === 'ALL' || value1 === '';
     const isAll2 = !value2 || value2 === 'ALL' || value2 === '';
 

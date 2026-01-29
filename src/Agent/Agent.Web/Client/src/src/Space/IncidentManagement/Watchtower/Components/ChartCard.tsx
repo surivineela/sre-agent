@@ -1,11 +1,10 @@
 import { GroupedVerticalBarChart, IChartProps, ILegendsStyles, LineChart } from '@fluentui/react-charting';
-import { Button, Card, makeStyles, Skeleton, SkeletonItem, Subtitle2, Text, tokens, Tooltip } from '@fluentui/react-components';
+import { Button, makeStyles, Skeleton, SkeletonItem, Subtitle2, Text, tokens, Tooltip } from '@fluentui/react-components';
 import { DataArea20Regular, DataBarVerticalAscending16Regular } from '@fluentui/react-icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getLocaleDateTimeHHMM } from '../../../../Common/Helpers/Date';
 import { convertLineChartToAdaptiveGroupedRanges } from '../../../../Common/Helpers/Graph';
-import { useIsDarkMode } from '../../../../Common/Hooks/useIsDarkMode';
 import { SreAgentResources } from '../../../../Strings/SREAgentResources';
 
 const sentenceCaseLegendStyles: Partial<ILegendsStyles> = {
@@ -19,6 +18,13 @@ const useChartCardStyles = makeStyles({
         flex: '1 1 550px',
         minWidth: '550px',
         height: '310px',
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '12px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        padding: '16px',
+        transitionProperty: 'background-color, border-color',
+        transitionDuration: '0.15s',
+        transitionTimingFunction: 'ease',
     },
     buttonBar: {
         display: 'flex',
@@ -76,7 +82,6 @@ interface ChartCardProps {
 
 export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     const intl = useIntl();
-    const isDarkMode = useIsDarkMode();
     const styles = useChartCardStyles();
     const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
@@ -152,7 +157,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
     }, [maxValue]);
 
     return (
-        <Card className={styles.card} appearance={isDarkMode ? 'filled-alternative' : undefined}>
+        <div className={styles.card}>
             <div>
                 <Subtitle2 as="h3">{title}</Subtitle2>
             </div>
@@ -214,6 +219,7 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                             yMaxValue={maxValue > 0 ? maxValue : undefined}
                             yAxisTickCount={yAxisTickCount}
                             legendProps={{ styles: sentenceCaseLegendStyles }}
+                            styles={{ root: { backgroundColor: 'transparent' } }}
                         />
                     )}
 
@@ -227,10 +233,11 @@ export const ChartCard = ({ title, data, isLoading }: ChartCardProps) => {
                             yAxisTickCount={yAxisTickCount}
                             onRenderCalloutPerDataPoint={onRenderCalloutPerDataPoint}
                             legendProps={{ styles: sentenceCaseLegendStyles }}
+                            styles={{ root: { backgroundColor: 'transparent' } }}
                         />
                     )}
                 </div>
             )}
-        </Card>
+        </div>
     );
 };

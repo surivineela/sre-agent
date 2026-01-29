@@ -7,13 +7,13 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Runtime.Interfaces;
-using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.IcmScanner;
@@ -285,7 +285,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 string.IsNullOrWhiteSpace(filterDocument.IncidentType) ? null : filterDocument.IncidentType,
                 string.IsNullOrWhiteSpace(filterDocument.CreatedBy) ? null : filterDocument.CreatedBy,
                 string.IsNullOrWhiteSpace(filterDocument.MonitorId) ? null : filterDocument.MonitorId,
-                string.IsNullOrWhiteSpace(filterDocument.Priority) ? null : filterDocument.Priority
+                filterDocument.Priorities
             );
 
             if (incidents is null || incidents.Count == 0)
@@ -492,7 +492,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 metrics.PersistenceSucceeded++;
 
                 var eventCount = eventsByIncident.TryGetValue(incidentId, out var events) ? events.Count : 0;
-                logger.LogInternalDebug(
+                logger.LogInternalInformation(
                     "[IcmScanner] Phase 3: Persisted incident {incidentId} with {eventCount} event checkpoints",
                     incidentId,
                     eventCount);
@@ -668,8 +668,18 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             .ToHashSet();
 
         // Create threads for handling agents that don't have threads yet
+        // Note: When handlingAgents contains empty string (""), we need to check against filter.Id
+        // because thread creation sets HandlerId = filter.Id when HandlingAgent is empty
         var agentsNeedingThreads = handlingAgents
-            .Where(agent => !existingHandlerIds.Contains(agent))
+            .Where(agent =>
+            {
+                if (string.IsNullOrEmpty(agent))
+                {
+                    // Empty agent maps to filter.Id in thread creation
+                    return !existingHandlerIds.Contains(filter.Id ?? string.Empty);
+                }
+                return !existingHandlerIds.Contains(agent);
+            })
             .ToList();
 
         if (agentsNeedingThreads.Count > 0)
@@ -689,12 +699,27 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
         // Filter threads to only those whose handler is in the current trigger's handling agents list
         // This ensures we only send events to threads that belong to handlers for this trigger
+        // Note: When handlingAgents contains empty string, we also match threads with HandlerId = filter.Id
         var threadsToProcess = existingThreads
             .Where(t =>
+            {
+                var threadHandlerId = t.IncidentDetails?.HandlerId;
+
                 // Include threads with null/empty HandlerId for backward compatibility
-                string.IsNullOrEmpty(t.IncidentDetails?.HandlerId) ||
-                // Include threads whose handler is in current trigger's handling agents
-                handlingAgents.Contains(t.IncidentDetails.HandlerId))
+                if (string.IsNullOrEmpty(threadHandlerId))
+                    return true;
+
+                // Direct match: thread's handler is in the handling agents list
+                if (handlingAgents.Contains(threadHandlerId))
+                    return true;
+
+                // Indirect match: If handlingAgents has empty string (meta_agent fallback),
+                // also match threads where HandlerId = filter.Id (since that's what thread creation sets)
+                if (handlingAgents.Contains(string.Empty) && threadHandlerId == filter.Id)
+                    return true;
+
+                return false;
+            })
             .ToList();
 
         logger.LogInternalInformation(
@@ -896,8 +921,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
             if (allThreads.Count == 0)
             {
-                logger.LogInternalDebug(
-                    "[IcmScanner] SyncAllThreadStatuses: No threads found for incident {incidentId}, skipping",
+                logger.LogInternalInformation(
+                    "[IcmScanner] SyncAllThreadStatuses: No threads found for incident {incidentId}, skipping status sync",
                     incidentId);
                 continue;
             }
@@ -1609,7 +1634,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                         AlertId = "TestQueue",
                         AgentMode = AgentModes.Autonomous.ToLowerInvariant(),
                         ImpactedService = incidentDoc.ImpactedServiceName ?? string.Empty,
-                        Priority = incidentDoc.Priority ?? string.Empty,
+                        Priorities = string.IsNullOrWhiteSpace(incidentDoc.Priority) ? new List<string>() : new List<string> { incidentDoc.Priority },
                         IncidentType = incidentDoc.IncidentType ?? string.Empty,
                         TitleContains = string.Empty,
                         CreatedAt = DateTime.UtcNow,

@@ -46,6 +46,13 @@
     <PackageReference Include="KubernetesClient" />
     <PackageReference Include="ReverseMarkdown" />
     <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adc.RemoteWorkspace.Contracts\Adc.RemoteWorkspace.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

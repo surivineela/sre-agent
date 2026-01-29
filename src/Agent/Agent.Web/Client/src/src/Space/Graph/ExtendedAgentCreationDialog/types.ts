@@ -20,10 +20,6 @@ export type TriggerStrategy = 'quick' | 'existing';
 export type SchedulePresetKey = 'hourly' | 'every15m' | 'daily' | 'weekly' | 'monthly' | 'workdays' | 'custom';
 export type ScheduleInputMode = 'preset' | 'natural';
 
-// Changed to string to support all incident platforms (AzMonitor, PagerDuty, ICM, ServiceNow)
-export type IncidentPriority = string;
-export type IncidentType = string;
-
 export interface TriggerScheduleState {
     preset: SchedulePresetKey;
     cronExpression: string;
@@ -40,8 +36,8 @@ export interface TriggerState {
     agentDisplayName?: string;
     name: string;
     description: string;
-    incidentPriority: IncidentPriority;
-    incidentType: IncidentType;
+    incidentPriorities: string[];
+    incidentType: string;
     instructions: string;
     schedule: TriggerScheduleState;
     existingId?: string;
@@ -68,8 +64,8 @@ export interface TriggerSubmitRequest {
     agentDisplayName?: string;
     name: string;
     description?: string;
-    severity?: IncidentPriority;
-    incidentType?: IncidentType;
+    incidentPriorities?: string;
+    incidentType?: string;
     instructions?: string;
     cronExpression?: string;
     startTime?: string;
@@ -140,8 +136,8 @@ export interface TriggerDefaults {
     name: string;
     description: string;
     instructions: string;
-    incidentPriority: IncidentPriority;
-    incidentType: IncidentType;
+    incidentPriorities: string[];
+    incidentType: string;
     schedule: TriggerScheduleState;
 }
 

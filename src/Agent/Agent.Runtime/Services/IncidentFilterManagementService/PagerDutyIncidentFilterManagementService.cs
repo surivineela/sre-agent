@@ -105,9 +105,11 @@ public class PagerDutyIncidentFilterManagementService : IncidentFilterManagement
                 _logger.LogInternalInformation("ListPagerDutyIncidentFilterFieldOptions: Retrieved {PriorityCount} priorities.", priorities.Count);
                 result.Add(new IncidentFilterFieldOption
                 {
-                    FieldName = nameof(PagerDutyIncidentFilterDocumentPayload.Priority),
+                    FieldName = "Priority",
                     DisplayName = "Priority",
-                    Options = priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList()
+                    Options = priorities.Select(p => new KeyValuePair<string, string>(p.Id, p.Name)).ToList(),
+                    FieldInputType = IncidentFilterInputType.MultiSelectDropdown,
+                    IsRequired = true
                 });
             }
             else

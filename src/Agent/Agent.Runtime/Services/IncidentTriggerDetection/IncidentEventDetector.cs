@@ -37,32 +37,35 @@ public class IncidentEventDetector : IIncidentEventDetector
         var entriesWithMention = new List<DiscussionEntryInfo>();
         var now = DateTime.UtcNow;
 
+        _logger.LogInternalInformation(
+            "[EventDetector] Starting event detection for incident {IncidentId}, previousState={HasPrevious}, discussionEntries={EntryCount}, onCallAliases={AliasCount}",
+            currentState.IncidentId,
+            previousState != null,
+            discussionEntries.Count,
+            onCallAliases?.Count ?? 0);
+
         // 1. Detect IncidentCreatedOrTransferred
         if (DetectCreatedOrTransferred(currentState, previousState, discussionEntries, now))
         {
             events.Add(IcmIncidentTriggerEvent.IncidentCreatedOrTransferred);
-            _logger.LogInternalInformation("[EventDetector] Detected IncidentCreatedOrTransferred for {IncidentId}", currentState.IncidentId);
         }
 
         // 2. Detect IncidentReactivated (Mitigated/Resolved -> Active)
         if (DetectReactivated(currentState, previousState))
         {
             events.Add(IcmIncidentTriggerEvent.IncidentReactivated);
-            _logger.LogInternalInformation("[EventDetector] Detected IncidentReactivated for {IncidentId}", currentState.IncidentId);
         }
 
         // 3. Detect IncidentMitigated (-> Mitigated)
         if (DetectMitigated(currentState, previousState))
         {
             events.Add(IcmIncidentTriggerEvent.IncidentMitigated);
-            _logger.LogInternalInformation("[EventDetector] Detected IncidentMitigated for {IncidentId}", currentState.IncidentId);
         }
 
         // 3.5. Detect IncidentResolved (-> Resolved)
         if (DetectResolved(currentState, previousState))
         {
             events.Add(IcmIncidentTriggerEvent.IncidentResolved);
-            _logger.LogInternalInformation("[EventDetector] Detected IncidentResolved for {IncidentId}", currentState.IncidentId);
         }
 
         // 4. Detect DiscussionEntry (@sreagent + STRICT on-call validation)
@@ -72,9 +75,17 @@ public class IncidentEventDetector : IIncidentEventDetector
         {
             events.Add(IcmIncidentTriggerEvent.DiscussionEntry);
             entriesWithMention.AddRange(mentionEntries);
-            _logger.LogInternalInformation("[EventDetector] Detected DiscussionEntry for {IncidentId}, {Count} new mentions",
-                currentState.IncidentId, mentionEntries.Count);
+            _logger.LogInternalInformation(
+                "[EventDetector] DiscussionEntry detected for {IncidentId}: {Count} new @sreagent mentions from on-call users",
+                currentState.IncidentId,
+                mentionEntries.Count);
         }
+
+        _logger.LogInternalInformation(
+            "[EventDetector] Event detection complete for incident {IncidentId}: {EventCount} events detected [{Events}]",
+            currentState.IncidentId,
+            events.Count,
+            events.Count > 0 ? string.Join(", ", events) : "none");
 
         return new IncidentEventDetectionResult(events, entriesWithMention);
     }
@@ -89,14 +100,34 @@ public class IncidentEventDetector : IIncidentEventDetector
         // We only trigger for truly new incidents, not old ones we've never processed
         if (previous == null && current.CreatedDate > now.Subtract(NewIncidentThreshold))
         {
+            _logger.LogInternalInformation(
+                "[EventDetector] IncidentCreatedOrTransferred detected for {IncidentId}: New incident created at {CreatedDate}, within {Threshold} minute threshold",
+                current.IncidentId,
+                current.CreatedDate,
+                NewIncidentThreshold.TotalMinutes);
             return true;
         }
 
         // Transfer detected via discussion entry (same logic as existing isIncidentNeedToHandle)
-        var hasTransfer = entries.Any(e =>
-            e.Date > now.Subtract(NewIncidentThreshold) &&
-            !string.IsNullOrEmpty(e.Text) &&
-            e.Text.StartsWith("<div>Transferred from", StringComparison.OrdinalIgnoreCase));
+        // Find the most recent transfer entry and check if it's within threshold
+        var lastTransferEntry = entries
+            .Where(e => !string.IsNullOrEmpty(e.Text) &&
+                        e.Text.StartsWith("<div>Transferred from", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(e => e.Date)
+            .FirstOrDefault();
+
+        var hasTransfer = lastTransferEntry != null &&
+                          lastTransferEntry.Date > now.Subtract(NewIncidentThreshold);
+
+        if (hasTransfer)
+        {
+            _logger.LogInternalInformation(
+                "[EventDetector] IncidentCreatedOrTransferred detected for {IncidentId}: Transfer entry found at {TransferDate}, within {Threshold} minute threshold",
+                current.IncidentId,
+                lastTransferEntry!.Date,
+                NewIncidentThreshold.TotalMinutes);
+        }
+
         return hasTransfer;
     }
 
@@ -108,7 +139,17 @@ public class IncidentEventDetector : IIncidentEventDetector
                           previous.State.Equals("Resolved", StringComparison.OrdinalIgnoreCase);
         var isNowActive = current.State.Equals("Active", StringComparison.OrdinalIgnoreCase);
 
-        return wasInactive && isNowActive;
+        if (wasInactive && isNowActive)
+        {
+            _logger.LogInternalInformation(
+                "[EventDetector] IncidentReactivated detected for {IncidentId}: State changed from {PreviousState} to {CurrentState}",
+                current.IncidentId,
+                previous.State,
+                current.State);
+            return true;
+        }
+
+        return false;
     }
 
     private bool DetectMitigated(IncidentStateSnapshot current, IncidentStateSnapshot? previous)
@@ -117,10 +158,27 @@ public class IncidentEventDetector : IIncidentEventDetector
 
         // New incident already mitigated
         if (previous == null)
+        {
+            if (isNowMitigated)
+            {
+                _logger.LogInternalInformation(
+                    "[EventDetector] IncidentMitigated detected for {IncidentId}: New incident already in Mitigated state",
+                    current.IncidentId);
+            }
             return isNowMitigated;
+        }
 
         var wasNotMitigated = !previous.State.Equals("Mitigated", StringComparison.OrdinalIgnoreCase);
-        return wasNotMitigated && isNowMitigated;
+        if (wasNotMitigated && isNowMitigated)
+        {
+            _logger.LogInternalInformation(
+                "[EventDetector] IncidentMitigated detected for {IncidentId}: State changed from {PreviousState} to Mitigated",
+                current.IncidentId,
+                previous.State);
+            return true;
+        }
+
+        return false;
     }
 
     private bool DetectResolved(IncidentStateSnapshot current, IncidentStateSnapshot? previous)
@@ -129,10 +187,27 @@ public class IncidentEventDetector : IIncidentEventDetector
 
         // New incident already resolved - unlikely but handle it
         if (previous == null)
+        {
+            if (isNowResolved)
+            {
+                _logger.LogInternalInformation(
+                    "[EventDetector] IncidentResolved detected for {IncidentId}: New incident already in Resolved state",
+                    current.IncidentId);
+            }
             return isNowResolved;
+        }
 
         var wasNotResolved = !previous.State.Equals("Resolved", StringComparison.OrdinalIgnoreCase);
-        return wasNotResolved && isNowResolved;
+        if (wasNotResolved && isNowResolved)
+        {
+            _logger.LogInternalInformation(
+                "[EventDetector] IncidentResolved detected for {IncidentId}: State changed from {PreviousState} to Resolved",
+                current.IncidentId,
+                previous.State);
+            return true;
+        }
+
+        return false;
     }
 
     private List<DiscussionEntryInfo> DetectDiscussionEntries(

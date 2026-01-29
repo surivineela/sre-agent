@@ -400,7 +400,6 @@ public abstract class IncidentAnalysisServiceBase<TIncidentDocument, TIncidentFi
                 Filter = filter,
                 DurationInDays = (DateTime.UtcNow - incidentDoc.CreatedAt).Days + 5,
                 Statuses = [],
-                Priorities = [],
                 PageSize = 100,
                 SearchTerm = incidentDoc.Id,
                 Keywords = [incidentDoc.Title],

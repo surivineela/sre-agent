@@ -41,11 +41,11 @@ public sealed class YamlParameter
 
     // New: Parsed dictionary info
     public bool IsDictionaryTarget =>
-        Target.StartsWith("dictionary:", StringComparison.OrdinalIgnoreCase);
+        Target?.StartsWith("dictionary:", StringComparison.OrdinalIgnoreCase) ?? false;
 
     public (string DictName, string ValueType)? GetDictionaryTargetInfo()
     {
-        if (!IsDictionaryTarget) return null;
+        if (!IsDictionaryTarget || Target == null) return null;
         var parts = Target.Split(':');
         if (parts.Length < 3) return (parts[1], "string"); // default to string
         return (parts[1], parts[2]);

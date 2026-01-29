@@ -74,9 +74,11 @@ public class IcmIncidentFilterManagementService : IncidentFilterManagementServic
             .ToList();
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(IcmIncidentFilterDocument.Priority),
+            FieldName = "Priority",
             DisplayName = "Severity",
-            Options = priorityOptions
+            Options = priorityOptions,
+            FieldInputType = IncidentFilterInputType.MultiSelectDropdown,
+            IsRequired = true
         });
 
         result.Add(new IncidentFilterFieldOption

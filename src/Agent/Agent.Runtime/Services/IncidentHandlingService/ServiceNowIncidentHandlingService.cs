@@ -3,7 +3,9 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.ServiceNow;
 using Agent.Data.DataModels;
@@ -48,20 +50,15 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
     /// <summary>
     /// Override priority matching to use ServiceNow-specific normalization logic
     /// </summary>
-    protected override bool IsPriorityMatch(string filterPriority, string incidentPriority)
+    protected override bool IsPriorityMatch(IEnumerable<string>? filterPriorities, string incidentPriority)
     {
-        // Use the existing NormalizePriorityForFiltering method from ServiceNowIncidentManagementService
-        if (_incidentManagementService is ServiceNowIncidentManagementService serviceNowService)
+        if (filterPriorities is null || !filterPriorities.Any())
         {
-            var normalizedFilterPriorities = serviceNowService.NormalizePriorityForFiltering(filterPriority);
-            var normalizedIncidentPriorities = serviceNowService.NormalizePriorityForFiltering(incidentPriority);
-
-            // Check if any normalized value from filter matches any normalized value from incident
-            return normalizedFilterPriorities.Any(fp => normalizedIncidentPriorities.Contains(fp));
+            return true;
         }
-
-        // Fallback to base implementation if cast fails
-        return base.IsPriorityMatch(filterPriority, incidentPriority);
+        var normalizedFilterPriorities = ServiceNowPriorityHelper.NormalizePriorityForFiltering(filterPriorities);
+        var normalizedIncidentPriorities = ServiceNowPriorityHelper.NormalizePriorityForFiltering(new string[] { incidentPriority });
+        return normalizedFilterPriorities.Any(fp => normalizedIncidentPriorities.Contains(fp));
     }
 
     protected override async Task<Thread> CreateIncidentHandlerAgentThreadAsync(
@@ -102,7 +99,7 @@ public class ServiceNowIncidentHandlingService : IncidentHandlingService<Service
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
-            Priority = request?.IncidentFilter?.Priority ?? "",
+            Priorities = request?.IncidentFilter?.Priorities ?? [],
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
             CreatedAt = request?.IncidentFilter?.CreatedAt ?? DateTime.UtcNow,

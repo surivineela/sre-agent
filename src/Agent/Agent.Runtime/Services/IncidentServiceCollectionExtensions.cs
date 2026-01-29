@@ -14,6 +14,9 @@ using Agent.Data.Interface.IncidentAPI;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Runtime.Helpers;
+using Agent.Runtime.IncidentIndexing;
+using Agent.Runtime.IncidentIndexing.Services;
+using Agent.Runtime.IncidentIndexing.Validators;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Services.IncidentTriggerDetection;
 using Agent.Runtime.SubAgents.Scanner;
@@ -53,6 +56,20 @@ public static class IncidentServiceCollectionExtensions
 
         // Register IIncidentHandlerManagementService before filter services that depend on it
         services.AddSingleton<IIncidentHandlerManagementService, IncidentHandlerManagementService>();
+
+        // Register incident indexing configuration validators
+        services.AddSingleton<IcmIncidentIndexingConfigurationValidator>();
+        services.AddSingleton<PagerDutyIncidentIndexingConfigurationValidator>();
+        services.AddSingleton<ServiceNowIncidentIndexingConfigurationValidator>();
+        services.AddSingleton<AzMonitorIncidentIndexingConfigurationValidator>();
+        services.AddSingleton<IIncidentIndexingConfigurationValidatorFactory, IncidentIndexingConfigurationValidatorFactory>();
+
+        // Register provider-specific incident indexing configuration services
+        services.AddSingleton<IIncidentIndexingConfigurationService<IcmIncidentIndexingConfigurationDocument, IcmIncidentIndexingConfigurationPayload>, IcmIncidentIndexingConfigurationService>();
+        services.AddSingleton<IIncidentIndexingConfigurationService<PagerDutyIncidentIndexingConfigurationDocument, PagerDutyIncidentIndexingConfigurationPayload>, PagerDutyIncidentIndexingConfigurationService>();
+        services.AddSingleton<IIncidentIndexingConfigurationService<ServiceNowIncidentIndexingConfigurationDocument, ServiceNowIncidentIndexingConfigurationPayload>, ServiceNowIncidentIndexingConfigurationService>();
+        services.AddSingleton<IIncidentIndexingConfigurationService<AzMonitorIncidentIndexingConfigurationDocument, AzMonitorIncidentIndexingConfigurationPayload>, AzMonitorIncidentIndexingConfigurationService>();
+        services.AddSingleton<IIncidentIndexingConfigurationServiceFactory, IncidentIndexingConfigurationServiceFactory>();
 
         //Overwrite ApiClient and IIncidentScanner
         switch (incidentManagementSettings.Type)
@@ -164,29 +181,29 @@ public static class IncidentServiceCollectionExtensions
             Scope = $"{icmAppsettings.IcmMSIResource}/.default",
         };
 
-        IHttpClientBuilder httpClientBuilder;
-
-
         Func<IServiceProvider, Action<LogLevel, string>> loggerProvider = sp =>
         {
-            var logger = sp.GetRequiredService<ILogger<IICMAPIClient>>();
-            return (level, message) =>
+            var logger = sp.GetRequiredService<ILogger<ICMAPIClient>>();
+
+            return (LogLevel logLevel, string message) =>
             {
-                switch (level)
+                switch (logLevel)
                 {
-                    case LogLevel.Critical:
                     case LogLevel.Error:
                         logger.LogInternalError($"[ICMSDK]{message}");
                         break;
                     case LogLevel.Warning:
                         logger.LogInternalWarning($"[ICMSDK]{message}");
                         break;
+                    case LogLevel.Information:
                     default:
                         logger.LogInternalInformation($"[ICMSDK]{message}");
                         break;
                 }
             };
         };
+
+        IHttpClientBuilder httpClientBuilder;
 
         // if UserToken is not null -> local development, use UserToken/Cert from appsettings
         // else if Agent Space Proxy is configured, use ICMAPIAgentSpaceTokenService

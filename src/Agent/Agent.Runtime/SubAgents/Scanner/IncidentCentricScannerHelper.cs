@@ -168,7 +168,7 @@ public class IncidentCentricScannerHelper
 
         if (!detectionResult.HasEvents)
         {
-            _logger.LogInternalDebug(
+            _logger.LogInternalInformation(
                 "[IncidentCentricScanner] No events detected for incident {incidentId}",
                 context.IncidentId);
             return mappings;
@@ -190,8 +190,8 @@ public class IncidentCentricScannerHelper
 
             if (eligibleFilters.Count == 0)
             {
-                _logger.LogInternalDebug(
-                    "[IncidentCentricScanner] No eligible filters for event {eventType} on incident {incidentId}",
+                _logger.LogInternalInformation(
+                    "[IncidentCentricScanner] No eligible filters for event {eventType} on incident {incidentId} - no filters have this trigger enabled",
                     detectedEvent,
                     context.IncidentId);
                 continue;
@@ -233,7 +233,9 @@ public class IncidentCentricScannerHelper
     {
         var score = 0;
         if (!string.IsNullOrWhiteSpace(filter.TitleContains)) score += 10;
-        if (!string.IsNullOrWhiteSpace(filter.Priority)) score += 5;
+#pragma warning disable CS0618
+        if (!string.IsNullOrWhiteSpace(filter.Priority) || (filter.Priorities != null && filter.Priorities.Count > 0)) score += 5;
+#pragma warning restore CS0618
         if (!string.IsNullOrWhiteSpace(filter.OwningTeamId)) score += 5;
         if (!string.IsNullOrWhiteSpace(filter.IncidentType)) score += 3;
         if (!string.IsNullOrWhiteSpace(filter.MonitorId)) score += 3;

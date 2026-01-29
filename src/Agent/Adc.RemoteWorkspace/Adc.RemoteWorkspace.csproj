@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+    <PackageReference Include="Google.Protobuf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Adc.RemoteWorkspace.Contracts\Adc.RemoteWorkspace.Contracts.csproj" />
+    <ProjectReference Include="..\Agent.Common\Agent.Common.csproj" />
+    <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
+  </ItemGroup>
+
+</Project>

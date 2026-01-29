@@ -28,6 +28,8 @@ public class Constants
     public const string Ev2ProdTokenScope = "https://azureservicedeploy.msft.net/.default";
     public const string FederatedIdentityTokenScope = "api://AzureADTokenExchange/.default";
 
+    public const string KustoTokenScope = "https://kusto.kusto.windows.net/.default";
+
     public const string CosmosDbOboTokenScope = "https://cosmos.azure.com/.default";
 
     public const string ExchangedTokenScopesHeader = "x-sreagent-exchanged-tokens-scopes";
@@ -41,6 +43,7 @@ public class Constants
     public const string HttpClientForAzureDevOps = "AzureDevOps";
     public const string HttpClientForSessionPool = "SessionPool";
     public const string HttpClientForPagerDuty = "PagerDuty";
+    public const string HttpClientForAdcManagement = "AdcManagement";
 
     public const string DefaultAgentName = "sre_agent";
 

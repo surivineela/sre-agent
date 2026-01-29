@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { toPng } from 'html-to-image';
 import React, { memo, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -182,19 +183,18 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     };
 
     const chartContainerStyle: React.CSSProperties = {
-        backgroundColor: '#FAFBFC',
-        borderRadius: '0.75rem',
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '12px',
         padding: '1.75rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         marginBottom: '1.5rem',
-        border: '1px solid #f0f2f5',
-        cursor: isZoomed ? 'default' : 'pointer', // Change cursor to indicate clickability
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        cursor: isZoomed ? 'default' : 'pointer',
     };
 
     const chartTitleStyle: React.CSSProperties = {
         fontSize: '1.25rem',
         fontWeight: '700',
-        color: '#111827',
+        color: tokens.colorNeutralForeground1,
         marginBottom: '1.25rem',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     };
@@ -226,9 +226,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
         : { display: 'none' };
 
     const modalContentStyle: React.CSSProperties = {
-        backgroundColor: 'white',
+        backgroundColor: tokens.colorNeutralBackground1,
         padding: '1rem',
-        borderRadius: '0.75rem',
+        borderRadius: '12px',
         width: '95%',
         height: '90%',
         position: 'relative',
@@ -242,7 +242,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
         top: '1rem',
         right: '1rem',
         backgroundColor: 'transparent',
-        color: '#4B5563',
+        color: tokens.colorNeutralForeground2,
         border: 'none',
         width: '32px',
         height: '32px',
@@ -260,7 +260,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
         const ref = isZoomedView ? zoomedChartRef : chartRef;
 
         const tooltipStyle = {
-            backgroundColor: '#ffffff',
+            backgroundColor: tokens.colorNeutralBackground1,
             border: 'none',
             borderRadius: '0.5rem',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -272,7 +272,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
         const axisTickConfig = {
             fontSize: 11.5,
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            fill: '#6B7280',
+            fill: tokens.colorNeutralForeground2,
         };
 
         const containerStyle = {
@@ -331,13 +331,18 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         </linearGradient>
                                     ))}
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.4} vertical={false} />
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    stroke={tokens.colorNeutralStroke1}
+                                    strokeOpacity={0.4}
+                                    vertical={false}
+                                />
                                 <XAxis
                                     dataKey="name"
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                     padding={{ left: 5, right: 5 }}
                                 >
                                     {xAxisLabel && (
@@ -348,7 +353,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
@@ -358,9 +363,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                 <YAxis
                                     domain={[yAxisMin || 'auto', yAxisMax || 'auto']}
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                 >
                                     {yAxisLabel && (
                                         <Label
@@ -371,7 +376,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
@@ -432,13 +437,13 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         <stop offset="100%" stopColor={CHART_COLORS[0]} stopOpacity={0.8} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={tokens.colorNeutralStroke1} vertical={false} />
                                 <XAxis
                                     dataKey="category"
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                     padding={{ left: 10, right: 10 }}
                                 >
                                     {xAxisLabel && (
@@ -449,7 +454,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
@@ -458,9 +463,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                 </XAxis>
                                 <YAxis
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                 >
                                     {yAxisLabel && (
                                         <Label
@@ -471,7 +476,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
@@ -867,15 +872,15 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                         <div style={chartTitleStyle}>{title}</div>
                         <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
                             <ScatterChart margin={{ top: 20, right: 30, left: 25, bottom: 40 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.4} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={tokens.colorNeutralStroke1} strokeOpacity={0.4} />
                                 <XAxis
                                     type="number"
                                     dataKey="x"
                                     name={xAxisLabel}
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                     padding={{ left: 10, right: 10 }}
                                 >
                                     {xAxisLabel && (
@@ -886,7 +891,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
@@ -898,9 +903,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     dataKey="y"
                                     name={yAxisLabel}
                                     tick={axisTickConfig}
-                                    stroke="#E5E7EB"
-                                    tickLine={{ stroke: '#E5E7EB' }}
-                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    stroke={tokens.colorNeutralStroke1}
+                                    tickLine={{ stroke: tokens.colorNeutralStroke1 }}
+                                    axisLine={{ stroke: tokens.colorNeutralStroke1 }}
                                 >
                                     {yAxisLabel && (
                                         <Label
@@ -911,7 +916,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             style={{
                                                 fontSize: 13,
                                                 fontWeight: 600,
-                                                fill: '#374151',
+                                                fill: tokens.colorNeutralForeground2,
                                                 fontFamily:
                                                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}

@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Core.Validation;
 using Agent.Data;
@@ -325,8 +326,7 @@ public class IncidentPlaygroundController : ControllerBase
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementWriteActionId)]
     public async Task<IActionResult> CreateIncidentFilter([FromBody] JsonNode payload)
     {
-        string id = payload?["Id"]?.ToString() ?? string.Empty;
-        _logger.LogInternalInformation("CreateIncidentFilter: Invoked for FilterId: {FilterId}", id);
+        string id = payload?[nameof(IncidentFilterDocumentPayload.Id)]?.ToString() ?? string.Empty;
         if (payload is null || string.IsNullOrEmpty(id))
         {
             _logger.LogInternalWarning("CreateIncidentFilter: Invalid incident filter document");
@@ -338,24 +338,23 @@ public class IncidentPlaygroundController : ControllerBase
             _logger.LogInternalWarning("CreateIncidentFilter: Filter already exists for FilterId: {FilterId}", id);
             return Conflict("Incident filter with the same ID already exists. Use POST to update.");
         }
-
         var filterDoc = new IncidentFilterDocumentPayload
         {
             Id = id,
-            Name = payload["Name"]?.ToString() ?? string.Empty,
-            ImpactedService = payload["ImpactedService"]?.ToString() ?? string.Empty,
-            Priority = payload["Priority"]?.ToString() ?? string.Empty,
-            IncidentType = payload["IncidentType"]?.ToString() ?? string.Empty,
-            AlertId = payload["AlertId"]?.ToString() ?? string.Empty,
-            TitleContains = payload["TitleContains"]?.ToString() ?? string.Empty,
-            AgentMode = payload["AgentMode"]?.ToString() ?? string.Empty,
-            OwningTeamId = payload["OwningTeamId"]?.ToString() ?? string.Empty,
-            HandlingAgent = payload["HandlingAgent"]?.ToString() ?? string.Empty,
-            MaxAutomatedInvestigationAttempts = payload?["MaxAutomatedInvestigationAttempts"]?.GetValue<int>() ?? 3,
-            DeepInvestigationEnabled = payload?["DeepInvestigationEnabled"]?.GetValue<bool>() ?? false
+            Name = payload[nameof(IncidentFilterDocumentPayload.Name)]?.ToString() ?? string.Empty,
+            ImpactedService = payload[nameof(IncidentFilterDocumentPayload.ImpactedService)]?.ToString() ?? string.Empty,
+            Priorities = payload[nameof(IncidentFilterDocumentPayload.Priorities)]?.AsArray().Where(p => !string.IsNullOrWhiteSpace(p?.ToString())).Select(p => p!.ToString()).Distinct().ToList() ?? new List<string>(),
+            IncidentType = payload[nameof(IncidentFilterDocumentPayload.IncidentType)]?.ToString() ?? string.Empty,
+            AlertId = payload[nameof(IncidentFilterDocumentPayload.AlertId)]?.ToString() ?? string.Empty,
+            TitleContains = payload[nameof(IncidentFilterDocumentPayload.TitleContains)]?.ToString() ?? string.Empty,
+            AgentMode = payload[nameof(IncidentFilterDocumentPayload.AgentMode)]?.ToString() ?? string.Empty,
+            OwningTeamId = payload[nameof(IncidentFilterDocumentPayload.OwningTeamId)]?.ToString() ?? string.Empty,
+            HandlingAgent = payload[nameof(IncidentFilterDocumentPayload.HandlingAgent)]?.ToString() ?? string.Empty,
+            MaxAutomatedInvestigationAttempts = payload[nameof(IncidentFilterDocumentPayload.MaxAutomatedInvestigationAttempts)]?.GetValue<int>() ?? 3,
+            DeepInvestigationEnabled = payload[nameof(IncidentFilterDocumentPayload.DeepInvestigationEnabled)]?.GetValue<bool>() ?? false
         };
 
-        string agentMode = payload?["AgentMode"]?.ToString() ?? string.Empty;
+        string agentMode = payload[nameof(IncidentFilterDocumentPayload.AgentMode)]?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(agentMode))
         {
             bool isValid = AgentModes.IsModeValid(agentMode);
@@ -370,8 +369,7 @@ public class IncidentPlaygroundController : ControllerBase
         }
 
         var filterDocJNode = JsonSerializer.SerializeToNode(filterDoc, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        MergeJsonNode(payload, filterDocJNode, new List<string>() { "AgentMode" });
-
+        MergeJsonNode(payload, filterDocJNode, new List<string>() { nameof(IncidentFilterDocumentPayload.AgentMode) });
 
         _logger.LogInternalInformation("CreateIncidentFilter: Saving new filter for FilterId: {FilterId}", id);
         if (filterDocJNode is null)

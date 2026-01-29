@@ -34,6 +34,7 @@ using Agent.Runtime.Extensions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.Services.Adc;
 using Agent.Runtime.SubAgents;
 using Agent.Tests.Common.Mocks.FunctionCalling;
 using Microsoft.AspNetCore.Hosting;
@@ -525,6 +526,7 @@ public static class TestHelpers
         builder.Services.AddSingleton<IExtendedAgentRepository, InMemoryExtendedAgentRepository>();
 
         builder.Services.AddWorkspaceServices();
+        builder.Services.AddAdcServices(builder.Configuration);
 
         return builder;
     }

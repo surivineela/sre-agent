@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Logging;

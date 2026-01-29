@@ -4,7 +4,7 @@ description: Scan UX-related PRs for code review comments to improve agent instr
 argument-hint: Scan PRs for improvement opportunities (e.g., "Scan UX PRs from the last week")
 model: Claude Opus 4.5
 tools:
-  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'agent', 'github/get_commit', 'github/list_pull_requests', 'github/pull_request_read', 'github/search_pull_requests', 'todo']
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'github/get_commit', 'github/list_pull_requests', 'github/pull_request_read', 'github/search_pull_requests', 'todo']
 ---
 
 # UX Self-Improvement Agent

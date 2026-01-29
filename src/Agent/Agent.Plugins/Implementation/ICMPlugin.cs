@@ -1067,9 +1067,9 @@ Example structure:
         }
     }
 
-    public async Task<List<ICMIncident>> ListIncidents(uint limit, uint offset, DateTime? since, string? owningServiceId, string? owningTeamId, string? incidentType, string? severity)
+    public async Task<List<ICMIncident>> ListIncidents(uint limit, uint offset, DateTime? since, string? owningServiceId, string? owningTeamId, string? incidentType, IEnumerable<string>? severities)
     {
-        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ListIncidents)}][{DateTime.UtcNow}] Invoked with limit {limit}, offset {offset}, since {since}, owningServiceId {owningServiceId}, owningTeamId {owningTeamId}, incidentType {incidentType}, severity {severity}";
+        var logMessage = $"[{nameof(ICMPlugin)}_{nameof(ListIncidents)}][{DateTime.UtcNow}] Invoked with limit {limit}, offset {offset}, since {since}, owningServiceId {owningServiceId}, owningTeamId {owningTeamId}, incidentType {incidentType}, severities {string.Join(", ", severities ?? Enumerable.Empty<string>())}";
         _logger.LogInternalInformation(logMessage);
 
         try
@@ -1084,7 +1084,7 @@ Example structure:
                 incidentType,
                 createdBy: null,
                 monitorId: null,
-                severity,
+                severities: severities,
                 statuses: null);
 
             _logger.LogInternalInformation($"Successfully retrieved {incidents.Count} incidents");

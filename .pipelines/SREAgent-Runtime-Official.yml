@@ -21,10 +21,6 @@ parameters:
   displayName: 'Enable debug output'
   type: boolean
   default: false
-- name: 'publishPortalNuget'
-  displayName: 'Publish Agent.Portal NuGet package to Azure Artifacts'
-  type: boolean
-  default: false
 
 variables:
 - name: isReleaseBranch
@@ -46,4 +42,4 @@ extends:
   template: /.pipelines/templates/Shared.1ES.Build.yaml
   parameters:
     isOfficialBuild: true  # Force Official builds
-    isNugetPublish: ${{ parameters.publishPortalNuget }}  # Pass through the NuGet publish parameter
+    isNugetPublish: true  # Always publish NuGet package on every build

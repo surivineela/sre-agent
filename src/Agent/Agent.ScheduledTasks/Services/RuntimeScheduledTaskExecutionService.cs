@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -64,7 +65,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
             execution = execution with { ThreadId = thread.Id.ToString() };
 
             // Execute the agent with the scheduled prompt - React will handle formatting
-            var scheduledTaskMessage = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new
+            var scheduledTaskMessage = $"[SCHEDULED_TASK_EXECUTION]{JsonSerializer.Serialize(new
             {
                 taskId = task.Id,
                 taskName = task.Name,
@@ -149,7 +150,7 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
         _logger.LogInternalInformation("Creating new thread for scheduled task: {TaskId}", task.Id);
 
         var title = $"Scheduled Task: {task.Name}";
-        var message = $"[SCHEDULED_TASK_EXECUTION]{System.Text.Json.JsonSerializer.Serialize(new
+        var message = $"[SCHEDULED_TASK_EXECUTION]{JsonSerializer.Serialize(new
         {
             taskId = task.Id,
             taskName = task.Name,
@@ -165,7 +166,8 @@ public class RuntimeScheduledTaskExecutionService : ScheduledTaskExecutionServic
             title: title,
             message: message,
             agentTypeEnum: AgentTypeEnum.Meta,
-            source: ThreadSource.ScheduledTask
+            source: ThreadSource.ScheduledTask,
+            overrideAgentMode: task.AgentMode
         );
 
         return (thread, agentContext);

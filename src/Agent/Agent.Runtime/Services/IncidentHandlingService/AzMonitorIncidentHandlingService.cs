@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -635,6 +636,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             source: ThreadSource.Incident,
             incidentId: alertIdResource.Name, // Alert GUID (unique every time a new alert is fired)
             incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
+            overrideAgentMode: filterPayload?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             incidentDetails: new IncidentDetails(
                 title,
                 startDateTime,
@@ -792,7 +794,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             incidentId: alertIdResource.Name,
             incidentSource: new IncidentSource(Agent.Core.Models.Api.v1.IncidentType.AzMonitor, alertRule),
             AllowedTools: handlerDoc.Tools,
-            overrideAgentMode: filterPayload?.AgentMode ?? "",
+            overrideAgentMode: filterPayload?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             incidentDetails: new IncidentDetails(
                 title,
                 startDateTime,
@@ -1041,7 +1043,7 @@ public class AzMonitorIncidentHandlingService : IncidentHandlingServiceBase<AzMo
             AlertId = request?.IncidentFilter?.AlertId ?? filterId,
             AgentMode = request?.IncidentFilter?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant(),
             ImpactedService = request?.IncidentFilter?.ImpactedService ?? "",
-            Priority = request?.IncidentFilter?.Priority ?? "",
+            Priorities = request?.IncidentFilter?.Priorities ?? [],
             IncidentType = request?.IncidentFilter?.IncidentType ?? "",
             TitleContains = request?.IncidentFilter?.TitleContains ?? "",
             TargetResourceType = request?.IncidentFilter?.TargetResourceType ?? string.Empty,

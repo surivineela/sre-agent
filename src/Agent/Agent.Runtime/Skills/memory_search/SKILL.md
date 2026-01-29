@@ -140,7 +140,7 @@ For each document:
 1. Extract key insights addressing the user's question
 2. Reference specific resolution steps from past incidents
 3. Note pitfalls to avoid
-4. Include documentation links when provided
+4. **ALWAYS include documentation links when provided** - When you reference a TSG or document that has a Link URL, you MUST include that URL in your response. Format as a clickable markdown link: `[Document Title](URL)`. Never mention a document title as plain text without its link if one is available.
 
 ## Knowledge Sources
 
@@ -172,6 +172,7 @@ Note: Memory content may be newer than your training data. Prefer memory results
 - Lead with insights from memory findings
 - Reference past incident patterns directly
 - Preserve technical details from results
+- **Always include clickable links for TSG documents** - Format as `[Title](URL)`. Never output a TSG title as plain text; always make it a hyperlink.
 - DONT Mention search process or tools
 
 **Tool Selection:**

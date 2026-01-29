@@ -75,12 +75,56 @@ namespace Agent.Plugins.Kusto.Tools
 
         private async Task<string> ExecuteFunction(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters)
         {
+            // Build display options with auto-detected chart type from the query
+            var displayOptions = BuildDisplayOptions(ToolDefinition.Query);
+
             return await kustoPlugin.ExecuteLocalFunctionOnClusterAsync(
                 ToolDefinition.Function!,
                 connector.ClusterUrl,
                 ToolDefinition.Database,
                 parameters,
+                displayOptions: displayOptions,
                 toolDefinition: ToolDefinition);
+        }
+
+        /// <summary>
+        /// Builds display options, respecting any YAML-defined options first,
+        /// then auto-detecting chart type from the query if not already specified.
+        /// </summary>
+        private KustoDisplayOptions BuildDisplayOptions(string? query)
+        {
+            // Start with YAML-defined display options if present, otherwise use defaults (both false)
+            var yamlOptions = ToolDefinition.DisplayOptions;
+            var options = new KustoDisplayOptions
+            {
+                ShowTable = yamlOptions?.ShowTable ?? false,
+                ShowChart = yamlOptions?.ShowChart ?? false,
+                MaxTableRows = yamlOptions?.MaxTableRows ?? 50,
+                MaxChartPoints = yamlOptions?.MaxChartPoints ?? 200,
+                ChartTitle = yamlOptions?.ChartTitle,
+                XField = yamlOptions?.XField,
+                SeriesFields = yamlOptions?.SeriesFields
+            };
+
+            var detectedChartType = !string.IsNullOrEmpty(query) ? KustoDisplayFormatter.GetChartType(query) : null;
+
+            // Only auto-enable ShowChart if YAML didn't explicitly configure it
+            // If yamlOptions is null or ShowChart wasn't explicitly set, we can auto-detect
+            var yamlExplicitlyConfiguredShowChart = yamlOptions != null;
+
+            if (!yamlExplicitlyConfiguredShowChart && !string.IsNullOrEmpty(detectedChartType))
+            {
+                // YAML didn't configure display options at all, auto-detect from query
+                options.ShowChart = true;
+                options.ChartType = detectedChartType;
+            }
+            else if (options.ShowChart && string.IsNullOrEmpty(options.ChartType))
+            {
+                // YAML enabled ShowChart but didn't specify type, auto-detect
+                options.ChartType = detectedChartType;
+            }
+
+            return options;
         }
 
         private async Task<string> ExecuteQuery(IKustoPlugin kustoPlugin, KustoConnector connector, Dictionary<string, string> parameters, bool printQuery)

@@ -59,6 +59,7 @@ public class AppGroupResourceInfo
 {
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    public string? LinuxFxVersion { get; set; } = null;
     public AppHealthInfo? AppHealthInfo { get; set; } = null;
 }
 

@@ -74,7 +74,7 @@ export const usePreviewIncidents = () => {
                     ? getNumberOfincidentsToOverflowincidentsListDiv(incidentsListDivRef.current?.clientHeight, incidents?.length || 0)
                     : defaultNumberOfIncidentsToLoad;
 
-                const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
+                const filterValues = getFilterValues(values, incidentPlatformType, true, undefined, undefined);
                 const oldIncidentsResponse = await incidentHandlerClient.queryIncidents({
                     filter: filterValues,
                     durationInDays: selectedTimespan,
@@ -118,7 +118,7 @@ export const usePreviewIncidents = () => {
             selectedTimespan,
             incidentPlatformType,
             values.impactedService,
-            values.priority,
+            values.priorities,
             values.incidentType,
             values.titleContains,
             values.owningTeamId,
@@ -137,7 +137,7 @@ export const usePreviewIncidents = () => {
         setLoadingIncidents(true);
         incidentsPageNumber.current = 0;
 
-        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined);
+        const filterValues = getFilterValues(values, incidentPlatformType, true, undefined, undefined);
         const queryPayload: IncidentQueryRequest = {
             filter: filterValues,
             durationInDays: selectedTimespan,
@@ -171,7 +171,7 @@ export const usePreviewIncidents = () => {
         selectedTimespan,
         incidentPlatformType,
         values.impactedService,
-        values.priority,
+        values.priorities,
         values.incidentType,
         values.titleContains,
         values.owningTeamId,

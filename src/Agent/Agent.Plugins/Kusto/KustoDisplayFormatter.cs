@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins.Kusto;
@@ -13,6 +14,60 @@ namespace Agent.Plugins.Kusto;
 /// </summary>
 internal static class KustoDisplayFormatter
 {
+    /// <summary>
+    /// Extracts the chart type from a KQL query's render operator.
+    /// Maps Kusto render types to frontend chart types.
+    /// </summary>
+    /// <param name="query">The KQL query to analyze.</param>
+    /// <returns>The chart type (line, bar, pie, area, table) or null if no render operator or unsupported type.</returns>
+    /// <remarks>
+    /// KQL Render Types Mapping:
+    /// - timechart, linechart → line (time series line chart)
+    /// - areachart, stackedareachart → area (rendered as line chart with fill, falls back to line)
+    /// - barchart, columnchart → bar (categorical bar chart)
+    /// - piechart → pie (pie/donut chart)
+    /// - table → table (tabular display)
+    /// - anomalychart → line (anomaly bands not supported, renders as line)
+    /// - ladderchart → bar (state transitions rendered as bar)
+    /// - scatterchart → null (scatter requires X/Y coordinates, not supported)
+    /// - pivotchart → null (interactive pivot not supported)
+    /// - card → null (single value display not supported as chart)
+    /// </remarks>
+    public static string? GetChartType(string query)
+    {
+        // Match "| render <type>" pattern
+        var renderMatch = string.IsNullOrWhiteSpace(query) ? null : Regex.Match(query, @"\|\s*render\s+(\w+)", RegexOptions.IgnoreCase);
+        if (renderMatch?.Success == true)
+        {
+            return renderMatch.Groups[1].Value.ToLowerInvariant() switch
+            {
+                // Time series charts
+                "timechart" => "line",
+                "linechart" => "line",
+                "areachart" => "area",
+                "stackedareachart" => "area",
+                "anomalychart" => "line",  // Anomaly bands not supported, render as line
+
+                // Categorical charts
+                "barchart" => "bar",
+                "columnchart" => "bar",
+                "ladderchart" => "bar",    // State transitions rendered as bar
+
+                // Other chart types
+                "piechart" => "pie",
+                "table" => "table",
+
+                // Unsupported - return null, will show table instead
+                "scatterchart" => null,    // Scatter requires X/Y coordinates, not supported
+                "pivotchart" => null,      // Interactive pivot not supported
+                "card" => null,            // Single value display not a chart
+                _ => null
+            };
+        }
+
+        return null;
+    }
+
     public static ChatMessage BuildDisplayMessage(ChatMessage baseMessage, string tsv, KustoDisplayOptions options)
     {
         if ((!options.ShowTable && !options.ShowChart) || string.IsNullOrEmpty(tsv))
@@ -141,6 +196,33 @@ internal static class KustoDisplayFormatter
 
         // Build a normalized data array
         var hIndex = headers.Select((h, idx) => (h, idx)).ToDictionary(t => t.h, t => t.idx, StringComparer.OrdinalIgnoreCase);
+
+        // Determine chart type from options (default to "line")
+        var chartType = !string.IsNullOrEmpty(options?.ChartType) ? options.ChartType : "line";
+
+        // For pie charts, use "label" and "value" structure
+        if (chartType == "pie" && series.Count > 0)
+        {
+            var pieData = rows.Select(r => new
+            {
+                label = GetCellByHeader(r, hIndex, xField),
+                value = TryParseDouble(GetCellByHeader(r, hIndex, series[0]), out var d) ? d : 0
+            }).ToList();
+
+            var piePayload = new
+            {
+                type = "pie",
+                title = options?.ChartTitle ?? "Kusto Result",
+                data = pieData
+            };
+
+            return System.Text.Json.JsonSerializer.Serialize(piePayload, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = false
+            });
+        }
+
+        // For line/bar/area charts, use "name" and series structure
         var dataObjects = new List<Dictionary<string, object?>>();
         foreach (var r in rows)
         {
@@ -156,7 +238,7 @@ internal static class KustoDisplayFormatter
 
         var payload = new
         {
-            type = "line",
+            type = chartType,
             title = options?.ChartTitle ?? "Kusto Result",
             data = dataObjects,
             xAxisLabel = xField,

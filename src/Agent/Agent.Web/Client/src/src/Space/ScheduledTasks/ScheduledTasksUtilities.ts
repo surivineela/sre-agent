@@ -1,4 +1,5 @@
 import { IntlShape } from 'react-intl';
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
 import { ScheduledTasksResources } from '../../Strings/SREAgentResources';
 import { ScheduledTaskStatus } from '../Contracts/ScheduledTasks';
 import { normalizeCronExpression } from '../Graph/ExtendedAgentCreationDialog/utils/schedule';
@@ -45,6 +46,7 @@ export interface ScheduledTaskFormProps {
     repeatUntil?: Date | null;
     groupMessages: GroupMessageKey;
     runLimit?: string;
+    agentMode: AgentMode;
 }
 
 export const getFilterKeyFromScheduledTaskStatus = (status: ScheduledTaskStatus) => {

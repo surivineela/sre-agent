@@ -200,6 +200,7 @@ Otherwise, there may be required settings which are not auto-populated by the pr
         sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Timer);
 
         sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.AgentMemory);
+        sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Adc);
     }
 
     private static void ConvertSettingsForTeamsBot(this IServiceCollection sc, IConfiguration configuration)

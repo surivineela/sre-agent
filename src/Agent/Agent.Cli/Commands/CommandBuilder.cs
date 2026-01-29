@@ -45,6 +45,7 @@ public static partial class CommandBuilder
             ThreadCommand.Build(),
             chatCommand,
             ProfileCommand.Build(),
+            RepoCommand.Build(),
             SkillCommand.Build(),
             IncidentHandlerCommand.Build(),
             ScheduledTaskCommand.Build(),

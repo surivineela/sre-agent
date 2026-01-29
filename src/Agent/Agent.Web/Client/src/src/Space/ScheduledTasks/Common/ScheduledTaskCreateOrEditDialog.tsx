@@ -80,7 +80,7 @@ export const ScheduledTaskCreateOrEditDialog: FC<ScheduledTaskCreateOrEditDialog
                 {({ submitForm, dirty, isValid }) => {
                     return (
                         <DialogSurface
-                            style={{ minWidth: 'fit-content' }}
+                            style={{ minWidth: 'fit-content', maxHeight: '90vh', overflowY: 'auto' }}
                             aria-labelledby="task-dialog-title"
                             aria-describedby="task-dialog-content"
                         >

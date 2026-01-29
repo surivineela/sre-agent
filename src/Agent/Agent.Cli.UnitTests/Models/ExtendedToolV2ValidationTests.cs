@@ -645,117 +645,7 @@ public class ExtendedToolV2ValidationTests
         Assert.Empty(errors);
     }
 
-    [Theory]
-    [InlineData("invalidMapTo")]
-    [InlineData("params")]
-    [InlineData("input")]
-    public void Validate_WithInvalidParameterMapTo_ShouldReturnError(string mapTo)
-    {
-        // Arrange
-        var tool = new ExtendedToolV2
-        {
-            Metadata = new ResourceMetadataModel { Name = "test-tool" },
-            Spec = new KustoToolSpecV2
-            {
-                Type = "KustoTool",
-                Description = "Test Kusto tool",
-                Connector = "test-connector",
-                Database = "TestDB",
-                Query = "TestQuery | take 10",
-                Parameters = new List<ToolParameterV2>
-                {
-                    new ToolParameterV2
-                    {
-                        Name = "testParam",
-                        Type = "string",
-                        Description = "Test parameter",
-                        MapTo = mapTo
-                    }
-                }
-            }
-        };
 
-        // Act
-        var errors = tool.Validate();
-
-        // Assert
-        Assert.NotEmpty(errors);
-        Assert.Contains(errors, e => e.Contains($"Parameter 'testParam' has invalid mapTo '{mapTo}'"));
-    }
-
-    [Theory]
-    [InlineData("args")]
-    [InlineData("context")]
-    [InlineData("body")]
-    public void Validate_WithValidParameterMapTo_ShouldPass(string mapTo)
-    {
-        // Arrange
-        var tool = new ExtendedToolV2
-        {
-            Metadata = new ResourceMetadataModel { Name = "test-tool" },
-            Spec = new KustoToolSpecV2
-            {
-                Type = "KustoTool",
-                Description = "Test Kusto tool",
-                Connector = "test-connector",
-                Database = "TestDB",
-                Query = "TestQuery | take 10",
-                Parameters = new List<ToolParameterV2>
-                {
-                    new ToolParameterV2
-                    {
-                        Name = "testParam",
-                        Type = "string",
-                        Description = "Test parameter",
-                        MapTo = mapTo
-                    }
-                }
-            }
-        };
-
-        // Act
-        var errors = tool.Validate();
-
-        // Assert
-        Assert.Empty(errors);
-    }
-
-    [Theory]
-    [InlineData("ARGS")]
-    [InlineData("Context")]
-    [InlineData("BODY")]
-    public void Validate_WithParameterMapTo_CaseInsensitive_ShouldPass(string mapTo)
-    {
-        // Arrange
-        var tool = new ExtendedToolV2
-        {
-            Metadata = new ResourceMetadataModel { Name = "test-tool" },
-            Spec = new KustoToolSpecV2
-            {
-                Type = "KustoTool",
-                Description = "Test Kusto tool",
-                Connector = "test-connector",
-                Database = "TestDB",
-                Query = "TestQuery | take 10",
-                Parameters = new List<ToolParameterV2>
-                {
-                    new ToolParameterV2
-                    {
-                        Name = "testParam",
-                        Type = "string",
-                        Description = "Test parameter",
-                        MapTo = mapTo
-                    }
-                }
-            }
-        };
-
-        // Act
-        var errors = tool.Validate();
-
-        // Assert
-        Assert.Empty(errors);
-    }
 
     [Fact]
     public void Validate_WithMultipleParameters_ShouldValidateAll()
@@ -828,8 +718,7 @@ public class ExtendedToolV2ValidationTests
                     {
                         Name = "param3",
                         Type = "string",
-                        Description = "",
-                        MapTo = "invalid"
+                        Description = ""
                     }
                 }
             }
@@ -843,7 +732,6 @@ public class ExtendedToolV2ValidationTests
         Assert.Contains(errors, e => e.Contains("Parameter must have a 'name'"));
         Assert.Contains(errors, e => e.Contains("Parameter 'param2' has invalid type"));
         Assert.Contains(errors, e => e.Contains("Parameter 'param3' must have a 'description'"));
-        Assert.Contains(errors, e => e.Contains("Parameter 'param3' has invalid mapTo"));
     }
 
     #endregion
@@ -879,16 +767,14 @@ ServiceMetrics
                         Name = "serviceName",
                         Type = "string",
                         Required = true,
-                        Description = "Name of the service to query",
-                        MapTo = "args"
+                        Description = "Name of the service to query"
                     },
                     new ToolParameterV2
                     {
                         Name = "timeRange",
                         Type = "string",
                         Required = false,
-                        Description = "Time range for the query",
-                        MapTo = "args"
+                        Description = "Time range for the query"
                     }
                 }
             }

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Web.ApiResources;
 using Agent.Web.Json;
@@ -34,6 +35,8 @@ public class ScheduledTaskView
 
     public Settable<string> NotificationChannel { get; set; }
 
+    public Settable<string> AgentMode { get; set; }
+
     public static ApiResponseEnvelope<ScheduledTaskView> CreateApiResponseEnvelope(ScheduledTaskDocument scheduledTaskDoc)
     {
         var scheduledTaskView = new ScheduledTaskView
@@ -49,7 +52,8 @@ public class ScheduledTaskView
             Status = scheduledTaskDoc.Status,
             ExecutionContext = scheduledTaskDoc.ExecutionContext,
             MaxExecutions = scheduledTaskDoc.MaxExecutions,
-            NotificationChannel = scheduledTaskDoc.NotificationChannel
+            NotificationChannel = scheduledTaskDoc.NotificationChannel,
+            AgentMode = scheduledTaskDoc.AgentMode
         };
 
         ApiResponseEnvelope<ScheduledTaskView> apiResponse = new()
@@ -86,6 +90,7 @@ public class ScheduledTaskView
         int? maxExecutions = baseModel?.MaxExecutions;
         int executionCount = baseModel?.ExecutionCount ?? 0;
         string? notificationChannel = baseModel?.NotificationChannel;
+        string agentMode = baseModel?.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant();
 
         // Apply updates from envelope
         envelope.Name.ApplyTo(value =>
@@ -113,6 +118,7 @@ public class ScheduledTaskView
             properties.ExecutionContext.ApplyTo(value => executionContext = value);
             properties.MaxExecutions.ApplyTo(value => maxExecutions = value);
             properties.NotificationChannel.ApplyTo(value => notificationChannel = value);
+            properties.AgentMode.ApplyTo(value => agentMode = value ?? AgentModes.Autonomous.ToLowerInvariant());
         });
 
         return new ScheduledTaskDocument(
@@ -133,7 +139,8 @@ public class ScheduledTaskView
             ExecutionHistory: executionHistory,
             MaxExecutions: maxExecutions,
             ExecutionCount: executionCount,
-            NotificationChannel: notificationChannel
+            NotificationChannel: notificationChannel,
+            AgentMode: agentMode
         );
     }
 }

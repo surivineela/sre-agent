@@ -81,9 +81,11 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
 
         result.Add(new IncidentFilterFieldOption
         {
-            FieldName = nameof(ServiceNowIncidentFilterDocumentPayload.Priority),
+            FieldName = "Priority",
             DisplayName = "Priority",
-            Options = priorityOptions
+            Options = priorityOptions,
+            FieldInputType = IncidentFilterInputType.MultiSelectDropdown,
+            IsRequired = true
         });
 
         // In a real implementation, you would fetch service list from ServiceNow

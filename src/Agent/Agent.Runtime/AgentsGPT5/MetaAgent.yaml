@@ -378,6 +378,9 @@ tools:
   - GetResourceCount
   - GetKnowledgeGraphResourceUsageDashboard
   - GetResourceDetailedProperties
+  - microsoft-learn-mcp_microsoft_docs_search
+  - microsoft-learn-mcp_microsoft_docs_fetch
+  - microsoft-learn-mcp_microsoft_code_sample_search
 
 handoffs: []
 

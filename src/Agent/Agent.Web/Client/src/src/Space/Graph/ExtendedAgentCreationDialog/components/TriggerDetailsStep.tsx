@@ -350,9 +350,9 @@ export const TriggerDetailsStep: FC<TriggerDetailsStepProps> = ({
             {incidentPriorities.map(priorityOption => (
                 <Badge
                     key={priorityOption.key}
-                    appearance={trigger.incidentPriority === priorityOption.key ? 'filled' : 'outline'}
+                    appearance={trigger.incidentPriorities?.includes(priorityOption.key) ? 'filled' : 'outline'}
                     color={getBadgeColorForPriority(priorityOption.key, incidentPlatformType)}
-                    onClick={() => updateFromUser({ incidentPriority: priorityOption.key })}
+                    onClick={() => updateFromUser({ incidentPriorities: [priorityOption.key] })}
                     style={{ cursor: 'pointer' }}
                 >
                     {intl.formatMessage(priorityOption.intlString)}

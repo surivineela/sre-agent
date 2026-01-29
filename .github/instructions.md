@@ -1,7 +1,7 @@
 # SRECTL - SRE Agent CLI Instructions
 
 This file contains comprehensive documentation for all SRECTL commands and their usage.
-Generated on: 2025-12-03 07:26:39 UTC
+Generated on: 2026-01-28 22:06:00 UTC
 
 ## Table of Contents
 
@@ -38,81 +38,82 @@ $ srectl --help
 
 Description:
   SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response
-  
-  Incident Handler Commands: create, map-agent, list (run 'srectl incidenthandler --help' for details)
 
 Usage:
-  srectl [command] [options]
+  srectl <command> [options]
+  srectl <subgroup> <command> [options]
 
 Options:
-  -?, -h, --help  Show help and usage information
+  -h, /h, -?, /?  Show help and usage information
   --version       Show version information
   --debug         Enable debug logging
   --quiet         Minimize output
 
+Subgroups:
+  agent              Agent commands for managing SRE automation agents
+  tool               Tool commands for managing SRE automation tools
+  common-prompt      Common prompt commands for managing shared prompts
+  extension          Extension commands for generating deployment files and configurations
+  mcp                Model Context Protocol server for building SRE agents
+  doc                Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use
+  incident-filter    Incident filter commands for managing incident routing rules
+  thread             Thread management commands
+  profile            Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)
+  repo               Manage Azure DevOps repository connectors for TSG documents
+  skill              Skill management commands. Apply and manage custom skills for agents to use, or convert an existing agent into a skill.
+  incidenthandler    Manage incident handlers and filters
+  scheduledtask      Manage scheduled tasks for automated agent operations
+
 Commands:
-  welcome          Show welcome screen and getting started guide
-  help <topic>     Interactive help system with examples and troubleshooting
-  status           Show workspace status and health check
-  interactive      Start interactive guided mode for step-by-step assistance
-  version          Show version information and build details
-  init             Initialize SREAgent CLI configuration and workspace
-  
-                   Examples:
-                     # Initialize with local development server
-                     srectl init --resource-url https://localhost:7023
-  
-                     # Initialize with remote server
-                     srectl init --resource-url https://my-sreagent-dev.1abcdef.eastus2.azuresre.ai
-  
-                     # Initialize with production environment
-                     srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai
-  sync             Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
-  list             List various resources from the remote server
-  
-                   Examples:
-                     # List all agents on the server
-                     srectl list agents
-  
-                     # List all tools on the server
-                     srectl list tools
-  
-                     # List extended tools (user-added)
-                     srectl list extended-tools
-  
-                     # List data connectors
-                     srectl list data-connectors
-  apply-yaml       Apply any YAML configuration file to the server
-  
-                   Examples:
-                     # Apply an agent YAML file
-                     srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
-  
-                     # Apply a tool YAML file
-                     srectl apply-yaml --file tools/CustomTool/CustomTool.yaml
-  
-                     # Apply any configuration file
-                     srectl apply-yaml --file configs/my-config.yaml
-  thread           Thread management commands
-  chat             Start an interactive chat session with the SRE Agent
-  
-                   Examples:
-                     # Start interactive chat
-                     srectl chat
-  
-                     # Start chat with debug logging
-                     srectl chat --debug
-  
-                     # Start chat with minimal output
-                     srectl chat --quiet
-  agent            Agent commands for managing SRE automation agents
-  tool             Tool commands for managing SRE automation tools
-  doc              Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use
-  profile          Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)
-  skill            Skill management commands. Upload and manage custom skills for agents to use, or convert an existing agent into a skill.
-  incidenthandler  Manage incident handlers and filters
-  scheduledtask    Manage scheduled tasks for automated agent operations
-  extension        Extension commands for generating deployment files and configurations
+  welcome            Show welcome screen and getting started guide
+  version            Show version information and build details
+  init               Initialize SREAgent CLI configuration and workspace
+                     
+                     Examples:
+                       # Initialize with local development server
+                       srectl init --resource-url https://localhost:7023
+                     
+                       # Initialize with remote server
+                       srectl init --resource-url https://my-sreagent-dev.1abcdef.eastus2.azuresre.ai
+                     
+                       # Initialize with production environment
+                       srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai
+  status             Show workspace status and health check
+  apply-yaml, apply  Apply YAML configuration files to the server
+                     Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+                     Automatically detects and applies tools, agents, and common prompts.
+                     
+                     Examples:
+                       # Apply a single resource YAML file
+                       srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
+                     
+                       # Apply a multi-document YAML file
+                       srectl apply-yaml --file manifests/all-resources.yaml
+                     
+                       # Apply a tool YAML file
+                       srectl apply-yaml --file tools/KustoTool.yaml
+                     
+                       # Apply a common prompt YAML file
+                       srectl apply-yaml --file CommonPrompts/prompt.yaml
+  interactive        Start interactive guided mode for step-by-step assistance
+  sync               Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+                     
+                     Examples:
+                       # Sync all remote configurations
+                       srectl sync
+                     
+                     Note: Requires prior 'srectl init --resource-url <url>'
+  chat               Start an interactive chat session with the SRE Agent
+                     
+                     Examples:
+                       # Start interactive chat
+                       srectl chat
+                     
+                       # Start chat with debug logging
+                       srectl chat --debug
+                     
+                       # Start chat with minimal output
+                       srectl chat --quiet
 ```
 
 ## General Commands
@@ -139,10 +140,10 @@ Usage:
   srectl init [options]
 
 Options:
-  --resource-url (REQUIRED)  Base URL of the SRE Agent server
-  --debug                    Enable debug logging
-  --quiet                    Minimize output
-  -?, -h, --help             Show help and usage information
+  --resource-url <resource-url> (REQUIRED)  Base URL of the SRE Agent server
+  -?, -h, --help                            Show help and usage information
+  --debug                                   Enable debug logging
+  --quiet                                   Minimize output
 ```
 
 ### list Command {#list-command}
@@ -151,34 +152,83 @@ Options:
 $ srectl list --help
 
 Description:
-  List various resources from the remote server
-  
-  Examples:
-    # List all agents on the server
-    srectl list agents
-  
-    # List all tools on the server
-    srectl list tools
-  
-    # List extended tools (user-added)
-    srectl list extended-tools
-  
-    # List data connectors
-    srectl list data-connectors
+  SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response
 
 Usage:
-  srectl list [command] [options]
+  srectl <command> [options]
+  srectl <subgroup> <command> [options]
 
 Options:
+  -h, /h, -?, /?  Show help and usage information
+  --version       Show version information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
+
+Subgroups:
+  agent              Agent commands for managing SRE automation agents
+  tool               Tool commands for managing SRE automation tools
+  common-prompt      Common prompt commands for managing shared prompts
+  extension          Extension commands for generating deployment files and configurations
+  mcp                Model Context Protocol server for building SRE agents
+  doc                Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use
+  incident-filter    Incident filter commands for managing incident routing rules
+  thread             Thread management commands
+  profile            Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)
+  repo               Manage Azure DevOps repository connectors for TSG documents
+  skill              Skill management commands. Apply and manage custom skills for agents to use, or convert an existing agent into a skill.
+  incidenthandler    Manage incident handlers and filters
+  scheduledtask      Manage scheduled tasks for automated agent operations
 
 Commands:
-  agents            List remote extended agents from the server
-  extended-tools    List all extended tools added to the server through apply command
-  data-connectors   List all data connectors configured on the server
-  incidenthandlers  List all incident handlers from the remote server
+  welcome            Show welcome screen and getting started guide
+  version            Show version information and build details
+  init               Initialize SREAgent CLI configuration and workspace
+                     
+                     Examples:
+                       # Initialize with local development server
+                       srectl init --resource-url https://localhost:7023
+                     
+                       # Initialize with remote server
+                       srectl init --resource-url https://my-sreagent-dev.1abcdef.eastus2.azuresre.ai
+                     
+                       # Initialize with production environment
+                       srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai
+  status             Show workspace status and health check
+  apply-yaml, apply  Apply YAML configuration files to the server
+                     Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+                     Automatically detects and applies tools, agents, and common prompts.
+                     
+                     Examples:
+                       # Apply a single resource YAML file
+                       srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
+                     
+                       # Apply a multi-document YAML file
+                       srectl apply-yaml --file manifests/all-resources.yaml
+                     
+                       # Apply a tool YAML file
+                       srectl apply-yaml --file tools/KustoTool.yaml
+                     
+                       # Apply a common prompt YAML file
+                       srectl apply-yaml --file CommonPrompts/prompt.yaml
+  interactive        Start interactive guided mode for step-by-step assistance
+  sync               Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+                     
+                     Examples:
+                       # Sync all remote configurations
+                       srectl sync
+                     
+                     Note: Requires prior 'srectl init --resource-url <url>'
+  chat               Start an interactive chat session with the SRE Agent
+                     
+                     Examples:
+                       # Start interactive chat
+                       srectl chat
+                     
+                       # Start chat with debug logging
+                       srectl chat --debug
+                     
+                       # Start chat with minimal output
+                       srectl chat --quiet
 ```
 
 ### list agents Command {#list-agents-command}
@@ -187,17 +237,83 @@ Commands:
 $ srectl list agents --help
 
 Description:
-  List remote extended agents from the server
+  SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response
 
 Usage:
-  srectl list agents [options]
+  srectl <command> [options]
+  srectl <subgroup> <command> [options]
 
 Options:
-  --debug         Enable verbose debug logging for network calls and operations
-  --all
+  -h, /h, -?, /?  Show help and usage information
+  --version       Show version information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
+
+Subgroups:
+  agent              Agent commands for managing SRE automation agents
+  tool               Tool commands for managing SRE automation tools
+  common-prompt      Common prompt commands for managing shared prompts
+  extension          Extension commands for generating deployment files and configurations
+  mcp                Model Context Protocol server for building SRE agents
+  doc                Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use
+  incident-filter    Incident filter commands for managing incident routing rules
+  thread             Thread management commands
+  profile            Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)
+  repo               Manage Azure DevOps repository connectors for TSG documents
+  skill              Skill management commands. Apply and manage custom skills for agents to use, or convert an existing agent into a skill.
+  incidenthandler    Manage incident handlers and filters
+  scheduledtask      Manage scheduled tasks for automated agent operations
+
+Commands:
+  welcome            Show welcome screen and getting started guide
+  version            Show version information and build details
+  init               Initialize SREAgent CLI configuration and workspace
+                     
+                     Examples:
+                       # Initialize with local development server
+                       srectl init --resource-url https://localhost:7023
+                     
+                       # Initialize with remote server
+                       srectl init --resource-url https://my-sreagent-dev.1abcdef.eastus2.azuresre.ai
+                     
+                       # Initialize with production environment
+                       srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai
+  status             Show workspace status and health check
+  apply-yaml, apply  Apply YAML configuration files to the server
+                     Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+                     Automatically detects and applies tools, agents, and common prompts.
+                     
+                     Examples:
+                       # Apply a single resource YAML file
+                       srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
+                     
+                       # Apply a multi-document YAML file
+                       srectl apply-yaml --file manifests/all-resources.yaml
+                     
+                       # Apply a tool YAML file
+                       srectl apply-yaml --file tools/KustoTool.yaml
+                     
+                       # Apply a common prompt YAML file
+                       srectl apply-yaml --file CommonPrompts/prompt.yaml
+  interactive        Start interactive guided mode for step-by-step assistance
+  sync               Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+                     
+                     Examples:
+                       # Sync all remote configurations
+                       srectl sync
+                     
+                     Note: Requires prior 'srectl init --resource-url <url>'
+  chat               Start an interactive chat session with the SRE Agent
+                     
+                     Examples:
+                       # Start interactive chat
+                       srectl chat
+                     
+                       # Start chat with debug logging
+                       srectl chat --debug
+                     
+                       # Start chat with minimal output
+                       srectl chat --quiet
 ```
 
 ### list tools Command {#list-tools-command}
@@ -205,32 +321,84 @@ Options:
 ```
 $ srectl list tools --help
 
+Description:
+  SRE Agent CLI - Your intelligent assistant for managing SRE agents and automating incident response
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ ✻ SRE Agent CLI (srectl)                                                     │
-│                                                                              │
-│   Your intelligent assistant for Incident Diagnosis and automation           │
-│                                                                              │
-│   cwd: Q:\Git\sreagent-runtime                                               │
-└──────────────────────────────────────────────────────────────────────────────┘
+Usage:
+  srectl <command> [options]
+  srectl <subgroup> <command> [options]
 
-✗ Unrecognized command or argument: 'tools'
+Options:
+  -h, /h, -?, /?  Show help and usage information
+  --version       Show version information
+  --debug         Enable debug logging
+  --quiet         Minimize output
 
-  • Did you mean: srectl tool … ?
+Subgroups:
+  agent              Agent commands for managing SRE automation agents
+  tool               Tool commands for managing SRE automation tools
+  common-prompt      Common prompt commands for managing shared prompts
+  extension          Extension commands for generating deployment files and configurations
+  mcp                Model Context Protocol server for building SRE agents
+  doc                Document management commands. Upload and manage documents like TSGs, architecture docs, runbooks, and other reference materials for agents to use
+  incident-filter    Incident filter commands for managing incident routing rules
+  thread             Thread management commands
+  profile            Profile management commands. Profiles store connection settings for different SRE Agent instances (local or remote)
+  repo               Manage Azure DevOps repository connectors for TSG documents
+  skill              Skill management commands. Apply and manage custom skills for agents to use, or convert an existing agent into a skill.
+  incidenthandler    Manage incident handlers and filters
+  scheduledtask      Manage scheduled tasks for automated agent operations
 
-Valid subcommands for 'list'
-────────────────────────────
-srectl list agents          : List remote extended agents from the server
-srectl list extended-tools  : List all extended tools added to the server through apply command
-srectl list data-connectors : List all data connectors configured on the server
-srectl list incidenthandlers: List all incident handlers from the remote server
-
-Options
-───────
-----debug                   : Enable debug logging
-----quiet                   : Minimize output
-
-  • Use 'srectl list --help' for details
+Commands:
+  welcome            Show welcome screen and getting started guide
+  version            Show version information and build details
+  init               Initialize SREAgent CLI configuration and workspace
+                     
+                     Examples:
+                       # Initialize with local development server
+                       srectl init --resource-url https://localhost:7023
+                     
+                       # Initialize with remote server
+                       srectl init --resource-url https://my-sreagent-dev.1abcdef.eastus2.azuresre.ai
+                     
+                       # Initialize with production environment
+                       srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai
+  status             Show workspace status and health check
+  apply-yaml, apply  Apply YAML configuration files to the server
+                     Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+                     Automatically detects and applies tools, agents, and common prompts.
+                     
+                     Examples:
+                       # Apply a single resource YAML file
+                       srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
+                     
+                       # Apply a multi-document YAML file
+                       srectl apply-yaml --file manifests/all-resources.yaml
+                     
+                       # Apply a tool YAML file
+                       srectl apply-yaml --file tools/KustoTool.yaml
+                     
+                       # Apply a common prompt YAML file
+                       srectl apply-yaml --file CommonPrompts/prompt.yaml
+  interactive        Start interactive guided mode for step-by-step assistance
+  sync               Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+                     
+                     Examples:
+                       # Sync all remote configurations
+                       srectl sync
+                     
+                     Note: Requires prior 'srectl init --resource-url <url>'
+  chat               Start an interactive chat session with the SRE Agent
+                     
+                     Examples:
+                       # Start interactive chat
+                       srectl chat
+                     
+                       # Start chat with debug logging
+                       srectl chat --debug
+                     
+                       # Start chat with minimal output
+                       srectl chat --quiet
 ```
 
 ### apply-yaml Command {#apply-yaml-command}
@@ -239,26 +407,31 @@ Options
 $ srectl apply-yaml --help
 
 Description:
-  Apply any YAML configuration file to the server
+  Apply YAML configuration files to the server
+  Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
+  Automatically detects and applies tools, agents, and common prompts.
   
   Examples:
-    # Apply an agent YAML file
+    # Apply a single resource YAML file
     srectl apply-yaml --file agents/MyAgent/MyAgent.yaml
   
-    # Apply a tool YAML file
-    srectl apply-yaml --file tools/CustomTool/CustomTool.yaml
+    # Apply a multi-document YAML file
+    srectl apply-yaml --file manifests/all-resources.yaml
   
-    # Apply any configuration file
-    srectl apply-yaml --file configs/my-config.yaml
+    # Apply a tool YAML file
+    srectl apply-yaml --file tools/KustoTool.yaml
+  
+    # Apply a common prompt YAML file
+    srectl apply-yaml --file CommonPrompts/prompt.yaml
 
 Usage:
   srectl apply-yaml [options]
 
 Options:
-  --file          Path to the YAML file to apply
-  --debug         Enable debug logging
-  --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
+  -f, --file <file> (REQUIRED)  Path to the YAML file to apply
+  -?, -h, --help                Show help and usage information
+  --debug                       Enable debug logging
+  --quiet                       Minimize output
 ```
 
 ## Agent Commands
@@ -275,9 +448,9 @@ Usage:
   srectl agent [command] [options]
 
 Options:
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 
 Commands:
   create    Create a new agent YAML configuration file
@@ -335,17 +508,20 @@ Commands:
   
               # Delete with debug logging
               srectl agent delete --name TestAgent --debug
-  test      Test an agent with a specific message
+  test      Test an agent with a specific message (starts interactive session)
   
             Examples:
-              # Test an agent with a simple message
+              # Test an agent interactively
               srectl agent test --name DevOpsAgent --message "Check pod status in namespace production"
   
-              # Test without waiting for response
+              # Send test message without waiting for response
               srectl agent test --name KustoAgent --message "Query memory usage" --no-wait
   
-              # Test with custom user details
-              srectl agent test --name MyAgent --message "Help me" --user-id john.doe --display-name "John Doe"
+              # Start interactive session with specific agent
+              srectl agent test --name MyAgent --message "Help me debug this issue"
+  
+            Note: This command is equivalent to 'srectl thread new --agent <name> --message <message>'
+                  and will start an interactive chat session unless --no-wait is specified.
   diff      Compare local and remote agent configurations
   
             Examples:
@@ -358,7 +534,33 @@ Commands:
               # Show inline diff
               srectl agent diff --name MyAgent --raw
   migrate   Migrate V1 agent format to V2
+  
+            Examples:
+              # Migrate a specific agent
+              srectl agent migrate --name MyAgent
+  
+              # Migrate all agents
+              srectl agent migrate --all
+  
+              # Preview migration changes (dry run)
+              srectl agent migrate --all --dry-run
+  
+              # Migrate specific agent with dry run
+              srectl agent migrate --name MyAgent --dry-run
   list      List remote extended agents from the server
+  
+            Examples:
+              # List all agents
+              srectl agent list
+  
+              # List all agents with full YAML details
+              srectl agent list --detail
+  
+              # Get a specific agent by name (full YAML output)
+              srectl agent list --name MyAgent
+  
+              # Search for specific agents
+              srectl agent list --search devops
 ```
 
 ### agent create Command {#agent-create-command}
@@ -391,26 +593,26 @@ Usage:
   srectl agent create [options]
 
 Options:
-  --name (REQUIRED)
-  --instructions
-  --tools
-  --handoff-description
-  --handoffs
-  --allow-parallel-tool-calls
-  --max-reflection-count
-  --critic-prompt-path
-  --critic-on-handoff
-  --custom-reflection-note
-  --common-prompts
-  --temperature
-  --output-type
-  --vanilla-mode
-  --smart                      Use AI to automatically generate instructions and recommend tools
-  --enable-skills              Enable skills for the agent [default: False]
-  --add-system-skills          Add system skills to the agent. Only applicable if skills are enabled with --enable-skills. This is not recommended for custom meta-agents as system skills may interfere with intended behavior. [default: False]
-  --debug                      Enable debug logging
-  --quiet                      Minimize output
-  -?, -h, --help               Show help and usage information
+  --name <name> (REQUIRED)                           Name of the agent
+  --instructions <instructions>                      Instructions for the agent
+  --tools <tools>                                    Tools the agent can use
+  --handoff-description <handoff-description>        Description for handoff capabilities
+  --handoffs <handoffs>                              Agents this agent can hand off to
+  --allow-parallel-tool-calls                        Allow parallel tool execution
+  --max-reflection-count <max-reflection-count>      Maximum number of reflection iterations
+  --critic-prompt-path <critic-prompt-path>          Path to critic prompt file
+  --critic-on-handoff                                Enable critic on handoff
+  --custom-reflection-note <custom-reflection-note>  Custom note for reflection
+  --common-prompts <common-prompts>                  Common prompts to include
+  --temperature <temperature>                        Model temperature setting
+  --output-type <output-type>                        Expected output format
+  --vanilla-mode                                     Use vanilla mode without enhancements
+  --smart                                            Use AI to generate instructions and recommend tools
+  --enable-skills                                    Enable skills for the agent
+  --add-system-skills                                Add system skills (not recommended for custom meta-agents)
+  -?, -h, --help                                     Show help and usage information
+  --debug                                            Enable debug logging
+  --quiet                                            Minimize output
 ```
 
 ### agent validate Command {#agent-validate-command}
@@ -441,13 +643,13 @@ Usage:
   srectl agent validate [options]
 
 Options:
-  --name          Agent name to validate
-  --file
-  --all
-  --check-tools   Validate that all referenced tools exist locally or on the remote server
+  --name <name>   Agent name to validate
+  --file <file>   YAML file to validate
+  --all           Validate all agents
+  --check-tools   Validate that referenced tools exist
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 ```
 
 ### agent apply Command {#agent-apply-command}
@@ -472,11 +674,11 @@ Usage:
   srectl agent apply [options]
 
 Options:
-  --name (REQUIRED)
-  --dry-run          Show what would be applied without making changes
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+  --name <name> (REQUIRED)  Name of the agent to apply
+  --dry-run                 Preview changes without applying
+  -?, -h, --help            Show help and usage information
+  --debug                   Enable debug logging
+  --quiet                   Minimize output
 ```
 
 ### agent run Command {#agent-run-command}
@@ -484,105 +686,126 @@ Options:
 ```
 $ srectl agent run --help
 
+Description:
+  Agent commands for managing SRE automation agents
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ ✻ SRE Agent CLI (srectl)                                                     │
-│                                                                              │
-│   Your intelligent assistant for Incident Diagnosis and automation           │
-│                                                                              │
-│   cwd: Q:\Git\sreagent-runtime                                               │
-└──────────────────────────────────────────────────────────────────────────────┘
+Usage:
+  srectl agent [command] [options]
 
-✗ Unrecognized command or argument: 'run'
+Options:
+  -?, -h, --help  Show help and usage information
+  --debug         Enable debug logging
+  --quiet         Minimize output
 
-Valid subcommands for 'agent'
-─────────────────────────────
-srectl agent create         : Create a new agent YAML configuration file
-
-Examples:
-  # Create a basic agent
-  srectl agent create --name DevOpsAgent --instructions "Help with DevOps tasks such as monitoring and incident response"
-
-  # Create an agent with tools
-  srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics
-
-  # Create an agent with AI assistance (smart mode)
-  srectl agent create --name StorageAgent --smart --instructions "Help troubleshoot Azure Storage issues"
-
-  # Create an advanced agent with all options
-  srectl agent create --name AdvancedAgent \
-    --instructions "Complex multi-step agent" \
-    --tools Tool1 Tool2 \
-    --handoffs Agent1 Agent2 \
-    --temperature 0.7 \
-    --max-reflection-count 3
-srectl agent validate       : Validate agent YAML configuration files
-
-Examples:
-  # Validate by agent name (searches in agents/ folder)
-  srectl agent validate --name MyAgent
-
-  # Validate specific agent by name and check tools
-  srectl agent validate --name KustoAgent --check-tools
-
-  # Validate all agent files
-  srectl agent validate --all
-
-  # Validate with tool availability checking
-  srectl agent validate --all --check-tools
-
-  # Alternative: Validate a specific agent file path
-  srectl agent validate --file agents/MyAgent/MyAgent.yaml
-srectl agent apply          : Apply an agent configuration to the remote server
-
-Examples:
-  # Apply an agent to the server
-  srectl agent apply --name DevOpsAgent
-
-  # Preview what would be applied (dry run)
-  srectl agent apply --name KustoAgent --dry-run
-
-  # Apply with debug logging
-  srectl agent apply --name MyAgent --debug
-srectl agent delete         : Delete an agent from the remote server
-
-Examples:
-  # Delete an agent from the server
-  srectl agent delete --name OldAgent
-
-  # Delete with debug logging
-  srectl agent delete --name TestAgent --debug
-srectl agent test           : Test an agent with a specific message
-
-Examples:
-  # Test an agent with a simple message
-  srectl agent test --name DevOpsAgent --message "Check pod status in namespace production"
-
-  # Test without waiting for response
-  srectl agent test --name KustoAgent --message "Query memory usage" --no-wait
-
-  # Test with custom user details
-  srectl agent test --name MyAgent --message "Help me" --user-id john.doe --display-name "John Doe"
-srectl agent diff           : Compare local and remote agent configurations
-
-Examples:
-  # Compare default using git-diff (default)
-  srectl agent diff --name DevOpsAgent
-
-  # Use VS Code diff
-  srectl agent diff --name KustoAgent --tool code
-
-  # Show inline diff
-  srectl agent diff --name MyAgent --raw
-srectl agent migrate        : Migrate V1 agent format to V2
-srectl agent list           : List remote extended agents from the server
-
-Options
-───────
-----debug                   : Enable debug logging
-----quiet                   : Minimize output
-
-  • Use 'srectl agent --help' for details
+Commands:
+  create    Create a new agent YAML configuration file
+  
+            Examples:
+              # Create a basic agent
+              srectl agent create --name DevOpsAgent --instructions "Help with DevOps tasks such as monitoring and incident response"
+  
+              # Create an agent with tools
+              srectl agent create --name KustoAgent --tools QueryKusto AnalyzeMetrics
+  
+              # Create an agent with AI assistance (smart mode)
+              srectl agent create --name StorageAgent --smart --instructions "Help troubleshoot Azure Storage issues"
+  
+              # Create an advanced agent with all options
+              srectl agent create --name AdvancedAgent \
+                --instructions "Complex multi-step agent" \
+                --tools Tool1 Tool2 \
+                --handoffs Agent1 Agent2 \
+                --temperature 0.7 \
+                --max-reflection-count 3
+  validate  Validate agent YAML configuration files
+  
+            Examples:
+              # Validate by agent name (searches in agents/ folder)
+              srectl agent validate --name MyAgent
+  
+              # Validate specific agent by name and check tools
+              srectl agent validate --name KustoAgent --check-tools
+  
+              # Validate all agent files
+              srectl agent validate --all
+  
+              # Validate with tool availability checking
+              srectl agent validate --all --check-tools
+  
+              # Alternative: Validate a specific agent file path
+              srectl agent validate --file agents/MyAgent/MyAgent.yaml
+  apply     Apply an agent configuration to the remote server
+  
+            Examples:
+              # Apply an agent to the server
+              srectl agent apply --name DevOpsAgent
+  
+              # Preview what would be applied (dry run)
+              srectl agent apply --name KustoAgent --dry-run
+  
+              # Apply with debug logging
+              srectl agent apply --name MyAgent --debug
+  delete    Delete an agent from the remote server
+  
+            Examples:
+              # Delete an agent from the server
+              srectl agent delete --name OldAgent
+  
+              # Delete with debug logging
+              srectl agent delete --name TestAgent --debug
+  test      Test an agent with a specific message (starts interactive session)
+  
+            Examples:
+              # Test an agent interactively
+              srectl agent test --name DevOpsAgent --message "Check pod status in namespace production"
+  
+              # Send test message without waiting for response
+              srectl agent test --name KustoAgent --message "Query memory usage" --no-wait
+  
+              # Start interactive session with specific agent
+              srectl agent test --name MyAgent --message "Help me debug this issue"
+  
+            Note: This command is equivalent to 'srectl thread new --agent <name> --message <message>'
+                  and will start an interactive chat session unless --no-wait is specified.
+  diff      Compare local and remote agent configurations
+  
+            Examples:
+              # Compare default using git-diff (default)
+              srectl agent diff --name DevOpsAgent
+  
+              # Use VS Code diff
+              srectl agent diff --name KustoAgent --tool code
+  
+              # Show inline diff
+              srectl agent diff --name MyAgent --raw
+  migrate   Migrate V1 agent format to V2
+  
+            Examples:
+              # Migrate a specific agent
+              srectl agent migrate --name MyAgent
+  
+              # Migrate all agents
+              srectl agent migrate --all
+  
+              # Preview migration changes (dry run)
+              srectl agent migrate --all --dry-run
+  
+              # Migrate specific agent with dry run
+              srectl agent migrate --name MyAgent --dry-run
+  list      List remote extended agents from the server
+  
+            Examples:
+              # List all agents
+              srectl agent list
+  
+              # List all agents with full YAML details
+              srectl agent list --detail
+  
+              # Get a specific agent by name (full YAML output)
+              srectl agent list --name MyAgent
+  
+              # Search for specific agents
+              srectl agent list --search devops
 ```
 
 ## Tool Commands
@@ -599,25 +822,12 @@ Usage:
   srectl tool [command] [options]
 
 Options:
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 
 Commands:
   create           Create a new tool YAML configuration file
-  
-                   Examples:
-                     # Create a basic Kusto tool (currently only KustoTool is supported)
-                     srectl tool create --name QueryMetrics --type KustoTool
-  
-                     # Create a tool with custom path organization
-                     srectl tool create --name StorageOps --type KustoTool --path "Storage/Operations"
-  
-                     # Create a tool with extra parameters
-                     srectl tool create --name CustomTool --type KustoTool --extra database:LogsDB cluster:prod-cluster
-  
-                     # View available tool types first
-                     srectl tool show-types
   validate         Validate tool YAML configuration files
   
                    Examples:
@@ -662,6 +872,20 @@ Commands:
   
                      # Show inline diff
                      srectl tool diff --name MyTool --raw
+  migrate          Migrate V1 tool configurations to V2 format
+  
+                   Examples:
+                     # Migrate a specific tool
+                     srectl tool migrate --name MyKustoTool
+  
+                     # Migrate all V1 tools
+                     srectl tool migrate --all
+  
+                     # Migrate specific tool with dry run
+                     srectl tool migrate --name MyKustoTool --dry-run
+  
+                     # Preview migration without making changes (dry run)
+                     srectl tool migrate --all --dry-run
   show-types       Display available tool types and their details
   
                    Examples:
@@ -681,10 +905,20 @@ Commands:
                    Examples:
                      # List all available connectors
                      srectl tool show-connectors
-  
-                     # Show detailed connector information
-                     srectl tool show-connectors --verbose
   list             List all tools from the remote server
+  
+                   Examples:
+                     # List all tools
+                     srectl tool list
+  
+                     # List all tools with full YAML details
+                     srectl tool list --detail
+  
+                     # Get a specific tool by name (full YAML output)
+                     srectl tool list --name TestMigrate
+  
+                     # Search for specific tools
+                     srectl tool list --search kusto
 ```
 
 ### tool create Command {#tool-create-command}
@@ -694,31 +928,64 @@ $ srectl tool create --help
 
 Description:
   Create a new tool YAML configuration file
-  
-  Examples:
-    # Create a basic Kusto tool (currently only KustoTool is supported)
-    srectl tool create --name QueryMetrics --type KustoTool
-  
-    # Create a tool with custom path organization
-    srectl tool create --name StorageOps --type KustoTool --path "Storage/Operations"
-  
-    # Create a tool with extra parameters
-    srectl tool create --name CustomTool --type KustoTool --extra database:LogsDB cluster:prod-cluster
-  
-    # View available tool types first
-    srectl tool show-types
 
 Usage:
   srectl tool create [options]
 
-Options:
-  --name (REQUIRED)  ToolName
-  --type (REQUIRED)  ToolType
-  --path             Custom path under tools directory (e.g., 'StorageOperations')
-  --extra            AdditionArgumentsKeyValuePairs
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+Common Options:
+  --name <name> (REQUIRED)            Name of the tool
+  --type <type> (REQUIRED)            Type of the tool (KustoTool, LinkTool, PythonTool, HttpClientTool)
+  --path <path>                       Custom path under tools directory (e.g., 'StorageOperations')
+  --description <description>         Description of the tool
+  --parameter <parameter>             Tool parameter in format 'name:type:description' (can be specified multiple times)
+
+KustoTool Options:
+  --connector <connector>             Connector name for the tool
+  --database <database>               Database name for KustoTool
+  --query <query>                     Query for KustoTool
+
+  Examples:
+    # Create a KustoTool with all parameters
+    srectl tool create --name QueryMetrics --type KustoTool --connector analytics-cluster --database LogsDB --query "MyTable | take 10" --parameter limit
+    # Create a KustoTool with minimal options
+    srectl tool create --name GetLogs --type KustoTool --connector logs-cluster --database LogsDB
+
+LinkTool Options:
+  --template <template>               URL template for LinkTool
+
+  Examples:
+    # Create a LinkTool with template
+    srectl tool create --name ServiceDashboard --type LinkTool --template "https://dashboard.example.com/{serviceId}" --parameter serviceId
+    # Create a LinkTool with minimal options
+    srectl tool create --name DocLink --type LinkTool --description "Link to documentation"
+
+PythonTool Options:
+  --function-code <function-code>     Python function code for PythonTool
+  --timeout <timeout>                 Timeout in seconds (default: 30)
+  --dependency <dependency>           Python package dependency for PythonTool (can be specified multiple times)
+
+  Examples:
+    # Create a PythonTool with dependencies
+    srectl tool create --name ProcessData --type PythonTool --function-code "def run(params): return params" --dependency requests --timeout 60
+    # Create a PythonTool with custom path
+    srectl tool create --name DataProcessor --type PythonTool --path "Data/Processing" --dependency pandas
+
+HttpClientTool Options:
+  --url <url>                         URL template with optional {{param}} placeholders for HttpClientTool
+  --method <method>                   HTTP method (GET, POST, PUT, DELETE, PATCH) for HttpClientTool
+  --body <body>                       Request body template with {{param}} placeholders for HttpClientTool
+  --header <header>                   HTTP header in format 'key:value' (can be specified multiple times)
+  --auth-connector <auth-connector>   Data connector name for authentication
+  --auth-scope <auth-scope>           OAuth scope to request for authentication
+  --timeout <timeout>                 Timeout in seconds (default: 30)
+
+  Examples:
+    # Create a simple GET request tool
+    srectl tool create --name GetUserInfo --type HttpClientTool --url "https://api.example.com/users/{{userId}}" --method GET --parameter userId:string:User ID
+    # Create a POST request tool with body
+    srectl tool create --name CreateTicket --type HttpClientTool --url "https://api.example.com/tickets" --method POST --body "{\"title\": \"{{title}}\"}" --header "Content-Type:application/json"
+    # Create an authenticated API call
+    srectl tool create --name CallSecureApi --type HttpClientTool --url "https://api.example.com/data" --method GET --auth-connector my-oauth-connector --auth-scope "api://example/.default"
 ```
 
 ### tool validate Command {#tool-validate-command}
@@ -743,11 +1010,11 @@ Usage:
   srectl tool validate [options]
 
 Options:
-  --name          ToolName
-  --all           ValidateAllYAMLFilesInToolsDirectory
+  --name <name>   Name of the tool to validate
+  --all           Validate all YAML files in the tools directory
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 ```
 
 ### tool apply Command {#tool-apply-command}
@@ -772,11 +1039,11 @@ Usage:
   srectl tool apply [options]
 
 Options:
-  --name (REQUIRED)
-  --dry-run          Show what would be applied without making changes
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+  --name <name> (REQUIRED)  Name of the tool to apply
+  --dry-run                 Show what would be applied without making changes
+  -?, -h, --help            Show help and usage information
+  --debug                   Enable debug logging
+  --quiet                   Minimize output
 ```
 
 ### tool show-types Command {#tool-show-types-command}
@@ -804,11 +1071,10 @@ Usage:
   srectl tool show-types [options]
 
 Options:
-  --verbose       Show detailed information including assembly and namespace
-  --type          Show details for a specific tool type
+  --type <type>   Show details for a specific tool type
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 ```
 
 ### tool show-connectors Command {#tool-show-connectors-command}
@@ -822,18 +1088,14 @@ Description:
   Examples:
     # List all available connectors
     srectl tool show-connectors
-  
-    # Show detailed connector information
-    srectl tool show-connectors --verbose
 
 Usage:
   srectl tool show-connectors [options]
 
 Options:
-  --verbose       Show detailed information including assembly and namespace
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 ```
 
 ## Skills Commands
@@ -844,23 +1106,100 @@ Options:
 $ srectl skill --help
 
 Description:
-  Skill management commands. Upload and manage custom skills for agents to use, or convert an existing agent into a skill.
+  Skill management commands. Apply and manage custom skills for agents to use, or convert an existing agent into a skill.
 
 Usage:
   srectl skill [command] [options]
 
 Options:
+  -?, -h, --help  Show help and usage information
   --debug         Enable debug logging
   --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
 
 Commands:
-  create    Create a new skill directory with template files
-  upload    Upload a custom skill or multiple skills from a directory
-  convert   Convert an existing agent to a skill
-  list      List all available skills
-  download  Download a skill from the server
-  delete    Delete a skill from the server
+  create          Create a new skill directory with template files
+  
+                  Examples:
+                    # Create a new skill with default template
+                    srectl skill create --name my-skill
+  
+                    # Create with custom description
+                    srectl skill create --name my-skill --description "Handles database queries and analysis"
+  apply, upload   Apply a skill configuration to the remote server
+  
+                  Examples:
+                    # Apply a skill to the server
+                    srectl skill apply --name my-skill
+  
+                    # Preview what would be applied (dry run)
+                    srectl skill apply --name database-analyzer --dry-run
+  
+                    # Apply with debug logging
+                    srectl skill apply --name my-skill --debug
+  convert         Convert an existing agent to a skill
+  
+                  Examples:
+                    # Convert an agent to a skill
+                    srectl skill convert --agent-name my-agent
+  
+                    # Convert with specific top-level agents for context
+                    srectl skill convert --agent-name my-agent --top-level-agents triage-agent support-agent
+  
+                    # Specify custom output path
+                    srectl skill convert --agent-name my-agent --output-path custom/path
+  list            List all available skills from the remote server
+  
+                  Examples:
+                    # List all skills
+                    srectl skill list
+  
+                    # List all skills with full YAML details
+                    srectl skill list --detail
+  
+                    # Get a specific skill by name (full YAML output)
+                    srectl skill list --name my-skill
+  
+                    # Search for specific skills
+                    srectl skill list --search database
+  download, sync  Sync skill(s) from the server to local directory
+  
+                  Examples:
+                    # Sync a single skill
+                    srectl skill sync --name my-skill
+  
+                    # Sync a skill to a specific path
+                    srectl skill sync --name my-skill --path custom/path
+  
+                    # Sync all skills
+                    srectl skill sync --all
+  
+                    # Sync all skills to a specific directory
+                    srectl skill sync --all --path my-skills
+  delete          Delete a skill from the server
+  
+                  Examples:
+                    # Delete a skill from the server
+                    srectl skill delete --name old-skill
+  
+                    # Preview what would be deleted (dry run)
+                    srectl skill delete --name test-skill --dry-run
+  
+                    # Delete with debug logging
+                    srectl skill delete --name unused-skill --debug
+  migrate         Migrate skills from metadata.yaml to SKILL.md frontmatter format
+  
+                  Examples:
+                    # Migrate a specific skill
+                    srectl skill migrate --name my-skill
+  
+                    # Migrate all skills in the skills/ directory
+                    srectl skill migrate --all
+  
+                    # Preview migration without making changes (dry run)
+                    srectl skill migrate --name my-skill --dry-run
+  
+                    # Migrate all skills with dry run
+                    srectl skill migrate --all --dry-run
 ```
 
 ### skill create Command {#skill-create-command}
@@ -870,17 +1209,23 @@ $ srectl skill create --help
 
 Description:
   Create a new skill directory with template files
+  
+  Examples:
+    # Create a new skill with default template
+    srectl skill create --name my-skill
+  
+    # Create with custom description
+    srectl skill create --name my-skill --description "Handles database queries and analysis"
 
 Usage:
   srectl skill create [options]
 
 Options:
-  --name (REQUIRED)  Name of the skill to create
-  --output-path      Output path for the created skill (default: skills/{skill-name})
-  --debug            Enable verbose debug logging for network calls and operations
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+  --name <name> (REQUIRED)     Name of the skill to create
+  --description <description>  Description of what the skill does and when to use it
+  -?, -h, --help               Show help and usage information
+  --debug                      Enable debug logging
+  --quiet                      Minimize output
 ```
 
 ### skill upload Command {#skill-upload-command}
@@ -889,18 +1234,27 @@ Options:
 $ srectl skill upload --help
 
 Description:
-  Upload a custom skill or multiple skills from a directory
+  Apply a skill configuration to the remote server
+  
+  Examples:
+    # Apply a skill to the server
+    srectl skill apply --name my-skill
+  
+    # Preview what would be applied (dry run)
+    srectl skill apply --name database-analyzer --dry-run
+  
+    # Apply with debug logging
+    srectl skill apply --name my-skill --debug
 
 Usage:
-  srectl skill upload [options]
+  srectl skill apply [options]
 
 Options:
-  --path          Path to a single skill directory to upload (e.g., skills/my-skill)
-  --folder        Path to a folder containing multiple skill directories to upload
-  --debug         Enable verbose debug logging for network calls and operations
-  --debug         Enable debug logging
-  --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
+  --name <name> (REQUIRED)  Name of the skill to apply to the server
+  --dry-run                 Preview changes without applying them
+  -?, -h, --help            Show help and usage information
+  --debug                   Enable debug logging
+  --quiet                   Minimize output
 ```
 
 ### skill list Command {#skill-list-command}
@@ -909,19 +1263,31 @@ Options:
 $ srectl skill list --help
 
 Description:
-  List all available skills
+  List all available skills from the remote server
+  
+  Examples:
+    # List all skills
+    srectl skill list
+  
+    # List all skills with full YAML details
+    srectl skill list --detail
+  
+    # Get a specific skill by name (full YAML output)
+    srectl skill list --name my-skill
+  
+    # Search for specific skills
+    srectl skill list --search database
 
 Usage:
   srectl skill list [options]
 
 Options:
-  --limit         Number of skills per page (1-200, default: 50) [default: 50]
-  --page          Page number (1-based, default: 1) [default: 1]
-  --search        Search skills by name or description
-  --debug         Enable verbose debug logging for network calls and operations
-  --debug         Enable debug logging
-  --quiet         Minimize output
-  -?, -h, --help  Show help and usage information
+  --search <search>  Search filter for skill names or descriptions
+  --name <name>      Get a specific skill by name and output the full YAML
+  --detail           Output the full YAML for all skills in the list
+  -?, -h, --help     Show help and usage information
+  --debug            Enable debug logging
+  --quiet            Minimize output
 ```
 
 ### skill delete Command {#skill-delete-command}
@@ -931,16 +1297,27 @@ $ srectl skill delete --help
 
 Description:
   Delete a skill from the server
+  
+  Examples:
+    # Delete a skill from the server
+    srectl skill delete --name old-skill
+  
+    # Preview what would be deleted (dry run)
+    srectl skill delete --name test-skill --dry-run
+  
+    # Delete with debug logging
+    srectl skill delete --name unused-skill --debug
 
 Usage:
   srectl skill delete [options]
 
 Options:
-  --name (REQUIRED)  Name of the skill to delete
-  --debug            Enable verbose debug logging for network calls and operations
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+  --name <name> (REQUIRED)  Name of the skill to delete
+  --dry-run                 Preview deletion without actually removing the skill
+  --delete-local-files      Also delete local configuration files without prompting (true=delete, false=skip, omit=prompt)
+  -?, -h, --help            Show help and usage information
+  --debug                   Enable debug logging
+  --quiet                   Minimize output
 ```
 
 ### skill convert Command {#skill-convert-command}
@@ -950,18 +1327,27 @@ $ srectl skill convert --help
 
 Description:
   Convert an existing agent to a skill
+  
+  Examples:
+    # Convert an agent to a skill
+    srectl skill convert --agent-name my-agent
+  
+    # Convert with specific top-level agents for context
+    srectl skill convert --agent-name my-agent --top-level-agents triage-agent support-agent
+  
+    # Specify custom output path
+    srectl skill convert --agent-name my-agent --output-path custom/path
 
 Usage:
   srectl skill convert [options]
 
 Options:
-  --agent-name (REQUIRED)  Name of the agent to convert to a skill
-  --top-level-agents       List of top-level agent names for handoff context
-  --output-path            Output path for the generated skill (default: skills/{agent-name})
-  --debug                  Enable verbose debug logging for network calls and operations
-  --debug                  Enable debug logging
-  --quiet                  Minimize output
-  -?, -h, --help           Show help and usage information
+  --agent-name <agent-name> (REQUIRED)   Name of the agent to convert to a skill
+  --top-level-agents <top-level-agents>  List of top-level agent names for handoff context
+  --output-path <output-path>            Output path for the generated skill (default: skills/{agent-name})
+  -?, -h, --help                         Show help and usage information
+  --debug                                Enable debug logging
+  --quiet                                Minimize output
 ```
 
 ### skill download Command {#skill-download-command}
@@ -970,18 +1356,31 @@ Options:
 $ srectl skill download --help
 
 Description:
-  Download a skill from the server
+  Sync skill(s) from the server to local directory
+  
+  Examples:
+    # Sync a single skill
+    srectl skill sync --name my-skill
+  
+    # Sync a skill to a specific path
+    srectl skill sync --name my-skill --path custom/path
+  
+    # Sync all skills
+    srectl skill sync --all
+  
+    # Sync all skills to a specific directory
+    srectl skill sync --all --path my-skills
 
 Usage:
-  srectl skill download [options]
+  srectl skill sync [options]
 
 Options:
-  --name (REQUIRED)  Name of the skill to download
-  --output-path      Output path for the downloaded skill (default: skills/{skill-name})
-  --debug            Enable verbose debug logging for network calls and operations
-  --debug            Enable debug logging
-  --quiet            Minimize output
-  -?, -h, --help     Show help and usage information
+  --name <name>                 Name of the skill to sync
+  --all                         Sync all skills from the server
+  --output-path, --path <path>  Output path for the synced skill(s) (default: skills/)
+  -?, -h, --help                Show help and usage information
+  --debug                       Enable debug logging
+  --quiet                       Minimize output
 ```
 
 ## Common Usage Examples

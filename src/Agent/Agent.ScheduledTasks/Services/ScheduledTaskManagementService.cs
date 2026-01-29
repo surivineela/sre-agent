@@ -2,9 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
-using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using NCrontab;
 
@@ -84,7 +84,8 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
                 ExecutionHistory: new List<ScheduledTaskExecution>(),
                 MaxExecutions: request.MaxExecutions,
                 ExecutionCount: 0,
-                NotificationChannel: request.NotificationChannel
+                NotificationChannel: request.NotificationChannel,
+                AgentMode: request.AgentMode ?? AgentModes.Autonomous.ToLowerInvariant()
             );
 
             var createdTask = await _repository.CreateScheduledTaskAsync(taskDocument);
@@ -119,6 +120,7 @@ public class ScheduledTaskManagementService : IScheduledTaskManagementService
             if (request.ExecutionContext != null) existingTask.ExecutionContext = request.ExecutionContext;
             if (request.MaxExecutions != null) existingTask.MaxExecutions = request.MaxExecutions;
             if (request.NotificationChannel != null) existingTask.NotificationChannel = request.NotificationChannel;
+            if (request.AgentMode != null) existingTask.AgentMode = request.AgentMode;
             if (request.StartTime != null) existingTask.StartTime = request.StartTime.Value;
             if (request.EndTime != null) existingTask.EndTime = request.EndTime;
 

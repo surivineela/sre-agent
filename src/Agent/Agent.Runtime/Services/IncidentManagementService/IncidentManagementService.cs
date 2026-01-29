@@ -214,7 +214,7 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
 
                 if (request.Statuses != null && request.Statuses.Count() > 0)
                 {
-                    var normalizedStatuses = NormalizeStatusesForFiltering(request.Statuses.ToArray());
+                    var normalizedStatuses = NormalizeStatusesForFiltering(request.Statuses);
                     queryable = queryable.Where(c => normalizedStatuses.Contains(c.Status.ToLower()));
                 }
 
@@ -254,9 +254,9 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
                 {
                     queryable = queryable.Where(c => c.ImpactedServiceName.Equals(filter.ImpactedService, StringComparison.OrdinalIgnoreCase) || c.ImpactedServiceId.Equals(filter.ImpactedService, StringComparison.OrdinalIgnoreCase));
                 }
-                if (!string.IsNullOrEmpty(filter.Priority))
+                if (filter.Priorities is not null)
                 {
-                    var normalizedPriorities = NormalizePriorityForFiltering(filter.Priority);
+                    var normalizedPriorities = NormalizePriorityForFiltering(filter.Priorities);
                     queryable = queryable.Where(c => normalizedPriorities.Contains(c.Priority.ToLower()));
                 }
                 if (!string.IsNullOrEmpty(filter.IncidentType))
@@ -416,14 +416,14 @@ public abstract class IncidentManagementServiceBase<TIncidentDocument, TIncident
     /// </summary>
     /// <param name="statuses">Array of status values to normalize</param>
     /// <returns>Array of normalized status values for filtering</returns>
-    protected virtual string[] NormalizeStatusesForFiltering(string[] status)
+    protected virtual string[] NormalizeStatusesForFiltering(IEnumerable<string> status)
     {
         return status.Select(s => s.ToLower()).ToArray();
     }
 
-    public virtual string[] NormalizePriorityForFiltering(string priority)
+    public virtual string[] NormalizePriorityForFiltering(IEnumerable<string> priorities)
     {
-        return new[] { priority.ToLower() };
+        return priorities.Select(p => p.ToLower()).ToArray();
     }
 }
 
@@ -437,7 +437,6 @@ public class IncidentQueryRequest<TIncidentFilterDocumentPayload> where TInciden
     public int DurationInDays { get; set; } = 60; // Default to 60 days for incident history
 
     public string[] Statuses { get; set; } = [];
-    public string[] Priorities { get; set; } = [];
 
     // 1-based index, in later .net version can use "field" to replace _pageNumber
     private int _pageNumber = 1;

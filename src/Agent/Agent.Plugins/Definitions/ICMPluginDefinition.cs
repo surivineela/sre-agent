@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using System.Globalization;
+using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Framework;
 using Agent.Plugins.Implementation;
@@ -176,12 +177,54 @@ public class ICMPluginDefinition
         return await _icmPlugin.ResolveIncident(incidentId.ToString(), discussionEntry);
     }
 
-    [Description("Post a discussion entry, comment, or update to an ICM incident (also known as 'post to ICM', 'write to the incident', 'share findings on the ticket'). IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.")]
+    [Description(@"Post a discussion entry, comment, or update to an ICM incident (also known as 'post to ICM', 'write to the incident', 'share findings on the ticket'). 
+IMPORTANT: The discussionEntry must be valid HTML only. Do NOT include any Markdown (no ``` fences, **bold**, # headings, lists, etc.). If you need formatting, use HTML tags.
+
+DEFAULT: Just pass discussionEntry with your HTML content (text summary, HTML table, etc.). The other parameters are only needed for chart embedding.
+
+OPTIONAL CHART EMBEDDING: If the user explicitly asks for a chart/graph AND you want to embed it:
+1. Pass tsvDataForChart with the TSV data (first row = headers, first column = labels, second column = values)
+2. Pass chartType matching the visualization: 'pie', 'bar', 'line', or 'area'
+3. Pass kustoQuery with the original query so chart type can be auto-detected from '| render piechart/barchart/etc.'
+
+Do NOT use chart parameters if you're just posting a text summary or HTML table.")]
     public async Task<string> PostDiscussionEntry(
        [Description("Incident ID")] long incidentId,
-       [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**)")] string discussionEntry)
+       [Description("Discussion Entry (Must be HTML only; Markdown is **not allowed**). This is the main content - can be text, HTML table, or any formatted content.")] string discussionEntry,
+       [Description("Optional: TSV data to embed as a chart image. Only use if user explicitly asked for a chart/visualization.")] string? tsvDataForChart = null,
+       [Description("Optional: Title for the embedded chart.")] string? chartTitle = null,
+       [Description("Required if tsvDataForChart is provided: 'pie', 'bar', 'line', or 'area'. Must match the intended visualization.")] string? chartType = null,
+       [Description("Optional: The Kusto query that produced the data. If provided, chart type is auto-detected from '| render' command.")] string? kustoQuery = null)
     {
-        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), discussionEntry);
+        var finalHtml = discussionEntry;
+
+        // If TSV data is provided, generate and embed a chart using ChartHelper
+        if (!string.IsNullOrWhiteSpace(tsvDataForChart))
+        {
+            try
+            {
+                // Auto-detect chart type from kustoQuery if chartType not explicitly provided
+                var effectiveChartType = chartType;
+                if (string.IsNullOrEmpty(effectiveChartType) && !string.IsNullOrEmpty(kustoQuery))
+                {
+                    effectiveChartType = Kusto.KustoDisplayFormatter.GetChartType(kustoQuery);
+                }
+
+                var chartHtml = ChartHelper.GenerateChartHtmlFromTsv(tsvDataForChart, chartTitle, effectiveChartType);
+                if (!string.IsNullOrEmpty(chartHtml))
+                {
+                    // Add separator between discussion content and chart
+                    finalHtml = finalHtml + "<br/><br/>" + chartHtml;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Chart generation failed, but still post the discussion entry with an error note
+                finalHtml = finalHtml + "<br/><br/><i>[Chart generation failed: " + ex.Message + "]</i>";
+            }
+        }
+
+        return await _icmPlugin.PostDiscussionEntry(incidentId.ToString(), finalHtml);
     }
 
     [Description("Add a tag to an ICM incident")]
@@ -338,6 +381,12 @@ public class ICMPluginDefinition
             sinceDate = parsedDate.DateTime;
         }
 
+        List<string>? severities = null;
+        if (!string.IsNullOrEmpty(severity))
+        {
+            severities = new List<string> { severity };
+        }
+
         return await _icmPlugin.ListIncidents(
             (uint)limit,
             (uint)offset,
@@ -345,7 +394,7 @@ public class ICMPluginDefinition
             owningServiceId,
             owningTeamId,
             incidentType,
-            severity);
+            severities);
     }
 
     //[Description("Download an attachment from an ICM incident. For text files (.txt, .log, .csv) under 1MB, returns content as string. Larger files or other types are saved locally.")]

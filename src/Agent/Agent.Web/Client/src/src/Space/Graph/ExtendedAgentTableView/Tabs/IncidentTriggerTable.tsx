@@ -67,7 +67,7 @@ export const IncidentTriggerTable: FC<IncidentTriggerTableProps> = ({
             name: trigger.name || EMPTY_DISPLAY,
             status: trigger.status || EMPTY_DISPLAY,
             subAgent: trigger.agentName || EMPTY_DISPLAY,
-            severity: trigger.priority || EMPTY_DISPLAY,
+            severity: trigger.priorities?.join(', ') || EMPTY_DISPLAY,
             incidentType: trigger.incidentType || EMPTY_DISPLAY,
             impactedService: trigger.service || EMPTY_DISPLAY,
             description: trigger.description || EMPTY_DISPLAY,

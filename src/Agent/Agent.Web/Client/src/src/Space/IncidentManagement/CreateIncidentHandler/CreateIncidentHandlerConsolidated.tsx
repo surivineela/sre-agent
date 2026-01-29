@@ -30,7 +30,7 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         filterName: handlerCreateOrEditInfo?.filter?.id || '',
         incidentType: handlerCreateOrEditInfo?.filter?.incidentType || undefined,
         impactedService: handlerCreateOrEditInfo?.filter?.impactedService || undefined,
-        priority: handlerCreateOrEditInfo?.filter?.priority || undefined,
+        priorities: handlerCreateOrEditInfo?.filter?.priorities || undefined,
         titleContains: handlerCreateOrEditInfo?.filter?.titleContains || undefined,
         agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.autonomous,
         owningTeamId: handlerCreateOrEditInfo?.filter?.owningTeamId || undefined,
@@ -114,7 +114,8 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
         [values.isIncidentTriggerWithLearnings, incidentHandlerForAgentBuilder, incidentHandlerCreateMetadata]
     );
 
-    const { incidentTypeOptions, impactedServiceOptions, priorityOptions, titleContainsOptions } = useIncidentFilterFields();
+    const { incidentTypeOptions, impactedServiceOptions, priorityOptions, titleContainsOptions, filterFieldOptionsLoading } =
+        useIncidentFilterFields();
     const { filterMode, handlerMode, currentStep } = activeHandlerMetadata;
 
     const shouldShowSuggestions = suggestionsPanel && currentStep === IncidentHandlerCreateSteps.IncidentTriggerStep;
@@ -130,6 +131,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
                         impactedServiceOptions,
                         priorityOptions,
                         titleContainsOptions,
+                        filterFieldOptionsLoading,
                     }}
                 >
                     <div className={styles.mainFormContent}>
@@ -146,6 +148,7 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
         impactedServiceOptions,
         priorityOptions,
         titleContainsOptions,
+        filterFieldOptionsLoading,
         handlerMode,
         styles,
         suggestionsPanel,

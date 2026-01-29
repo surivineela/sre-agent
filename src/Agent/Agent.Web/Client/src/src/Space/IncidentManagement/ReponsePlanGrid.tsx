@@ -99,7 +99,9 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
             filteredGridItems = filteredGridItems.filter(item => selectedImpactedServices.includes(item.impactedService));
         }
         if (selectedPriorities.length && selectedPriorities.length !== priorityOptions.length) {
-            filteredGridItems = filteredGridItems.filter(item => selectedPriorities.includes(item.priority));
+            filteredGridItems = filteredGridItems.filter(item => {
+                return item.priorities?.some(priority => selectedPriorities.includes(priority));
+            });
         }
 
         return filteredGridItems;
@@ -180,17 +182,24 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
     useEffect(() => {
         if (!isIncidentFilterEmpty) return;
 
-        const uniqueIncidentPriorities = Array.from(
-            new Set(incidentFilters.map(item => item.priority).filter(priority => priority && priority.trim() !== ''))
-        );
+        const uniqueIncidentPrioritiesSet = new Set<string>();
+        incidentFilters.forEach(filter => {
+            filter.priorities?.forEach(priority => {
+                if (priority && priority.trim() !== '') {
+                    uniqueIncidentPrioritiesSet.add(priority);
+                }
+            });
+        });
 
-        const incidentTypeOptions = uniqueIncidentPriorities.map(priority => ({
+        const uniqueIncidentPriorities = Array.from(uniqueIncidentPrioritiesSet);
+
+        const incidentPriorityOptions = uniqueIncidentPriorities.map(priority => ({
             key: priority ?? '',
             value: priority ?? '',
             label: priority ?? '',
         }));
 
-        setIncidentPriorities(incidentTypeOptions);
+        setIncidentPriorities(incidentPriorityOptions);
     }, [isIncidentFilterEmpty, incidentFilters, intl, platformSpecificStrings]);
 
     useEffect(() => {
@@ -281,13 +290,10 @@ const ResponsePlanGrid: FC<ReponsePlanGridProps> = (props: ReponsePlanGridProps)
         [getDisplayValueOrAll, isAzMonitorFilter, intl]
     );
 
-    const onRenderPriority = useCallback(
-        (item: IncidentFilter) => {
-            const displayValue = getDisplayValueOrAll(item.priority);
-            return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
-        },
-        [getDisplayValueOrAll]
-    );
+    const onRenderPriority = useCallback((item: IncidentFilter) => {
+        const displayValue = item.priorities?.join(', ') ?? '';
+        return <div style={{ userSelect: 'text' }}>{displayValue}</div>;
+    }, []);
 
     const onRenderImpactedService = useCallback(
         (item: IncidentFilter) => {

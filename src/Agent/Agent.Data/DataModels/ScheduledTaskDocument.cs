@@ -22,7 +22,8 @@ public record ScheduledTaskDocument(
     List<ScheduledTaskExecution>? ExecutionHistory,
     int? MaxExecutions,
     int ExecutionCount,
-    string? NotificationChannel
+    string? NotificationChannel,
+    string AgentMode
 ) : ICosmosDocument
 {
     public string DocumentType => "ScheduledTask";
@@ -35,6 +36,7 @@ public record ScheduledTaskDocument(
     public DateTime StartTime { get; set; } = StartTime;
     public DateTime? EndTime { get; set; } = EndTime;
     public string AgentPrompt { get; set; } = AgentPrompt;
+    public string AgentMode { get; set; } = AgentMode;
     public string? Agent { get; set; } = Agent;
     public string? ThreadId { get; set; } = ThreadId;
     public string CreatedBy { get; set; } = CreatedBy;
@@ -77,7 +79,8 @@ public record CreateScheduledTaskRequest(
     string CreatedBy,
     Dictionary<string, object>? ExecutionContext = null,
     int? MaxExecutions = null,
-    string? NotificationChannel = null
+    string? NotificationChannel = null,
+    string? AgentMode = null
 );
 
 public record UpdateScheduledTaskRequest(
@@ -91,7 +94,8 @@ public record UpdateScheduledTaskRequest(
     Dictionary<string, object>? ExecutionContext = null,
     int? MaxExecutions = null,
     string? NotificationChannel = null,
-    string? ThreadId = null
+    string? ThreadId = null,
+    string? AgentMode = null
 );
 
 public record ScheduledTaskCreationResult(

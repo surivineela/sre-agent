@@ -447,7 +447,7 @@ public static class ToolDescriptionHelper
             nameof(WorkspacePluginDefinition.FileSearch) => FormatFileSearch(arguments),
             nameof(WorkspacePluginDefinition.GrepSearch) => FormatGrepSearch(arguments),
             nameof(WorkspacePluginDefinition.RunInTerminal) => FormatRunInTerminal(arguments),
-            nameof(WorkspacePluginDefinition.TerminalLastCommand) => "Getting last terminal command...",
+            "TerminalLastCommand" => "Getting last terminal command...",
             nameof(WorkspacePluginDefinition.ManageTodoList) => FormatManageTodoList(arguments),
             nameof(WorkspacePluginDefinition.FetchWebpage) => FormatFetchWebpage(arguments),
             "AskUserQuestion" => "Preparing question for user input...",

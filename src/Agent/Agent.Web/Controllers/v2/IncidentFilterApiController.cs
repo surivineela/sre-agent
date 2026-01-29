@@ -7,6 +7,7 @@ using Agent.Web.ApiResources;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
 using Agent.Web.Views.v2;
+using Anthropic.Models.Messages;
 using Microsoft.AspNetCore.Mvc;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
 
@@ -175,6 +176,44 @@ public class IncidentFilterApiController : ControllerBase
         return Accepted();
     }
 
+    /// <summary>
+    /// This method is to preprocess incident filter before ListIncidentFilters or GetIncidentFilter
+    /// So it can be used to do data migration or other preprocessing tasks
+    /// For now, it is used to migrate Priority field to Priorities field
+    /// </summary>
+    /// <param name="document"></param>
+    /// <returns></returns>
+    protected virtual async Task<IIncidentFilterDocument> PreProcessIncidentFilterDocument(IIncidentFilterDocument document)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (document is IncidentFilterDocumentPayload payload && !string.IsNullOrWhiteSpace(payload.Priority))
+        {
+            _logger.LogInternalInformation("PreProcessIncidentDocument: Migrating Priority to Priorities for FilterId: {FilterId}", payload.Id);
+            var priorities = payload.Priorities ?? new List<string>();
+            priorities.Add(payload.Priority);
+            priorities = priorities.Distinct().ToList();
+
+            // Update the document directly since it's already an IIncidentFilterDocument
+            IIncidentFilterDocument updatedDocument = document switch
+            {
+                IcmIncidentFilterDocument icm => icm with { Priorities = priorities, Priority = string.Empty },
+                AzMonitorIncidentFilterDocument azMonitor => azMonitor with { Priorities = priorities, Priority = string.Empty },
+                PagerDutyIncidentFilterDocument pagerDuty => pagerDuty with { Priorities = priorities, Priority = string.Empty },
+                ServiceNowIncidentFilterDocument serviceNow => serviceNow with { Priorities = priorities, Priority = string.Empty },
+                NullableIncidentFilterDocument nullable => nullable with { Priorities = priorities, Priority = string.Empty },
+                _ => document
+            };
+
+            var result = await _incidentFilterApiService.CreateOrUpdateIncidentFilterAsync(updatedDocument.Id, updatedDocument, dryRun: false);
+            if (result.IsSyncObjectResult)
+            {
+                return result.Response;
+            }
+        }
+        return document;
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
     [HttpGet("filters")]
     [AuthorizeArmOperation(ArmOperations.AgentIncidentManagementReadActionId)]
     [ProducesResponseType(typeof(ErrorEntity), StatusCodes.Status200OK)]
@@ -194,9 +233,8 @@ public class IncidentFilterApiController : ControllerBase
 
         if (result.IsSyncObjectResult)
         {
-            var viewList = result.Response
-                .Select(doc => IncidentFilterView.CreateApiResponseEnvelope(doc))
-                .ToList();
+            var tasks = result.Response.Select(async doc => IncidentFilterView.CreateApiResponseEnvelope(await PreProcessIncidentFilterDocument(doc)));
+            var viewList = (await Task.WhenAll(tasks)).ToList();
             var responseEnvelope = new ApiCollectionEnvelope<IncidentFilterView>
             {
                 Value = [.. viewList]
@@ -230,7 +268,7 @@ public class IncidentFilterApiController : ControllerBase
         if (result.IsSyncObjectResult)
         {
             _logger.LogInternalInformation("GetIncidentFilter completed successfully for filter: {FilterName}", filterName);
-            return Ok(IncidentFilterView.CreateApiResponseEnvelope(result.Response));
+            return Ok(IncidentFilterView.CreateApiResponseEnvelope(await PreProcessIncidentFilterDocument(result.Response)));
         }
 
         _logger.LogInternalError("GetIncidentFilter returned unexpected result for filter: {FilterName}", filterName);

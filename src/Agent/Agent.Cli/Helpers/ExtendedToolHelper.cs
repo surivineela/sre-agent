@@ -334,17 +334,8 @@ Note: This tool queries the comprehensive analytics data source for accurate, re
                 Name = paramName,
                 Type = "string",
                 Description = paramDescription,
-                Required = true,
-                MapTo = string.Empty,
-                Target = string.Empty
+                Required = true
             };
-
-            // Add KustoTool-specific properties
-            if (isKustoTool)
-            {
-                toolParam.MapTo = "args";
-                toolParam.Target = "dictionary:args:string";
-            }
 
             parsedParameters.Add(toolParam);
         }

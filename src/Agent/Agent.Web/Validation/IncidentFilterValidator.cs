@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Models;
 using Agent.Core.Validation;
 using Agent.Data.DataModels;
-using Agent.Runtime.Reasoning;
 
 namespace Agent.Web.Validation;
 
@@ -79,7 +79,7 @@ public class IncidentFilterValidator : IIncidentFilterValidator
         if (document is IncidentFilterDocumentPayload payload)
         {
             ValidateAgentMode(payload.AgentMode, result);
-            ValidatePriority(payload.Priority, result);
+            ValidatePriorities(payload.Priorities, result);
         }
     }
 
@@ -105,19 +105,22 @@ public class IncidentFilterValidator : IIncidentFilterValidator
     /// Validates that Priority is a valid value for the configured incident management platform.
     /// Empty string is allowed as it indicates no specific priority filter is set.
     /// </summary>
-    private void ValidatePriority(string priority, ApiValidationResult result)
+    private void ValidatePriorities(List<string> priorities, ApiValidationResult result)
     {
-        // Empty string is allowed - it means no priority filter is set
-        if (string.IsNullOrEmpty(priority))
+        // Empty array is allowed - it means no priority filter is set
+        if (priorities == null || priorities.Count == 0)
         {
             return;
         }
 
         var incidentType = _incidentManagementSettings.Type;
-        if (!IncidentPriorities.IsValidPriority(incidentType, priority))
+        foreach (var priority in priorities)
         {
-            var validPriorities = IncidentPriorities.GetValidPriorities(incidentType);
-            result.AddError($"Priority '{priority}' is not valid for {incidentType}. Allowed values are: {string.Join(", ", validPriorities)} (case insensitive)");
+            if (!IncidentPriorities.IsValidPriority(incidentType, priority))
+            {
+                var validPriorities = IncidentPriorities.GetValidPriorities(incidentType);
+                result.AddError($"Priority '{priority}' is not valid for {incidentType}. Allowed values are: {string.Join(", ", validPriorities)} (case insensitive)");
+            }
         }
     }
 }

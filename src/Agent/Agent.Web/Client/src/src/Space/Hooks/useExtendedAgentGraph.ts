@@ -317,10 +317,9 @@ export const useExtendedAgentGraph = () => {
                         agentName: agentNames[0], // First agent for backward compatibility
                         agentNames: agentNames, // All agents for multi-agent support
                         status: filter?.isEnabled ? 'Active' : 'Disabled',
-                        priority: filter?.priority || '-',
+                        priorities: filter?.priorities || undefined,
                         incidentType: filter?.incidentType || 'ServiceIssue',
                         service: filter?.impactedService || '-',
-                        severity: filter?.priority || '-',
                         enabled: !!filter?.isEnabled,
                         createdAt: handler.createdAt || new Date().toISOString(),
                         agentMode: filter?.agentMode,
@@ -348,10 +347,9 @@ export const useExtendedAgentGraph = () => {
                         agentName: agentNames[0], // First agent for backward compatibility
                         agentNames: agentNames, // All agents for multi-agent support
                         status: filter.isEnabled ? 'Active' : 'Disabled',
-                        priority: filter.priority || '-',
+                        priorities: filter.priorities || undefined,
                         incidentType: filter.incidentType || 'ServiceIssue',
                         service: filter.impactedService || '-',
-                        severity: filter.priority || '-',
                         titleContains: filter.titleContains || '-',
                         enabled: !!filter.isEnabled,
                         createdAt: filter.createdAt || new Date().toISOString(),

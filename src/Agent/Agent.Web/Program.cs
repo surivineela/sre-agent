@@ -53,6 +53,7 @@ using Agent.Runtime.Helpers;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
+using Agent.Runtime.Services.Adc;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailySummaryAgent;
@@ -179,6 +180,9 @@ public class Program
                     {
                         logger.LogInternalInformation("Agent Memory is not enabled. Skipping Agent Memory setup.");
                     }
+
+                    logger.LogInternalInformation("Ensuring ADC base snapshot...");
+                    await app.Services.EnsureAdcBaseSnapshotAsync();
 
                     logger.LogInternalInformation("Setting up Data Connector index...");
                     var dataConnectorIndex = app.Services.GetRequiredService<DataConnectorIndex>();
@@ -405,6 +409,9 @@ public class Program
         // Add HttpClient factory for plugins that need to make HTTP requests
         builder.Services.AddHttpClient();
 
+        // Add ADC (Azure Dev Compute) sandbox services
+        builder.Services.AddAdcServices(builder.Configuration);
+
         // Register workspace tools and services (file ops, terminal, search, user questions)
         builder.Services.AddWorkspaceServices();
 
@@ -458,6 +465,9 @@ public class Program
 
             .AddTransient<IRunFromPackagePlugin, RunFromPackagePlugin>()
             .AddTransient<RunFromPackagePluginDefinition>()
+
+            .AddTransient<ILinuxWebAppRuntimeStatusPlugin, LinuxWebAppRuntimeStatusPlugin>()
+            .AddTransient<LinuxWebAppRuntimeStatusPluginDefinition>()
 
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
@@ -979,6 +989,10 @@ public class Program
 
         builder.Services.AddHostedService<TimerService>();
         builder.Services.AddSingleton<ISmartFilterService, SmartFilterService>();
+
+        // Add TSG connector clone service for background repository syncing
+        builder.Services.AddSingleton<TsgConnectorCloneService>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<TsgConnectorCloneService>());
 
         // Add new MCP agent services
         builder.Services.AddMcpAgentServices();

@@ -68,14 +68,8 @@ namespace Agent.Cli.Models
         [YamlMember(Alias = "description", ScalarStyle = YamlDotNet.Core.ScalarStyle.Literal)]
         public string? Description { get; set; }
 
-        [YamlMember(Alias = "mapTo")]
-        public string? MapTo { get; set; }
-
         [YamlMember(Alias = "required")]
         public bool? Required { get; set; }
-
-        [YamlMember(Alias = "target")]
-        public string? Target { get; set; }
 
         [YamlMember(Alias = "value")]
         public object? Value { get; set; }

@@ -78,7 +78,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                     var incidentDocument = AzMonitorAlertDocument.FromIncident(incident) with
                     {
                         ResolvedAt = DateTime.UtcNow,
-                        Tags = new List<string>() { "SREAgent_Resolved" },
+                        Tags = ["SREAgent_Resolved"],
                         Status = "closed"
                     };
 
@@ -113,8 +113,10 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             var jsonContent = JsonSerializer.Serialize(payload);
             var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
-            request.Content = content;
+            var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
+            {
+                Content = content
+            };
 
             var response = await httpClient.SendAsync(request);
 
@@ -152,6 +154,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         }
 
         var alertItem = JsonSerializer.Deserialize<AlertItem>(content);
+
         if (alertItem is null)
         {
             throw new Exception($"Failed to deserialize alert item from response content: {content}");
@@ -176,11 +179,16 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         var managedRGs = _crawlerSettings.CrawlRoots.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var managedRGsHashSet = new HashSet<string>(managedRGs, StringComparer.OrdinalIgnoreCase);
 
-        string? severityParam = null; // SevX
-        if (!string.IsNullOrWhiteSpace(filterPayload?.Priority))
+        //Only support multi-select severity levels (severityLevels)
+        HashSet<string>? severityLevels = null;
+        if (filterPayload?.Priorities != null && filterPayload.Priorities.Count > 0)
         {
-            var p = filterPayload.Priority.Trim();
-            severityParam = p.StartsWith("Sev", StringComparison.OrdinalIgnoreCase) ? p : ($"Sev{p}");
+            severityLevels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var sev in filterPayload.Priorities)
+            {
+                var normalized = sev.Trim();
+                severityLevels.Add(normalized.StartsWith("Sev", StringComparison.OrdinalIgnoreCase) ? normalized : $"Sev{normalized}");
+            }
         }
 
         var titleContains = filterPayload?.TitleContains?.Trim();
@@ -236,9 +244,9 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         IEnumerable<AlertItem> filtered = aggregated.Values;
 
         // Severity filter (in-memory) - Essentials.Severity expected to match SevX
-        if (!string.IsNullOrWhiteSpace(severityParam))
+        if (severityLevels != null && severityLevels.Count > 0)
         {
-            filtered = filtered.Where(a => string.Equals(a.Properties?.Essentials?.Severity, severityParam, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(a => a.Properties?.Essentials?.Severity != null && severityLevels.Contains(a.Properties.Essentials.Severity));
         }
 
         // Filter by Title / rule

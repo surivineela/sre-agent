@@ -24,7 +24,12 @@ public class AgentsUsageTests
 
         // Mock the IMcpConnectable service to prevent actual MCP connections during tests
         var mockMcpConnectable = new Mock<IMcpConnectable>();
-        mockMcpConnectable.Setup(m => m.GetAllFunctions()).Returns(new List<AIFunction>());
+        mockMcpConnectable.Setup(m => m.GetAllFunctions()).Returns(
+        [
+            AIFunctionFactory.Create((string query) => "mock docs search result", "microsoft-learn-mcp_microsoft_docs_search"),
+            AIFunctionFactory.Create((string url) => "mock docs fetch result", "microsoft-learn-mcp_microsoft_docs_fetch"),
+            AIFunctionFactory.Create((string query) => "mock code sample result", "microsoft-learn-mcp_microsoft_code_sample_search")
+        ]);
 
         // Replace the IMcpConnectable registration with our mock
         var serviceDescriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IMcpConnectable));

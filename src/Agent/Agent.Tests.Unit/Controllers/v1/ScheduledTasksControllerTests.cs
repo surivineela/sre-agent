@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models;
 using Agent.Data.DataModels;
 using Agent.Framework;
 using Agent.ScheduledTasks.Services;
@@ -10,7 +11,6 @@ using Agent.Web.Models.ScheduledTasks.Response;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Agent.Tests.Unit.Controllers.v1
 {
@@ -508,6 +508,319 @@ namespace Agent.Tests.Unit.Controllers.v1
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        #endregion
+
+        #region CreateScheduledTask AgentMode Tests
+
+        [Fact]
+        public async Task CreateScheduledTask_WithValidAgentMode_CreatesTaskWithSpecifiedMode()
+        {
+            // Arrange
+            var request = new CreateScheduledTaskApiRequest(
+                Name: "Test Task",
+                Description: "Test Description",
+                CronExpression: "0 0 * * *",
+                AgentPrompt: "Test prompt",
+                AgentMode: "readonly"
+            );
+
+            var createdTask = new ScheduledTaskDocument(
+                Id: "task-123",
+                Name: request.Name,
+                Description: request.Description,
+                CronExpression: request.CronExpression,
+                StartTime: DateTime.UtcNow,
+                EndTime: null,
+                AgentPrompt: request.AgentPrompt,
+                Agent: null,
+                ThreadId: null,
+                CreatedBy: "api",
+                CreatedAt: DateTime.UtcNow,
+                LastExecutionTime: null,
+                Status: ScheduledTaskStatus.Active,
+                ExecutionContext: null,
+                ExecutionHistory: new List<ScheduledTaskExecution>(),
+                MaxExecutions: null,
+                ExecutionCount: 0,
+                NotificationChannel: null,
+                AgentMode: "readonly"
+            );
+
+            _mockScheduledTaskService
+                .Setup(x => x.CreateScheduledTask(It.Is<CreateScheduledTaskRequest>(r => r.AgentMode == "readonly")))
+                .ReturnsAsync(createdTask);
+
+            // Act
+            var result = await _controller.CreateScheduledTask(request);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
+            Assert.Equal(201, createdAtActionResult.StatusCode);
+
+            _mockScheduledTaskService.Verify(
+                x => x.CreateScheduledTask(It.Is<CreateScheduledTaskRequest>(r => r.AgentMode == "readonly")),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateScheduledTask_WithoutAgentMode_DefaultsToAutonomous()
+        {
+            // Arrange
+            var request = new CreateScheduledTaskApiRequest(
+                Name: "Test Task",
+                Description: "Test Description",
+                CronExpression: "0 0 * * *",
+                AgentPrompt: "Test prompt"
+            );
+
+            var createdTask = new ScheduledTaskDocument(
+                Id: "task-123",
+                Name: request.Name,
+                Description: request.Description,
+                CronExpression: request.CronExpression,
+                StartTime: DateTime.UtcNow,
+                EndTime: null,
+                AgentPrompt: request.AgentPrompt,
+                Agent: null,
+                ThreadId: null,
+                CreatedBy: "api",
+                CreatedAt: DateTime.UtcNow,
+                LastExecutionTime: null,
+                Status: ScheduledTaskStatus.Active,
+                ExecutionContext: null,
+                ExecutionHistory: new List<ScheduledTaskExecution>(),
+                MaxExecutions: null,
+                ExecutionCount: 0,
+                NotificationChannel: null,
+                AgentMode: AgentModes.Autonomous.ToLowerInvariant()
+            );
+
+            _mockScheduledTaskService
+                .Setup(x => x.CreateScheduledTask(It.Is<CreateScheduledTaskRequest>(
+                    r => r.AgentMode == AgentModes.Autonomous.ToLowerInvariant())))
+                .ReturnsAsync(createdTask);
+
+            // Act
+            var result = await _controller.CreateScheduledTask(request);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
+            Assert.Equal(201, createdAtActionResult.StatusCode);
+
+            _mockScheduledTaskService.Verify(
+                x => x.CreateScheduledTask(It.Is<CreateScheduledTaskRequest>(
+                    r => r.AgentMode == AgentModes.Autonomous.ToLowerInvariant())),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateScheduledTask_WithInvalidAgentMode_ReturnsBadRequest()
+        {
+            // Arrange
+            var request = new CreateScheduledTaskApiRequest(
+                Name: "Test Task",
+                Description: "Test Description",
+                CronExpression: "0 0 * * *",
+                AgentPrompt: "Test prompt",
+                AgentMode: "invalid_mode"
+            );
+
+            // Act
+            var result = await _controller.CreateScheduledTask(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+
+            var errorResponse = badRequestResult.Value;
+            Assert.NotNull(errorResponse);
+
+            // Verify service was never called
+            _mockScheduledTaskService.Verify(
+                x => x.CreateScheduledTask(It.IsAny<CreateScheduledTaskRequest>()),
+                Times.Never);
+        }
+
+        [Theory]
+        [InlineData("readonly")]
+        [InlineData("review")]
+        [InlineData("autonomous")]
+        [InlineData("ReadOnly")]
+        [InlineData("REVIEW")]
+        [InlineData("Autonomous")]
+        public async Task CreateScheduledTask_WithValidAgentModes_CaseInsensitive_Succeeds(string agentMode)
+        {
+            // Arrange
+            var request = new CreateScheduledTaskApiRequest(
+                Name: "Test Task",
+                Description: "Test Description",
+                CronExpression: "0 0 * * *",
+                AgentPrompt: "Test prompt",
+                AgentMode: agentMode
+            );
+
+            var createdTask = new ScheduledTaskDocument(
+                Id: "task-123",
+                Name: request.Name,
+                Description: request.Description,
+                CronExpression: request.CronExpression,
+                StartTime: DateTime.UtcNow,
+                EndTime: null,
+                AgentPrompt: request.AgentPrompt,
+                Agent: null,
+                ThreadId: null,
+                CreatedBy: "api",
+                CreatedAt: DateTime.UtcNow,
+                LastExecutionTime: null,
+                Status: ScheduledTaskStatus.Active,
+                ExecutionContext: null,
+                ExecutionHistory: new List<ScheduledTaskExecution>(),
+                MaxExecutions: null,
+                ExecutionCount: 0,
+                NotificationChannel: null,
+                AgentMode: agentMode
+            );
+
+            _mockScheduledTaskService
+                .Setup(x => x.CreateScheduledTask(It.IsAny<CreateScheduledTaskRequest>()))
+                .ReturnsAsync(createdTask);
+
+            // Act
+            var result = await _controller.CreateScheduledTask(request);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
+            Assert.Equal(201, createdAtActionResult.StatusCode);
+
+            _mockScheduledTaskService.Verify(
+                x => x.CreateScheduledTask(It.IsAny<CreateScheduledTaskRequest>()),
+                Times.Once);
+        }
+
+        #endregion
+
+        #region UpdateScheduledTask AgentMode Tests
+
+        [Fact]
+        public async Task UpdateScheduledTask_WithValidAgentMode_UpdatesSuccessfully()
+        {
+            // Arrange
+            var taskId = "task-123";
+            var request = new UpdateScheduledTaskApiRequest(
+                AgentMode: "review"
+            );
+
+            var updatedTask = new ScheduledTaskDocument(
+                Id: taskId,
+                Name: "Existing Task",
+                Description: "Description",
+                CronExpression: "0 0 * * *",
+                StartTime: DateTime.UtcNow,
+                EndTime: null,
+                AgentPrompt: "Test prompt",
+                Agent: null,
+                ThreadId: null,
+                CreatedBy: "api",
+                CreatedAt: DateTime.UtcNow.AddDays(-1),
+                LastExecutionTime: null,
+                Status: ScheduledTaskStatus.Active,
+                ExecutionContext: null,
+                ExecutionHistory: new List<ScheduledTaskExecution>(),
+                MaxExecutions: null,
+                ExecutionCount: 0,
+                NotificationChannel: null,
+                AgentMode: "review"
+            );
+
+            _mockScheduledTaskService
+                .Setup(x => x.UpdateScheduledTask(taskId, It.Is<UpdateScheduledTaskRequest>(r => r.AgentMode == "review")))
+                .ReturnsAsync(updatedTask);
+
+            // Act
+            var result = await _controller.UpdateScheduledTask(taskId, request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+
+            _mockScheduledTaskService.Verify(
+                x => x.UpdateScheduledTask(taskId, It.Is<UpdateScheduledTaskRequest>(r => r.AgentMode == "review")),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateScheduledTask_WithInvalidAgentMode_ReturnsBadRequest()
+        {
+            // Arrange
+            var taskId = "task-123";
+            var request = new UpdateScheduledTaskApiRequest(
+                AgentMode: "invalid_mode"
+            );
+
+            // Act
+            var result = await _controller.UpdateScheduledTask(taskId, request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+
+            var errorResponse = badRequestResult.Value;
+            Assert.NotNull(errorResponse);
+
+            // Verify service was never called
+            _mockScheduledTaskService.Verify(
+                x => x.UpdateScheduledTask(It.IsAny<string>(), It.IsAny<UpdateScheduledTaskRequest>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateScheduledTask_WithNullAgentMode_DoesNotUpdateAgentMode()
+        {
+            // Arrange
+            var taskId = "task-123";
+            var request = new UpdateScheduledTaskApiRequest(
+                Name: "Updated Name"
+            // AgentMode is null
+            );
+
+            var updatedTask = new ScheduledTaskDocument(
+                Id: taskId,
+                Name: "Updated Name",
+                Description: "Description",
+                CronExpression: "0 0 * * *",
+                StartTime: DateTime.UtcNow,
+                EndTime: null,
+                AgentPrompt: "Test prompt",
+                Agent: null,
+                ThreadId: null,
+                CreatedBy: "api",
+                CreatedAt: DateTime.UtcNow.AddDays(-1),
+                LastExecutionTime: null,
+                Status: ScheduledTaskStatus.Active,
+                ExecutionContext: null,
+                ExecutionHistory: new List<ScheduledTaskExecution>(),
+                MaxExecutions: null,
+                ExecutionCount: 0,
+                NotificationChannel: null,
+                AgentMode: "autonomous" // Keeps existing mode
+            );
+
+            _mockScheduledTaskService
+                .Setup(x => x.UpdateScheduledTask(taskId, It.Is<UpdateScheduledTaskRequest>(r => r.AgentMode == null)))
+                .ReturnsAsync(updatedTask);
+
+            // Act
+            var result = await _controller.UpdateScheduledTask(taskId, request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+
+            _mockScheduledTaskService.Verify(
+                x => x.UpdateScheduledTask(taskId, It.Is<UpdateScheduledTaskRequest>(r => r.AgentMode == null)),
+                Times.Once);
         }
 
         #endregion
