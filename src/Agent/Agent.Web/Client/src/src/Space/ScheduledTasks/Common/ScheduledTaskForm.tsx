@@ -1,11 +1,12 @@
-import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData } from '@fluentui/react-components';
+import { Dropdown, Field, InfoLabel, Input, Option, OptionOnSelectData, Radio, RadioGroup, Text } from '@fluentui/react-components';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
 import { formatDateToTimeString } from '@fluentui/react-timepicker-compat';
 import { useFormikContext } from 'formik';
 import { FC, useMemo, useRef } from 'react';
 import { useIntl } from 'react-intl';
+import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { roundTimeToNearestMinuteInterval } from '../../../Common/Helpers/Date';
-import { ScheduledTasksResources } from '../../../Strings/SREAgentResources';
+import { IncidentManagementResources, ScheduledTasksResources } from '../../../Strings/SREAgentResources';
 import { AgentPromptTextarea } from '../../Components/AgentPromptTextarea';
 import { CopilotTimePicker } from '../../Components/Common/CopilotTimePicker';
 import { ExtendedAgent } from '../../Contracts/ExtendedAgentGraph';
@@ -254,6 +255,30 @@ export const ScheduledTaskForm: FC<FormProps> = ({ agents }) => {
                             setFieldValue('runLimit', data.value);
                         }}
                     />
+                </Field>
+                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
+                    <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
+                        <Radio
+                            value={AgentMode.autonomous}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
+                                    <br />
+                                    <Text size={200}>{intl.formatMessage(ScheduledTasksResources.autonomousTaskDescription)}</Text>
+                                </>
+                            }
+                        />
+                        <Radio
+                            value={AgentMode.review}
+                            label={
+                                <>
+                                    {intl.formatMessage(IncidentManagementResources.reviewWord)}
+                                    <br />
+                                    <Text size={200}>{intl.formatMessage(ScheduledTasksResources.reviewTaskDescription)}</Text>
+                                </>
+                            }
+                        />
+                    </RadioGroup>
                 </Field>
             </div>
         </div>

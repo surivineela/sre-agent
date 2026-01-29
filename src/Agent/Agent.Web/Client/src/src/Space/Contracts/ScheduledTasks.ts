@@ -1,3 +1,5 @@
+import { AgentMode } from '../../Common/Contracts/Azure/SreAgent';
+
 export interface ScheduledTask {
     id: string;
     name: string;
@@ -18,6 +20,7 @@ export interface ScheduledTask {
     executionContext?: Record<string, any>;
     executionHistory?: ScheduledTaskExecution[];
     agent?: string; // The agent name associated with this scheduled task
+    agentMode?: AgentMode; // The agent autonomy level for this scheduled task
 }
 
 export interface ScheduledTaskExecution {
@@ -42,6 +45,7 @@ export interface CreateScheduledTaskRequest {
     executionContext?: Record<string, any>;
     maxExecutions?: number;
     notificationChannel?: string;
+    agentMode?: AgentMode; // The agent autonomy level for this scheduled task
 }
 
 export interface UpdateScheduledTaskRequest {
@@ -55,6 +59,7 @@ export interface UpdateScheduledTaskRequest {
     executionContext?: Record<string, any>;
     maxExecutions?: number;
     notificationChannel?: string;
+    agentMode?: AgentMode; // The agent autonomy level for this scheduled task
 }
 
 export interface CronExpressionGenerationRequest {

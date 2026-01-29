@@ -3565,6 +3565,14 @@ export const ScheduledTasksResources = defineMessages({
     setARunLimit: { defaultMessage: 'Set a run limit', id: 'tTVtNj' },
     setARunLimitPlaceholder: { defaultMessage: "Leave the field blank if there's no limit", id: '26Vq1R' },
     setARunLimitTooltip: { defaultMessage: 'The task will stop running after reaching this number', id: '9X3VEw' },
+    autonomousTaskDescription: {
+        defaultMessage: 'The fully autonomous mode. With the required permissions, the agent takes actions automatically.',
+        id: 'y7RDbZ',
+    },
+    reviewTaskDescription: {
+        defaultMessage: 'The semiautonomous mode. The agent asks for approval before taking actions.',
+        id: '1vOZ+e',
+    },
 
     // Operations and notifications
     createScheduledTaskNotificationTitle: { defaultMessage: 'Create scheduled task', id: 'dJqE3e' },

@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { mixed, object, string } from 'yup';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { AgentMode } from '../../../Common/Contracts/Azure/SreAgent';
 import { roundTimeToNearestMinuteInterval } from '../../../Common/Helpers/Date';
 import { Guid } from '../../../Common/Helpers/Guid';
 import { ScheduledTasksResources, SreAgentResources } from '../../../Strings/SREAgentResources';
@@ -57,6 +58,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                     : GroupMessageKey.NewThread
                 : GroupMessageKey.SameThread,
             runLimit: scheduledTask?.maxExecutions?.toString() ?? undefined,
+            agentMode: scheduledTask?.agentMode ?? AgentMode.autonomous,
         };
     }, [scheduledTask, startingAgent]);
 
@@ -133,6 +135,7 @@ export const useScheduledTaskSettings = (mode: ScheduledTaskDialogMode, schedule
                             : Guid.newGuid() // Generate dedicated thread ID when creating
                         : null, // null for NewThread = create new thread each time (null serializes in JSON unlike undefined)
                 maxExecutions: Number(values.runLimit),
+                agentMode: values.agentMode,
             };
 
             if (mode === ScheduledTaskDialogMode.Create) {
