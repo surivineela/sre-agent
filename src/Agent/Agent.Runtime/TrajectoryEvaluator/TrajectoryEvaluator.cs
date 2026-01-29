@@ -166,7 +166,7 @@ public class TrajectoryEvaluator
                     }
 
                     // Skip daily report threads created by DailyReportScanner
-                    if (thread.Title.StartsWith("Daily Resources Report", StringComparison.OrdinalIgnoreCase) && thread.Source == ThreadSource.Agent)
+                    if (thread.Source == ThreadSource.DailyReport)
                     {
                         dailyReportThreadsFiltered++;
                         continue;
@@ -348,8 +348,9 @@ public class TrajectoryEvaluator
         // 1. User explicitly requested it, OR
         // 2. It's an incident trajectory, OR
         // 3. Thread has more than 3 messages AND conversation contains valuable infrastructure/architecture knowledge worth remembering
-        // Note: We filter out ScheduledTask threads as they generate insights on every run
+        // Note: We filter out ScheduledTask and DailyReport threads
         var shouldGenerateInsights = thread.Source != ThreadSource.ScheduledTask
+            && thread.Source != ThreadSource.DailyReport
             && (isUserRequested
                 || thread.Source == ThreadSource.Incident
                 || (messageCount > 3 && await ContainsValuableInfrastructureKnowledgeAsync(chatTranscript, cancellationToken)));
