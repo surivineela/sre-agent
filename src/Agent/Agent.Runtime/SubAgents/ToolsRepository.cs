@@ -94,6 +94,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
         RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
         RegisterPlugin<FunctionAppDeploymentChecksPluginDefinition>();
+        RegisterPlugin<LinuxWebAppRuntimeStatusPluginDefinition>();
         RegisterPlugin<PostgreSQLPluginDefinition>();
         RegisterPlugin<PagerDutyIncidentPluginDefinition>();
         RegisterPlugin<MdmMetricsPluginDefinition>();

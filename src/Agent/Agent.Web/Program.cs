@@ -466,6 +466,9 @@ public class Program
             .AddTransient<IRunFromPackagePlugin, RunFromPackagePlugin>()
             .AddTransient<RunFromPackagePluginDefinition>()
 
+            .AddTransient<ILinuxWebAppRuntimeStatusPlugin, LinuxWebAppRuntimeStatusPlugin>()
+            .AddTransient<LinuxWebAppRuntimeStatusPluginDefinition>()
+
             .AddTransient<IPostgreSQLPlugin, PostgreSQLPlugin>()
             .AddTransient<PostgreSQLPluginDefinition>()
             .AddTransient<IPostgreSQLAutomationPlugin, PostgreSQLAutomationPlugin>()

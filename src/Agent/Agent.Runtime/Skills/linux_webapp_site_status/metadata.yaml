@@ -1,0 +1,6 @@
+name: linux_webapp_runtime_status
+description: |
+  Load this skill ONLY after the target Azure Web App (App Service) resource context is established and the user asks about the current status of the Linux Web App site, including whether it is running, stopped, or experiencing issues.
+  This skill checks the status of a Linux Web App site using Azure Management APIs and returns the current state of the site.
+tools:
+  - GetLinuxWebAppRuntimeStatus
