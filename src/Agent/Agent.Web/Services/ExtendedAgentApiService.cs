@@ -944,7 +944,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             healthy = result.Success;
             message = healthy
                 ? "ICM connectivity OK."
-                : $"ICM connectivity failed: {result.ErrorMessage ?? "Unknown error"}";
+                : "ICM connectivity failed.";
             if (!healthy && !string.IsNullOrEmpty(result.ErrorMessage))
             {
                 details = new { error = result.ErrorMessage };
@@ -953,7 +953,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "BuildIcmConnectorStatusAsync: Exception occurred while checking ICM connectivity for connector: {ConnectorName}", connectorName);
-            message = $"ICM connectivity check failed: {ex.Message}";
+            message = "ICM connectivity check failed.";
             details = new { error = ex.Message };
         }
         finally
